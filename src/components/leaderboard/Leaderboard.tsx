@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Trophy,
   Medal,
@@ -15,102 +17,36 @@ import {
   Sparkles,
   Zap,
   Target,
-  MessageSquare,
-  Clock,
   Award,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 
 interface LeaderboardAgent {
   id: string;
+  profile_id: string;
   name: string;
   avatar?: string;
   xp: number;
   level: number;
   streak: number;
   messagesHandled: number;
-  avgResponseTime: string;
+  avgResponseTime: number;
   satisfaction: number;
   rank: number;
   previousRank: number;
   achievements: string[];
+  achievementsCount: number;
   isOnline: boolean;
 }
 
-const mockLeaderboardData: LeaderboardAgent[] = [
-  {
-    id: '1',
-    name: 'Ana Silva',
-    xp: 12450,
-    level: 24,
-    streak: 15,
-    messagesHandled: 342,
-    avgResponseTime: '1.2min',
-    satisfaction: 98,
-    rank: 1,
-    previousRank: 2,
-    achievements: ['speed-demon', 'customer-hero', 'streak-master'],
-    isOnline: true,
-  },
-  {
-    id: '2',
-    name: 'Carlos Santos',
-    xp: 11200,
-    level: 22,
-    streak: 12,
-    messagesHandled: 298,
-    avgResponseTime: '1.5min',
-    satisfaction: 96,
-    rank: 2,
-    previousRank: 1,
-    achievements: ['team-player', 'problem-solver'],
-    isOnline: true,
-  },
-  {
-    id: '3',
-    name: 'Maria Oliveira',
-    xp: 10800,
-    level: 21,
-    streak: 8,
-    messagesHandled: 276,
-    avgResponseTime: '1.8min',
-    satisfaction: 95,
-    rank: 3,
-    previousRank: 3,
-    achievements: ['rising-star', 'quick-learner'],
-    isOnline: false,
-  },
-  {
-    id: '4',
-    name: 'Pedro Costa',
-    xp: 9500,
-    level: 19,
-    streak: 5,
-    messagesHandled: 234,
-    avgResponseTime: '2.1min',
-    satisfaction: 92,
-    rank: 4,
-    previousRank: 6,
-    achievements: ['comeback-kid'],
-    isOnline: true,
-  },
-  {
-    id: '5',
-    name: 'Julia Ferreira',
-    xp: 8900,
-    level: 18,
-    streak: 3,
-    messagesHandled: 212,
-    avgResponseTime: '2.0min',
-    satisfaction: 94,
-    rank: 5,
-    previousRank: 4,
-    achievements: ['consistent'],
-    isOnline: true,
-  },
-];
-
 const achievementIcons: Record<string, { icon: typeof Trophy; color: string; label: string }> = {
+  'fast_response': { icon: Zap, color: 'text-primary', label: 'Resposta Rápida' },
+  'streak': { icon: Flame, color: 'text-orange-500', label: 'Streak Master' },
+  'resolution': { icon: Target, color: 'text-success', label: 'Resolvedor' },
+  'perfect_rating': { icon: Star, color: 'text-yellow-500', label: 'Avaliação Perfeita' },
+  'level_up': { icon: TrendingUp, color: 'text-info', label: 'Level Up' },
+  'daily_goal': { icon: Award, color: 'text-purple-500', label: 'Meta Diária' },
   'speed-demon': { icon: Zap, color: 'text-primary', label: 'Speed Demon' },
   'customer-hero': { icon: Award, color: 'text-info', label: 'Customer Hero' },
   'streak-master': { icon: Flame, color: 'text-primary', label: 'Streak Master' },
@@ -200,9 +136,7 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
 }
 
 function AchievementBadge({ achievementKey }: { achievementKey: string }) {
-  const achievement = achievementIcons[achievementKey];
-  if (!achievement) return null;
-
+  const achievement = achievementIcons[achievementKey] || achievementIcons['daily_goal'];
   const Icon = achievement.icon;
 
   return (
@@ -304,7 +238,7 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
             <Avatar className="w-10 h-10 ring-2 ring-border/30">
               <AvatarImage src={agent.avatar} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                {agent.name.split(' ').map((n) => n[0]).join('')}
+                {agent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
             </Avatar>
             {agent.isOnline && (
@@ -315,8 +249,8 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h4 className="font-medium text-sm text-foreground truncate">{agent.name}</h4>
-              {agent.streak >= 10 && (
-                <div className="flex items-center gap-0.5 text-primary">
+              {agent.streak >= 5 && (
+                <div className="flex items-center gap-0.5 text-orange-500">
                   <Flame className="w-3.5 h-3.5" />
                   <span className="text-xs font-medium">{agent.streak}</span>
                 </div>
@@ -332,12 +266,12 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
 
         {/* Achievements */}
         <div className="flex items-center gap-1">
-          {agent.achievements.slice(0, 2).map((achievement) => (
-            <AchievementBadge key={achievement} achievementKey={achievement} />
+          {agent.achievements.slice(0, 2).map((achievement, idx) => (
+            <AchievementBadge key={`${achievement}-${idx}`} achievementKey={achievement} />
           ))}
-          {agent.achievements.length > 2 && (
+          {agent.achievementsCount > 2 && (
             <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-muted/50">
-              +{agent.achievements.length - 2}
+              +{agent.achievementsCount - 2}
             </Badge>
           )}
         </div>
@@ -349,8 +283,139 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
   );
 }
 
+function LeaderboardSkeleton() {
+  return (
+    <div className="space-y-2">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="rounded-xl p-3 border border-border/20 bg-muted/10">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-9 h-9 rounded-full" />
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <div className="flex gap-1">
+              <Skeleton className="w-6 h-6 rounded-full" />
+              <Skeleton className="w-6 h-6 rounded-full" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Leaderboard() {
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('week');
+  const [agents, setAgents] = useState<LeaderboardAgent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchLeaderboard = async () => {
+    try {
+      // Fetch agent stats with profile info
+      const { data: stats, error } = await supabase
+        .from('agent_stats')
+        .select(`
+          *,
+          profiles:profile_id (
+            id,
+            name,
+            avatar_url,
+            is_active
+          )
+        `)
+        .order('xp', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      if (!stats || stats.length === 0) {
+        setAgents([]);
+        return;
+      }
+
+      // Fetch recent achievements for each agent
+      const profileIds = stats.map(s => s.profile_id);
+      const { data: achievements } = await supabase
+        .from('agent_achievements')
+        .select('profile_id, achievement_type')
+        .in('profile_id', profileIds)
+        .order('earned_at', { ascending: false });
+
+      // Group achievements by profile
+      const achievementsByProfile: Record<string, string[]> = {};
+      achievements?.forEach(a => {
+        if (!achievementsByProfile[a.profile_id]) {
+          achievementsByProfile[a.profile_id] = [];
+        }
+        if (!achievementsByProfile[a.profile_id].includes(a.achievement_type)) {
+          achievementsByProfile[a.profile_id].push(a.achievement_type);
+        }
+      });
+
+      const leaderboardAgents: LeaderboardAgent[] = stats.map((stat, index) => {
+        const profile = stat.profiles as { id: string; name: string; avatar_url: string | null; is_active: boolean | null } | null;
+        const agentAchievements = achievementsByProfile[stat.profile_id] || [];
+        
+        return {
+          id: stat.id,
+          profile_id: stat.profile_id,
+          name: profile?.name || 'Agente',
+          avatar: profile?.avatar_url || undefined,
+          xp: stat.xp,
+          level: stat.level,
+          streak: stat.current_streak,
+          messagesHandled: stat.messages_sent + stat.messages_received,
+          avgResponseTime: stat.avg_response_time_seconds || 0,
+          satisfaction: Number(stat.customer_satisfaction_score) * 100 || 0,
+          rank: index + 1,
+          previousRank: index + 1, // TODO: store previous ranks
+          achievements: agentAchievements.slice(0, 5),
+          achievementsCount: stat.achievements_count,
+          isOnline: profile?.is_active ?? false,
+        };
+      });
+
+      setAgents(leaderboardAgents);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('leaderboard-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_stats',
+        },
+        () => {
+          console.log('Agent stats updated, refreshing leaderboard...');
+          fetchLeaderboard();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [timeRange]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchLeaderboard();
+  };
 
   return (
     <div className="rounded-2xl p-5 border border-border/30 bg-card relative overflow-hidden">
@@ -364,52 +429,80 @@ export function Leaderboard() {
             <h3 className="text-base font-semibold text-foreground">
               Ranking
             </h3>
-            <p className="text-xs text-muted-foreground">Top performers</p>
+            <p className="text-xs text-muted-foreground">Top performers em tempo real</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1">
-          {(['today', 'week', 'month'] as const).map((range) => (
+        <div className="flex items-center gap-2">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
-              key={range}
               variant="ghost"
-              size="sm"
-              onClick={() => setTimeRange(range)}
-              className={`text-xs h-7 px-2.5 transition-all ${
-                timeRange === range
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-transparent'
-              }`}
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="h-8 w-8"
             >
-              {range === 'today' ? 'Hoje' : range === 'week' ? 'Semana' : 'Mês'}
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
-          ))}
+          </motion.div>
+          
+          <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1">
+            {(['today', 'week', 'month'] as const).map((range) => (
+              <Button
+                key={range}
+                variant="ghost"
+                size="sm"
+                onClick={() => setTimeRange(range)}
+                className={`text-xs h-7 px-2.5 transition-all ${
+                  timeRange === range
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-transparent'
+                }`}
+              >
+                {range === 'today' ? 'Hoje' : range === 'week' ? 'Semana' : 'Mês'}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Leaderboard List */}
-      <div className="space-y-2">
-        {mockLeaderboardData.map((agent, index) => (
-          <LeaderboardRow key={agent.id} agent={agent} index={index} />
-        ))}
-      </div>
+      {isLoading ? (
+        <LeaderboardSkeleton />
+      ) : agents.length > 0 ? (
+        <div className="space-y-2">
+          {agents.map((agent, index) => (
+            <LeaderboardRow key={agent.id} agent={agent} index={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <Trophy className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+          <p className="text-muted-foreground">Nenhum agente no ranking ainda</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Os agentes aparecerão aqui conforme ganham XP
+          </p>
+        </div>
+      )}
 
       {/* View All Button */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-4 text-center"
-      >
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground hover:text-primary text-xs"
+      {agents.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-4 text-center"
         >
-          Ver ranking completo
-          <ChevronRight className="w-3.5 h-3.5 ml-1" />
-        </Button>
-      </motion.div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-primary text-xs"
+          >
+            Ver ranking completo
+            <ChevronRight className="w-3.5 h-3.5 ml-1" />
+          </Button>
+        </motion.div>
+      )}
     </div>
   );
 }
