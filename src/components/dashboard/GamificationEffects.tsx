@@ -139,6 +139,7 @@ interface StatCardWithGamificationProps {
   changeType: 'positive' | 'negative';
   icon: LucideIcon;
   gradient: string;
+  iconBg?: string;
   achievement?: {
     label: string;
     unlocked: boolean;
@@ -154,6 +155,7 @@ export function StatCardWithGamification({
   changeType,
   icon: Icon,
   gradient,
+  iconBg,
   achievement,
   streak,
   index,
@@ -163,99 +165,35 @@ export function StatCardWithGamification({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -2, scale: 1.01 }}
       className="group relative"
     >
-      <div className="card-interactive relative overflow-hidden border-border/50 hover:border-primary/30 h-full rounded-xl bg-card p-6">
-        {/* Gradient accent top */}
-        <div className={cn(
-          "absolute top-0 left-0 right-0 h-1 bg-gradient-to-r",
-          gradient
-        )} />
-        
-        {/* Hover glow */}
+      <div className="relative overflow-hidden border border-border/30 hover:border-primary/40 h-full rounded-2xl bg-card p-5 transition-all duration-300">
+        {/* Subtle hover glow */}
         <motion.div 
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
           style={{
-            background: `radial-gradient(300px circle at 50% 0%, hsl(var(--primary) / 0.08), transparent 70%)`
+            background: `radial-gradient(300px circle at 80% 20%, hsl(var(--primary) / 0.06), transparent 60%)`
           }}
         />
 
-        {/* Achievement unlocked effect */}
-        {achievement?.unlocked && (
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.3, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <div className={cn(
-              "absolute inset-0 bg-gradient-to-r opacity-20",
-              gradient
-            )} />
-          </motion.div>
-        )}
-
-        <div className="relative">
-          <div className="flex items-start justify-between mb-4">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground font-medium">
-                {title}
-              </p>
-              <motion.p 
-                className="text-3xl font-display font-bold text-foreground"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 + 0.2, type: 'spring' }}
-              >
-                {value}
-              </motion.p>
-            </div>
-            
-            {/* Animated icon container */}
-            <motion.div 
-              className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br relative overflow-hidden",
-                gradient
-              )}
-              whileHover={{ scale: 1.1, rotate: 10 }}
-              transition={{ type: 'spring', stiffness: 400 }}
-            >
-              {/* Icon glow pulse */}
-              <motion.div
-                className="absolute inset-0 bg-white/20"
-                animate={{ opacity: [0, 0.3, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <Icon className="w-6 h-6 text-primary-foreground relative z-10" />
-            </motion.div>
-          </div>
-
-          {/* Change badge with animation */}
+        <div className="relative flex items-start justify-between">
+          {/* Icon container */}
           <motion.div 
-            className="flex items-center gap-2"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 + 0.4 }}
+            className={cn(
+              "w-12 h-12 rounded-xl flex items-center justify-center relative",
+              iconBg || 'bg-primary/10'
+            )}
+            whileHover={{ scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 400 }}
           >
-            <motion.div 
-              className={cn(
-                "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold",
-                changeType === 'positive'
-                  ? 'bg-success/15 text-success'
-                  : 'bg-destructive/15 text-destructive'
-              )}
-              whileHover={{ scale: 1.05 }}
-            >
-              <motion.span
-                animate={changeType === 'positive' ? { y: [0, -2, 0] } : {}}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                {changeType === 'positive' ? '↑' : '↓'}
-              </motion.span>
-              {change}
-            </motion.div>
-            <span className="text-xs text-muted-foreground">vs ontem</span>
+            <Icon className={cn(
+              "w-6 h-6",
+              gradient.includes('primary') ? 'text-primary' :
+              gradient.includes('info') ? 'text-info' :
+              gradient.includes('success') ? 'text-success' :
+              gradient.includes('coins') ? 'text-coins' : 'text-primary'
+            )} />
           </motion.div>
 
           {/* Streak indicator */}
@@ -263,8 +201,7 @@ export function StatCardWithGamification({
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 + 0.6, type: 'spring' }}
-              className="absolute -top-2 -right-2"
+              transition={{ delay: index * 0.1 + 0.4, type: 'spring' }}
             >
               <AnimatedBadge 
                 value={streak} 
@@ -273,29 +210,65 @@ export function StatCardWithGamification({
               />
             </motion.div>
           )}
-
-          {/* Achievement badge */}
-          {achievement?.unlocked && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 + 0.5 }}
-              className="mt-3 pt-3 border-t border-border/30"
-            >
-              <div className="flex items-center gap-2">
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  <Award className="w-4 h-4 text-coins" />
-                </motion.div>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {achievement.label}
-                </span>
-              </div>
-            </motion.div>
-          )}
         </div>
+
+        <div className="mt-4 space-y-1">
+          <p className="text-sm text-muted-foreground font-medium">
+            {title}
+          </p>
+          <motion.p 
+            className="text-3xl font-display font-bold text-foreground"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: index * 0.1 + 0.2, type: 'spring' }}
+          >
+            {value}
+          </motion.p>
+        </div>
+
+        {/* Change badge with animation */}
+        <motion.div 
+          className="flex items-center gap-2 mt-3"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.1 + 0.4 }}
+        >
+          <motion.div 
+            className={cn(
+              "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold",
+              changeType === 'positive'
+                ? 'bg-success/15 text-success'
+                : 'bg-destructive/15 text-destructive'
+            )}
+            whileHover={{ scale: 1.05 }}
+          >
+            <span>{changeType === 'positive' ? '↑' : '↓'}</span>
+            {change}
+          </motion.div>
+          <span className="text-xs text-muted-foreground">vs ontem</span>
+        </motion.div>
+
+        {/* Achievement badge */}
+        {achievement?.unlocked && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 + 0.5 }}
+            className="mt-3 pt-3 border-t border-border/20"
+          >
+            <div className="flex items-center gap-2">
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Award className="w-4 h-4 text-primary" />
+              </motion.div>
+              <span className="text-xs font-medium text-muted-foreground">
+                {achievement.label}
+              </span>
+            </div>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

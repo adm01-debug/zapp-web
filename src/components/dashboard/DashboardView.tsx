@@ -36,7 +36,8 @@ export function DashboardView() {
       change: '+12%',
       changeType: 'positive' as const,
       icon: MessageSquare,
-      gradient: 'from-primary to-primary-glow',
+      gradient: 'from-primary to-amber-500',
+      iconBg: 'bg-primary/15',
       streak: 5,
     },
     {
@@ -45,7 +46,8 @@ export function DashboardView() {
       change: '-8%',
       changeType: 'positive' as const,
       icon: Clock,
-      gradient: 'from-info to-blue-400',
+      gradient: 'from-info to-cyan-400',
+      iconBg: 'bg-info/15',
       achievement: { label: 'Resposta Rápida!', unlocked: true },
     },
     {
@@ -55,6 +57,7 @@ export function DashboardView() {
       changeType: 'positive' as const,
       icon: Users,
       gradient: 'from-success to-emerald-400',
+      iconBg: 'bg-success/15',
     },
     {
       title: 'Resolvidas Hoje',
@@ -62,22 +65,23 @@ export function DashboardView() {
       change: '+24%',
       changeType: 'positive' as const,
       icon: CheckCircle2,
-      gradient: 'from-coins to-yellow-400',
+      gradient: 'from-coins to-amber-400',
+      iconBg: 'bg-coins/15',
       achievement: { label: 'Meta Batida!', unlocked: true },
       streak: 3,
     },
   ];
 
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full relative">
+    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-24 w-64 h-64 bg-primary-glow/5 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 -left-24 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
         <motion.div 
-          className="absolute top-1/4 right-1/4 w-32 h-32 bg-coins/10 rounded-full blur-2xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute top-1/3 right-1/3 w-48 h-48 bg-primary/5 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 6, repeat: Infinity }}
         />
       </div>
 
@@ -132,6 +136,7 @@ export function DashboardView() {
             changeType={stat.changeType}
             icon={stat.icon}
             gradient={stat.gradient}
+            iconBg={stat.iconBg}
             achievement={stat.achievement}
             streak={stat.streak}
             index={index}
@@ -145,18 +150,18 @@ export function DashboardView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.5 }}
       >
-        <Card className="card-elevated border-border/50 overflow-hidden bg-gradient-to-br from-card to-primary/5">
-          <CardHeader className="border-b border-border/30">
+        <Card className="border-border/30 overflow-hidden bg-card">
+          <CardHeader className="border-b border-border/20 bg-muted/5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <motion.div 
-                  className="w-8 h-8 rounded-lg bg-gradient-to-br from-streak to-orange-400 flex items-center justify-center"
-                  animate={{ rotate: [0, 5, -5, 0] }}
+                  className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
+                  animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Target className="w-4 h-4 text-primary-foreground" />
+                  <Target className="w-5 h-5 text-primary" />
                 </motion.div>
-                <CardTitle className="font-display text-lg">Desafios do Dia</CardTitle>
+                <CardTitle className="font-display text-lg text-foreground">Desafios do Dia</CardTitle>
               </div>
               <AnimatedBadge value="2/4" variant="achievement" size="sm" />
             </div>
@@ -236,17 +241,16 @@ export function DashboardView() {
           transition={{ duration: 0.4, delay: 0.3 }}
           className="lg:col-span-2"
         >
-          <Card className="card-elevated border-border/50 overflow-hidden">
-            <CardHeader className="border-b border-border/30 bg-muted/20">
-              <div className="flex items-center gap-2">
+          <Card className="border-border/30 overflow-hidden bg-card">
+            <CardHeader className="border-b border-border/20 bg-muted/5">
+              <div className="flex items-center gap-3">
                 <motion.div 
-                  className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                  className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
+                  whileHover={{ scale: 1.1 }}
                 >
-                  <Sparkles className="w-4 h-4 text-primary" />
+                  <Sparkles className="w-5 h-5 text-primary" />
                 </motion.div>
-                <CardTitle className="font-display text-lg">Status das Filas</CardTitle>
+                <CardTitle className="font-display text-lg text-foreground">Status das Filas</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-6">
@@ -330,13 +334,13 @@ export function DashboardView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.6 }}
       >
-        <Card className="card-elevated border-border/50 overflow-hidden">
-          <CardHeader className="border-b border-border/30 bg-muted/20">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-primary" />
+        <Card className="border-border/30 overflow-hidden bg-card">
+          <CardHeader className="border-b border-border/20 bg-muted/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="w-5 h-5 text-primary" />
               </div>
-              <CardTitle className="font-display text-lg">Atividade Recente</CardTitle>
+              <CardTitle className="font-display text-lg text-foreground">Atividade Recente</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-4">
