@@ -52,7 +52,7 @@ export function QueuesView() {
           const onlineAgents = queueAgents.filter((a) => a.status === 'online');
 
           return (
-            <Card key={queue.id} className="relative overflow-hidden">
+            <Card key={queue.id} className="relative overflow-hidden border border-border/30 bg-card hover:border-primary/30 transition-colors">
               {/* Color bar */}
               <div
                 className="absolute top-0 left-0 right-0 h-1"
@@ -64,7 +64,7 @@ export function QueuesView() {
                   <div className="flex items-center gap-3">
                     <div
                       className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${queue.color}20` }}
+                      style={{ backgroundColor: `${queue.color}15` }}
                     >
                       <MessageSquare
                         className="w-5 h-5"
@@ -72,7 +72,7 @@ export function QueuesView() {
                       />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{queue.name}</CardTitle>
+                      <CardTitle className="text-lg text-foreground">{queue.name}</CardTitle>
                       {queue.description && (
                         <p className="text-sm text-muted-foreground">
                           {queue.description}
@@ -82,20 +82,20 @@ export function QueuesView() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="w-8 h-8">
+                      <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30">
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                    <DropdownMenuContent align="end" className="bg-card border-border/30">
+                      <DropdownMenuItem className="hover:bg-primary/10">
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem className="hover:bg-primary/10">
                         <Settings className="w-4 h-4 mr-2" />
                         Configurações
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem className="text-destructive hover:bg-destructive/10">
                         <Trash2 className="w-4 h-4 mr-2" />
                         Excluir
                       </DropdownMenuItem>
@@ -107,19 +107,19 @@ export function QueuesView() {
               <CardContent className="space-y-4">
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
                     <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Clock className="w-4 h-4" />
                       <span className="text-xs">Aguardando</span>
                     </div>
-                    <span className="text-xl font-bold">{queue.waitingCount}</span>
+                    <span className="text-xl font-bold text-foreground">{queue.waitingCount}</span>
                   </div>
-                  <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
                     <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Users className="w-4 h-4" />
                       <span className="text-xs">Online</span>
                     </div>
-                    <span className="text-xl font-bold">
+                    <span className="text-xl font-bold text-foreground">
                       {onlineAgents.length}/{queueAgents.length}
                     </span>
                   </div>
@@ -134,9 +134,9 @@ export function QueuesView() {
                     <div className="flex -space-x-2">
                       {queueAgents.slice(0, 4).map((agent) => (
                         <div key={agent.id} className="relative">
-                          <Avatar className="w-8 h-8 border-2 border-card">
+                          <Avatar className="w-8 h-8 border-2 border-card ring-1 ring-border/30">
                             <AvatarImage src={agent.avatar} />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
                               {agent.name[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -159,7 +159,7 @@ export function QueuesView() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="ml-auto w-8 h-8"
+                      className="ml-auto w-8 h-8 hover:bg-primary/10 hover:text-primary"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -167,11 +167,11 @@ export function QueuesView() {
                 </div>
 
                 {/* Average wait time */}
-                <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center justify-between pt-2 border-t border-border/20">
                   <span className="text-sm text-muted-foreground">
                     Tempo médio de espera
                   </span>
-                  <Badge variant="secondary">~3 min</Badge>
+                  <Badge variant="secondary" className="bg-muted/30 text-foreground">~3 min</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -179,9 +179,9 @@ export function QueuesView() {
         })}
 
         {/* Add Queue Card */}
-        <Card className="border-dashed cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors">
+        <Card className="border border-dashed border-border/40 cursor-pointer hover:border-primary/50 hover:bg-muted/20 transition-colors bg-transparent">
           <CardContent className="flex flex-col items-center justify-center h-full min-h-[280px] text-muted-foreground">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center mb-3">
               <Plus className="w-6 h-6" />
             </div>
             <p className="font-medium">Adicionar Nova Fila</p>
