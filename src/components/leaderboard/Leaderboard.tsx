@@ -111,15 +111,15 @@ const mockLeaderboardData: LeaderboardAgent[] = [
 ];
 
 const achievementIcons: Record<string, { icon: typeof Trophy; color: string; label: string }> = {
-  'speed-demon': { icon: Zap, color: 'text-yellow-400', label: 'Speed Demon' },
-  'customer-hero': { icon: Award, color: 'text-purple-400', label: 'Customer Hero' },
-  'streak-master': { icon: Flame, color: 'text-orange-400', label: 'Streak Master' },
-  'team-player': { icon: Star, color: 'text-blue-400', label: 'Team Player' },
-  'problem-solver': { icon: Target, color: 'text-green-400', label: 'Problem Solver' },
-  'rising-star': { icon: TrendingUp, color: 'text-pink-400', label: 'Rising Star' },
-  'quick-learner': { icon: Sparkles, color: 'text-cyan-400', label: 'Quick Learner' },
-  'comeback-kid': { icon: Trophy, color: 'text-amber-400', label: 'Comeback Kid' },
-  'consistent': { icon: Medal, color: 'text-emerald-400', label: 'Consistent' },
+  'speed-demon': { icon: Zap, color: 'text-primary', label: 'Speed Demon' },
+  'customer-hero': { icon: Award, color: 'text-info', label: 'Customer Hero' },
+  'streak-master': { icon: Flame, color: 'text-primary', label: 'Streak Master' },
+  'team-player': { icon: Star, color: 'text-coins', label: 'Team Player' },
+  'problem-solver': { icon: Target, color: 'text-success', label: 'Problem Solver' },
+  'rising-star': { icon: TrendingUp, color: 'text-primary', label: 'Rising Star' },
+  'quick-learner': { icon: Sparkles, color: 'text-info', label: 'Quick Learner' },
+  'comeback-kid': { icon: Trophy, color: 'text-coins', label: 'Comeback Kid' },
+  'consistent': { icon: Medal, color: 'text-success', label: 'Consistent' },
 };
 
 function RankBadge({ rank, previousRank }: { rank: number; previousRank: number }) {
@@ -129,28 +129,28 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
     switch (rank) {
       case 1:
         return {
-          bg: 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500',
-          shadow: 'shadow-[0_0_20px_rgba(251,191,36,0.5)]',
+          bg: 'bg-gradient-to-br from-primary to-amber-500',
+          shadow: 'shadow-[0_0_15px_hsl(var(--primary)/0.4)]',
           icon: Crown,
-          iconColor: 'text-yellow-100',
+          iconColor: 'text-primary-foreground',
         };
       case 2:
         return {
-          bg: 'bg-gradient-to-br from-slate-300 via-gray-400 to-slate-500',
-          shadow: 'shadow-[0_0_15px_rgba(148,163,184,0.4)]',
+          bg: 'bg-gradient-to-br from-slate-400 to-slate-500',
+          shadow: '',
           icon: Medal,
           iconColor: 'text-slate-100',
         };
       case 3:
         return {
-          bg: 'bg-gradient-to-br from-amber-600 via-orange-700 to-amber-800',
-          shadow: 'shadow-[0_0_15px_rgba(217,119,6,0.4)]',
+          bg: 'bg-gradient-to-br from-amber-600 to-amber-700',
+          shadow: '',
           icon: Medal,
           iconColor: 'text-amber-100',
         };
       default:
         return {
-          bg: 'bg-gradient-to-br from-muted to-muted/80',
+          bg: 'bg-muted',
           shadow: '',
           icon: null,
           iconColor: '',
@@ -167,25 +167,12 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        className={`relative w-10 h-10 rounded-full ${style.bg} ${style.shadow} flex items-center justify-center`}
+        className={`relative w-9 h-9 rounded-full ${style.bg} ${style.shadow} flex items-center justify-center`}
       >
         {Icon ? (
-          <Icon className={`w-5 h-5 ${style.iconColor}`} />
+          <Icon className={`w-4 h-4 ${style.iconColor}`} />
         ) : (
           <span className="text-sm font-bold text-foreground">{rank}</span>
-        )}
-        {rank <= 3 && (
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{
-              boxShadow: [
-                '0 0 0 0 rgba(251,191,36,0)',
-                '0 0 0 8px rgba(251,191,36,0.1)',
-                '0 0 0 0 rgba(251,191,36,0)',
-              ],
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
         )}
       </motion.div>
       
@@ -194,7 +181,7 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           className={`flex items-center gap-0.5 text-xs font-medium ${
-            rankChange > 0 ? 'text-green-400' : 'text-red-400'
+            rankChange > 0 ? 'text-success' : 'text-destructive'
           }`}
         >
           {rankChange > 0 ? (
@@ -220,11 +207,11 @@ function AchievementBadge({ achievementKey }: { achievementKey: string }) {
 
   return (
     <motion.div
-      whileHover={{ scale: 1.2, rotate: 10 }}
-      className={`w-6 h-6 rounded-full glass-soft flex items-center justify-center ${achievement.color}`}
+      whileHover={{ scale: 1.15 }}
+      className={`w-6 h-6 rounded-full bg-muted/50 flex items-center justify-center ${achievement.color}`}
       title={achievement.label}
     >
-      <Icon className="w-3.5 h-3.5" />
+      <Icon className="w-3 h-3" />
     </motion.div>
   );
 }
@@ -293,100 +280,70 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.1, type: 'spring', stiffness: 100 }}
-      whileHover={{ scale: 1.01, x: 4 }}
-      className={`relative glass-soft rounded-xl p-4 border transition-all cursor-pointer group ${
+      transition={{ delay: index * 0.08, type: 'spring', stiffness: 100 }}
+      whileHover={{ x: 2 }}
+      className={`relative rounded-xl p-3 border transition-all cursor-pointer group ${
         agent.rank === 1
-          ? 'border-yellow-500/30 bg-gradient-to-r from-yellow-500/5 to-transparent'
+          ? 'border-primary/30 bg-primary/5'
           : agent.rank === 2
-          ? 'border-slate-400/30 bg-gradient-to-r from-slate-400/5 to-transparent'
+          ? 'border-slate-400/20 bg-slate-400/5'
           : agent.rank === 3
-          ? 'border-amber-600/30 bg-gradient-to-r from-amber-600/5 to-transparent'
-          : 'border-border/30 hover:border-primary/30'
+          ? 'border-amber-600/20 bg-amber-600/5'
+          : 'border-border/20 bg-muted/10 hover:border-primary/20 hover:bg-muted/20'
       }`}
     >
       <CelebrationParticles isVisible={showCelebration} />
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Rank */}
         <RankBadge rank={agent.rank} previousRank={agent.previousRank} />
 
         {/* Avatar & Info */}
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="relative">
-            <Avatar className="w-12 h-12 ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
+            <Avatar className="w-10 h-10 ring-2 ring-border/30">
               <AvatarImage src={agent.avatar} />
-              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary font-semibold">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                 {agent.name.split(' ').map((n) => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             {agent.isOnline && (
-              <motion.div
-                className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-background"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-card" />
             )}
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-semibold text-foreground truncate">{agent.name}</h4>
+              <h4 className="font-medium text-sm text-foreground truncate">{agent.name}</h4>
               {agent.streak >= 10 && (
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  className="flex items-center gap-0.5 text-orange-400"
-                >
-                  <Flame className="w-4 h-4" />
+                <div className="flex items-center gap-0.5 text-primary">
+                  <Flame className="w-3.5 h-3.5" />
                   <span className="text-xs font-medium">{agent.streak}</span>
-                </motion.div>
+                </div>
               )}
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Nível {agent.level}</span>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span>Nv {agent.level}</span>
               <span>•</span>
               <span className="text-primary font-medium">{agent.xp.toLocaleString()} XP</span>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="hidden md:flex items-center gap-6">
-          <div className="text-center">
-            <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
-              <MessageSquare className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-sm font-semibold">{agent.messagesHandled}</span>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
-              <Clock className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-sm font-semibold">{agent.avgResponseTime}</span>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
-              <Star className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-sm font-semibold">{agent.satisfaction}%</span>
-          </div>
-        </div>
-
         {/* Achievements */}
         <div className="flex items-center gap-1">
-          {agent.achievements.slice(0, 3).map((achievement) => (
+          {agent.achievements.slice(0, 2).map((achievement) => (
             <AchievementBadge key={achievement} achievementKey={achievement} />
           ))}
-          {agent.achievements.length > 3 && (
-            <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-              +{agent.achievements.length - 3}
+          {agent.achievements.length > 2 && (
+            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-muted/50">
+              +{agent.achievements.length - 2}
             </Badge>
           )}
         </div>
 
         {/* Arrow */}
-        <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </motion.div>
   );
@@ -396,40 +353,32 @@ export function Leaderboard() {
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('week');
 
   return (
-    <div className="glass-strong rounded-2xl p-6 border border-border/50 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-2xl pointer-events-none" />
-
+    <div className="rounded-2xl p-5 border border-border/30 bg-card relative overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 relative z-10">
+      <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20"
-          >
-            <Trophy className="w-5 h-5 text-white" />
-          </motion.div>
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-primary" />
+          </div>
           <div>
-            <h3 className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Ranking de Atendentes
+            <h3 className="text-base font-semibold text-foreground">
+              Ranking
             </h3>
-            <p className="text-sm text-muted-foreground">Top performers da equipe</p>
+            <p className="text-xs text-muted-foreground">Top performers</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 glass-soft rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1">
           {(['today', 'week', 'month'] as const).map((range) => (
             <Button
               key={range}
               variant="ghost"
               size="sm"
               onClick={() => setTimeRange(range)}
-              className={`text-xs transition-all ${
+              className={`text-xs h-7 px-2.5 transition-all ${
                 timeRange === range
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-transparent'
               }`}
             >
               {range === 'today' ? 'Hoje' : range === 'week' ? 'Semana' : 'Mês'}
@@ -439,7 +388,7 @@ export function Leaderboard() {
       </div>
 
       {/* Leaderboard List */}
-      <div className="space-y-3 relative z-10">
+      <div className="space-y-2">
         {mockLeaderboardData.map((agent, index) => (
           <LeaderboardRow key={agent.id} agent={agent} index={index} />
         ))}
@@ -449,15 +398,16 @@ export function Leaderboard() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="mt-6 text-center relative z-10"
+        transition={{ delay: 0.5 }}
+        className="mt-4 text-center"
       >
         <Button
-          variant="outline"
-          className="glass border-border/50 hover:border-primary/50 hover:bg-primary/10 transition-all group"
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-primary text-xs"
         >
           Ver ranking completo
-          <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+          <ChevronRight className="w-3.5 h-3.5 ml-1" />
         </Button>
       </motion.div>
     </div>
