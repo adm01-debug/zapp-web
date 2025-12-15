@@ -2,14 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import {
   MessageSquare,
   Users,
   Clock,
-  TrendingUp,
   CheckCircle2,
-  AlertCircle,
-  Loader2,
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
@@ -67,189 +65,251 @@ export function DashboardView() {
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
       {/* Header */}
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground">
           Visão geral do atendimento em tempo real
         </p>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
+        {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className="relative overflow-hidden">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {stat.title}
-                    </p>
-                    <p className="text-3xl font-bold">{stat.value}</p>
-                    <div className="flex items-center gap-1 mt-2">
-                      {stat.changeType === 'positive' ? (
-                        <ArrowUpRight className="w-4 h-4 text-status-open" />
-                      ) : (
-                        <ArrowDownRight className="w-4 h-4 text-destructive" />
-                      )}
-                      <span
-                        className={cn(
-                          'text-sm font-medium',
-                          stat.changeType === 'positive'
-                            ? 'text-status-open'
-                            : 'text-destructive'
-                        )}
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              whileHover={{ y: -4, boxShadow: '0 8px 30px hsl(var(--primary) / 0.15)' }}
+            >
+              <Card className="relative overflow-hidden cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {stat.title}
+                      </p>
+                      <motion.p 
+                        className="text-3xl font-bold"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.6, delay: index * 0.1 + 0.2 }}
                       >
-                        {stat.change}
-                      </span>
-                      <span className="text-xs text-muted-foreground">vs ontem</span>
+                        {stat.value}
+                      </motion.p>
+                      <div className="flex items-center gap-1 mt-2">
+                        {stat.changeType === 'positive' ? (
+                          <ArrowUpRight className="w-4 h-4 text-status-open" />
+                        ) : (
+                          <ArrowDownRight className="w-4 h-4 text-destructive" />
+                        )}
+                        <span
+                          className={cn(
+                            'text-sm font-medium',
+                            stat.changeType === 'positive'
+                              ? 'text-status-open'
+                              : 'text-destructive'
+                          )}
+                        >
+                          {stat.change}
+                        </span>
+                        <span className="text-xs text-muted-foreground">vs ontem</span>
+                      </div>
                     </div>
+                    <motion.div 
+                      className={cn('p-3 rounded-xl', stat.bgColor)}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: 'spring', stiffness: 400 }}
+                    >
+                      <Icon className={cn('w-6 h-6', stat.color)} />
+                    </motion.div>
                   </div>
-                  <div className={cn('p-3 rounded-xl', stat.bgColor)}>
-                    <Icon className={cn('w-6 h-6', stat.color)} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           );
         })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Queues Status */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Status das Filas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {mockQueues.map((queue) => {
-              const queueAgents = mockAgents.filter((a) =>
-                queue.agents.includes(a.id)
-              );
-              const onlineQueueAgents = queueAgents.filter(
-                (a) => a.status === 'online'
-              ).length;
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Status das Filas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StaggeredList className="space-y-4">
+                {mockQueues.map((queue) => {
+                  const queueAgents = mockAgents.filter((a) =>
+                    queue.agents.includes(a.id)
+                  );
+                  const onlineQueueAgents = queueAgents.filter(
+                    (a) => a.status === 'online'
+                  ).length;
 
-              return (
-                <div key={queue.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: queue.color }}
-                      />
-                      <span className="font-medium">{queue.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {queue.waitingCount} aguardando
-                      </Badge>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {onlineQueueAgents}/{queueAgents.length} atendentes online
-                    </span>
-                  </div>
-                  <Progress
-                    value={(queue.waitingCount / 10) * 100}
-                    className="h-2"
-                  />
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
+                  return (
+                    <StaggeredItem key={queue.id}>
+                      <motion.div 
+                        className="space-y-2"
+                        whileHover={{ x: 4 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <motion.div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: queue.color }}
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            />
+                            <span className="font-medium">{queue.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {queue.waitingCount} aguardando
+                            </Badge>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {onlineQueueAgents}/{queueAgents.length} atendentes online
+                          </span>
+                        </div>
+                        <Progress
+                          value={(queue.waitingCount / 10) * 100}
+                          className="h-2"
+                        />
+                      </motion.div>
+                    </StaggeredItem>
+                  );
+                })}
+              </StaggeredList>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Active Agents */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Atendentes Ativos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockAgents
-              .filter((a) => a.status !== 'offline')
-              .map((agent) => (
-                <div
-                  key={agent.id}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <Avatar className="w-9 h-9">
-                        <AvatarImage src={agent.avatar} />
-                        <AvatarFallback>{agent.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <span
-                        className={cn(
-                          'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card',
-                          agent.status === 'online'
-                            ? 'bg-status-online'
-                            : 'bg-status-away'
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{agent.name}</p>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {agent.role === 'supervisor' ? 'Supervisor' : 'Atendente'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {agent.activeChats}/{agent.maxChats}
-                    </p>
-                    <p className="text-xs text-muted-foreground">chats</p>
-                  </div>
-                </div>
-              ))}
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Atendentes Ativos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StaggeredList className="space-y-3">
+                {mockAgents
+                  .filter((a) => a.status !== 'offline')
+                  .map((agent) => (
+                    <StaggeredItem key={agent.id}>
+                      <motion.div
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                        whileHover={{ x: 4 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <Avatar className="w-9 h-9">
+                              <AvatarImage src={agent.avatar} />
+                              <AvatarFallback>{agent.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <motion.span
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className={cn(
+                                'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card',
+                                agent.status === 'online'
+                                  ? 'bg-status-online'
+                                  : 'bg-status-away'
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{agent.name}</p>
+                            <p className="text-xs text-muted-foreground capitalize">
+                              {agent.role === 'supervisor' ? 'Supervisor' : 'Atendente'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">
+                            {agent.activeChats}/{agent.maxChats}
+                          </p>
+                          <p className="text-xs text-muted-foreground">chats</p>
+                        </div>
+                      </motion.div>
+                    </StaggeredItem>
+                  ))}
+              </StaggeredList>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Atividade Recente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {mockConversations.slice(0, 5).map((conv) => (
-              <div
-                key={conv.id}
-                className="flex items-center justify-between py-2 border-b border-border last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-9 h-9">
-                    <AvatarImage src={conv.contact.avatar} />
-                    <AvatarFallback>
-                      {conv.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">{conv.contact.name}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1">
-                      {conv.lastMessage?.content}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'capitalize',
-                    conv.status === 'open' && 'border-status-open text-status-open',
-                    conv.status === 'pending' && 'border-status-pending text-status-pending',
-                    conv.status === 'resolved' && 'border-status-resolved text-status-resolved',
-                    conv.status === 'waiting' && 'border-status-waiting text-status-waiting'
-                  )}
-                >
-                  {conv.status === 'open' ? 'Aberto' : 
-                   conv.status === 'pending' ? 'Pendente' :
-                   conv.status === 'resolved' ? 'Resolvido' : 'Aguardando'}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Atividade Recente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StaggeredList className="space-y-4">
+              {mockConversations.slice(0, 5).map((conv) => (
+                <StaggeredItem key={conv.id}>
+                  <motion.div
+                    className="flex items-center justify-between py-2 border-b border-border last:border-0 cursor-pointer"
+                    whileHover={{ x: 4, backgroundColor: 'hsl(var(--muted) / 0.3)' }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-9 h-9">
+                        <AvatarImage src={conv.contact.avatar} />
+                        <AvatarFallback>
+                          {conv.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">{conv.contact.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {conv.lastMessage?.content}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'capitalize',
+                        conv.status === 'open' && 'border-status-open text-status-open',
+                        conv.status === 'pending' && 'border-status-pending text-status-pending',
+                        conv.status === 'resolved' && 'border-status-resolved text-status-resolved',
+                        conv.status === 'waiting' && 'border-status-waiting text-status-waiting'
+                      )}
+                    >
+                      {conv.status === 'open' ? 'Aberto' : 
+                       conv.status === 'pending' ? 'Pendente' :
+                       conv.status === 'resolved' ? 'Resolvido' : 'Aguardando'}
+                    </Badge>
+                  </motion.div>
+                </StaggeredItem>
+              ))}
+            </StaggeredList>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
