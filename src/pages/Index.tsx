@@ -5,6 +5,10 @@ import { InboxView } from '@/components/inbox/InboxView';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { AgentsView } from '@/components/agents/AgentsView';
 import { QueuesView } from '@/components/queues/QueuesView';
+import { ContactsView } from '@/components/contacts/ContactsView';
+import { ConnectionsView } from '@/components/connections/ConnectionsView';
+import { TagsView } from '@/components/tags/TagsView';
+import { SettingsView } from '@/components/settings/SettingsView';
 import { PageTransition } from '@/components/ui/motion';
 import { mockAgents } from '@/data/mockData';
 
@@ -22,6 +26,14 @@ const Index = () => {
         return <AgentsView />;
       case 'queues':
         return <QueuesView />;
+      case 'contacts':
+        return <ContactsView />;
+      case 'connections':
+        return <ConnectionsView />;
+      case 'tags':
+        return <TagsView />;
+      case 'settings':
+        return <SettingsView />;
       default:
         return (
           <div className="flex items-center justify-center h-full">

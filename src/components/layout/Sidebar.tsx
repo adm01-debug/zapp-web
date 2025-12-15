@@ -32,8 +32,9 @@ const menuItems = [
   { id: 'contacts', icon: Users, label: 'Contatos' },
   { id: 'agents', icon: Phone, label: 'Atendentes' },
   { id: 'queues', icon: Tag, label: 'Filas' },
+  { id: 'connections', icon: Zap, label: 'Conexões' },
+  { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-  { id: 'automations', icon: Zap, label: 'Automações' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
 ];
 
