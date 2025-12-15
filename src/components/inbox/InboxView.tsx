@@ -6,6 +6,7 @@ import { ContactDetails } from './ContactDetails';
 import { mockConversations, mockMessages } from '@/data/mockData';
 import { MessageSquare } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
+import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 
 export function InboxView() {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
@@ -61,6 +62,9 @@ export function InboxView() {
 
   return (
     <div className="flex h-full relative bg-background">
+      {/* Aurora Borealis Effect */}
+      <AuroraBorealis />
+      
       {/* Floating Particles Background */}
       <FloatingParticles />
 

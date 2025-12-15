@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
+import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -194,6 +195,7 @@ export function ClientWalletView() {
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <AuroraBorealis />
       <FloatingParticles />
       {/* Header */}
       <motion.div

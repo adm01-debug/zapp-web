@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Agent } from '@/types/chat';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
+import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { mockAgents, mockQueues } from '@/data/mockData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -50,6 +51,7 @@ export function AgentsView() {
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <AuroraBorealis />
       <FloatingParticles />
       {/* Header */}
       <motion.div 
