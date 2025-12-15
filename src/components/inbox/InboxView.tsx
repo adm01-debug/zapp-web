@@ -59,11 +59,11 @@ export function InboxView() {
     : [];
 
   return (
-    <div className="flex h-full relative">
+    <div className="flex h-full relative bg-background">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-glow/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-64 h-64 bg-primary/3 rounded-full blur-3xl" />
       </div>
 
       {/* Conversation List */}
@@ -94,13 +94,10 @@ export function InboxView() {
             )}
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-muted/30 via-background to-muted/20">
-            <div className="text-center glass-soft p-8 rounded-2xl">
-              <div 
-                className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: 'var(--gradient-primary)' }}
-              >
-                <MessageSquare className="w-10 h-10 text-primary-foreground" />
+          <div className="flex-1 flex items-center justify-center bg-card/50">
+            <div className="text-center p-8">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Selecione uma conversa
