@@ -14,6 +14,7 @@ import {
   Wallet,
   Shield,
   UsersRound,
+  Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,12 +52,18 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
   return (
     <motion.aside
       initial={false}
-      animate={{ width: isCollapsed ? 64 : 256 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="flex flex-col h-screen bg-sidebar border-r border-sidebar-border"
+      animate={{ width: isCollapsed ? 72 : 260 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      className="flex flex-col h-screen glass-strong border-r border-border/50 relative"
+      style={{
+        background: 'linear-gradient(180deg, hsl(var(--sidebar-background)), hsl(var(--background)))',
+      }}
     >
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+      
       {/* Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+      <div className="relative flex items-center justify-between p-4 border-b border-border/30">
         <AnimatePresence mode="wait">
           {!isCollapsed && (
             <motion.div
@@ -64,24 +71,36 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-3"
             >
               <motion.div 
-                className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"
+                className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
+                style={{ background: 'var(--gradient-primary)' }}
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: 'spring', stiffness: 400 }}
               >
-                <MessageSquare className="w-5 h-5 text-primary-foreground" />
+                <Sparkles className="w-5 h-5 text-primary-foreground relative z-10" />
+                <motion.div
+                  className="absolute inset-0 bg-primary-glow/30"
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
               </motion.div>
-              <span className="font-semibold text-sidebar-foreground">MultiChat</span>
+              <div>
+                <span className="font-display font-bold text-lg text-foreground">MultiChat</span>
+                <p className="text-xs text-muted-foreground">Omnichannel</p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+        <motion.div 
+          whileHover={{ scale: 1.1 }} 
+          whileTap={{ scale: 0.9 }}
+        >
           <Button
             variant="ghost"
             size="icon"
-            className="text-sidebar-foreground hover:bg-sidebar-accent"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? (
@@ -94,7 +113,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+      <nav className="relative flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
@@ -104,17 +123,43 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               key={item.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              whileHover={{ x: 4 }}
+              transition={{ duration: 0.3, delay: index * 0.04 }}
+              whileHover={{ x: 4, scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onViewChange(item.id)}
               className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                isActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary'
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative group',
+                'text-muted-foreground hover:text-foreground',
+                isActive 
+                  ? 'text-primary-foreground' 
+                  : 'hover:bg-accent/50'
               )}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              {/* Active background with gradient */}
+              {isActive && (
+                <motion.div
+                  layoutId="activeNav"
+                  className="absolute inset-0 rounded-xl"
+                  style={{ background: 'var(--gradient-primary)' }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              
+              {/* Hover glow effect */}
+              {!isActive && (
+                <motion.div
+                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ 
+                    background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
+                  }}
+                />
+              )}
+              
+              <Icon className={cn(
+                "w-5 h-5 flex-shrink-0 relative z-10 transition-colors duration-200",
+                isActive && "text-primary-foreground"
+              )} />
+              
               <AnimatePresence mode="wait">
                 {!isCollapsed && (
                   <motion.div
@@ -122,14 +167,24 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="flex items-center flex-1 overflow-hidden"
+                    className="flex items-center flex-1 overflow-hidden relative z-10"
                   >
-                    <span className="flex-1 text-left text-sm font-medium whitespace-nowrap">{item.label}</span>
+                    <span className={cn(
+                      "flex-1 text-left text-sm font-medium whitespace-nowrap",
+                      isActive && "text-primary-foreground"
+                    )}>
+                      {item.label}
+                    </span>
                     {item.badge && (
                       <motion.span 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="unread-badge"
+                        className={cn(
+                          "min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold",
+                          isActive 
+                            ? "bg-primary-foreground/20 text-primary-foreground" 
+                            : "bg-primary text-primary-foreground animate-pulse-soft"
+                        )}
                       >
                         {item.badge}
                       </motion.span>
@@ -142,10 +197,20 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
           if (isCollapsed) {
             return (
-              <Tooltip key={item.id}>
+              <Tooltip key={item.id} delayDuration={0}>
                 <TooltipTrigger asChild>{button}</TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>{item.label}</p>
+                <TooltipContent 
+                  side="right" 
+                  className="glass border-border/50 bg-popover/95 backdrop-blur-xl"
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{item.label}</p>
+                    {item.badge && (
+                      <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
                 </TooltipContent>
               </Tooltip>
             );
@@ -161,31 +226,37 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="p-3 border-t border-sidebar-border"
+          className="relative p-3 border-t border-border/30"
         >
           <motion.div
-            whileHover={{ backgroundColor: 'hsl(var(--sidebar-accent))' }}
+            whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'flex items-center gap-3 p-2 rounded-lg cursor-pointer',
+              'flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-200',
+              'bg-accent/30 hover:bg-accent/50 border border-transparent hover:border-border/50',
               isCollapsed && 'justify-center'
             )}
           >
             <div className="relative">
-              <Avatar className="w-9 h-9">
+              <Avatar className="w-10 h-10 ring-2 ring-border/50">
                 <AvatarImage src={currentAgent.avatar} />
-                <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground text-sm">
+                <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold">
                   {currentAgent.name.split(' ').map((n) => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <motion.span
-                animate={{ scale: [1, 1.2, 1] }}
+                animate={{ 
+                  scale: currentAgent.status === 'online' ? [1, 1.2, 1] : 1,
+                  boxShadow: currentAgent.status === 'online' 
+                    ? ['0 0 0 0 hsl(var(--success) / 0.4)', '0 0 0 4px hsl(var(--success) / 0)', '0 0 0 0 hsl(var(--success) / 0.4)']
+                    : 'none'
+                }}
                 transition={{ duration: 2, repeat: Infinity }}
                 className={cn(
-                  'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-sidebar',
-                  currentAgent.status === 'online' && 'bg-status-online',
-                  currentAgent.status === 'away' && 'bg-status-away',
-                  currentAgent.status === 'offline' && 'bg-status-offline'
+                  'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background',
+                  currentAgent.status === 'online' && 'bg-success',
+                  currentAgent.status === 'away' && 'bg-warning',
+                  currentAgent.status === 'offline' && 'bg-muted-foreground'
                 )}
               />
             </div>
@@ -197,10 +268,15 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                   exit={{ opacity: 0, width: 0 }}
                   className="flex-1 min-w-0 overflow-hidden"
                 >
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  <p className="text-sm font-semibold text-foreground truncate">
                     {currentAgent.name}
                   </p>
-                  <p className="text-xs text-muted-foreground capitalize">
+                  <p className={cn(
+                    "text-xs font-medium capitalize",
+                    currentAgent.status === 'online' && 'text-success',
+                    currentAgent.status === 'away' && 'text-warning',
+                    currentAgent.status === 'offline' && 'text-muted-foreground'
+                  )}>
                     {currentAgent.status === 'online' ? 'Online' : currentAgent.status === 'away' ? 'Ausente' : 'Offline'}
                   </p>
                 </motion.div>
@@ -212,13 +288,13 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}
                 >
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-sidebar-foreground hover:bg-sidebar-accent flex-shrink-0"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg flex-shrink-0"
                     onClick={onLogout}
                   >
                     <LogOut className="w-4 h-4" />
