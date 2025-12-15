@@ -9,6 +9,9 @@ import { motion, AnimatePresence, StaggeredList, StaggeredItem } from '@/compone
 import { TypingIndicator } from './TypingIndicator';
 import { MessageReactions } from './MessageReactions';
 import { MessageImage } from './ImagePreview';
+import { TransferDialog } from './TransferDialog';
+import { ScheduleMessageDialog } from './ScheduleMessageDialog';
+import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +41,8 @@ import {
   X,
   Check,
   CheckCheck,
+  Clock,
+  ArrowRight,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -89,6 +94,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [reactions, setReactions] = useState(mockReactions);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -147,6 +154,19 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         [messageId]: [...messageReactions, { emoji, count: 1 }],
       };
     });
+  };
+
+  const handleTransfer = (type: 'agent' | 'queue', targetId: string, message?: string) => {
+    toast({
+      title: 'Chat transferido!',
+      description: type === 'agent' 
+        ? 'O chat foi transferido para outro atendente.'
+        : 'O chat foi transferido para outra fila.',
+    });
+  };
+
+  const handleScheduleMessage = (message: string, scheduledAt: Date, attachment?: File) => {
+    console.log('Scheduled message:', { message, scheduledAt, attachment });
   };
 
   const filteredQuickReplies = mockQuickReplies.filter(
@@ -239,9 +259,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                 <Tag className="w-4 h-4 mr-2" />
                 Adicionar tag
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <UserPlus className="w-4 h-4 mr-2" />
+              <DropdownMenuItem onClick={() => setShowTransferDialog(true)}>
+                <ArrowRight className="w-4 h-4 mr-2" />
                 Transferir
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowScheduleDialog(true)}>
+                <Clock className="w-4 h-4 mr-2" />
+                Agendar mensagem
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
@@ -277,8 +301,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               <span className="font-medium">{conversation.assignedTo.name}</span>
             </div>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="ghost" size="sm" className="text-xs h-7">
-                <UserPlus className="w-3 h-3 mr-1" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs h-7"
+                onClick={() => setShowTransferDialog(true)}
+              >
+                <ArrowRight className="w-3 h-3 mr-1" />
                 Transferir
               </Button>
             </motion.div>
@@ -506,6 +535,17 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             </Button>
           </motion.div>
 
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => setShowScheduleDialog(true)}
+            >
+              <Clock className="w-5 h-5" />
+            </Button>
+          </motion.div>
+
           <motion.div 
             whileHover={{ scale: 1.05 }} 
             whileTap={{ scale: 0.95 }}
@@ -520,6 +560,19 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Dialogs */}
+      <TransferDialog
+        open={showTransferDialog}
+        onOpenChange={setShowTransferDialog}
+        onTransfer={handleTransfer}
+      />
+      
+      <ScheduleMessageDialog
+        open={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+        onSchedule={handleScheduleMessage}
+      />
     </div>
   );
 }
