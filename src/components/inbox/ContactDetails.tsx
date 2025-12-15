@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { mockAgents, mockQueues } from '@/data/mockData';
 import { PrivateNotes } from './PrivateNotes';
+import { ConversationHistory } from './ConversationHistory';
 import { motion } from 'framer-motion';
 
 interface ContactDetailsProps {
@@ -255,7 +256,19 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <PrivateNotes contactId={contact.phone} />
         </motion.div>
 
-        {/* Conversation Stats */}
+        {/* Conversation History */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="p-4 border-b border-border/30"
+        >
+          <ConversationHistory 
+            contactId={contact.id || contact.phone} 
+            contactPhone={contact.phone}
+            onSelectConversation={(id) => console.log('Selected conversation:', id)}
+          />
+        </motion.div>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
