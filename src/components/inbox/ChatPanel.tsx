@@ -13,6 +13,8 @@ import { TransferDialog } from './TransferDialog';
 import { ScheduleMessageDialog } from './ScheduleMessageDialog';
 import { AudioRecorder } from './AudioRecorder';
 import { AISuggestions } from './AISuggestions';
+import { MessageTemplates } from './MessageTemplates';
+import { GlobalSearch } from './GlobalSearch';
 import { CallDialog } from '@/components/calls/CallDialog';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -47,6 +49,7 @@ import {
   Clock,
   ArrowRight,
   PhoneCall,
+  Search,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -103,7 +106,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -132,6 +137,11 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+    // Ctrl+K for global search
+    if (e.key === 'k' && e.ctrlKey) {
+      e.preventDefault();
+      setShowGlobalSearch(true);
     }
     if (inputValue.startsWith('/')) {
       setShowQuickReplies(true);
@@ -263,6 +273,17 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         </div>
 
         <div className="flex items-center gap-1">
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+              onClick={() => setShowGlobalSearch(true)}
+              title="Buscar (Ctrl+K)"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </motion.div>
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Button 
               variant="ghost" 
@@ -559,6 +580,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               contactName={conversation.contact.name}
               onSelectSuggestion={(text) => setInputValue(text)}
             />
+            
+            {/* Message Templates */}
+            <MessageTemplates onSelectTemplate={(text) => setInputValue(text)} />
           </div>
 
           <div className="flex-1 relative group">
@@ -660,6 +684,19 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         }}
         direction={callDirection}
         onEnd={handleEndCall}
+      />
+
+      {/* Global Search */}
+      <GlobalSearch
+        open={showGlobalSearch}
+        onOpenChange={setShowGlobalSearch}
+        onSelectResult={(result) => {
+          console.log('Selected:', result);
+          toast({
+            title: "Resultado selecionado",
+            description: result.title
+          });
+        }}
       />
     </div>
   );
