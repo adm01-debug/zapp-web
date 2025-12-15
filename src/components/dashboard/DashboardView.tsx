@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   MessageSquare,
   Users,
@@ -14,6 +15,7 @@ import {
   Trophy,
   Target,
   Zap,
+  BarChart3,
 } from 'lucide-react';
 import { mockAgents, mockQueues, mockConversations } from '@/data/mockData';
 import { cn } from '@/lib/utils';
@@ -22,6 +24,7 @@ import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { DemoAchievements } from '@/components/gamification/DemoAchievements';
 import { FloatingParticles } from './FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
+import { SLAMetricsDashboard } from './SLAMetricsDashboard';
 
 export function DashboardView() {
   const totalConversations = mockConversations.length;
@@ -142,24 +145,38 @@ export function DashboardView() {
         </div>
       </motion.div>
 
-      {/* Stats Grid with Gamification */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
-        {stats.map((stat, index) => (
-          <StatCardWithGamification
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            change={stat.change}
-            changeType={stat.changeType}
-            icon={stat.icon}
-            gradient={stat.gradient}
-            iconBg={stat.iconBg}
-            achievement={stat.achievement}
-            streak={stat.streak}
-            index={index}
-          />
-        ))}
-      </div>
+      {/* Tabs for Dashboard Views */}
+      <Tabs defaultValue="overview" className="relative z-10">
+        <TabsList className="mb-4 bg-muted/50 border border-border/30">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="sla" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Métricas SLA
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          {/* Stats Grid with Gamification */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+            {stats.map((stat, index) => (
+              <StatCardWithGamification
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                change={stat.change}
+                changeType={stat.changeType}
+                icon={stat.icon}
+                gradient={stat.gradient}
+                iconBg={stat.iconBg}
+                achievement={stat.achievement}
+                streak={stat.streak}
+                index={index}
+              />
+            ))}
+          </div>
 
       {/* Daily Challenges */}
       <motion.div
@@ -412,6 +429,12 @@ export function DashboardView() {
       >
         <DemoAchievements />
       </motion.div>
+        </TabsContent>
+
+        <TabsContent value="sla">
+          <SLAMetricsDashboard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
