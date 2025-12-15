@@ -169,12 +169,16 @@ export type Database = {
         Row: {
           assigned_to: string | null
           avatar_url: string | null
+          company: string | null
           created_at: string
           email: string | null
           id: string
+          job_title: string | null
           name: string
+          nickname: string | null
           notes: string | null
           phone: string
+          surname: string | null
           tags: string[] | null
           updated_at: string
           whatsapp_connection_id: string | null
@@ -182,12 +186,16 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           avatar_url?: string | null
+          company?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          job_title?: string | null
           name: string
+          nickname?: string | null
           notes?: string | null
           phone: string
+          surname?: string | null
           tags?: string[] | null
           updated_at?: string
           whatsapp_connection_id?: string | null
@@ -195,12 +203,16 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           avatar_url?: string | null
+          company?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          job_title?: string | null
           name?: string
+          nickname?: string | null
           notes?: string | null
           phone?: string
+          surname?: string | null
           tags?: string[] | null
           updated_at?: string
           whatsapp_connection_id?: string | null
