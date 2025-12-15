@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { InboxView } from '@/components/inbox/InboxView';
@@ -9,12 +10,35 @@ import { ContactsView } from '@/components/contacts/ContactsView';
 import { ConnectionsView } from '@/components/connections/ConnectionsView';
 import { TagsView } from '@/components/tags/TagsView';
 import { SettingsView } from '@/components/settings/SettingsView';
+import { ClientWalletView } from '@/components/wallet/ClientWalletView';
 import { PageTransition } from '@/components/ui/motion';
-import { mockAgents } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, profile, loading, signOut } = useAuth();
   const [currentView, setCurrentView] = useState('inbox');
-  const currentAgent = mockAgents[0];
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-4 border-whatsapp border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const renderView = () => {
     switch (currentView) {
@@ -30,6 +54,8 @@ const Index = () => {
         return <ContactsView />;
       case 'connections':
         return <ConnectionsView />;
+      case 'wallet':
+        return <ClientWalletView />;
       case 'tags':
         return <TagsView />;
       case 'settings':
@@ -56,10 +82,11 @@ const Index = () => {
         currentView={currentView}
         onViewChange={setCurrentView}
         currentAgent={{
-          name: currentAgent.name,
-          avatar: currentAgent.avatar,
-          status: currentAgent.status,
+          name: profile?.name || user.email || 'Usuário',
+          avatar: profile?.avatar_url || undefined,
+          status: 'online',
         }}
+        onLogout={signOut}
       />
       <main className="flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
