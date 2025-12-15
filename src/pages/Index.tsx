@@ -1,14 +1,16 @@
 import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { InboxView } from '@/components/inbox/InboxView';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { AgentsView } from '@/components/agents/AgentsView';
 import { QueuesView } from '@/components/queues/QueuesView';
+import { PageTransition } from '@/components/ui/motion';
 import { mockAgents } from '@/data/mockData';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('inbox');
-  const currentAgent = mockAgents[0]; // Simulating logged in agent
+  const currentAgent = mockAgents[0];
 
   const renderView = () => {
     switch (currentView) {
@@ -48,7 +50,11 @@ const Index = () => {
         }}
       />
       <main className="flex-1 overflow-hidden">
-        {renderView()}
+        <AnimatePresence mode="wait">
+          <PageTransition key={currentView}>
+            {renderView()}
+          </PageTransition>
+        </AnimatePresence>
       </main>
     </div>
   );
