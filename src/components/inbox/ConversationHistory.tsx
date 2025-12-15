@@ -8,13 +8,21 @@ import {
   ChevronRight,
   Calendar,
   Loader2,
-  History
+  History,
+  Filter
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface ConversationHistoryItem {
@@ -31,6 +39,15 @@ interface ConversationHistoryProps {
   contactPhone: string;
   onSelectConversation?: (conversationId: string) => void;
 }
+
+type PeriodFilter = '7d' | '30d' | '90d' | 'all';
+
+const periodOptions: { value: PeriodFilter; label: string; days: number | null }[] = [
+  { value: '7d', label: 'Últimos 7 dias', days: 7 },
+  { value: '30d', label: 'Últimos 30 dias', days: 30 },
+  { value: '90d', label: 'Últimos 90 dias', days: 90 },
+  { value: 'all', label: 'Todo o histórico', days: null },
+];
 
 const statusConfig = {
   resolved: { 
@@ -54,21 +71,34 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
   const [conversations, setConversations] = useState<ConversationHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d');
 
   useEffect(() => {
     fetchConversationHistory();
-  }, [contactId, contactPhone]);
+  }, [contactId, contactPhone, periodFilter]);
 
   const fetchConversationHistory = async () => {
     setIsLoading(true);
     try {
+      // Get the date filter
+      const selectedPeriod = periodOptions.find(p => p.value === periodFilter);
+      const fromDate = selectedPeriod?.days 
+        ? subDays(new Date(), selectedPeriod.days).toISOString()
+        : null;
+
       // Fetch messages grouped by date to simulate conversation sessions
-      const { data: messages, error } = await supabase
+      let query = supabase
         .from('messages')
         .select('id, content, created_at, sender')
         .eq('contact_id', contactId)
         .order('created_at', { ascending: false })
         .limit(100);
+
+      if (fromDate) {
+        query = query.gte('created_at', fromDate);
+      }
+
+      const { data: messages, error } = await query;
 
       if (error) {
         console.error('Error fetching conversation history:', error);
@@ -134,6 +164,7 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
   };
 
   const displayedConversations = isExpanded ? conversations : conversations.slice(0, 3);
+  const selectedPeriodLabel = periodOptions.find(p => p.value === periodFilter)?.label || '';
 
   return (
     <div className="space-y-3">
@@ -142,12 +173,28 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
           <History className="w-4 h-4 text-primary" />
           Histórico
         </h5>
-        {conversations.length > 0 && (
-          <Badge variant="secondary" className="text-[10px] bg-muted/50">
-            {conversations.length} conversa{conversations.length !== 1 ? 's' : ''}
-          </Badge>
-        )}
       </div>
+
+      {/* Period Filter */}
+      <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as PeriodFilter)}>
+        <SelectTrigger className="w-full h-8 text-xs bg-muted/20 border-border/30 hover:border-primary/30">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3 h-3 text-muted-foreground" />
+            <SelectValue placeholder="Filtrar período" />
+          </div>
+        </SelectTrigger>
+        <SelectContent className="bg-card border-border/30">
+          {periodOptions.map((option) => (
+            <SelectItem 
+              key={option.value} 
+              value={option.value}
+              className="text-xs hover:bg-primary/10"
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
