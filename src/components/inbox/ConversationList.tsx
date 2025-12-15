@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
+import { SLAIndicator } from './SLAIndicator';
 import {
   Search,
   Filter,
@@ -202,6 +203,18 @@ export function ConversationList({
                               {conversation.unreadCount}
                             </motion.span>
                           )}
+                        </div>
+
+                        {/* SLA Indicator */}
+                        <div className="mt-2">
+                          <SLAIndicator
+                            firstMessageAt={conversation.createdAt}
+                            firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
+                            resolvedAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
+                            firstResponseMinutes={conversation.priority === 'high' ? 2 : 5}
+                            resolutionMinutes={conversation.priority === 'high' ? 30 : 60}
+                            compact
+                          />
                         </div>
 
                         {/* Tags */}

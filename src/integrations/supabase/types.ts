@@ -331,6 +331,60 @@ export type Database = {
           },
         ]
       }
+      conversation_sla: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          first_message_at: string
+          first_response_at: string | null
+          first_response_breached: boolean | null
+          id: string
+          resolution_breached: boolean | null
+          resolved_at: string | null
+          sla_configuration_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          first_message_at?: string
+          first_response_at?: string | null
+          first_response_breached?: boolean | null
+          id?: string
+          resolution_breached?: boolean | null
+          resolved_at?: string | null
+          sla_configuration_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          first_message_at?: string
+          first_response_at?: string | null
+          first_response_breached?: boolean | null
+          id?: string
+          resolution_breached?: boolean | null
+          resolved_at?: string | null
+          sla_configuration_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_sla_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_sla_sla_configuration_id_fkey"
+            columns: ["sla_configuration_id"]
+            isOneToOne: false
+            referencedRelation: "sla_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_templates: {
         Row: {
           category: string | null
@@ -494,6 +548,42 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      sla_configurations: {
+        Row: {
+          created_at: string
+          first_response_minutes: number
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          priority: string
+          resolution_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_response_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          priority?: string
+          resolution_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_response_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          priority?: string
+          resolution_minutes?: number
+          updated_at?: string
         }
         Relationships: []
       }
