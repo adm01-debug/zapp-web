@@ -298,15 +298,28 @@ export function ContactsView() {
       <FloatingParticles />
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="flex items-center justify-between relative z-10"
       >
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Contatos</h1>
-          <p className="text-muted-foreground">
+          <motion.h1 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-2xl font-bold text-foreground neon-underline"
+          >
+            Contatos
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-muted-foreground"
+          >
             Base de clientes e leads ({contacts.length} contatos)
-          </p>
+          </motion.p>
         </div>
         <div className="flex items-center gap-2">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

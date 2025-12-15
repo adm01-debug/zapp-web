@@ -87,14 +87,17 @@ export function DashboardView() {
 
       {/* Header with Level Progress */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="relative"
+        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-3">
             <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, type: 'spring', stiffness: 200 }}
               className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden glow-gradient-pulse"
               style={{ background: 'var(--gradient-primary)' }}
               whileHover={{ scale: 1.05, rotate: 5 }}
@@ -102,10 +105,22 @@ export function DashboardView() {
               <TrendingUp className="w-6 h-6 text-primary-foreground relative z-10" />
             </motion.div>
             <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground text-sm">
+              <motion.h1 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="font-display text-2xl font-bold text-foreground neon-underline"
+              >
+                Dashboard
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="text-muted-foreground text-sm"
+              >
                 Visão geral do atendimento em tempo real
-              </p>
+              </motion.p>
             </div>
           </div>
 

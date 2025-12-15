@@ -87,17 +87,36 @@ export function SettingsView() {
       <FloatingParticles />
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="flex items-center justify-between relative z-10"
       >
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
-          <p className="text-muted-foreground">
+          <motion.h1 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-2xl font-bold text-foreground neon-underline"
+          >
+            Configurações
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-muted-foreground"
+          >
             Configure o comportamento da plataforma
-          </p>
+          </motion.p>
         </div>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          whileHover={{ scale: 1.02 }} 
+          whileTap={{ scale: 0.98 }}
+        >
           <Button onClick={handleSave} className="bg-whatsapp hover:bg-whatsapp-dark text-white">
             <Save className="w-4 h-4 mr-2" />
             Salvar Alterações
