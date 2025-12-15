@@ -11,11 +11,11 @@
     --font-display: 'Outfit', system-ui, sans-serif;
 
     /* ===== BASE ===== */
-    --background: 220 20% 97%;
+    --background: 40 20% 95%;
     --foreground: 225 25% 12%;
     
     /* ===== CARDS ===== */
-    --card: 0 0% 100%;
+    --card: 40 25% 97%;
     --card-foreground: 225 25% 12%;
     --card-elevated: 0 0% 100%;
     
@@ -23,21 +23,21 @@
     --popover: 0 0% 100%;
     --popover-foreground: 225 25% 12%;
     
-    /* ===== CORES PRIMÁRIAS (WhatsApp Green) ===== */
-    --primary: 142 70% 45%;
+    /* ===== CORES PRIMÁRIAS (Roxo vibrante) ===== */
+    --primary: 252 87% 64%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 75% 55%;
+    --primary-glow: 252 90% 75%;
     
     /* ===== CORES SECUNDÁRIAS ===== */
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 20% 20%;
+    --secondary: 40 30% 92%;
+    --secondary-foreground: 225 25% 20%;
     
     /* ===== MUTED ===== */
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 40 20% 90%;
+    --muted-foreground: 225 22% 38%;
     
     /* ===== ACCENT ===== */
-    --accent: 220 15% 88%;
+    --accent: 40 30% 88%;
     --accent-foreground: 225 25% 15%;
     
     /* ===== DESTRUCTIVE ===== */
@@ -45,9 +45,9 @@
     --destructive-foreground: 0 0% 100%;
     
     /* ===== BORDAS E INPUTS ===== */
-    --border: 220 15% 88%;
-    --input: 220 15% 90%;
-    --ring: 142 70% 45%;
+    --border: 40 20% 82%;
+    --input: 40 20% 88%;
+    --ring: 252 87% 64%;
     
     /* ===== RADIUS ===== */
     --radius: 0.75rem;
@@ -60,29 +60,45 @@
     --info: 200 80% 50%;
     --info-foreground: 0 0% 100%;
 
+    /* ===== GAMIFICAÇÃO ===== */
+    --xp: 280 85% 60%;
+    --xp-foreground: 0 0% 100%;
+    --coins: 45 93% 47%;
+    --coins-foreground: 0 0% 10%;
+    --streak: 25 95% 53%;
+    --streak-foreground: 0 0% 100%;
+
+    /* ===== RANKS ===== */
+    --rank-gold: 45 93% 47%;
+    --rank-gold-foreground: 45 100% 15%;
+    --rank-silver: 220 13% 70%;
+    --rank-silver-foreground: 220 20% 20%;
+    --rank-bronze: 30 50% 50%;
+    --rank-bronze-foreground: 30 60% 15%;
+
     /* ===== WhatsApp Specific ===== */
     --whatsapp: 142 70% 45%;
     --whatsapp-dark: 142 70% 35%;
     --online: 142 70% 50%;
     --away: 45 90% 50%;
     --offline: 0 0% 60%;
-    --unread: 142 70% 45%;
+    --unread: 252 87% 64%;
     
     /* ===== Sidebar ===== */
-    --sidebar-background: 220 25% 12%;
-    --sidebar-foreground: 220 10% 85%;
-    --sidebar-primary: 142 70% 45%;
+    --sidebar-background: 40 25% 97%;
+    --sidebar-foreground: 225 25% 12%;
+    --sidebar-primary: 252 87% 64%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 220 10% 90%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 142 70% 45%;
+    --sidebar-accent: 40 30% 92%;
+    --sidebar-accent-foreground: 225 25% 15%;
+    --sidebar-border: 40 20% 88%;
+    --sidebar-ring: 252 87% 64%;
 
     /* ===== Chat Specific ===== */
-    --chat-bubble-sent: 142 70% 45%;
+    --chat-bubble-sent: 252 87% 64%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 220 15% 95%;
-    --chat-bubble-received-foreground: 220 20% 15%;
+    --chat-bubble-received: 40 25% 95%;
+    --chat-bubble-received-foreground: 225 25% 15%;
     --chat-header: 0 0% 100%;
     --chat-input-bg: 0 0% 100%;
 
@@ -98,11 +114,13 @@
     --priority-low: 220 10% 60%;
 
     /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(142 70% 45%), hsl(142 75% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(220 15% 92%), hsl(220 15% 97%));
+    --gradient-primary: linear-gradient(135deg, hsl(252 87% 64%), hsl(280 85% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(40 30% 92%), hsl(40 25% 97%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 20% 97%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(220 15% 82% / 0.5), transparent);
+    --gradient-xp: linear-gradient(90deg, hsl(280 85% 60%), hsl(252 87% 64%));
+    --gradient-gold: linear-gradient(135deg, hsl(45 93% 47%), hsl(38 92% 50%));
+    --gradient-surface: linear-gradient(180deg, hsl(40 25% 97%), hsl(40 20% 95%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(40 20% 82% / 0.5), transparent);
 
     /* ===== SHADOWS ===== */
     --shadow-xs: 0 1px 2px hsl(225 25% 12% / 0.03);
@@ -110,7 +128,8 @@
     --shadow-md: 0 4px 6px -1px hsl(225 25% 12% / 0.05), 0 2px 4px -2px hsl(225 25% 12% / 0.04);
     --shadow-lg: 0 10px 15px -3px hsl(225 25% 12% / 0.06), 0 4px 6px -4px hsl(225 25% 12% / 0.04);
     --shadow-xl: 0 20px 25px -5px hsl(225 25% 12% / 0.08), 0 8px 10px -6px hsl(225 25% 12% / 0.05);
-    --shadow-glow-primary: 0 0 20px hsl(142 70% 45% / 0.25);
+    --shadow-glow-primary: 0 0 20px hsl(252 87% 64% / 0.25);
+    --shadow-glow-secondary: 0 0 20px hsl(40 30% 92% / 0.3);
     --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.25);
     --shadow-header: 0 1px 3px hsl(225 25% 12% / 0.05), 0 1px 2px hsl(225 25% 12% / 0.03);
 
@@ -120,7 +139,7 @@
 
     /* ===== ELEVAÇÃO ===== */
     --elevated: 0 0% 100%;
-    --elevated-hover: 220 20% 98%;
+    --elevated-hover: 40 25% 98%;
 
     /* ===== SPACING ===== */
     --spacing-card: 1.5rem;
@@ -130,9 +149,9 @@
     --spacing-section-lg: 3rem;
 
     /* ===== CHART ===== */
-    --chart-1: 142 70% 45%;
-    --chart-2: 200 80% 50%;
-    --chart-3: 45 90% 50%;
+    --chart-1: 252 87% 64%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 45 93% 47%;
     --chart-4: 280 85% 60%;
     --chart-5: 25 95% 53%;
   }
@@ -152,9 +171,9 @@
     --popover-foreground: 210 40% 96%;
     
     /* ===== CORES PRIMÁRIAS ===== */
-    --primary: 142 70% 50%;
+    --primary: 252 87% 64%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 80% 60%;
+    --primary-glow: 252 100% 75%;
     
     /* ===== CORES SECUNDÁRIAS ===== */
     --secondary: 225 25% 18%;
@@ -175,7 +194,7 @@
     /* ===== BORDAS E INPUTS ===== */
     --border: 225 20% 22%;
     --input: 225 25% 18%;
-    --ring: 142 70% 50%;
+    --ring: 252 87% 64%;
 
     /* ===== ESTADOS ===== */
     --success: 142 71% 45%;
@@ -185,18 +204,34 @@
     --info: 200 80% 55%;
     --info-foreground: 0 0% 100%;
 
+    /* ===== GAMIFICAÇÃO ===== */
+    --xp: 280 85% 65%;
+    --xp-foreground: 0 0% 100%;
+    --coins: 45 93% 55%;
+    --coins-foreground: 0 0% 10%;
+    --streak: 25 95% 58%;
+    --streak-foreground: 0 0% 100%;
+
+    /* ===== RANKS ===== */
+    --rank-gold: 45 93% 55%;
+    --rank-gold-foreground: 45 100% 95%;
+    --rank-silver: 220 15% 75%;
+    --rank-silver-foreground: 220 20% 95%;
+    --rank-bronze: 30 55% 55%;
+    --rank-bronze-foreground: 30 60% 95%;
+
     /* ===== Sidebar ===== */
-    --sidebar-background: 225 30% 6%;
+    --sidebar-background: 225 30% 10%;
     --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 142 70% 50%;
+    --sidebar-primary: 252 87% 64%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 25% 12%;
+    --sidebar-accent: 225 25% 18%;
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 225 25% 15%;
-    --sidebar-ring: 142 70% 50%;
+    --sidebar-border: 225 20% 18%;
+    --sidebar-ring: 252 87% 64%;
 
     /* ===== Chat Specific ===== */
-    --chat-bubble-sent: 142 70% 40%;
+    --chat-bubble-sent: 252 87% 55%;
     --chat-bubble-sent-foreground: 0 0% 100%;
     --chat-bubble-received: 225 25% 18%;
     --chat-bubble-received-foreground: 210 40% 96%;
@@ -204,9 +239,11 @@
     --chat-input-bg: 225 30% 12%;
 
     /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(142 70% 50%), hsl(142 80% 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(252 87% 64%), hsl(280 85% 65%));
     --gradient-secondary: linear-gradient(135deg, hsl(225 25% 18%), hsl(225 30% 12%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
+    --gradient-xp: linear-gradient(90deg, hsl(280 85% 65%), hsl(252 87% 70%));
+    --gradient-gold: linear-gradient(135deg, hsl(45 93% 55%), hsl(38 92% 50%));
     --gradient-surface: linear-gradient(180deg, hsl(225 30% 12%), hsl(225 35% 8%));
     --gradient-divider: linear-gradient(90deg, transparent, hsl(225 20% 22% / 0.5), transparent);
 
@@ -216,7 +253,8 @@
     --shadow-md: 0 4px 6px -1px hsl(225 50% 5% / 0.5), 0 2px 4px -2px hsl(225 50% 5% / 0.4);
     --shadow-lg: 0 10px 15px -3px hsl(225 50% 5% / 0.5), 0 4px 6px -4px hsl(225 50% 5% / 0.4);
     --shadow-xl: 0 20px 25px -5px hsl(225 50% 5% / 0.6), 0 8px 10px -6px hsl(225 50% 5% / 0.5);
-    --shadow-glow-primary: 0 0 30px hsl(142 70% 50% / 0.35);
+    --shadow-glow-primary: 0 0 30px hsl(252 87% 64% / 0.35);
+    --shadow-glow-secondary: 0 0 25px hsl(225 25% 18% / 0.4);
     --shadow-glow-success: 0 0 25px hsl(142 71% 45% / 0.3);
     --shadow-header: 0 1px 3px hsl(225 50% 5% / 0.5), inset 0 1px 0 hsl(225 20% 25% / 0.3);
 
@@ -229,8 +267,8 @@
     --elevated-hover: 225 28% 18%;
 
     /* ===== CHART ===== */
-    --chart-1: 142 70% 55%;
-    --chart-2: 200 80% 55%;
+    --chart-1: 252 87% 70%;
+    --chart-2: 142 71% 55%;
     --chart-3: 45 93% 60%;
     --chart-4: 280 85% 70%;
     --chart-5: 25 95% 63%;
@@ -351,6 +389,11 @@ select:focus-visible {
     @apply text-4xl md:text-5xl font-bold tracking-tighter;
   }
 
+  .text-display-2xl {
+    font-family: var(--font-display);
+    @apply text-5xl md:text-6xl font-extrabold tracking-tighter;
+  }
+
   /* Scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
@@ -380,9 +423,19 @@ select:focus-visible {
     background-image: var(--gradient-primary);
   }
 
+  .gradient-text-secondary {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-secondary);
+  }
+
   .gradient-text-success {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-success);
+  }
+
+  .gradient-text-gold {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-gold);
   }
 
   /* Shadow Utilities */
@@ -392,6 +445,10 @@ select:focus-visible {
 
   .glow-primary {
     box-shadow: var(--shadow-glow-primary);
+  }
+
+  .glow-secondary {
+    box-shadow: var(--shadow-glow-secondary);
   }
 
   .glow-success {
@@ -406,7 +463,7 @@ select:focus-visible {
   }
 
   .card-elevated {
-    @apply bg-card rounded-xl border border-border p-6 transition-all duration-200;
+    @apply bg-card-elevated rounded-xl border border-border p-6 transition-all duration-200;
     box-shadow: var(--shadow-md);
   }
 
@@ -438,6 +495,20 @@ select:focus-visible {
     @apply opacity-100;
   }
 
+  .card-interactive::after {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none;
+    background: radial-gradient(
+      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsl(var(--primary) / 0.06),
+      transparent 40%
+    );
+  }
+
+  .card-interactive:hover::after {
+    @apply opacity-100;
+  }
+
   /* Glass Card */
   .glass-card {
     @apply rounded-xl p-6 backdrop-blur-md border transition-all duration-200;
@@ -462,6 +533,21 @@ select:focus-visible {
     box-shadow: var(--shadow-sm);
   }
 
+  /* Card Hierarchy */
+  .card-subtle {
+    @apply bg-muted/30 border-transparent;
+  }
+
+  .card-prominent {
+    @apply bg-card-elevated border-primary/10;
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-featured {
+    @apply bg-card-elevated border-primary/20 ring-1 ring-primary/5;
+    box-shadow: var(--shadow-lg);
+  }
+
   /* ===== HOVER EFFECTS ===== */
   .hover-lift {
     @apply transition-all duration-200;
@@ -479,6 +565,15 @@ select:focus-visible {
   .hover-lift-sm:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+  }
+
+  .hover-lift-lg {
+    @apply transition-all duration-200;
+  }
+
+  .hover-lift-lg:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
   }
 
   .hover-scale {
@@ -505,12 +600,58 @@ select:focus-visible {
     box-shadow: var(--shadow-glow-primary);
   }
 
+  .hover-glow-primary {
+    @apply transition-shadow duration-300;
+  }
+
+  .hover-glow-primary:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+  }
+
+  .hover-glow-success {
+    @apply transition-shadow duration-300;
+  }
+
+  .hover-glow-success:hover {
+    box-shadow: 0 0 20px hsl(var(--success) / 0.4);
+  }
+
   .press-scale {
     @apply transition-transform duration-100;
   }
 
   .press-scale:active {
     transform: scale(0.95);
+  }
+
+  .press-scale-sm {
+    @apply transition-transform duration-100;
+  }
+
+  .press-scale-sm:active {
+    transform: scale(0.98);
+  }
+
+  /* ===== RANK BADGES ===== */
+  .rank-gold {
+    @apply relative;
+    background: linear-gradient(135deg, hsl(45 93% 47%), hsl(38 92% 50%));
+    box-shadow: 0 0 15px hsl(45 93% 47% / 0.4);
+    color: hsl(var(--rank-gold-foreground));
+  }
+
+  .rank-silver {
+    @apply relative;
+    background: linear-gradient(135deg, hsl(220 15% 75%), hsl(220 13% 65%));
+    box-shadow: 0 0 12px hsl(220 15% 75% / 0.3);
+    color: hsl(var(--rank-silver-foreground));
+  }
+
+  .rank-bronze {
+    @apply relative;
+    background: linear-gradient(135deg, hsl(30 55% 55%), hsl(25 50% 45%));
+    box-shadow: 0 0 10px hsl(30 55% 55% / 0.3);
+    color: hsl(var(--rank-bronze-foreground));
   }
 
   /* ===== CONVERSATION ITEM ===== */
@@ -571,6 +712,34 @@ select:focus-visible {
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }
+
+  /* ===== GAMIFICATION ANIMATIONS ===== */
+  .animate-xp-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--xp)) 0%,
+      hsl(var(--xp) / 0.7) 50%,
+      hsl(var(--xp)) 100%
+    );
+    background-size: 200% 100%;
+    animation: xp-shimmer 2s ease-in-out infinite;
+  }
+
+  .animate-streak-fire {
+    animation: streak-fire 0.8s ease-in-out infinite;
+  }
+
+  .animate-coin-shine {
+    animation: coin-shine 2s ease-in-out infinite;
+  }
+
+  .animate-level-up {
+    animation: level-up 0.6s ease-out;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
 }
 
 /* ===== KEYFRAMES ===== */
@@ -597,6 +766,31 @@ select:focus-visible {
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes slide-left {
+  from { transform: translateX(10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-right {
+  from { transform: translateX(-10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -610,6 +804,11 @@ select:focus-visible {
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 0 5px hsl(var(--primary) / 0.3); }
   50% { box-shadow: 0 0 20px hsl(var(--primary) / 0.6); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: hsl(var(--primary) / 0.3); }
+  50% { border-color: hsl(var(--primary) / 0.8); }
 }
 
 @keyframes wiggle {
@@ -626,4 +825,46 @@ select:focus-visible {
 @keyframes count-up {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes xp-shimmer {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes streak-fire {
+  0%, 100% { 
+    transform: scale(1); 
+    filter: brightness(1); 
+  }
+  50% { 
+    transform: scale(1.1); 
+    filter: brightness(1.3); 
+  }
+}
+
+@keyframes coin-shine {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+@keyframes level-up {
+  0% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7); 
+  }
+  50% { 
+    transform: scale(1.05); 
+    box-shadow: 0 0 30px 10px hsl(var(--primary) / 0.4); 
+  }
+  100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0); 
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px hsl(var(--primary) / 0.5); }
+  50% { box-shadow: 0 0 20px hsl(var(--primary) / 0.8); }
 }

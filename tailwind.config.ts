@@ -65,6 +65,30 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        xp: {
+          DEFAULT: "hsl(var(--xp))",
+          foreground: "hsl(var(--xp-foreground))",
+        },
+        coins: {
+          DEFAULT: "hsl(var(--coins))",
+          foreground: "hsl(var(--coins-foreground))",
+        },
+        streak: {
+          DEFAULT: "hsl(var(--streak))",
+          foreground: "hsl(var(--streak-foreground))",
+        },
+        "rank-gold": {
+          DEFAULT: "hsl(var(--rank-gold))",
+          foreground: "hsl(var(--rank-gold-foreground))",
+        },
+        "rank-silver": {
+          DEFAULT: "hsl(var(--rank-silver))",
+          foreground: "hsl(var(--rank-silver-foreground))",
+        },
+        "rank-bronze": {
+          DEFAULT: "hsl(var(--rank-bronze))",
+          foreground: "hsl(var(--rank-bronze-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -128,14 +152,18 @@ export default {
         lg: "var(--shadow-lg)",
         xl: "var(--shadow-xl)",
         "glow-primary": "var(--shadow-glow-primary)",
+        "glow-secondary": "var(--shadow-glow-secondary)",
         "glow-success": "var(--shadow-glow-success)",
         header: "var(--shadow-header)",
         elevated: "0 4px 20px -2px hsl(var(--foreground) / 0.08)",
       },
       transitionDuration: {
         "150": "150ms",
+        "200": "200ms",
         "250": "250ms",
+        "300": "300ms",
         "400": "400ms",
+        "500": "500ms",
       },
       transitionTimingFunction: {
         "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
@@ -206,6 +234,10 @@ export default {
           "0%, 100%": { boxShadow: "0 0 5px hsl(var(--primary) / 0.3)" },
           "50%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.6)" },
         },
+        "border-glow": {
+          "0%, 100%": { borderColor: "hsl(var(--primary) / 0.3)" },
+          "50%": { borderColor: "hsl(var(--primary) / 0.8)" },
+        },
         wiggle: {
           "0%, 100%": { transform: "rotate(-3deg)" },
           "50%": { transform: "rotate(3deg)" },
@@ -244,6 +276,7 @@ export default {
         shimmer: "shimmer 2s linear infinite",
         float: "float 3s ease-in-out infinite",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "border-glow": "border-glow 2s ease-in-out infinite",
         wiggle: "wiggle 0.3s ease-in-out",
         pop: "pop 0.3s ease-out",
         "count-up": "count-up 0.4s ease-out forwards",
