@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Wallet,
   Shield,
+  UsersRound,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,6 +34,7 @@ interface SidebarProps {
 const menuItems = [
   { id: 'inbox', icon: MessageSquare, label: 'Inbox', badge: 12 },
   { id: 'contacts', icon: Users, label: 'Contatos' },
+  { id: 'groups', icon: UsersRound, label: 'Grupos' },
   { id: 'agents', icon: Phone, label: 'Atendentes' },
   { id: 'queues', icon: Tag, label: 'Filas' },
   { id: 'connections', icon: Zap, label: 'Conexões' },

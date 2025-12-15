@@ -12,6 +12,7 @@ import { TagsView } from '@/components/tags/TagsView';
 import { SettingsView } from '@/components/settings/SettingsView';
 import { ClientWalletView } from '@/components/wallet/ClientWalletView';
 import { AdminView } from '@/components/admin/AdminView';
+import { GroupsView } from '@/components/groups/GroupsView';
 import { PageTransition } from '@/components/ui/motion';
 import { useAuth } from '@/hooks/useAuth';
 import { logAudit } from '@/lib/audit';
@@ -56,6 +57,8 @@ const Index = () => {
         return <QueuesView />;
       case 'contacts':
         return <ContactsView />;
+      case 'groups':
+        return <GroupsView />;
       case 'connections':
         return <ConnectionsView />;
       case 'wallet':
