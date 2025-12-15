@@ -61,47 +61,47 @@ export function ConversationList({
   };
 
   return (
-    <div className="flex flex-col h-full bg-card border-r border-border">
+    <div className="flex flex-col h-full glass-strong border-r border-border/50">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="p-4 border-b border-border space-y-4"
+        className="p-4 border-b border-border/50 space-y-4 bg-gradient-to-b from-primary/5 to-transparent"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="icon">
+          <h2 className="text-lg font-semibold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Conversas</h2>
+          <motion.div whileHover={{ scale: 1.05, rotate: 5 }} whileTap={{ scale: 0.95 }}>
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
               <Filter className="w-4 h-4" />
             </Button>
           </motion.div>
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
             placeholder="Buscar conversas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-secondary border-0"
+            className="pl-9 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
           />
         </div>
 
         {/* Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 bg-secondary">
-            <TabsTrigger value="all" className="text-xs">
+          <TabsList className="w-full grid grid-cols-4 glass border border-border/30">
+            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Todas ({counts.all})
             </TabsTrigger>
-            <TabsTrigger value="open" className="text-xs">
+            <TabsTrigger value="open" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Abertas ({counts.open})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="text-xs">
+            <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Pendentes ({counts.pending})
             </TabsTrigger>
-            <TabsTrigger value="waiting" className="text-xs">
+            <TabsTrigger value="waiting" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Aguardando ({counts.waiting})
             </TabsTrigger>
           </TabsList>
@@ -129,93 +129,118 @@ export function ConversationList({
                 <StaggeredItem key={conversation.id}>
                   <motion.div
                     onClick={() => onSelect(conversation)}
-                    whileHover={{ x: 4, backgroundColor: 'hsl(var(--accent))' }}
+                    whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.15 }}
                     className={cn(
-                      'conversation-item cursor-pointer',
-                      isSelected && 'active'
+                      'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group',
+                      isSelected 
+                        ? 'glass-strong border border-primary/30 shadow-lg shadow-primary/10' 
+                        : 'hover:glass border border-transparent hover:border-border/50'
                     )}
                   >
-                    {/* Avatar */}
-                    <div className="relative flex-shrink-0">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={conversation.contact.avatar} />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className={cn(
-                          'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center',
-                          statusColors[conversation.status]
-                        )}
-                      >
-                        <StatusIcon className="w-2.5 h-2.5 text-white" />
-                      </motion.span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-foreground truncate">
-                          {conversation.contact.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">
-                          {formatDistanceToNow(conversation.updatedAt, {
-                            addSuffix: false,
-                            locale: ptBR,
-                          })}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground truncate pr-2">
-                          {conversation.lastMessage?.content || 'Sem mensagens'}
-                        </p>
-                        {conversation.unreadCount > 0 && (
-                          <motion.span 
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                            className="unread-badge flex-shrink-0"
-                          >
-                            {conversation.unreadCount}
-                          </motion.span>
-                        )}
-                      </div>
-
-                      {/* Tags */}
-                      {conversation.tags.length > 0 && (
-                        <div className="flex items-center gap-1 mt-2 flex-wrap">
-                          {conversation.tags.slice(0, 2).map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="text-[10px] px-1.5 py-0"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                          {conversation.tags.length > 2 && (
-                            <span className="text-[10px] text-muted-foreground">
-                              +{conversation.tags.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Priority indicator */}
-                    {conversation.priority === 'high' && (
+                    {/* Selection glow */}
+                    {isSelected && (
                       <motion.div 
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="w-1 h-8 rounded-full bg-priority-high flex-shrink-0" 
+                        layoutId="conversationActive"
+                        className="absolute inset-0 rounded-xl opacity-50"
+                        style={{ background: 'var(--gradient-primary)' }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.1 }}
                       />
                     )}
+
+                    <div className="flex items-start gap-3 relative z-10">
+                      {/* Avatar */}
+                      <div className="relative flex-shrink-0">
+                        <Avatar className={cn(
+                          "w-12 h-12 ring-2 transition-all",
+                          isSelected ? "ring-primary/50" : "ring-border/30 group-hover:ring-primary/30"
+                        )}>
+                          <AvatarImage src={conversation.contact.avatar} />
+                          <AvatarFallback 
+                            className="text-primary-foreground font-medium"
+                            style={{ background: 'var(--gradient-primary)' }}
+                          >
+                            {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className={cn(
+                            'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-background',
+                            statusColors[conversation.status]
+                          )}
+                        >
+                          <StatusIcon className="w-2.5 h-2.5 text-white" />
+                        </motion.span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={cn(
+                            "font-medium truncate transition-colors",
+                            isSelected ? "text-primary" : "text-foreground"
+                          )}>
+                            {conversation.contact.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {formatDistanceToNow(conversation.updatedAt, {
+                              addSuffix: false,
+                              locale: ptBR,
+                            })}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground truncate pr-2">
+                            {conversation.lastMessage?.content || 'Sem mensagens'}
+                          </p>
+                          {conversation.unreadCount > 0 && (
+                            <motion.span 
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                              className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold text-primary-foreground"
+                              style={{ background: 'var(--gradient-primary)' }}
+                            >
+                              {conversation.unreadCount}
+                            </motion.span>
+                          )}
+                        </div>
+
+                        {/* Tags */}
+                        {conversation.tags.length > 0 && (
+                          <div className="flex items-center gap-1 mt-2 flex-wrap">
+                            {conversation.tags.slice(0, 2).map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0 glass-soft border-border/30"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                            {conversation.tags.length > 2 && (
+                              <span className="text-[10px] text-muted-foreground">
+                                +{conversation.tags.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Priority indicator */}
+                      {conversation.priority === 'high' && (
+                        <motion.div 
+                          animate={{ opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="w-1 h-8 rounded-full bg-priority-high flex-shrink-0" 
+                        />
+                      )}
+                    </div>
                   </motion.div>
                 </StaggeredItem>
               );

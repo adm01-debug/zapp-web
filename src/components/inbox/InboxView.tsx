@@ -59,9 +59,15 @@ export function InboxView() {
     : [];
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full relative">
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-glow/5 rounded-full blur-3xl" />
+      </div>
+
       {/* Conversation List */}
-      <div className="w-96 flex-shrink-0">
+      <div className="w-96 flex-shrink-0 relative z-10">
         <ConversationList
           conversations={conversations}
           selectedId={selectedConversation?.id}
@@ -70,7 +76,7 @@ export function InboxView() {
       </div>
 
       {/* Chat Panel */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex relative z-10">
         {selectedConversation ? (
           <>
             <div className="flex-1 relative">
@@ -88,12 +94,15 @@ export function InboxView() {
             )}
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-muted/30">
-            <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-10 h-10 text-muted-foreground" />
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-muted/30 via-background to-muted/20">
+            <div className="text-center glass-soft p-8 rounded-2xl">
+              <div 
+                className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'var(--gradient-primary)' }}
+              >
+                <MessageSquare className="w-10 h-10 text-primary-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Selecione uma conversa
               </h3>
               <p className="text-muted-foreground text-sm max-w-xs">
