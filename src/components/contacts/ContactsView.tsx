@@ -66,6 +66,10 @@ export function ContactsView() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterCompany, setFilterCompany] = useState<string>('');
+  const [filterJobTitle, setFilterJobTitle] = useState<string>('');
+  const [filterTag, setFilterTag] = useState<string>('');
   const [newContact, setNewContact] = useState({
     name: '',
     nickname: '',
@@ -75,6 +79,11 @@ export function ContactsView() {
     phone: '',
     email: '',
   });
+
+  // Extract unique values for filters
+  const uniqueCompanies = [...new Set(contacts.map(c => c.company).filter(Boolean))] as string[];
+  const uniqueJobTitles = [...new Set(contacts.map(c => c.job_title).filter(Boolean))] as string[];
+  const uniqueTags = [...new Set(contacts.flatMap(c => c.tags || []))] as string[];
 
   useEffect(() => {
     fetchContacts();
@@ -96,13 +105,27 @@ export function ContactsView() {
     setLoading(false);
   };
 
-  const filteredContacts = contacts.filter(
-    (contact) =>
+  const filteredContacts = contacts.filter((contact) => {
+    const matchesSearch =
       contact.name.toLowerCase().includes(search.toLowerCase()) ||
       contact.phone.includes(search) ||
       contact.email?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(search.toLowerCase())
-  );
+      contact.company?.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesCompany = !filterCompany || contact.company === filterCompany;
+    const matchesJobTitle = !filterJobTitle || contact.job_title === filterJobTitle;
+    const matchesTag = !filterTag || contact.tags?.includes(filterTag);
+    
+    return matchesSearch && matchesCompany && matchesJobTitle && matchesTag;
+  });
+
+  const activeFiltersCount = [filterCompany, filterJobTitle, filterTag].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setFilterCompany('');
+    setFilterJobTitle('');
+    setFilterTag('');
+  };
 
   const handleAddContact = async () => {
     if (!newContact.name || !newContact.phone) {
@@ -348,23 +371,113 @@ export function ContactsView() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex items-center gap-4"
+        className="space-y-4"
       >
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, telefone, email ou empresa..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome, telefone, email ou empresa..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button 
+              variant={showFilters ? "default" : "outline"} 
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "bg-whatsapp hover:bg-whatsapp-dark" : ""}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-2 bg-background/20 text-xs">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </motion.div>
+          {activeFiltersCount > 0 && (
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button variant="ghost" onClick={clearFilters} size="sm">
+                Limpar filtros
+              </Button>
+            </motion.div>
+          )}
         </div>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            Filtrar por etiqueta
-          </Button>
-        </motion.div>
+
+        {/* Advanced Filters Panel */}
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-muted/50 rounded-lg p-4 border border-border"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Company Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Building className="w-4 h-4" />
+                  Empresa
+                </Label>
+                <select
+                  value={filterCompany}
+                  onChange={(e) => setFilterCompany(e.target.value)}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">Todas as empresas</option>
+                  {uniqueCompanies.map((company) => (
+                    <option key={company} value={company}>
+                      {company}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Job Title Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Briefcase className="w-4 h-4" />
+                  Cargo
+                </Label>
+                <select
+                  value={filterJobTitle}
+                  onChange={(e) => setFilterJobTitle(e.target.value)}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">Todos os cargos</option>
+                  {uniqueJobTitles.map((title) => (
+                    <option key={title} value={title}>
+                      {title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tag Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  Etiqueta
+                </Label>
+                <select
+                  value={filterTag}
+                  onChange={(e) => setFilterTag(e.target.value)}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">Todas as etiquetas</option>
+                  {uniqueTags.map((tag) => (
+                    <option key={tag} value={tag}>
+                      {tag}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Contacts Table/Grid */}
