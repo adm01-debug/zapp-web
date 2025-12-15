@@ -11,43 +11,43 @@
     --font-display: 'Outfit', system-ui, sans-serif;
 
     /* ===== BASE ===== */
-    --background: 40 20% 95%;
-    --foreground: 225 25% 12%;
+    --background: 150 15% 96%;
+    --foreground: 160 25% 10%;
     
     /* ===== CARDS ===== */
-    --card: 40 25% 97%;
-    --card-foreground: 225 25% 12%;
+    --card: 150 20% 98%;
+    --card-foreground: 160 25% 10%;
     --card-elevated: 0 0% 100%;
     
     /* ===== POPOVER/DIALOG ===== */
     --popover: 0 0% 100%;
-    --popover-foreground: 225 25% 12%;
+    --popover-foreground: 160 25% 10%;
     
-    /* ===== CORES PRIMÁRIAS (Roxo vibrante) ===== */
-    --primary: 252 87% 64%;
+    /* ===== CORES PRIMÁRIAS (Verde WhatsApp vibrante) ===== */
+    --primary: 142 70% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 252 90% 75%;
+    --primary-glow: 142 75% 55%;
     
-    /* ===== CORES SECUNDÁRIAS ===== */
-    --secondary: 40 30% 92%;
-    --secondary-foreground: 225 25% 20%;
+    /* ===== CORES SECUNDÁRIAS (Teal complementar) ===== */
+    --secondary: 175 60% 45%;
+    --secondary-foreground: 0 0% 100%;
     
     /* ===== MUTED ===== */
-    --muted: 40 20% 90%;
-    --muted-foreground: 225 22% 38%;
+    --muted: 150 15% 90%;
+    --muted-foreground: 160 15% 40%;
     
-    /* ===== ACCENT ===== */
-    --accent: 40 30% 88%;
-    --accent-foreground: 225 25% 15%;
+    /* ===== ACCENT (Amarelo vibrante) ===== */
+    --accent: 45 95% 55%;
+    --accent-foreground: 45 100% 10%;
     
     /* ===== DESTRUCTIVE ===== */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* ===== BORDAS E INPUTS ===== */
-    --border: 40 20% 82%;
-    --input: 40 20% 88%;
-    --ring: 252 87% 64%;
+    --border: 150 15% 85%;
+    --input: 150 15% 90%;
+    --ring: 142 70% 45%;
     
     /* ===== RADIUS ===== */
     --radius: 0.75rem;
@@ -63,13 +63,13 @@
     /* ===== GAMIFICAÇÃO ===== */
     --xp: 280 85% 60%;
     --xp-foreground: 0 0% 100%;
-    --coins: 45 93% 47%;
+    --coins: 45 93% 50%;
     --coins-foreground: 0 0% 10%;
-    --streak: 25 95% 53%;
+    --streak: 15 95% 55%;
     --streak-foreground: 0 0% 100%;
 
     /* ===== RANKS ===== */
-    --rank-gold: 45 93% 47%;
+    --rank-gold: 45 93% 50%;
     --rank-gold-foreground: 45 100% 15%;
     --rank-silver: 220 13% 70%;
     --rank-silver-foreground: 220 20% 20%;
@@ -82,23 +82,23 @@
     --online: 142 70% 50%;
     --away: 45 90% 50%;
     --offline: 0 0% 60%;
-    --unread: 252 87% 64%;
+    --unread: 142 70% 45%;
     
     /* ===== Sidebar ===== */
-    --sidebar-background: 40 25% 97%;
-    --sidebar-foreground: 225 25% 12%;
-    --sidebar-primary: 252 87% 64%;
+    --sidebar-background: 150 20% 98%;
+    --sidebar-foreground: 160 25% 10%;
+    --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 30% 92%;
-    --sidebar-accent-foreground: 225 25% 15%;
-    --sidebar-border: 40 20% 88%;
-    --sidebar-ring: 252 87% 64%;
+    --sidebar-accent: 150 20% 92%;
+    --sidebar-accent-foreground: 160 25% 15%;
+    --sidebar-border: 150 15% 88%;
+    --sidebar-ring: 142 70% 45%;
 
     /* ===== Chat Specific ===== */
-    --chat-bubble-sent: 252 87% 64%;
+    --chat-bubble-sent: 142 70% 45%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 40 25% 95%;
-    --chat-bubble-received-foreground: 225 25% 15%;
+    --chat-bubble-received: 150 20% 95%;
+    --chat-bubble-received-foreground: 160 25% 15%;
     --chat-header: 0 0% 100%;
     --chat-input-bg: 0 0% 100%;
 
@@ -114,32 +114,34 @@
     --priority-low: 220 10% 60%;
 
     /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(252 87% 64%), hsl(280 85% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(40 30% 92%), hsl(40 25% 97%));
+    --gradient-primary: linear-gradient(135deg, hsl(142 70% 45%), hsl(160 70% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(175 60% 45%), hsl(190 60% 50%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-xp: linear-gradient(90deg, hsl(280 85% 60%), hsl(252 87% 64%));
-    --gradient-gold: linear-gradient(135deg, hsl(45 93% 47%), hsl(38 92% 50%));
-    --gradient-surface: linear-gradient(180deg, hsl(40 25% 97%), hsl(40 20% 95%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(40 20% 82% / 0.5), transparent);
+    --gradient-xp: linear-gradient(90deg, hsl(280 85% 60%), hsl(300 85% 55%));
+    --gradient-gold: linear-gradient(135deg, hsl(45 93% 50%), hsl(38 92% 55%));
+    --gradient-surface: linear-gradient(180deg, hsl(150 20% 98%), hsl(150 15% 96%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(150 15% 85% / 0.5), transparent);
+    --gradient-vibrant: linear-gradient(135deg, hsl(142 70% 45%), hsl(45 95% 55%), hsl(175 60% 45%));
 
     /* ===== SHADOWS ===== */
-    --shadow-xs: 0 1px 2px hsl(225 25% 12% / 0.03);
-    --shadow-sm: 0 1px 3px hsl(225 25% 12% / 0.04), 0 1px 2px hsl(225 25% 12% / 0.03);
-    --shadow-md: 0 4px 6px -1px hsl(225 25% 12% / 0.05), 0 2px 4px -2px hsl(225 25% 12% / 0.04);
-    --shadow-lg: 0 10px 15px -3px hsl(225 25% 12% / 0.06), 0 4px 6px -4px hsl(225 25% 12% / 0.04);
-    --shadow-xl: 0 20px 25px -5px hsl(225 25% 12% / 0.08), 0 8px 10px -6px hsl(225 25% 12% / 0.05);
-    --shadow-glow-primary: 0 0 20px hsl(252 87% 64% / 0.25);
-    --shadow-glow-secondary: 0 0 20px hsl(40 30% 92% / 0.3);
+    --shadow-xs: 0 1px 2px hsl(160 25% 10% / 0.03);
+    --shadow-sm: 0 1px 3px hsl(160 25% 10% / 0.04), 0 1px 2px hsl(160 25% 10% / 0.03);
+    --shadow-md: 0 4px 6px -1px hsl(160 25% 10% / 0.05), 0 2px 4px -2px hsl(160 25% 10% / 0.04);
+    --shadow-lg: 0 10px 15px -3px hsl(160 25% 10% / 0.06), 0 4px 6px -4px hsl(160 25% 10% / 0.04);
+    --shadow-xl: 0 20px 25px -5px hsl(160 25% 10% / 0.08), 0 8px 10px -6px hsl(160 25% 10% / 0.05);
+    --shadow-glow-primary: 0 0 25px hsl(142 70% 45% / 0.35);
+    --shadow-glow-secondary: 0 0 20px hsl(175 60% 45% / 0.3);
     --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.25);
-    --shadow-header: 0 1px 3px hsl(225 25% 12% / 0.05), 0 1px 2px hsl(225 25% 12% / 0.03);
+    --shadow-glow-accent: 0 0 20px hsl(45 95% 55% / 0.35);
+    --shadow-header: 0 1px 3px hsl(160 25% 10% / 0.05), 0 1px 2px hsl(160 25% 10% / 0.03);
 
     /* ===== GLASS ===== */
-    --glass-bg: 0 0% 100% / 0.7;
-    --glass-border: 0 0% 100% / 0.3;
+    --glass-bg: 0 0% 100% / 0.75;
+    --glass-border: 142 70% 45% / 0.15;
 
     /* ===== ELEVAÇÃO ===== */
     --elevated: 0 0% 100%;
-    --elevated-hover: 40 25% 98%;
+    --elevated-hover: 150 20% 98%;
 
     /* ===== SPACING ===== */
     --spacing-card: 1.5rem;
@@ -149,55 +151,55 @@
     --spacing-section-lg: 3rem;
 
     /* ===== CHART ===== */
-    --chart-1: 252 87% 64%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 45 93% 47%;
+    --chart-1: 142 70% 45%;
+    --chart-2: 175 60% 45%;
+    --chart-3: 45 93% 50%;
     --chart-4: 280 85% 60%;
-    --chart-5: 25 95% 53%;
+    --chart-5: 15 95% 55%;
   }
 
   .dark {
     /* ===== BASE ===== */
-    --background: 20 10% 7%;
-    --foreground: 30 10% 92%;
+    --background: 160 15% 6%;
+    --foreground: 150 15% 92%;
     
     /* ===== CARDS ===== */
-    --card: 20 8% 11%;
-    --card-foreground: 30 10% 92%;
-    --card-elevated: 20 8% 14%;
+    --card: 160 12% 10%;
+    --card-foreground: 150 15% 92%;
+    --card-elevated: 160 10% 13%;
     
     /* ===== POPOVER/DIALOG ===== */
-    --popover: 20 8% 11%;
-    --popover-foreground: 30 10% 92%;
+    --popover: 160 12% 10%;
+    --popover-foreground: 150 15% 92%;
     
-    /* ===== CORES PRIMÁRIAS (Laranja vibrante) ===== */
-    --primary: 25 95% 53%;
+    /* ===== CORES PRIMÁRIAS (Verde WhatsApp vibrante) ===== */
+    --primary: 142 72% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 25 100% 65%;
+    --primary-glow: 142 75% 60%;
     
-    /* ===== CORES SECUNDÁRIAS ===== */
-    --secondary: 20 10% 16%;
-    --secondary-foreground: 30 10% 88%;
+    /* ===== CORES SECUNDÁRIAS (Teal vibrante) ===== */
+    --secondary: 175 65% 50%;
+    --secondary-foreground: 0 0% 100%;
     
     /* ===== MUTED ===== */
-    --muted: 20 8% 18%;
-    --muted-foreground: 20 10% 55%;
+    --muted: 160 10% 16%;
+    --muted-foreground: 150 10% 55%;
     
-    /* ===== ACCENT ===== */
-    --accent: 20 10% 18%;
-    --accent-foreground: 30 10% 92%;
+    /* ===== ACCENT (Amarelo vibrante) ===== */
+    --accent: 45 95% 55%;
+    --accent-foreground: 45 100% 10%;
     
     /* ===== DESTRUCTIVE ===== */
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* ===== BORDAS E INPUTS ===== */
-    --border: 20 8% 20%;
-    --input: 20 10% 16%;
-    --ring: 25 95% 53%;
+    --border: 160 10% 18%;
+    --input: 160 10% 14%;
+    --ring: 142 72% 50%;
 
     /* ===== ESTADOS ===== */
-    --success: 142 71% 45%;
+    --success: 142 71% 50%;
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 55%;
     --warning-foreground: 0 0% 10%;
@@ -209,7 +211,7 @@
     --xp-foreground: 0 0% 100%;
     --coins: 45 93% 55%;
     --coins-foreground: 0 0% 10%;
-    --streak: 25 95% 58%;
+    --streak: 15 95% 58%;
     --streak-foreground: 0 0% 100%;
 
     /* ===== RANKS ===== */
@@ -221,31 +223,32 @@
     --rank-bronze-foreground: 30 60% 95%;
 
     /* ===== Sidebar ===== */
-    --sidebar-background: 20 10% 9%;
-    --sidebar-foreground: 30 10% 92%;
-    --sidebar-primary: 25 95% 53%;
+    --sidebar-background: 160 15% 8%;
+    --sidebar-foreground: 150 15% 92%;
+    --sidebar-primary: 142 72% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 20 10% 16%;
-    --sidebar-accent-foreground: 30 10% 92%;
-    --sidebar-border: 20 8% 16%;
-    --sidebar-ring: 25 95% 53%;
+    --sidebar-accent: 160 10% 14%;
+    --sidebar-accent-foreground: 150 15% 92%;
+    --sidebar-border: 160 10% 14%;
+    --sidebar-ring: 142 72% 50%;
 
     /* ===== Chat Specific ===== */
-    --chat-bubble-sent: 25 95% 50%;
+    --chat-bubble-sent: 142 72% 48%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 20 10% 16%;
-    --chat-bubble-received-foreground: 30 10% 92%;
-    --chat-header: 20 8% 11%;
-    --chat-input-bg: 20 8% 11%;
+    --chat-bubble-received: 160 10% 14%;
+    --chat-bubble-received-foreground: 150 15% 92%;
+    --chat-header: 160 12% 10%;
+    --chat-input-bg: 160 12% 10%;
 
     /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(35 95% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(20 10% 16%), hsl(20 8% 11%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
+    --gradient-primary: linear-gradient(135deg, hsl(142 72% 50%), hsl(160 70% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(175 65% 50%), hsl(190 65% 55%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 50%), hsl(142 71% 60%));
     --gradient-xp: linear-gradient(90deg, hsl(280 85% 65%), hsl(300 85% 60%));
     --gradient-gold: linear-gradient(135deg, hsl(45 93% 55%), hsl(38 92% 50%));
-    --gradient-surface: linear-gradient(180deg, hsl(20 8% 11%), hsl(20 10% 7%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(20 8% 20% / 0.5), transparent);
+    --gradient-surface: linear-gradient(180deg, hsl(160 12% 10%), hsl(160 15% 6%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(160 10% 18% / 0.5), transparent);
+    --gradient-vibrant: linear-gradient(135deg, hsl(142 72% 50%), hsl(45 95% 55%), hsl(175 65% 50%));
 
     /* ===== SHADOWS ===== */
     --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.4);
@@ -253,25 +256,26 @@
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.5), 0 2px 4px -2px hsl(0 0% 0% / 0.4);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5), 0 4px 6px -4px hsl(0 0% 0% / 0.4);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.6), 0 8px 10px -6px hsl(0 0% 0% / 0.5);
-    --shadow-glow-primary: 0 0 30px hsl(25 95% 53% / 0.35);
-    --shadow-glow-secondary: 0 0 25px hsl(20 10% 16% / 0.4);
-    --shadow-glow-success: 0 0 25px hsl(142 71% 45% / 0.3);
-    --shadow-header: 0 1px 3px hsl(0 0% 0% / 0.5), inset 0 1px 0 hsl(20 10% 25% / 0.3);
+    --shadow-glow-primary: 0 0 35px hsl(142 72% 50% / 0.4);
+    --shadow-glow-secondary: 0 0 30px hsl(175 65% 50% / 0.35);
+    --shadow-glow-success: 0 0 25px hsl(142 71% 50% / 0.3);
+    --shadow-glow-accent: 0 0 25px hsl(45 95% 55% / 0.35);
+    --shadow-header: 0 1px 3px hsl(0 0% 0% / 0.5), inset 0 1px 0 hsl(160 10% 25% / 0.3);
 
     /* ===== GLASS ===== */
-    --glass-bg: 20 8% 14% / 0.8;
-    --glass-border: 20 10% 28% / 0.3;
+    --glass-bg: 160 12% 12% / 0.85;
+    --glass-border: 142 72% 50% / 0.2;
 
     /* ===== ELEVAÇÃO ===== */
-    --elevated: 20 8% 14%;
-    --elevated-hover: 20 8% 18%;
+    --elevated: 160 10% 13%;
+    --elevated-hover: 160 10% 16%;
 
     /* ===== CHART ===== */
-    --chart-1: 25 95% 58%;
-    --chart-2: 142 71% 55%;
+    --chart-1: 142 72% 55%;
+    --chart-2: 175 65% 55%;
     --chart-3: 45 93% 60%;
     --chart-4: 280 85% 70%;
-    --chart-5: 200 80% 60%;
+    --chart-5: 15 95% 60%;
   }
 }
 
