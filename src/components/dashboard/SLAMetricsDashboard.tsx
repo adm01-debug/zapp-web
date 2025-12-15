@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { motion } from '@/components/ui/motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import {
   Clock,
   CheckCircle2,
@@ -11,9 +13,10 @@ import {
   Users,
   TrendingUp,
   Target,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { mockAgents, mockQueues } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SLAMetric {
   total: number;
@@ -30,81 +33,6 @@ interface AgentSLAMetric {
   resolution: SLAMetric;
   overallRate: number;
 }
-
-interface QueueSLAMetric {
-  id: string;
-  name: string;
-  color: string;
-  firstResponse: SLAMetric;
-  resolution: SLAMetric;
-  overallRate: number;
-}
-
-// Mock SLA data - in production, this would come from Supabase
-const generateMockAgentSLAData = (): AgentSLAMetric[] => {
-  return mockAgents.map((agent) => {
-    const frTotal = Math.floor(Math.random() * 50) + 20;
-    const frOnTime = Math.floor(frTotal * (0.7 + Math.random() * 0.25));
-    const resTotal = Math.floor(Math.random() * 40) + 15;
-    const resOnTime = Math.floor(resTotal * (0.6 + Math.random() * 0.35));
-    
-    return {
-      id: agent.id,
-      name: agent.name,
-      avatar: agent.avatar,
-      firstResponse: {
-        total: frTotal,
-        onTime: frOnTime,
-        breached: frTotal - frOnTime,
-        rate: Math.round((frOnTime / frTotal) * 100),
-      },
-      resolution: {
-        total: resTotal,
-        onTime: resOnTime,
-        breached: resTotal - resOnTime,
-        rate: Math.round((resOnTime / resTotal) * 100),
-      },
-      overallRate: Math.round(((frOnTime + resOnTime) / (frTotal + resTotal)) * 100),
-    };
-  });
-};
-
-const generateMockQueueSLAData = (): QueueSLAMetric[] => {
-  return mockQueues.map((queue) => {
-    const frTotal = Math.floor(Math.random() * 100) + 50;
-    const frOnTime = Math.floor(frTotal * (0.75 + Math.random() * 0.2));
-    const resTotal = Math.floor(Math.random() * 80) + 40;
-    const resOnTime = Math.floor(resTotal * (0.65 + Math.random() * 0.3));
-    
-    return {
-      id: queue.id,
-      name: queue.name,
-      color: queue.color,
-      firstResponse: {
-        total: frTotal,
-        onTime: frOnTime,
-        breached: frTotal - frOnTime,
-        rate: Math.round((frOnTime / frTotal) * 100),
-      },
-      resolution: {
-        total: resTotal,
-        onTime: resOnTime,
-        breached: resTotal - resOnTime,
-        rate: Math.round((resOnTime / resTotal) * 100),
-      },
-      overallRate: Math.round(((frOnTime + resOnTime) / (frTotal + resTotal)) * 100),
-    };
-  });
-};
-
-const agentSLAData = generateMockAgentSLAData();
-const queueSLAData = generateMockQueueSLAData();
-
-// Calculate overall metrics
-const totalConversations = agentSLAData.reduce((sum, a) => sum + a.firstResponse.total, 0);
-const totalOnTime = agentSLAData.reduce((sum, a) => sum + a.firstResponse.onTime, 0);
-const totalBreached = agentSLAData.reduce((sum, a) => sum + a.firstResponse.breached, 0);
-const overallRate = Math.round((totalOnTime / totalConversations) * 100);
 
 function getRateColor(rate: number): string {
   if (rate >= 90) return 'text-success';
@@ -125,8 +53,177 @@ function getRateBadge(rate: number): string {
 }
 
 export function SLAMetricsDashboard() {
+  const [agentSLAData, setAgentSLAData] = useState<AgentSLAMetric[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchSLAMetrics = async () => {
+    try {
+      // Fetch all conversation SLA records with contact info
+      const { data: slaData, error: slaError } = await supabase
+        .from('conversation_sla')
+        .select(`
+          id,
+          first_response_breached,
+          resolution_breached,
+          first_response_at,
+          resolved_at,
+          contact_id
+        `);
+
+      if (slaError) throw slaError;
+
+      // Fetch contacts to get assigned_to
+      const { data: contacts, error: contactsError } = await supabase
+        .from('contacts')
+        .select('id, assigned_to');
+
+      if (contactsError) throw contactsError;
+
+      // Create a map of contact_id to assigned_to
+      const contactAgentMap: Record<string, string> = {};
+      contacts?.forEach(contact => {
+        if (contact.assigned_to) {
+          contactAgentMap[contact.id] = contact.assigned_to;
+        }
+      });
+
+      // Fetch all profiles (agents)
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url');
+
+      if (profilesError) throw profilesError;
+
+      // Calculate metrics per agent
+      const agentMetrics: Record<string, {
+        frTotal: number;
+        frOnTime: number;
+        resTotal: number;
+        resOnTime: number;
+      }> = {};
+
+      // Initialize all agents
+      profiles?.forEach(profile => {
+        agentMetrics[profile.id] = { frTotal: 0, frOnTime: 0, resTotal: 0, resOnTime: 0 };
+      });
+
+      // Process SLA data
+      slaData?.forEach(sla => {
+        const agentId = sla.contact_id ? contactAgentMap[sla.contact_id] : null;
+        if (agentId && agentMetrics[agentId] !== undefined) {
+          // First response metrics
+          if (sla.first_response_at) {
+            agentMetrics[agentId].frTotal++;
+            if (!sla.first_response_breached) {
+              agentMetrics[agentId].frOnTime++;
+            }
+          }
+          // Resolution metrics
+          if (sla.resolved_at) {
+            agentMetrics[agentId].resTotal++;
+            if (!sla.resolution_breached) {
+              agentMetrics[agentId].resOnTime++;
+            }
+          }
+        }
+      });
+
+      // Format data for display
+      const formattedData: AgentSLAMetric[] = profiles?.map(profile => {
+        const metrics = agentMetrics[profile.id] || { frTotal: 0, frOnTime: 0, resTotal: 0, resOnTime: 0 };
+        const frRate = metrics.frTotal > 0 ? Math.round((metrics.frOnTime / metrics.frTotal) * 100) : 100;
+        const resRate = metrics.resTotal > 0 ? Math.round((metrics.resOnTime / metrics.resTotal) * 100) : 100;
+        const totalItems = metrics.frTotal + metrics.resTotal;
+        const totalOnTime = metrics.frOnTime + metrics.resOnTime;
+        const overallRate = totalItems > 0 ? Math.round((totalOnTime / totalItems) * 100) : 100;
+
+        return {
+          id: profile.id,
+          name: profile.name,
+          avatar: profile.avatar_url || undefined,
+          firstResponse: {
+            total: metrics.frTotal,
+            onTime: metrics.frOnTime,
+            breached: metrics.frTotal - metrics.frOnTime,
+            rate: frRate,
+          },
+          resolution: {
+            total: metrics.resTotal,
+            onTime: metrics.resOnTime,
+            breached: metrics.resTotal - metrics.resOnTime,
+            rate: resRate,
+          },
+          overallRate,
+        };
+      }) || [];
+
+      setAgentSLAData(formattedData);
+    } catch (error) {
+      console.error('Error fetching SLA metrics:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSLAMetrics();
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchSLAMetrics();
+  };
+
+  // Calculate overall metrics
+  const totalConversations = agentSLAData.reduce((sum, a) => sum + a.firstResponse.total, 0);
+  const totalOnTime = agentSLAData.reduce((sum, a) => sum + a.firstResponse.onTime, 0);
+  const totalBreached = agentSLAData.reduce((sum, a) => sum + a.firstResponse.breached, 0);
+  const overallRate = totalConversations > 0 ? Math.round((totalOnTime / totalConversations) * 100) : 100;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <Card key={i} className="border-secondary/20 bg-card">
+              <CardContent className="p-4">
+                <Skeleton className="h-16 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="border-secondary/20 bg-card">
+            <CardContent className="p-4 space-y-3">
+              {[1, 2, 3].map(i => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header with Refresh */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">Métricas de SLA</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="gap-2"
+        >
+          <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
+          Atualizar
+        </Button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <motion.div
@@ -229,175 +326,179 @@ export function SLAMetricsDashboard() {
               </div>
             </CardHeader>
             <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
-              {agentSLAData
-                .sort((a, b) => b.overallRate - a.overallRate)
-                .map((agent, index) => (
-                  <motion.div
-                    key={agent.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 + index * 0.05 }}
-                    className="p-3 rounded-xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8 ring-2 ring-border/50">
-                          <AvatarImage src={agent.avatar} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                            {agent.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium text-foreground">{agent.name}</span>
-                      </div>
-                      <Badge className={cn("font-semibold border-0", getRateBadge(agent.overallRate))}>
-                        {agent.overallRate}%
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> 1ª Resposta
-                          </span>
-                          <span className={getRateColor(agent.firstResponse.rate)}>
-                            {agent.firstResponse.rate}%
-                          </span>
+              {agentSLAData.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Nenhum agente encontrado</p>
+                </div>
+              ) : (
+                agentSLAData
+                  .sort((a, b) => b.overallRate - a.overallRate)
+                  .map((agent, index) => (
+                    <motion.div
+                      key={agent.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.6 + index * 0.05 }}
+                      className="p-3 rounded-xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8 ring-2 ring-border/50">
+                            <AvatarImage src={agent.avatar} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                              {agent.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-foreground">{agent.name}</span>
                         </div>
-                        <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                          <motion.div
-                            className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(agent.firstResponse.rate))}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${agent.firstResponse.rate}%` }}
-                            transition={{ duration: 0.8, delay: 0.7 + index * 0.05 }}
-                          />
+                        <Badge className={cn("font-semibold border-0", getRateBadge(agent.overallRate))}>
+                          {agent.overallRate}%
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground flex items-center gap-1">
+                              <Clock className="w-3 h-3" /> 1ª Resposta
+                            </span>
+                            <span className={getRateColor(agent.firstResponse.rate)}>
+                              {agent.firstResponse.rate}%
+                            </span>
+                          </div>
+                          <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                              className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(agent.firstResponse.rate))}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${agent.firstResponse.rate}%` }}
+                              transition={{ duration: 0.8, delay: 0.7 + index * 0.05 }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" /> Resolução
+                            </span>
+                            <span className={getRateColor(agent.resolution.rate)}>
+                              {agent.resolution.rate}%
+                            </span>
+                          </div>
+                          <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                              className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(agent.resolution.rate))}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${agent.resolution.rate}%` }}
+                              transition={{ duration: 0.8, delay: 0.7 + index * 0.05 }}
+                            />
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Resolução
-                          </span>
-                          <span className={getRateColor(agent.resolution.rate)}>
-                            {agent.resolution.rate}%
-                          </span>
-                        </div>
-                        <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                          <motion.div
-                            className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(agent.resolution.rate))}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${agent.resolution.rate}%` }}
-                            transition={{ duration: 0.8, delay: 0.7 + index * 0.05 }}
-                          />
-                        </div>
+                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-success" />
+                          {agent.firstResponse.onTime + agent.resolution.onTime} no prazo
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 text-destructive" />
+                          {agent.firstResponse.breached + agent.resolution.breached} violações
+                        </span>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-success" />
-                        {agent.firstResponse.onTime + agent.resolution.onTime} no prazo
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3 text-destructive" />
-                        {agent.firstResponse.breached + agent.resolution.breached} violações
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+              )}
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* SLA by Queue */}
+        {/* SLA Overview Stats */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="border-secondary/20 bg-card">
+          <Card className="border-secondary/20 bg-card h-full">
             <CardHeader className="border-b border-secondary/20 bg-secondary/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center">
                   <Target className="w-5 h-5 text-secondary" />
                 </div>
-                <CardTitle className="font-display text-lg">SLA por Fila</CardTitle>
+                <CardTitle className="font-display text-lg">Resumo Geral</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
-              {queueSLAData
-                .sort((a, b) => b.overallRate - a.overallRate)
-                .map((queue, index) => (
-                  <motion.div
-                    key={queue.id}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 + index * 0.05 }}
-                    className="p-3 rounded-xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-3 h-3 rounded-full ring-4 ring-offset-2 ring-offset-background"
-                          style={{ backgroundColor: queue.color, boxShadow: `0 0 10px ${queue.color}40` }}
-                        />
-                        <span className="font-medium text-foreground">{queue.name}</span>
-                      </div>
-                      <Badge className={cn("font-semibold border-0", getRateBadge(queue.overallRate))}>
-                        {queue.overallRate}%
-                      </Badge>
+            <CardContent className="p-4 space-y-4">
+              {agentSLAData.length === 0 || totalConversations === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Nenhum dado de SLA disponível</p>
+                  <p className="text-sm">Os dados aparecerão quando houver conversas com SLA ativo</p>
+                </div>
+              ) : (
+                <>
+                  <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">Taxa de 1ª Resposta no Prazo</span>
+                      <span className={cn("font-semibold", getRateColor(overallRate))}>
+                        {overallRate}%
+                      </span>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> 1ª Resposta
-                          </span>
-                          <span className={getRateColor(queue.firstResponse.rate)}>
-                            {queue.firstResponse.rate}%
-                          </span>
-                        </div>
-                        <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                          <motion.div
-                            className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(queue.firstResponse.rate))}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${queue.firstResponse.rate}%` }}
-                            transition={{ duration: 0.8, delay: 0.7 + index * 0.05 }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{queue.firstResponse.onTime}/{queue.firstResponse.total}</span>
-                          <span>{queue.firstResponse.breached} violações</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Resolução
-                          </span>
-                          <span className={getRateColor(queue.resolution.rate)}>
-                            {queue.resolution.rate}%
-                          </span>
-                        </div>
-                        <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                          <motion.div
-                            className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(queue.resolution.rate))}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${queue.resolution.rate}%` }}
-                            transition={{ duration: 0.8, delay: 0.7 + index * 0.05 }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{queue.resolution.onTime}/{queue.resolution.total}</span>
-                          <span>{queue.resolution.breached} violações</span>
-                        </div>
-                      </div>
+                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                      <motion.div
+                        className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(overallRate))}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${overallRate}%` }}
+                        transition={{ duration: 0.8, delay: 0.6 }}
+                      />
                     </div>
-                  </motion.div>
-                ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-xl bg-success/10 border border-success/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle2 className="w-4 h-4 text-success" />
+                        <span className="text-xs text-muted-foreground">No Prazo</span>
+                      </div>
+                      <p className="text-xl font-bold text-success">{totalOnTime}</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <XCircle className="w-4 h-4 text-destructive" />
+                        <span className="text-xs text-muted-foreground">Violações</span>
+                      </div>
+                      <p className="text-xl font-bold text-destructive">{totalBreached}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-muted/20 border border-border/30">
+                    <div className="text-xs text-muted-foreground mb-2">Top 3 Agentes</div>
+                    {agentSLAData
+                      .filter(a => a.firstResponse.total > 0)
+                      .sort((a, b) => b.overallRate - a.overallRate)
+                      .slice(0, 3)
+                      .map((agent, index) => (
+                        <div key={agent.id} className="flex items-center justify-between py-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-muted-foreground">
+                              #{index + 1}
+                            </span>
+                            <span className="text-sm font-medium">{agent.name}</span>
+                          </div>
+                          <Badge className={cn("text-xs border-0", getRateBadge(agent.overallRate))}>
+                            {agent.overallRate}%
+                          </Badge>
+                        </div>
+                      ))}
+                    {agentSLAData.filter(a => a.firstResponse.total > 0).length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        Nenhum agente com dados de SLA
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </motion.div>
