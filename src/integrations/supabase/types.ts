@@ -236,34 +236,52 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_level: string | null
           avatar_url: string | null
           created_at: string
+          department: string | null
           email: string | null
           id: string
+          is_active: boolean | null
+          job_title: string | null
           max_chats: number | null
           name: string
+          permissions: Json | null
+          phone: string | null
           role: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          access_level?: string | null
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
           email?: string | null
           id?: string
+          is_active?: boolean | null
+          job_title?: string | null
           max_chats?: number | null
           name: string
+          permissions?: Json | null
+          phone?: string | null
           role?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          access_level?: string | null
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
           email?: string | null
           id?: string
+          is_active?: boolean | null
+          job_title?: string | null
           max_chats?: number | null
           name?: string
+          permissions?: Json | null
+          phone?: string | null
           role?: string | null
           updated_at?: string
           user_id?: string
