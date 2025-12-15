@@ -61,18 +61,18 @@ export function ConversationList({
   };
 
   return (
-    <div className="flex flex-col h-full glass-strong border-r border-border/50">
+    <div className="flex flex-col h-full bg-sidebar border-r border-border/30">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="p-4 border-b border-border/50 space-y-4 bg-gradient-to-b from-primary/5 to-transparent"
+        className="p-4 border-b border-border/20 space-y-4"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Conversas</h2>
-          <motion.div whileHover={{ scale: 1.05, rotate: 5 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+          <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10 text-muted-foreground hover:text-foreground">
               <Filter className="w-4 h-4" />
             </Button>
           </motion.div>
@@ -85,13 +85,13 @@ export function ConversationList({
             placeholder="Buscar conversas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+            className="pl-9 bg-muted/30 border-border/30 focus:border-primary/50 focus:ring-primary/20 transition-all"
           />
         </div>
 
         {/* Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 glass border border-border/30">
+          <TabsList className="w-full grid grid-cols-4 bg-muted/30 border border-border/20">
             <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Todas ({counts.all})
             </TabsTrigger>
@@ -129,24 +129,21 @@ export function ConversationList({
                 <StaggeredItem key={conversation.id}>
                   <motion.div
                     onClick={() => onSelect(conversation)}
-                    whileHover={{ x: 4 }}
+                    whileHover={{ x: 2 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.15 }}
                     className={cn(
                       'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group',
                       isSelected 
-                        ? 'glass-strong border border-primary/30 shadow-lg shadow-primary/10' 
-                        : 'hover:glass border border-transparent hover:border-border/50'
+                        ? 'bg-primary/10 border border-primary/30' 
+                        : 'hover:bg-muted/30 border border-transparent'
                     )}
                   >
-                    {/* Selection glow */}
+                    {/* Selection indicator */}
                     {isSelected && (
                       <motion.div 
                         layoutId="conversationActive"
-                        className="absolute inset-0 rounded-xl opacity-50"
-                        style={{ background: 'var(--gradient-primary)' }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.1 }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-primary"
                       />
                     )}
 
@@ -154,14 +151,11 @@ export function ConversationList({
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
                         <Avatar className={cn(
-                          "w-12 h-12 ring-2 transition-all",
-                          isSelected ? "ring-primary/50" : "ring-border/30 group-hover:ring-primary/30"
+                          "w-11 h-11 ring-2 transition-all",
+                          isSelected ? "ring-primary/40" : "ring-border/30"
                         )}>
                           <AvatarImage src={conversation.contact.avatar} />
-                          <AvatarFallback 
-                            className="text-primary-foreground font-medium"
-                            style={{ background: 'var(--gradient-primary)' }}
-                          >
+                          <AvatarFallback className="bg-primary/10 text-primary font-medium">
                             {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                           </AvatarFallback>
                         </Avatar>
@@ -169,7 +163,7 @@ export function ConversationList({
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           className={cn(
-                            'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-background',
+                            'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-sidebar',
                             statusColors[conversation.status]
                           )}
                         >
@@ -181,7 +175,7 @@ export function ConversationList({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className={cn(
-                            "font-medium truncate transition-colors",
+                            "font-medium text-sm truncate transition-colors",
                             isSelected ? "text-primary" : "text-foreground"
                           )}>
                             {conversation.contact.name}
@@ -203,8 +197,7 @@ export function ConversationList({
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                              className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold text-primary-foreground"
-                              style={{ background: 'var(--gradient-primary)' }}
+                              className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold bg-primary text-primary-foreground"
                             >
                               {conversation.unreadCount}
                             </motion.span>
@@ -218,7 +211,7 @@ export function ConversationList({
                               <Badge
                                 key={tag}
                                 variant="secondary"
-                                className="text-[10px] px-1.5 py-0 glass-soft border-border/30"
+                                className="text-[10px] px-1.5 py-0 bg-muted/50 border-border/20"
                               >
                                 {tag}
                               </Badge>
@@ -234,11 +227,7 @@ export function ConversationList({
 
                       {/* Priority indicator */}
                       {conversation.priority === 'high' && (
-                        <motion.div 
-                          animate={{ opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-1 h-8 rounded-full bg-priority-high flex-shrink-0" 
-                        />
+                        <div className="w-1 h-8 rounded-full bg-destructive flex-shrink-0" />
                       )}
                     </div>
                   </motion.div>

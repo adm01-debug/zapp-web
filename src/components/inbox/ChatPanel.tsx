@@ -209,18 +209,18 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-background via-background to-muted/10">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between px-4 py-3 glass-strong border-b border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-transparent"
+        className="flex items-center justify-between px-4 py-3 border-b border-border/20 bg-card"
       >
         <div className="flex items-center gap-3">
           <motion.div whileHover={{ scale: 1.05 }}>
-            <Avatar className="w-10 h-10">
+            <Avatar className="w-10 h-10 ring-2 ring-border/30">
               <AvatarImage src={conversation.contact.avatar} />
-              <AvatarFallback className="bg-primary/10 text-primary">
+              <AvatarFallback className="bg-primary/10 text-primary font-medium">
                 {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
             </Avatar>
@@ -233,11 +233,11 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               <Badge
                 variant="outline"
                 className={cn(
-                  'text-[10px] capitalize',
-                  conversation.status === 'open' && 'border-status-open text-status-open',
-                  conversation.status === 'pending' && 'border-status-pending text-status-pending',
-                  conversation.status === 'resolved' && 'border-status-resolved text-status-resolved',
-                  conversation.status === 'waiting' && 'border-status-waiting text-status-waiting'
+                  'text-[10px] capitalize border',
+                  conversation.status === 'open' && 'border-success/50 text-success bg-success/10',
+                  conversation.status === 'pending' && 'border-warning/50 text-warning bg-warning/10',
+                  conversation.status === 'resolved' && 'border-muted-foreground/50 text-muted-foreground',
+                  conversation.status === 'waiting' && 'border-info/50 text-info bg-info/10'
                 )}
               >
                 {conversation.status === 'open' ? 'Aberto' : 
@@ -250,7 +250,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-whatsapp"
+                  className="text-success"
                 >
                   digitando...
                 </motion.span>
@@ -266,26 +266,26 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             <Button 
               variant="ghost" 
               size="icon" 
-              className="text-muted-foreground hover:text-foreground hover:text-whatsapp"
+              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
               onClick={handleStartCall}
             >
               <PhoneCall className="w-4 h-4" />
             </Button>
           </motion.div>
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
               <Video className="w-4 h-4" />
             </Button>
           </motion.div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                   <MoreVertical className="w-4 h-4" />
                 </Button>
               </motion.div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 bg-card border-border/30">
               <DropdownMenuItem>
                 <Tag className="w-4 h-4 mr-2" />
                 Adicionar tag
@@ -347,7 +347,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       </AnimatePresence>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-muted/5">
         {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
           <div key={dateKey}>
             {/* Date separator */}
@@ -356,7 +356,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               animate={{ opacity: 1, scale: 1 }}
               className="flex justify-center my-4"
             >
-              <span className="text-xs text-muted-foreground glass-soft px-4 py-1.5 rounded-full font-medium border border-border/30">
+              <span className="text-xs text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full font-medium border border-border/20">
                 {formatDateSeparator(new Date(dateKey))}
               </span>
             </motion.div>
@@ -381,14 +381,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                           className={cn(
                             'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
                             isSent 
-                              ? 'rounded-br-md text-primary-foreground' 
-                              : 'rounded-bl-md glass-soft border border-border/30 text-foreground'
+                              ? 'rounded-br-md bg-primary text-primary-foreground' 
+                              : 'rounded-bl-md bg-card border border-border/30 text-foreground'
                           )}
-                          style={isSent ? { background: 'var(--gradient-primary)' } : undefined}
                         >
-                          {/* Glow effect for sent messages */}
+                          {/* Subtle glow for sent messages */}
                           {isSent && (
-                            <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/20 blur-xl -z-10" />
+                            <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
                           )}
 
                           {/* Image message */}
