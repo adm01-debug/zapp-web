@@ -55,16 +55,13 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       initial={false}
       animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex flex-col h-screen glass-strong border-r border-border/50 relative"
-      style={{
-        background: 'linear-gradient(180deg, hsl(var(--sidebar-background)), hsl(var(--background)))',
-      }}
+      className="flex flex-col h-screen border-r border-border/30 relative bg-sidebar"
     >
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/3 via-transparent to-transparent pointer-events-none" />
       
       {/* Logo */}
-      <div className="relative flex items-center justify-between p-4 border-b border-border/30">
+      <div className="relative flex items-center justify-between p-4 border-b border-border/20">
         <AnimatePresence mode="wait">
           {!isCollapsed && (
             <motion.div
@@ -75,17 +72,11 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               className="flex items-center gap-3"
             >
               <motion.div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
-                style={{ background: 'var(--gradient-primary)' }}
-                whileHover={{ scale: 1.05, rotate: 5 }}
+                className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center relative overflow-hidden"
+                whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400 }}
               >
-                <Sparkles className="w-5 h-5 text-primary-foreground relative z-10" />
-                <motion.div
-                  className="absolute inset-0 bg-primary-glow/30"
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
+                <Sparkles className="w-5 h-5 text-primary relative z-10" />
               </motion.div>
               <div>
                 <span className="font-display font-bold text-lg text-foreground">MultiChat</span>
@@ -101,7 +92,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           <Button
             variant="ghost"
             size="icon"
-            className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg"
+            className="text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-lg"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? (
@@ -125,40 +116,28 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: index * 0.04 }}
-              whileHover={{ x: 4, scale: 1.01 }}
+              whileHover={{ x: 2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onViewChange(item.id)}
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative group',
-                'text-muted-foreground hover:text-foreground',
                 isActive 
-                  ? 'text-primary-foreground' 
-                  : 'hover:bg-accent/50'
+                  ? 'text-primary bg-primary/15' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
               )}
             >
-              {/* Active background with gradient */}
+              {/* Active indicator bar */}
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute inset-0 rounded-xl"
-                  style={{ background: 'var(--gradient-primary)' }}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-primary"
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
               
-              {/* Hover glow effect */}
-              {!isActive && (
-                <motion.div
-                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ 
-                    background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
-                  }}
-                />
-              )}
-              
               <Icon className={cn(
-                "w-5 h-5 flex-shrink-0 relative z-10 transition-colors duration-200",
-                isActive && "text-primary-foreground"
+                "w-5 h-5 flex-shrink-0 transition-colors duration-200",
+                isActive ? "text-primary" : "group-hover:text-foreground"
               )} />
               
               <AnimatePresence mode="wait">
@@ -168,11 +147,11 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="flex items-center flex-1 overflow-hidden relative z-10"
+                    className="flex items-center flex-1 overflow-hidden"
                   >
                     <span className={cn(
                       "flex-1 text-left text-sm font-medium whitespace-nowrap",
-                      isActive && "text-primary-foreground"
+                      isActive ? "text-primary" : "text-foreground"
                     )}>
                       {item.label}
                     </span>
@@ -180,12 +159,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                       <motion.span 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className={cn(
-                          "min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold",
-                          isActive 
-                            ? "bg-primary-foreground/20 text-primary-foreground" 
-                            : "bg-primary text-primary-foreground animate-pulse-soft"
-                        )}
+                        className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold bg-primary text-primary-foreground"
                       >
                         {item.badge}
                       </motion.span>
@@ -202,7 +176,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                 <TooltipTrigger asChild>{button}</TooltipTrigger>
                 <TooltipContent 
                   side="right" 
-                  className="glass border-border/50 bg-popover/95 backdrop-blur-xl"
+                  className="border-border/30 bg-card"
                 >
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{item.label}</p>
@@ -220,7 +194,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           return button;
         })}
         {/* Theme Toggle */}
-        <div className="mt-2 pt-2 border-t border-border/30">
+        <div className="mt-2 pt-2 border-t border-border/20">
           <ThemeToggle collapsed={isCollapsed} />
         </div>
       </nav>
@@ -231,34 +205,31 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="relative p-3 border-t border-border/30"
+          className="relative p-3 border-t border-border/20"
         >
           <motion.div
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
             className={cn(
               'flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-200',
-              'bg-accent/30 hover:bg-accent/50 border border-transparent hover:border-border/50',
+              'bg-muted/20 hover:bg-muted/40 border border-border/20',
               isCollapsed && 'justify-center'
             )}
           >
             <div className="relative">
-              <Avatar className="w-10 h-10 ring-2 ring-border/50">
+              <Avatar className="w-10 h-10 ring-2 ring-border/30">
                 <AvatarImage src={currentAgent.avatar} />
-                <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold">
+                <AvatarFallback className="bg-primary/15 text-primary font-display font-semibold">
                   {currentAgent.name.split(' ').map((n) => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <motion.span
                 animate={{ 
                   scale: currentAgent.status === 'online' ? [1, 1.2, 1] : 1,
-                  boxShadow: currentAgent.status === 'online' 
-                    ? ['0 0 0 0 hsl(var(--success) / 0.4)', '0 0 0 4px hsl(var(--success) / 0)', '0 0 0 0 hsl(var(--success) / 0.4)']
-                    : 'none'
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
                 className={cn(
-                  'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background',
+                  'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-sidebar',
                   currentAgent.status === 'online' && 'bg-success',
                   currentAgent.status === 'away' && 'bg-warning',
                   currentAgent.status === 'offline' && 'bg-muted-foreground'
