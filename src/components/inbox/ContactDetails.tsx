@@ -44,15 +44,11 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 100, opacity: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="w-80 h-full glass-strong border-l border-border/50 flex flex-col relative overflow-hidden"
+      className="w-80 h-full bg-sidebar border-l border-border/30 flex flex-col overflow-hidden"
     >
-      {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 left-0 w-32 h-32 bg-accent/5 rounded-full blur-2xl pointer-events-none" />
-      
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent backdrop-blur-sm relative z-10">
-        <h3 className="font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+      <div className="flex items-center justify-between p-4 border-b border-border/30 bg-card">
+        <h3 className="font-semibold text-foreground">
           Detalhes do Contato
         </h3>
         <Button 
@@ -65,55 +61,44 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin relative z-10">
+      <div className="flex-1 overflow-y-auto scrollbar-thin">
         {/* Contact Info */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="p-4 flex flex-col items-center text-center border-b border-border/50"
+          className="p-4 flex flex-col items-center text-center border-b border-border/30"
         >
           <div className="relative">
-            <Avatar className="w-20 h-20 mb-3 ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
+            <Avatar className="w-20 h-20 mb-3 ring-2 ring-border/30 ring-offset-2 ring-offset-background">
               <AvatarImage src={contact.avatar} />
-              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary text-xl font-semibold">
+              <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
                 {contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
             </Avatar>
-            <motion.div 
-              className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Sparkles className="w-3 h-3 text-primary-foreground" />
-            </motion.div>
           </div>
-          <h4 className="font-semibold text-lg bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+          <h4 className="font-semibold text-lg text-foreground">
             {contact.name}
           </h4>
           <p className="text-sm text-muted-foreground">{contact.phone}</p>
           
           <div className="flex items-center gap-2 mt-4">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="glass border-border/50 hover:border-primary/50 hover:bg-primary/10 transition-all"
-              >
-                <Phone className="w-4 h-4 mr-1 text-primary" />
-                Ligar
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="glass border-border/50 hover:border-primary/50 hover:bg-primary/10 transition-all"
-              >
-                <Mail className="w-4 h-4 mr-1 text-primary" />
-                Email
-              </Button>
-            </motion.div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-border/30 hover:border-primary/50 hover:bg-primary/10 transition-all"
+            >
+              <Phone className="w-4 h-4 mr-1 text-primary" />
+              Ligar
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-border/30 hover:border-primary/50 hover:bg-primary/10 transition-all"
+            >
+              <Mail className="w-4 h-4 mr-1 text-primary" />
+              Email
+            </Button>
           </div>
         </motion.div>
 
@@ -122,7 +107,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="p-4 space-y-4 border-b border-border/50"
+          className="p-4 space-y-4 border-b border-border/30"
         >
           <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
             <User className="w-4 h-4 text-primary" />
@@ -130,19 +115,19 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           </h5>
           
           <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm glass-soft rounded-lg p-2.5 group hover:bg-primary/5 transition-colors">
+            <div className="flex items-center gap-3 text-sm bg-muted/20 rounded-lg p-2.5 hover:bg-muted/30 transition-colors">
               <Phone className="w-4 h-4 text-primary" />
-              <span className="text-foreground/90">{contact.phone}</span>
+              <span className="text-foreground">{contact.phone}</span>
             </div>
             {contact.email && (
-              <div className="flex items-center gap-3 text-sm glass-soft rounded-lg p-2.5 group hover:bg-primary/5 transition-colors">
+              <div className="flex items-center gap-3 text-sm bg-muted/20 rounded-lg p-2.5 hover:bg-muted/30 transition-colors">
                 <Mail className="w-4 h-4 text-primary" />
-                <span className="text-foreground/90">{contact.email}</span>
+                <span className="text-foreground">{contact.email}</span>
               </div>
             )}
-            <div className="flex items-center gap-3 text-sm glass-soft rounded-lg p-2.5 group hover:bg-primary/5 transition-colors">
+            <div className="flex items-center gap-3 text-sm bg-muted/20 rounded-lg p-2.5 hover:bg-muted/30 transition-colors">
               <Calendar className="w-4 h-4 text-primary" />
-              <span className="text-foreground/90">
+              <span className="text-foreground">
                 Cliente desde {format(contact.createdAt, "MMM 'de' yyyy", { locale: ptBR })}
               </span>
             </div>
@@ -154,56 +139,42 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="p-4 space-y-3 border-b border-border/50"
+          className="p-4 space-y-3 border-b border-border/30"
         >
           <div className="flex items-center justify-between">
             <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
               <Tag className="w-4 h-4 text-primary" />
               Tags
             </h5>
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="w-6 h-6 hover:bg-primary/10 hover:text-primary"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </motion.div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-6 h-6 hover:bg-primary/10 hover:text-primary"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
           </div>
           
           <div className="flex flex-wrap gap-2">
             {contact.tags.map((tag, index) => (
-              <motion.div
+              <Badge
                 key={tag}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + index * 0.05 }}
+                variant="secondary"
+                className="flex items-center gap-1 bg-primary/10 border border-primary/20 text-foreground hover:bg-primary/20 transition-all"
               >
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1 bg-gradient-to-r from-primary/20 to-primary/10 border-primary/20 text-foreground hover:from-primary/30 hover:to-primary/20 transition-all"
-                >
-                  {tag}
-                  <X className="w-3 h-3 cursor-pointer hover:text-destructive transition-colors" />
-                </Badge>
-              </motion.div>
+                {tag}
+                <X className="w-3 h-3 cursor-pointer hover:text-destructive transition-colors" />
+              </Badge>
             ))}
             {conversation.tags.map((tag, index) => (
-              <motion.div
+              <Badge
                 key={tag}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + index * 0.05 }}
+                variant="outline"
+                className="flex items-center gap-1 border-border/30 hover:border-primary/30 transition-all"
               >
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 glass border-border/50 hover:border-primary/50 transition-all"
-                >
-                  {tag}
-                  <X className="w-3 h-3 cursor-pointer hover:text-destructive transition-colors" />
-                </Badge>
-              </motion.div>
+                {tag}
+                <X className="w-3 h-3 cursor-pointer hover:text-destructive transition-colors" />
+              </Badge>
             ))}
           </div>
         </motion.div>
@@ -213,7 +184,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="p-4 space-y-3 border-b border-border/50"
+          className="p-4 space-y-3 border-b border-border/30"
         >
           <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
             <User className="w-4 h-4 text-primary" />
@@ -226,16 +197,16 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
                 Atendente
               </label>
               <Select defaultValue={conversation.assignedTo?.id}>
-                <SelectTrigger className="w-full glass border-border/50 hover:border-primary/50 transition-colors">
+                <SelectTrigger className="w-full border-border/30 hover:border-primary/30 transition-colors bg-muted/20">
                   <SelectValue placeholder="Selecionar atendente" />
                 </SelectTrigger>
-                <SelectContent className="glass-strong border-border/50">
+                <SelectContent className="bg-card border-border/30">
                   {mockAgents.filter(a => a.status !== 'offline').map((agent) => (
                     <SelectItem key={agent.id} value={agent.id} className="hover:bg-primary/10">
                       <div className="flex items-center gap-2">
-                        <Avatar className="w-5 h-5 ring-1 ring-primary/20">
+                        <Avatar className="w-5 h-5 ring-1 ring-border/30">
                           <AvatarImage src={agent.avatar} />
-                          <AvatarFallback className="text-[10px] bg-gradient-to-br from-primary/20 to-accent/20">
+                          <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                             {agent.name[0]}
                           </AvatarFallback>
                         </Avatar>
@@ -253,16 +224,16 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
                 Fila
               </label>
               <Select defaultValue={conversation.queue?.id}>
-                <SelectTrigger className="w-full glass border-border/50 hover:border-primary/50 transition-colors">
+                <SelectTrigger className="w-full border-border/30 hover:border-primary/30 transition-colors bg-muted/20">
                   <SelectValue placeholder="Selecionar fila" />
                 </SelectTrigger>
-                <SelectContent className="glass-strong border-border/50">
+                <SelectContent className="bg-card border-border/30">
                   {mockQueues.map((queue) => (
                     <SelectItem key={queue.id} value={queue.id} className="hover:bg-primary/10">
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full ring-2 ring-offset-1 ring-offset-background"
-                          style={{ backgroundColor: queue.color, boxShadow: `0 0 8px ${queue.color}40` }}
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: queue.color }}
                         />
                         <span>{queue.name}</span>
                       </div>
@@ -279,7 +250,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="p-4 border-b border-border/50"
+          className="p-4 border-b border-border/30"
         >
           <PrivateNotes contactId={contact.phone} />
         </motion.div>
@@ -297,30 +268,24 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           </h5>
           
           <div className="grid grid-cols-2 gap-3">
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="glass-soft rounded-lg p-3 border border-border/30 hover:border-primary/30 transition-all group"
-            >
+            <div className="bg-muted/20 rounded-lg p-3 border border-border/20 hover:border-primary/20 transition-all">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <MessageSquare className="w-4 h-4 group-hover:text-primary transition-colors" />
+                <MessageSquare className="w-4 h-4" />
                 <span className="text-xs">Mensagens</span>
               </div>
-              <span className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-lg font-semibold text-primary">
                 24
               </span>
-            </motion.div>
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="glass-soft rounded-lg p-3 border border-border/30 hover:border-primary/30 transition-all group"
-            >
+            </div>
+            <div className="bg-muted/20 rounded-lg p-3 border border-border/20 hover:border-primary/20 transition-all">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Clock className="w-4 h-4 group-hover:text-primary transition-colors" />
+                <Clock className="w-4 h-4" />
                 <span className="text-xs">Tempo médio</span>
               </div>
-              <span className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-lg font-semibold text-primary">
                 3min
               </span>
-            </motion.div>
+            </div>
           </div>
         </motion.div>
       </div>
