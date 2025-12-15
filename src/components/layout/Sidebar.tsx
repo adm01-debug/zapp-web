@@ -11,6 +11,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Wallet,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,6 +26,7 @@ interface SidebarProps {
     avatar?: string;
     status: 'online' | 'away' | 'offline';
   };
+  onLogout?: () => void;
 }
 
 const menuItems = [
@@ -33,12 +35,13 @@ const menuItems = [
   { id: 'agents', icon: Phone, label: 'Atendentes' },
   { id: 'queues', icon: Tag, label: 'Filas' },
   { id: 'connections', icon: Zap, label: 'Conexões' },
+  { id: 'wallet', icon: Wallet, label: 'Carteira' },
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
 ];
 
-export function Sidebar({ currentView, onViewChange, currentAgent }: SidebarProps) {
+export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -212,6 +215,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent }: SidebarProp
                     variant="ghost"
                     size="icon"
                     className="text-sidebar-foreground hover:bg-sidebar-accent flex-shrink-0"
+                    onClick={onLogout}
                   >
                     <LogOut className="w-4 h-4" />
                   </Button>
