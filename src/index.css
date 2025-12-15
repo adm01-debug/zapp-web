@@ -467,27 +467,27 @@ select:focus-visible {
     box-shadow: var(--shadow-glow-purple);
   }
 
-  /* Pulsating Purple Glow */
+  /* Pulsating Purple Glow - DISABLED (static glow) */
   .glow-purple-pulse {
-    animation: purple-glow-pulse 2s ease-in-out infinite;
+    box-shadow: var(--shadow-glow-purple);
   }
 
   .glow-purple-pulse-slow {
-    animation: purple-glow-pulse 3s ease-in-out infinite;
+    box-shadow: var(--shadow-glow-purple);
   }
 
   .glow-purple-pulse-fast {
-    animation: purple-glow-pulse 1.2s ease-in-out infinite;
+    box-shadow: var(--shadow-glow-purple);
   }
 
-  /* Gradient Glow Pulse (Green to Purple) */
+  /* Gradient Glow Pulse - DISABLED (static) */
   .glow-gradient-pulse {
-    animation: gradient-glow-pulse 2.5s ease-in-out infinite;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.2), 0 0 40px hsl(var(--secondary) / 0.1);
   }
 
-  /* Border Glow Purple */
+  /* Border Glow Purple - DISABLED (static) */
   .border-glow-purple {
-    animation: border-purple-glow 2s ease-in-out infinite;
+    border-color: hsl(var(--secondary) / 0.5);
   }
 }
 
@@ -530,25 +530,25 @@ select:focus-visible {
     @apply opacity-100;
   }
 
-  /* Card with Pulsing Purple Glow */
+  /* Card with Purple Glow - Static */
   .card-glow-purple {
     @apply relative bg-card rounded-xl border border-secondary/30 p-6 transition-all duration-300 overflow-hidden;
-    animation: purple-glow-pulse 3s ease-in-out infinite;
+    box-shadow: 0 0 20px hsl(var(--secondary) / 0.15);
   }
 
   .card-glow-purple:hover {
-    animation: purple-glow-pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 30px hsl(var(--secondary) / 0.25);
     @apply border-secondary/60;
   }
 
-  /* Card with Gradient Glow */
+  /* Card with Gradient Glow - Static */
   .card-glow-gradient {
     @apply relative bg-card rounded-xl border border-primary/20 p-6 transition-all duration-300 overflow-hidden;
-    animation: gradient-glow-pulse 4s ease-in-out infinite;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15), 0 0 40px hsl(var(--secondary) / 0.1);
   }
 
   .card-glow-gradient:hover {
-    animation: gradient-glow-pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.25), 0 0 50px hsl(var(--secondary) / 0.15);
   }
 
   .card-interactive::after {
