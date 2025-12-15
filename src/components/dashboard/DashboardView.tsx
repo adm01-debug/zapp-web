@@ -18,6 +18,7 @@ import {
 import { mockAgents, mockQueues, mockConversations } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
+import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 
 export function DashboardView() {
   const totalConversations = mockConversations.length;
@@ -313,98 +314,13 @@ export function DashboardView() {
           </Card>
         </motion.div>
 
-        {/* Active Agents with Rankings */}
+        {/* Leaderboard Component */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <Card className="card-elevated border-border/50 overflow-hidden">
-            <CardHeader className="border-b border-border/30 bg-muted/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <motion.div 
-                    className="w-8 h-8 rounded-lg bg-gradient-to-br from-rank-gold to-yellow-400 flex items-center justify-center"
-                    animate={{ rotate: [0, 5, -5, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  >
-                    <Trophy className="w-4 h-4 text-rank-gold-foreground" />
-                  </motion.div>
-                  <CardTitle className="font-display text-lg">Top Atendentes</CardTitle>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <StaggeredList className="space-y-2">
-                {mockAgents
-                  .filter((a) => a.status !== 'offline')
-                  .map((agent, index) => {
-                    const rankClass = index === 0 ? 'rank-gold' : index === 1 ? 'rank-silver' : index === 2 ? 'rank-bronze' : '';
-                    
-                    return (
-                      <StaggeredItem key={agent.id}>
-                        <motion.div
-                          className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-muted/40 transition-all duration-200 cursor-pointer group"
-                          whileHover={{ x: 4, scale: 1.01 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-center gap-3">
-                            {/* Rank badge */}
-                            {index < 3 && (
-                              <motion.div
-                                className={cn(
-                                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-                                  rankClass
-                                )}
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.5 + index * 0.1, type: 'spring' }}
-                              >
-                                {index + 1}
-                              </motion.div>
-                            )}
-                            
-                            <div className="relative">
-                              <Avatar className="w-10 h-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
-                                <AvatarImage src={agent.avatar} />
-                                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                                  {agent.name[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <motion.span
-                                animate={{ 
-                                  scale: agent.status === 'online' ? [1, 1.2, 1] : 1,
-                                }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                                className={cn(
-                                  'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background',
-                                  agent.status === 'online' ? 'bg-success' : 'bg-warning'
-                                )}
-                              />
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-foreground">{agent.name}</p>
-                              <div className="flex items-center gap-1">
-                                <Zap className="w-3 h-3 text-xp" />
-                                <span className="text-xs text-muted-foreground">
-                                  {Math.floor(Math.random() * 500 + 500)} XP
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-foreground">
-                              {agent.activeChats}/{agent.maxChats}
-                            </p>
-                            <p className="text-xs text-muted-foreground">chats</p>
-                          </div>
-                        </motion.div>
-                      </StaggeredItem>
-                    );
-                  })}
-              </StaggeredList>
-            </CardContent>
-          </Card>
+          <Leaderboard />
         </motion.div>
       </div>
 
