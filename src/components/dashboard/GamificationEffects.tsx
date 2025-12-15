@@ -165,15 +165,15 @@ export function StatCardWithGamification({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
-      whileHover={{ y: -2, scale: 1.01 }}
+      whileHover={{ y: -4, scale: 1.02 }}
       className="group relative"
     >
-      <div className="relative overflow-hidden border border-border/30 hover:border-primary/40 h-full rounded-2xl bg-card p-5 transition-all duration-300">
-        {/* Subtle hover glow */}
+      <div className="card-glow-purple relative overflow-hidden border border-secondary/30 hover:border-secondary/60 h-full rounded-2xl bg-card p-5 transition-all duration-300">
+        {/* Purple gradient hover glow */}
         <motion.div 
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
           style={{
-            background: `radial-gradient(300px circle at 80% 20%, hsl(var(--primary) / 0.06), transparent 60%)`
+            background: `radial-gradient(350px circle at 80% 20%, hsl(var(--secondary) / 0.15), hsl(var(--primary) / 0.05) 60%, transparent 80%)`
           }}
         />
 

@@ -77,12 +77,17 @@ export function DashboardView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/8 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -left-24 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 -left-24 w-64 h-64 bg-primary/8 rounded-full blur-3xl" />
         <motion.div 
-          className="absolute top-1/3 right-1/3 w-48 h-48 bg-primary/5 rounded-full blur-3xl"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 6, repeat: Infinity }}
+          className="absolute top-1/3 right-1/3 w-48 h-48 bg-secondary/8 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 5, repeat: Infinity }}
+        />
+        <motion.div 
+          className="absolute bottom-1/3 left-1/4 w-32 h-32 bg-accent/10 rounded-full blur-2xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, delay: 1 }}
         />
       </div>
 
@@ -96,11 +101,9 @@ export function DashboardView() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-3">
             <motion.div
-              className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
+              className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden glow-gradient-pulse"
               style={{ background: 'var(--gradient-primary)' }}
               whileHover={{ scale: 1.05, rotate: 5 }}
-              animate={{ boxShadow: ['0 0 0 0 hsl(var(--primary) / 0.4)', '0 0 20px 4px hsl(var(--primary) / 0.2)', '0 0 0 0 hsl(var(--primary) / 0.4)'] }}
-              transition={{ duration: 2, repeat: Infinity }}
             >
               <TrendingUp className="w-6 h-6 text-primary-foreground relative z-10" />
             </motion.div>
@@ -151,16 +154,16 @@ export function DashboardView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.5 }}
       >
-        <Card className="border-border/30 overflow-hidden bg-card">
-          <CardHeader className="border-b border-border/20 bg-muted/5">
+        <Card className="card-glow-gradient border-secondary/20 overflow-hidden bg-card">
+          <CardHeader className="border-b border-secondary/20 bg-secondary/5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <motion.div 
-                  className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
+                  className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Target className="w-5 h-5 text-primary" />
+                  <Target className="w-5 h-5 text-secondary" />
                 </motion.div>
                 <CardTitle className="font-display text-lg text-foreground">Desafios do Dia</CardTitle>
               </div>
@@ -242,14 +245,14 @@ export function DashboardView() {
           transition={{ duration: 0.4, delay: 0.3 }}
           className="lg:col-span-2"
         >
-          <Card className="border-border/30 overflow-hidden bg-card">
-            <CardHeader className="border-b border-border/20 bg-muted/5">
+          <Card className="border-secondary/20 overflow-hidden bg-card hover:border-secondary/40 transition-all duration-300">
+            <CardHeader className="border-b border-secondary/20 bg-secondary/5">
               <div className="flex items-center gap-3">
                 <motion.div 
-                  className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
+                  className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow"
                   whileHover={{ scale: 1.1 }}
                 >
-                  <Sparkles className="w-5 h-5 text-primary" />
+                  <Sparkles className="w-5 h-5 text-secondary" />
                 </motion.div>
                 <CardTitle className="font-display text-lg text-foreground">Status das Filas</CardTitle>
               </div>
@@ -335,11 +338,11 @@ export function DashboardView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.6 }}
       >
-        <Card className="border-border/30 overflow-hidden bg-card">
-          <CardHeader className="border-b border-border/20 bg-muted/5">
+        <Card className="border-secondary/20 overflow-hidden bg-card hover:border-secondary/40 transition-all duration-300">
+          <CardHeader className="border-b border-secondary/20 bg-secondary/5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow">
+                <MessageSquare className="w-5 h-5 text-secondary" />
               </div>
               <CardTitle className="font-display text-lg text-foreground">Atividade Recente</CardTitle>
             </div>
