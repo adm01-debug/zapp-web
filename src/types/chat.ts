@@ -1,6 +1,10 @@
 export interface Contact {
   id: string;
   name: string;
+  nickname?: string;
+  surname?: string;
+  job_title?: string;
+  company?: string;
   phone: string;
   avatar?: string;
   email?: string;

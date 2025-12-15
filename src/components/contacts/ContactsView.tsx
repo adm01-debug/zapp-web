@@ -91,7 +91,15 @@ export function ContactsView() {
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);
   const [search, setSearch] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newContact, setNewContact] = useState({ name: '', phone: '', email: '' });
+  const [newContact, setNewContact] = useState({ 
+    name: '', 
+    nickname: '',
+    surname: '',
+    job_title: '',
+    company: '',
+    phone: '', 
+    email: '' 
+  });
 
   const filteredContacts = contacts.filter(
     (contact) =>
@@ -105,13 +113,17 @@ export function ContactsView() {
       const contact: Contact = {
         id: Date.now().toString(),
         name: newContact.name,
+        nickname: newContact.nickname || undefined,
+        surname: newContact.surname || undefined,
+        job_title: newContact.job_title || undefined,
+        company: newContact.company || undefined,
         phone: newContact.phone,
         email: newContact.email || undefined,
         tags: [],
         createdAt: new Date(),
       };
       setContacts([contact, ...contacts]);
-      setNewContact({ name: '', phone: '', email: '' });
+      setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '' });
       setIsAddDialogOpen(false);
     }
   };
@@ -161,42 +173,82 @@ export function ContactsView() {
                 <DialogTitle>Adicionar Contato</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome *</Label>
+                  <Label htmlFor="name">Nome Principal *</Label>
                   <Input
                     id="name"
-                    placeholder="Nome do contato"
+                    placeholder="Nome"
                     value={newContact.name}
                     onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone *</Label>
+                  <Label htmlFor="surname">Sobrenome</Label>
                   <Input
-                    id="phone"
-                    placeholder="+55 11 99999-9999"
-                    value={newContact.phone}
-                    onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                    id="surname"
+                    placeholder="Sobrenome"
+                    value={newContact.surname}
+                    onChange={(e) => setNewContact({ ...newContact, surname: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nickname">Apelido</Label>
+                <Input
+                  id="nickname"
+                  placeholder="Como prefere ser chamado"
+                  value={newContact.nickname}
+                  onChange={(e) => setNewContact({ ...newContact, nickname: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="job_title">Cargo</Label>
+                  <Input
+                    id="job_title"
+                    placeholder="Ex: Gerente de Vendas"
+                    value={newContact.job_title}
+                    onChange={(e) => setNewContact({ ...newContact, job_title: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="company">Empresa</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="email@exemplo.com"
-                    value={newContact.email}
-                    onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                    id="company"
+                    placeholder="Nome da empresa"
+                    value={newContact.company}
+                    onChange={(e) => setNewContact({ ...newContact, company: e.target.value })}
                   />
                 </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleAddContact} className="bg-whatsapp hover:bg-whatsapp-dark">
-                    Adicionar
-                  </Button>
-                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone *</Label>
+                <Input
+                  id="phone"
+                  placeholder="+55 11 99999-9999"
+                  value={newContact.phone}
+                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={newContact.email}
+                  onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleAddContact} className="bg-whatsapp hover:bg-whatsapp-dark">
+                  Adicionar
+                </Button>
+              </div>
               </div>
             </DialogContent>
           </Dialog>
