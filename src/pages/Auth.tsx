@@ -5,10 +5,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Smartphone, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Smartphone, Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -112,137 +112,356 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary-glow/20 rounded-full blur-3xl"
+        />
+        <motion.div 
+          animate={{ 
+            y: [0, -20, 0],
+            opacity: [0.1, 0.3, 0.1]
+          }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/3 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-2xl"
+        />
+      </div>
+
+      {/* Grid pattern overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--primary)) 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md relative z-10"
       >
+        {/* Header */}
         <div className="text-center mb-8">
           <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="w-16 h-16 rounded-2xl bg-whatsapp/10 flex items-center justify-center mx-auto mb-4"
+            initial={{ scale: 0.8, rotate: -10 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="relative w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
+            style={{ background: 'var(--gradient-primary)' }}
           >
-            <Smartphone className="w-8 h-8 text-whatsapp" />
+            <Smartphone className="w-10 h-10 text-primary-foreground" />
+            
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-2xl bg-primary/30 blur-xl -z-10" />
+            
+            {/* Sparkle decorations */}
+            <motion.div
+              animate={{ 
+                scale: [0, 1, 0],
+                opacity: [0, 1, 0]
+              }}
+              transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+              className="absolute -top-2 -right-2"
+            >
+              <Sparkles className="w-4 h-4 text-primary" />
+            </motion.div>
+            <motion.div
+              animate={{ 
+                scale: [0, 1, 0],
+                opacity: [0, 1, 0]
+              }}
+              transition={{ duration: 2, repeat: Infinity, delay: 0.7 }}
+              className="absolute -bottom-1 -left-1"
+            >
+              <Sparkles className="w-3 h-3 text-primary-glow" />
+            </motion.div>
           </motion.div>
-          <h1 className="text-2xl font-bold text-foreground">WhatsApp Platform</h1>
-          <p className="text-muted-foreground">Plataforma omnichannel para atendimento</p>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-3xl font-bold bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent"
+          >
+            WhatsApp Platform
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-muted-foreground mt-2"
+          >
+            Plataforma omnichannel para atendimento
+          </motion.p>
         </div>
 
-        <Card className="backdrop-blur-sm bg-card/80 border-border">
-          <Tabs defaultValue="login" className="w-full">
-            <CardHeader className="pb-0">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Criar Conta</TabsTrigger>
-              </TabsList>
-            </CardHeader>
-
-            <CardContent className="pt-6">
-              <TabsContent value="login" className="mt-0">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="seu@email.com"
-                        className="pl-10"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      />
-                    </div>
-                    {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Senha</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      />
-                    </div>
-                    {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-whatsapp hover:bg-whatsapp-dark" 
-                    disabled={loading}
+        {/* Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="glass-strong border-border/50 shadow-2xl shadow-primary/10">
+            <Tabs defaultValue="login" className="w-full">
+              <CardHeader className="pb-0">
+                <TabsList className="grid w-full grid-cols-2 glass border border-border/30">
+                  <TabsTrigger 
+                    value="login" 
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
                   >
-                    {loading ? 'Entrando...' : 'Entrar'}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup" className="mt-0">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="signup-name"
-                        type="text"
-                        placeholder="Seu nome"
-                        className="pl-10"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      />
-                    </div>
-                    {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="seu@email.com"
-                        className="pl-10"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      />
-                    </div>
-                    {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      />
-                    </div>
-                    {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-whatsapp hover:bg-whatsapp-dark" 
-                    disabled={loading}
+                    Entrar
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="signup"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
                   >
-                    {loading ? 'Criando conta...' : 'Criar Conta'}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </form>
-              </TabsContent>
-            </CardContent>
-          </Tabs>
-        </Card>
+                    Criar Conta
+                  </TabsTrigger>
+                </TabsList>
+              </CardHeader>
+
+              <CardContent className="pt-6">
+                <TabsContent value="login" className="mt-0">
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="space-y-2"
+                    >
+                      <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
+                      <div className="relative group">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                        <Input
+                          id="login-email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          className="pl-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        />
+                      </div>
+                      {errors.email && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-xs text-destructive"
+                        >
+                          {errors.email}
+                        </motion.p>
+                      )}
+                    </motion.div>
+                    
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.6 }}
+                      className="space-y-2"
+                    >
+                      <Label htmlFor="login-password" className="text-sm font-medium">Senha</Label>
+                      <div className="relative group">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                        <Input
+                          id="login-password"
+                          type="password"
+                          placeholder="••••••••"
+                          className="pl-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        />
+                      </div>
+                      {errors.password && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-xs text-destructive"
+                        >
+                          {errors.password}
+                        </motion.p>
+                      )}
+                    </motion.div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Button 
+                        type="submit" 
+                        className="w-full text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all group"
+                        style={{ background: 'var(--gradient-primary)' }}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <motion.span
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            Entrando...
+                          </motion.span>
+                        ) : (
+                          <>
+                            Entrar
+                            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="signup" className="mt-0">
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="space-y-2"
+                    >
+                      <Label htmlFor="signup-name" className="text-sm font-medium">Nome</Label>
+                      <div className="relative group">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                        <Input
+                          id="signup-name"
+                          type="text"
+                          placeholder="Seu nome"
+                          className="pl-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
+                      </div>
+                      {errors.name && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-xs text-destructive"
+                        >
+                          {errors.name}
+                        </motion.p>
+                      )}
+                    </motion.div>
+                    
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.6 }}
+                      className="space-y-2"
+                    >
+                      <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
+                      <div className="relative group">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          className="pl-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        />
+                      </div>
+                      {errors.email && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-xs text-destructive"
+                        >
+                          {errors.email}
+                        </motion.p>
+                      )}
+                    </motion.div>
+                    
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 }}
+                      className="space-y-2"
+                    >
+                      <Label htmlFor="signup-password" className="text-sm font-medium">Senha</Label>
+                      <div className="relative group">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                        <Input
+                          id="signup-password"
+                          type="password"
+                          placeholder="••••••••"
+                          className="pl-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        />
+                      </div>
+                      {errors.password && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-xs text-destructive"
+                        >
+                          {errors.password}
+                        </motion.p>
+                      )}
+                    </motion.div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Button 
+                        type="submit" 
+                        className="w-full text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all group"
+                        style={{ background: 'var(--gradient-primary)' }}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <motion.span
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            Criando conta...
+                          </motion.span>
+                        ) : (
+                          <>
+                            Criar Conta
+                            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
+                  </form>
+                </TabsContent>
+              </CardContent>
+            </Tabs>
+          </Card>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="text-center text-xs text-muted-foreground mt-6"
+        >
+          © 2024 WhatsApp Platform. Todos os direitos reservados.
+        </motion.p>
       </motion.div>
     </div>
   );
