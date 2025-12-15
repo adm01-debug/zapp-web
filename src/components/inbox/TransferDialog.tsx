@@ -1,0 +1,207 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { User, Users, Send, ArrowRight } from 'lucide-react';
+import { mockAgents, mockQueues } from '@/data/mockData';
+import { cn } from '@/lib/utils';
+
+interface TransferDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onTransfer: (type: 'agent' | 'queue', targetId: string, message?: string) => void;
+}
+
+export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialogProps) {
+  const [transferType, setTransferType] = useState<'agent' | 'queue'>('agent');
+  const [selectedTarget, setSelectedTarget] = useState<string>('');
+  const [message, setMessage] = useState('');
+
+  const handleTransfer = () => {
+    if (selectedTarget) {
+      onTransfer(transferType, selectedTarget, message || undefined);
+      onOpenChange(false);
+      setSelectedTarget('');
+      setMessage('');
+    }
+  };
+
+  const onlineAgents = mockAgents.filter((a) => a.status === 'online');
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ArrowRight className="w-5 h-5 text-whatsapp" />
+            Transferir Chat
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 pt-4">
+          {/* Transfer Type */}
+          <RadioGroup
+            value={transferType}
+            onValueChange={(v) => {
+              setTransferType(v as 'agent' | 'queue');
+              setSelectedTarget('');
+            }}
+            className="grid grid-cols-2 gap-4"
+          >
+            <Label
+              htmlFor="agent"
+              className={cn(
+                'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                transferType === 'agent'
+                  ? 'border-whatsapp bg-whatsapp/5'
+                  : 'border-border hover:border-muted-foreground'
+              )}
+            >
+              <RadioGroupItem value="agent" id="agent" className="sr-only" />
+              <User className={cn(
+                'w-5 h-5',
+                transferType === 'agent' ? 'text-whatsapp' : 'text-muted-foreground'
+              )} />
+              <div>
+                <p className="font-medium">Usuário</p>
+                <p className="text-xs text-muted-foreground">Transferir para um atendente</p>
+              </div>
+            </Label>
+
+            <Label
+              htmlFor="queue"
+              className={cn(
+                'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                transferType === 'queue'
+                  ? 'border-whatsapp bg-whatsapp/5'
+                  : 'border-border hover:border-muted-foreground'
+              )}
+            >
+              <RadioGroupItem value="queue" id="queue" className="sr-only" />
+              <Users className={cn(
+                'w-5 h-5',
+                transferType === 'queue' ? 'text-whatsapp' : 'text-muted-foreground'
+              )} />
+              <div>
+                <p className="font-medium">Departamento</p>
+                <p className="text-xs text-muted-foreground">Transferir para uma fila</p>
+              </div>
+            </Label>
+          </RadioGroup>
+
+          {/* Target Selection */}
+          {transferType === 'agent' ? (
+            <div className="space-y-2">
+              <Label>Selecione um atendente</Label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {onlineAgents.length > 0 ? (
+                  onlineAgents.map((agent) => (
+                    <motion.button
+                      key={agent.id}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedTarget(agent.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left',
+                        selectedTarget === agent.id
+                          ? 'border-whatsapp bg-whatsapp/5'
+                          : 'border-border hover:border-muted-foreground'
+                      )}
+                    >
+                      <div className="relative">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={agent.avatar} />
+                          <AvatarFallback>{agent.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-status-online border-2 border-background" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{agent.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {agent.activeChats}/{agent.maxChats} chats ativos
+                        </p>
+                      </div>
+                    </motion.button>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nenhum atendente online no momento
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Selecione um departamento</Label>
+              <Select value={selectedTarget} onValueChange={setSelectedTarget}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha um departamento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockQueues.map((queue) => (
+                    <SelectItem key={queue.id} value={queue.id}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: queue.color }}
+                        />
+                        <span>{queue.name}</span>
+                        <span className="text-muted-foreground">
+                          ({queue.waitingCount} aguardando)
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Optional Message */}
+          <div className="space-y-2">
+            <Label>Mensagem (opcional)</Label>
+            <Textarea
+              placeholder="Deixe uma mensagem para o próximo atendente..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                onClick={handleTransfer}
+                disabled={!selectedTarget}
+                className="bg-whatsapp hover:bg-whatsapp-dark"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Transferir
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
