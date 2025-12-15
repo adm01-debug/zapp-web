@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
+import { motion } from '@/components/ui/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Select,
@@ -34,11 +36,17 @@ import {
   UserCog,
   User,
   History,
-  Settings,
   RefreshCw,
+  Edit,
+  UserX,
+  UserCheck,
+  Briefcase,
+  Building,
+  Phone,
+  Lock,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useUserRole, AppRole } from '@/hooks/useUserRole';
@@ -50,6 +58,12 @@ interface UserWithRole {
   email: string | null;
   avatar_url: string | null;
   role: AppRole;
+  job_title: string | null;
+  department: string | null;
+  phone: string | null;
+  access_level: string | null;
+  max_chats: number | null;
+  is_active: boolean | null;
   created_at: string;
 }
 
@@ -69,6 +83,13 @@ const roleConfig: Record<AppRole, { label: string; icon: typeof Crown; color: st
   agent: { label: 'Atendente', icon: User, color: 'text-muted-foreground' },
 };
 
+const accessLevelConfig: Record<string, { label: string; description: string }> = {
+  basic: { label: 'Básico', description: 'Acesso apenas aos próprios atendimentos' },
+  standard: { label: 'Padrão', description: 'Acesso a atendimentos e contatos atribuídos' },
+  advanced: { label: 'Avançado', description: 'Acesso a relatórios e métricas da equipe' },
+  full: { label: 'Completo', description: 'Acesso total ao sistema' },
+};
+
 export function AdminView() {
   const { isAdmin, isSupervisor, loading: roleLoading } = useUserRole();
   const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
@@ -76,7 +97,8 @@ export function AdminView() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
+  const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isSupervisor) {
@@ -86,9 +108,8 @@ export function AdminView() {
 
   const fetchData = async () => {
     setLoading(true);
-    
+
     if (activeTab === 'users') {
-      // Fetch users with their roles
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
@@ -109,7 +130,6 @@ export function AdminView() {
         setUsers(usersWithRoles);
       }
     } else {
-      // Fetch audit logs
       const { data: logs } = await supabase
         .from('audit_logs')
         .select('*')
@@ -117,13 +137,12 @@ export function AdminView() {
         .limit(100);
 
       if (logs) {
-        // Fetch user names for logs
         const userIds = [...new Set(logs.map(l => l.user_id).filter((id): id is string => id !== null))];
-        const { data: profiles } = userIds.length > 0 
+        const { data: profiles } = userIds.length > 0
           ? await supabase
-              .from('profiles')
-              .select('user_id, name, email')
-              .in('user_id', userIds)
+            .from('profiles')
+            .select('user_id, name, email')
+            .in('user_id', userIds)
           : { data: [] };
 
         const logsWithUsers: AuditLog[] = logs.map(log => ({
@@ -133,44 +152,84 @@ export function AdminView() {
         setAuditLogs(logsWithUsers);
       }
     }
-    
+
     setLoading(false);
   };
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
     if (!isAdmin) {
-      toast({
-        title: 'Sem permissão',
-        description: 'Apenas administradores podem alterar roles.',
-        variant: 'destructive',
-      });
+      toast.error('Apenas administradores podem alterar roles.');
       return;
     }
 
-    // First, delete existing roles
     await supabase.from('user_roles').delete().eq('user_id', userId);
-    
-    // Then insert the new role
+
     const { error } = await supabase.from('user_roles').insert({
       user_id: userId,
       role: newRole,
     });
 
     if (error) {
-      toast({
-        title: 'Erro ao atualizar role',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao atualizar role');
     } else {
-      toast({ title: 'Role atualizado!', description: `Usuário agora é ${roleConfig[newRole].label}.` });
+      toast.success(`Usuário agora é ${roleConfig[newRole].label}.`);
       fetchData();
     }
   };
 
+  const handleToggleActive = async (user: UserWithRole) => {
+    if (!isAdmin) {
+      toast.error('Apenas administradores podem ativar/desativar usuários.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_active: !user.is_active })
+      .eq('id', user.id);
+
+    if (error) {
+      toast.error('Erro ao atualizar status');
+    } else {
+      toast.success(user.is_active ? 'Usuário desativado' : 'Usuário ativado');
+      fetchData();
+    }
+  };
+
+  const handleSaveUser = async () => {
+    if (!editingUser) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        name: editingUser.name,
+        job_title: editingUser.job_title,
+        department: editingUser.department,
+        phone: editingUser.phone,
+        access_level: editingUser.access_level,
+        max_chats: editingUser.max_chats,
+      })
+      .eq('id', editingUser.id);
+
+    if (error) {
+      toast.error('Erro ao salvar usuário');
+    } else {
+      toast.success('Usuário atualizado com sucesso');
+      setIsEditDialogOpen(false);
+      setEditingUser(null);
+      fetchData();
+    }
+  };
+
+  const openEditDialog = (user: UserWithRole) => {
+    setEditingUser(user);
+    setIsEditDialogOpen(true);
+  };
+
   const filteredUsers = users.filter(user =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.department?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredLogs = auditLogs.filter(log =>
@@ -214,7 +273,7 @@ export function AdminView() {
             Administração
           </h1>
           <p className="text-muted-foreground">
-            Gerencie usuários, roles e visualize logs de auditoria
+            Gerencie usuários, permissões e visualize logs de auditoria
           </p>
         </div>
         <Button variant="outline" onClick={fetchData}>
@@ -231,7 +290,7 @@ export function AdminView() {
           className={activeTab === 'users' ? 'bg-whatsapp hover:bg-whatsapp-dark' : ''}
         >
           <Users className="w-4 h-4 mr-2" />
-          Usuários
+          Usuários ({users.length})
         </Button>
         <Button
           variant={activeTab === 'audit' ? 'default' : 'outline'}
@@ -254,22 +313,132 @@ export function AdminView() {
         />
       </div>
 
+      {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4 pt-4">
+              <div className="flex items-center gap-4 mb-6">
+                <Avatar className="w-16 h-16">
+                  <AvatarImage src={editingUser.avatar_url || undefined} />
+                  <AvatarFallback className="text-lg">{editingUser.name?.[0] || 'U'}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold text-lg">{editingUser.name}</p>
+                  <p className="text-muted-foreground">{editingUser.email}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_name">Nome</Label>
+                  <Input
+                    id="edit_name"
+                    value={editingUser.name}
+                    onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_phone">Telefone</Label>
+                  <Input
+                    id="edit_phone"
+                    value={editingUser.phone || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_job_title">Cargo</Label>
+                  <Input
+                    id="edit_job_title"
+                    placeholder="Ex: Atendente Senior"
+                    value={editingUser.job_title || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, job_title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_department">Departamento</Label>
+                  <Input
+                    id="edit_department"
+                    placeholder="Ex: Vendas"
+                    value={editingUser.department || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, department: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_access_level">Nível de Acesso</Label>
+                  <Select
+                    value={editingUser.access_level || 'basic'}
+                    onValueChange={(v) => setEditingUser({ ...editingUser, access_level: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(accessLevelConfig).map(([key, config]) => (
+                        <SelectItem key={key} value={key}>
+                          <div>
+                            <span className="font-medium">{config.label}</span>
+                            <p className="text-xs text-muted-foreground">{config.description}</p>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_max_chats">Limite de Chats</Label>
+                  <Input
+                    id="edit_max_chats"
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={editingUser.max_chats || 5}
+                    onChange={(e) => setEditingUser({ ...editingUser, max_chats: parseInt(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveUser} className="bg-whatsapp hover:bg-whatsapp-dark">
+                  Salvar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Content */}
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+        <div className="flex justify-center py-12">
+          <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
       ) : activeTab === 'users' ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Usuários ({filteredUsers.length})</CardTitle>
+            <CardTitle className="text-lg">Usuários</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Usuário</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Cargo/Depto</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Cadastro</TableHead>
+                  <TableHead>Acesso</TableHead>
+                  <TableHead>Status</TableHead>
                   {isAdmin && <TableHead>Ações</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -277,30 +446,44 @@ export function AdminView() {
                 {filteredUsers.map((user) => {
                   const roleInfo = roleConfig[user.role];
                   const RoleIcon = roleInfo.icon;
-                  
+                  const accessInfo = accessLevelConfig[user.access_level || 'basic'];
+
                   return (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className={!user.is_active ? 'opacity-50' : ''}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="w-8 h-8">
                             <AvatarImage src={user.avatar_url || undefined} />
                             <AvatarFallback>{user.name?.[0] || 'U'}</AvatarFallback>
                           </Avatar>
-                          <span className="font-medium">{user.name}</span>
+                          <div>
+                            <span className="font-medium block">{user.name}</span>
+                            <span className="text-xs text-muted-foreground">{user.email}</span>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={roleInfo.color}>
-                          <RoleIcon className="w-3 h-3 mr-1" />
-                          {roleInfo.label}
-                        </Badge>
+                        {(user.job_title || user.department) ? (
+                          <div className="space-y-0.5">
+                            {user.job_title && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <Briefcase className="w-3 h-3" />
+                                {user.job_title}
+                              </div>
+                            )}
+                            {user.department && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Building className="w-3 h-3" />
+                                {user.department}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(user.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </TableCell>
-                      {isAdmin && (
-                        <TableCell>
+                      <TableCell>
+                        {isAdmin ? (
                           <Select
                             value={user.role}
                             onValueChange={(v) => handleRoleChange(user.user_id, v as AppRole)}
@@ -314,6 +497,48 @@ export function AdminView() {
                               <SelectItem value="agent">Atendente</SelectItem>
                             </SelectContent>
                           </Select>
+                        ) : (
+                          <Badge variant="outline" className={roleInfo.color}>
+                            <RoleIcon className="w-3 h-3 mr-1" />
+                            {roleInfo.label}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          <Lock className="w-3 h-3 mr-1" />
+                          {accessInfo?.label || 'Básico'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {user.is_active !== false ? (
+                          <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                            <UserCheck className="w-3 h-3 mr-1" />
+                            Ativo
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20">
+                            <UserX className="w-3 h-3 mr-1" />
+                            Inativo
+                          </Badge>
+                        )}
+                      </TableCell>
+                      {isAdmin && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-8 h-8"
+                              onClick={() => openEditDialog(user)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Switch
+                              checked={user.is_active !== false}
+                              onCheckedChange={() => handleToggleActive(user)}
+                            />
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
