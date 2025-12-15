@@ -428,7 +428,7 @@ export function AdminView() {
           <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       ) : activeTab === 'users' ? (
-        <Card>
+        <Card className="border border-secondary/20 bg-card">
           <CardHeader>
             <CardTitle className="text-lg">Usuários</CardTitle>
           </CardHeader>

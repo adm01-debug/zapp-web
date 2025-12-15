@@ -79,7 +79,7 @@ export function AgentsView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card className="border border-border/30 bg-card hover:border-primary/30 transition-colors">
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/40 transition-all card-glow-purple">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   {stat.color ? (
@@ -116,7 +116,7 @@ export function AgentsView() {
             className="pl-9 bg-muted/20 border-border/30 focus:border-primary/50"
           />
         </div>
-        <Button variant="outline" className="border-border/30 hover:border-primary/30 hover:bg-primary/10">
+        <Button variant="outline" className="border-secondary/30 hover:border-secondary/50 hover:bg-secondary/10">
           <Filter className="w-4 h-4 mr-2" />
           Filtrar
         </Button>
@@ -132,7 +132,7 @@ export function AgentsView() {
 
           return (
             <StaggeredItem key={agent.id}>
-              <Card className="cursor-pointer border border-border/30 bg-card hover:border-primary/30 transition-all">
+              <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">

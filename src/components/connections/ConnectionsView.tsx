@@ -274,7 +274,7 @@ export function ConnectionsView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card card-glow-purple">
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className={cn('text-3xl font-bold', stat.color)}>{stat.value}</p>
@@ -312,7 +312,7 @@ export function ConnectionsView() {
                 <motion.div
                   whileHover={{ y: -2, boxShadow: '0 8px 30px hsl(var(--primary) / 0.1)' }}
                 >
-                  <Card>
+                  <Card className="border border-secondary/20 bg-card hover:border-secondary/40 transition-all">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">

@@ -498,7 +498,7 @@ export function ContactsView() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border bg-muted/50">
+                  <tr className="border-b border-secondary/20 bg-secondary/5">
                     <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
                     <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
                     <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
@@ -515,7 +515,7 @@ export function ContactsView() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.02 }}
-                      className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                      className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors"
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-3">

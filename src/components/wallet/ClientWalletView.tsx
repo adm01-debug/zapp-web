@@ -310,7 +310,7 @@ export function ClientWalletView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card card-glow-purple">
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -326,7 +326,7 @@ export function ClientWalletView() {
       </div>
 
       {/* Rules Table */}
-      <Card>
+      <Card className="border border-secondary/20 bg-card">
         <CardHeader>
           <CardTitle className="text-lg">Regras de Atribuição</CardTitle>
         </CardHeader>
