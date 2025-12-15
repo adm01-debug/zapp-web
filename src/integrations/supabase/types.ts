@@ -273,6 +273,73 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          agent_id: string | null
+          contact_id: string | null
+          content: string
+          created_at: string
+          external_id: string | null
+          id: string
+          is_read: boolean | null
+          media_url: string | null
+          message_type: string
+          sender: string
+          updated_at: string
+          whatsapp_connection_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          contact_id?: string | null
+          content: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          media_url?: string | null
+          message_type?: string
+          sender: string
+          updated_at?: string
+          whatsapp_connection_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          contact_id?: string | null
+          content?: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          media_url?: string | null
+          message_type?: string
+          sender?: string
+          updated_at?: string
+          whatsapp_connection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           access_level: string | null
