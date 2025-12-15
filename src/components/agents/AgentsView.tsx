@@ -62,12 +62,10 @@ export function AgentsView() {
             Gerencie sua equipe de atendimento
           </p>
         </div>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button className="bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Atendente
-          </Button>
-        </motion.div>
+        <Button className="bg-primary hover:bg-primary/90">
+          <Plus className="w-4 h-4 mr-2" />
+          Adicionar Atendente
+        </Button>
       </motion.div>
 
       {/* Stats */}
@@ -78,29 +76,19 @@ export function AgentsView() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
-            whileHover={{ y: -4, boxShadow: '0 8px 30px hsl(var(--primary) / 0.1)' }}
           >
-            <Card className="cursor-pointer">
+            <Card className="border border-border/30 bg-card hover:border-primary/30 transition-colors">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   {stat.color ? (
-                    <motion.div 
-                      className={cn('w-3 h-3 rounded-full', stat.color)}
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
+                    <div className={cn('w-3 h-3 rounded-full', stat.color)} />
                   ) : (
                     <MessageSquare className="w-5 h-5 text-primary" />
                   )}
                   <div>
-                    <motion.p 
-                      className="text-2xl font-bold"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.1 + 0.2 }}
-                    >
+                    <p className="text-2xl font-bold text-foreground">
                       {stat.value}
-                    </motion.p>
+                    </p>
                     <p className="text-xs text-muted-foreground">{stat.label}</p>
                   </div>
                 </div>
@@ -123,15 +111,13 @@ export function AgentsView() {
             placeholder="Buscar atendentes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-muted/20 border-border/30 focus:border-primary/50"
           />
         </div>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            Filtrar
-          </Button>
-        </motion.div>
+        <Button variant="outline" className="border-border/30 hover:border-primary/30 hover:bg-primary/10">
+          <Filter className="w-4 h-4 mr-2" />
+          Filtrar
+        </Button>
       </motion.div>
 
       {/* Agents Grid */}
@@ -144,103 +130,93 @@ export function AgentsView() {
 
           return (
             <StaggeredItem key={agent.id}>
-              <motion.div
-                whileHover={{ y: -4, boxShadow: '0 8px 30px hsl(var(--primary) / 0.15)' }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card className="cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <Avatar className="w-12 h-12">
-                            <AvatarImage src={agent.avatar} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {agent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <motion.span
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className={cn(
-                              'absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card',
-                              agent.status === 'online' && 'bg-status-online',
-                              agent.status === 'away' && 'bg-status-away',
-                              agent.status === 'offline' && 'bg-status-offline'
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{agent.name}</h3>
-                          <p className="text-sm text-muted-foreground capitalize">
-                            {agent.role === 'admin' ? 'Administrador' : 
-                             agent.role === 'supervisor' ? 'Supervisor' : 'Atendente'}
-                          </p>
-                        </div>
+              <Card className="cursor-pointer border border-border/30 bg-card hover:border-primary/30 transition-all">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Avatar className="w-12 h-12 ring-2 ring-border/30">
+                          <AvatarImage src={agent.avatar} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {agent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span
+                          className={cn(
+                            'absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card',
+                            agent.status === 'online' && 'bg-status-online',
+                            agent.status === 'away' && 'bg-status-away',
+                            agent.status === 'offline' && 'bg-status-offline'
+                          )}
+                        />
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                            <Button variant="ghost" size="icon" className="w-8 h-8">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </motion.div>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Settings className="w-4 h-4 mr-2" />
-                            Configurações
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            <UserX className="w-4 h-4 mr-2" />
-                            Desativar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{agent.name}</h3>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {agent.role === 'admin' ? 'Administrador' : 
+                           agent.role === 'supervisor' ? 'Supervisor' : 'Atendente'}
+                        </p>
+                      </div>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-card border-border/30">
+                        <DropdownMenuItem className="hover:bg-primary/10">
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="hover:bg-primary/10">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Configurações
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive hover:bg-destructive/10">
+                          <UserX className="w-4 h-4 mr-2" />
+                          Desativar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
-                    {/* Capacity */}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Capacidade</span>
-                        <span className="font-medium">
-                          {agent.activeChats}/{agent.maxChats} chats
-                        </span>
-                      </div>
-                      <Progress
-                        value={capacityPercent}
-                        className={cn(
-                          'h-2',
-                          capacityPercent > 80 && '[&>div]:bg-destructive',
-                          capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-status-pending'
-                        )}
-                      />
+                  {/* Capacity */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Capacidade</span>
+                      <span className="font-medium text-foreground">
+                        {agent.activeChats}/{agent.maxChats} chats
+                      </span>
                     </div>
+                    <Progress
+                      value={capacityPercent}
+                      className={cn(
+                        'h-2',
+                        capacityPercent > 80 && '[&>div]:bg-destructive',
+                        capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-status-pending'
+                      )}
+                    />
+                  </div>
 
-                    {/* Queues */}
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Filas</p>
-                      <div className="flex flex-wrap gap-1">
-                        {agentQueues.map((queue) => (
-                          <Badge
-                            key={queue.id}
-                            variant="outline"
-                            className="text-xs"
-                            style={{ borderColor: queue.color, color: queue.color }}
-                          >
-                            {queue.name}
-                          </Badge>
-                        ))}
-                      </div>
+                  {/* Queues */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Filas</p>
+                    <div className="flex flex-wrap gap-1">
+                      {agentQueues.map((queue) => (
+                        <Badge
+                          key={queue.id}
+                          variant="outline"
+                          className="text-xs border-border/30"
+                          style={{ borderColor: queue.color, color: queue.color }}
+                        >
+                          {queue.name}
+                        </Badge>
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
             </StaggeredItem>
           );
         })}
