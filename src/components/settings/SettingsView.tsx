@@ -135,7 +135,7 @@ export function SettingsView() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="w-5 h-5 text-whatsapp" />
@@ -220,7 +220,7 @@ export function SettingsView() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
               <CardHeader>
                 <CardTitle>Mensagem de Boas-Vindas</CardTitle>
                 <CardDescription>
@@ -242,7 +242,7 @@ export function SettingsView() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
               <CardHeader>
                 <CardTitle>Mensagem de Ausência</CardTitle>
                 <CardDescription>
@@ -261,7 +261,7 @@ export function SettingsView() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
               <CardHeader>
                 <CardTitle>Mensagem de Encerramento</CardTitle>
                 <CardDescription>
@@ -288,7 +288,7 @@ export function SettingsView() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <RefreshCw className="w-5 h-5 text-whatsapp" />
@@ -361,7 +361,7 @@ export function SettingsView() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="w-5 h-5 text-whatsapp" />
@@ -434,7 +434,7 @@ export function SettingsView() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="w-5 h-5 text-whatsapp" />

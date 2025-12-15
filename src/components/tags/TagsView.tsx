@@ -211,7 +211,7 @@ export function TagsView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card>
+            <Card className="border border-secondary/20 bg-card card-glow-purple">
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className="text-2xl font-bold">{stat.value}</p>
@@ -228,7 +228,7 @@ export function TagsView() {
             <motion.div
               whileHover={{ y: -4, boxShadow: '0 8px 30px hsl(var(--primary) / 0.1)' }}
             >
-              <Card className="cursor-pointer">
+              <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

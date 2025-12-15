@@ -54,7 +54,7 @@ export function QueuesView() {
           const onlineAgents = queueAgents.filter((a) => a.status === 'online');
 
           return (
-            <Card key={queue.id} className="relative overflow-hidden border border-border/30 bg-card hover:border-primary/30 transition-colors">
+            <Card key={queue.id} className="relative overflow-hidden border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
               {/* Color bar */}
               <div
                 className="absolute top-0 left-0 right-0 h-1"
