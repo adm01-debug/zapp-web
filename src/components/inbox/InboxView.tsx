@@ -5,6 +5,7 @@ import { ChatPanel } from './ChatPanel';
 import { ContactDetails } from './ContactDetails';
 import { mockConversations, mockMessages } from '@/data/mockData';
 import { MessageSquare } from 'lucide-react';
+import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 
 export function InboxView() {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
@@ -60,10 +61,13 @@ export function InboxView() {
 
   return (
     <div className="flex h-full relative bg-background">
+      {/* Floating Particles Background */}
+      <FloatingParticles />
+
       {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-64 h-64 bg-primary/3 rounded-full blur-3xl" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-secondary/8 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
       {/* Conversation List */}
