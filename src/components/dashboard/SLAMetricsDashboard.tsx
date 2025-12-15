@@ -5,6 +5,7 @@ import { motion } from '@/components/ui/motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Clock,
   CheckCircle2,
@@ -14,9 +15,28 @@ import {
   TrendingUp,
   Target,
   RefreshCw,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { startOfDay, startOfWeek, startOfMonth, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+type PeriodFilter = 'today' | 'week' | 'month' | 'all';
+
+function getDateRange(period: PeriodFilter): { start: Date | null; label: string } {
+  const now = new Date();
+  switch (period) {
+    case 'today':
+      return { start: startOfDay(now), label: 'Hoje' };
+    case 'week':
+      return { start: startOfWeek(now, { weekStartsOn: 1 }), label: 'Esta Semana' };
+    case 'month':
+      return { start: startOfMonth(now), label: 'Este Mês' };
+    case 'all':
+      return { start: null, label: 'Todo Período' };
+  }
+}
 
 interface SLAMetric {
   total: number;
@@ -56,11 +76,14 @@ export function SLAMetricsDashboard() {
   const [agentSLAData, setAgentSLAData] = useState<AgentSLAMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('week');
 
   const fetchSLAMetrics = async () => {
     try {
-      // Fetch all conversation SLA records with contact info
-      const { data: slaData, error: slaError } = await supabase
+      const dateRange = getDateRange(periodFilter);
+      
+      // Build query with optional date filter
+      let query = supabase
         .from('conversation_sla')
         .select(`
           id,
@@ -68,8 +91,15 @@ export function SLAMetricsDashboard() {
           resolution_breached,
           first_response_at,
           resolved_at,
-          contact_id
+          contact_id,
+          created_at
         `);
+
+      if (dateRange.start) {
+        query = query.gte('created_at', dateRange.start.toISOString());
+      }
+
+      const { data: slaData, error: slaError } = await query;
 
       if (slaError) throw slaError;
 
@@ -169,7 +199,7 @@ export function SLAMetricsDashboard() {
 
   useEffect(() => {
     fetchSLAMetrics();
-  }, []);
+  }, [periodFilter]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -209,19 +239,46 @@ export function SLAMetricsDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Refresh */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Métricas de SLA</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="gap-2"
-        >
-          <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
-          Atualizar
-        </Button>
+      {/* Header with Filters and Refresh */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-foreground">Métricas de SLA</h2>
+          <Badge variant="outline" className="gap-1">
+            <Calendar className="w-3 h-3" />
+            {getDateRange(periodFilter).label}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-3">
+          <ToggleGroup
+            type="single"
+            value={periodFilter}
+            onValueChange={(value) => value && setPeriodFilter(value as PeriodFilter)}
+            className="bg-muted/30 p-1 rounded-lg"
+          >
+            <ToggleGroupItem value="today" size="sm" className="text-xs px-3">
+              Hoje
+            </ToggleGroupItem>
+            <ToggleGroupItem value="week" size="sm" className="text-xs px-3">
+              Semana
+            </ToggleGroupItem>
+            <ToggleGroupItem value="month" size="sm" className="text-xs px-3">
+              Mês
+            </ToggleGroupItem>
+            <ToggleGroupItem value="all" size="sm" className="text-xs px-3">
+              Tudo
+            </ToggleGroupItem>
+          </ToggleGroup>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
