@@ -17,6 +17,7 @@ import { AISuggestions } from './AISuggestions';
 import { MessageTemplates } from './MessageTemplates';
 import { GlobalSearch } from './GlobalSearch';
 import { ConversationSummary } from './ConversationSummary';
+import { SLAIndicator } from './SLAIndicator';
 import { CallDialog } from '@/components/calls/CallDialog';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -257,6 +258,14 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                  conversation.status === 'pending' ? 'Pendente' :
                  conversation.status === 'resolved' ? 'Resolvido' : 'Aguardando'}
               </Badge>
+              {/* SLA Indicator in header */}
+              <SLAIndicator
+                firstMessageAt={conversation.createdAt}
+                firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
+                resolvedAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
+                firstResponseMinutes={conversation.priority === 'high' ? 2 : 5}
+                resolutionMinutes={conversation.priority === 'high' ? 30 : 60}
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               {isTyping ? (
