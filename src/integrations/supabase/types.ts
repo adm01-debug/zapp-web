@@ -14,6 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_achievements: {
+        Row: {
+          achievement_description: string | null
+          achievement_name: string
+          achievement_type: string
+          earned_at: string
+          id: string
+          profile_id: string
+          xp_earned: number
+        }
+        Insert: {
+          achievement_description?: string | null
+          achievement_name: string
+          achievement_type: string
+          earned_at?: string
+          id?: string
+          profile_id: string
+          xp_earned?: number
+        }
+        Update: {
+          achievement_description?: string | null
+          achievement_name?: string
+          achievement_type?: string
+          earned_at?: string
+          id?: string
+          profile_id?: string
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_achievements_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_stats: {
+        Row: {
+          achievements_count: number
+          avg_response_time_seconds: number | null
+          best_streak: number
+          conversations_resolved: number
+          created_at: string
+          current_streak: number
+          customer_satisfaction_score: number | null
+          id: string
+          level: number
+          messages_received: number
+          messages_sent: number
+          profile_id: string
+          updated_at: string
+          xp: number
+        }
+        Insert: {
+          achievements_count?: number
+          avg_response_time_seconds?: number | null
+          best_streak?: number
+          conversations_resolved?: number
+          created_at?: string
+          current_streak?: number
+          customer_satisfaction_score?: number | null
+          id?: string
+          level?: number
+          messages_received?: number
+          messages_sent?: number
+          profile_id: string
+          updated_at?: string
+          xp?: number
+        }
+        Update: {
+          achievements_count?: number
+          avg_response_time_seconds?: number | null
+          best_streak?: number
+          conversations_resolved?: number
+          created_at?: string
+          current_streak?: number
+          customer_satisfaction_score?: number | null
+          id?: string
+          level?: number
+          messages_received?: number
+          messages_sent?: number
+          profile_id?: string
+          updated_at?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_stats_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -514,6 +611,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_level: { Args: { xp_amount: number }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
