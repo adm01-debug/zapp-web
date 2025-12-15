@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { DemoAchievements } from '@/components/gamification/DemoAchievements';
+import { FloatingParticles } from './FloatingParticles';
 
 export function DashboardView() {
   const totalConversations = mockConversations.length;
@@ -75,20 +76,13 @@ export function DashboardView() {
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      {/* Floating Particles Background */}
+      <FloatingParticles />
+
       {/* Background decorations */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -left-24 w-64 h-64 bg-primary/8 rounded-full blur-3xl" />
-        <motion.div 
-          className="absolute top-1/3 right-1/3 w-48 h-48 bg-secondary/8 rounded-full blur-3xl"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 5, repeat: Infinity }}
-        />
-        <motion.div 
-          className="absolute bottom-1/3 left-1/4 w-32 h-32 bg-accent/10 rounded-full blur-2xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-        />
       </div>
 
       {/* Header with Level Progress */}
