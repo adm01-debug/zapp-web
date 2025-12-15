@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.ai-suggest-reply]
 verify_jwt = false
+
+[functions.ai-transcribe-audio]
+verify_jwt = false

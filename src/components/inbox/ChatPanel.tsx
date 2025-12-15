@@ -12,6 +12,7 @@ import { MessageImage } from './ImagePreview';
 import { TransferDialog } from './TransferDialog';
 import { ScheduleMessageDialog } from './ScheduleMessageDialog';
 import { AudioRecorder } from './AudioRecorder';
+import { AudioMessagePlayer } from './AudioMessagePlayer';
 import { AISuggestions } from './AISuggestions';
 import { MessageTemplates } from './MessageTemplates';
 import { GlobalSearch } from './GlobalSearch';
@@ -431,8 +432,19 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                             </div>
                           )}
 
+                          {/* Audio message */}
+                          {message.type === 'audio' && message.mediaUrl && (
+                            <div className="mb-2">
+                              <AudioMessagePlayer
+                                audioUrl={message.mediaUrl}
+                                messageId={message.id}
+                                isSent={isSent}
+                              />
+                            </div>
+                          )}
+
                           {/* Text content */}
-                          {message.content && (
+                          {message.content && message.type !== 'audio' && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                           )}
 

@@ -382,6 +382,8 @@ export type Database = {
           media_url: string | null
           message_type: string
           sender: string
+          transcription: string | null
+          transcription_status: string | null
           updated_at: string
           whatsapp_connection_id: string | null
         }
@@ -396,6 +398,8 @@ export type Database = {
           media_url?: string | null
           message_type?: string
           sender: string
+          transcription?: string | null
+          transcription_status?: string | null
           updated_at?: string
           whatsapp_connection_id?: string | null
         }
@@ -410,6 +414,8 @@ export type Database = {
           media_url?: string | null
           message_type?: string
           sender?: string
+          transcription?: string | null
+          transcription_status?: string | null
           updated_at?: string
           whatsapp_connection_id?: string | null
         }
