@@ -37,10 +37,13 @@ import {
   Facebook,
   Instagram,
   Star,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { BusinessHoursDialog } from './BusinessHoursDialog';
+import { BusinessHoursIndicator } from './BusinessHoursIndicator';
 
 interface WhatsAppConnection {
   id: string;
@@ -82,6 +85,11 @@ export function ConnectionsView() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showQrCode, setShowQrCode] = useState<string | null>(null);
   const [newConnection, setNewConnection] = useState({ name: '', phone_number: '' });
+  const [businessHoursDialog, setBusinessHoursDialog] = useState<{
+    open: boolean;
+    connectionId: string;
+    connectionName: string;
+  }>({ open: false, connectionId: '', connectionName: '' });
 
   useEffect(() => {
     fetchConnections();
@@ -367,6 +375,7 @@ export function ConnectionsView() {
                                 <StatusIcon className={cn('w-3 h-3 mr-1', connection.status === 'connecting' && 'animate-spin')} />
                                 {status.label}
                               </Badge>
+                              <BusinessHoursIndicator connectionId={connection.id} />
                             </div>
                             <p className="text-sm text-muted-foreground">{connection.phone_number}</p>
                             <p className="text-xs text-muted-foreground mt-1">
@@ -417,6 +426,14 @@ export function ConnectionsView() {
                                 <QrCode className="w-4 h-4 mr-2" />
                                 Gerar QR Code
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setBusinessHoursDialog({
+                                open: true,
+                                connectionId: connection.id,
+                                connectionName: connection.name,
+                              })}>
+                                <Clock className="w-4 h-4 mr-2" />
+                                Horário de Atendimento
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive"
@@ -437,6 +454,14 @@ export function ConnectionsView() {
           })}
         </StaggeredList>
       )}
+
+      {/* Business Hours Dialog */}
+      <BusinessHoursDialog
+        open={businessHoursDialog.open}
+        onOpenChange={(open) => setBusinessHoursDialog((prev) => ({ ...prev, open }))}
+        connectionId={businessHoursDialog.connectionId}
+        connectionName={businessHoursDialog.connectionName}
+      />
     </div>
   );
 }
