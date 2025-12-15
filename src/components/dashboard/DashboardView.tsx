@@ -21,6 +21,7 @@ import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './Gamifi
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { DemoAchievements } from '@/components/gamification/DemoAchievements';
 import { FloatingParticles } from './FloatingParticles';
+import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 
 export function DashboardView() {
   const totalConversations = mockConversations.length;
@@ -76,6 +77,9 @@ export function DashboardView() {
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      {/* Aurora Borealis Effect */}
+      <AuroraBorealis />
+      
       {/* Floating Particles Background */}
       <FloatingParticles />
 

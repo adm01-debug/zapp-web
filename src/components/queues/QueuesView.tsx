@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Queue } from '@/types/chat';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
+import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { mockQueues, mockAgents } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,6 +31,7 @@ export function QueuesView() {
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <AuroraBorealis />
       <FloatingParticles />
       {/* Header */}
       <div className="flex items-center justify-between">
