@@ -8,13 +8,16 @@ import {
   Users,
   Clock,
   CheckCircle2,
-  ArrowUpRight,
-  ArrowDownRight,
   TrendingUp,
   Sparkles,
+  Flame,
+  Trophy,
+  Target,
+  Zap,
 } from 'lucide-react';
 import { mockAgents, mockQueues, mockConversations } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
 
 export function DashboardView() {
   const totalConversations = mockConversations.length;
@@ -33,6 +36,7 @@ export function DashboardView() {
       changeType: 'positive' as const,
       icon: MessageSquare,
       gradient: 'from-primary to-primary-glow',
+      streak: 5,
     },
     {
       title: 'Tempo Médio de Resposta',
@@ -41,6 +45,7 @@ export function DashboardView() {
       changeType: 'positive' as const,
       icon: Clock,
       gradient: 'from-info to-blue-400',
+      achievement: { label: 'Resposta Rápida!', unlocked: true },
     },
     {
       title: 'Atendentes Online',
@@ -57,6 +62,8 @@ export function DashboardView() {
       changeType: 'positive' as const,
       icon: CheckCircle2,
       gradient: 'from-coins to-yellow-400',
+      achievement: { label: 'Meta Batida!', unlocked: true },
+      streak: 3,
     },
   ];
 
@@ -66,113 +73,159 @@ export function DashboardView() {
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute top-1/2 -left-24 w-64 h-64 bg-primary-glow/5 rounded-full blur-3xl" />
+        <motion.div 
+          className="absolute top-1/4 right-1/4 w-32 h-32 bg-coins/10 rounded-full blur-2xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
       </div>
 
-      {/* Header */}
+      {/* Header with Level Progress */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="relative"
       >
-        <div className="flex items-center gap-3 mb-1">
-          <motion.div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'var(--gradient-primary)' }}
-            whileHover={{ scale: 1.05, rotate: 5 }}
-          >
-            <TrendingUp className="w-5 h-5 text-primary-foreground" />
-          </motion.div>
-          <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground text-sm">
-              Visão geral do atendimento em tempo real
-            </p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <motion.div
+              className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
+              style={{ background: 'var(--gradient-primary)' }}
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              animate={{ boxShadow: ['0 0 0 0 hsl(var(--primary) / 0.4)', '0 0 20px 4px hsl(var(--primary) / 0.2)', '0 0 0 0 hsl(var(--primary) / 0.4)'] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <TrendingUp className="w-6 h-6 text-primary-foreground relative z-10" />
+            </motion.div>
+            <div>
+              <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground text-sm">
+                Visão geral do atendimento em tempo real
+              </p>
+            </div>
           </div>
+
+          {/* Gamification badges */}
+          <div className="flex flex-wrap items-center gap-3">
+            <AnimatedBadge value="1.250" label="XP" variant="xp" size="md" />
+            <AnimatedBadge value="89" variant="coins" size="md" />
+            <AnimatedBadge value="7" variant="streak" size="md" />
+          </div>
+        </div>
+
+        {/* Level Progress Bar */}
+        <div className="mt-4">
+          <LevelProgress currentXP={1250} requiredXP={2000} level={12} />
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid with Gamification */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              whileHover={{ y: -4 }}
-              className="group"
-            >
-              <Card className="card-interactive relative overflow-hidden border-border/50 hover:border-primary/30 h-full">
-                {/* Gradient accent top */}
-                <div className={cn(
-                  "absolute top-0 left-0 right-0 h-1 bg-gradient-to-r",
-                  stat.gradient
-                )} />
-                
-                {/* Hover glow */}
-                <motion.div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{
-                    background: `radial-gradient(300px circle at 50% 0%, hsl(var(--primary) / 0.08), transparent 70%)`
-                  }}
-                />
-
-                <CardContent className="p-6 relative">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground font-medium">
-                        {stat.title}
-                      </p>
-                      <motion.p 
-                        className="text-3xl font-display font-bold text-foreground"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: index * 0.1 + 0.2, type: 'spring' }}
-                      >
-                        {stat.value}
-                      </motion.p>
-                      <motion.div 
-                        className="flex items-center gap-1.5 mt-2"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 + 0.4 }}
-                      >
-                        <div className={cn(
-                          "flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold",
-                          stat.changeType === 'positive'
-                            ? 'bg-success/10 text-success'
-                            : 'bg-destructive/10 text-destructive'
-                        )}>
-                          {stat.changeType === 'positive' ? (
-                            <ArrowUpRight className="w-3 h-3" />
-                          ) : (
-                            <ArrowDownRight className="w-3 h-3" />
-                          )}
-                          {stat.change}
-                        </div>
-                        <span className="text-xs text-muted-foreground">vs ontem</span>
-                      </motion.div>
-                    </div>
-                    <motion.div 
-                      className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg",
-                        stat.gradient
-                      )}
-                      whileHover={{ scale: 1.1, rotate: 10 }}
-                      transition={{ type: 'spring', stiffness: 400 }}
-                    >
-                      <Icon className="w-6 h-6 text-primary-foreground" />
-                    </motion.div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
+        {stats.map((stat, index) => (
+          <StatCardWithGamification
+            key={stat.title}
+            title={stat.title}
+            value={stat.value}
+            change={stat.change}
+            changeType={stat.changeType}
+            icon={stat.icon}
+            gradient={stat.gradient}
+            achievement={stat.achievement}
+            streak={stat.streak}
+            index={index}
+          />
+        ))}
       </div>
+
+      {/* Daily Challenges */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+      >
+        <Card className="card-elevated border-border/50 overflow-hidden bg-gradient-to-br from-card to-primary/5">
+          <CardHeader className="border-b border-border/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <motion.div 
+                  className="w-8 h-8 rounded-lg bg-gradient-to-br from-streak to-orange-400 flex items-center justify-center"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Target className="w-4 h-4 text-primary-foreground" />
+                </motion.div>
+                <CardTitle className="font-display text-lg">Desafios do Dia</CardTitle>
+              </div>
+              <AnimatedBadge value="2/4" variant="achievement" size="sm" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { title: 'Responder 10 mensagens', progress: 80, xp: 50, completed: false },
+                { title: 'Resolver 5 conversas', progress: 100, xp: 100, completed: true },
+                { title: 'Tempo médio < 3min', progress: 100, xp: 75, completed: true },
+                { title: 'Sem pendências às 18h', progress: 45, xp: 150, completed: false },
+              ].map((challenge, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  className={cn(
+                    "p-4 rounded-xl border transition-all duration-300",
+                    challenge.completed 
+                      ? "bg-success/10 border-success/30" 
+                      : "bg-muted/30 border-border/30 hover:border-primary/20"
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="text-sm font-medium text-foreground">{challenge.title}</p>
+                    {challenge.completed && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 500 }}
+                      >
+                        <CheckCircle2 className="w-5 h-5 text-success" />
+                      </motion.div>
+                    )}
+                  </div>
+                  
+                  <div className="relative h-2 bg-muted rounded-full overflow-hidden mb-2">
+                    <motion.div
+                      className={cn(
+                        "absolute inset-y-0 left-0 rounded-full",
+                        challenge.completed ? "bg-success" : "bg-primary"
+                      )}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${challenge.progress}%` }}
+                      transition={{ duration: 1, delay: 0.8 + i * 0.1 }}
+                    />
+                    {!challenge.completed && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{challenge.progress}%</span>
+                    <div className="flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-xp" />
+                      <span className="text-xs font-semibold text-xp">+{challenge.xp} XP</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
         {/* Queues Status */}
@@ -185,9 +238,13 @@ export function DashboardView() {
           <Card className="card-elevated border-border/50 overflow-hidden">
             <CardHeader className="border-b border-border/30 bg-muted/20">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <motion.div 
+                  className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                >
                   <Sparkles className="w-4 h-4 text-primary" />
-                </div>
+                </motion.div>
                 <CardTitle className="font-display text-lg">Status das Filas</CardTitle>
               </div>
             </CardHeader>
@@ -256,7 +313,7 @@ export function DashboardView() {
           </Card>
         </motion.div>
 
-        {/* Active Agents */}
+        {/* Active Agents with Rankings */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -264,62 +321,87 @@ export function DashboardView() {
         >
           <Card className="card-elevated border-border/50 overflow-hidden">
             <CardHeader className="border-b border-border/30 bg-muted/20">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-success" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <motion.div 
+                    className="w-8 h-8 rounded-lg bg-gradient-to-br from-rank-gold to-yellow-400 flex items-center justify-center"
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  >
+                    <Trophy className="w-4 h-4 text-rank-gold-foreground" />
+                  </motion.div>
+                  <CardTitle className="font-display text-lg">Top Atendentes</CardTitle>
                 </div>
-                <CardTitle className="font-display text-lg">Atendentes Ativos</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4">
               <StaggeredList className="space-y-2">
                 {mockAgents
                   .filter((a) => a.status !== 'offline')
-                  .map((agent) => (
-                    <StaggeredItem key={agent.id}>
-                      <motion.div
-                        className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-muted/40 transition-all duration-200 cursor-pointer group"
-                        whileHover={{ x: 4, scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <Avatar className="w-10 h-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
-                              <AvatarImage src={agent.avatar} />
-                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                                {agent.name[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <motion.span
-                              animate={{ 
-                                scale: agent.status === 'online' ? [1, 1.2, 1] : 1,
-                                boxShadow: agent.status === 'online' 
-                                  ? ['0 0 0 0 hsl(var(--success) / 0.4)', '0 0 0 4px hsl(var(--success) / 0)', '0 0 0 0 hsl(var(--success) / 0.4)']
-                                  : 'none'
-                              }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                              className={cn(
-                                'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background',
-                                agent.status === 'online' ? 'bg-success' : 'bg-warning'
-                              )}
-                            />
+                  .map((agent, index) => {
+                    const rankClass = index === 0 ? 'rank-gold' : index === 1 ? 'rank-silver' : index === 2 ? 'rank-bronze' : '';
+                    
+                    return (
+                      <StaggeredItem key={agent.id}>
+                        <motion.div
+                          className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-muted/40 transition-all duration-200 cursor-pointer group"
+                          whileHover={{ x: 4, scale: 1.01 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Rank badge */}
+                            {index < 3 && (
+                              <motion.div
+                                className={cn(
+                                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                                  rankClass
+                                )}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.5 + index * 0.1, type: 'spring' }}
+                              >
+                                {index + 1}
+                              </motion.div>
+                            )}
+                            
+                            <div className="relative">
+                              <Avatar className="w-10 h-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
+                                <AvatarImage src={agent.avatar} />
+                                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                  {agent.name[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <motion.span
+                                animate={{ 
+                                  scale: agent.status === 'online' ? [1, 1.2, 1] : 1,
+                                }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className={cn(
+                                  'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background',
+                                  agent.status === 'online' ? 'bg-success' : 'bg-warning'
+                                )}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{agent.name}</p>
+                              <div className="flex items-center gap-1">
+                                <Zap className="w-3 h-3 text-xp" />
+                                <span className="text-xs text-muted-foreground">
+                                  {Math.floor(Math.random() * 500 + 500)} XP
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">{agent.name}</p>
-                            <p className="text-xs text-muted-foreground capitalize">
-                              {agent.role === 'supervisor' ? 'Supervisor' : 'Atendente'}
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-foreground">
+                              {agent.activeChats}/{agent.maxChats}
                             </p>
+                            <p className="text-xs text-muted-foreground">chats</p>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-foreground">
-                            {agent.activeChats}/{agent.maxChats}
-                          </p>
-                          <p className="text-xs text-muted-foreground">chats</p>
-                        </div>
-                      </motion.div>
-                    </StaggeredItem>
-                  ))}
+                        </motion.div>
+                      </StaggeredItem>
+                    );
+                  })}
               </StaggeredList>
             </CardContent>
           </Card>
@@ -330,7 +412,7 @@ export function DashboardView() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.5 }}
+        transition={{ duration: 0.4, delay: 0.6 }}
       >
         <Card className="card-elevated border-border/50 overflow-hidden">
           <CardHeader className="border-b border-border/30 bg-muted/20">
@@ -343,7 +425,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-4">
             <StaggeredList className="space-y-2">
-              {mockConversations.slice(0, 5).map((conv, index) => (
+              {mockConversations.slice(0, 5).map((conv) => (
                 <StaggeredItem key={conv.id}>
                   <motion.div
                     className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-muted/40 transition-all duration-200 cursor-pointer group"
