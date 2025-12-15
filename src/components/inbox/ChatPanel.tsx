@@ -11,6 +11,8 @@ import { MessageReactions } from './MessageReactions';
 import { MessageImage } from './ImagePreview';
 import { TransferDialog } from './TransferDialog';
 import { ScheduleMessageDialog } from './ScheduleMessageDialog';
+import { AudioRecorder } from './AudioRecorder';
+import { CallDialog } from '@/components/calls/CallDialog';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -43,6 +45,7 @@ import {
   CheckCheck,
   Clock,
   ArrowRight,
+  PhoneCall,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -96,6 +99,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [reactions, setReactions] = useState(mockReactions);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [showCallDialog, setShowCallDialog] = useState(false);
+  const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -169,6 +175,23 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     console.log('Scheduled message:', { message, scheduledAt, attachment });
   };
 
+  const handleAudioSend = (audioBlob: Blob) => {
+    toast({
+      title: 'Áudio enviado!',
+      description: 'A mensagem de áudio foi enviada com sucesso.',
+    });
+    setIsRecordingAudio(false);
+  };
+
+  const handleStartCall = () => {
+    setCallDirection('outbound');
+    setShowCallDialog(true);
+  };
+
+  const handleEndCall = () => {
+    setShowCallDialog(false);
+  };
+
   const filteredQuickReplies = mockQuickReplies.filter(
     (reply) =>
       inputValue.startsWith('/') &&
@@ -239,13 +262,21 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         </div>
 
         <div className="flex items-center gap-1">
-          {[Phone, Video, UserPlus].map((Icon, index) => (
-            <motion.div key={index} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                <Icon className="w-4 h-4" />
-              </Button>
-            </motion.div>
-          ))}
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-foreground hover:text-whatsapp"
+              onClick={handleStartCall}
+            >
+              <PhoneCall className="w-4 h-4" />
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <Video className="w-4 h-4" />
+            </Button>
+          </motion.div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -530,7 +561,15 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           </div>
 
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={cn(
+                "text-muted-foreground hover:text-foreground",
+                isRecordingAudio && "text-destructive"
+              )}
+              onClick={() => setIsRecordingAudio(!isRecordingAudio)}
+            >
               <Mic className="w-5 h-5" />
             </Button>
           </motion.div>
@@ -559,6 +598,18 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             </Button>
           </motion.div>
         </div>
+
+        {/* Audio Recorder */}
+        <AnimatePresence>
+          {isRecordingAudio && (
+            <div className="mt-3">
+              <AudioRecorder
+                onSend={handleAudioSend}
+                onCancel={() => setIsRecordingAudio(false)}
+              />
+            </div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Dialogs */}
@@ -572,6 +623,18 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         open={showScheduleDialog}
         onOpenChange={setShowScheduleDialog}
         onSchedule={handleScheduleMessage}
+      />
+
+      <CallDialog
+        open={showCallDialog}
+        onOpenChange={setShowCallDialog}
+        contact={{
+          name: conversation.contact.name,
+          phone: conversation.contact.phone,
+          avatar: conversation.contact.avatar,
+        }}
+        direction={callDirection}
+        onEnd={handleEndCall}
       />
     </div>
   );

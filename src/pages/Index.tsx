@@ -11,8 +11,10 @@ import { ConnectionsView } from '@/components/connections/ConnectionsView';
 import { TagsView } from '@/components/tags/TagsView';
 import { SettingsView } from '@/components/settings/SettingsView';
 import { ClientWalletView } from '@/components/wallet/ClientWalletView';
+import { AdminView } from '@/components/admin/AdminView';
 import { PageTransition } from '@/components/ui/motion';
 import { useAuth } from '@/hooks/useAuth';
+import { logAudit } from '@/lib/audit';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ const Index = () => {
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
+    } else if (user && !loading) {
+      logAudit({ action: 'login', details: { email: user.email } });
     }
   }, [user, loading, navigate]);
 
@@ -56,6 +60,8 @@ const Index = () => {
         return <ConnectionsView />;
       case 'wallet':
         return <ClientWalletView />;
+      case 'admin':
+        return <AdminView />;
       case 'tags':
         return <TagsView />;
       case 'settings':

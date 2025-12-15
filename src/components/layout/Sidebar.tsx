@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Wallet,
+  Shield,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -38,6 +39,7 @@ const menuItems = [
   { id: 'wallet', icon: Wallet, label: 'Carteira' },
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
+  { id: 'admin', icon: Shield, label: 'Admin' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
 ];
 
