@@ -26,6 +26,7 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { mockAgents, mockQueues } from '@/data/mockData';
+import { PrivateNotes } from './PrivateNotes';
 
 interface ContactDetailsProps {
   conversation: Conversation;
@@ -188,6 +189,11 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Private Notes */}
+        <div className="p-4 border-b border-border">
+          <PrivateNotes contactId={contact.phone} />
         </div>
 
         {/* Conversation Stats */}
