@@ -2,41 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
+    /* ===== FONTS ===== */
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-display: 'Outfit', system-ui, sans-serif;
+
+    /* ===== BASE ===== */
     --background: 220 20% 97%;
-    --foreground: 220 20% 10%;
-
+    --foreground: 225 25% 12%;
+    
+    /* ===== CARDS ===== */
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
-
+    --card-foreground: 225 25% 12%;
+    --card-elevated: 0 0% 100%;
+    
+    /* ===== POPOVER/DIALOG ===== */
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
-
+    --popover-foreground: 225 25% 12%;
+    
+    /* ===== CORES PRIMÁRIAS (WhatsApp Green) ===== */
     --primary: 142 70% 45%;
     --primary-foreground: 0 0% 100%;
-
+    --primary-glow: 142 75% 55%;
+    
+    /* ===== CORES SECUNDÁRIAS ===== */
     --secondary: 220 15% 92%;
     --secondary-foreground: 220 20% 20%;
-
+    
+    /* ===== MUTED ===== */
     --muted: 220 15% 95%;
     --muted-foreground: 220 10% 45%;
-
-    --accent: 142 70% 45%;
-    --accent-foreground: 0 0% 100%;
-
+    
+    /* ===== ACCENT ===== */
+    --accent: 220 15% 88%;
+    --accent-foreground: 225 25% 15%;
+    
+    /* ===== DESTRUCTIVE ===== */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 220 15% 90%;
+    
+    /* ===== BORDAS E INPUTS ===== */
+    --border: 220 15% 88%;
     --input: 220 15% 90%;
     --ring: 142 70% 45%;
-
+    
+    /* ===== RADIUS ===== */
     --radius: 0.75rem;
 
-    /* Custom colors */
+    /* ===== ESTADOS ===== */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 200 80% 50%;
+    --info-foreground: 0 0% 100%;
+
+    /* ===== WhatsApp Specific ===== */
     --whatsapp: 142 70% 45%;
     --whatsapp-dark: 142 70% 35%;
     --online: 142 70% 50%;
@@ -44,7 +68,7 @@
     --offline: 0 0% 60%;
     --unread: 142 70% 45%;
     
-    /* Sidebar */
+    /* ===== Sidebar ===== */
     --sidebar-background: 220 25% 12%;
     --sidebar-foreground: 220 10% 85%;
     --sidebar-primary: 142 70% 45%;
@@ -54,7 +78,7 @@
     --sidebar-border: 220 20% 20%;
     --sidebar-ring: 142 70% 45%;
 
-    /* Chat specific */
+    /* ===== Chat Specific ===== */
     --chat-bubble-sent: 142 70% 45%;
     --chat-bubble-sent-foreground: 0 0% 100%;
     --chat-bubble-received: 220 15% 95%;
@@ -62,61 +86,154 @@
     --chat-header: 0 0% 100%;
     --chat-input-bg: 0 0% 100%;
 
-    /* Status colors */
+    /* ===== Status Colors ===== */
     --status-open: 142 70% 45%;
     --status-pending: 45 90% 50%;
     --status-resolved: 220 10% 50%;
     --status-waiting: 200 80% 50%;
 
-    /* Priority */
+    /* ===== Priority ===== */
     --priority-high: 0 84% 60%;
     --priority-medium: 45 90% 50%;
     --priority-low: 220 10% 60%;
+
+    /* ===== GRADIENTS ===== */
+    --gradient-primary: linear-gradient(135deg, hsl(142 70% 45%), hsl(142 75% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(220 15% 92%), hsl(220 15% 97%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 20% 97%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(220 15% 82% / 0.5), transparent);
+
+    /* ===== SHADOWS ===== */
+    --shadow-xs: 0 1px 2px hsl(225 25% 12% / 0.03);
+    --shadow-sm: 0 1px 3px hsl(225 25% 12% / 0.04), 0 1px 2px hsl(225 25% 12% / 0.03);
+    --shadow-md: 0 4px 6px -1px hsl(225 25% 12% / 0.05), 0 2px 4px -2px hsl(225 25% 12% / 0.04);
+    --shadow-lg: 0 10px 15px -3px hsl(225 25% 12% / 0.06), 0 4px 6px -4px hsl(225 25% 12% / 0.04);
+    --shadow-xl: 0 20px 25px -5px hsl(225 25% 12% / 0.08), 0 8px 10px -6px hsl(225 25% 12% / 0.05);
+    --shadow-glow-primary: 0 0 20px hsl(142 70% 45% / 0.25);
+    --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.25);
+    --shadow-header: 0 1px 3px hsl(225 25% 12% / 0.05), 0 1px 2px hsl(225 25% 12% / 0.03);
+
+    /* ===== GLASS ===== */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 0 0% 100% / 0.3;
+
+    /* ===== ELEVAÇÃO ===== */
+    --elevated: 0 0% 100%;
+    --elevated-hover: 220 20% 98%;
+
+    /* ===== SPACING ===== */
+    --spacing-card: 1.5rem;
+    --spacing-card-sm: 1rem;
+    --spacing-card-lg: 2rem;
+    --spacing-section: 2rem;
+    --spacing-section-lg: 3rem;
+
+    /* ===== CHART ===== */
+    --chart-1: 142 70% 45%;
+    --chart-2: 200 80% 50%;
+    --chart-3: 45 90% 50%;
+    --chart-4: 280 85% 60%;
+    --chart-5: 25 95% 53%;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 220 10% 95%;
-
-    --card: 220 25% 12%;
-    --card-foreground: 220 10% 95%;
-
-    --popover: 220 25% 12%;
-    --popover-foreground: 220 10% 95%;
-
+    /* ===== BASE ===== */
+    --background: 225 35% 8%;
+    --foreground: 210 40% 96%;
+    
+    /* ===== CARDS ===== */
+    --card: 225 30% 12%;
+    --card-foreground: 210 40% 96%;
+    --card-elevated: 225 28% 15%;
+    
+    /* ===== POPOVER/DIALOG ===== */
+    --popover: 225 30% 12%;
+    --popover-foreground: 210 40% 96%;
+    
+    /* ===== CORES PRIMÁRIAS ===== */
     --primary: 142 70% 50%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 220 10% 90%;
-
-    --muted: 220 20% 15%;
-    --muted-foreground: 220 10% 60%;
-
-    --accent: 142 70% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 70% 50%;
+    --primary-glow: 142 80% 60%;
+    
+    /* ===== CORES SECUNDÁRIAS ===== */
+    --secondary: 225 25% 18%;
+    --secondary-foreground: 210 40% 90%;
+    
+    /* ===== MUTED ===== */
+    --muted: 225 20% 20%;
+    --muted-foreground: 215 20% 60%;
+    
+    /* ===== ACCENT ===== */
+    --accent: 225 25% 20%;
+    --accent-foreground: 210 40% 96%;
+    
+    /* ===== DESTRUCTIVE ===== */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
+    
+    /* ===== BORDAS E INPUTS ===== */
+    --border: 225 20% 22%;
+    --input: 225 25% 18%;
     --ring: 142 70% 50%;
 
-    --sidebar-background: 220 30% 6%;
-    --sidebar-foreground: 220 10% 85%;
+    /* ===== ESTADOS ===== */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 200 80% 55%;
+    --info-foreground: 0 0% 100%;
+
+    /* ===== Sidebar ===== */
+    --sidebar-background: 225 30% 6%;
+    --sidebar-foreground: 210 40% 96%;
     --sidebar-primary: 142 70% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 12%;
-    --sidebar-accent-foreground: 220 10% 90%;
-    --sidebar-border: 220 25% 15%;
+    --sidebar-accent: 225 25% 12%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 225 25% 15%;
+    --sidebar-ring: 142 70% 50%;
 
+    /* ===== Chat Specific ===== */
     --chat-bubble-sent: 142 70% 40%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 220 20% 18%;
-    --chat-bubble-received-foreground: 220 10% 95%;
-    --chat-header: 220 25% 12%;
-    --chat-input-bg: 220 25% 12%;
+    --chat-bubble-received: 225 25% 18%;
+    --chat-bubble-received-foreground: 210 40% 96%;
+    --chat-header: 225 30% 12%;
+    --chat-input-bg: 225 30% 12%;
+
+    /* ===== GRADIENTS ===== */
+    --gradient-primary: linear-gradient(135deg, hsl(142 70% 50%), hsl(142 80% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(225 25% 18%), hsl(225 30% 12%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
+    --gradient-surface: linear-gradient(180deg, hsl(225 30% 12%), hsl(225 35% 8%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(225 20% 22% / 0.5), transparent);
+
+    /* ===== SHADOWS ===== */
+    --shadow-xs: 0 1px 2px hsl(225 50% 5% / 0.4);
+    --shadow-sm: 0 1px 3px hsl(225 50% 5% / 0.5), 0 1px 2px hsl(225 50% 5% / 0.4);
+    --shadow-md: 0 4px 6px -1px hsl(225 50% 5% / 0.5), 0 2px 4px -2px hsl(225 50% 5% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(225 50% 5% / 0.5), 0 4px 6px -4px hsl(225 50% 5% / 0.4);
+    --shadow-xl: 0 20px 25px -5px hsl(225 50% 5% / 0.6), 0 8px 10px -6px hsl(225 50% 5% / 0.5);
+    --shadow-glow-primary: 0 0 30px hsl(142 70% 50% / 0.35);
+    --shadow-glow-success: 0 0 25px hsl(142 71% 45% / 0.3);
+    --shadow-header: 0 1px 3px hsl(225 50% 5% / 0.5), inset 0 1px 0 hsl(225 20% 25% / 0.3);
+
+    /* ===== GLASS ===== */
+    --glass-bg: 225 30% 15% / 0.8;
+    --glass-border: 225 30% 30% / 0.3;
+
+    /* ===== ELEVAÇÃO ===== */
+    --elevated: 225 28% 15%;
+    --elevated-hover: 225 28% 18%;
+
+    /* ===== CHART ===== */
+    --chart-1: 142 70% 55%;
+    --chart-2: 200 80% 55%;
+    --chart-3: 45 93% 60%;
+    --chart-4: 280 85% 70%;
+    --chart-5: 25 95% 63%;
   }
 }
 
@@ -126,12 +243,115 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Tipografia */
+  h1 {
+    font-family: var(--font-display);
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    @apply text-2xl md:text-3xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    font-family: var(--font-display);
+    @apply text-xl md:text-2xl font-semibold;
+  }
+
+  h4 {
+    font-family: var(--font-display);
+    @apply text-lg md:text-xl font-medium;
+  }
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted) / 0.3);
+}
+
+/* ===== FOCUS STATES ===== */
+:focus-visible {
+  @apply outline-none;
+  box-shadow: 
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 4px hsl(var(--ring)),
+    0 0 16px hsl(var(--primary) / 0.2);
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+  @apply outline-none;
+  box-shadow: 
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 4px hsl(var(--primary)),
+    0 0 20px hsl(var(--primary) / 0.3);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  @apply outline-none border-primary;
+  box-shadow: 
+    0 0 0 3px hsl(var(--primary) / 0.1),
+    0 0 12px hsl(var(--primary) / 0.15);
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 @layer utilities {
+  /* Display Font */
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .text-display {
+    font-family: var(--font-display);
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+  }
+
+  .text-display-xl {
+    font-family: var(--font-display);
+    @apply text-4xl md:text-5xl font-bold tracking-tighter;
+  }
+
+  /* Scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
@@ -153,9 +373,147 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
   }
+
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-text-success {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-success);
+  }
+
+  /* Shadow Utilities */
+  .shadow-elevated {
+    box-shadow: 0 4px 20px -2px hsl(var(--foreground) / 0.08);
+  }
+
+  .glow-primary {
+    box-shadow: var(--shadow-glow-primary);
+  }
+
+  .glow-success {
+    box-shadow: var(--shadow-glow-success);
+  }
 }
 
 @layer components {
+  /* ===== CARD STYLES ===== */
+  .card-base {
+    @apply bg-card rounded-xl border border-border p-6 transition-all duration-200;
+  }
+
+  .card-elevated {
+    @apply bg-card rounded-xl border border-border p-6 transition-all duration-200;
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-elevated:hover {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-interactive {
+    @apply relative bg-card rounded-xl border border-border p-6 transition-all duration-300 overflow-hidden cursor-pointer;
+  }
+
+  .card-interactive:hover {
+    @apply border-primary/30;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-interactive::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none;
+    background: linear-gradient(
+      135deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.03) 50%,
+      transparent 100%
+    );
+  }
+
+  .card-interactive:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Glass Card */
+  .glass-card {
+    @apply rounded-xl p-6 backdrop-blur-md border transition-all duration-200;
+    background: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+  }
+
+  .glass-panel {
+    @apply backdrop-blur-xl border transition-all duration-200;
+    background: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Stat Card */
+  .stat-card {
+    @apply bg-card rounded-xl border border-border p-4 transition-all duration-200;
+  }
+
+  .stat-card:hover {
+    @apply border-primary/20;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ===== HOVER EFFECTS ===== */
+  .hover-lift {
+    @apply transition-all duration-200;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .hover-lift-sm {
+    @apply transition-all duration-200;
+  }
+
+  .hover-lift-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200;
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+
+  .hover-scale-sm {
+    @apply transition-transform duration-200;
+  }
+
+  .hover-scale-sm:hover {
+    transform: scale(1.02);
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300;
+  }
+
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow-primary);
+  }
+
+  .press-scale {
+    @apply transition-transform duration-100;
+  }
+
+  .press-scale:active {
+    transform: scale(0.95);
+  }
+
+  /* ===== CONVERSATION ITEM ===== */
   .conversation-item {
     @apply flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200;
     @apply hover:bg-secondary/80;
@@ -164,7 +522,8 @@
   .conversation-item.active {
     @apply bg-primary/10 border-l-2 border-primary;
   }
-  
+
+  /* ===== MESSAGE BUBBLES ===== */
   .message-bubble {
     @apply max-w-[70%] px-4 py-2 rounded-2xl;
   }
@@ -176,7 +535,8 @@
   .message-bubble.received {
     @apply bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))] rounded-bl-md;
   }
-  
+
+  /* ===== STATUS DOT ===== */
   .status-dot {
     @apply w-2.5 h-2.5 rounded-full;
   }
@@ -192,13 +552,78 @@
   .status-dot.offline {
     @apply bg-[hsl(var(--offline))];
   }
-  
+
+  /* ===== UNREAD BADGE ===== */
   .unread-badge {
     @apply min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-semibold;
     @apply bg-primary text-primary-foreground;
   }
 
-  .glass-panel {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-xl;
+  /* ===== GLASS MORPHISM ===== */
+  .glass {
+    @apply backdrop-blur-md border transition-all duration-200;
+    background: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
   }
+
+  .glass-strong {
+    @apply backdrop-blur-xl border transition-all duration-200;
+    background: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+  }
+}
+
+/* ===== KEYFRAMES ===== */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 5px hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 20px hsl(var(--primary) / 0.6); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
