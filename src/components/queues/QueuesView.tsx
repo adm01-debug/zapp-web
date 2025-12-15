@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Queue } from '@/types/chat';
+import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { mockQueues, mockAgents } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -28,7 +29,8 @@ export function QueuesView() {
   const [queues, setQueues] = useState<Queue[]>(mockQueues);
 
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full">
+    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <FloatingParticles />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

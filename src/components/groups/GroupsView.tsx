@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -154,7 +155,8 @@ export function GroupsView() {
   };
 
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full">
+    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <FloatingParticles />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

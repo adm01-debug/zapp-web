@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from '@/components/ui/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -293,7 +294,8 @@ export function ContactsView() {
   );
 
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full">
+    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <FloatingParticles />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
