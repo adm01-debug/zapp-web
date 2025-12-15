@@ -55,13 +55,14 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       initial={false}
       animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex flex-col h-screen border-r border-border/30 relative bg-sidebar"
+      className="flex flex-col h-screen border-r border-secondary/30 relative bg-sidebar sidebar-neon"
     >
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/3 via-transparent to-transparent pointer-events-none" />
+      {/* Neon gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 via-primary/3 to-transparent pointer-events-none" />
+      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-secondary/50 via-primary/30 to-secondary/50 pointer-events-none" />
       
       {/* Logo */}
-      <div className="relative flex items-center justify-between p-4 border-b border-border/20">
+      <div className="relative flex items-center justify-between p-4 border-b border-secondary/20">
         <AnimatePresence mode="wait">
           {!isCollapsed && (
             <motion.div
@@ -72,15 +73,15 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               className="flex items-center gap-3"
             >
               <motion.div 
-                className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center relative overflow-hidden"
+                className="w-10 h-10 rounded-xl logo-neon flex items-center justify-center relative overflow-hidden"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400 }}
               >
-                <Sparkles className="w-5 h-5 text-primary relative z-10" />
+                <Sparkles className="w-5 h-5 text-secondary relative z-10" />
               </motion.div>
               <div>
                 <span className="font-display font-bold text-lg text-foreground">MultiChat</span>
-                <p className="text-xs text-muted-foreground">Omnichannel</p>
+                <p className="text-xs text-secondary/80">Omnichannel</p>
               </div>
             </motion.div>
           )}
@@ -92,7 +93,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           <Button
             variant="ghost"
             size="icon"
-            className="text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-lg"
+            className="text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all duration-300"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? (
@@ -120,24 +121,24 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               whileTap={{ scale: 0.98 }}
               onClick={() => onViewChange(item.id)}
               className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative group',
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
                 isActive 
-                  ? 'text-primary bg-primary/15' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                  ? 'text-secondary nav-item-neon-active' 
+                  : 'text-muted-foreground hover:text-secondary nav-item-neon-hover'
               )}
             >
-              {/* Active indicator bar */}
+              {/* Active indicator bar with neon effect */}
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-primary"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full nav-indicator-neon"
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
               
               <Icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-colors duration-200",
-                isActive ? "text-primary" : "group-hover:text-foreground"
+                "w-5 h-5 flex-shrink-0 transition-all duration-300",
+                isActive ? "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.6)]" : "group-hover:text-secondary"
               )} />
               
               <AnimatePresence mode="wait">
@@ -150,8 +151,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                     className="flex items-center flex-1 overflow-hidden"
                   >
                     <span className={cn(
-                      "flex-1 text-left text-sm font-medium whitespace-nowrap",
-                      isActive ? "text-primary" : "text-foreground"
+                      "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-300",
+                      isActive ? "text-secondary" : "text-foreground group-hover:text-secondary"
                     )}>
                       {item.label}
                     </span>
@@ -159,7 +160,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                       <motion.span 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold bg-primary text-primary-foreground"
+                        className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold badge-neon text-white"
                       >
                         {item.badge}
                       </motion.span>
@@ -205,21 +206,24 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="relative p-3 border-t border-border/20"
+          className="relative p-3 border-t border-secondary/20"
         >
           <motion.div
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-200',
-              'bg-muted/20 hover:bg-muted/40 border border-border/20',
+              'flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-300',
+              'profile-card-neon bg-secondary/5 hover:bg-secondary/10',
               isCollapsed && 'justify-center'
             )}
           >
             <div className="relative">
-              <Avatar className="w-10 h-10 ring-2 ring-border/30">
+              <Avatar className={cn(
+                "w-10 h-10 ring-2 transition-all duration-300",
+                currentAgent.status === 'online' ? "ring-secondary/50 avatar-neon-online" : "ring-border/30"
+              )}>
                 <AvatarImage src={currentAgent.avatar} />
-                <AvatarFallback className="bg-primary/15 text-primary font-display font-semibold">
+                <AvatarFallback className="bg-secondary/15 text-secondary font-display font-semibold">
                   {currentAgent.name.split(' ').map((n) => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
@@ -230,7 +234,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                 transition={{ duration: 2, repeat: Infinity }}
                 className={cn(
                   'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-sidebar',
-                  currentAgent.status === 'online' && 'bg-success',
+                  currentAgent.status === 'online' && 'bg-success shadow-[0_0_8px_hsl(var(--success)/0.6)]',
                   currentAgent.status === 'away' && 'bg-warning',
                   currentAgent.status === 'offline' && 'bg-muted-foreground'
                 )}

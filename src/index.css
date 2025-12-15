@@ -975,3 +975,137 @@ select:focus-visible {
     box-shadow: none;
   }
 }
+
+@keyframes neon-text {
+  0%, 100% {
+    text-shadow: 0 0 5px hsl(var(--secondary) / 0.8), 0 0 10px hsl(var(--secondary) / 0.6), 0 0 20px hsl(var(--secondary) / 0.4);
+  }
+}
+
+/* Sidebar Neon Effects */
+@keyframes sidebar-neon-border {
+  0%, 100% {
+    box-shadow: inset -1px 0 0 hsl(var(--secondary) / 0.3), 
+                1px 0 15px hsl(var(--secondary) / 0.15);
+  }
+  50% {
+    box-shadow: inset -2px 0 0 hsl(var(--secondary) / 0.5), 
+                2px 0 25px hsl(var(--secondary) / 0.25);
+  }
+}
+
+@keyframes nav-item-neon-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px hsl(var(--secondary) / 0.4), 
+                inset 0 0 10px hsl(var(--secondary) / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 15px hsl(var(--secondary) / 0.6), 
+                inset 0 0 15px hsl(var(--secondary) / 0.15);
+  }
+}
+
+@keyframes badge-neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px hsl(var(--secondary) / 0.5), 
+                0 0 10px hsl(var(--secondary) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 10px hsl(var(--secondary) / 0.7), 
+                0 0 20px hsl(var(--secondary) / 0.5);
+  }
+}
+
+@keyframes logo-neon-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.4), 
+                0 0 20px hsl(var(--secondary) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--secondary) / 0.2));
+  }
+  50% {
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.6), 
+                0 0 30px hsl(var(--secondary) / 0.4);
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3), hsl(var(--secondary) / 0.3));
+  }
+}
+
+/* Glow Classes */
+.glow-purple {
+  box-shadow: 0 0 15px hsl(var(--secondary) / 0.4), 
+              0 0 30px hsl(var(--secondary) / 0.2);
+}
+
+.glow-purple-pulse {
+  animation: purple-glow-pulse 2s ease-in-out infinite;
+}
+
+.glow-purple-pulse-slow {
+  animation: purple-glow-pulse 3s ease-in-out infinite;
+}
+
+.glow-purple-pulse-fast {
+  animation: purple-glow-pulse 1.5s ease-in-out infinite;
+}
+
+.glow-gradient-pulse {
+  animation: gradient-glow-pulse 2s ease-in-out infinite;
+}
+
+.border-glow-purple {
+  animation: border-purple-glow 2s ease-in-out infinite;
+}
+
+.neon-text {
+  animation: neon-text 2s ease-in-out infinite;
+}
+
+.neon-flicker {
+  animation: neon-flicker 3s linear infinite;
+}
+
+/* Sidebar Neon Classes */
+.sidebar-neon {
+  animation: sidebar-neon-border 3s ease-in-out infinite;
+}
+
+.nav-item-neon-active {
+  animation: nav-item-neon-glow 2s ease-in-out infinite;
+  background: linear-gradient(135deg, hsl(var(--secondary) / 0.15), hsl(var(--primary) / 0.1));
+}
+
+.nav-item-neon-hover:hover {
+  box-shadow: 0 0 10px hsl(var(--secondary) / 0.3), 
+              inset 0 0 8px hsl(var(--secondary) / 0.1);
+  background: linear-gradient(135deg, hsl(var(--secondary) / 0.08), hsl(var(--primary) / 0.05));
+}
+
+.badge-neon {
+  animation: badge-neon-pulse 2s ease-in-out infinite;
+  background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary) / 0.8));
+}
+
+.logo-neon {
+  animation: logo-neon-glow 3s ease-in-out infinite;
+}
+
+.avatar-neon-online {
+  box-shadow: 0 0 10px hsl(var(--success) / 0.5), 
+              0 0 20px hsl(var(--secondary) / 0.3);
+}
+
+.profile-card-neon {
+  border: 1px solid hsl(var(--secondary) / 0.3);
+  box-shadow: 0 0 15px hsl(var(--secondary) / 0.1);
+  transition: all 0.3s ease;
+}
+
+.profile-card-neon:hover {
+  border-color: hsl(var(--secondary) / 0.5);
+  box-shadow: 0 0 20px hsl(var(--secondary) / 0.2);
+}
+
+.nav-indicator-neon {
+  background: linear-gradient(180deg, hsl(var(--secondary)), hsl(var(--primary)));
+  box-shadow: 0 0 10px hsl(var(--secondary) / 0.6), 
+              0 0 20px hsl(var(--secondary) / 0.4);
+}
