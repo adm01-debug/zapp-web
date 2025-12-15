@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { Search, X, MessageSquare, User, Calendar, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchResult {
   id: string;
@@ -17,6 +19,7 @@ interface SearchResult {
   title: string;
   preview: string;
   timestamp: Date;
+  contactId?: string;
   contactName?: string;
 }
 
@@ -26,41 +29,12 @@ interface GlobalSearchProps {
   onSelectResult: (result: SearchResult) => void;
 }
 
-// Mock search results for demo
-const mockResults: SearchResult[] = [
-  {
-    id: '1',
-    type: 'message',
-    title: 'Conversa com Maria Silva',
-    preview: 'Olá, preciso de ajuda com meu pedido #12345',
-    timestamp: new Date(),
-    contactName: 'Maria Silva'
-  },
-  {
-    id: '2',
-    type: 'message',
-    title: 'Conversa com João Santos',
-    preview: 'Quando vai chegar minha encomenda?',
-    timestamp: new Date(Date.now() - 86400000),
-    contactName: 'João Santos'
-  },
-  {
-    id: '3',
-    type: 'contact',
-    title: 'Pedro Oliveira',
-    preview: '+55 11 99999-8888',
-    timestamp: new Date(Date.now() - 172800000),
-  },
-];
-
 export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearchProps) {
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
 
-  const handleSearch = async (query: string) => {
-    setSearch(query);
-    
+  const performSearch = useCallback(async (query: string) => {
     if (query.length < 2) {
       setResults([]);
       return;
@@ -68,15 +42,87 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
 
     setIsLoading(true);
     
-    // Simulated search delay
-    setTimeout(() => {
-      const filtered = mockResults.filter(r =>
-        r.title.toLowerCase().includes(query.toLowerCase()) ||
-        r.preview.toLowerCase().includes(query.toLowerCase())
-      );
-      setResults(filtered);
+    try {
+      // Search messages
+      const { data: messages, error: messagesError } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          contact_id,
+          contacts:contact_id (
+            id,
+            name,
+            surname
+          )
+        `)
+        .ilike('content', `%${query}%`)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (messagesError) {
+        console.error('Error searching messages:', messagesError);
+      }
+
+      // Search contacts
+      const { data: contacts, error: contactsError } = await supabase
+        .from('contacts')
+        .select('id, name, surname, phone, email')
+        .or(`name.ilike.%${query}%,surname.ilike.%${query}%,phone.ilike.%${query}%,email.ilike.%${query}%`)
+        .order('name', { ascending: true })
+        .limit(10);
+
+      if (contactsError) {
+        console.error('Error searching contacts:', contactsError);
+      }
+
+      const searchResults: SearchResult[] = [];
+
+      // Add message results
+      if (messages) {
+        messages.forEach((msg) => {
+          const contact = msg.contacts as { id: string; name: string; surname: string | null } | null;
+          searchResults.push({
+            id: msg.id,
+            type: 'message',
+            title: contact ? `Conversa com ${contact.name}${contact.surname ? ` ${contact.surname}` : ''}` : 'Mensagem',
+            preview: msg.content.length > 100 ? `${msg.content.substring(0, 100)}...` : msg.content,
+            timestamp: new Date(msg.created_at),
+            contactId: msg.contact_id || undefined,
+            contactName: contact ? `${contact.name}${contact.surname ? ` ${contact.surname}` : ''}` : undefined
+          });
+        });
+      }
+
+      // Add contact results
+      if (contacts) {
+        contacts.forEach((contact) => {
+          searchResults.push({
+            id: contact.id,
+            type: 'contact',
+            title: `${contact.name}${contact.surname ? ` ${contact.surname}` : ''}`,
+            preview: contact.phone || contact.email || '',
+            timestamp: new Date(),
+            contactId: contact.id
+          });
+        });
+      }
+
+      setResults(searchResults);
+    } catch (error) {
+      console.error('Search error:', error);
+      setResults([]);
+    } finally {
       setIsLoading(false);
-    }, 300);
+    }
+  }, []);
+
+  const debouncedSearch = useDebounce(performSearch, 300);
+
+  const handleSearch = (query: string) => {
+    setSearch(query);
+    debouncedSearch(query);
   };
 
   const handleSelect = (result: SearchResult) => {
