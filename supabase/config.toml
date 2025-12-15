@@ -1,1 +1,4 @@
 project_id = "allrjhkpuscmgbsnmjlv"
+
+[functions.ai-suggest-reply]
+verify_jwt = false

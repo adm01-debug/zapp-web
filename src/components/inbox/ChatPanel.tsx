@@ -12,6 +12,7 @@ import { MessageImage } from './ImagePreview';
 import { TransferDialog } from './TransferDialog';
 import { ScheduleMessageDialog } from './ScheduleMessageDialog';
 import { AudioRecorder } from './AudioRecorder';
+import { AISuggestions } from './AISuggestions';
 import { CallDialog } from '@/components/calls/CallDialog';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -546,6 +547,18 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                 </div>
               </PopoverContent>
             </Popover>
+            
+            {/* AI Suggestions */}
+            <AISuggestions
+              messages={messages.map(m => ({
+                id: m.id,
+                content: m.content,
+                sender: m.sender,
+                timestamp: m.timestamp
+              }))}
+              contactName={conversation.contact.name}
+              onSelectSuggestion={(text) => setInputValue(text)}
+            />
           </div>
 
           <div className="flex-1 relative group">
