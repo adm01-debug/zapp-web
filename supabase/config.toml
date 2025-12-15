@@ -1,4 +1,7 @@
 project_id = "allrjhkpuscmgbsnmjlv"
 
+[functions.ai-conversation-summary]
+verify_jwt = true
+
 [functions.ai-suggest-reply]
 verify_jwt = false

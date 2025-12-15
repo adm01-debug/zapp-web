@@ -15,6 +15,7 @@ import { AudioRecorder } from './AudioRecorder';
 import { AISuggestions } from './AISuggestions';
 import { MessageTemplates } from './MessageTemplates';
 import { GlobalSearch } from './GlobalSearch';
+import { ConversationSummary } from './ConversationSummary';
 import { CallDialog } from '@/components/calls/CallDialog';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -367,6 +368,17 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Conversation Summary */}
+      <ConversationSummary 
+        messages={messages.map(m => ({
+          id: m.id,
+          sender: m.sender,
+          content: m.content,
+          created_at: m.timestamp.toISOString()
+        }))}
+        contactName={conversation.contact.name}
+      />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-muted/5">
