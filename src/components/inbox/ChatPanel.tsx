@@ -209,12 +209,12 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-gradient-to-b from-background via-background to-muted/10">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between px-4 py-3 bg-chat-header border-b border-border"
+        className="flex items-center justify-between px-4 py-3 glass-strong border-b border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-transparent"
       >
         <div className="flex items-center gap-3">
           <motion.div whileHover={{ scale: 1.05 }}>
@@ -356,7 +356,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               animate={{ opacity: 1, scale: 1 }}
               className="flex justify-center my-4"
             >
-              <span className="text-xs text-muted-foreground bg-muted/80 backdrop-blur-sm px-4 py-1.5 rounded-full font-medium">
+              <span className="text-xs text-muted-foreground glass-soft px-4 py-1.5 rounded-full font-medium border border-border/30">
                 {formatDateSeparator(new Date(dateKey))}
               </span>
             </motion.div>
@@ -371,31 +371,43 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                   <StaggeredItem key={message.id}>
                     <div className={cn('flex group', isSent ? 'justify-end' : 'justify-start')}>
                       <motion.div
-                        initial={{ opacity: 0, x: isSent ? 20 : -20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, x: isSent ? 20 : -20, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                         className="max-w-[70%] space-y-1"
                       >
                         <motion.div
                           whileHover={{ scale: 1.01 }}
-                          className={cn('message-bubble relative', isSent ? 'sent' : 'received')}
+                          className={cn(
+                            'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
+                            isSent 
+                              ? 'rounded-br-md text-primary-foreground' 
+                              : 'rounded-bl-md glass-soft border border-border/30 text-foreground'
+                          )}
+                          style={isSent ? { background: 'var(--gradient-primary)' } : undefined}
                         >
+                          {/* Glow effect for sent messages */}
+                          {isSent && (
+                            <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/20 blur-xl -z-10" />
+                          )}
+
                           {/* Image message */}
                           {message.type === 'image' && message.mediaUrl && (
-                            <div className="mb-2">
+                            <div className="mb-2 rounded-lg overflow-hidden">
                               <MessageImage src={message.mediaUrl} />
                             </div>
                           )}
 
                           {/* Text content */}
                           {message.content && (
-                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                            <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                           )}
 
                           {/* Timestamp and status */}
                           <div
                             className={cn(
                               'flex items-center justify-end gap-1.5 mt-1',
-                              isSent ? 'text-white/70' : 'text-muted-foreground'
+                              isSent ? 'text-primary-foreground/70' : 'text-muted-foreground'
                             )}
                           >
                             <span className="text-[10px]">
@@ -490,13 +502,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 bg-chat-input-bg border-t border-border"
+        className="p-4 glass-strong border-t border-border/50"
       >
         <div className="flex items-end gap-2">
           <div className="flex items-center gap-1">
             {[Paperclip, Image].map((Icon, index) => (
-              <motion.div key={index} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <motion.div key={index} whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.9 }}>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                   <Icon className="w-5 h-5" />
                 </Button>
               </motion.div>
@@ -504,13 +516,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             <Popover>
               <PopoverTrigger asChild>
                 <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                     <Zap className="w-5 h-5" />
                   </Button>
                 </motion.div>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-0" align="start">
-                <div className="p-3 border-b border-border">
+              <PopoverContent className="w-72 p-0 glass-strong border-border/50" align="start">
+                <div className="p-3 border-b border-border/50 bg-gradient-to-r from-primary/10 to-transparent">
                   <h4 className="font-medium text-sm">Respostas Rápidas</h4>
                   <p className="text-xs text-muted-foreground">
                     Digite / para usar atalhos
@@ -522,11 +534,11 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                       key={reply.id}
                       whileHover={{ x: 4 }}
                       onClick={() => handleQuickReply(reply)}
-                      className="w-full text-left px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{reply.title}</span>
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge variant="outline" className="text-[10px] border-primary/30">
                           {reply.shortcut}
                         </Badge>
                       </div>
@@ -537,13 +549,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             </Popover>
           </div>
 
-          <div className="flex-1 relative">
+          <div className="flex-1 relative group">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Digite uma mensagem..."
-              className="pr-10 bg-secondary border-0"
+              className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
             />
             <motion.div 
               whileHover={{ scale: 1.1 }} 
@@ -553,7 +565,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-foreground w-8 h-8"
+                className="text-muted-foreground hover:text-primary w-8 h-8"
               >
                 <Smile className="w-5 h-5" />
               </Button>
@@ -565,8 +577,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               variant="ghost" 
               size="icon" 
               className={cn(
-                "text-muted-foreground hover:text-foreground",
-                isRecordingAudio && "text-destructive"
+                "text-muted-foreground hover:text-primary hover:bg-primary/10",
+                isRecordingAudio && "text-destructive bg-destructive/10"
               )}
               onClick={() => setIsRecordingAudio(!isRecordingAudio)}
             >
@@ -578,7 +590,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             <Button 
               variant="ghost" 
               size="icon" 
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
               onClick={() => setShowScheduleDialog(true)}
             >
               <Clock className="w-5 h-5" />
@@ -592,7 +604,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             <Button
               onClick={handleSend}
               disabled={!inputValue.trim()}
-              className="bg-whatsapp hover:bg-whatsapp-dark text-white"
+              className="text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50"
+              style={{ background: 'var(--gradient-primary)' }}
             >
               <Send className="w-4 h-4" />
             </Button>
