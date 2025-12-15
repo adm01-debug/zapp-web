@@ -19,6 +19,7 @@ import { mockAgents, mockQueues, mockConversations } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
+import { DemoAchievements } from '@/components/gamification/DemoAchievements';
 
 export function DashboardView() {
   const totalConversations = mockConversations.length;
@@ -385,6 +386,15 @@ export function DashboardView() {
             </StaggeredList>
           </CardContent>
         </Card>
+      </motion.div>
+
+      {/* Demo Achievements Panel */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.7 }}
+      >
+        <DemoAchievements />
       </motion.div>
     </div>
   );
