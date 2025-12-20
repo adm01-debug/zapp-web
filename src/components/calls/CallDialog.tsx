@@ -13,23 +13,22 @@ import {
   MicOff,
   Volume2,
   VolumeX,
-  Minimize2,
-  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useCalls } from '@/hooks/useCalls';
 import { logAudit } from '@/lib/audit';
 
 interface CallDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contact: {
+    id?: string;
     name: string;
     phone: string;
     avatar?: string;
   };
   direction: 'inbound' | 'outbound';
+  whatsappConnectionId?: string;
   onAnswer?: () => void;
   onEnd: () => void;
 }
@@ -39,6 +38,7 @@ export function CallDialog({
   onOpenChange,
   contact,
   direction,
+  whatsappConnectionId,
   onAnswer,
   onEnd,
 }: CallDialogProps) {
@@ -46,8 +46,27 @@ export function CallDialog({
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [callId, setCallId] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const { startCall, answerCall, endCall, missCall } = useCalls();
 
+  // Start call when dialog opens
+  useEffect(() => {
+    if (open && !callId) {
+      startCall({
+        contactId: contact.id,
+        contactPhone: contact.phone,
+        contactName: contact.name,
+        direction,
+        whatsappConnectionId,
+      }).then(id => {
+        if (id) setCallId(id);
+      });
+    }
+  }, [open, callId, contact, direction, whatsappConnectionId, startCall]);
+
+  // Timer for call duration
   useEffect(() => {
     if (open && status === 'answered') {
       intervalRef.current = setInterval(() => {
@@ -62,34 +81,55 @@ export function CallDialog({
     };
   }, [open, status]);
 
+  // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
       setStatus('ringing');
       setDuration(0);
       setIsMuted(false);
+      setCallId(null);
     }
   }, [open]);
 
-  const handleAnswer = () => {
+  const handleAnswer = async () => {
     setStatus('answered');
+    
+    if (callId) {
+      await answerCall(callId);
+    }
+    
     onAnswer?.();
     logAudit({
       action: 'call_started',
       entityType: 'call',
+      entityId: callId || undefined,
       details: { direction, contact_phone: contact.phone },
     });
   };
 
-  const handleEnd = () => {
+  const handleEnd = async () => {
     setStatus('ended');
+    
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
+    
+    if (callId) {
+      if (status === 'ringing' && direction === 'inbound') {
+        // Missed call if ended while ringing inbound
+        await missCall(callId);
+      } else {
+        await endCall(callId, duration);
+      }
+    }
+    
     logAudit({
       action: 'call_ended',
       entityType: 'call',
+      entityId: callId || undefined,
       details: { direction, duration, contact_phone: contact.phone },
     });
+    
     onEnd();
     onOpenChange(false);
   };
