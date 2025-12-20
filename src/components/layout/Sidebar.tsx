@@ -15,6 +15,7 @@ import {
   Shield,
   UsersRound,
   Sparkles,
+  Package,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -41,6 +42,7 @@ const menuItems = [
   { id: 'queues', icon: Tag, label: 'Filas' },
   { id: 'connections', icon: Zap, label: 'Conexões' },
   { id: 'wallet', icon: Wallet, label: 'Carteira' },
+  { id: 'catalog', icon: Package, label: 'Catálogo' },
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
   { id: 'admin', icon: Shield, label: 'Admin' },
