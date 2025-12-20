@@ -380,6 +380,42 @@ export type Database = {
           },
         ]
       }
+      contact_tags: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          tag_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          tag_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_tags_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           assigned_to: string | null
@@ -912,6 +948,76 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_messages: {
+        Row: {
+          contact_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          media_url: string | null
+          message_type: string
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+          whatsapp_connection_id: string | null
+        }
+        Insert: {
+          contact_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          media_url?: string | null
+          message_type?: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp_connection_id?: string | null
+        }
+        Update: {
+          contact_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          media_url?: string | null
+          message_type?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp_connection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_messages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_messages_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sla_configurations: {
         Row: {
           created_at: string
@@ -947,6 +1053,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tags: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

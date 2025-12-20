@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { SmilePlus, X } from 'lucide-react';
-import { MessageReaction } from '@/types/chat';
+import { useMessageReactions } from '@/hooks/useMessageReactions';
 
 // WhatsApp supported reactions
 const WHATSAPP_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -14,24 +14,23 @@ const EXTENDED_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '�
 
 interface MessageReactionsProps {
   messageId: string;
-  reactions?: MessageReaction[];
-  onReact?: (emoji: string) => void;
-  onRemoveReaction?: (emoji: string) => void;
   isSent?: boolean;
-  currentUserId?: string;
   showExtended?: boolean;
 }
 
 export function MessageReactions({ 
   messageId, 
-  reactions = [], 
-  onReact, 
-  onRemoveReaction,
   isSent,
-  currentUserId = 'agent',
   showExtended = false
 }: MessageReactionsProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { 
+    reactions, 
+    addReaction, 
+    removeReaction, 
+    hasReacted,
+    currentProfileId 
+  } = useMessageReactions(messageId);
 
   // Group reactions by emoji
   const groupedReactions = reactions.reduce((acc, reaction) => {
@@ -44,8 +43,8 @@ export function MessageReactions({
       };
     }
     acc[reaction.emoji].count++;
-    acc[reaction.emoji].users.push(reaction.userName || reaction.userId);
-    if (reaction.userId === currentUserId) {
+    acc[reaction.emoji].users.push(reaction.user_name || 'Usuário');
+    if (reaction.user_id === currentProfileId) {
       acc[reaction.emoji].hasCurrentUser = true;
     }
     return acc;
@@ -53,14 +52,14 @@ export function MessageReactions({
 
   const reactionsList = Object.values(groupedReactions);
 
-  const handleReact = (emoji: string) => {
+  const handleReact = async (emoji: string) => {
     const existingReaction = groupedReactions[emoji];
     
     // If user already reacted with this emoji, remove it
     if (existingReaction?.hasCurrentUser) {
-      onRemoveReaction?.(emoji);
+      await removeReaction(emoji);
     } else {
-      onReact?.(emoji);
+      await addReaction(emoji);
     }
     setIsOpen(false);
   };
@@ -137,7 +136,7 @@ export function MessageReactions({
         >
           <div className="flex flex-wrap items-center gap-1 max-w-[200px]">
             {availableReactions.map((emoji) => {
-              const hasReacted = groupedReactions[emoji]?.hasCurrentUser;
+              const userHasReacted = hasReacted(emoji);
               
               return (
                 <motion.button
@@ -147,13 +146,13 @@ export function MessageReactions({
                   onClick={() => handleReact(emoji)}
                   className={cn(
                     "p-1.5 rounded-md transition-all text-lg relative",
-                    hasReacted 
+                    userHasReacted 
                       ? "bg-primary/10 ring-1 ring-primary/30" 
                       : "hover:bg-muted"
                   )}
                 >
                   {emoji}
-                  {hasReacted && (
+                  {userHasReacted && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -174,11 +173,17 @@ export function MessageReactions({
 
 // Quick reaction bar that appears on hover
 interface QuickReactionBarProps {
-  onReact: (emoji: string) => void;
+  messageId: string;
   isSent?: boolean;
 }
 
-export function QuickReactionBar({ onReact, isSent }: QuickReactionBarProps) {
+export function QuickReactionBar({ messageId, isSent }: QuickReactionBarProps) {
+  const { addReaction } = useMessageReactions(messageId);
+
+  const handleReact = async (emoji: string) => {
+    await addReaction(emoji);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 5, scale: 0.95 }}
@@ -196,7 +201,7 @@ export function QuickReactionBar({ onReact, isSent }: QuickReactionBarProps) {
           key={emoji}
           whileHover={{ scale: 1.3 }}
           whileTap={{ scale: 0.85 }}
-          onClick={() => onReact(emoji)}
+          onClick={() => handleReact(emoji)}
           className="p-1 hover:bg-muted rounded transition-colors"
         >
           <span className="text-sm">{emoji}</span>

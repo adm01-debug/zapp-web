@@ -26,15 +26,10 @@ import {
   Edit,
   Trash2,
   Users,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface TagItem {
-  id: string;
-  name: string;
-  color: string;
-  contactCount: number;
-}
+import { useTags, Tag as TagType } from '@/hooks/useTags';
 
 const COLORS = [
   '#ef4444', // red
@@ -48,53 +43,44 @@ const COLORS = [
   '#6b7280', // gray
 ];
 
-const mockTags: TagItem[] = [
-  { id: '1', name: 'VIP', color: '#3b82f6', contactCount: 45 },
-  { id: '2', name: 'Cliente Ativo', color: '#22c55e', contactCount: 230 },
-  { id: '3', name: 'Lead Quente', color: '#eab308', contactCount: 78 },
-  { id: '4', name: 'Inadimplente', color: '#ef4444', contactCount: 12 },
-  { id: '5', name: 'Sem Resposta', color: '#6b7280', contactCount: 156 },
-  { id: '6', name: 'Prospect', color: '#8b5cf6', contactCount: 89 },
-  { id: '7', name: 'Empresa', color: '#06b6d4', contactCount: 34 },
-  { id: '8', name: 'Orçamento Pendente', color: '#f97316', contactCount: 67 },
-];
-
 export function TagsView() {
-  const [tags, setTags] = useState<TagItem[]>(mockTags);
+  const { tags, isLoading, createTag, updateTag, deleteTag, isCreating, isUpdating, isDeleting } = useTags();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingTag, setEditingTag] = useState<TagItem | null>(null);
+  const [editingTag, setEditingTag] = useState<TagType | null>(null);
   const [newTag, setNewTag] = useState({ name: '', color: COLORS[0] });
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     if (newTag.name) {
-      const tag: TagItem = {
-        id: Date.now().toString(),
+      await createTag({
         name: newTag.name,
         color: newTag.color,
-        contactCount: 0,
-      };
-      setTags([...tags, tag]);
+      });
       setNewTag({ name: '', color: COLORS[0] });
       setIsAddDialogOpen(false);
     }
   };
 
-  const handleEditTag = () => {
+  const handleEditTag = async () => {
     if (editingTag) {
-      setTags(tags.map((t) => (t.id === editingTag.id ? editingTag : t)));
+      await updateTag({
+        id: editingTag.id,
+        name: editingTag.name,
+        color: editingTag.color,
+      });
       setEditingTag(null);
     }
   };
 
-  const handleDeleteTag = (id: string) => {
-    setTags(tags.filter((t) => t.id !== id));
+  const handleDeleteTag = async (id: string) => {
+    await deleteTag(id);
   };
 
-  const TagForm = ({ tag, setTag, onSubmit, isEdit }: {
+  const TagForm = ({ tag, setTag, onSubmit, isEdit, isSubmitting }: {
     tag: { name: string; color: string };
     setTag: (tag: { name: string; color: string }) => void;
     onSubmit: () => void;
     isEdit?: boolean;
+    isSubmitting?: boolean;
   }) => (
     <div className="space-y-4 pt-4">
       <div className="space-y-2">
@@ -135,15 +121,24 @@ export function TagsView() {
         <Button
           variant="outline"
           onClick={() => (isEdit ? setEditingTag(null) : setIsAddDialogOpen(false))}
+          disabled={isSubmitting}
         >
           Cancelar
         </Button>
-        <Button onClick={onSubmit} className="bg-whatsapp hover:bg-whatsapp-dark">
+        <Button 
+          onClick={onSubmit} 
+          className="bg-whatsapp hover:bg-whatsapp-dark"
+          disabled={isSubmitting || !tag.name}
+        >
+          {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {isEdit ? 'Salvar' : 'Adicionar'}
         </Button>
       </div>
     </div>
   );
+
+  const totalContacts = tags.reduce((sum, t) => sum + (t.contact_count || 0), 0);
+  const mostUsedTag = [...tags].sort((a, b) => (b.contact_count || 0) - (a.contact_count || 0))[0];
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
@@ -191,6 +186,7 @@ export function TagsView() {
               tag={newTag}
               setTag={setNewTag}
               onSubmit={handleAddTag}
+              isSubmitting={isCreating}
             />
           </DialogContent>
         </Dialog>
@@ -208,6 +204,7 @@ export function TagsView() {
               setTag={(tag) => setEditingTag({ ...editingTag, ...tag })}
               onSubmit={handleEditTag}
               isEdit
+              isSubmitting={isUpdating}
             />
           )}
         </DialogContent>
@@ -217,8 +214,8 @@ export function TagsView() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           { label: 'Total de Etiquetas', value: tags.length },
-          { label: 'Contatos Etiquetados', value: tags.reduce((sum, t) => sum + t.contactCount, 0) },
-          { label: 'Mais Usada', value: tags.sort((a, b) => b.contactCount - a.contactCount)[0]?.name || '-' },
+          { label: 'Contatos Etiquetados', value: totalContacts },
+          { label: 'Mais Usada', value: mostUsedTag?.name || '-' },
         ].map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -236,68 +233,86 @@ export function TagsView() {
         ))}
       </div>
 
-      {/* Tags Grid */}
-      <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {tags.map((tag) => (
-          <StaggeredItem key={tag.id}>
-            <motion.div
-              whileHover={{ y: -4, boxShadow: '0 8px 30px hsl(var(--primary) / 0.1)' }}
-            >
-              <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <motion.div
-                        whileHover={{ scale: 1.2, rotate: 10 }}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ backgroundColor: `${tag.color}20` }}
-                      >
-                        <Tag className="w-5 h-5" style={{ color: tag.color }} />
-                      </motion.div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: tag.color }}
-                          />
-                          <h3 className="font-semibold">{tag.name}</h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                          <Users className="w-3.5 h-3.5" />
-                          <span>{tag.contactCount} contatos</span>
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : tags.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Tag className="w-12 h-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">Nenhuma etiqueta ainda</h3>
+          <p className="text-muted-foreground mb-4">Crie sua primeira etiqueta para organizar seus contatos</p>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="bg-whatsapp hover:bg-whatsapp-dark">
+            <Plus className="w-4 h-4 mr-2" />
+            Criar Etiqueta
+          </Button>
+        </div>
+      ) : (
+        /* Tags Grid */
+        <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tags.map((tag) => (
+            <StaggeredItem key={tag.id}>
+              <motion.div
+                whileHover={{ y: -4, boxShadow: '0 8px 30px hsl(var(--primary) / 0.1)' }}
+              >
+                <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <motion.div
+                          whileHover={{ scale: 1.2, rotate: 10 }}
+                          className="w-10 h-10 rounded-xl flex items-center justify-center"
+                          style={{ backgroundColor: `${tag.color}20` }}
+                        >
+                          <Tag className="w-5 h-5" style={{ color: tag.color }} />
+                        </motion.div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: tag.color }}
+                            />
+                            <h3 className="font-semibold">{tag.name}</h3>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                            <Users className="w-3.5 h-3.5" />
+                            <span>{tag.contact_count || 0} contatos</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                          <Button variant="ghost" size="icon" className="w-8 h-8">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </motion.div>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditingTag(tag)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDeleteTag(tag.id)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </StaggeredItem>
-        ))}
-      </StaggeredList>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                            <Button variant="ghost" size="icon" className="w-8 h-8">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </motion.div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setEditingTag(tag)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => handleDeleteTag(tag.id)}
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </StaggeredItem>
+          ))}
+        </StaggeredList>
+      )}
     </div>
   );
 }
