@@ -48,11 +48,21 @@ export interface InteractiveMessage {
   sections?: InteractiveListSection[];
 }
 
+// Location Message Types
+export interface LocationMessage {
+  latitude: number;
+  longitude: number;
+  name?: string;
+  address?: string;
+  isLive?: boolean;
+  liveUntil?: Date;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
   content: string;
-  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'interactive' | 'button_response';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'interactive' | 'button_response' | 'location';
   mediaUrl?: string;
   sender: 'contact' | 'agent';
   agentId?: string;
@@ -72,6 +82,10 @@ export interface Message {
     content: string;
     sender: 'contact' | 'agent';
   };
+  // Location data
+  location?: LocationMessage;
+  // Forwarded indicator
+  isForwarded?: boolean;
 }
 
 export interface Conversation {
