@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Conversation, Message, QuickReply, InteractiveMessage, InteractiveButton } from '@/types/chat';
+import { Conversation, Message, QuickReply, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,8 @@ import { InteractiveMessageDisplay, ButtonResponseBadge } from './InteractiveMes
 import { InteractiveMessageBuilder } from './InteractiveMessageBuilder';
 import { ReplyPreview, QuotedMessage } from './ReplyQuote';
 import { ForwardMessageDialog } from './ForwardMessageDialog';
+import { LocationMessageDisplay } from './LocationMessage';
+import { LocationPicker } from './LocationPicker';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -62,6 +64,7 @@ import {
   Reply,
   Forward,
   Copy,
+  MapPin,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -122,6 +125,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [showForwardDialog, setShowForwardDialog] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -296,6 +300,16 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       description: `Resposta: ${button.title}`,
     });
     console.log('Button clicked:', button);
+  };
+
+  const handleSendLocation = (location: LocationMessage) => {
+    toast({
+      title: 'Localização enviada!',
+      description: location.isLive 
+        ? `Localização em tempo real por ${location.liveUntil ? Math.round((location.liveUntil.getTime() - Date.now()) / 60000) : 15} minutos`
+        : location.name || 'Localização compartilhada',
+    });
+    console.log('Location sent:', location);
   };
 
   const filteredQuickReplies = mockQuickReplies.filter(
@@ -601,8 +615,16 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                             </div>
                           )}
 
+                          {/* Location message */}
+                          {message.type === 'location' && message.location && (
+                            <LocationMessageDisplay
+                              location={message.location}
+                              isSent={isSent}
+                            />
+                          )}
+
                           {/* Text content */}
-                          {message.content && message.type !== 'audio' && (
+                          {message.content && message.type !== 'audio' && message.type !== 'location' && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                           )}
 
@@ -828,6 +850,18 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               variant="ghost" 
               size="icon" 
               className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+              onClick={() => setShowLocationPicker(true)}
+              title="Compartilhar localização"
+            >
+              <MapPin className="w-5 h-5" />
+            </Button>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
               onClick={() => setShowScheduleDialog(true)}
             >
               <Clock className="w-5 h-5" />
@@ -913,6 +947,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         onOpenChange={setShowForwardDialog}
         message={forwardMessage}
         onForward={handleForwardToTargets}
+      />
+
+      {/* Location Picker */}
+      <LocationPicker
+        open={showLocationPicker}
+        onOpenChange={setShowLocationPicker}
+        onSend={handleSendLocation}
       />
     </div>
   );
