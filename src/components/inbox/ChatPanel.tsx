@@ -26,6 +26,9 @@ import { ReplyPreview, QuotedMessage } from './ReplyQuote';
 import { ForwardMessageDialog } from './ForwardMessageDialog';
 import { LocationMessageDisplay } from './LocationMessage';
 import { LocationPicker } from './LocationPicker';
+import { ProductCatalog } from '@/components/catalog/ProductCatalog';
+import { ProductMessage } from '@/components/catalog/ProductMessage';
+import { Product } from '@/components/catalog/ProductCard';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -65,6 +68,7 @@ import {
   Forward,
   Copy,
   MapPin,
+  Package,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -338,6 +342,14 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         : location.name || 'Localização compartilhada',
     });
     console.log('Location sent:', location);
+  };
+
+  const handleSendProduct = (product: Product) => {
+    toast({
+      title: 'Produto enviado!',
+      description: `${product.name} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: product.currency }).format(product.price)}`,
+    });
+    console.log('Product sent:', product);
   };
 
   const filteredQuickReplies = mockQuickReplies.filter(
@@ -885,6 +897,23 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             >
               <MapPin className="w-5 h-5" />
             </Button>
+          </motion.div>
+
+          {/* Product Catalog */}
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <ProductCatalog
+              onSendProduct={handleSendProduct}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                  title="Catálogo de produtos"
+                >
+                  <Package className="w-5 h-5" />
+                </Button>
+              }
+            />
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
