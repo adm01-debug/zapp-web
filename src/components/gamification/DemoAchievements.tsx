@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useGamification } from './GamificationProvider';
-import { Zap, Flame, Target, Star, Crown, Trophy, Rocket, MessageSquare } from 'lucide-react';
+import { Zap, Flame, Target, Star, Crown, Trophy, Rocket, TrendingUp, Award } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function DemoAchievements() {
   const { 
@@ -11,7 +14,8 @@ export function DemoAchievements() {
     triggerPerfectRating,
     triggerLevelUp,
     triggerDailyGoal,
-    showAchievement
+    stats,
+    isLoading,
   } = useGamification();
 
   const demos = [
@@ -54,7 +58,7 @@ export function DemoAchievements() {
     {
       label: 'Level Up!',
       icon: Crown,
-      action: () => triggerLevelUp(15),
+      action: () => triggerLevelUp((stats?.level || 1) + 1),
       gradient: 'from-purple-500 to-fuchsia-400',
     },
     {
@@ -71,15 +75,74 @@ export function DemoAchievements() {
       animate={{ opacity: 1, y: 0 }}
       className="p-6 rounded-2xl bg-card border border-border"
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center">
-          <Trophy className="w-5 h-5 text-white" />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-foreground">Sistema de Gamificação</h3>
+            <p className="text-sm text-muted-foreground">
+              {isLoading ? 'Carregando...' : 'Suas conquistas são salvas automaticamente'}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-display font-bold text-foreground">Demo de Gamificação</h3>
-          <p className="text-sm text-muted-foreground">Teste as conquistas do sistema</p>
-        </div>
+        
+        {/* Stats Summary */}
+        {!isLoading && stats && (
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-0">
+              <TrendingUp className="w-3 h-3" />
+              Nv {stats.level}
+            </Badge>
+            <Badge variant="secondary" className="gap-1 bg-xp/10 text-xp border-0">
+              <Zap className="w-3 h-3" />
+              {stats.xp.toLocaleString()} XP
+            </Badge>
+            <Badge variant="secondary" className="gap-1 bg-coins/10 text-coins border-0">
+              <Award className="w-3 h-3" />
+              {stats.achievementsCount}
+            </Badge>
+          </div>
+        )}
       </div>
+
+      {/* Stats Cards */}
+      {!isLoading && stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+            <p className="text-xs text-muted-foreground">Streak Atual</p>
+            <p className="text-lg font-bold text-foreground flex items-center gap-1">
+              <Flame className={cn("w-4 h-4", stats.streak > 0 ? "text-orange-500" : "text-muted-foreground")} />
+              {stats.streak}
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+            <p className="text-xs text-muted-foreground">Mensagens</p>
+            <p className="text-lg font-bold text-foreground">{stats.messagesHandled}</p>
+          </div>
+          <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+            <p className="text-xs text-muted-foreground">Resoluções</p>
+            <p className="text-lg font-bold text-foreground">{stats.resolutions}</p>
+          </div>
+          <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+            <p className="text-xs text-muted-foreground">Conquistas</p>
+            <p className="text-lg font-bold text-foreground">{stats.achievementsCount}</p>
+          </div>
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
+      )}
+
+      <p className="text-xs text-muted-foreground mb-3">
+        Teste as conquistas clicando nos botões abaixo:
+      </p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {demos.map((demo, index) => (
