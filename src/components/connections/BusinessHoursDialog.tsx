@@ -14,29 +14,15 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Clock, MessageSquare, Save, Copy } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useBusinessHours, BusinessHour, AwayMessage } from '@/hooks/useBusinessHours';
 
 interface BusinessHoursDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   connectionId: string;
   connectionName: string;
-}
-
-interface BusinessHour {
-  id?: string;
-  day_of_week: number;
-  is_open: boolean;
-  open_time: string;
-  close_time: string;
-}
-
-interface AwayMessage {
-  id?: string;
-  message: string;
-  is_enabled: boolean;
 }
 
 const DAYS_OF_WEEK = [
@@ -49,156 +35,56 @@ const DAYS_OF_WEEK = [
   { value: 6, label: 'Sábado', short: 'Sáb' },
 ];
 
-const DEFAULT_HOURS: BusinessHour[] = DAYS_OF_WEEK.map((day) => ({
-  day_of_week: day.value,
-  is_open: day.value >= 1 && day.value <= 5, // Mon-Fri open by default
-  open_time: '08:00',
-  close_time: '18:00',
-}));
-
-const DEFAULT_AWAY_MESSAGE: AwayMessage = {
-  message: 'Olá! Nosso horário de atendimento é de segunda a sexta, das 8h às 18h. Deixe sua mensagem que retornaremos assim que possível!',
-  is_enabled: true,
-};
-
 export function BusinessHoursDialog({
   open,
   onOpenChange,
   connectionId,
   connectionName,
 }: BusinessHoursDialogProps) {
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [businessHours, setBusinessHours] = useState<BusinessHour[]>(DEFAULT_HOURS);
-  const [awayMessage, setAwayMessage] = useState<AwayMessage>(DEFAULT_AWAY_MESSAGE);
+  const { 
+    businessHours: fetchedHours, 
+    awayMessage: fetchedAway, 
+    isLoading, 
+    isSaving, 
+    saveSettings 
+  } = useBusinessHours(connectionId);
+
+  const [localHours, setLocalHours] = useState<BusinessHour[]>([]);
+  const [localAway, setLocalAway] = useState<AwayMessage>({ 
+    whatsapp_connection_id: connectionId, 
+    content: '', 
+    is_enabled: true 
+  });
+
+  // Sync local state when data is fetched
+  useEffect(() => {
+    if (fetchedHours.length > 0) {
+      setLocalHours(fetchedHours);
+    }
+  }, [fetchedHours]);
 
   useEffect(() => {
-    if (open && connectionId) {
-      fetchSettings();
+    if (fetchedAway) {
+      setLocalAway(fetchedAway);
     }
-  }, [open, connectionId]);
-
-  const fetchSettings = async () => {
-    setLoading(true);
-    try {
-      // Fetch business hours - using any to bypass type issues with new tables
-      const { data: hoursData, error: hoursError } = await (supabase as any)
-        .from('business_hours')
-        .select('*')
-        .eq('whatsapp_connection_id', connectionId);
-
-      if (hoursError) throw hoursError;
-
-      if (hoursData && hoursData.length > 0) {
-        // Merge with defaults for any missing days
-        const mergedHours = DEFAULT_HOURS.map((defaultHour) => {
-          const existing = hoursData.find((h: any) => h.day_of_week === defaultHour.day_of_week);
-          return existing
-            ? {
-                id: existing.id,
-                day_of_week: existing.day_of_week,
-                is_open: existing.is_open,
-                open_time: existing.open_time,
-                close_time: existing.close_time,
-              }
-            : defaultHour;
-        });
-        setBusinessHours(mergedHours);
-      } else {
-        setBusinessHours(DEFAULT_HOURS);
-      }
-
-      // Fetch away message
-      const { data: awayData, error: awayError } = await (supabase as any)
-        .from('away_messages')
-        .select('*')
-        .eq('whatsapp_connection_id', connectionId)
-        .single();
-
-      if (awayError && awayError.code !== 'PGRST116') throw awayError;
-
-      if (awayData) {
-        setAwayMessage({
-          id: awayData.id,
-          message: awayData.message,
-          is_enabled: awayData.is_enabled,
-        });
-      } else {
-        setAwayMessage(DEFAULT_AWAY_MESSAGE);
-      }
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-      toast({
-        title: 'Erro ao carregar configurações',
-        description: 'Não foi possível carregar as configurações de horário.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchedAway]);
 
   const handleSave = async () => {
-    setSaving(true);
-    try {
-      // Upsert business hours
-      for (const hour of businessHours) {
-        const { error } = await (supabase as any).from('business_hours').upsert(
-          {
-            id: hour.id,
-            whatsapp_connection_id: connectionId,
-            day_of_week: hour.day_of_week,
-            is_open: hour.is_open,
-            open_time: hour.open_time,
-            close_time: hour.close_time,
-          },
-          { onConflict: 'whatsapp_connection_id,day_of_week' }
-        );
-
-        if (error) throw error;
-      }
-
-      // Upsert away message
-      const { error: awayError } = await (supabase as any).from('away_messages').upsert(
-        {
-          id: awayMessage.id,
-          whatsapp_connection_id: connectionId,
-          message: awayMessage.message,
-          is_enabled: awayMessage.is_enabled,
-        },
-        { onConflict: 'whatsapp_connection_id' }
-      );
-
-      if (awayError) throw awayError;
-
-      toast({
-        title: 'Configurações salvas!',
-        description: 'O horário de atendimento foi atualizado com sucesso.',
-      });
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar as configurações.',
-        variant: 'destructive',
-      });
-    } finally {
-      setSaving(false);
-    }
+    await saveSettings(localHours, localAway);
+    onOpenChange(false);
   };
 
   const updateHour = (dayOfWeek: number, field: keyof BusinessHour, value: any) => {
-    setBusinessHours((prev) =>
+    setLocalHours((prev) =>
       prev.map((h) => (h.day_of_week === dayOfWeek ? { ...h, [field]: value } : h))
     );
   };
 
   const copyToAllDays = (sourceDayOfWeek: number) => {
-    const source = businessHours.find((h) => h.day_of_week === sourceDayOfWeek);
+    const source = localHours.find((h) => h.day_of_week === sourceDayOfWeek);
     if (!source) return;
 
-    setBusinessHours((prev) =>
+    setLocalHours((prev) =>
       prev.map((h) => ({
         ...h,
         is_open: source.is_open,
@@ -210,7 +96,7 @@ export function BusinessHoursDialog({
   };
 
   const applyWeekdayTemplate = () => {
-    setBusinessHours((prev) =>
+    setLocalHours((prev) =>
       prev.map((h) => ({
         ...h,
         is_open: h.day_of_week >= 1 && h.day_of_week <= 5,
@@ -231,7 +117,7 @@ export function BusinessHoursDialog({
           </DialogTitle>
         </DialogHeader>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
@@ -260,7 +146,7 @@ export function BusinessHoursDialog({
 
               <ScrollArea className="h-[400px] pr-4">
                 <div className="space-y-3">
-                  {businessHours.map((hour) => {
+                  {localHours.map((hour) => {
                     const day = DAYS_OF_WEEK.find((d) => d.value === hour.day_of_week);
                     return (
                       <motion.div
@@ -283,12 +169,7 @@ export function BusinessHoursDialog({
                                 updateHour(hour.day_of_week, 'is_open', checked)
                               }
                             />
-                            <span
-                              className={cn(
-                                'font-medium',
-                                !hour.is_open && 'text-muted-foreground'
-                              )}
-                            >
+                            <span className={cn('font-medium', !hour.is_open && 'text-muted-foreground')}>
                               {day?.label}
                             </span>
                           </div>
@@ -301,9 +182,7 @@ export function BusinessHoursDialog({
                               <Input
                                 type="time"
                                 value={hour.open_time}
-                                onChange={(e) =>
-                                  updateHour(hour.day_of_week, 'open_time', e.target.value)
-                                }
+                                onChange={(e) => updateHour(hour.day_of_week, 'open_time', e.target.value)}
                                 className="w-28"
                               />
                             </div>
@@ -312,19 +191,11 @@ export function BusinessHoursDialog({
                               <Input
                                 type="time"
                                 value={hour.close_time}
-                                onChange={(e) =>
-                                  updateHour(hour.day_of_week, 'close_time', e.target.value)
-                                }
+                                onChange={(e) => updateHour(hour.day_of_week, 'close_time', e.target.value)}
                                 className="w-28"
                               />
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="ml-auto"
-                              onClick={() => copyToAllDays(hour.day_of_week)}
-                              title="Copiar para todos os dias"
-                            >
+                            <Button variant="ghost" size="icon" className="ml-auto" onClick={() => copyToAllDays(hour.day_of_week)} title="Copiar para todos os dias">
                               <Copy className="w-4 h-4" />
                             </Button>
                           </>
@@ -343,46 +214,28 @@ export function BusinessHoursDialog({
                 <div className="space-y-1">
                   <Label>Mensagem automática fora do horário</Label>
                   <p className="text-xs text-muted-foreground">
-                    Esta mensagem será enviada automaticamente quando clientes entrarem em contato
-                    fora do expediente.
+                    Esta mensagem será enviada automaticamente quando clientes entrarem em contato fora do expediente.
                   </p>
                 </div>
                 <Switch
-                  checked={awayMessage.is_enabled}
-                  onCheckedChange={(checked) =>
-                    setAwayMessage((prev) => ({ ...prev, is_enabled: checked }))
-                  }
+                  checked={localAway.is_enabled}
+                  onCheckedChange={(checked) => setLocalAway((prev) => ({ ...prev, is_enabled: checked }))}
                 />
               </div>
 
               <Textarea
                 placeholder="Digite a mensagem de ausência..."
-                value={awayMessage.message}
-                onChange={(e) =>
-                  setAwayMessage((prev) => ({ ...prev, message: e.target.value }))
-                }
-                disabled={!awayMessage.is_enabled}
+                value={localAway.content}
+                onChange={(e) => setLocalAway((prev) => ({ ...prev, content: e.target.value }))}
+                disabled={!localAway.is_enabled}
                 className="min-h-[150px]"
               />
 
               <div className="p-4 rounded-lg bg-muted/50 border border-border">
-                <p className="text-xs text-muted-foreground mb-2">
-                  Variáveis disponíveis:
-                </p>
+                <p className="text-xs text-muted-foreground mb-2">Variáveis disponíveis:</p>
                 <div className="flex flex-wrap gap-2">
                   {['{nome}', '{horario_abertura}', '{horario_fechamento}'].map((v) => (
-                    <Button
-                      key={v}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() =>
-                        setAwayMessage((prev) => ({
-                          ...prev,
-                          message: prev.message + ' ' + v,
-                        }))
-                      }
-                    >
+                    <Button key={v} variant="outline" size="sm" className="text-xs h-7" onClick={() => setLocalAway((prev) => ({ ...prev, content: prev.content + ' ' + v }))}>
                       {v}
                     </Button>
                   ))}
@@ -393,20 +246,12 @@ export function BusinessHoursDialog({
         )}
 
         <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={saving || loading}>
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Salvando...
-              </>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={isSaving || isLoading}>
+            {isSaving ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</>
             ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Salvar Configurações
-              </>
+              <><Save className="w-4 h-4 mr-2" />Salvar Configurações</>
             )}
           </Button>
         </div>
