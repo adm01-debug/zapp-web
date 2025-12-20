@@ -221,9 +221,9 @@ export function SettingsView() {
               </CardHeader>
               <CardContent>
                 <Textarea
-                  value={settings.welcomeMessage}
+                  value={settings.welcome_message}
                   onChange={(e) =>
-                    setSettings({ ...settings, welcomeMessage: e.target.value })
+                    updateSettings({ welcome_message: e.target.value })
                   }
                   rows={4}
                   placeholder="Olá! Como podemos ajudar?"
@@ -243,9 +243,9 @@ export function SettingsView() {
               </CardHeader>
               <CardContent>
                 <Textarea
-                  value={settings.awayMessage}
+                  value={settings.away_message}
                   onChange={(e) =>
-                    setSettings({ ...settings, awayMessage: e.target.value })
+                    updateSettings({ away_message: e.target.value })
                   }
                   rows={4}
                   placeholder="No momento estamos fora do horário de atendimento..."
@@ -262,9 +262,9 @@ export function SettingsView() {
               </CardHeader>
               <CardContent>
                 <Textarea
-                  value={settings.closingMessage}
+                  value={settings.closing_message}
                   onChange={(e) =>
-                    setSettings({ ...settings, closingMessage: e.target.value })
+                    updateSettings({ closing_message: e.target.value })
                   }
                   rows={4}
                   placeholder="Obrigado pelo contato!"
@@ -299,27 +299,27 @@ export function SettingsView() {
                     </p>
                   </div>
                   <Switch
-                    checked={settings.autoAssignEnabled}
+                    checked={settings.auto_assignment_enabled}
                     onCheckedChange={(checked) =>
-                      setSettings({ ...settings, autoAssignEnabled: checked })
+                      updateSettings({ auto_assignment_enabled: checked })
                     }
                   />
                 </div>
 
-                {settings.autoAssignEnabled && (
+                {settings.auto_assignment_enabled && (
                   <div className="space-y-2">
                     <Label>Método de distribuição</Label>
                     <Select
-                      value={settings.autoAssignMethod}
+                      value={settings.auto_assignment_method}
                       onValueChange={(value) =>
-                        setSettings({ ...settings, autoAssignMethod: value })
+                        updateSettings({ auto_assignment_method: value })
                       }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="round-robin">Round-robin (sequencial)</SelectItem>
+                        <SelectItem value="roundrobin">Round-robin (sequencial)</SelectItem>
                         <SelectItem value="random">Aleatório</SelectItem>
                         <SelectItem value="least-busy">Menor carga</SelectItem>
                       </SelectContent>
@@ -334,9 +334,9 @@ export function SettingsView() {
                   </p>
                   <Input
                     type="number"
-                    value={settings.inactivityTimeout}
+                    value={settings.inactivity_timeout}
                     onChange={(e) =>
-                      setSettings({ ...settings, inactivityTimeout: parseInt(e.target.value) || 0 })
+                      updateSettings({ inactivity_timeout: parseInt(e.target.value) || 0 })
                     }
                     min={0}
                     max={1440}
@@ -379,7 +379,7 @@ export function SettingsView() {
                   <Select
                     value={settings.theme}
                     onValueChange={(value) =>
-                      setSettings({ ...settings, theme: value })
+                      updateSettings({ theme: value })
                     }
                   >
                     <SelectTrigger>
@@ -398,7 +398,7 @@ export function SettingsView() {
                   <Select
                     value={settings.language}
                     onValueChange={(value) =>
-                      setSettings({ ...settings, language: value })
+                      updateSettings({ language: value })
                     }
                   >
                     <SelectTrigger>
@@ -420,9 +420,9 @@ export function SettingsView() {
                     </p>
                   </div>
                   <Switch
-                    checked={settings.compactMode}
+                    checked={settings.compact_mode}
                     onCheckedChange={(checked) =>
-                      setSettings({ ...settings, compactMode: checked })
+                      updateSettings({ compact_mode: checked })
                     }
                   />
                 </div>

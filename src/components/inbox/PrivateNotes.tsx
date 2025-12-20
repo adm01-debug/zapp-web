@@ -3,61 +3,47 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { StickyNote, Plus, Trash2, Send } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StickyNote, Plus, Trash2, Send, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-interface Note {
-  id: string;
-  content: string;
-  author: {
-    name: string;
-    avatar?: string;
-  };
-  createdAt: Date;
-}
+import { useContactNotes } from '@/hooks/useContactNotes';
 
 interface PrivateNotesProps {
   contactId: string;
 }
 
-const mockNotes: Note[] = [
-  {
-    id: '1',
-    content: 'Cliente solicitou desconto especial - verificar com gerente antes de aprovar.',
-    author: { name: 'João Silva', avatar: 'https://i.pravatar.cc/150?img=10' },
-    createdAt: new Date('2024-12-14T10:30:00'),
-  },
-  {
-    id: '2',
-    content: 'Preferência por pagamento via PIX. Já enviou comprovante anteriormente.',
-    author: { name: 'Maria Santos', avatar: 'https://i.pravatar.cc/150?img=11' },
-    createdAt: new Date('2024-12-13T15:45:00'),
-  },
-];
-
 export function PrivateNotes({ contactId }: PrivateNotesProps) {
-  const [notes, setNotes] = useState<Note[]>(mockNotes);
+  const { notes, isLoading, addNote, deleteNote, isAdding: isSaving, isDeleting, currentProfileId } = useContactNotes(contactId);
   const [newNote, setNewNote] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAddingNote, setIsAddingNote] = useState(false);
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (newNote.trim()) {
-      const note: Note = {
-        id: Date.now().toString(),
-        content: newNote.trim(),
-        author: { name: 'Você', avatar: 'https://i.pravatar.cc/150?img=12' },
-        createdAt: new Date(),
-      };
-      setNotes([note, ...notes]);
+      await addNote(newNote.trim());
       setNewNote('');
-      setIsAdding(false);
+      setIsAddingNote(false);
     }
   };
 
-  const handleDeleteNote = (id: string) => {
-    setNotes(notes.filter((n) => n.id !== id));
+  const handleDeleteNote = async (id: string) => {
+    await deleteNote(id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <StickyNote className="w-4 h-4" />
+          <span>Notas Privadas</span>
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -66,13 +52,13 @@ export function PrivateNotes({ contactId }: PrivateNotesProps) {
           <StickyNote className="w-4 h-4" />
           <span>Notas Privadas</span>
         </div>
-        {!isAdding && (
+        {!isAddingNote && (
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="ghost"
               size="sm"
               className="h-7 text-xs"
-              onClick={() => setIsAdding(true)}
+              onClick={() => setIsAddingNote(true)}
             >
               <Plus className="w-3 h-3 mr-1" />
               Nova nota
@@ -82,7 +68,7 @@ export function PrivateNotes({ contactId }: PrivateNotesProps) {
       </div>
 
       <AnimatePresence>
-        {isAdding && (
+        {isAddingNote && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -102,19 +88,24 @@ export function PrivateNotes({ contactId }: PrivateNotesProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setIsAdding(false);
+                  setIsAddingNote(false);
                   setNewNote('');
                 }}
+                disabled={isSaving}
               >
                 Cancelar
               </Button>
               <Button
                 size="sm"
                 onClick={handleAddNote}
-                disabled={!newNote.trim()}
+                disabled={!newNote.trim() || isSaving}
                 className="bg-whatsapp hover:bg-whatsapp-dark"
               >
-                <Send className="w-3 h-3 mr-1" />
+                {isSaving ? (
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                ) : (
+                  <Send className="w-3 h-3 mr-1" />
+                )}
                 Salvar
               </Button>
             </div>
@@ -135,31 +126,34 @@ export function PrivateNotes({ contactId }: PrivateNotesProps) {
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm text-foreground flex-1">{note.content}</p>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleDeleteNote(note.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
-                >
-                  <Trash2 className="w-3 h-3 text-destructive" />
-                </motion.button>
+                {note.author_id === currentProfileId && (
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleDeleteNote(note.id)}
+                    disabled={isDeleting}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3 h-3 text-destructive" />
+                  </motion.button>
+                )}
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <Avatar className="w-4 h-4">
-                  <AvatarImage src={note.author.avatar} />
+                  <AvatarImage src={note.author?.avatar_url || undefined} />
                   <AvatarFallback className="text-[8px]">
-                    {note.author.name[0]}
+                    {note.author?.name?.[0] || '?'}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-[10px] text-muted-foreground">
-                  {note.author.name} • {format(note.createdAt, "dd/MM 'às' HH:mm", { locale: ptBR })}
+                  {note.author?.name || 'Desconhecido'} • {format(new Date(note.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
                 </span>
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
 
-        {notes.length === 0 && !isAdding && (
+        {notes.length === 0 && !isAddingNote && (
           <p className="text-xs text-muted-foreground text-center py-4">
             Nenhuma nota adicionada
           </p>
