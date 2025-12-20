@@ -3,11 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGamification } from './GamificationProvider';
-import { Zap, Flame, Target, Star, Crown, Trophy, Rocket, TrendingUp, Award } from 'lucide-react';
+import { Zap, Flame, Target, Star, Crown, Trophy, Rocket, TrendingUp, Award, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AchievementsPanel } from './AchievementsPanel';
+import { useState } from 'react';
 
 export function DemoAchievements() {
-  const { 
+  const [showAchievementsPanel, setShowAchievementsPanel] = useState(false);
+  const {
     triggerFastResponse, 
     triggerStreak, 
     triggerResolution, 
@@ -69,6 +72,22 @@ export function DemoAchievements() {
     },
   ];
 
+  if (showAchievementsPanel) {
+    return (
+      <div className="space-y-4">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setShowAchievementsPanel(false)}
+          className="mb-2"
+        >
+          ← Voltar para Gamificação
+        </Button>
+        <AchievementsPanel />
+      </div>
+    );
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -89,22 +108,33 @@ export function DemoAchievements() {
         </div>
         
         {/* Stats Summary */}
-        {!isLoading && stats && (
-          <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-0">
-              <TrendingUp className="w-3 h-3" />
-              Nv {stats.level}
-            </Badge>
-            <Badge variant="secondary" className="gap-1 bg-xp/10 text-xp border-0">
-              <Zap className="w-3 h-3" />
-              {stats.xp.toLocaleString()} XP
-            </Badge>
-            <Badge variant="secondary" className="gap-1 bg-coins/10 text-coins border-0">
-              <Award className="w-3 h-3" />
-              {stats.achievementsCount}
-            </Badge>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {!isLoading && stats && (
+            <>
+              <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-0">
+                <TrendingUp className="w-3 h-3" />
+                Nv {stats.level}
+              </Badge>
+              <Badge variant="secondary" className="gap-1 bg-xp/10 text-xp border-0">
+                <Zap className="w-3 h-3" />
+                {stats.xp.toLocaleString()} XP
+              </Badge>
+              <Badge variant="secondary" className="gap-1 bg-coins/10 text-coins border-0">
+                <Award className="w-3 h-3" />
+                {stats.achievementsCount}
+              </Badge>
+            </>
+          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowAchievementsPanel(true)}
+            className="gap-1 ml-2"
+          >
+            Ver Conquistas
+            <ChevronRight className="w-3 h-3" />
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
