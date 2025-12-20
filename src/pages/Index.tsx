@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { InboxView } from '@/components/inbox/InboxView';
+import { RealtimeInboxView } from '@/components/inbox/RealtimeInboxView';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { AgentsView } from '@/components/agents/AgentsView';
 import { QueuesView } from '@/components/queues/QueuesView';
@@ -107,7 +107,7 @@ const Index = () => {
   const renderView = () => {
     switch (currentView) {
       case 'inbox':
-        return <InboxView />;
+        return <RealtimeInboxView />;
       case 'dashboard':
         return <DashboardView />;
       case 'agents':
