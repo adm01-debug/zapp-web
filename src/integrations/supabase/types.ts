@@ -561,6 +561,50 @@ export type Database = {
         }
         Relationships: []
       }
+      queue_goals: {
+        Row: {
+          alerts_enabled: boolean | null
+          created_at: string
+          id: string
+          max_avg_wait_minutes: number | null
+          max_messages_pending: number | null
+          max_waiting_contacts: number | null
+          min_assignment_rate: number | null
+          queue_id: string
+          updated_at: string
+        }
+        Insert: {
+          alerts_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          max_avg_wait_minutes?: number | null
+          max_messages_pending?: number | null
+          max_waiting_contacts?: number | null
+          min_assignment_rate?: number | null
+          queue_id: string
+          updated_at?: string
+        }
+        Update: {
+          alerts_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          max_avg_wait_minutes?: number | null
+          max_messages_pending?: number | null
+          max_waiting_contacts?: number | null
+          min_assignment_rate?: number | null
+          queue_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_goals_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: true
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       queue_members: {
         Row: {
           created_at: string
