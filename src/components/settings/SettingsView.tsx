@@ -27,6 +27,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 
 export function SettingsView() {
   const [settings, setSettings] = useState({
@@ -382,70 +383,7 @@ export function SettingsView() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-whatsapp" />
-                  Notificações
-                </CardTitle>
-                <CardDescription>
-                  Configure as notificações do sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-base">Notificações desktop</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receber alertas de novas mensagens
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.desktopNotifications}
-                    onCheckedChange={(checked) =>
-                      setSettings({ ...settings, desktopNotifications: checked })
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-base">Sons de notificação</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Tocar som ao receber mensagens
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.soundEnabled}
-                    onCheckedChange={(checked) =>
-                      setSettings({ ...settings, soundEnabled: checked })
-                    }
-                  />
-                </div>
-
-                {settings.soundEnabled && (
-                  <div className="space-y-2">
-                    <Label>Som de notificação</Label>
-                    <Select
-                      value={settings.notificationSound}
-                      onValueChange={(value) =>
-                        setSettings({ ...settings, notificationSound: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default">Padrão</SelectItem>
-                        <SelectItem value="ding">Ding</SelectItem>
-                        <SelectItem value="pop">Pop</SelectItem>
-                        <SelectItem value="chime">Chime</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <NotificationSettingsPanel />
           </motion.div>
         </TabsContent>
 

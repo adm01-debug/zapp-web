@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { playNotificationSound, showBrowserNotification } from '@/utils/notificationSounds';
 
 interface SLABreachPayload {
   id: string;
@@ -15,12 +17,56 @@ interface SLABreachPayload {
 
 export const useSLANotifications = () => {
   const { user } = useAuth();
+  const { settings, isQuietHours } = useNotificationSettings();
   const notifiedBreaches = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
 
     console.log('[SLA Notifications] Setting up realtime subscription');
+
+    const handleBreachNotification = async (
+      type: 'first_response' | 'resolution',
+      contactId: string
+    ) => {
+      // Fetch contact info
+      const { data: contact } = await supabase
+        .from('contacts')
+        .select('name, phone')
+        .eq('id', contactId)
+        .maybeSingle();
+
+      const title = type === 'first_response' 
+        ? '⚠️ SLA de Primeira Resposta Violado'
+        : '🚨 SLA de Resolução Violado';
+        
+      const description = contact 
+        ? type === 'first_response'
+          ? `O contato ${contact.name || contact.phone} não recebeu resposta no prazo.`
+          : `O atendimento do contato ${contact.name || contact.phone} excedeu o tempo de resolução.`
+        : type === 'first_response'
+          ? 'Um contato não recebeu resposta dentro do prazo de SLA.'
+          : 'Um atendimento excedeu o tempo de resolução de SLA.';
+
+      // Show toast
+      toast({
+        title,
+        description,
+        variant: 'destructive',
+      });
+
+      // Play sound if enabled and not in quiet hours
+      if (settings.soundEnabled && settings.slaBreachSound && !isQuietHours()) {
+        playNotificationSound('sla_breach', settings.soundType, settings.soundVolume);
+      }
+
+      // Show browser notification if enabled
+      if (settings.browserNotifications && settings.desktopAlerts) {
+        showBrowserNotification(title, description, {
+          tag: `sla-breach-${type}`,
+        });
+      }
+    };
 
     const channel = supabase
       .channel('sla-breaches')
@@ -42,21 +88,7 @@ export const useSLANotifications = () => {
             const breachKey = `fr-${newRecord.id}`;
             if (!notifiedBreaches.current.has(breachKey)) {
               notifiedBreaches.current.add(breachKey);
-              
-              // Fetch contact info
-              const { data: contact } = await supabase
-                .from('contacts')
-                .select('name, phone')
-                .eq('id', newRecord.contact_id)
-                .maybeSingle();
-
-              toast({
-                title: '⚠️ SLA de Primeira Resposta Violado',
-                description: contact 
-                  ? `O contato ${contact.name || contact.phone} não recebeu resposta no prazo.`
-                  : 'Um contato não recebeu resposta dentro do prazo de SLA.',
-                variant: 'destructive',
-              });
+              await handleBreachNotification('first_response', newRecord.contact_id);
             }
           }
 
@@ -65,21 +97,7 @@ export const useSLANotifications = () => {
             const breachKey = `res-${newRecord.id}`;
             if (!notifiedBreaches.current.has(breachKey)) {
               notifiedBreaches.current.add(breachKey);
-              
-              // Fetch contact info
-              const { data: contact } = await supabase
-                .from('contacts')
-                .select('name, phone')
-                .eq('id', newRecord.contact_id)
-                .maybeSingle();
-
-              toast({
-                title: '🚨 SLA de Resolução Violado',
-                description: contact 
-                  ? `O atendimento do contato ${contact.name || contact.phone} excedeu o tempo de resolução.`
-                  : 'Um atendimento excedeu o tempo de resolução de SLA.',
-                variant: 'destructive',
-              });
+              await handleBreachNotification('resolution', newRecord.contact_id);
             }
           }
         }
@@ -101,20 +119,7 @@ export const useSLANotifications = () => {
             const breachKey = `fr-${newRecord.id}`;
             if (!notifiedBreaches.current.has(breachKey)) {
               notifiedBreaches.current.add(breachKey);
-              
-              const { data: contact } = await supabase
-                .from('contacts')
-                .select('name, phone')
-                .eq('id', newRecord.contact_id)
-                .maybeSingle();
-
-              toast({
-                title: '⚠️ SLA de Primeira Resposta Violado',
-                description: contact 
-                  ? `O contato ${contact.name || contact.phone} não recebeu resposta no prazo.`
-                  : 'Um contato não recebeu resposta dentro do prazo de SLA.',
-                variant: 'destructive',
-              });
+              await handleBreachNotification('first_response', newRecord.contact_id);
             }
           }
 
@@ -122,20 +127,7 @@ export const useSLANotifications = () => {
             const breachKey = `res-${newRecord.id}`;
             if (!notifiedBreaches.current.has(breachKey)) {
               notifiedBreaches.current.add(breachKey);
-              
-              const { data: contact } = await supabase
-                .from('contacts')
-                .select('name, phone')
-                .eq('id', newRecord.contact_id)
-                .maybeSingle();
-
-              toast({
-                title: '🚨 SLA de Resolução Violado',
-                description: contact 
-                  ? `O atendimento do contato ${contact.name || contact.phone} excedeu o tempo de resolução.`
-                  : 'Um atendimento excedeu o tempo de resolução de SLA.',
-                variant: 'destructive',
-              });
+              await handleBreachNotification('resolution', newRecord.contact_id);
             }
           }
         }
@@ -148,5 +140,5 @@ export const useSLANotifications = () => {
       console.log('[SLA Notifications] Cleaning up subscription');
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, settings, isQuietHours]);
 };
