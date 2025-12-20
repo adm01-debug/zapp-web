@@ -72,7 +72,7 @@ import {
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { mockQuickReplies } from '@/data/mockData';
+import { useQuickReplies } from '@/hooks/useQuickReplies';
 
 interface ChatPanelProps {
   conversation: Conversation;
@@ -150,6 +150,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     currentUserId: 'agent',
     currentUserName: conversation.assignedTo?.name || 'Agente'
   });
+
+  // Quick replies from DB
+  const { quickReplies: dbQuickReplies, incrementUseCount } = useQuickReplies();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -241,9 +244,10 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     }
   };
 
-  const handleQuickReply = (reply: QuickReply) => {
+  const handleQuickReply = (reply: { id: string; title: string; shortcut: string; content: string; category: string }) => {
     setInputValue(reply.content);
     setShowQuickReplies(false);
+    incrementUseCount(reply.id);
   };
 
   const handleReaction = (messageId: string, emoji: string) => {
@@ -352,7 +356,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     console.log('Product sent:', product);
   };
 
-  const filteredQuickReplies = mockQuickReplies.filter(
+  const filteredQuickReplies = dbQuickReplies.filter(
     (reply) =>
       inputValue.startsWith('/') &&
       reply.shortcut.toLowerCase().includes(inputValue.toLowerCase())
@@ -813,7 +817,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                   </p>
                 </div>
                 <div className="max-h-64 overflow-y-auto p-2 space-y-1">
-                  {mockQuickReplies.map((reply) => (
+                  {dbQuickReplies.map((reply) => (
                     <motion.button
                       key={reply.id}
                       whileHover={{ x: 4 }}

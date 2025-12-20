@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { Agent } from '@/types/chat';
+import { useAgents } from '@/hooks/useAgents';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
-import { mockAgents, mockQueues } from '@/data/mockData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,29 +25,47 @@ import {
   UserX,
   Edit,
   Filter,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function AgentsView() {
-  const [agents, setAgents] = useState<Agent[]>(mockAgents);
+  const { agents, stats, isLoading, refetch } = useAgents();
   const [search, setSearch] = useState('');
 
   const filteredAgents = agents.filter((agent) =>
     agent.name.toLowerCase().includes(search.toLowerCase()) ||
-    agent.email.toLowerCase().includes(search.toLowerCase())
+    (agent.email?.toLowerCase().includes(search.toLowerCase()) ?? false)
   );
 
-  const onlineCount = agents.filter((a) => a.status === 'online').length;
-  const awayCount = agents.filter((a) => a.status === 'away').length;
-  const offlineCount = agents.filter((a) => a.status === 'offline').length;
-  const totalActiveChats = agents.reduce((sum, a) => sum + a.activeChats, 0);
-
   const statsData = [
-    { label: 'Online', value: onlineCount, color: 'bg-status-online' },
-    { label: 'Ausente', value: awayCount, color: 'bg-status-away' },
-    { label: 'Offline', value: offlineCount, color: 'bg-status-offline' },
-    { label: 'Chats Ativos', value: totalActiveChats, icon: MessageSquare },
+    { label: 'Online', value: stats.onlineCount, color: 'bg-status-online' },
+    { label: 'Ausente', value: stats.awayCount, color: 'bg-status-away' },
+    { label: 'Offline', value: stats.offlineCount, color: 'bg-status-offline' },
+    { label: 'Chats Ativos', value: stats.totalActiveChats, icon: MessageSquare },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+        <AuroraBorealis />
+        <FloatingParticles />
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-48" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
@@ -75,14 +93,19 @@ export function AgentsView() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-muted-foreground"
           >
-            Gerencie sua equipe de atendimento
+            Gerencie sua equipe de atendimento ({stats.totalAgents} atendentes)
           </motion.p>
         </div>
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.3 }}
+          className="flex gap-2"
         >
+          <Button variant="outline" onClick={() => refetch()} className="border-secondary/30">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
           <Button className="bg-primary hover:bg-primary/90">
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Atendente
@@ -143,106 +166,114 @@ export function AgentsView() {
       </motion.div>
 
       {/* Agents Grid */}
-      <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredAgents.map((agent) => {
-          const agentQueues = mockQueues.filter((q) =>
-            q.agents.includes(agent.id)
-          );
-          const capacityPercent = (agent.activeChats / agent.maxChats) * 100;
+      {filteredAgents.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Nenhum atendente encontrado</p>
+        </div>
+      ) : (
+        <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredAgents.map((agent) => {
+            const maxChats = agent.max_chats || 5;
+            const capacityPercent = (agent.activeChats / maxChats) * 100;
 
-          return (
-            <StaggeredItem key={agent.id}>
-              <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar className="w-12 h-12 ring-2 ring-border/30">
-                          <AvatarImage src={agent.avatar} />
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {agent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span
-                          className={cn(
-                            'absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card',
-                            agent.status === 'online' && 'bg-status-online',
-                            agent.status === 'away' && 'bg-status-away',
-                            agent.status === 'offline' && 'bg-status-offline'
-                          )}
-                        />
+            return (
+              <StaggeredItem key={agent.id}>
+                <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <Avatar className="w-12 h-12 ring-2 ring-border/30">
+                            <AvatarImage src={agent.avatar_url || undefined} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {agent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span
+                            className={cn(
+                              'absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card',
+                              agent.status === 'online' && 'bg-status-online',
+                              agent.status === 'away' && 'bg-status-away',
+                              agent.status === 'offline' && 'bg-status-offline'
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">{agent.name}</h3>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {agent.role === 'admin' ? 'Administrador' : 
+                             agent.role === 'supervisor' ? 'Supervisor' : 'Atendente'}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{agent.name}</h3>
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {agent.role === 'admin' ? 'Administrador' : 
-                           agent.role === 'supervisor' ? 'Supervisor' : 'Atendente'}
-                        </p>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-card border-border/30">
+                          <DropdownMenuItem className="hover:bg-primary/10">
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="hover:bg-primary/10">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Configurações
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive hover:bg-destructive/10">
+                            <UserX className="w-4 h-4 mr-2" />
+                            Desativar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Capacity */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Capacidade</span>
+                        <span className="font-medium text-foreground">
+                          {agent.activeChats}/{maxChats} chats
+                        </span>
+                      </div>
+                      <Progress
+                        value={capacityPercent}
+                        className={cn(
+                          'h-2',
+                          capacityPercent > 80 && '[&>div]:bg-destructive',
+                          capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-status-pending'
+                        )}
+                      />
+                    </div>
+
+                    {/* Queues */}
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">Filas</p>
+                      <div className="flex flex-wrap gap-1">
+                        {agent.queues.length > 0 ? (
+                          agent.queues.map((queue) => (
+                            <Badge
+                              key={queue.id}
+                              variant="outline"
+                              className="text-xs border-border/30"
+                              style={{ borderColor: queue.color, color: queue.color }}
+                            >
+                              {queue.name}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Sem filas atribuídas</span>
+                        )}
                       </div>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-card border-border/30">
-                        <DropdownMenuItem className="hover:bg-primary/10">
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="hover:bg-primary/10">
-                          <Settings className="w-4 h-4 mr-2" />
-                          Configurações
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive hover:bg-destructive/10">
-                          <UserX className="w-4 h-4 mr-2" />
-                          Desativar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* Capacity */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Capacidade</span>
-                      <span className="font-medium text-foreground">
-                        {agent.activeChats}/{agent.maxChats} chats
-                      </span>
-                    </div>
-                    <Progress
-                      value={capacityPercent}
-                      className={cn(
-                        'h-2',
-                        capacityPercent > 80 && '[&>div]:bg-destructive',
-                        capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-status-pending'
-                      )}
-                    />
-                  </div>
-
-                  {/* Queues */}
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Filas</p>
-                    <div className="flex flex-wrap gap-1">
-                      {agentQueues.map((queue) => (
-                        <Badge
-                          key={queue.id}
-                          variant="outline"
-                          className="text-xs border-border/30"
-                          style={{ borderColor: queue.color, color: queue.color }}
-                        >
-                          {queue.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </StaggeredItem>
-          );
-        })}
-      </StaggeredList>
+                  </CardContent>
+                </Card>
+              </StaggeredItem>
+            );
+          })}
+        </StaggeredList>
+      )}
     </div>
   );
 }

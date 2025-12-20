@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -20,69 +20,39 @@ import {
   Clock,
   MessageSquare,
   Bell,
-  Shield,
   Palette,
-  Globe,
   Save,
   RefreshCw,
+  Loader2,
 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
+import { useUserSettings } from '@/hooks/useUserSettings';
 
 export function SettingsView() {
-  const [settings, setSettings] = useState({
-    // Horário de Atendimento
-    businessHoursEnabled: true,
-    businessHoursStart: '08:00',
-    businessHoursEnd: '18:00',
-    workDays: ['seg', 'ter', 'qua', 'qui', 'sex'],
-    
-    // Mensagens Automáticas
-    welcomeMessage: 'Olá {{nome}}! 👋\nBem-vindo ao nosso atendimento.\nEm que podemos ajudar?',
-    awayMessage: 'Nosso horário de atendimento é de segunda a sexta, das 8h às 18h.\nDeixe sua mensagem que retornaremos assim que possível!',
-    closingMessage: 'Obrigado pelo contato! Seu atendimento foi finalizado.\nSe precisar de algo mais, é só chamar! 😊',
-    
-    // Chatbot
-    autoAssignEnabled: true,
-    autoAssignMethod: 'round-robin',
-    inactivityTimeout: 30,
-    
-    // Notificações
-    desktopNotifications: true,
-    soundEnabled: true,
-    notificationSound: 'default',
-    
-    // Aparência
-    theme: 'dark',
-    language: 'pt-BR',
-    compactMode: false,
-  });
-
-  const handleSave = () => {
-    toast({
-      title: 'Configurações salvas!',
-      description: 'Suas configurações foram atualizadas com sucesso.',
-    });
-  };
+  const { settings, isLoading, isSaving, updateSettings, saveSettings, toggleWorkDay } = useUserSettings();
 
   const workDays = [
-    { id: 'dom', label: 'Dom' },
-    { id: 'seg', label: 'Seg' },
-    { id: 'ter', label: 'Ter' },
-    { id: 'qua', label: 'Qua' },
-    { id: 'qui', label: 'Qui' },
-    { id: 'sex', label: 'Sex' },
-    { id: 'sab', label: 'Sáb' },
+    { id: 0, label: 'Dom' },
+    { id: 1, label: 'Seg' },
+    { id: 2, label: 'Ter' },
+    { id: 3, label: 'Qua' },
+    { id: 4, label: 'Qui' },
+    { id: 5, label: 'Sex' },
+    { id: 6, label: 'Sáb' },
   ];
 
-  const toggleWorkDay = (day: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      workDays: prev.workDays.includes(day)
-        ? prev.workDays.filter((d) => d !== day)
-        : [...prev.workDays, day],
-    }));
-  };
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+        <AuroraBorealis />
+        <FloatingParticles />
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
@@ -120,8 +90,8 @@ export function SettingsView() {
           whileHover={{ scale: 1.02 }} 
           whileTap={{ scale: 0.98 }}
         >
-          <Button onClick={handleSave} className="bg-whatsapp hover:bg-whatsapp-dark text-white">
-            <Save className="w-4 h-4 mr-2" />
+          <Button onClick={saveSettings} disabled={isSaving} className="bg-whatsapp hover:bg-whatsapp-dark text-white">
+            {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Salvar Alterações
           </Button>
         </motion.div>
@@ -176,23 +146,23 @@ export function SettingsView() {
                     </p>
                   </div>
                   <Switch
-                    checked={settings.businessHoursEnabled}
+                    checked={settings.business_hours_enabled}
                     onCheckedChange={(checked) =>
-                      setSettings({ ...settings, businessHoursEnabled: checked })
+                      updateSettings({ business_hours_enabled: checked })
                     }
                   />
                 </div>
 
-                {settings.businessHoursEnabled && (
+                {settings.business_hours_enabled && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Horário de início</Label>
                         <Input
                           type="time"
-                          value={settings.businessHoursStart}
+                          value={settings.business_hours_start}
                           onChange={(e) =>
-                            setSettings({ ...settings, businessHoursStart: e.target.value })
+                            updateSettings({ business_hours_start: e.target.value })
                           }
                         />
                       </div>
@@ -200,9 +170,9 @@ export function SettingsView() {
                         <Label>Horário de término</Label>
                         <Input
                           type="time"
-                          value={settings.businessHoursEnd}
+                          value={settings.business_hours_end}
                           onChange={(e) =>
-                            setSettings({ ...settings, businessHoursEnd: e.target.value })
+                            updateSettings({ business_hours_end: e.target.value })
                           }
                         />
                       </div>
@@ -218,7 +188,7 @@ export function SettingsView() {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => toggleWorkDay(day.id)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              settings.workDays.includes(day.id)
+                              settings.work_days.includes(day.id)
                                 ? 'bg-whatsapp text-white'
                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
                             }`}
