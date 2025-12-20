@@ -689,11 +689,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                         {/* Reactions */}
                         <MessageReactions
                           messageId={message.id}
-                          reactions={messageReactions}
-                          onReact={(emoji) => handleReaction(message.id, emoji)}
-                          onRemoveReaction={(emoji) => handleRemoveReaction(message.id, emoji)}
                           isSent={isSent}
-                          currentUserId="agent"
                         />
                       </motion.div>
                     </div>

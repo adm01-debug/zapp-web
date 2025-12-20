@@ -26,7 +26,8 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { mockAgents, mockQueues } from '@/data/mockData';
+import { useAgents } from '@/hooks/useAgents';
+import { useQueues } from '@/hooks/useQueues';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
 import { motion } from 'framer-motion';
@@ -38,6 +39,8 @@ interface ContactDetailsProps {
 
 export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
   const { contact } = conversation;
+  const { agents } = useAgents();
+  const { queues } = useQueues();
 
   return (
     <motion.div 
@@ -202,17 +205,16 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
                   <SelectValue placeholder="Selecionar atendente" />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border/30">
-                  {mockAgents.filter(a => a.status !== 'offline').map((agent) => (
+                  {agents.filter(a => a.is_active).map((agent) => (
                     <SelectItem key={agent.id} value={agent.id} className="hover:bg-primary/10">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-5 h-5 ring-1 ring-border/30">
-                          <AvatarImage src={agent.avatar} />
+                          <AvatarImage src={agent.avatar_url || undefined} />
                           <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                             {agent.name[0]}
                           </AvatarFallback>
                         </Avatar>
                         <span>{agent.name}</span>
-                        <span className={`status-dot ${agent.status}`} />
                       </div>
                     </SelectItem>
                   ))}
@@ -229,7 +231,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
                   <SelectValue placeholder="Selecionar fila" />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border/30">
-                  {mockQueues.map((queue) => (
+                  {queues.map((queue) => (
                     <SelectItem key={queue.id} value={queue.id} className="hover:bg-primary/10">
                       <div className="flex items-center gap-2">
                         <div
