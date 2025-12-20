@@ -446,6 +446,8 @@ export type Database = {
           media_url: string | null
           message_type: string
           sender: string
+          status: string | null
+          status_updated_at: string | null
           transcription: string | null
           transcription_status: string | null
           updated_at: string
@@ -462,6 +464,8 @@ export type Database = {
           media_url?: string | null
           message_type?: string
           sender: string
+          status?: string | null
+          status_updated_at?: string | null
           transcription?: string | null
           transcription_status?: string | null
           updated_at?: string
@@ -478,6 +482,8 @@ export type Database = {
           media_url?: string | null
           message_type?: string
           sender?: string
+          status?: string | null
+          status_updated_at?: string | null
           transcription?: string | null
           transcription_status?: string | null
           updated_at?: string
