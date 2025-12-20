@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { QueueCharts } from '@/components/queues/QueueCharts';
 
 interface QueueDetails {
   id: string;
@@ -321,6 +322,11 @@ export default function QueueDetails() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Performance Charts */}
+        {queue && (
+          <QueueCharts queueColor={queue.color} />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
