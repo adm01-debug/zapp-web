@@ -1,6 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { playNotificationSound, showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
+
+export interface NewMessageNotification {
+  id: string;
+  contactId: string;
+  contactName: string;
+  contactAvatar: string | null;
+  message: string;
+  timestamp: Date;
+}
 
 export interface RealtimeMessage {
   id: string;
@@ -47,6 +57,9 @@ export function useRealtimeMessages() {
   const [conversations, setConversations] = useState<ConversationWithMessages[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [newMessageNotification, setNewMessageNotification] = useState<NewMessageNotification | null>(null);
+  const selectedContactIdRef = useRef<string | null>(null);
+  const soundEnabledRef = useRef(true);
 
   // Fetch initial data
   const fetchConversations = useCallback(async () => {
@@ -117,6 +130,31 @@ export function useRealtimeMessages() {
         
         if (newMessage.sender === 'contact' && !newMessage.is_read) {
           conversation.unreadCount += 1;
+          
+          // Show notification only if not viewing this conversation
+          if (selectedContactIdRef.current !== newMessage.contact_id) {
+            // Play sound
+            if (soundEnabledRef.current) {
+              playNotificationSound('message');
+            }
+            
+            // Show browser notification
+            showBrowserNotification(
+              `Nova mensagem de ${conversation.contact.name}`,
+              newMessage.content,
+              conversation.contact.avatar_url || undefined
+            );
+            
+            // Set in-app notification
+            setNewMessageNotification({
+              id: newMessage.id,
+              contactId: conversation.contact.id,
+              contactName: conversation.contact.name,
+              contactAvatar: conversation.contact.avatar_url,
+              message: newMessage.content,
+              timestamp: new Date(),
+            });
+          }
         }
 
         // Move to top
@@ -251,6 +289,26 @@ export function useRealtimeMessages() {
     );
   };
 
+  // Dismiss notification
+  const dismissNotification = useCallback(() => {
+    setNewMessageNotification(null);
+  }, []);
+
+  // Set selected contact (to prevent notifications for viewed conversation)
+  const setSelectedContact = useCallback((contactId: string | null) => {
+    selectedContactIdRef.current = contactId;
+  }, []);
+
+  // Toggle sound
+  const setSoundEnabled = useCallback((enabled: boolean) => {
+    soundEnabledRef.current = enabled;
+  }, []);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
   return {
     conversations,
     loading,
@@ -258,5 +316,9 @@ export function useRealtimeMessages() {
     sendMessage,
     markAsRead,
     refetch: fetchConversations,
+    newMessageNotification,
+    dismissNotification,
+    setSelectedContact,
+    setSoundEnabled,
   };
 }

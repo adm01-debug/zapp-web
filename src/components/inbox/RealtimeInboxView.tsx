@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
 import { ChatPanel } from './ChatPanel';
 import { ContactDetails } from './ContactDetails';
-import { MessageSquare, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { NewMessageIndicator } from './NewMessageIndicator';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,16 +16,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Conversation, Message } from '@/types/chat';
 import { toast } from 'sonner';
 
 export function RealtimeInboxView() {
-  const { conversations, loading, error, sendMessage, markAsRead, refetch } = useRealtimeMessages();
+  const { 
+    conversations, 
+    loading, 
+    error, 
+    sendMessage, 
+    markAsRead, 
+    refetch,
+    newMessageNotification,
+    dismissNotification,
+    setSelectedContact,
+    setSoundEnabled,
+  } = useRealtimeMessages();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(true);
   const [search, setSearch] = useState('');
   const [isOnline, setIsOnline] = useState(true);
+  const [soundOn, setSoundOn] = useState(true);
 
   // Filter conversations by search
   const filteredConversations = useMemo(() => {
@@ -47,7 +60,23 @@ export function RealtimeInboxView() {
   // Handle selecting a conversation
   const handleSelectConversation = (contactId: string) => {
     setSelectedContactId(contactId);
+    setSelectedContact(contactId);
     markAsRead(contactId);
+  };
+
+  // Handle notification view click
+  const handleNotificationView = () => {
+    if (newMessageNotification) {
+      handleSelectConversation(newMessageNotification.contactId);
+      dismissNotification();
+    }
+  };
+
+  // Toggle sound
+  const toggleSound = () => {
+    const newValue = !soundOn;
+    setSoundOn(newValue);
+    setSoundEnabled(newValue);
   };
 
   // Handle sending a message
@@ -141,6 +170,16 @@ export function RealtimeInboxView() {
 
   return (
     <div className="flex h-full relative bg-background">
+      {/* New Message Notification Indicator */}
+      <NewMessageIndicator
+        show={!!newMessageNotification}
+        contactName={newMessageNotification?.contactName || ''}
+        contactAvatar={newMessageNotification?.contactAvatar}
+        message={newMessageNotification?.message || ''}
+        onView={handleNotificationView}
+        onDismiss={dismissNotification}
+      />
+
       <AuroraBorealis />
       <FloatingParticles />
 
@@ -165,9 +204,23 @@ export function RealtimeInboxView() {
                 {isOnline ? 'Online' : 'Offline'}
               </Badge>
             </div>
-            <Button variant="ghost" size="icon" onClick={refetch} disabled={loading}>
-              <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleSound}
+                className={cn(
+                  'w-8 h-8',
+                  soundOn ? 'text-primary' : 'text-muted-foreground'
+                )}
+                title={soundOn ? 'Som ativado' : 'Som desativado'}
+              >
+                {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={refetch} disabled={loading}>
+                <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+              </Button>
+            </div>
           </div>
 
           <div className="relative">
