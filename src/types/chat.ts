@@ -12,16 +12,66 @@ export interface Contact {
   createdAt: Date;
 }
 
+// WhatsApp Interactive Message Types
+export interface InteractiveButton {
+  type: 'reply' | 'url' | 'phone';
+  id: string;
+  title: string;
+  // For URL buttons
+  url?: string;
+  // For phone buttons
+  phoneNumber?: string;
+}
+
+export interface InteractiveListSection {
+  title: string;
+  rows: {
+    id: string;
+    title: string;
+    description?: string;
+  }[];
+}
+
+export interface InteractiveMessage {
+  type: 'buttons' | 'list' | 'cta_url';
+  header?: {
+    type: 'text' | 'image' | 'video' | 'document';
+    text?: string;
+    mediaUrl?: string;
+  };
+  body: string;
+  footer?: string;
+  // For button type
+  buttons?: InteractiveButton[];
+  // For list type
+  listButtonText?: string;
+  sections?: InteractiveListSection[];
+}
+
 export interface Message {
   id: string;
   conversationId: string;
   content: string;
-  type: 'text' | 'image' | 'audio' | 'video' | 'document';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'interactive' | 'button_response';
   mediaUrl?: string;
   sender: 'contact' | 'agent';
   agentId?: string;
   timestamp: Date;
   status: 'sent' | 'delivered' | 'read' | 'failed';
+  // Interactive message data
+  interactive?: InteractiveMessage;
+  // Button response data (when user clicks a button)
+  buttonResponse?: {
+    buttonId: string;
+    buttonTitle: string;
+    originalMessageId: string;
+  };
+  // Reply/Quote reference
+  replyTo?: {
+    messageId: string;
+    content: string;
+    sender: 'contact' | 'agent';
+  };
 }
 
 export interface Conversation {

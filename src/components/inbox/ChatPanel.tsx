@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Conversation, Message, QuickReply } from '@/types/chat';
+import { Conversation, Message, QuickReply, InteractiveMessage, InteractiveButton } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,8 @@ import { GlobalSearch } from './GlobalSearch';
 import { ConversationSummary } from './ConversationSummary';
 import { SLAIndicator } from './SLAIndicator';
 import { CallDialog } from '@/components/calls/CallDialog';
+import { InteractiveMessageDisplay, ButtonResponseBadge } from './InteractiveMessage';
+import { InteractiveMessageBuilder } from './InteractiveMessageBuilder';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -54,6 +56,7 @@ import {
   ArrowRight,
   PhoneCall,
   Search,
+  Layers,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -110,6 +113,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -218,6 +222,23 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
 
   const handleEndCall = () => {
     setShowCallDialog(false);
+  };
+
+  const handleSendInteractiveMessage = (interactive: InteractiveMessage) => {
+    // In a real implementation, this would send via WhatsApp API
+    toast({
+      title: 'Mensagem interativa enviada!',
+      description: `Mensagem com ${interactive.buttons?.length || 0} botões enviada.`,
+    });
+    console.log('Interactive message:', interactive);
+  };
+
+  const handleInteractiveButtonClick = (button: InteractiveButton) => {
+    toast({
+      title: 'Botão clicado',
+      description: `Resposta: ${button.title}`,
+    });
+    console.log('Button clicked:', button);
   };
 
   const filteredQuickReplies = mockQuickReplies.filter(
@@ -442,6 +463,23 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                             <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
                           )}
 
+                          {/* Button response badge */}
+                          {message.buttonResponse && (
+                            <ButtonResponseBadge 
+                              buttonTitle={message.buttonResponse.buttonTitle}
+                              isSent={isSent}
+                            />
+                          )}
+
+                          {/* Interactive message */}
+                          {message.type === 'interactive' && message.interactive && (
+                            <InteractiveMessageDisplay
+                              interactive={message.interactive}
+                              isSent={isSent}
+                              onButtonClick={handleInteractiveButtonClick}
+                            />
+                          )}
+
                           {/* Image message */}
                           {message.type === 'image' && message.mediaUrl && (
                             <div className="mb-2 rounded-lg overflow-hidden">
@@ -569,6 +607,19 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                 </Button>
               </motion.div>
             ))}
+            
+            {/* Interactive Message Button */}
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                onClick={() => setShowInteractiveBuilder(true)}
+                title="Mensagem Interativa"
+              >
+                <Layers className="w-5 h-5" />
+              </Button>
+            </motion.div>
             <Popover>
               <PopoverTrigger asChild>
                 <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -733,6 +784,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
             description: result.title
           });
         }}
+      />
+
+      {/* Interactive Message Builder */}
+      <InteractiveMessageBuilder
+        open={showInteractiveBuilder}
+        onOpenChange={setShowInteractiveBuilder}
+        onSend={handleSendInteractiveMessage}
       />
     </div>
   );
