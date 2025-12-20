@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -11,6 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -34,21 +35,88 @@ import {
   UserMinus,
   Loader2,
   BarChart3,
+  Eye,
+  Target,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueues, QueueWithMembers } from '@/hooks/useQueues';
+import { useQueueGoals, QueueAlert } from '@/hooks/useQueueGoals';
 import { CreateQueueDialog } from './CreateQueueDialog';
 import { AddMemberDialog } from './AddMemberDialog';
-import { Eye } from 'lucide-react';
+import { QueueGoalsDialog } from './QueueGoalsDialog';
+import { QueueAlertsDisplay } from './QueueAlertsDisplay';
 
 export function QueuesView() {
   const navigate = useNavigate();
   const { queues, loading, createQueue, deleteQueue, addMember, removeMember } = useQueues();
+  const { goals } = useQueueGoals();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+  const [goalsDialogOpen, setGoalsDialogOpen] = useState(false);
   const [selectedQueue, setSelectedQueue] = useState<QueueWithMembers | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [queueToDelete, setQueueToDelete] = useState<QueueWithMembers | null>(null);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+
+  // Calculate alerts based on current metrics vs goals
+  const alerts = useMemo<QueueAlert[]>(() => {
+    const allAlerts: QueueAlert[] = [];
+
+    queues.forEach(queue => {
+      const queueGoal = goals[queue.id];
+      if (!queueGoal || !queueGoal.alerts_enabled) return;
+
+      const activeMembers = queue.members.filter(m => m.is_active).length;
+      const assignmentRate = queue.waiting_count + activeMembers > 0
+        ? Math.round((activeMembers / (queue.waiting_count + activeMembers)) * 100)
+        : 100;
+
+      // Check waiting contacts
+      if (queue.waiting_count > queueGoal.max_waiting_contacts) {
+        const alertKey = `${queue.id}-waiting_contacts`;
+        if (!dismissedAlerts.has(alertKey)) {
+          allAlerts.push({
+            type: 'waiting_contacts',
+            queueId: queue.id,
+            queueName: queue.name,
+            queueColor: queue.color,
+            message: `${queue.waiting_count} contatos aguardando atendimento`,
+            severity: queue.waiting_count > queueGoal.max_waiting_contacts * 1.5 ? 'critical' : 'warning',
+            currentValue: queue.waiting_count,
+            threshold: queueGoal.max_waiting_contacts,
+          });
+        }
+      }
+
+      // Check assignment rate
+      if (assignmentRate < queueGoal.min_assignment_rate && queue.waiting_count > 0) {
+        const alertKey = `${queue.id}-assignment_rate`;
+        if (!dismissedAlerts.has(alertKey)) {
+          allAlerts.push({
+            type: 'assignment_rate',
+            queueId: queue.id,
+            queueName: queue.name,
+            queueColor: queue.color,
+            message: `Taxa de atribuição abaixo do esperado`,
+            severity: assignmentRate < queueGoal.min_assignment_rate * 0.5 ? 'critical' : 'warning',
+            currentValue: assignmentRate,
+            threshold: queueGoal.min_assignment_rate,
+          });
+        }
+      }
+    });
+
+    return allAlerts;
+  }, [queues, goals, dismissedAlerts]);
+
+  const handleDismissAlert = (alert: QueueAlert) => {
+    setDismissedAlerts(prev => new Set([...prev, `${alert.queueId}-${alert.type}`]));
+  };
+
+  const getQueueAlertCount = (queueId: string) => {
+    return alerts.filter(a => a.queueId === queueId).length;
+  };
 
   const handleCreateQueue = async (queue: { name: string; description: string; color: string }) => {
     await createQueue(queue);
@@ -138,6 +206,21 @@ export function QueuesView() {
         </div>
       </div>
 
+      {/* Alerts Section */}
+      {alerts.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Alertas Ativos ({alerts.length})
+          </h2>
+          <QueueAlertsDisplay 
+            alerts={alerts} 
+            onDismiss={handleDismissAlert}
+            onNavigate={(queueId) => navigate(`/queue/${queueId}`)}
+          />
+        </div>
+      )}
+
       {/* Queues Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {queues.map((queue) => {
@@ -189,6 +272,22 @@ export function QueuesView() {
                         <Eye className="w-4 h-4 mr-2" />
                         Ver Detalhes
                       </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="hover:bg-primary/10"
+                        onClick={() => {
+                          setSelectedQueue(queue);
+                          setGoalsDialogOpen(true);
+                        }}
+                      >
+                        <Target className="w-4 h-4 mr-2" />
+                        Metas e Alertas
+                        {getQueueAlertCount(queue.id) > 0 && (
+                          <Badge variant="destructive" className="ml-auto text-xs px-1.5">
+                            {getQueueAlertCount(queue.id)}
+                          </Badge>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem className="hover:bg-primary/10">
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
@@ -316,6 +415,16 @@ export function QueuesView() {
           queueId={selectedQueue.id}
           existingMemberIds={selectedQueue.members.map(m => m.profile_id)}
           onAddMember={handleAddMember}
+        />
+      )}
+
+      {selectedQueue && (
+        <QueueGoalsDialog
+          open={goalsDialogOpen}
+          onOpenChange={setGoalsDialogOpen}
+          queueId={selectedQueue.id}
+          queueName={selectedQueue.name}
+          queueColor={selectedQueue.color}
         />
       )}
 
