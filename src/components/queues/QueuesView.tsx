@@ -1,19 +1,27 @@
 import { useState } from 'react';
-import { Queue } from '@/types/chat';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
-import { mockQueues, mockAgents } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Plus,
   MoreVertical,
@@ -22,17 +30,83 @@ import {
   Users,
   Clock,
   MessageSquare,
-  Settings,
+  UserMinus,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQueues, QueueWithMembers } from '@/hooks/useQueues';
+import { CreateQueueDialog } from './CreateQueueDialog';
+import { AddMemberDialog } from './AddMemberDialog';
 
 export function QueuesView() {
-  const [queues, setQueues] = useState<Queue[]>(mockQueues);
+  const { queues, loading, createQueue, deleteQueue, addMember, removeMember } = useQueues();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+  const [selectedQueue, setSelectedQueue] = useState<QueueWithMembers | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [queueToDelete, setQueueToDelete] = useState<QueueWithMembers | null>(null);
+
+  const handleCreateQueue = async (queue: { name: string; description: string; color: string }) => {
+    await createQueue(queue);
+  };
+
+  const handleDeleteQueue = async () => {
+    if (queueToDelete) {
+      await deleteQueue(queueToDelete.id);
+      setQueueToDelete(null);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleAddMemberClick = (queue: QueueWithMembers) => {
+    setSelectedQueue(queue);
+    setAddMemberDialogOpen(true);
+  };
+
+  const handleAddMember = async (profileId: string) => {
+    if (selectedQueue) {
+      await addMember(selectedQueue.id, profileId);
+    }
+  };
+
+  const handleRemoveMember = async (queueId: string, profileId: string) => {
+    await removeMember(queueId, profileId);
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+        <AuroraBorealis />
+        <FloatingParticles />
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="border border-secondary/20 bg-card">
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -41,7 +115,10 @@ export function QueuesView() {
             Organize e distribua os atendimentos por departamento
           </p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
+        <Button 
+          className="bg-primary hover:bg-primary/90"
+          onClick={() => setCreateDialogOpen(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Nova Fila
         </Button>
@@ -50,13 +127,13 @@ export function QueuesView() {
       {/* Queues Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {queues.map((queue) => {
-          const queueAgents = mockAgents.filter((a) =>
-            queue.agents.includes(a.id)
-          );
-          const onlineAgents = queueAgents.filter((a) => a.status === 'online');
+          const activeMembers = queue.members.filter(m => m.is_active && m.profile?.is_active);
 
           return (
-            <Card key={queue.id} className="relative overflow-hidden border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
+            <Card 
+              key={queue.id} 
+              className="relative overflow-hidden border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]"
+            >
               {/* Color bar */}
               <div
                 className="absolute top-0 left-0 right-0 h-1"
@@ -95,11 +172,13 @@ export function QueuesView() {
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="hover:bg-primary/10">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Configurações
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive hover:bg-destructive/10">
+                      <DropdownMenuItem 
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          setQueueToDelete(queue);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Excluir
                       </DropdownMenuItem>
@@ -116,16 +195,14 @@ export function QueuesView() {
                       <Clock className="w-4 h-4" />
                       <span className="text-xs">Aguardando</span>
                     </div>
-                    <span className="text-xl font-bold text-foreground">{queue.waitingCount}</span>
+                    <span className="text-xl font-bold text-foreground">{queue.waiting_count}</span>
                   </div>
                   <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
                     <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Users className="w-4 h-4" />
-                      <span className="text-xs">Online</span>
+                      <span className="text-xs">Atendentes</span>
                     </div>
-                    <span className="text-xl font-bold text-foreground">
-                      {onlineAgents.length}/{queueAgents.length}
-                    </span>
+                    <span className="text-xl font-bold text-foreground">{activeMembers.length}</span>
                   </div>
                 </div>
 
@@ -135,47 +212,54 @@ export function QueuesView() {
                     Atendentes
                   </p>
                   <div className="flex items-center">
-                    <div className="flex -space-x-2">
-                      {queueAgents.slice(0, 4).map((agent) => (
-                        <div key={agent.id} className="relative">
-                          <Avatar className="w-8 h-8 border-2 border-card ring-1 ring-border/30">
-                            <AvatarImage src={agent.avatar} />
-                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                              {agent.name[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span
-                            className={cn(
-                              'absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card',
-                              agent.status === 'online' && 'bg-status-online',
-                              agent.status === 'away' && 'bg-status-away',
-                              agent.status === 'offline' && 'bg-status-offline'
-                            )}
-                          />
+                    {activeMembers.length > 0 ? (
+                      <>
+                        <div className="flex -space-x-2">
+                          {activeMembers.slice(0, 4).map((member) => (
+                            <div key={member.id} className="relative group">
+                              <Avatar className="w-8 h-8 border-2 border-card ring-1 ring-border/30">
+                                <AvatarImage src={member.profile?.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                  {member.profile?.name?.[0] || '?'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <button
+                                onClick={() => handleRemoveMember(queue.id, member.profile_id)}
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              >
+                                <UserMinus className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                    {queueAgents.length > 4 && (
-                      <span className="ml-2 text-sm text-muted-foreground">
-                        +{queueAgents.length - 4} mais
-                      </span>
+                        {activeMembers.length > 4 && (
+                          <span className="ml-2 text-sm text-muted-foreground">
+                            +{activeMembers.length - 4} mais
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Nenhum atendente</span>
                     )}
                     <Button
                       variant="ghost"
                       size="icon"
                       className="ml-auto w-8 h-8 hover:bg-primary/10 hover:text-primary"
+                      onClick={() => handleAddMemberClick(queue)}
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
 
-                {/* Average wait time */}
+                {/* Max wait time */}
                 <div className="flex items-center justify-between pt-2 border-t border-border/20">
                   <span className="text-sm text-muted-foreground">
-                    Tempo médio de espera
+                    Tempo máximo de espera
                   </span>
-                  <Badge variant="secondary" className="bg-muted/30 text-foreground">~3 min</Badge>
+                  <Badge variant="secondary" className="bg-muted/30 text-foreground">
+                    {queue.max_wait_time_minutes} min
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
@@ -183,7 +267,10 @@ export function QueuesView() {
         })}
 
         {/* Add Queue Card */}
-        <Card className="border border-dashed border-border/40 cursor-pointer hover:border-primary/50 hover:bg-muted/20 transition-colors bg-transparent">
+        <Card 
+          className="border border-dashed border-border/40 cursor-pointer hover:border-primary/50 hover:bg-muted/20 transition-colors bg-transparent"
+          onClick={() => setCreateDialogOpen(true)}
+        >
           <CardContent className="flex flex-col items-center justify-center h-full min-h-[280px] text-muted-foreground">
             <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center mb-3">
               <Plus className="w-6 h-6" />
@@ -193,6 +280,44 @@ export function QueuesView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialogs */}
+      <CreateQueueDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSubmit={handleCreateQueue}
+      />
+
+      {selectedQueue && (
+        <AddMemberDialog
+          open={addMemberDialogOpen}
+          onOpenChange={setAddMemberDialogOpen}
+          queueId={selectedQueue.id}
+          existingMemberIds={selectedQueue.members.map(m => m.profile_id)}
+          onAddMember={handleAddMember}
+        />
+      )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-card border-border/30">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Excluir Fila</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a fila "{queueToDelete?.name}"? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-muted-foreground">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteQueue}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
