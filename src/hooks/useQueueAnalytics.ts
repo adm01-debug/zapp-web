@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfDay, subDays, format, startOfHour, eachDayOfInterval, eachHourOfInterval, startOfToday, endOfToday } from 'date-fns';
+import { startOfDay, subDays, format, startOfHour, eachDayOfInterval, eachHourOfInterval, startOfToday, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface DailyData {
@@ -28,6 +28,11 @@ interface StatusData {
   color: string;
 }
 
+interface DateRange {
+  from: Date;
+  to: Date;
+}
+
 interface QueueAnalytics {
   dailyData: DailyData[];
   hourlyData: HourlyData[];
@@ -36,7 +41,7 @@ interface QueueAnalytics {
   loading: boolean;
 }
 
-export function useQueueAnalytics(queueId: string): QueueAnalytics {
+export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueAnalytics {
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
   const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
   const [agentPerformance, setAgentPerformance] = useState<AgentPerformance[]>([]);
@@ -44,10 +49,10 @@ export function useQueueAnalytics(queueId: string): QueueAnalytics {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (queueId) {
+    if (queueId && dateRange.from && dateRange.to) {
       fetchAnalytics();
     }
-  }, [queueId]);
+  }, [queueId, dateRange.from.toISOString(), dateRange.to.toISOString()]);
 
   const fetchAnalytics = async () => {
     try {
@@ -64,7 +69,7 @@ export function useQueueAnalytics(queueId: string): QueueAnalytics {
       const contactIds = contacts?.map(c => c.id) || [];
 
       if (contactIds.length === 0) {
-        setDailyData(generateEmptyDailyData());
+        setDailyData(generateEmptyDailyData(dateRange));
         setHourlyData(generateEmptyHourlyData());
         setAgentPerformance([]);
         setStatusData([
@@ -76,20 +81,19 @@ export function useQueueAnalytics(queueId: string): QueueAnalytics {
         return;
       }
 
-      // Fetch messages for these contacts in the last 7 days
-      const sevenDaysAgo = subDays(new Date(), 7);
-      
+      // Fetch messages for these contacts in the date range
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
         .select('id, contact_id, created_at, sender, agent_id')
         .in('contact_id', contactIds)
-        .gte('created_at', sevenDaysAgo.toISOString())
+        .gte('created_at', dateRange.from.toISOString())
+        .lte('created_at', dateRange.to.toISOString())
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
 
       // Process daily data
-      const dailyAggregation = processDailyData(messages || [], contacts || []);
+      const dailyAggregation = processDailyData(messages || [], contacts || [], dateRange);
       setDailyData(dailyAggregation);
 
       // Process hourly data (today only)
@@ -111,14 +115,14 @@ export function useQueueAnalytics(queueId: string): QueueAnalytics {
     }
   };
 
-  const generateEmptyDailyData = (): DailyData[] => {
+  const generateEmptyDailyData = (range: DateRange): DailyData[] => {
     const days = eachDayOfInterval({
-      start: subDays(new Date(), 6),
-      end: new Date()
+      start: range.from,
+      end: range.to
     });
 
     return days.map(date => ({
-      day: format(date, 'EEE', { locale: ptBR }),
+      day: format(date, 'dd/MM', { locale: ptBR }),
       date: format(date, 'yyyy-MM-dd'),
       mensagens: 0,
       resolvidos: 0,
@@ -135,45 +139,52 @@ export function useQueueAnalytics(queueId: string): QueueAnalytics {
 
   const processDailyData = (
     messages: Array<{ id: string; contact_id: string; created_at: string; sender: string }>,
-    contacts: Array<{ id: string; assigned_to: string | null; created_at: string }>
+    contacts: Array<{ id: string; assigned_to: string | null; created_at: string }>,
+    range: DateRange
   ): DailyData[] => {
     const days = eachDayOfInterval({
-      start: subDays(new Date(), 6),
-      end: new Date()
+      start: range.from,
+      end: range.to
     });
 
-    return days.map(date => {
-      const dayStart = startOfDay(date);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
+    // For longer periods, group by week or show fewer data points
+    const totalDays = differenceInDays(range.to, range.from) + 1;
+    const showEveryNth = totalDays > 14 ? Math.ceil(totalDays / 14) : 1;
 
-      // Count messages for this day
-      const dayMessages = messages.filter(m => {
-        const msgDate = new Date(m.created_at);
-        return msgDate >= dayStart && msgDate < dayEnd;
+    return days
+      .filter((_, index) => index % showEveryNth === 0 || index === days.length - 1)
+      .map(date => {
+        const dayStart = startOfDay(date);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + showEveryNth);
+
+        // Count messages for this period
+        const periodMessages = messages.filter(m => {
+          const msgDate = new Date(m.created_at);
+          return msgDate >= dayStart && msgDate < dayEnd;
+        });
+
+        // Count new contacts for this period
+        const newContacts = contacts.filter(c => {
+          const contactDate = new Date(c.created_at);
+          return contactDate >= dayStart && contactDate < dayEnd;
+        });
+
+        // Count resolved (assigned) contacts for this period
+        const resolvedContacts = contacts.filter(c => {
+          if (!c.assigned_to) return false;
+          const contactDate = new Date(c.created_at);
+          return contactDate >= dayStart && contactDate < dayEnd;
+        });
+
+        return {
+          day: format(date, totalDays > 14 ? 'dd/MM' : 'EEE', { locale: ptBR }),
+          date: format(date, 'yyyy-MM-dd'),
+          mensagens: periodMessages.length,
+          resolvidos: resolvedContacts.length,
+          novos: newContacts.length,
+        };
       });
-
-      // Count new contacts for this day
-      const newContacts = contacts.filter(c => {
-        const contactDate = new Date(c.created_at);
-        return contactDate >= dayStart && contactDate < dayEnd;
-      });
-
-      // Count resolved (assigned) contacts for this day
-      const resolvedContacts = contacts.filter(c => {
-        if (!c.assigned_to) return false;
-        const contactDate = new Date(c.created_at);
-        return contactDate >= dayStart && contactDate < dayEnd;
-      });
-
-      return {
-        day: format(date, 'EEE', { locale: ptBR }),
-        date: format(date, 'yyyy-MM-dd'),
-        mensagens: dayMessages.length,
-        resolvidos: resolvedContacts.length,
-        novos: newContacts.length,
-      };
-    });
   };
 
   const processHourlyData = (

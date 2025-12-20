@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { subDays } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -18,6 +20,7 @@ import {
 } from 'recharts';
 import { TrendingUp, MessageSquare, Clock, Users } from 'lucide-react';
 import { useQueueAnalytics } from '@/hooks/useQueueAnalytics';
+import { PeriodSelector, PeriodOption } from './PeriodSelector';
 
 interface QueueChartsProps {
   queueId: string;
@@ -25,11 +28,26 @@ interface QueueChartsProps {
 }
 
 export function QueueCharts({ queueId, queueColor }: QueueChartsProps) {
-  const { dailyData, hourlyData, agentPerformance, statusData, loading } = useQueueAnalytics(queueId);
+  const [period, setPeriod] = useState<PeriodOption>('7d');
+  const [dateRange, setDateRange] = useState(() => {
+    const now = new Date();
+    const from = subDays(now, 6);
+    return { from, to: now };
+  });
+
+  const { dailyData, hourlyData, agentPerformance, statusData, loading } = useQueueAnalytics(queueId, dateRange);
+
+  const handlePeriodChange = (newPeriod: PeriodOption, newRange: { from: Date; to: Date }) => {
+    setPeriod(newPeriod);
+    setDateRange(newRange);
+  };
 
   if (loading) {
     return (
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <Skeleton className="h-10 w-48" />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border border-secondary/20 bg-card/50">
             <CardHeader className="pb-2">
@@ -54,6 +72,15 @@ export function QueueCharts({ queueId, queueColor }: QueueChartsProps) {
 
   return (
     <div className="space-y-6">
+      {/* Period Selector */}
+      <div className="flex justify-end">
+        <PeriodSelector 
+          value={period} 
+          dateRange={dateRange} 
+          onChange={handlePeriodChange} 
+        />
+      </div>
+
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Messages Over Time */}
@@ -260,7 +287,7 @@ export function QueueCharts({ queueId, queueColor }: QueueChartsProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Performance por Atendente (últimos 7 dias)
+              Performance por Atendente ({period === 'custom' ? 'período selecionado' : `últimos ${period.replace('d', ' dias')}`})
             </CardTitle>
           </CardHeader>
           <CardContent>
