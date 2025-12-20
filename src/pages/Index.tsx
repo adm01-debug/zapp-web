@@ -13,6 +13,7 @@ import { SettingsView } from '@/components/settings/SettingsView';
 import { ClientWalletView } from '@/components/wallet/ClientWalletView';
 import { AdminView } from '@/components/admin/AdminView';
 import { GroupsView } from '@/components/groups/GroupsView';
+import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
 import { useAuth } from '@/hooks/useAuth';
 import { logAudit } from '@/lib/audit';
@@ -155,32 +156,34 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden relative">
-      {/* Subtle background gradients */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
+    <SLANotificationProvider>
+      <div className="flex h-screen bg-background overflow-hidden relative">
+        {/* Subtle background gradients */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
+        </div>
+        
+        <Sidebar
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          currentAgent={{
+            name: profile?.name || user.email || 'Usuário',
+            avatar: profile?.avatar_url || undefined,
+            status: 'online',
+          }}
+          onLogout={signOut}
+        />
+        
+        <main className="flex-1 overflow-hidden relative">
+          <AnimatePresence mode="wait">
+            <PageTransition key={currentView}>
+              {renderView()}
+            </PageTransition>
+          </AnimatePresence>
+        </main>
       </div>
-      
-      <Sidebar
-        currentView={currentView}
-        onViewChange={setCurrentView}
-        currentAgent={{
-          name: profile?.name || user.email || 'Usuário',
-          avatar: profile?.avatar_url || undefined,
-          status: 'online',
-        }}
-        onLogout={signOut}
-      />
-      
-      <main className="flex-1 overflow-hidden relative">
-        <AnimatePresence mode="wait">
-          <PageTransition key={currentView}>
-            {renderView()}
-          </PageTransition>
-        </AnimatePresence>
-      </main>
-    </div>
+    </SLANotificationProvider>
   );
 };
 
