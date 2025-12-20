@@ -21,6 +21,8 @@ export interface RealtimeMessage {
   message_type: string;
   media_url: string | null;
   is_read: boolean | null;
+  status: 'sent' | 'delivered' | 'read' | 'failed' | null;
+  status_updated_at: string | null;
   created_at: string;
   updated_at: string;
   external_id: string | null;
@@ -87,7 +89,11 @@ export function useRealtimeMessages() {
       const conversationsMap = new Map<string, ConversationWithMessages>();
 
       contacts?.forEach((contact) => {
-        const contactMessages = messages?.filter((m) => m.contact_id === contact.id) || [];
+        const contactMessages = (messages?.filter((m) => m.contact_id === contact.id) || []).map((m) => ({
+          ...m,
+          status: (m as unknown as { status?: string }).status as RealtimeMessage['status'] || 'sent',
+          status_updated_at: (m as unknown as { status_updated_at?: string }).status_updated_at || null,
+        }));
         const unreadCount = contactMessages.filter((m) => !m.is_read && m.sender === 'contact').length;
         const lastMessage = contactMessages.length > 0 ? contactMessages[contactMessages.length - 1] : null;
 
