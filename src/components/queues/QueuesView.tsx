@@ -33,6 +33,7 @@ import {
   MessageSquare,
   UserMinus,
   Loader2,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueues, QueueWithMembers } from '@/hooks/useQueues';
@@ -118,13 +119,23 @@ export function QueuesView() {
             Organize e distribua os atendimentos por departamento
           </p>
         </div>
-        <Button 
-          className="bg-primary hover:bg-primary/90"
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Fila
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            className="border-border/30 hover:bg-muted/30"
+            onClick={() => navigate('/queues/comparison')}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Comparar Filas
+          </Button>
+          <Button 
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Fila
+          </Button>
+        </div>
       </div>
 
       {/* Queues Grid */}
