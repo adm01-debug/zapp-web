@@ -9,7 +9,54 @@ interface MessageStatusUpdate {
 
 export const useMessageStatus = (contactId?: string) => {
   const [statusUpdates, setStatusUpdates] = useState<Map<string, MessageStatusUpdate>>(new Map());
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch initial statuses from database
+  useEffect(() => {
+    if (!contactId) {
+      setStatusUpdates(new Map());
+      return;
+    }
+
+    const fetchInitialStatuses = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('messages')
+          .select('id, status, status_updated_at')
+          .eq('contact_id', contactId)
+          .eq('sender', 'agent')
+          .not('status', 'is', null);
+
+        if (error) {
+          console.error('Error fetching message statuses:', error);
+          return;
+        }
+
+        if (data) {
+          const statusMap = new Map<string, MessageStatusUpdate>();
+          data.forEach((msg) => {
+            if (msg.status) {
+              statusMap.set(msg.id, {
+                id: msg.id,
+                status: msg.status as 'sent' | 'delivered' | 'read' | 'failed',
+                status_updated_at: msg.status_updated_at || new Date().toISOString(),
+              });
+            }
+          });
+          setStatusUpdates(statusMap);
+        }
+      } catch (err) {
+        console.error('Error in fetchInitialStatuses:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialStatuses();
+  }, [contactId]);
+
+  // Subscribe to realtime status updates
   useEffect(() => {
     if (!contactId) return;
 
@@ -27,14 +74,14 @@ export const useMessageStatus = (contactId?: string) => {
         },
         (payload) => {
           console.log('Message status update received:', payload);
-          const newData = payload.new as MessageStatusUpdate;
+          const newData = payload.new as { id: string; status: string; status_updated_at: string };
           
           if (newData.status) {
             setStatusUpdates((prev) => {
               const updated = new Map(prev);
               updated.set(newData.id, {
                 id: newData.id,
-                status: newData.status,
+                status: newData.status as 'sent' | 'delivered' | 'read' | 'failed',
                 status_updated_at: newData.status_updated_at,
               });
               return updated;
@@ -78,5 +125,6 @@ export const useMessageStatus = (contactId?: string) => {
     statusUpdates,
     getMessageStatus,
     updateLocalStatus,
+    isLoading,
   };
 };
