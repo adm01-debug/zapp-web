@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface NotificationSettings {
   soundEnabled: boolean;
@@ -28,37 +30,120 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   quietHoursEnd: '08:00',
 };
 
-const STORAGE_KEY = 'notification_settings';
-
 export const useNotificationSettings = () => {
-  const [settings, setSettings] = useState<NotificationSettings>(() => {
+  const { user } = useAuth();
+  const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_SETTINGS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch settings from DB
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_settings')
+          .select('sound_enabled, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, browser_notifications_enabled')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          setSettings(prev => ({
+            ...prev,
+            soundEnabled: data.sound_enabled ?? DEFAULT_SETTINGS.soundEnabled,
+            quietHoursEnabled: data.quiet_hours_enabled ?? DEFAULT_SETTINGS.quietHoursEnabled,
+            quietHoursStart: data.quiet_hours_start ?? DEFAULT_SETTINGS.quietHoursStart,
+            quietHoursEnd: data.quiet_hours_end ?? DEFAULT_SETTINGS.quietHoursEnd,
+            browserNotifications: data.browser_notifications_enabled ?? DEFAULT_SETTINGS.browserNotifications,
+          }));
+        }
+      } catch (error) {
+        console.warn('Failed to load notification settings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, [user]);
+
+  const updateSettings = useCallback(async (updates: Partial<NotificationSettings>) => {
+    if (!user) return;
+
+    // Update local state immediately
+    setSettings(prev => ({ ...prev, ...updates }));
+    setIsSaving(true);
+
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      // Map to DB columns
+      const dbUpdates: Record<string, unknown> = {};
+      
+      if ('soundEnabled' in updates) {
+        dbUpdates.sound_enabled = updates.soundEnabled;
+      }
+      if ('quietHoursEnabled' in updates) {
+        dbUpdates.quiet_hours_enabled = updates.quietHoursEnabled;
+      }
+      if ('quietHoursStart' in updates) {
+        dbUpdates.quiet_hours_start = updates.quietHoursStart;
+      }
+      if ('quietHoursEnd' in updates) {
+        dbUpdates.quiet_hours_end = updates.quietHoursEnd;
+      }
+      if ('browserNotifications' in updates) {
+        dbUpdates.browser_notifications_enabled = updates.browserNotifications;
+      }
+
+      // Only save to DB if we have DB-mappable fields
+      if (Object.keys(dbUpdates).length > 0) {
+        const { error } = await supabase
+          .from('user_settings')
+          .upsert({
+            user_id: user.id,
+            ...dbUpdates,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id',
+          });
+
+        if (error) throw error;
       }
     } catch (error) {
-      console.warn('Failed to load notification settings:', error);
-    }
-    return DEFAULT_SETTINGS;
-  });
-
-  // Persist settings to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch (error) {
       console.warn('Failed to save notification settings:', error);
+    } finally {
+      setIsSaving(false);
     }
-  }, [settings]);
+  }, [user]);
 
-  const updateSettings = useCallback((updates: Partial<NotificationSettings>) => {
-    setSettings(prev => ({ ...prev, ...updates }));
-  }, []);
-
-  const resetSettings = useCallback(() => {
+  const resetSettings = useCallback(async () => {
     setSettings(DEFAULT_SETTINGS);
-  }, []);
+    
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user.id,
+          sound_enabled: DEFAULT_SETTINGS.soundEnabled,
+          quiet_hours_enabled: DEFAULT_SETTINGS.quietHoursEnabled,
+          quiet_hours_start: DEFAULT_SETTINGS.quietHoursStart,
+          quiet_hours_end: DEFAULT_SETTINGS.quietHoursEnd,
+          browser_notifications_enabled: DEFAULT_SETTINGS.browserNotifications,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id',
+        });
+    } catch (error) {
+      console.warn('Failed to reset notification settings:', error);
+    }
+  }, [user]);
 
   // Check if currently in quiet hours
   const isQuietHours = useCallback(() => {
@@ -86,5 +171,7 @@ export const useNotificationSettings = () => {
     updateSettings,
     resetSettings,
     isQuietHours,
+    isLoading,
+    isSaving,
   };
 };
