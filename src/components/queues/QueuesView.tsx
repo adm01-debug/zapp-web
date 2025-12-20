@@ -191,6 +191,14 @@ export function QueuesView() {
           <Button 
             variant="outline"
             className="border-border/30 hover:bg-muted/30"
+            onClick={() => navigate('/sla')}
+          >
+            <Clock className="w-4 h-4 mr-2" />
+            Dashboard SLA
+          </Button>
+          <Button 
+            variant="outline"
+            className="border-border/30 hover:bg-muted/30"
             onClick={() => navigate('/queues/comparison')}
           >
             <BarChart3 className="w-4 h-4 mr-2" />
