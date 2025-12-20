@@ -22,6 +22,7 @@ import { SLAIndicator } from './SLAIndicator';
 import { CallDialog } from '@/components/calls/CallDialog';
 import { InteractiveMessageDisplay, ButtonResponseBadge } from './InteractiveMessage';
 import { InteractiveMessageBuilder } from './InteractiveMessageBuilder';
+import { ReplyPreview, QuotedMessage } from './ReplyQuote';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -57,6 +58,9 @@ import {
   PhoneCall,
   Search,
   Layers,
+  Reply,
+  Forward,
+  Copy,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -114,8 +118,10 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
+  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Use Supabase Presence for typing indicator
   const { 
@@ -139,10 +145,47 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
 
   const handleSend = () => {
     if (inputValue.trim()) {
+      // In real implementation, include replyTo data
+      if (replyToMessage) {
+        console.log('Sending reply to:', replyToMessage.id);
+        toast({
+          title: 'Resposta enviada',
+          description: `Respondendo a: "${replyToMessage.content.slice(0, 30)}..."`,
+        });
+      }
       onSendMessage(inputValue.trim());
       setInputValue('');
-      handleTypingStop(); // Stop typing indicator when sending
+      setReplyToMessage(null);
+      handleTypingStop();
     }
+  };
+
+  const handleReplyToMessage = (message: Message) => {
+    setReplyToMessage(message);
+    inputRef.current?.focus();
+  };
+
+  const handleCancelReply = () => {
+    setReplyToMessage(null);
+  };
+
+  const scrollToMessage = (messageId: string) => {
+    const element = messageRefs.current[messageId];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+      }, 2000);
+    }
+  };
+
+  const handleCopyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast({
+      title: 'Copiado!',
+      description: 'Mensagem copiada para a área de transferência.',
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -442,13 +485,41 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
 
                 return (
                   <StaggeredItem key={message.id}>
-                    <div className={cn('flex group', isSent ? 'justify-end' : 'justify-start')}>
+                    <div 
+                      ref={(el) => { messageRefs.current[message.id] = el; }}
+                      className={cn('flex group', isSent ? 'justify-end' : 'justify-start')}
+                    >
                       <motion.div
                         initial={{ opacity: 0, x: isSent ? 20 : -20, scale: 0.95 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                        className="max-w-[70%] space-y-1"
+                        className="max-w-[70%] space-y-1 relative"
                       >
+                        {/* Message Actions (visible on hover) */}
+                        <div className={cn(
+                          "absolute top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10",
+                          isSent ? "right-full mr-2" : "left-full ml-2"
+                        )}>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleReplyToMessage(message)}
+                            className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                            title="Responder"
+                          >
+                            <Reply className="w-3.5 h-3.5" />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleCopyMessage(message.content)}
+                            className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                            title="Copiar"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </motion.button>
+                        </div>
+
                         <motion.div
                           whileHover={{ scale: 1.01 }}
                           className={cn(
@@ -461,6 +532,15 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                           {/* Subtle glow for sent messages */}
                           {isSent && (
                             <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
+                          )}
+
+                          {/* Quoted message (reply) */}
+                          {message.replyTo && (
+                            <QuotedMessage
+                              replyTo={message.replyTo}
+                              isSent={isSent}
+                              onClick={() => scrollToMessage(message.replyTo!.messageId)}
+                            />
                           )}
 
                           {/* Button response badge */}
@@ -592,6 +672,16 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         )}
       </AnimatePresence>
 
+      {/* Reply Preview */}
+      <AnimatePresence>
+        {replyToMessage && (
+          <ReplyPreview
+            message={replyToMessage}
+            onCancel={handleCancelReply}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Input */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -673,11 +763,12 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
 
           <div className="flex-1 relative group">
             <Input
+              ref={inputRef}
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onBlur={handleTypingStop}
-              placeholder="Digite uma mensagem..."
+              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite uma mensagem..."}
               className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
             />
             <motion.div 
