@@ -58,6 +58,14 @@ export interface LocationMessage {
   liveUntil?: Date;
 }
 
+// Message Reaction Types (WhatsApp API)
+export interface MessageReaction {
+  emoji: string;
+  userId: string;
+  userName?: string;
+  timestamp: Date;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -86,6 +94,8 @@ export interface Message {
   location?: LocationMessage;
   // Forwarded indicator
   isForwarded?: boolean;
+  // Reactions (WhatsApp API format)
+  reactions?: MessageReaction[];
 }
 
 export interface Conversation {

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Conversation, Message, QuickReply, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
+import { Conversation, Message, QuickReply, InteractiveMessage, InteractiveButton, LocationMessage, MessageReaction } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,10 +76,13 @@ interface ChatPanelProps {
   onSendMessage: (content: string) => void;
 }
 
-// Mock reactions data
-const mockReactions: Record<string, { emoji: string; count: number }[]> = {
-  'msg-1': [{ emoji: '👍', count: 1 }],
-  'msg-3': [{ emoji: '❤️', count: 2 }],
+// Mock reactions data with new format
+const mockReactions: Record<string, MessageReaction[]> = {
+  'msg-1': [{ emoji: '👍', userId: 'agent', userName: 'Agente', timestamp: new Date() }],
+  'msg-3': [
+    { emoji: '❤️', userId: 'contact', userName: 'Cliente', timestamp: new Date() },
+    { emoji: '❤️', userId: 'agent', userName: 'Agente', timestamp: new Date() }
+  ],
 };
 
 // Format timestamp intelligently
@@ -240,18 +243,41 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const handleReaction = (messageId: string, emoji: string) => {
     setReactions((prev) => {
       const messageReactions = prev[messageId] || [];
-      const existingIndex = messageReactions.findIndex((r) => r.emoji === emoji);
-      
-      if (existingIndex >= 0) {
-        const updated = [...messageReactions];
-        updated[existingIndex].count++;
-        return { ...prev, [messageId]: updated };
-      }
+      const newReaction: MessageReaction = {
+        emoji,
+        userId: 'agent',
+        userName: 'Agente',
+        timestamp: new Date(),
+      };
       
       return {
         ...prev,
-        [messageId]: [...messageReactions, { emoji, count: 1 }],
+        [messageId]: [...messageReactions, newReaction],
       };
+    });
+    
+    toast({
+      title: 'Reação adicionada',
+      description: `Você reagiu com ${emoji}`,
+    });
+  };
+
+  const handleRemoveReaction = (messageId: string, emoji: string) => {
+    setReactions((prev) => {
+      const messageReactions = prev[messageId] || [];
+      const filtered = messageReactions.filter(
+        r => !(r.emoji === emoji && r.userId === 'agent')
+      );
+      
+      return {
+        ...prev,
+        [messageId]: filtered,
+      };
+    });
+    
+    toast({
+      title: 'Reação removida',
+      description: `Você removeu ${emoji}`,
     });
   };
 
@@ -647,7 +673,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                           messageId={message.id}
                           reactions={messageReactions}
                           onReact={(emoji) => handleReaction(message.id, emoji)}
+                          onRemoveReaction={(emoji) => handleRemoveReaction(message.id, emoji)}
                           isSent={isSent}
+                          currentUserId="agent"
                         />
                       </motion.div>
                     </div>
