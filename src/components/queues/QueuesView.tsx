@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,8 +38,10 @@ import { cn } from '@/lib/utils';
 import { useQueues, QueueWithMembers } from '@/hooks/useQueues';
 import { CreateQueueDialog } from './CreateQueueDialog';
 import { AddMemberDialog } from './AddMemberDialog';
+import { Eye } from 'lucide-react';
 
 export function QueuesView() {
+  const navigate = useNavigate();
   const { queues, loading, createQueue, deleteQueue, addMember, removeMember } = useQueues();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
@@ -168,6 +171,13 @@ export function QueuesView() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-card border-border/30">
+                      <DropdownMenuItem 
+                        className="hover:bg-primary/10"
+                        onClick={() => navigate(`/queue/${queue.id}`)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver Detalhes
+                      </DropdownMenuItem>
                       <DropdownMenuItem className="hover:bg-primary/10">
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
