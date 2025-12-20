@@ -23,6 +23,7 @@ import { CallDialog } from '@/components/calls/CallDialog';
 import { InteractiveMessageDisplay, ButtonResponseBadge } from './InteractiveMessage';
 import { InteractiveMessageBuilder } from './InteractiveMessageBuilder';
 import { ReplyPreview, QuotedMessage } from './ReplyQuote';
+import { ForwardMessageDialog } from './ForwardMessageDialog';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -119,6 +120,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
+  const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
+  const [showForwardDialog, setShowForwardDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -186,6 +189,17 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       title: 'Copiado!',
       description: 'Mensagem copiada para a área de transferência.',
     });
+  };
+
+  const handleForwardMessage = (message: Message) => {
+    setForwardMessage(message);
+    setShowForwardDialog(true);
+  };
+
+  const handleForwardToTargets = (targetIds: string[], targetType: 'contact' | 'group') => {
+    // In a real implementation, this would send via WhatsApp API
+    console.log('Forwarding to:', { targetIds, targetType, message: forwardMessage });
+    // The toast is shown in the ForwardMessageDialog component
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -508,6 +522,15 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                             title="Responder"
                           >
                             <Reply className="w-3.5 h-3.5" />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleForwardMessage(message)}
+                            className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                            title="Encaminhar"
+                          >
+                            <Forward className="w-3.5 h-3.5" />
                           </motion.button>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
@@ -882,6 +905,14 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         open={showInteractiveBuilder}
         onOpenChange={setShowInteractiveBuilder}
         onSend={handleSendInteractiveMessage}
+      />
+
+      {/* Forward Message Dialog */}
+      <ForwardMessageDialog
+        open={showForwardDialog}
+        onOpenChange={setShowForwardDialog}
+        message={forwardMessage}
+        onForward={handleForwardToTargets}
       />
     </div>
   );
