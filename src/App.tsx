@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import QueueDetails from "./pages/QueueDetails";
 import QueuesComparison from "./pages/QueuesComparison";
 import SLADashboard from "./pages/SLADashboard";
+import SLAHistory from "./pages/SLAHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/queue/:id" element={<QueueDetails />} />
               <Route path="/queues/comparison" element={<QueuesComparison />} />
               <Route path="/sla" element={<SLADashboard />} />
+              <Route path="/sla/history" element={<SLAHistory />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
