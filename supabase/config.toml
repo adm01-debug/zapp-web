@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.ai-transcribe-audio]
 verify_jwt = false
+
+[functions.get-mapbox-token]
+verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false

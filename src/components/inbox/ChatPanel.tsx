@@ -100,17 +100,19 @@ function formatDateSeparator(date: Date): string {
   return format(date, "d 'de' MMMM", { locale: ptBR });
 }
 
-// Message status icon
-function MessageStatus({ status }: { status: Message['status'] }) {
+// Message status icon with improved styling
+function MessageStatusIcon({ status }: { status: Message['status'] }) {
   switch (status) {
     case 'sent':
       return <Check className="w-3 h-3" />;
     case 'delivered':
       return <CheckCheck className="w-3 h-3" />;
     case 'read':
-      return <CheckCheck className="w-3 h-3 text-whatsapp-light" />;
+      return <CheckCheck className="w-3 h-3 text-blue-400" />;
+    case 'failed':
+      return <X className="w-3 h-3 text-destructive" />;
     default:
-      return null;
+      return <Clock className="w-3 h-3 animate-pulse" />;
   }
 }
 
@@ -664,7 +666,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                             <span className="text-[10px]">
                               {formatMessageTime(message.timestamp)}
                             </span>
-                            {isSent && <MessageStatus status={message.status} />}
+                            {isSent && <MessageStatusIcon status={message.status} />}
                           </div>
                         </motion.div>
 
