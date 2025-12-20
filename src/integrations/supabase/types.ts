@@ -802,6 +802,81 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          auto_assignment_enabled: boolean | null
+          auto_assignment_method: string | null
+          away_message: string | null
+          browser_notifications_enabled: boolean | null
+          business_hours_enabled: boolean | null
+          business_hours_end: string | null
+          business_hours_start: string | null
+          closing_message: string | null
+          compact_mode: boolean | null
+          created_at: string
+          id: string
+          inactivity_timeout: number | null
+          language: string | null
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          sound_enabled: boolean | null
+          theme: string | null
+          updated_at: string
+          user_id: string
+          welcome_message: string | null
+          work_days: number[] | null
+        }
+        Insert: {
+          auto_assignment_enabled?: boolean | null
+          auto_assignment_method?: string | null
+          away_message?: string | null
+          browser_notifications_enabled?: boolean | null
+          business_hours_enabled?: boolean | null
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          closing_message?: string | null
+          compact_mode?: boolean | null
+          created_at?: string
+          id?: string
+          inactivity_timeout?: number | null
+          language?: string | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sound_enabled?: boolean | null
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+          welcome_message?: string | null
+          work_days?: number[] | null
+        }
+        Update: {
+          auto_assignment_enabled?: boolean | null
+          auto_assignment_method?: string | null
+          away_message?: string | null
+          browser_notifications_enabled?: boolean | null
+          business_hours_enabled?: boolean | null
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          closing_message?: string | null
+          compact_mode?: boolean | null
+          created_at?: string
+          id?: string
+          inactivity_timeout?: number | null
+          language?: string | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sound_enabled?: boolean | null
+          theme?: string | null
+          updated_at?: string
+          user_id?: string
+          welcome_message?: string | null
+          work_days?: number[] | null
+        }
+        Relationships: []
+      }
       whatsapp_connections: {
         Row: {
           created_at: string

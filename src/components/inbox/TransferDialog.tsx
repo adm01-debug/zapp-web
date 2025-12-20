@@ -18,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { User, Users, Send, ArrowRight } from 'lucide-react';
-import { mockAgents, mockQueues } from '@/data/mockData';
+import { User, Users, Send, ArrowRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAgents } from '@/hooks/useAgents';
+import { useQueues } from '@/hooks/useQueues';
 
 interface TransferDialogProps {
   open: boolean;
@@ -33,6 +34,9 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [message, setMessage] = useState('');
 
+  const { agents, isLoading: loadingAgents } = useAgents();
+  const { queues, loading: loadingQueues } = useQueues();
+
   const handleTransfer = () => {
     if (selectedTarget) {
       onTransfer(transferType, selectedTarget, message || undefined);
@@ -42,7 +46,8 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
     }
   };
 
-  const onlineAgents = mockAgents.filter((a) => a.status === 'online');
+  // Filter online/away agents (active ones)
+  const availableAgents = agents.filter((a) => a.status === 'online' || a.status === 'away');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -110,8 +115,12 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
             <div className="space-y-2">
               <Label>Selecione um atendente</Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {onlineAgents.length > 0 ? (
-                  onlineAgents.map((agent) => (
+                {loadingAgents ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : availableAgents.length > 0 ? (
+                  availableAgents.map((agent) => (
                     <motion.button
                       key={agent.id}
                       whileHover={{ x: 4 }}
@@ -126,22 +135,26 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
                     >
                       <div className="relative">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={agent.avatar} />
+                          <AvatarImage src={agent.avatar_url || undefined} />
                           <AvatarFallback>{agent.name[0]}</AvatarFallback>
                         </Avatar>
-                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-status-online border-2 border-background" />
+                        <span className={cn(
+                          'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background',
+                          agent.status === 'online' && 'bg-status-online',
+                          agent.status === 'away' && 'bg-status-away'
+                        )} />
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">{agent.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {agent.activeChats}/{agent.maxChats} chats ativos
+                          {agent.activeChats}/{agent.max_chats || 5} chats ativos
                         </p>
                       </div>
                     </motion.button>
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum atendente online no momento
+                    Nenhum atendente disponível no momento
                   </p>
                 )}
               </div>
@@ -149,27 +162,30 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
           ) : (
             <div className="space-y-2">
               <Label>Selecione um departamento</Label>
-              <Select value={selectedTarget} onValueChange={setSelectedTarget}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Escolha um departamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockQueues.map((queue) => (
-                    <SelectItem key={queue.id} value={queue.id}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: queue.color }}
-                        />
-                        <span>{queue.name}</span>
-                        <span className="text-muted-foreground">
-                          ({queue.waitingCount} aguardando)
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {loadingQueues ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <Select value={selectedTarget} onValueChange={setSelectedTarget}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha um departamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {queues.map((queue) => (
+                      <SelectItem key={queue.id} value={queue.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: queue.color }}
+                          />
+                          <span>{queue.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           )}
 
