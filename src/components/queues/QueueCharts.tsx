@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   AreaChart,
   Area,
@@ -16,52 +17,40 @@ import {
   Cell,
 } from 'recharts';
 import { TrendingUp, MessageSquare, Clock, Users } from 'lucide-react';
+import { useQueueAnalytics } from '@/hooks/useQueueAnalytics';
 
 interface QueueChartsProps {
+  queueId: string;
   queueColor: string;
 }
 
-// Generate mock data for the last 7 days
-const generateDailyData = () => {
-  const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  const today = new Date().getDay();
-  
-  return Array.from({ length: 7 }, (_, i) => {
-    const dayIndex = (today - 6 + i + 7) % 7;
-    return {
-      day: days[dayIndex],
-      mensagens: Math.floor(Math.random() * 80) + 20,
-      resolvidos: Math.floor(Math.random() * 50) + 10,
-      novos: Math.floor(Math.random() * 30) + 5,
-    };
-  });
-};
+export function QueueCharts({ queueId, queueColor }: QueueChartsProps) {
+  const { dailyData, hourlyData, agentPerformance, statusData, loading } = useQueueAnalytics(queueId);
 
-const generateHourlyData = () => {
-  return Array.from({ length: 12 }, (_, i) => ({
-    hora: `${8 + i}h`,
-    atendimentos: Math.floor(Math.random() * 20) + 5,
-    tempoMedio: Math.floor(Math.random() * 10) + 2,
-  }));
-};
-
-const generateAgentPerformance = () => [
-  { name: 'João', atendimentos: 45, satisfacao: 4.8 },
-  { name: 'Maria', atendimentos: 38, satisfacao: 4.9 },
-  { name: 'Pedro', atendimentos: 32, satisfacao: 4.5 },
-  { name: 'Ana', atendimentos: 28, satisfacao: 4.7 },
-];
-
-const statusData = [
-  { name: 'Resolvidos', value: 65, color: '#10B981' },
-  { name: 'Em Atendimento', value: 20, color: '#3B82F6' },
-  { name: 'Aguardando', value: 15, color: '#F59E0B' },
-];
-
-export function QueueCharts({ queueColor }: QueueChartsProps) {
-  const dailyData = generateDailyData();
-  const hourlyData = generateHourlyData();
-  const agentData = generateAgentPerformance();
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="border border-secondary/20 bg-card/50">
+            <CardHeader className="pb-2">
+              <Skeleton className="h-5 w-40" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[250px] w-full" />
+            </CardContent>
+          </Card>
+          <Card className="border border-secondary/20 bg-card/50">
+            <CardHeader className="pb-2">
+              <Skeleton className="h-5 w-40" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[250px] w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -206,7 +195,7 @@ export function QueueCharts({ queueColor }: QueueChartsProps) {
                     stroke={queueColor}
                     strokeWidth={2}
                     dot={{ fill: queueColor, strokeWidth: 2 }}
-                    name="Atendimentos"
+                    name="Mensagens"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -266,53 +255,55 @@ export function QueueCharts({ queueColor }: QueueChartsProps) {
       </div>
 
       {/* Agent Performance */}
-      <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Performance por Atendente
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={agentData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={false} />
-                <XAxis 
-                  type="number" 
-                  stroke="hsl(var(--muted-foreground))" 
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  stroke="hsl(var(--muted-foreground))" 
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  width={60}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    color: 'hsl(var(--foreground))',
-                  }}
-                />
-                <Bar 
-                  dataKey="atendimentos" 
-                  fill={queueColor} 
-                  radius={[0, 4, 4, 0]} 
-                  name="Atendimentos"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {agentPerformance.length > 0 && (
+        <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Performance por Atendente (últimos 7 dias)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={agentPerformance} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={false} />
+                  <XAxis 
+                    type="number" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    width={80}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      color: 'hsl(var(--foreground))',
+                    }}
+                  />
+                  <Bar 
+                    dataKey="atendimentos" 
+                    fill={queueColor} 
+                    radius={[0, 4, 4, 0]} 
+                    name="Mensagens enviadas"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
