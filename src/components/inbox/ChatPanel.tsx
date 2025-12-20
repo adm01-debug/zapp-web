@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence, StaggeredList, StaggeredItem } from '@/components/ui/motion';
-import { TypingIndicator } from './TypingIndicator';
+import { TypingIndicator, TypingIndicatorCompact } from './TypingIndicator';
 import { MessageReactions } from './MessageReactions';
+import { useTypingPresence } from '@/hooks/useTypingPresence';
 import { MessageImage } from './ImagePreview';
 import { TransferDialog } from './TransferDialog';
 import { ScheduleMessageDialog } from './ScheduleMessageDialog';
@@ -102,7 +103,6 @@ function MessageStatus({ status }: { status: Message['status'] }) {
 export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelProps) {
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const [reactions, setReactions] = useState(mockReactions);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
@@ -113,26 +113,40 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Use Supabase Presence for typing indicator
+  const { 
+    isContactTyping, 
+    typingUsers,
+    handleTypingStart, 
+    handleTypingStop 
+  } = useTypingPresence({
+    conversationId: conversation.id,
+    currentUserId: 'agent',
+    currentUserName: conversation.assignedTo?.name || 'Agente'
+  });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping]);
-
-  // Simulate contact typing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsTyping((prev) => !prev);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [messages, isContactTyping]);
 
   const handleSend = () => {
     if (inputValue.trim()) {
       onSendMessage(inputValue.trim());
       setInputValue('');
+      handleTypingStop(); // Stop typing indicator when sending
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    if (e.target.value.length > 0) {
+      handleTypingStart(); // Signal that agent is typing
+    } else {
+      handleTypingStop();
     }
   };
 
@@ -268,14 +282,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              {isTyping ? (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-success"
-                >
-                  digitando...
-                </motion.span>
+              {isContactTyping ? (
+                <TypingIndicatorCompact isVisible={true} />
               ) : (
                 conversation.contact.phone
               )}
@@ -488,18 +496,12 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         ))}
 
         {/* Typing indicator */}
-        <AnimatePresence>
-          {isTyping && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="flex justify-start"
-            >
-              <TypingIndicator />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="flex justify-start">
+          <TypingIndicator 
+            isVisible={isContactTyping} 
+            userName={typingUsers[0]?.name || conversation.contact.name}
+          />
+        </div>
 
         <div ref={messagesEndRef} />
       </div>
@@ -621,8 +623,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           <div className="flex-1 relative group">
             <Input
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              onBlur={handleTypingStop}
               placeholder="Digite uma mensagem..."
               className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
             />
