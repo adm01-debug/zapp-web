@@ -275,6 +275,7 @@ export type Database = {
           nickname: string | null
           notes: string | null
           phone: string
+          queue_id: string | null
           surname: string | null
           tags: string[] | null
           updated_at: string
@@ -292,6 +293,7 @@ export type Database = {
           nickname?: string | null
           notes?: string | null
           phone: string
+          queue_id?: string | null
           surname?: string | null
           tags?: string[] | null
           updated_at?: string
@@ -309,6 +311,7 @@ export type Database = {
           nickname?: string | null
           notes?: string | null
           phone?: string
+          queue_id?: string | null
           surname?: string | null
           tags?: string[] | null
           updated_at?: string
@@ -320,6 +323,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
             referencedColumns: ["id"]
           },
           {
@@ -548,6 +558,81 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      queue_members: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          profile_id: string
+          queue_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          profile_id: string
+          queue_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          profile_id?: string
+          queue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "queue_members_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      queues: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_wait_time_minutes: number | null
+          name: string
+          priority: number | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_wait_time_minutes?: number | null
+          name: string
+          priority?: number | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_wait_time_minutes?: number | null
+          name?: string
+          priority?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
