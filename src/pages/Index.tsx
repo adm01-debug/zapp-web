@@ -12,6 +12,7 @@ import { TagsView } from '@/components/tags/TagsView';
 import { SettingsView } from '@/components/settings/SettingsView';
 import { ClientWalletView } from '@/components/wallet/ClientWalletView';
 import { AdminView } from '@/components/admin/AdminView';
+import { ProductManagement } from '@/components/catalog/ProductManagement';
 import { GroupsView } from '@/components/groups/GroupsView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
@@ -123,6 +124,8 @@ const Index = () => {
         return <ConnectionsView />;
       case 'wallet':
         return <ClientWalletView />;
+      case 'catalog':
+        return <ProductManagement />;
       case 'admin':
         return <AdminView />;
       case 'tags':
