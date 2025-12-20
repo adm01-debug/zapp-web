@@ -326,7 +326,7 @@ export default function QueueDetails() {
 
         {/* Performance Charts */}
         {queue && (
-          <QueueCharts queueColor={queue.color} />
+          <QueueCharts queueId={queue.id} queueColor={queue.color} />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
