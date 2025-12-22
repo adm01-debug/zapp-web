@@ -28,6 +28,7 @@ import { FloatingParticles } from './FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { SLAMetricsDashboard } from './SLAMetricsDashboard';
 import { AIQuickAccess } from './AIQuickAccess';
+import { AIStatsWidget } from './AIStatsWidget';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
@@ -303,7 +304,11 @@ export function DashboardView() {
         </Card>
       </motion.div>
 
+      {/* AI Stats Widget + Queues Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+        {/* AI Stats Widget */}
+        <AIStatsWidget />
+
         {/* Queues Status */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -385,12 +390,15 @@ export function DashboardView() {
             </CardContent>
           </Card>
         </motion.div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
         {/* Leaderboard Component */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
+          className="lg:col-span-3"
         >
           <Leaderboard />
         </motion.div>
