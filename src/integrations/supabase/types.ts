@@ -495,6 +495,72 @@ export type Database = {
           },
         ]
       }
+      conversation_analyses: {
+        Row: {
+          analyzed_by: string | null
+          contact_id: string
+          created_at: string
+          customer_satisfaction: number | null
+          id: string
+          key_points: string[] | null
+          message_count: number | null
+          next_steps: string[] | null
+          sentiment: string
+          sentiment_score: number | null
+          status: string
+          summary: string
+          topics: string[] | null
+          urgency: string | null
+        }
+        Insert: {
+          analyzed_by?: string | null
+          contact_id: string
+          created_at?: string
+          customer_satisfaction?: number | null
+          id?: string
+          key_points?: string[] | null
+          message_count?: number | null
+          next_steps?: string[] | null
+          sentiment?: string
+          sentiment_score?: number | null
+          status?: string
+          summary: string
+          topics?: string[] | null
+          urgency?: string | null
+        }
+        Update: {
+          analyzed_by?: string | null
+          contact_id?: string
+          created_at?: string
+          customer_satisfaction?: number | null
+          id?: string
+          key_points?: string[] | null
+          message_count?: number | null
+          next_steps?: string[] | null
+          sentiment?: string
+          sentiment_score?: number | null
+          status?: string
+          summary?: string
+          topics?: string[] | null
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_analyses_analyzed_by_fkey"
+            columns: ["analyzed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_analyses_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_sla: {
         Row: {
           contact_id: string | null

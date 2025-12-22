@@ -1044,6 +1044,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           mediaUrl: m.mediaUrl,
           created_at: m.timestamp.toISOString()
         }))}
+        contactId={conversation.contact.id}
         contactName={conversation.contact.name}
         isOpen={showAIAssistant}
         onClose={() => setShowAIAssistant(false)}
