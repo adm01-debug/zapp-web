@@ -38,6 +38,8 @@ interface AIStats {
 }
 
 const TrendIndicator = ({ trend, label }: { trend: TrendData; label: string }) => {
+  const isSignificant = Math.abs(trend.percentage) > 20;
+  
   const getTooltipMessage = () => {
     if (trend.direction === 'stable') {
       return `${label} manteve-se estável nos últimos 7 dias comparado ao período anterior`;
@@ -46,8 +48,9 @@ const TrendIndicator = ({ trend, label }: { trend: TrendData; label: string }) =
     const direction = trend.direction === 'up' ? 'aumentou' : 'diminuiu';
     const absChange = Math.abs(trend.change);
     const absPercentage = Math.abs(trend.percentage).toFixed(1);
+    const significantText = isSignificant ? ' (mudança significativa!)' : '';
     
-    return `${label} ${direction} ${absPercentage}% (${absChange > 0 ? (trend.direction === 'up' ? '+' : '-') + absChange : 0}) nos últimos 7 dias comparado ao período anterior (7-14 dias atrás)`;
+    return `${label} ${direction} ${absPercentage}% (${absChange > 0 ? (trend.direction === 'up' ? '+' : '-') + absChange : 0}) nos últimos 7 dias comparado ao período anterior (7-14 dias atrás)${significantText}`;
   };
 
   if (trend.direction === 'stable') {
@@ -71,19 +74,20 @@ const TrendIndicator = ({ trend, label }: { trend: TrendData; label: string }) =
   const isUp = trend.direction === 'up';
   const Icon = isUp ? TrendingUp : TrendingDown;
   const colorClass = isUp ? 'text-success' : 'text-destructive';
+  const pulseClass = isSignificant ? 'animate-pulse' : '';
 
   return (
     <TooltipProvider>
       <TooltipUI>
         <TooltipTrigger asChild>
           <motion.div 
-            className={cn("flex items-center gap-0.5 cursor-help", colorClass)}
+            className={cn("flex items-center gap-0.5 cursor-help", colorClass, pulseClass)}
             initial={{ opacity: 0, x: -5 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Icon className="w-3 h-3" />
-            <span className="text-[10px] font-medium">
+            <Icon className={cn("w-3 h-3", isSignificant && "drop-shadow-[0_0_3px_currentColor]")} />
+            <span className={cn("text-[10px] font-medium", isSignificant && "font-bold")}>
               {isUp ? '+' : ''}{trend.percentage.toFixed(0)}%
             </span>
           </motion.div>
