@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from '@/components/ui/motion';
-import { Brain, TrendingUp, Sparkles, AlertTriangle, Mic } from 'lucide-react';
+import { Brain, TrendingUp, TrendingDown, Minus, Sparkles, AlertTriangle, Mic } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +10,12 @@ import { ptBR } from 'date-fns/locale';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
+interface TrendData {
+  direction: 'up' | 'down' | 'stable';
+  change: number;
+  percentage: number;
+}
+
 interface AIStats {
   totalAnalyses: number;
   avgSentimentScore: number;
@@ -18,7 +24,42 @@ interface AIStats {
   neutralSentiment: number;
   transcriptionsCount: number;
   sentimentTrend: { date: string; score: number; positive: number; negative: number; neutral: number }[];
+  trends: {
+    analyses: TrendData;
+    sentiment: TrendData;
+    negative: TrendData;
+    transcriptions: TrendData;
+  };
 }
+
+const TrendIndicator = ({ trend }: { trend: TrendData }) => {
+  if (trend.direction === 'stable') {
+    return (
+      <div className="flex items-center gap-0.5 text-muted-foreground">
+        <Minus className="w-3 h-3" />
+        <span className="text-[10px]">0%</span>
+      </div>
+    );
+  }
+
+  const isUp = trend.direction === 'up';
+  const Icon = isUp ? TrendingUp : TrendingDown;
+  const colorClass = isUp ? 'text-success' : 'text-destructive';
+
+  return (
+    <motion.div 
+      className={cn("flex items-center gap-0.5", colorClass)}
+      initial={{ opacity: 0, x: -5 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Icon className="w-3 h-3" />
+      <span className="text-[10px] font-medium">
+        {isUp ? '+' : ''}{trend.percentage.toFixed(0)}%
+      </span>
+    </motion.div>
+  );
+};
 
 const chartConfig = {
   score: {
@@ -35,14 +76,38 @@ const chartConfig = {
   },
 };
 
+const calculateTrend = (current: number, previous: number): TrendData => {
+  if (previous === 0 && current === 0) {
+    return { direction: 'stable', change: 0, percentage: 0 };
+  }
+  if (previous === 0) {
+    return { direction: 'up', change: current, percentage: 100 };
+  }
+  
+  const change = current - previous;
+  const percentage = (change / previous) * 100;
+  
+  if (Math.abs(percentage) < 1) {
+    return { direction: 'stable', change: 0, percentage: 0 };
+  }
+  
+  return {
+    direction: change > 0 ? 'up' : 'down',
+    change,
+    percentage,
+  };
+};
+
 export function AIStatsWidget() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['ai-stats-widget'],
     queryFn: async (): Promise<AIStats> => {
-      // Get last 7 days of analyses for trend
-      const last7Days = subDays(new Date(), 7);
+      const now = new Date();
+      const last7Days = subDays(now, 7);
+      const last14Days = subDays(now, 14);
       
-      const { data: analyses, error } = await supabase
+      // Current period (last 7 days)
+      const { data: currentAnalyses, error } = await supabase
         .from('conversation_analyses')
         .select('sentiment, sentiment_score, created_at')
         .gte('created_at', last7Days.toISOString())
@@ -50,11 +115,24 @@ export function AIStatsWidget() {
 
       if (error) throw error;
 
-      const totalAnalyses = analyses?.length || 0;
-      const avgSentimentScore = analyses?.reduce((acc, a) => acc + (a.sentiment_score || 0), 0) / (totalAnalyses || 1);
-      const positiveSentiment = analyses?.filter(a => a.sentiment === 'positive').length || 0;
-      const negativeSentiment = analyses?.filter(a => a.sentiment === 'negative').length || 0;
-      const neutralSentiment = analyses?.filter(a => a.sentiment === 'neutral').length || 0;
+      // Previous period (7-14 days ago)
+      const { data: previousAnalyses } = await supabase
+        .from('conversation_analyses')
+        .select('sentiment, sentiment_score, created_at')
+        .gte('created_at', last14Days.toISOString())
+        .lt('created_at', last7Days.toISOString());
+
+      // Current period stats
+      const totalAnalyses = currentAnalyses?.length || 0;
+      const avgSentimentScore = currentAnalyses?.reduce((acc, a) => acc + (a.sentiment_score || 0), 0) / (totalAnalyses || 1);
+      const positiveSentiment = currentAnalyses?.filter(a => a.sentiment === 'positive').length || 0;
+      const negativeSentiment = currentAnalyses?.filter(a => a.sentiment === 'negative').length || 0;
+      const neutralSentiment = currentAnalyses?.filter(a => a.sentiment === 'neutral').length || 0;
+
+      // Previous period stats
+      const prevTotal = previousAnalyses?.length || 0;
+      const prevAvgSentiment = previousAnalyses?.reduce((acc, a) => acc + (a.sentiment_score || 0), 0) / (prevTotal || 1);
+      const prevNegative = previousAnalyses?.filter(a => a.sentiment === 'negative').length || 0;
 
       // Group by date for trend chart
       const trendMap = new Map<string, { scores: number[]; positive: number; negative: number; neutral: number }>();
@@ -65,7 +143,7 @@ export function AIStatsWidget() {
         trendMap.set(date, { scores: [], positive: 0, negative: 0, neutral: 0 });
       }
       
-      analyses?.forEach(a => {
+      currentAnalyses?.forEach(a => {
         const date = format(new Date(a.created_at), 'yyyy-MM-dd');
         const existing = trendMap.get(date) || { scores: [], positive: 0, negative: 0, neutral: 0 };
         existing.scores.push(a.sentiment_score || 50);
@@ -83,11 +161,20 @@ export function AIStatsWidget() {
         neutral: data.neutral,
       }));
 
-      // Count messages with transcriptions
-      const { count: transcriptionsCount } = await supabase
+      // Count messages with transcriptions - current period
+      const { count: currentTranscriptions } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
-        .not('transcription', 'is', null);
+        .not('transcription', 'is', null)
+        .gte('created_at', last7Days.toISOString());
+
+      // Previous period transcriptions
+      const { count: prevTranscriptions } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .not('transcription', 'is', null)
+        .gte('created_at', last14Days.toISOString())
+        .lt('created_at', last7Days.toISOString());
 
       return {
         totalAnalyses,
@@ -95,8 +182,14 @@ export function AIStatsWidget() {
         positiveSentiment,
         negativeSentiment,
         neutralSentiment,
-        transcriptionsCount: transcriptionsCount || 0,
+        transcriptionsCount: currentTranscriptions || 0,
         sentimentTrend,
+        trends: {
+          analyses: calculateTrend(totalAnalyses, prevTotal),
+          sentiment: calculateTrend(avgSentimentScore, prevAvgSentiment),
+          negative: calculateTrend(negativeSentiment, prevNegative),
+          transcriptions: calculateTrend(currentTranscriptions || 0, prevTranscriptions || 0),
+        },
       };
     },
     refetchInterval: 60000,
@@ -126,6 +219,7 @@ export function AIStatsWidget() {
       icon: Brain,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
+      trend: stats?.trends.analyses,
     },
     {
       label: 'Sentimento Médio',
@@ -133,6 +227,7 @@ export function AIStatsWidget() {
       icon: TrendingUp,
       color: 'text-success',
       bgColor: 'bg-success/10',
+      trend: stats?.trends.sentiment,
     },
     {
       label: 'Alertas Negativos',
@@ -140,6 +235,7 @@ export function AIStatsWidget() {
       icon: AlertTriangle,
       color: 'text-destructive',
       bgColor: 'bg-destructive/10',
+      trend: stats?.trends.negative,
     },
     {
       label: 'Transcrições',
@@ -147,6 +243,7 @@ export function AIStatsWidget() {
       icon: Mic,
       color: 'text-info',
       bgColor: 'bg-info/10',
+      trend: stats?.trends.transcriptions,
     },
   ];
 
@@ -203,10 +300,11 @@ export function AIStatsWidget() {
                 transition={{ delay: 0.1 * index }}
                 className="p-3 rounded-xl bg-muted/30 border border-border/30"
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center justify-between mb-1">
                   <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", metric.bgColor)}>
                     <metric.icon className={cn("w-4 h-4", metric.color)} />
                   </div>
+                  {metric.trend && <TrendIndicator trend={metric.trend} />}
                 </div>
                 <p className="text-xl font-bold text-foreground">{metric.value}</p>
                 <p className="text-xs text-muted-foreground">{metric.label}</p>
