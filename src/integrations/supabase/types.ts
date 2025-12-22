@@ -1197,6 +1197,9 @@ export type Database = {
           quiet_hours_enabled: boolean | null
           quiet_hours_end: string | null
           quiet_hours_start: string | null
+          sentiment_alert_enabled: boolean | null
+          sentiment_alert_threshold: number | null
+          sentiment_consecutive_count: number | null
           sound_enabled: boolean | null
           theme: string | null
           updated_at: string
@@ -1221,6 +1224,9 @@ export type Database = {
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
+          sentiment_alert_enabled?: boolean | null
+          sentiment_alert_threshold?: number | null
+          sentiment_consecutive_count?: number | null
           sound_enabled?: boolean | null
           theme?: string | null
           updated_at?: string
@@ -1245,6 +1251,9 @@ export type Database = {
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
+          sentiment_alert_enabled?: boolean | null
+          sentiment_alert_threshold?: number | null
+          sentiment_consecutive_count?: number | null
           sound_enabled?: boolean | null
           theme?: string | null
           updated_at?: string

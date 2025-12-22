@@ -18,7 +18,9 @@ import {
   MessageSquare,
   AtSign,
   RotateCcw,
-  CheckCircle2
+  CheckCircle2,
+  TrendingDown,
+  Activity
 } from 'lucide-react';
 import { useNotificationSettings, NotificationSettings } from '@/hooks/useNotificationSettings';
 import { previewSound, requestNotificationPermission, SoundType } from '@/utils/notificationSounds';
@@ -252,6 +254,99 @@ export function NotificationSettingsPanel() {
               <Bell className="w-4 h-4 mr-2" />
               Solicitar Permissão do Navegador
             </Button>
+          </CardContent>
+        )}
+      </Card>
+
+      {/* Sentiment Alerts */}
+      <Card className="border-secondary/20 bg-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center">
+                <TrendingDown className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Alertas de Sentimento</CardTitle>
+                <CardDescription>Notificações quando clientes ficam insatisfeitos</CardDescription>
+              </div>
+            </div>
+            <Switch
+              checked={settings.sentimentAlertEnabled}
+              onCheckedChange={(checked) => updateSettings({ sentimentAlertEnabled: checked })}
+            />
+          </div>
+        </CardHeader>
+        {settings.sentimentAlertEnabled && (
+          <CardContent className="space-y-6">
+            {/* Threshold slider */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Limite de Alerta</Label>
+                <Badge variant="outline" className={cn(
+                  "font-mono",
+                  settings.sentimentAlertThreshold < 30 ? "text-red-400 border-red-400/50" :
+                  settings.sentimentAlertThreshold < 50 ? "text-orange-400 border-orange-400/50" :
+                  "text-yellow-400 border-yellow-400/50"
+                )}>
+                  {settings.sentimentAlertThreshold}%
+                </Badge>
+              </div>
+              <Slider
+                value={[settings.sentimentAlertThreshold]}
+                onValueChange={([value]) => updateSettings({ sentimentAlertThreshold: value })}
+                min={10}
+                max={60}
+                step={5}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                Alerta quando o sentimento cair abaixo de {settings.sentimentAlertThreshold}%
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* Consecutive count */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Análises Consecutivas</Label>
+                <Badge variant="secondary" className="font-mono">
+                  {settings.sentimentConsecutiveCount}x
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                {[2, 3, 4, 5].map((count) => (
+                  <Button
+                    key={count}
+                    variant={settings.sentimentConsecutiveCount === count ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => updateSettings({ sentimentConsecutiveCount: count })}
+                  >
+                    {count}x
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Alerta apenas após {settings.sentimentConsecutiveCount} análises negativas consecutivas
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* Info box */}
+            <div className="bg-muted/30 rounded-lg p-3 flex items-start gap-3">
+              <Activity className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium">Como funciona?</p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  O sistema analisa conversas automaticamente. Quando o sentimento do cliente fica 
+                  abaixo de {settings.sentimentAlertThreshold}% por {settings.sentimentConsecutiveCount} análises 
+                  consecutivas, você recebe um alerta por notificação e email (se configurado).
+                </p>
+              </div>
+            </div>
           </CardContent>
         )}
       </Card>

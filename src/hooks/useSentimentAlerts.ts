@@ -5,8 +5,6 @@ import { playNotificationSound } from '@/utils/notificationSound';
 import { showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 
-const SENTIMENT_THRESHOLD = 30; // Below 30% triggers alert
-
 interface SentimentAlertData {
   contactId: string;
   contactName: string;
@@ -18,15 +16,25 @@ interface SentimentAlertData {
 export function useSentimentAlerts() {
   const { settings, isQuietHours } = useNotificationSettings();
 
+  // Use user's custom threshold or default to 30
+  const threshold = settings.sentimentAlertThreshold ?? 30;
+  const consecutiveRequired = settings.sentimentConsecutiveCount ?? 2;
+  const alertsEnabled = settings.sentimentAlertEnabled ?? true;
+
   const checkAndTriggerAlert = useCallback(async (data: SentimentAlertData) => {
+    // Check if alerts are enabled
+    if (!alertsEnabled) {
+      return { triggered: false, reason: 'Sentiment alerts disabled by user' };
+    }
+
     const { contactId, contactName, sentimentScore, previousScore, analysisId } = data;
 
-    // Only check if sentiment is below threshold
-    if (sentimentScore >= SENTIMENT_THRESHOLD) {
+    // Only check if sentiment is below user's threshold
+    if (sentimentScore >= threshold) {
       return { triggered: false, reason: 'Sentiment above threshold' };
     }
 
-    console.log('Checking sentiment alert for:', { contactName, sentimentScore });
+    console.log('Checking sentiment alert for:', { contactName, sentimentScore, threshold, consecutiveRequired });
 
     try {
       // Call edge function to check consecutive analyses and send alerts
@@ -37,6 +45,8 @@ export function useSentimentAlerts() {
           sentimentScore,
           previousScore,
           analysisId,
+          threshold,
+          consecutiveRequired,
         },
       });
 
@@ -90,7 +100,7 @@ export function useSentimentAlerts() {
       console.error('Failed to check sentiment alert:', err);
       return { triggered: false, error: err instanceof Error ? err.message : 'Unknown error' };
     }
-  }, [settings, isQuietHours]);
+  }, [settings, isQuietHours, threshold, consecutiveRequired, alertsEnabled]);
 
   const getRecentAlerts = useCallback(async (limit = 10) => {
     try {
@@ -118,6 +128,8 @@ export function useSentimentAlerts() {
   return {
     checkAndTriggerAlert,
     getRecentAlerts,
-    SENTIMENT_THRESHOLD,
+    threshold,
+    consecutiveRequired,
+    alertsEnabled,
   };
 }

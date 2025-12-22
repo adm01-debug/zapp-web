@@ -13,6 +13,8 @@ interface AlertRequest {
   previousScore?: number;
   analysisId: string;
   agentEmail?: string;
+  threshold?: number; // User's custom threshold (default 30)
+  consecutiveRequired?: number; // User's custom consecutive count (default 2)
 }
 
 serve(async (req) => {
@@ -21,45 +23,54 @@ serve(async (req) => {
   }
 
   try {
-    const { contactId, contactName, sentimentScore, previousScore, analysisId, agentEmail }: AlertRequest = await req.json();
+    const { 
+      contactId, 
+      contactName, 
+      sentimentScore, 
+      previousScore, 
+      analysisId, 
+      agentEmail,
+      threshold = 30,
+      consecutiveRequired = 2
+    }: AlertRequest = await req.json();
     
-    console.log('Sentiment alert triggered:', { contactId, contactName, sentimentScore, previousScore });
+    console.log('Sentiment alert triggered:', { contactId, contactName, sentimentScore, previousScore, threshold, consecutiveRequired });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check for consecutive low sentiment (below 30%)
+    // Check for consecutive low sentiment (below user's threshold)
     const { data: recentAnalyses, error: fetchError } = await supabase
       .from('conversation_analyses')
       .select('id, sentiment_score, created_at')
       .eq('contact_id', contactId)
       .order('created_at', { ascending: false })
-      .limit(3);
+      .limit(consecutiveRequired + 1);
 
     if (fetchError) {
       console.error('Error fetching analyses:', fetchError);
       throw fetchError;
     }
 
-    // Count consecutive low sentiment analyses
+    // Count consecutive low sentiment analyses using user's threshold
     let consecutiveLow = 0;
     for (const analysis of recentAnalyses || []) {
-      if ((analysis.sentiment_score ?? 50) < 30) {
+      if ((analysis.sentiment_score ?? 50) < threshold) {
         consecutiveLow++;
       } else {
         break;
       }
     }
 
-    console.log('Consecutive low sentiment analyses:', consecutiveLow);
+    console.log('Consecutive low sentiment analyses:', consecutiveLow, 'required:', consecutiveRequired);
 
-    // Only alert if 2+ consecutive low sentiment
-    if (consecutiveLow < 2) {
+    // Only alert if consecutive count meets user's requirement
+    if (consecutiveLow < consecutiveRequired) {
       return new Response(
         JSON.stringify({ 
           alerted: false, 
-          reason: 'Not enough consecutive low sentiment analyses',
+          reason: `Not enough consecutive low sentiment analyses (${consecutiveLow}/${consecutiveRequired})`,
           consecutiveLow 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

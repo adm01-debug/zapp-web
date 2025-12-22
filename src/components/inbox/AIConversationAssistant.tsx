@@ -89,7 +89,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
-  const { checkAndTriggerAlert, SENTIMENT_THRESHOLD } = useSentimentAlerts();
+  const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
   const audioMessages = messages.filter(m => m.type === 'audio' && m.mediaUrl);
   const canAnalyze = messages.length >= 5;

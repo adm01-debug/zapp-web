@@ -14,6 +14,10 @@ export interface NotificationSettings {
   quietHoursEnabled: boolean;
   quietHoursStart: string; // HH:mm
   quietHoursEnd: string; // HH:mm
+  // Sentiment alert settings
+  sentimentAlertEnabled: boolean;
+  sentimentAlertThreshold: number; // 0-100
+  sentimentConsecutiveCount: number; // number of consecutive analyses
 }
 
 const DEFAULT_SETTINGS: NotificationSettings = {
@@ -28,6 +32,9 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   quietHoursEnabled: false,
   quietHoursStart: '22:00',
   quietHoursEnd: '08:00',
+  sentimentAlertEnabled: true,
+  sentimentAlertThreshold: 30,
+  sentimentConsecutiveCount: 2,
 };
 
 export const useNotificationSettings = () => {
@@ -47,7 +54,7 @@ export const useNotificationSettings = () => {
       try {
         const { data, error } = await supabase
           .from('user_settings')
-          .select('sound_enabled, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, browser_notifications_enabled')
+          .select('sound_enabled, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, browser_notifications_enabled, sentiment_alert_enabled, sentiment_alert_threshold, sentiment_consecutive_count')
           .eq('user_id', user.id)
           .maybeSingle();
 
@@ -61,6 +68,9 @@ export const useNotificationSettings = () => {
             quietHoursStart: data.quiet_hours_start ?? DEFAULT_SETTINGS.quietHoursStart,
             quietHoursEnd: data.quiet_hours_end ?? DEFAULT_SETTINGS.quietHoursEnd,
             browserNotifications: data.browser_notifications_enabled ?? DEFAULT_SETTINGS.browserNotifications,
+            sentimentAlertEnabled: data.sentiment_alert_enabled ?? DEFAULT_SETTINGS.sentimentAlertEnabled,
+            sentimentAlertThreshold: data.sentiment_alert_threshold ?? DEFAULT_SETTINGS.sentimentAlertThreshold,
+            sentimentConsecutiveCount: data.sentiment_consecutive_count ?? DEFAULT_SETTINGS.sentimentConsecutiveCount,
           }));
         }
       } catch (error) {
@@ -99,6 +109,15 @@ export const useNotificationSettings = () => {
       if ('browserNotifications' in updates) {
         dbUpdates.browser_notifications_enabled = updates.browserNotifications;
       }
+      if ('sentimentAlertEnabled' in updates) {
+        dbUpdates.sentiment_alert_enabled = updates.sentimentAlertEnabled;
+      }
+      if ('sentimentAlertThreshold' in updates) {
+        dbUpdates.sentiment_alert_threshold = updates.sentimentAlertThreshold;
+      }
+      if ('sentimentConsecutiveCount' in updates) {
+        dbUpdates.sentiment_consecutive_count = updates.sentimentConsecutiveCount;
+      }
 
       // Only save to DB if we have DB-mappable fields
       if (Object.keys(dbUpdates).length > 0) {
@@ -136,6 +155,9 @@ export const useNotificationSettings = () => {
           quiet_hours_start: DEFAULT_SETTINGS.quietHoursStart,
           quiet_hours_end: DEFAULT_SETTINGS.quietHoursEnd,
           browser_notifications_enabled: DEFAULT_SETTINGS.browserNotifications,
+          sentiment_alert_enabled: DEFAULT_SETTINGS.sentimentAlertEnabled,
+          sentiment_alert_threshold: DEFAULT_SETTINGS.sentimentAlertThreshold,
+          sentiment_consecutive_count: DEFAULT_SETTINGS.sentimentConsecutiveCount,
           updated_at: new Date().toISOString(),
         }, {
           onConflict: 'user_id',
