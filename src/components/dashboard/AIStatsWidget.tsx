@@ -24,8 +24,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
+import { Checkbox } from '@/components/ui/checkbox';
+
 type PeriodOption = 7 | 14 | 30;
-type SentimentFilter = 'all' | 'positive' | 'negative' | 'neutral';
+type SentimentType = 'positive' | 'negative' | 'neutral';
 
 const periodLabels: Record<PeriodOption, string> = {
   7: '7 dias',
@@ -33,11 +35,10 @@ const periodLabels: Record<PeriodOption, string> = {
   30: '30 dias',
 };
 
-const sentimentFilterLabels: Record<SentimentFilter, string> = {
-  all: 'Todos',
-  positive: 'Positivo',
-  negative: 'Negativo',
-  neutral: 'Neutro',
+const sentimentTypeLabels: Record<SentimentType, { label: string; color: string }> = {
+  positive: { label: 'Positivo', color: 'bg-success' },
+  negative: { label: 'Negativo', color: 'bg-destructive' },
+  neutral: { label: 'Neutro', color: 'bg-muted-foreground' },
 };
 
 interface TrendData {
@@ -164,7 +165,23 @@ const calculateTrend = (current: number, previous: number): TrendData => {
 
 export function AIStatsWidget() {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
-  const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>('all');
+  const [visibleSentiments, setVisibleSentiments] = useState<Set<SentimentType>>(
+    new Set(['positive', 'negative', 'neutral'])
+  );
+
+  const toggleSentiment = (sentiment: SentimentType) => {
+    setVisibleSentiments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sentiment)) {
+        if (newSet.size > 1) {
+          newSet.delete(sentiment);
+        }
+      } else {
+        newSet.add(sentiment);
+      }
+      return newSet;
+    });
+  };
   
   const { data: stats, isLoading } = useQuery({
     queryKey: ['ai-stats-widget', selectedPeriod],
@@ -432,62 +449,37 @@ export function AIStatsWidget() {
             <div className="space-y-2 pt-2 border-t border-border/30">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground font-medium">Evolução do Sentimento ({periodLabels[selectedPeriod]})</p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1">
-                      {sentimentFilter === 'all' ? (
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                      ) : sentimentFilter === 'positive' ? (
-                        <div className="w-2 h-2 rounded-full bg-success" />
-                      ) : sentimentFilter === 'negative' ? (
-                        <div className="w-2 h-2 rounded-full bg-destructive" />
-                      ) : (
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-                      )}
-                      {sentimentFilterLabels[sentimentFilter]}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                    {(['all', 'positive', 'negative', 'neutral'] as SentimentFilter[]).map((filter) => (
-                      <DropdownMenuItem
-                        key={filter}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSentimentFilter(filter);
-                        }}
-                        className={cn(sentimentFilter === filter && "bg-accent", "gap-2")}
-                      >
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          filter === 'all' && "bg-primary",
-                          filter === 'positive' && "bg-success",
-                          filter === 'negative' && "bg-destructive",
-                          filter === 'neutral' && "bg-muted-foreground"
-                        )} />
-                        {sentimentFilterLabels[filter]}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                  {(['positive', 'negative', 'neutral'] as SentimentType[]).map((sentiment) => (
+                    <label
+                      key={sentiment}
+                      className="flex items-center gap-1.5 cursor-pointer text-[10px]"
+                    >
+                      <Checkbox
+                        checked={visibleSentiments.has(sentiment)}
+                        onCheckedChange={() => toggleSentiment(sentiment)}
+                        className="w-3 h-3"
+                      />
+                      <div className={cn("w-2 h-2 rounded-full", sentimentTypeLabels[sentiment].color)} />
+                      <span className="text-muted-foreground">{sentimentTypeLabels[sentiment].label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <ChartContainer config={chartConfig} className="h-[100px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={stats.sentimentTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                     <defs>
-                      <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                      </linearGradient>
                       <linearGradient id="positiveGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.2} />
                         <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="negativeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.2} />
                         <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="neutralGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.2} />
                         <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
                       </linearGradient>
                     </defs>
@@ -498,23 +490,13 @@ export function AIStatsWidget() {
                       tickLine={false}
                     />
                     <YAxis 
-                      domain={sentimentFilter === 'all' ? [0, 100] : ['auto', 'auto']}
+                      domain={['auto', 'auto']}
                       tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <Tooltip content={<ChartTooltipContent />} />
-                    {sentimentFilter === 'all' && (
-                      <Area
-                        type="monotone"
-                        dataKey="score"
-                        name="Sentimento Médio"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        fill="url(#sentimentGradient)"
-                      />
-                    )}
-                    {sentimentFilter === 'positive' && (
+                    {visibleSentiments.has('positive') && (
                       <Area
                         type="monotone"
                         dataKey="positive"
@@ -524,7 +506,7 @@ export function AIStatsWidget() {
                         fill="url(#positiveGradient)"
                       />
                     )}
-                    {sentimentFilter === 'negative' && (
+                    {visibleSentiments.has('negative') && (
                       <Area
                         type="monotone"
                         dataKey="negative"
@@ -534,7 +516,7 @@ export function AIStatsWidget() {
                         fill="url(#negativeGradient)"
                       />
                     )}
-                    {sentimentFilter === 'neutral' && (
+                    {visibleSentiments.has('neutral') && (
                       <Area
                         type="monotone"
                         dataKey="neutral"
