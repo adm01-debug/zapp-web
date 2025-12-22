@@ -18,6 +18,7 @@ import {
   Zap,
   BarChart3,
   RefreshCw,
+  Brain,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
@@ -26,6 +27,7 @@ import { DemoAchievements } from '@/components/gamification/DemoAchievements';
 import { FloatingParticles } from './FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { SLAMetricsDashboard } from './SLAMetricsDashboard';
+import { AIQuickAccess } from './AIQuickAccess';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
@@ -181,6 +183,10 @@ export function DashboardView() {
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
             Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            Inteligência Artificial
           </TabsTrigger>
           <TabsTrigger value="sla" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
@@ -462,6 +468,10 @@ export function DashboardView() {
       >
         <DemoAchievements />
       </motion.div>
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-6">
+          <AIQuickAccess />
         </TabsContent>
 
         <TabsContent value="sla">
