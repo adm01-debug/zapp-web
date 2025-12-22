@@ -15,7 +15,10 @@ import {
   Filter,
   Calendar,
   ChevronRight,
-  User
+  User,
+  Download,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,9 +27,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { exportToPDF, exportToExcel, ReportData } from '@/utils/exportReport';
+import { toast } from 'sonner';
 
 interface SentimentAlert {
   id: string;
@@ -258,6 +264,127 @@ export function SentimentAlertsDashboard() {
     return 'bg-green-500';
   };
 
+  const getSentimentLabel = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positivo': return 'Positivo';
+      case 'negativo': return 'Negativo';
+      case 'neutro': return 'Neutro';
+      default: return sentiment;
+    }
+  };
+
+  const handleExportAlerts = (type: 'pdf' | 'excel') => {
+    const reportData: ReportData = {
+      title: 'Relatório de Alertas de Sentimento',
+      subtitle: `Período: Últimos ${period} dias`,
+      generatedAt: new Date(),
+      columns: [
+        { header: 'Data/Hora', key: 'date', width: 20 },
+        { header: 'Cliente', key: 'contact', width: 25 },
+        { header: 'Score', key: 'score', width: 10 },
+        { header: 'Consecutivas', key: 'consecutive', width: 12 },
+        { header: 'Agente', key: 'agent', width: 20 },
+        { header: 'Email Enviado', key: 'emailSent', width: 15 },
+      ],
+      rows: alerts.map(alert => ({
+        date: format(new Date(alert.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+        contact: alert.contact_name || 'Cliente',
+        score: `${alert.sentiment_score || 0}%`,
+        consecutive: alert.consecutive_low || 0,
+        agent: alert.agent_name || '-',
+        emailSent: alert.email_sent ? 'Sim' : 'Não',
+      })),
+      summary: [
+        { label: 'Total de Alertas', value: stats.totalAlerts },
+        { label: 'Alertas Críticos', value: stats.criticalAlerts },
+        { label: 'Emails Enviados', value: stats.emailsSent },
+        { label: 'Clientes Afetados', value: stats.uniqueContacts },
+        { label: 'Sentimento Médio', value: `${stats.avgSentiment}%` },
+      ],
+    };
+
+    if (type === 'pdf') {
+      exportToPDF(reportData);
+      toast.success('Relatório PDF exportado com sucesso');
+    } else {
+      exportToExcel(reportData);
+      toast.success('Relatório Excel exportado com sucesso');
+    }
+  };
+
+  const handleExportAnalyses = (type: 'pdf' | 'excel') => {
+    const reportData: ReportData = {
+      title: 'Relatório de Análises de Sentimento',
+      subtitle: `Período: Últimos ${period} dias`,
+      generatedAt: new Date(),
+      columns: [
+        { header: 'Data/Hora', key: 'date', width: 20 },
+        { header: 'Contato', key: 'contact', width: 25 },
+        { header: 'Sentimento', key: 'sentiment', width: 15 },
+        { header: 'Score', key: 'score', width: 10 },
+      ],
+      rows: analyses.map(analysis => ({
+        date: format(new Date(analysis.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+        contact: analysis.contact_id,
+        sentiment: getSentimentLabel(analysis.sentiment),
+        score: `${analysis.sentiment_score || 0}%`,
+      })),
+      summary: [
+        { label: 'Total de Análises', value: stats.totalAnalyses },
+        { label: 'Positivas', value: stats.positiveAnalyses },
+        { label: 'Neutras', value: stats.neutralAnalyses },
+        { label: 'Negativas', value: stats.negativeAnalyses },
+        { label: 'Taxa de Negativos', value: `${stats.negativeRate}%` },
+      ],
+    };
+
+    if (type === 'pdf') {
+      exportToPDF(reportData);
+      toast.success('Relatório PDF exportado com sucesso');
+    } else {
+      exportToExcel(reportData);
+      toast.success('Relatório Excel exportado com sucesso');
+    }
+  };
+
+  const handleExportAgents = (type: 'pdf' | 'excel') => {
+    const reportData: ReportData = {
+      title: 'Relatório de Sentimento por Agente',
+      subtitle: `Período: Últimos ${period} dias`,
+      generatedAt: new Date(),
+      columns: [
+        { header: 'Agente', key: 'agent', width: 25 },
+        { header: 'Score Médio', key: 'avgScore', width: 15 },
+        { header: 'Total Análises', key: 'total', width: 15 },
+        { header: 'Positivas', key: 'positive', width: 12 },
+        { header: 'Neutras', key: 'neutral', width: 12 },
+        { header: 'Negativas', key: 'negative', width: 12 },
+        { header: 'Tendência', key: 'trend', width: 12 },
+      ],
+      rows: agentData.map(data => ({
+        agent: data.agent.name,
+        avgScore: `${data.avgScore}%`,
+        total: data.totalAnalyses,
+        positive: data.positive,
+        neutral: data.neutral,
+        negative: data.negative,
+        trend: data.trend > 0 ? `+${data.trend}%` : `${data.trend}%`,
+      })),
+      summary: [
+        { label: 'Total de Agentes', value: agentData.length },
+        { label: 'Melhor Score', value: agentData.length > 0 ? `${agentData[0]?.avgScore}% (${agentData[0]?.agent.name})` : '-' },
+      ],
+    };
+
+    if (type === 'pdf') {
+      exportToPDF(reportData);
+      toast.success('Relatório PDF exportado com sucesso');
+    } else {
+      exportToExcel(reportData);
+      toast.success('Relatório Excel exportado com sucesso');
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -267,6 +394,40 @@ export function SentimentAlertsDashboard() {
           <p className="text-muted-foreground">Monitore o sentimento dos clientes e alertas automáticos</p>
         </div>
         <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => handleExportAlerts('pdf')} className="gap-2">
+                <FileText className="h-4 w-4 text-red-500" />
+                Alertas (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportAlerts('excel')} className="gap-2">
+                <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                Alertas (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportAnalyses('pdf')} className="gap-2">
+                <FileText className="h-4 w-4 text-red-500" />
+                Análises (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportAnalyses('excel')} className="gap-2">
+                <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                Análises (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportAgents('pdf')} className="gap-2">
+                <FileText className="h-4 w-4 text-red-500" />
+                Por Agente (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportAgents('excel')} className="gap-2">
+                <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                Por Agente (Excel)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-40">
               <Calendar className="h-4 w-4 mr-2" />
