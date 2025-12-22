@@ -29,6 +29,7 @@ import { LocationPicker } from './LocationPicker';
 import { ProductCatalog } from '@/components/catalog/ProductCatalog';
 import { ProductMessage } from '@/components/catalog/ProductMessage';
 import { Product } from '@/components/catalog/ProductCard';
+import { AIConversationAssistant } from './AIConversationAssistant';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -69,6 +70,7 @@ import {
   Copy,
   MapPin,
   Package,
+  Brain,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -135,6 +137,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [showForwardDialog, setShowForwardDialog] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -373,7 +376,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex h-full bg-background">
+      <div className="flex flex-col flex-1 h-full">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
@@ -452,6 +456,20 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
               <Video className="w-4 h-4" />
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={cn(
+                "text-muted-foreground hover:text-primary hover:bg-primary/10",
+                showAIAssistant && "text-primary bg-primary/10"
+              )}
+              onClick={() => setShowAIAssistant(!showAIAssistant)}
+              title="Assistente IA"
+            >
+              <Brain className="w-4 h-4" />
             </Button>
           </motion.div>
           <DropdownMenu>
@@ -1013,6 +1031,22 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         open={showLocationPicker}
         onOpenChange={setShowLocationPicker}
         onSend={handleSendLocation}
+      />
+      </div>
+
+      {/* AI Conversation Assistant */}
+      <AIConversationAssistant
+        messages={messages.map(m => ({
+          id: m.id,
+          sender: m.sender,
+          content: m.content,
+          type: m.type,
+          mediaUrl: m.mediaUrl,
+          created_at: m.timestamp.toISOString()
+        }))}
+        contactName={conversation.contact.name}
+        isOpen={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
       />
     </div>
   );
