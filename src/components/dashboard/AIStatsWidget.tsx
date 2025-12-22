@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from '@/components/ui/motion';
-import { Brain, TrendingUp, TrendingDown, Minus, Sparkles, AlertTriangle, Mic, Calendar } from 'lucide-react';
+import { Brain, TrendingUp, TrendingDown, Minus, Sparkles, AlertTriangle, Mic, Calendar, Bell } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,6 +47,15 @@ interface TrendData {
   percentage: number;
 }
 
+interface SentimentAlert {
+  id: string;
+  contactId: string | null;
+  createdAt: string;
+  contact_name?: string;
+  sentiment_score?: number;
+  consecutive_low?: number;
+}
+
 interface AIStats {
   totalAnalyses: number;
   avgSentimentScore: number;
@@ -54,6 +63,7 @@ interface AIStats {
   negativeSentiment: number;
   neutralSentiment: number;
   transcriptionsCount: number;
+  activeAlerts: SentimentAlert[];
   sentimentTrend: { date: string; score: number; positive: number; negative: number; neutral: number }[];
   trends: {
     analyses: TrendData;
@@ -260,6 +270,23 @@ export function AIStatsWidget() {
         .gte('created_at', previousPeriodStart.toISOString())
         .lt('created_at', periodStart.toISOString());
 
+      // Fetch recent sentiment alerts (last 24 hours)
+      const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: alertData } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .eq('action', 'sentiment_alert')
+        .gte('created_at', last24h)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const activeAlerts: SentimentAlert[] = (alertData || []).map(log => ({
+        id: log.id,
+        contactId: log.entity_id,
+        createdAt: log.created_at,
+        ...((log.details || {}) as Record<string, unknown>),
+      }));
+
       return {
         totalAnalyses,
         avgSentimentScore: Math.round(avgSentimentScore * 100) / 100,
@@ -267,6 +294,7 @@ export function AIStatsWidget() {
         negativeSentiment,
         neutralSentiment,
         transcriptionsCount: currentTranscriptions || 0,
+        activeAlerts,
         sentimentTrend,
         trends: {
           analyses: calculateTrend(totalAnalyses, prevTotal),
@@ -419,6 +447,52 @@ export function AIStatsWidget() {
               </motion.div>
             ))}
           </div>
+
+          {/* Active Alerts Indicator */}
+          {stats?.activeAlerts && stats.activeAlerts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/30"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Bell className="w-4 h-4 text-destructive" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full animate-pulse" />
+                  </div>
+                  <span className="text-sm font-medium text-destructive">
+                    {stats.activeAlerts.length} Alerta{stats.activeAlerts.length > 1 ? 's' : ''} Ativo{stats.activeAlerts.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Últimas 24h</span>
+              </div>
+              <div className="space-y-1">
+                {stats.activeAlerts.slice(0, 3).map((alert) => (
+                  <div key={alert.id} className="flex items-center justify-between text-xs">
+                    <span className="text-foreground truncate max-w-[150px]">
+                      {alert.contact_name || 'Cliente'}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-destructive font-medium">
+                        {alert.sentiment_score || 0}%
+                      </span>
+                      {alert.consecutive_low && (
+                        <span className="text-muted-foreground">
+                          ({alert.consecutive_low}x)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {stats.activeAlerts.length > 3 && (
+                  <p className="text-[10px] text-muted-foreground text-center pt-1">
+                    +{stats.activeAlerts.length - 3} mais alertas
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          )}
 
           {/* Sentiment Distribution Bar */}
           <div className="space-y-2">
