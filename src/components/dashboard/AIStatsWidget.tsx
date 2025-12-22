@@ -9,7 +9,12 @@ import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-
+import {
+  Tooltip as TooltipUI,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 interface TrendData {
   direction: 'up' | 'down' | 'stable';
   change: number;
@@ -32,13 +37,34 @@ interface AIStats {
   };
 }
 
-const TrendIndicator = ({ trend }: { trend: TrendData }) => {
+const TrendIndicator = ({ trend, label }: { trend: TrendData; label: string }) => {
+  const getTooltipMessage = () => {
+    if (trend.direction === 'stable') {
+      return `${label} manteve-se estável nos últimos 7 dias comparado ao período anterior`;
+    }
+    
+    const direction = trend.direction === 'up' ? 'aumentou' : 'diminuiu';
+    const absChange = Math.abs(trend.change);
+    const absPercentage = Math.abs(trend.percentage).toFixed(1);
+    
+    return `${label} ${direction} ${absPercentage}% (${absChange > 0 ? (trend.direction === 'up' ? '+' : '-') + absChange : 0}) nos últimos 7 dias comparado ao período anterior (7-14 dias atrás)`;
+  };
+
   if (trend.direction === 'stable') {
     return (
-      <div className="flex items-center gap-0.5 text-muted-foreground">
-        <Minus className="w-3 h-3" />
-        <span className="text-[10px]">0%</span>
-      </div>
+      <TooltipProvider>
+        <TooltipUI>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-0.5 text-muted-foreground cursor-help">
+              <Minus className="w-3 h-3" />
+              <span className="text-[10px]">0%</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-[200px] text-xs">
+            <p>{getTooltipMessage()}</p>
+          </TooltipContent>
+        </TooltipUI>
+      </TooltipProvider>
     );
   }
 
@@ -47,17 +73,26 @@ const TrendIndicator = ({ trend }: { trend: TrendData }) => {
   const colorClass = isUp ? 'text-success' : 'text-destructive';
 
   return (
-    <motion.div 
-      className={cn("flex items-center gap-0.5", colorClass)}
-      initial={{ opacity: 0, x: -5 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <Icon className="w-3 h-3" />
-      <span className="text-[10px] font-medium">
-        {isUp ? '+' : ''}{trend.percentage.toFixed(0)}%
-      </span>
-    </motion.div>
+    <TooltipProvider>
+      <TooltipUI>
+        <TooltipTrigger asChild>
+          <motion.div 
+            className={cn("flex items-center gap-0.5 cursor-help", colorClass)}
+            initial={{ opacity: 0, x: -5 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Icon className="w-3 h-3" />
+            <span className="text-[10px] font-medium">
+              {isUp ? '+' : ''}{trend.percentage.toFixed(0)}%
+            </span>
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-[200px] text-xs">
+          <p>{getTooltipMessage()}</p>
+        </TooltipContent>
+      </TooltipUI>
+    </TooltipProvider>
   );
 };
 
@@ -304,7 +339,7 @@ export function AIStatsWidget() {
                   <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", metric.bgColor)}>
                     <metric.icon className={cn("w-4 h-4", metric.color)} />
                   </div>
-                  {metric.trend && <TrendIndicator trend={metric.trend} />}
+                  {metric.trend && <TrendIndicator trend={metric.trend} label={metric.label} />}
                 </div>
                 <p className="text-xl font-bold text-foreground">{metric.value}</p>
                 <p className="text-xs text-muted-foreground">{metric.label}</p>
