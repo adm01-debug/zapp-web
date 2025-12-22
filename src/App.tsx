@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
+import { RealtimeSentimentAlertProvider } from "@/components/notifications/RealtimeSentimentAlertProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import QueueDetails from "./pages/QueueDetails";
@@ -20,6 +21,7 @@ const App = () => (
     <AuthProvider>
       <GamificationProvider>
         <TooltipProvider>
+          <RealtimeSentimentAlertProvider />
           <Toaster />
           <Sonner />
           <BrowserRouter>
