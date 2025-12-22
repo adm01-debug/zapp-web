@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from '@/components/ui/motion';
-import { Brain, MessageSquare, TrendingUp, Sparkles, AlertTriangle, Mic } from 'lucide-react';
+import { Brain, TrendingUp, Sparkles, AlertTriangle, Mic } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { format, subDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 interface AIStats {
   totalAnalyses: number;
@@ -14,19 +17,36 @@ interface AIStats {
   negativeSentiment: number;
   neutralSentiment: number;
   transcriptionsCount: number;
+  sentimentTrend: { date: string; score: number; positive: number; negative: number; neutral: number }[];
 }
 
-export function AIStatsWidget() {
-  const navigate = useNavigate();
+const chartConfig = {
+  score: {
+    label: 'Sentimento',
+    color: 'hsl(var(--primary))',
+  },
+  positive: {
+    label: 'Positivo',
+    color: 'hsl(var(--success))',
+  },
+  negative: {
+    label: 'Negativo',
+    color: 'hsl(var(--destructive))',
+  },
+};
 
+export function AIStatsWidget() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['ai-stats-widget'],
     queryFn: async (): Promise<AIStats> => {
+      // Get last 7 days of analyses for trend
+      const last7Days = subDays(new Date(), 7);
+      
       const { data: analyses, error } = await supabase
         .from('conversation_analyses')
-        .select('sentiment, sentiment_score')
-        .order('created_at', { ascending: false })
-        .limit(100);
+        .select('sentiment, sentiment_score, created_at')
+        .gte('created_at', last7Days.toISOString())
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
 
@@ -35,6 +55,33 @@ export function AIStatsWidget() {
       const positiveSentiment = analyses?.filter(a => a.sentiment === 'positive').length || 0;
       const negativeSentiment = analyses?.filter(a => a.sentiment === 'negative').length || 0;
       const neutralSentiment = analyses?.filter(a => a.sentiment === 'neutral').length || 0;
+
+      // Group by date for trend chart
+      const trendMap = new Map<string, { scores: number[]; positive: number; negative: number; neutral: number }>();
+      
+      // Initialize last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = format(subDays(new Date(), i), 'yyyy-MM-dd');
+        trendMap.set(date, { scores: [], positive: 0, negative: 0, neutral: 0 });
+      }
+      
+      analyses?.forEach(a => {
+        const date = format(new Date(a.created_at), 'yyyy-MM-dd');
+        const existing = trendMap.get(date) || { scores: [], positive: 0, negative: 0, neutral: 0 };
+        existing.scores.push(a.sentiment_score || 50);
+        if (a.sentiment === 'positive') existing.positive++;
+        else if (a.sentiment === 'negative') existing.negative++;
+        else existing.neutral++;
+        trendMap.set(date, existing);
+      });
+
+      const sentimentTrend = Array.from(trendMap.entries()).map(([date, data]) => ({
+        date: format(new Date(date), 'dd/MM', { locale: ptBR }),
+        score: data.scores.length > 0 ? Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length) : 50,
+        positive: data.positive,
+        negative: data.negative,
+        neutral: data.neutral,
+      }));
 
       // Count messages with transcriptions
       const { count: transcriptionsCount } = await supabase
@@ -49,6 +96,7 @@ export function AIStatsWidget() {
         negativeSentiment,
         neutralSentiment,
         transcriptionsCount: transcriptionsCount || 0,
+        sentimentTrend,
       };
     },
     refetchInterval: 60000,
@@ -189,6 +237,46 @@ export function AIStatsWidget() {
               ))}
             </div>
           </div>
+
+          {/* Sentiment Trend Chart */}
+          {stats?.sentimentTrend && stats.sentimentTrend.length > 0 && (
+            <div className="space-y-2 pt-2 border-t border-border/30">
+              <p className="text-xs text-muted-foreground font-medium">Evolução do Sentimento (7 dias)</p>
+              <ChartContainer config={chartConfig} className="h-[100px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={stats.sentimentTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      domain={[0, 100]}
+                      tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<ChartTooltipContent />} />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      name="Sentimento"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      fill="url(#sentimentGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
