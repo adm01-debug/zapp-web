@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { RealtimeInboxView } from '@/components/inbox/RealtimeInboxView';
 import { DashboardView } from '@/components/dashboard/DashboardView';
+import { SentimentAlertsDashboard } from '@/components/dashboard/SentimentAlertsDashboard';
 import { AgentsView } from '@/components/agents/AgentsView';
 import { QueuesView } from '@/components/queues/QueuesView';
 import { ContactsView } from '@/components/contacts/ContactsView';
@@ -130,6 +131,8 @@ const Index = () => {
         return <AdminView />;
       case 'tags':
         return <TagsView />;
+      case 'sentiment':
+        return <SentimentAlertsDashboard />;
       case 'settings':
         return <SettingsView />;
       default:

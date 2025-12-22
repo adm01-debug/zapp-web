@@ -16,6 +16,7 @@ import {
   UsersRound,
   Sparkles,
   Package,
+  AlertTriangle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -45,6 +46,7 @@ const menuItems = [
   { id: 'catalog', icon: Package, label: 'Catálogo' },
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
+  { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
   { id: 'admin', icon: Shield, label: 'Admin' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
 ];
