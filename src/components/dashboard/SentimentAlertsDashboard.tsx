@@ -14,7 +14,8 @@ import {
   Bell,
   Filter,
   Calendar,
-  ChevronRight
+  ChevronRight,
+  User
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -45,15 +47,33 @@ interface ConversationAnalysis {
   sentiment: string;
   sentiment_score: number;
   created_at: string;
+  analyzed_by: string | null;
   contacts?: {
     name: string;
     phone: string;
   };
 }
 
+interface AgentProfile {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+}
+
+interface AgentSentimentData {
+  agent: AgentProfile;
+  totalAnalyses: number;
+  avgScore: number;
+  positive: number;
+  neutral: number;
+  negative: number;
+  trend: number; // positive = improving, negative = declining
+}
+
 export function SentimentAlertsDashboard() {
   const [alerts, setAlerts] = useState<SentimentAlert[]>([]);
   const [analyses, setAnalyses] = useState<ConversationAnalysis[]>([]);
+  const [agents, setAgents] = useState<AgentProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('7');
   const [activeTab, setActiveTab] = useState('overview');
@@ -90,12 +110,21 @@ export function SentimentAlertsDashboard() {
       // Fetch all analyses for statistics
       const { data: analysisData, error: analysisError } = await supabase
         .from('conversation_analyses')
-        .select('id, contact_id, sentiment, sentiment_score, created_at')
+        .select('id, contact_id, sentiment, sentiment_score, created_at, analyzed_by')
         .gte('created_at', startDate)
         .order('created_at', { ascending: false });
 
       if (analysisError) throw analysisError;
       setAnalyses((analysisData || []) as ConversationAnalysis[]);
+
+      // Fetch agents
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .eq('is_active', true);
+
+      if (agentsError) throw agentsError;
+      setAgents((agentsData || []) as AgentProfile[]);
 
     } catch (error) {
       console.error('Error fetching sentiment data:', error);
@@ -158,6 +187,62 @@ export function SentimentAlertsDashboard() {
 
     return data;
   }, [analyses, period]);
+
+  // Group analyses by agent
+  const agentData = React.useMemo((): AgentSentimentData[] => {
+    const days = parseInt(period);
+    const halfPeriod = Math.floor(days / 2);
+    
+    return agents.map(agent => {
+      const agentAnalyses = analyses.filter(a => a.analyzed_by === agent.id);
+      const totalAnalyses = agentAnalyses.length;
+      
+      // Calculate sentiment distribution
+      const positive = agentAnalyses.filter(a => a.sentiment === 'positivo').length;
+      const neutral = agentAnalyses.filter(a => a.sentiment === 'neutro').length;
+      const negative = agentAnalyses.filter(a => a.sentiment === 'negativo').length;
+      
+      // Calculate average score
+      const avgScore = totalAnalyses > 0
+        ? Math.round(agentAnalyses.reduce((sum, a) => sum + (a.sentiment_score || 50), 0) / totalAnalyses)
+        : 0;
+      
+      // Calculate trend (compare first half vs second half of period)
+      const firstHalfStart = subDays(new Date(), days);
+      const firstHalfEnd = subDays(new Date(), halfPeriod);
+      const secondHalfStart = subDays(new Date(), halfPeriod);
+      
+      const firstHalfAnalyses = agentAnalyses.filter(a => {
+        const date = new Date(a.created_at);
+        return date >= firstHalfStart && date < firstHalfEnd;
+      });
+      
+      const secondHalfAnalyses = agentAnalyses.filter(a => {
+        const date = new Date(a.created_at);
+        return date >= secondHalfStart;
+      });
+      
+      const firstHalfAvg = firstHalfAnalyses.length > 0
+        ? firstHalfAnalyses.reduce((sum, a) => sum + (a.sentiment_score || 50), 0) / firstHalfAnalyses.length
+        : 50;
+      
+      const secondHalfAvg = secondHalfAnalyses.length > 0
+        ? secondHalfAnalyses.reduce((sum, a) => sum + (a.sentiment_score || 50), 0) / secondHalfAnalyses.length
+        : 50;
+      
+      const trend = Math.round(secondHalfAvg - firstHalfAvg);
+      
+      return {
+        agent,
+        totalAnalyses,
+        avgScore,
+        positive,
+        neutral,
+        negative,
+        trend,
+      };
+    }).filter(a => a.totalAnalyses > 0).sort((a, b) => b.avgScore - a.avgScore);
+  }, [analyses, agents, period]);
 
   const getSentimentColor = (score: number) => {
     if (score < 30) return 'text-red-400';
@@ -295,6 +380,10 @@ export function SentimentAlertsDashboard() {
             <BarChart3 className="h-4 w-4" />
             Visão Geral
           </TabsTrigger>
+          <TabsTrigger value="agents" className="gap-2">
+            <User className="h-4 w-4" />
+            Por Agente
+          </TabsTrigger>
           <TabsTrigger value="alerts" className="gap-2">
             <AlertTriangle className="h-4 w-4" />
             Alertas ({alerts.length})
@@ -402,6 +491,131 @@ export function SentimentAlertsDashboard() {
                     </div>
                   )}
                 </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Agents Tab */}
+        <TabsContent value="agents" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Agent Sentiment Rankings */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Ranking de Sentimento por Agente</CardTitle>
+                <CardDescription>Média de sentimento dos atendimentos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[400px]">
+                  {agentData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                      <Users className="h-12 w-12 mb-4 opacity-30" />
+                      <p>Nenhuma análise no período</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {agentData.map((data, index) => (
+                        <motion.div
+                          key={data.agent.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="flex items-center gap-4 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-1 w-6 text-sm font-bold text-muted-foreground">
+                            #{index + 1}
+                          </div>
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={data.agent.avatar_url || undefined} />
+                            <AvatarFallback>{data.agent.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{data.agent.name}</p>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              <span>{data.totalAnalyses} análises</span>
+                              <span className="flex items-center gap-1">
+                                {data.trend > 0 ? (
+                                  <>
+                                    <TrendingUp className="h-3 w-3 text-green-400" />
+                                    <span className="text-green-400">+{data.trend}%</span>
+                                  </>
+                                ) : data.trend < 0 ? (
+                                  <>
+                                    <TrendingDown className="h-3 w-3 text-red-400" />
+                                    <span className="text-red-400">{data.trend}%</span>
+                                  </>
+                                ) : (
+                                  <span>Estável</span>
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-xl font-bold ${getSentimentColor(data.avgScore)}`}>
+                              {data.avgScore}%
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            {/* Agent Sentiment Comparison Chart */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Distribuição por Agente</CardTitle>
+                <CardDescription>Comparativo de sentimento entre agentes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {agentData.slice(0, 8).map((data) => {
+                    const total = data.positive + data.neutral + data.negative;
+                    return (
+                      <div key={data.agent.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={data.agent.avatar_url || undefined} />
+                              <AvatarFallback className="text-[10px]">{data.agent.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-medium truncate max-w-[120px]">{data.agent.name}</span>
+                          </div>
+                          <span className={`text-sm font-bold ${getSentimentColor(data.avgScore)}`}>
+                            {data.avgScore}%
+                          </span>
+                        </div>
+                        <div className="h-4 flex rounded-full overflow-hidden bg-muted">
+                          <div 
+                            className="bg-green-500 transition-all"
+                            style={{ width: `${(data.positive / Math.max(total, 1)) * 100}%` }}
+                          />
+                          <div 
+                            className="bg-muted-foreground/50 transition-all"
+                            style={{ width: `${(data.neutral / Math.max(total, 1)) * 100}%` }}
+                          />
+                          <div 
+                            className="bg-red-500 transition-all"
+                            style={{ width: `${(data.negative / Math.max(total, 1)) * 100}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                          <span className="text-green-400">{data.positive} positivas</span>
+                          <span>{data.neutral} neutras</span>
+                          <span className="text-red-400">{data.negative} negativas</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {agentData.length === 0 && (
+                    <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                      <BarChart3 className="h-12 w-12 mb-4 opacity-30" />
+                      <p>Nenhum dado para exibir</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
