@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from '@/components/ui/motion';
-import { Brain, TrendingUp, TrendingDown, Minus, Sparkles, AlertTriangle, Mic } from 'lucide-react';
+import { Brain, TrendingUp, TrendingDown, Minus, Sparkles, AlertTriangle, Mic, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,6 +15,23 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+
+type PeriodOption = 7 | 14 | 30;
+
+const periodLabels: Record<PeriodOption, string> = {
+  7: '7 dias',
+  14: '14 dias',
+  30: '30 dias',
+};
+
 interface TrendData {
   direction: 'up' | 'down' | 'stable';
   change: number;
@@ -37,12 +54,12 @@ interface AIStats {
   };
 }
 
-const TrendIndicator = ({ trend, label }: { trend: TrendData; label: string }) => {
+const TrendIndicator = ({ trend, label, periodDays }: { trend: TrendData; label: string; periodDays: number }) => {
   const isSignificant = Math.abs(trend.percentage) > 20;
   
   const getTooltipMessage = () => {
     if (trend.direction === 'stable') {
-      return `${label} manteve-se estável nos últimos 7 dias comparado ao período anterior`;
+      return `${label} manteve-se estável nos últimos ${periodDays} dias comparado ao período anterior`;
     }
     
     const direction = trend.direction === 'up' ? 'aumentou' : 'diminuiu';
@@ -50,7 +67,7 @@ const TrendIndicator = ({ trend, label }: { trend: TrendData; label: string }) =
     const absPercentage = Math.abs(trend.percentage).toFixed(1);
     const significantText = isSignificant ? ' (mudança significativa!)' : '';
     
-    return `${label} ${direction} ${absPercentage}% (${absChange > 0 ? (trend.direction === 'up' ? '+' : '-') + absChange : 0}) nos últimos 7 dias comparado ao período anterior (7-14 dias atrás)${significantText}`;
+    return `${label} ${direction} ${absPercentage}% (${absChange > 0 ? (trend.direction === 'up' ? '+' : '-') + absChange : 0}) nos últimos ${periodDays} dias comparado ao período anterior (${periodDays}-${periodDays * 2} dias atrás)${significantText}`;
   };
 
   if (trend.direction === 'stable') {
@@ -138,28 +155,30 @@ const calculateTrend = (current: number, previous: number): TrendData => {
 };
 
 export function AIStatsWidget() {
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
+  
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['ai-stats-widget'],
+    queryKey: ['ai-stats-widget', selectedPeriod],
     queryFn: async (): Promise<AIStats> => {
       const now = new Date();
-      const last7Days = subDays(now, 7);
-      const last14Days = subDays(now, 14);
+      const periodStart = subDays(now, selectedPeriod);
+      const previousPeriodStart = subDays(now, selectedPeriod * 2);
       
-      // Current period (last 7 days)
+      // Current period
       const { data: currentAnalyses, error } = await supabase
         .from('conversation_analyses')
         .select('sentiment, sentiment_score, created_at')
-        .gte('created_at', last7Days.toISOString())
+        .gte('created_at', periodStart.toISOString())
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      // Previous period (7-14 days ago)
+      // Previous period
       const { data: previousAnalyses } = await supabase
         .from('conversation_analyses')
         .select('sentiment, sentiment_score, created_at')
-        .gte('created_at', last14Days.toISOString())
-        .lt('created_at', last7Days.toISOString());
+        .gte('created_at', previousPeriodStart.toISOString())
+        .lt('created_at', periodStart.toISOString());
 
       // Current period stats
       const totalAnalyses = currentAnalyses?.length || 0;
@@ -176,8 +195,8 @@ export function AIStatsWidget() {
       // Group by date for trend chart
       const trendMap = new Map<string, { scores: number[]; positive: number; negative: number; neutral: number }>();
       
-      // Initialize last 7 days
-      for (let i = 6; i >= 0; i--) {
+      // Initialize days based on selected period
+      for (let i = selectedPeriod - 1; i >= 0; i--) {
         const date = format(subDays(new Date(), i), 'yyyy-MM-dd');
         trendMap.set(date, { scores: [], positive: 0, negative: 0, neutral: 0 });
       }
@@ -205,15 +224,15 @@ export function AIStatsWidget() {
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .not('transcription', 'is', null)
-        .gte('created_at', last7Days.toISOString());
+        .gte('created_at', periodStart.toISOString());
 
       // Previous period transcriptions
       const { count: prevTranscriptions } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .not('transcription', 'is', null)
-        .gte('created_at', last14Days.toISOString())
-        .lt('created_at', last7Days.toISOString());
+        .gte('created_at', previousPeriodStart.toISOString())
+        .lt('created_at', periodStart.toISOString());
 
       return {
         totalAnalyses,
@@ -320,13 +339,37 @@ export function AIStatsWidget() {
               </motion.div>
               <CardTitle className="font-display text-lg text-foreground">Inteligência Artificial</CardTitle>
             </div>
-            <motion.div
-              className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary transition-colors"
-              whileHover={{ x: 3 }}
-            >
-              <Sparkles className="w-3 h-3" />
-              <span>Ver mais</span>
-            </motion.div>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {periodLabels[selectedPeriod]}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                  {([7, 14, 30] as PeriodOption[]).map((period) => (
+                    <DropdownMenuItem
+                      key={period}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPeriod(period);
+                      }}
+                      className={cn(selectedPeriod === period && "bg-accent")}
+                    >
+                      {periodLabels[period]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <motion.div
+                className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary transition-colors"
+                whileHover={{ x: 3 }}
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>Ver mais</span>
+              </motion.div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-4">
@@ -343,7 +386,7 @@ export function AIStatsWidget() {
                   <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", metric.bgColor)}>
                     <metric.icon className={cn("w-4 h-4", metric.color)} />
                   </div>
-                  {metric.trend && <TrendIndicator trend={metric.trend} label={metric.label} />}
+                  {metric.trend && <TrendIndicator trend={metric.trend} label={metric.label} periodDays={selectedPeriod} />}
                 </div>
                 <p className="text-xl font-bold text-foreground">{metric.value}</p>
                 <p className="text-xs text-muted-foreground">{metric.label}</p>
@@ -378,7 +421,7 @@ export function AIStatsWidget() {
           {/* Sentiment Trend Chart */}
           {stats?.sentimentTrend && stats.sentimentTrend.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-border/30">
-              <p className="text-xs text-muted-foreground font-medium">Evolução do Sentimento (7 dias)</p>
+              <p className="text-xs text-muted-foreground font-medium">Evolução do Sentimento ({periodLabels[selectedPeriod]})</p>
               <ChartContainer config={chartConfig} className="h-[100px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={stats.sentimentTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
