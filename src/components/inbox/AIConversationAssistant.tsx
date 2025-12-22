@@ -29,6 +29,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useConversationAnalyses, ConversationAnalysis } from '@/hooks/useConversationAnalyses';
+import { useSentimentAlerts } from '@/hooks/useSentimentAlerts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -88,6 +89,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
+  const { checkAndTriggerAlert, SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
   const audioMessages = messages.filter(m => m.type === 'audio' && m.mediaUrl);
   const canAnalyze = messages.length >= 5;
@@ -136,7 +138,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       setAnalysis(data);
 
       // Save to history
-      await saveAnalysis({
+      const savedAnalysis = await saveAnalysis({
         contact_id: contactId,
         summary: data.summary,
         status: data.status,
@@ -149,6 +151,19 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         customer_satisfaction: data.customerSatisfaction || 3,
         message_count: messages.length
       });
+
+      // Check for sentiment alert
+      const sentimentScore = data.sentimentScore || 50;
+      if (sentimentScore < SENTIMENT_THRESHOLD && savedAnalysis) {
+        const previousAnalysis = analyses[0];
+        await checkAndTriggerAlert({
+          contactId,
+          contactName,
+          sentimentScore,
+          previousScore: previousAnalysis?.sentiment_score,
+          analysisId: savedAnalysis.id,
+        });
+      }
 
       toast.success('Análise completa e salva!');
     } catch (error) {

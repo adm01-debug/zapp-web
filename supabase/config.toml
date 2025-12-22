@@ -1,7 +1,7 @@
 project_id = "allrjhkpuscmgbsnmjlv"
 
 [functions.ai-conversation-summary]
-verify_jwt = true
+verify_jwt = false
 
 [functions.ai-conversation-analysis]
 verify_jwt = false
@@ -16,4 +16,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.sentiment-alert]
 verify_jwt = false
