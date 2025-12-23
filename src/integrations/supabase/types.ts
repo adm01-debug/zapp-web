@@ -421,6 +421,7 @@ export type Database = {
           assigned_to: string | null
           avatar_url: string | null
           company: string | null
+          contact_type: string | null
           created_at: string
           email: string | null
           id: string
@@ -439,6 +440,7 @@ export type Database = {
           assigned_to?: string | null
           avatar_url?: string | null
           company?: string | null
+          contact_type?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -457,6 +459,7 @@ export type Database = {
           assigned_to?: string | null
           avatar_url?: string | null
           company?: string | null
+          contact_type?: string | null
           created_at?: string
           email?: string | null
           id?: string
