@@ -167,6 +167,24 @@ export const getMaxSizeForCategory = (category: FileTypeConfig['category']): num
   return config?.maxSizeMB || 16;
 };
 
+// Get file extension from filename
+export const getFileExtension = (fileName: string): string => {
+  const parts = fileName.split('.');
+  return parts.length > 1 ? parts.pop() || '' : '';
+};
+
+// Get filename from URL
+export const getFileNameFromUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const segments = pathname.split('/');
+    return segments[segments.length - 1] || 'file';
+  } catch {
+    return 'file';
+  }
+};
+
 // Contact types for categorization
 export const CONTACT_TYPES = [
   { value: 'cliente', label: 'Cliente', color: 'bg-blue-500' },
