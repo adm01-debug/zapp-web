@@ -86,9 +86,20 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
   
   const { sendMediaMessage, sendAudioMessage, isLoading: apiLoading } = useEvolutionApi();
 
-  // Process multiple files into queue
+  const MAX_FILES = 10;
+
+  // Category order for sorting
+  const categoryOrder: Record<string, number> = {
+    image: 0,
+    video: 1,
+    audio: 2,
+    document: 3,
+    sticker: 4,
+  };
+
+  // Process multiple files into queue with sorting by type
   const processFilesToQueue = (files: File[]): QueuedFile[] => {
-    return files.map((file, index) => {
+    const processed = files.slice(0, MAX_FILES).map((file, index) => {
       const validation = validateFile(file);
       let preview: string | undefined;
       if (validation.valid && validation.category === 'image') {
@@ -102,6 +113,13 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
         status: 'pending' as const,
         progress: 0,
       };
+    });
+
+    // Sort by category: images first, then videos, audio, documents
+    return processed.sort((a, b) => {
+      const catA = a.validation.category || 'document';
+      const catB = b.validation.category || 'document';
+      return (categoryOrder[catA] ?? 99) - (categoryOrder[catB] ?? 99);
     });
   };
 
@@ -122,6 +140,10 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       setIsDialogOpen(true);
     },
     handleExternalFiles: (files: File[]) => {
+      if (files.length > MAX_FILES) {
+        toast.warning(`Limite de ${MAX_FILES} arquivos por vez. Apenas os primeiros ${MAX_FILES} serão enviados.`);
+      }
+
       if (files.length === 1) {
         // Single file - use simple mode
         const file = files[0];
@@ -134,7 +156,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
         setIsMultiMode(false);
         setFileQueue([]);
       } else {
-        // Multiple files - use queue mode
+        // Multiple files - use queue mode with limit and sorting
         const queue = processFilesToQueue(files);
         setFileQueue(queue);
         setIsMultiMode(true);
