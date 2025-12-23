@@ -30,6 +30,7 @@ import { ProductCatalog } from '@/components/catalog/ProductCatalog';
 import { ProductMessage } from '@/components/catalog/ProductMessage';
 import { Product } from '@/components/catalog/ProductCard';
 import { AIConversationAssistant } from './AIConversationAssistant';
+import { FileUploader } from './FileUploader';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -795,13 +796,17 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       >
         <div className="flex items-end gap-2">
           <div className="flex items-center gap-1">
-            {[Paperclip, Image].map((Icon, index) => (
-              <motion.div key={index} whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.9 }}>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-                  <Icon className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            ))}
+            {/* File Uploader with WhatsApp validation */}
+            <FileUploader
+              onFileSelect={(file, category) => {
+                toast({
+                  title: 'Arquivo selecionado',
+                  description: `${file.name} (${category}) será enviado.`,
+                });
+                console.log('File selected:', { file, category });
+                // Here you would call the Evolution API to send the file
+              }}
+            />
             
             {/* Interactive Message Button */}
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
