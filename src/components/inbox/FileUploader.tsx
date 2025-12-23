@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from '@/components/ui/motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +22,7 @@ import {
   Upload,
   AlertCircle,
   Check,
+  Send,
 } from 'lucide-react';
 import {
   validateFile,
@@ -28,10 +31,15 @@ import {
   WHATSAPP_FILE_TYPES,
   FileValidationResult,
 } from '@/utils/whatsappFileTypes';
+import { supabase } from '@/integrations/supabase/client';
+import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { toast } from 'sonner';
 
 interface FileUploaderProps {
-  onFileSelect: (file: File, category: string) => void;
+  instanceName?: string;
+  recipientNumber?: string;
+  onFileSelect?: (file: File, category: string) => void;
+  onFileSent?: (messageData: any) => void;
   disabled?: boolean;
 }
 
@@ -41,12 +49,22 @@ interface FilePreview {
   preview?: string;
 }
 
-export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
+export function FileUploader({ 
+  instanceName, 
+  recipientNumber, 
+  onFileSelect, 
+  onFileSent,
+  disabled 
+}: FileUploaderProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filePreview, setFilePreview] = useState<FilePreview | null>(null);
+  const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<'uploading' | 'sending' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { sendMediaMessage, sendAudioMessage, isLoading: apiLoading } = useEvolutionApi();
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -76,6 +94,7 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
     }
 
     setFilePreview({ file, validation, preview });
+    setCaption('');
     setIsDialogOpen(true);
 
     // Reset input
@@ -84,38 +103,84 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
     }
   };
 
+  const uploadFileToStorage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `uploads/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('whatsapp-media')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      throw new Error(`Erro ao fazer upload: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('whatsapp-media')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  };
+
   const handleSendFile = async () => {
     if (!filePreview || !filePreview.validation.valid) return;
 
+    // If no instance/recipient, just call the callback
+    if (!instanceName || !recipientNumber) {
+      onFileSelect?.(filePreview.file, filePreview.validation.category || 'document');
+      handleClose();
+      return;
+    }
+
     setUploading(true);
     setUploadProgress(0);
-
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 100);
+    setUploadStage('uploading');
 
     try {
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      // Step 1: Upload to storage
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 50));
+      }, 100);
+
+      const mediaUrl = await uploadFileToStorage(filePreview.file);
       
-      onFileSelect(filePreview.file, filePreview.validation.category || 'document');
+      clearInterval(progressInterval);
+      setUploadProgress(50);
+      setUploadStage('sending');
+
+      // Step 2: Send via Evolution API
+      const category = filePreview.validation.category;
+      let result;
+
+      if (category === 'audio') {
+        result = await sendAudioMessage(instanceName, recipientNumber, mediaUrl);
+      } else {
+        result = await sendMediaMessage({
+          instanceName,
+          number: recipientNumber,
+          mediaUrl,
+          mediaType: category as 'image' | 'video' | 'audio' | 'document',
+          caption: caption || undefined,
+        });
+      }
+
+      setUploadProgress(100);
       
       toast.success('Arquivo enviado com sucesso!');
-      setIsDialogOpen(false);
-      setFilePreview(null);
-    } catch (error) {
-      toast.error('Erro ao enviar arquivo');
+      onFileSent?.(result);
+      handleClose();
+    } catch (error: any) {
+      console.error('Error sending file:', error);
+      toast.error(error.message || 'Erro ao enviar arquivo');
     } finally {
       setUploading(false);
       setUploadProgress(0);
-      clearInterval(interval);
+      setUploadStage(null);
     }
   };
 
@@ -124,8 +189,11 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
       URL.revokeObjectURL(filePreview.preview);
     }
     setFilePreview(null);
+    setCaption('');
     setIsDialogOpen(false);
   };
+
+  const canSend = instanceName && recipientNumber;
 
   return (
     <>
@@ -135,7 +203,7 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
         accept={getFileInputAccept()}
         onChange={handleFileChange}
         className="hidden"
-        disabled={disabled}
+        disabled={disabled || uploading}
       />
       
       <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -144,7 +212,7 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
           size="icon"
           className="text-muted-foreground hover:text-primary hover:bg-primary/10"
           onClick={() => fileInputRef.current?.click()}
-          disabled={disabled}
+          disabled={disabled || uploading}
           title="Anexar arquivo"
         >
           <Paperclip className="w-5 h-5" />
@@ -211,6 +279,7 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
                     size="icon"
                     className="flex-shrink-0 h-8 w-8"
                     onClick={handleClose}
+                    disabled={uploading}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -225,35 +294,62 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
                     </p>
                   </div>
                 )}
-
-                {/* Upload Progress */}
-                <AnimatePresence>
-                  {uploading && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mt-3"
-                    >
-                      <Progress value={uploadProgress} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-1 text-center">
-                        Enviando... {uploadProgress}%
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
+
+              {/* Caption Input (for images/videos) */}
+              {filePreview.validation.valid && 
+               ['image', 'video', 'document'].includes(filePreview.validation.category || '') && (
+                <div className="space-y-2">
+                  <Label htmlFor="caption">Legenda (opcional)</Label>
+                  <Input
+                    id="caption"
+                    placeholder="Adicione uma legenda..."
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    disabled={uploading}
+                  />
+                </div>
+              )}
+
+              {/* Upload Progress */}
+              <AnimatePresence>
+                {uploading && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2"
+                  >
+                    <Progress value={uploadProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      {uploadStage === 'uploading' 
+                        ? `Fazendo upload... ${uploadProgress}%` 
+                        : `Enviando via WhatsApp... ${uploadProgress}%`}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* File Size Limits Info */}
               <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
-                <p className="font-medium mb-2">Limites de tamanho:</p>
+                <p className="font-medium mb-2">Limites de tamanho do WhatsApp:</p>
                 <ul className="space-y-1">
-                  <li>• Imagens: até {WHATSAPP_FILE_TYPES.image.maxSizeMB}MB</li>
-                  <li>• Vídeos: até {WHATSAPP_FILE_TYPES.video.maxSizeMB}MB</li>
-                  <li>• Áudios: até {WHATSAPP_FILE_TYPES.audio.maxSizeMB}MB</li>
-                  <li>• Documentos: até {WHATSAPP_FILE_TYPES.document.maxSizeMB}MB</li>
+                  <li>• Imagens: até {WHATSAPP_FILE_TYPES.image.maxSizeMB}MB (JPG, PNG, WebP)</li>
+                  <li>• Vídeos: até {WHATSAPP_FILE_TYPES.video.maxSizeMB}MB (MP4, 3GP)</li>
+                  <li>• Áudios: até {WHATSAPP_FILE_TYPES.audio.maxSizeMB}MB (AAC, MP3, OGG, OPUS)</li>
+                  <li>• Documentos: até {WHATSAPP_FILE_TYPES.document.maxSizeMB}MB (PDF, DOC, XLS, etc)</li>
                 </ul>
               </div>
+
+              {/* Connection Warning */}
+              {!canSend && (
+                <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                  <p className="text-sm text-warning flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Selecione uma conversa para enviar o arquivo via WhatsApp
+                  </p>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex justify-end gap-2">
@@ -262,10 +358,17 @@ export function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
                 </Button>
                 <Button
                   onClick={handleSendFile}
-                  disabled={!filePreview.validation.valid || uploading}
+                  disabled={!filePreview.validation.valid || uploading || apiLoading}
                   className="bg-whatsapp hover:bg-whatsapp-dark"
                 >
-                  {uploading ? 'Enviando...' : 'Enviar'}
+                  {uploading ? (
+                    'Enviando...'
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      {canSend ? 'Enviar' : 'Selecionar'}
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

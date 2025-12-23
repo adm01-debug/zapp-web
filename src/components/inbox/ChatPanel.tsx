@@ -796,15 +796,22 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       >
         <div className="flex items-end gap-2">
           <div className="flex items-center gap-1">
-            {/* File Uploader with WhatsApp validation */}
+            {/* File Uploader with WhatsApp validation - connected to Evolution API */}
             <FileUploader
+              instanceName={conversation.contact.id} // Use connection instance name when available
+              recipientNumber={conversation.contact.phone}
               onFileSelect={(file, category) => {
                 toast({
                   title: 'Arquivo selecionado',
                   description: `${file.name} (${category}) será enviado.`,
                 });
-                console.log('File selected:', { file, category });
-                // Here you would call the Evolution API to send the file
+              }}
+              onFileSent={(result) => {
+                toast({
+                  title: 'Arquivo enviado!',
+                  description: 'O arquivo foi enviado com sucesso via WhatsApp.',
+                });
+                console.log('File sent:', result);
               }}
             />
             
