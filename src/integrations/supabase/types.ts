@@ -1206,6 +1206,7 @@ export type Database = {
           sentiment_consecutive_count: number | null
           sound_enabled: boolean | null
           theme: string | null
+          transcription_notification_enabled: boolean | null
           tts_speed: number | null
           tts_voice_id: string | null
           updated_at: string
@@ -1236,6 +1237,7 @@ export type Database = {
           sentiment_consecutive_count?: number | null
           sound_enabled?: boolean | null
           theme?: string | null
+          transcription_notification_enabled?: boolean | null
           tts_speed?: number | null
           tts_voice_id?: string | null
           updated_at?: string
@@ -1266,6 +1268,7 @@ export type Database = {
           sentiment_consecutive_count?: number | null
           sound_enabled?: boolean | null
           theme?: string | null
+          transcription_notification_enabled?: boolean | null
           tts_speed?: number | null
           tts_voice_id?: string | null
           updated_at?: string
