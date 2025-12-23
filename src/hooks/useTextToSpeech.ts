@@ -1,16 +1,34 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
 // Default voice: Sarah
 const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
 
-export function useTextToSpeech() {
+interface UseTextToSpeechOptions {
+  initialVoiceId?: string;
+  onVoiceChange?: (voiceId: string) => void;
+}
+
+export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
-  const [voiceId, setVoiceId] = useState(DEFAULT_VOICE_ID);
+  const [voiceId, setVoiceIdState] = useState(options.initialVoiceId || DEFAULT_VOICE_ID);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+
+  // Sync with external voice ID changes
+  useEffect(() => {
+    if (options.initialVoiceId && options.initialVoiceId !== voiceId) {
+      setVoiceIdState(options.initialVoiceId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.initialVoiceId]);
+
+  const setVoiceId = useCallback((newVoiceId: string) => {
+    setVoiceIdState(newVoiceId);
+    options.onVoiceChange?.(newVoiceId);
+  }, [options.onVoiceChange]);
 
   const stop = useCallback(() => {
     if (audioRef.current) {
