@@ -10,6 +10,7 @@ import { TypingIndicator, TypingIndicatorCompact } from './TypingIndicator';
 import { MessageReactions } from './MessageReactions';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
 import { MessageImage } from './ImagePreview';
+import { MediaMessage, DocumentPreview, VideoPreview } from './MediaPreview';
 import { TransferDialog } from './TransferDialog';
 import { ScheduleMessageDialog } from './ScheduleMessageDialog';
 import { AudioRecorder } from './AudioRecorder';
@@ -667,12 +668,34 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                             </div>
                           )}
 
+                          {/* Video message */}
+                          {message.type === 'video' && message.mediaUrl && (
+                            <div className="mb-2">
+                              <VideoPreview
+                                url={message.mediaUrl}
+                                caption={message.content}
+                                isSent={isSent}
+                              />
+                            </div>
+                          )}
+
                           {/* Audio message */}
                           {message.type === 'audio' && message.mediaUrl && (
                             <div className="mb-2">
                               <AudioMessagePlayer
                                 audioUrl={message.mediaUrl}
                                 messageId={message.id}
+                                isSent={isSent}
+                              />
+                            </div>
+                          )}
+
+                          {/* Document message */}
+                          {message.type === 'document' && message.mediaUrl && (
+                            <div className="mb-2">
+                              <DocumentPreview
+                                url={message.mediaUrl}
+                                fileName={message.content || 'documento'}
                                 isSent={isSent}
                               />
                             </div>
@@ -686,8 +709,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                             />
                           )}
 
-                          {/* Text content */}
-                          {message.content && message.type !== 'audio' && message.type !== 'location' && (
+                          {/* Text content - hide for video/document with content as filename */}
+                          {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                           )}
 
