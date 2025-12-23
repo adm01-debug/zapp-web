@@ -17,6 +17,7 @@ import {
   Sparkles,
   Package,
   AlertTriangle,
+  Mic,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -44,6 +45,7 @@ const menuItems = [
   { id: 'connections', icon: Zap, label: 'Conexões' },
   { id: 'wallet', icon: Wallet, label: 'Carteira' },
   { id: 'catalog', icon: Package, label: 'Catálogo' },
+  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
   { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
