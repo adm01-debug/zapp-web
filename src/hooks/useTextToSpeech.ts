@@ -1,14 +1,14 @@
 import { useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 
-interface UseTextToSpeechOptions {
-  voiceId?: string;
-}
+// Default voice: Sarah
+const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
 
-export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
+export function useTextToSpeech() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
+  const [voiceId, setVoiceId] = useState(DEFAULT_VOICE_ID);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
 
@@ -60,7 +60,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
           },
           body: JSON.stringify({ 
             text: cleanText,
-            voiceId: options.voiceId 
+            voiceId
           }),
         }
       );
@@ -93,14 +93,15 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
       };
 
       await audio.play();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('TTS error:', error);
-      toast.error(error.message || 'Erro ao gerar áudio');
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao gerar áudio';
+      toast.error(errorMessage);
       setCurrentMessageId(null);
     } finally {
       setIsLoading(false);
     }
-  }, [options.voiceId, stop]);
+  }, [voiceId, stop]);
 
   return {
     speak,
@@ -108,5 +109,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
     isLoading,
     isPlaying,
     currentMessageId,
+    voiceId,
+    setVoiceId,
   };
 }
