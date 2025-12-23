@@ -1186,6 +1186,7 @@ export type Database = {
         Row: {
           auto_assignment_enabled: boolean | null
           auto_assignment_method: string | null
+          auto_transcription_enabled: boolean | null
           away_message: string | null
           browser_notifications_enabled: boolean | null
           business_hours_enabled: boolean | null
@@ -1215,6 +1216,7 @@ export type Database = {
         Insert: {
           auto_assignment_enabled?: boolean | null
           auto_assignment_method?: string | null
+          auto_transcription_enabled?: boolean | null
           away_message?: string | null
           browser_notifications_enabled?: boolean | null
           business_hours_enabled?: boolean | null
@@ -1244,6 +1246,7 @@ export type Database = {
         Update: {
           auto_assignment_enabled?: boolean | null
           auto_assignment_method?: string | null
+          auto_transcription_enabled?: boolean | null
           away_message?: string | null
           browser_notifications_enabled?: boolean | null
           business_hours_enabled?: boolean | null
