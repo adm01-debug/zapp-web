@@ -21,51 +21,66 @@ serve(async (req) => {
       );
     }
 
-    console.log('Starting transcription for message:', messageId);
+    console.log('Starting ElevenLabs transcription for message:', messageId);
     console.log('Audio URL:', audioUrl);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY is not configured');
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    if (!ELEVENLABS_API_KEY) {
+      console.error('ELEVENLABS_API_KEY is not configured');
       return new Response(
-        JSON.stringify({ error: 'API key not configured' }),
+        JSON.stringify({ error: 'ElevenLabs API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create a prompt for the AI to transcribe the audio description
-    // Note: This uses the Lovable AI to generate a simulated transcription
-    // In production, you would integrate with a proper speech-to-text service
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Download the audio file from the URL
+    console.log('Downloading audio file...');
+    const audioResponse = await fetch(audioUrl);
+    if (!audioResponse.ok) {
+      console.error('Failed to download audio:', audioResponse.status);
+      return new Response(
+        JSON.stringify({ error: 'Failed to download audio file' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const audioBlob = await audioResponse.blob();
+    console.log('Audio downloaded, size:', audioBlob.size, 'type:', audioBlob.type);
+
+    // Prepare form data for ElevenLabs Speech-to-Text API
+    const formData = new FormData();
+    
+    // Determine file extension from content type or URL
+    let fileName = 'audio.mp3';
+    const contentType = audioBlob.type || '';
+    if (contentType.includes('ogg') || audioUrl.includes('.ogg')) {
+      fileName = 'audio.ogg';
+    } else if (contentType.includes('webm') || audioUrl.includes('.webm')) {
+      fileName = 'audio.webm';
+    } else if (contentType.includes('wav') || audioUrl.includes('.wav')) {
+      fileName = 'audio.wav';
+    } else if (contentType.includes('m4a') || audioUrl.includes('.m4a')) {
+      fileName = 'audio.m4a';
+    }
+    
+    formData.append('file', audioBlob, fileName);
+    formData.append('model_id', 'scribe_v1');
+    formData.append('language_code', 'por'); // Portuguese (ISO 639-3)
+
+    console.log('Sending to ElevenLabs STT API...');
+    
+    // Call ElevenLabs Speech-to-Text API
+    const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+        'xi-api-key': ELEVENLABS_API_KEY,
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `Você é um assistente especializado em transcrição de áudios de atendimento ao cliente. 
-Quando receber uma URL de áudio, simule uma transcrição realista de uma mensagem de cliente ou atendente.
-A transcrição deve ser em português do Brasil, natural e relacionada a atendimento ao cliente.
-Retorne APENAS o texto transcrito, sem marcações ou explicações.
-Mantenha as transcrições curtas (1-3 frases) e naturais.`
-          },
-          {
-            role: 'user',
-            content: `Transcreva o seguinte áudio de atendimento: ${audioUrl}`
-          }
-        ],
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
+      body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      console.error('ElevenLabs STT error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -74,28 +89,32 @@ Mantenha as transcrições curtas (1-3 frases) e naturais.`
         );
       }
       
-      if (response.status === 402) {
+      if (response.status === 401) {
         return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Invalid ElevenLabs API key.' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       return new Response(
-        JSON.stringify({ error: 'Failed to transcribe audio' }),
+        JSON.stringify({ error: 'Failed to transcribe audio', details: errorText }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const data = await response.json();
-    const transcription = data.choices?.[0]?.message?.content?.trim() || '';
+    console.log('ElevenLabs response:', JSON.stringify(data));
+    
+    // Extract transcription text from response
+    const transcription = data.text || '';
 
     console.log('Transcription result:', transcription);
 
     return new Response(
       JSON.stringify({ 
         transcription,
-        messageId 
+        messageId,
+        words: data.words || [], // Include word-level timestamps if available
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
