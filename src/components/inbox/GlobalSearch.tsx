@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Search, X, MessageSquare, User, Calendar, Loader2 } from 'lucide-react';
+import { Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,12 +15,13 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchResult {
   id: string;
-  type: 'message' | 'contact';
+  type: 'message' | 'contact' | 'transcription';
   title: string;
   preview: string;
   timestamp: Date;
   contactId?: string;
   contactName?: string;
+  messageType?: string;
 }
 
 interface GlobalSearchProps {
@@ -43,12 +44,13 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     setIsLoading(true);
     
     try {
-      // Search messages
-      const { data: messages, error: messagesError } = await supabase
+      // Search messages (content)
+      const { data: textMessages, error: textError } = await supabase
         .from('messages')
         .select(`
           id,
           content,
+          message_type,
           created_at,
           contact_id,
           contacts:contact_id (
@@ -61,8 +63,33 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (messagesError) {
-        console.error('Error searching messages:', messagesError);
+      if (textError) {
+        console.error('Error searching text messages:', textError);
+      }
+
+      // Search transcriptions (audio messages)
+      const { data: audioMessages, error: audioError } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          transcription,
+          message_type,
+          created_at,
+          contact_id,
+          contacts:contact_id (
+            id,
+            name,
+            surname
+          )
+        `)
+        .not('transcription', 'is', null)
+        .ilike('transcription', `%${query}%`)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (audioError) {
+        console.error('Error searching audio transcriptions:', audioError);
       }
 
       // Search contacts
@@ -78,11 +105,13 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       }
 
       const searchResults: SearchResult[] = [];
+      const addedMessageIds = new Set<string>();
 
-      // Add message results
-      if (messages) {
-        messages.forEach((msg) => {
+      // Add text message results
+      if (textMessages) {
+        textMessages.forEach((msg) => {
           const contact = msg.contacts as { id: string; name: string; surname: string | null } | null;
+          addedMessageIds.add(msg.id);
           searchResults.push({
             id: msg.id,
             type: 'message',
@@ -90,7 +119,28 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
             preview: msg.content.length > 100 ? `${msg.content.substring(0, 100)}...` : msg.content,
             timestamp: new Date(msg.created_at),
             contactId: msg.contact_id || undefined,
-            contactName: contact ? `${contact.name}${contact.surname ? ` ${contact.surname}` : ''}` : undefined
+            contactName: contact ? `${contact.name}${contact.surname ? ` ${contact.surname}` : ''}` : undefined,
+            messageType: msg.message_type
+          });
+        });
+      }
+
+      // Add audio transcription results (avoiding duplicates)
+      if (audioMessages) {
+        audioMessages.forEach((msg) => {
+          if (addedMessageIds.has(msg.id)) return;
+          
+          const contact = msg.contacts as { id: string; name: string; surname: string | null } | null;
+          const transcription = msg.transcription || '';
+          searchResults.push({
+            id: msg.id,
+            type: 'transcription',
+            title: contact ? `Áudio de ${contact.name}${contact.surname ? ` ${contact.surname}` : ''}` : 'Áudio transcrito',
+            preview: transcription.length > 100 ? `${transcription.substring(0, 100)}...` : transcription,
+            timestamp: new Date(msg.created_at),
+            contactId: msg.contact_id || undefined,
+            contactName: contact ? `${contact.name}${contact.surname ? ` ${contact.surname}` : ''}` : undefined,
+            messageType: msg.message_type
           });
         });
       }
@@ -108,6 +158,9 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
           });
         });
       }
+
+      // Sort by timestamp (most recent first)
+      searchResults.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
       setResults(searchResults);
     } catch (error) {
@@ -132,6 +185,39 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     setResults([]);
   };
 
+  const getResultIcon = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'transcription':
+        return <Mic className="h-4 w-4" />;
+      case 'message':
+        return <MessageSquare className="h-4 w-4" />;
+      case 'contact':
+        return <User className="h-4 w-4" />;
+    }
+  };
+
+  const getResultStyle = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'transcription':
+        return 'bg-orange-500/10 text-orange-500';
+      case 'message':
+        return 'bg-primary/10 text-primary';
+      case 'contact':
+        return 'bg-secondary/10 text-secondary';
+    }
+  };
+
+  const getResultLabel = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'transcription':
+        return 'Transcrição';
+      case 'message':
+        return 'Texto';
+      case 'contact':
+        return 'Contato';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0 overflow-hidden">
@@ -141,7 +227,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
             <Input
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar em todas as conversas..."
+              placeholder="Buscar em textos e transcrições de áudio..."
               className="pl-10 pr-10 h-12 text-lg"
               autoFocus
             />
@@ -161,14 +247,14 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
           </div>
           
           <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
-            <Badge variant="outline" className="text-[10px]">
-              <kbd className="font-mono">↑↓</kbd> navegar
+            <Badge variant="outline" className="text-[10px] gap-1">
+              <FileText className="h-3 w-3" /> Textos
             </Badge>
-            <Badge variant="outline" className="text-[10px]">
-              <kbd className="font-mono">Enter</kbd> selecionar
+            <Badge variant="outline" className="text-[10px] gap-1 border-orange-500/30 text-orange-500">
+              <Mic className="h-3 w-3" /> Transcrições
             </Badge>
-            <Badge variant="outline" className="text-[10px]">
-              <kbd className="font-mono">Esc</kbd> fechar
+            <Badge variant="outline" className="text-[10px] gap-1">
+              <User className="h-3 w-3" /> Contatos
             </Badge>
           </div>
         </div>
@@ -182,29 +268,34 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
             <div className="p-2">
               {results.map((result, index) => (
                 <motion.button
-                  key={result.id}
+                  key={`${result.type}-${result.id}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => handleSelect(result)}
                   className="w-full text-left p-3 rounded-lg hover:bg-muted/50 transition-colors flex items-start gap-3"
                 >
-                  <div className={`p-2 rounded-full ${result.type === 'message' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
-                    {result.type === 'message' ? (
-                      <MessageSquare className="h-4 w-4" />
-                    ) : (
-                      <User className="h-4 w-4" />
-                    )}
+                  <div className={`p-2 rounded-full ${getResultStyle(result.type)}`}>
+                    {getResultIcon(result.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-sm truncate">{result.title}</span>
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-medium text-sm truncate">{result.title}</span>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-[9px] shrink-0 ${result.type === 'transcription' ? 'border-orange-500/30 text-orange-500' : ''}`}
+                        >
+                          {getResultLabel(result.type)}
+                        </Badge>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 shrink-0">
                         <Calendar className="h-3 w-3" />
                         {format(result.timestamp, 'dd MMM', { locale: ptBR })}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate mt-0.5">
+                      {result.type === 'transcription' && '🎙️ '}
                       {result.preview}
                     </p>
                   </div>
@@ -221,7 +312,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
             <div className="text-center py-12 text-muted-foreground">
               <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>Digite para buscar</p>
-              <p className="text-sm">Busque por mensagens, contatos ou conversas</p>
+              <p className="text-sm">Busque em mensagens de texto e transcrições de áudio</p>
             </div>
           )}
         </div>
