@@ -7,6 +7,7 @@ import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import {
   Search,
@@ -39,11 +47,23 @@ import {
   RefreshCw,
   Building,
   Briefcase,
+  Users,
+  UserCheck,
+  Truck,
+  Wrench,
+  Star,
+  Handshake,
+  MoreHorizontal,
+  X,
+  CalendarDays,
+  SortAsc,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, subDays, subMonths, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
+import { cn } from '@/lib/utils';
 
 interface Contact {
   id: string;
@@ -57,9 +77,40 @@ interface Contact {
   avatar_url: string | null;
   tags: string[] | null;
   notes: string | null;
+  contact_type: string | null;
   created_at: string;
   updated_at: string;
 }
+
+// Contact type icons mapping
+const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
+  cliente: <Users className="w-4 h-4" />,
+  fornecedor: <Truck className="w-4 h-4" />,
+  colaborador: <UserCheck className="w-4 h-4" />,
+  prestador_servico: <Wrench className="w-4 h-4" />,
+  lead: <Star className="w-4 h-4" />,
+  parceiro: <Handshake className="w-4 h-4" />,
+  outros: <MoreHorizontal className="w-4 h-4" />,
+};
+
+// Date filter options
+const DATE_FILTERS = [
+  { value: 'all', label: 'Todos os períodos' },
+  { value: 'today', label: 'Hoje' },
+  { value: 'week', label: 'Última semana' },
+  { value: 'month', label: 'Último mês' },
+  { value: 'quarter', label: 'Últimos 3 meses' },
+  { value: 'year', label: 'Último ano' },
+];
+
+// Sort options
+const SORT_OPTIONS = [
+  { value: 'name_asc', label: 'Nome (A-Z)' },
+  { value: 'name_desc', label: 'Nome (Z-A)' },
+  { value: 'created_desc', label: 'Mais recentes' },
+  { value: 'created_asc', label: 'Mais antigos' },
+  { value: 'updated_desc', label: 'Atualizado recentemente' },
+];
 
 export function ContactsView() {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -69,9 +120,15 @@ export function ContactsView() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Filter states
+  const [activeTab, setActiveTab] = useState<string>('all');
   const [filterCompany, setFilterCompany] = useState<string>('');
   const [filterJobTitle, setFilterJobTitle] = useState<string>('');
   const [filterTag, setFilterTag] = useState<string>('');
+  const [filterDateRange, setFilterDateRange] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('name_asc');
+  
   const [newContact, setNewContact] = useState({
     name: '',
     nickname: '',
@@ -80,12 +137,19 @@ export function ContactsView() {
     company: '',
     phone: '',
     email: '',
+    contact_type: 'cliente',
   });
 
   // Extract unique values for filters
   const uniqueCompanies = [...new Set(contacts.map(c => c.company).filter(Boolean))] as string[];
   const uniqueJobTitles = [...new Set(contacts.map(c => c.job_title).filter(Boolean))] as string[];
   const uniqueTags = [...new Set(contacts.flatMap(c => c.tags || []))] as string[];
+
+  // Count contacts by type
+  const contactCountByType = CONTACT_TYPES.reduce((acc, type) => {
+    acc[type.value] = contacts.filter(c => (c.contact_type || 'cliente') === type.value).length;
+    return acc;
+  }, {} as Record<string, number>);
 
   useEffect(() => {
     fetchContacts();
@@ -107,26 +171,72 @@ export function ContactsView() {
     setLoading(false);
   };
 
-  const filteredContacts = contacts.filter((contact) => {
+  // Apply date filter
+  const getDateFilterDate = (filterValue: string): Date | null => {
+    const now = new Date();
+    switch (filterValue) {
+      case 'today':
+        return subDays(now, 1);
+      case 'week':
+        return subDays(now, 7);
+      case 'month':
+        return subMonths(now, 1);
+      case 'quarter':
+        return subMonths(now, 3);
+      case 'year':
+        return subMonths(now, 12);
+      default:
+        return null;
+    }
+  };
+
+  // Sort contacts
+  const sortContacts = (contactsList: Contact[]): Contact[] => {
+    return [...contactsList].sort((a, b) => {
+      switch (sortBy) {
+        case 'name_asc':
+          return a.name.localeCompare(b.name);
+        case 'name_desc':
+          return b.name.localeCompare(a.name);
+        case 'created_desc':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'created_asc':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'updated_desc':
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const filteredContacts = sortContacts(contacts.filter((contact) => {
     const matchesSearch =
       contact.name.toLowerCase().includes(search.toLowerCase()) ||
       contact.phone.includes(search) ||
       contact.email?.toLowerCase().includes(search.toLowerCase()) ||
       contact.company?.toLowerCase().includes(search.toLowerCase());
     
+    const matchesTab = activeTab === 'all' || (contact.contact_type || 'cliente') === activeTab;
     const matchesCompany = !filterCompany || contact.company === filterCompany;
     const matchesJobTitle = !filterJobTitle || contact.job_title === filterJobTitle;
     const matchesTag = !filterTag || contact.tags?.includes(filterTag);
     
-    return matchesSearch && matchesCompany && matchesJobTitle && matchesTag;
-  });
+    // Date filter
+    const dateFilterDate = getDateFilterDate(filterDateRange);
+    const matchesDate = !dateFilterDate || isAfter(new Date(contact.created_at), dateFilterDate);
+    
+    return matchesSearch && matchesTab && matchesCompany && matchesJobTitle && matchesTag && matchesDate;
+  }));
 
-  const activeFiltersCount = [filterCompany, filterJobTitle, filterTag].filter(Boolean).length;
+  const activeFiltersCount = [filterCompany, filterJobTitle, filterTag, filterDateRange !== 'all' ? filterDateRange : ''].filter(Boolean).length;
 
   const clearFilters = () => {
     setFilterCompany('');
     setFilterJobTitle('');
     setFilterTag('');
+    setFilterDateRange('all');
+    setSortBy('name_asc');
   };
 
   const handleAddContact = async () => {
@@ -143,6 +253,7 @@ export function ContactsView() {
       company: newContact.company || null,
       phone: newContact.phone,
       email: newContact.email || null,
+      contact_type: newContact.contact_type,
     });
 
     if (error) {
@@ -150,7 +261,7 @@ export function ContactsView() {
       console.error(error);
     } else {
       toast.success('Contato adicionado com sucesso');
-      setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '' });
+      setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
       setIsAddDialogOpen(false);
       fetchContacts();
     }
@@ -169,6 +280,7 @@ export function ContactsView() {
         company: editingContact.company,
         phone: editingContact.phone,
         email: editingContact.email,
+        contact_type: editingContact.contact_type,
       })
       .eq('id', editingContact.id);
 
@@ -232,14 +344,37 @@ export function ContactsView() {
           />
         </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="nickname">Apelido</Label>
-        <Input
-          id="nickname"
-          placeholder="Como prefere ser chamado"
-          value={values.nickname || ''}
-          onChange={(e) => onChange('nickname', e.target.value)}
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="nickname">Apelido</Label>
+          <Input
+            id="nickname"
+            placeholder="Como prefere ser chamado"
+            value={values.nickname || ''}
+            onChange={(e) => onChange('nickname', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="contact_type">Tipo de Contato</Label>
+          <Select
+            value={(values as any).contact_type || 'cliente'}
+            onValueChange={(value) => onChange('contact_type', value)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CONTACT_TYPES.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  <div className="flex items-center gap-2">
+                    <span className={cn("w-2 h-2 rounded-full", type.color)} />
+                    {type.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -351,7 +486,7 @@ export function ContactsView() {
                 </Button>
               </motion.div>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Adicionar Contato</DialogTitle>
               </DialogHeader>
@@ -368,7 +503,7 @@ export function ContactsView() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Editar Contato</DialogTitle>
           </DialogHeader>
@@ -383,11 +518,51 @@ export function ContactsView() {
         </DialogContent>
       </Dialog>
 
+      {/* Contact Type Tabs */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
+            <TabsTrigger 
+              value="all" 
+              className="data-[state=active]:bg-background flex items-center gap-2"
+            >
+              <Users className="w-4 h-4" />
+              Todos
+              <Badge variant="secondary" className="ml-1 text-xs">
+                {contacts.length}
+              </Badge>
+            </TabsTrigger>
+            {CONTACT_TYPES.map((type) => (
+              <TabsTrigger 
+                key={type.value} 
+                value={type.value}
+                className="data-[state=active]:bg-background flex items-center gap-2"
+              >
+                {CONTACT_TYPE_ICONS[type.value]}
+                {type.label}
+                {contactCountByType[type.value] > 0 && (
+                  <Badge 
+                    variant="secondary" 
+                    className={cn("ml-1 text-xs", type.color.replace('bg-', 'bg-opacity-20 text-'))}
+                  >
+                    {contactCountByType[type.value]}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </motion.div>
+
       {/* Search and Filters */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.15 }}
         className="space-y-4"
       >
         <div className="flex items-center gap-4">
@@ -400,6 +575,22 @@ export function ContactsView() {
               className="pl-9"
             />
           </div>
+          
+          {/* Sort Dropdown */}
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SortAsc className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button 
               variant={showFilters ? "default" : "outline"} 
@@ -418,13 +609,14 @@ export function ContactsView() {
           {activeFiltersCount > 0 && (
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button variant="ghost" onClick={clearFilters} size="sm">
+                <X className="w-4 h-4 mr-1" />
                 Limpar filtros
               </Button>
             </motion.div>
           )}
         </div>
 
-        {/* Advanced Filters Panel */}
+        {/* Advanced Filters Panel - Bitrix Style */}
         {showFilters && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -432,25 +624,26 @@ export function ContactsView() {
             exit={{ opacity: 0, height: 0 }}
             className="bg-muted/50 rounded-lg p-4 border border-border"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Company Filter */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Building className="w-4 h-4" />
                   Empresa
                 </Label>
-                <select
-                  value={filterCompany}
-                  onChange={(e) => setFilterCompany(e.target.value)}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                >
-                  <option value="">Todas as empresas</option>
-                  {uniqueCompanies.map((company) => (
-                    <option key={company} value={company}>
-                      {company}
-                    </option>
-                  ))}
-                </select>
+                <Select value={filterCompany} onValueChange={setFilterCompany}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas as empresas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as empresas</SelectItem>
+                    {uniqueCompanies.map((company) => (
+                      <SelectItem key={company} value={company}>
+                        {company}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Job Title Filter */}
@@ -459,18 +652,19 @@ export function ContactsView() {
                   <Briefcase className="w-4 h-4" />
                   Cargo
                 </Label>
-                <select
-                  value={filterJobTitle}
-                  onChange={(e) => setFilterJobTitle(e.target.value)}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                >
-                  <option value="">Todos os cargos</option>
-                  {uniqueJobTitles.map((title) => (
-                    <option key={title} value={title}>
-                      {title}
-                    </option>
-                  ))}
-                </select>
+                <Select value={filterJobTitle} onValueChange={setFilterJobTitle}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os cargos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos os cargos</SelectItem>
+                    {uniqueJobTitles.map((title) => (
+                      <SelectItem key={title} value={title}>
+                        {title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Tag Filter */}
@@ -479,18 +673,39 @@ export function ContactsView() {
                   <Tag className="w-4 h-4" />
                   Etiqueta
                 </Label>
-                <select
-                  value={filterTag}
-                  onChange={(e) => setFilterTag(e.target.value)}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                >
-                  <option value="">Todas as etiquetas</option>
-                  {uniqueTags.map((tag) => (
-                    <option key={tag} value={tag}>
-                      {tag}
-                    </option>
-                  ))}
-                </select>
+                <Select value={filterTag} onValueChange={setFilterTag}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas as etiquetas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as etiquetas</SelectItem>
+                    {uniqueTags.map((tag) => (
+                      <SelectItem key={tag} value={tag}>
+                        {tag}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4" />
+                  Período
+                </Label>
+                <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os períodos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DATE_FILTERS.map((filter) => (
+                      <SelectItem key={filter.value} value={filter.value}>
+                        {filter.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </motion.div>
@@ -515,6 +730,7 @@ export function ContactsView() {
                 <thead>
                   <tr className="border-b border-secondary/20 bg-secondary/5">
                     <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
                     <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
                     <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
                     <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
@@ -524,119 +740,135 @@ export function ContactsView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredContacts.map((contact, index) => (
-                    <motion.tr
-                      key={contact.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.02 }}
-                      className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors"
-                    >
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={contact.avatar_url || undefined} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <span className="font-medium block">{contact.name} {contact.surname || ''}</span>
-                            {contact.nickname && (
-                              <span className="text-xs text-muted-foreground">({contact.nickname})</span>
-                            )}
+                  {filteredContacts.map((contact, index) => {
+                    const typeInfo = getContactTypeInfo(contact.contact_type || 'cliente');
+                    return (
+                      <motion.tr
+                        key={contact.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.02 }}
+                        className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors"
+                      >
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={contact.avatar_url || undefined} />
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <span className="font-medium block">{contact.name} {contact.surname || ''}</span>
+                              {contact.nickname && (
+                                <span className="text-xs text-muted-foreground">({contact.nickname})</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="w-4 h-4" />
-                          {contact.phone}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        {contact.email ? (
+                        </td>
+                        <td className="p-4">
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "flex items-center gap-1.5 w-fit",
+                              typeInfo.color.replace('bg-', 'border-'),
+                              typeInfo.color.replace('bg-', 'text-').replace('-500', '-600')
+                            )}
+                          >
+                            {CONTACT_TYPE_ICONS[typeInfo.value]}
+                            {typeInfo.label}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
                           <div className="flex items-center gap-2 text-muted-foreground">
-                            <Mail className="w-4 h-4" />
-                            {contact.email}
+                            <Phone className="w-4 h-4" />
+                            {contact.phone}
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground/50">-</span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        {(contact.company || contact.job_title) ? (
-                          <div className="space-y-1">
-                            {contact.company && (
-                              <div className="flex items-center gap-1 text-sm">
-                                <Building className="w-3 h-3" />
-                                {contact.company}
-                              </div>
-                            )}
-                            {contact.job_title && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Briefcase className="w-3 h-3" />
-                                {contact.job_title}
-                              </div>
-                            )}
+                        </td>
+                        <td className="p-4">
+                          {contact.email ? (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Mail className="w-4 h-4" />
+                              {contact.email}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground/50">-</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          {(contact.company || contact.job_title) ? (
+                            <div className="space-y-1">
+                              {contact.company && (
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Building className="w-3 h-3" />
+                                  {contact.company}
+                                </div>
+                              )}
+                              {contact.job_title && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Briefcase className="w-3 h-3" />
+                                  {contact.job_title}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground/50">-</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex flex-wrap gap-1">
+                            {contact.tags?.map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground/50">-</span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex flex-wrap gap-1">
-                          {contact.tags?.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="p-4 text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          {format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                        </div>
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                            <Button variant="ghost" size="icon" className="w-8 h-8">
-                              <MessageSquare className="w-4 h-4" />
-                            </Button>
-                          </motion.div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                                <Button variant="ghost" size="icon" className="w-8 h-8">
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </motion.div>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openEditDialog(contact)}>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Tag className="w-4 h-4 mr-2" />
-                                Gerenciar etiquetas
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDeleteContact(contact.id)}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
+                        </td>
+                        <td className="p-4 text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            {format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                          </div>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                              <Button variant="ghost" size="icon" className="w-8 h-8">
+                                <MessageSquare className="w-4 h-4" />
+                              </Button>
+                            </motion.div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                  <Button variant="ghost" size="icon" className="w-8 h-8">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </motion.div>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openEditDialog(contact)}>
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Tag className="w-4 h-4 mr-2" />
+                                  Gerenciar etiquetas
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => handleDeleteContact(contact.id)}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
