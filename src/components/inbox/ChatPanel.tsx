@@ -31,7 +31,7 @@ import { ProductCatalog } from '@/components/catalog/ProductCatalog';
 import { ProductMessage } from '@/components/catalog/ProductMessage';
 import { Product } from '@/components/catalog/ProductCard';
 import { AIConversationAssistant } from './AIConversationAssistant';
-import { FileUploader } from './FileUploader';
+import { FileUploader, FileUploaderRef } from './FileUploader';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -140,9 +140,13 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [showForwardDialog, setShowForwardDialog] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const dragCounterRef = useRef(0);
+  const fileUploaderRef = useRef<FileUploaderRef>(null);
 
   // Use Supabase Presence for typing indicator
   const { 
@@ -377,8 +381,82 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     return groups;
   }, {} as Record<string, Message[]>);
 
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDraggingOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDraggingOver(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current = 0;
+    setIsDraggingOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      const file = files[0]; // Process first file
+      setDroppedFile(file);
+      // The FileUploader will handle this file
+      if (fileUploaderRef.current) {
+        fileUploaderRef.current.handleExternalFile(file);
+      }
+    }
+  };
+
   return (
-    <div className="flex h-full bg-background">
+    <div 
+      className="flex h-full bg-background relative"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      <AnimatePresence>
+        {isDraggingOver && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-primary/10 backdrop-blur-sm border-2 border-dashed border-primary rounded-lg flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card p-8 rounded-xl shadow-xl border border-primary/30 text-center"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <Paperclip className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-1">Soltar arquivo aqui</h3>
+              <p className="text-sm text-muted-foreground">
+                Imagens, vídeos, áudios e documentos
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex flex-col flex-1 h-full">
       {/* Header */}
       <motion.div 
@@ -821,6 +899,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           <div className="flex items-center gap-1">
             {/* File Uploader with WhatsApp validation - connected to Evolution API */}
             <FileUploader
+              ref={fileUploaderRef}
               instanceName={conversation.contact.id} // Use connection instance name when available
               recipientNumber={conversation.contact.phone}
               onFileSelect={(file, category) => {

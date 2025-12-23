@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from '@/components/ui/motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -49,13 +49,17 @@ interface FilePreview {
   preview?: string;
 }
 
-export function FileUploader({ 
+export interface FileUploaderRef {
+  handleExternalFile: (file: File) => void;
+}
+
+export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({ 
   instanceName, 
   recipientNumber, 
   onFileSelect, 
   onFileSent,
   disabled 
-}: FileUploaderProps) {
+}, ref) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filePreview, setFilePreview] = useState<FilePreview | null>(null);
   const [caption, setCaption] = useState('');
@@ -65,6 +69,23 @@ export function FileUploader({
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { sendMediaMessage, sendAudioMessage, isLoading: apiLoading } = useEvolutionApi();
+
+  // Expose method for external file handling (drag and drop)
+  useImperativeHandle(ref, () => ({
+    handleExternalFile: (file: File) => {
+      const validation = validateFile(file);
+      
+      // Create preview for images
+      let preview: string | undefined;
+      if (validation.valid && validation.category === 'image') {
+        preview = URL.createObjectURL(file);
+      }
+
+      setFilePreview({ file, validation, preview });
+      setCaption('');
+      setIsDialogOpen(true);
+    }
+  }));
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -377,4 +398,6 @@ export function FileUploader({
       </Dialog>
     </>
   );
-}
+});
+
+FileUploader.displayName = 'FileUploader';
