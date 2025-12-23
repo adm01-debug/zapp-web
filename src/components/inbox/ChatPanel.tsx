@@ -141,7 +141,6 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -413,11 +412,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      const file = files[0]; // Process first file
-      setDroppedFile(file);
-      // The FileUploader will handle this file
+      // Pass all files to FileUploader
       if (fileUploaderRef.current) {
-        fileUploaderRef.current.handleExternalFile(file);
+        fileUploaderRef.current.handleExternalFiles(files);
       }
     }
   };
@@ -448,9 +445,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <Paperclip className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-1">Soltar arquivo aqui</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-1">Soltar arquivos aqui</h3>
               <p className="text-sm text-muted-foreground">
-                Imagens, vídeos, áudios e documentos
+                Arraste múltiplos arquivos para enviar em sequência
               </p>
             </motion.div>
           </motion.div>
