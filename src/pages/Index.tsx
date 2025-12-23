@@ -18,6 +18,7 @@ import { GroupsView } from '@/components/groups/GroupsView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { logAudit } from '@/lib/audit';
 import { Sparkles } from 'lucide-react';
 
@@ -25,6 +26,9 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
   const [currentView, setCurrentView] = useState('inbox');
+  
+  // Enable transcription notifications globally
+  useTranscriptionNotifications({ enabled: !!user });
 
   useEffect(() => {
     if (!loading && !user) {
