@@ -96,6 +96,9 @@ export interface Message {
   isForwarded?: boolean;
   // Reactions (WhatsApp API format)
   reactions?: MessageReaction[];
+  // Audio transcription
+  transcription?: string | null;
+  transcriptionStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
 }
 
 export interface Conversation {
