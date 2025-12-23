@@ -1,0 +1,112 @@
+import { useState, useRef, useCallback } from 'react';
+import { toast } from 'sonner';
+
+interface UseTextToSpeechOptions {
+  voiceId?: string;
+}
+
+export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+
+  const stop = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+    setIsPlaying(false);
+    setCurrentMessageId(null);
+  }, []);
+
+  const speak = useCallback(async (text: string, messageId?: string) => {
+    // Stop any current playback
+    stop();
+
+    if (!text || text.trim() === '') {
+      toast.error('Texto vazio para reproduzir');
+      return;
+    }
+
+    // Clean text (remove emojis, special characters that don't make sense in speech)
+    const cleanText = text
+      .replace(/\[.*?\]/g, '') // Remove [Imagem], [Áudio], etc.
+      .replace(/https?:\/\/\S+/g, 'link') // Replace URLs with "link"
+      .trim();
+
+    if (!cleanText) {
+      toast.error('Nenhum texto para reproduzir');
+      return;
+    }
+
+    setIsLoading(true);
+    setCurrentMessageId(messageId || null);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ 
+            text: cleanText,
+            voiceId: options.voiceId 
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Erro ao gerar áudio');
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      audioUrlRef.current = audioUrl;
+
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onplay = () => setIsPlaying(true);
+      audio.onended = () => {
+        setIsPlaying(false);
+        setCurrentMessageId(null);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+      };
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setCurrentMessageId(null);
+        toast.error('Erro ao reproduzir áudio');
+      };
+
+      await audio.play();
+    } catch (error: any) {
+      console.error('TTS error:', error);
+      toast.error(error.message || 'Erro ao gerar áudio');
+      setCurrentMessageId(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [options.voiceId, stop]);
+
+  return {
+    speak,
+    stop,
+    isLoading,
+    isPlaying,
+    currentMessageId,
+  };
+}

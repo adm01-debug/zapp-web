@@ -32,6 +32,8 @@ import { ProductMessage } from '@/components/catalog/ProductMessage';
 import { Product } from '@/components/catalog/ProductCard';
 import { AIConversationAssistant } from './AIConversationAssistant';
 import { FileUploader, FileUploaderRef } from './FileUploader';
+import { TextToSpeechButton } from './TextToSpeechButton';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -161,6 +163,9 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
 
   // Quick replies from DB
   const { quickReplies: dbQuickReplies, incrementUseCount } = useQuickReplies();
+
+  // Text to speech hook
+  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId } = useTextToSpeech();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -694,6 +699,19 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                           >
                             <Copy className="w-3.5 h-3.5" />
                           </motion.button>
+                          {/* Text to Speech button */}
+                          {message.type === 'text' && (
+                            <TextToSpeechButton
+                              messageId={message.id}
+                              text={message.content}
+                              isLoading={ttsLoading}
+                              isPlaying={ttsPlaying}
+                              currentMessageId={ttsMessageId}
+                              onSpeak={speak}
+                              onStop={stop}
+                              className="p-1.5 rounded-full bg-card border border-border/50 shadow-sm"
+                            />
+                          )}
                         </div>
 
                         <motion.div
