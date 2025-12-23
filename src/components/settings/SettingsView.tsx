@@ -24,6 +24,7 @@ import {
   Save,
   RefreshCw,
   Loader2,
+  Mic,
 } from 'lucide-react';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { useUserSettings } from '@/hooks/useUserSettings';
@@ -342,6 +343,40 @@ export function SettingsView() {
                     max={1440}
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mic className="w-5 h-5 text-whatsapp" />
+                  Transcrição de Áudio
+                </CardTitle>
+                <CardDescription>
+                  Configure a transcrição automática de mensagens de áudio
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base">Transcrição automática</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Transcreve automaticamente áudios recebidos para texto
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.auto_transcription_enabled}
+                    onCheckedChange={(checked) =>
+                      updateSettings({ auto_transcription_enabled: checked })
+                    }
+                  />
+                </div>
+                {settings.auto_transcription_enabled && (
+                  <p className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                    💡 Os áudios serão transcritos automaticamente assim que chegarem, 
+                    facilitando a busca e análise por IA.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </motion.div>

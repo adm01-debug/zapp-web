@@ -161,7 +161,7 @@ serve(async (req) => {
 
         if (contact) {
           // Insert message
-          const { error: msgError } = await supabase
+          const { data: insertedMessage, error: msgError } = await supabase
             .from('messages')
             .insert({
               contact_id: contact.id,
@@ -175,12 +175,100 @@ serve(async (req) => {
               created_at: data.messageTimestamp 
                 ? new Date(data.messageTimestamp * 1000).toISOString()
                 : new Date().toISOString(),
-            });
+            })
+            .select('id')
+            .single();
 
           if (msgError) {
             console.error('Error inserting message:', msgError);
           } else {
             console.log(`Message saved from ${phone}`);
+            
+            // Auto-transcribe audio if enabled
+            if (messageType === 'audio' && mediaUrl && insertedMessage) {
+              // Get the assigned agent's settings (if any)
+              const { data: contactData } = await supabase
+                .from('contacts')
+                .select('assigned_to')
+                .eq('id', contact.id)
+                .single();
+
+              let shouldTranscribe = true;
+
+              if (contactData?.assigned_to) {
+                // Get the profile's user_id
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('user_id')
+                  .eq('id', contactData.assigned_to)
+                  .single();
+
+                if (profileData?.user_id) {
+                  // Check user settings for auto transcription
+                  const { data: userSettings } = await supabase
+                    .from('user_settings')
+                    .select('auto_transcription_enabled')
+                    .eq('user_id', profileData.user_id)
+                    .single();
+
+                  if (userSettings && userSettings.auto_transcription_enabled === false) {
+                    shouldTranscribe = false;
+                  }
+                }
+              }
+
+              if (shouldTranscribe) {
+                // Update status to transcribing
+                await supabase
+                  .from('messages')
+                  .update({ transcription_status: 'processing' })
+                  .eq('id', insertedMessage.id);
+
+                // Call transcription edge function
+                try {
+                  const transcribeResponse = await fetch(
+                    `${supabaseUrl}/functions/v1/ai-transcribe-audio`,
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabaseServiceKey}`,
+                      },
+                      body: JSON.stringify({
+                        audioUrl: mediaUrl,
+                        messageId: insertedMessage.id,
+                      }),
+                    }
+                  );
+
+                  if (transcribeResponse.ok) {
+                    const transcribeResult = await transcribeResponse.json();
+                    console.log(`Audio transcribed successfully: ${insertedMessage.id}`);
+                    
+                    // Update message with transcription
+                    await supabase
+                      .from('messages')
+                      .update({
+                        transcription: transcribeResult.text,
+                        transcription_status: 'completed',
+                      })
+                      .eq('id', insertedMessage.id);
+                  } else {
+                    console.error('Transcription failed:', await transcribeResponse.text());
+                    await supabase
+                      .from('messages')
+                      .update({ transcription_status: 'failed' })
+                      .eq('id', insertedMessage.id);
+                  }
+                } catch (transcribeError) {
+                  console.error('Error calling transcription:', transcribeError);
+                  await supabase
+                    .from('messages')
+                    .update({ transcription_status: 'failed' })
+                    .eq('id', insertedMessage.id);
+                }
+              }
+            }
           }
         }
       }
