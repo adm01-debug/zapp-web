@@ -33,6 +33,7 @@ import { Product } from '@/components/catalog/ProductCard';
 import { AIConversationAssistant } from './AIConversationAssistant';
 import { FileUploader, FileUploaderRef } from './FileUploader';
 import { TextToSpeechButton } from './TextToSpeechButton';
+import { VoiceSelector } from './VoiceSelector';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -165,7 +166,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   const { quickReplies: dbQuickReplies, incrementUseCount } = useQuickReplies();
 
   // Text to speech hook
-  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId } = useTextToSpeech();
+  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId } = useTextToSpeech();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -554,6 +555,10 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               <Brain className="w-4 h-4" />
             </Button>
           </motion.div>
+          <VoiceSelector
+            selectedVoiceId={voiceId}
+            onVoiceChange={setVoiceId}
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
