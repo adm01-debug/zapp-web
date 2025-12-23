@@ -134,6 +134,8 @@ export function RealtimeInboxView() {
       timestamp: new Date(m.created_at),
       status: m.is_read ? 'read' : 'delivered',
       mediaUrl: m.media_url || undefined,
+      transcription: m.transcription || null,
+      transcriptionStatus: m.transcription_status as any || null,
     })) || [];
 
   // Check online status

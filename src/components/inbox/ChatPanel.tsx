@@ -810,6 +810,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                                 audioUrl={message.mediaUrl}
                                 messageId={message.id}
                                 isSent={isSent}
+                                existingTranscription={message.transcription}
+                                transcriptionStatus={message.transcriptionStatus}
                               />
                             </div>
                           )}
