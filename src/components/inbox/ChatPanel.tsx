@@ -902,6 +902,8 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               ref={fileUploaderRef}
               instanceName={conversation.contact.id} // Use connection instance name when available
               recipientNumber={conversation.contact.phone}
+              contactId={conversation.contact.id}
+              connectionId={undefined} // TODO: Get from conversation when available
               onFileSelect={(file, category) => {
                 toast({
                   title: 'Arquivo selecionado',
