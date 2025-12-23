@@ -20,7 +20,8 @@ import {
   RotateCcw,
   CheckCircle2,
   TrendingDown,
-  Activity
+  Activity,
+  Mic
 } from 'lucide-react';
 import { useNotificationSettings, NotificationSettings } from '@/hooks/useNotificationSettings';
 import { previewSound, requestNotificationPermission, SoundType } from '@/utils/notificationSounds';
@@ -220,6 +221,23 @@ export function NotificationSettingsPanel() {
             <Switch
               checked={settings.slaBreachSound}
               onCheckedChange={(checked) => updateSettings({ slaBreachSound: checked })}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Transcription Complete */}
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-3">
+              <Mic className="w-5 h-5 text-primary" />
+              <div>
+                <p className="font-medium">Transcrição de Áudio</p>
+                <p className="text-sm text-muted-foreground">Quando áudio for transcrito automaticamente</p>
+              </div>
+            </div>
+            <Switch
+              checked={settings.transcriptionNotificationEnabled}
+              onCheckedChange={(checked) => updateSettings({ transcriptionNotificationEnabled: checked })}
             />
           </div>
         </CardContent>

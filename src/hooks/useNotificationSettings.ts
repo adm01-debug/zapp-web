@@ -18,6 +18,8 @@ export interface NotificationSettings {
   sentimentAlertEnabled: boolean;
   sentimentAlertThreshold: number; // 0-100
   sentimentConsecutiveCount: number; // number of consecutive analyses
+  // Transcription notification settings
+  transcriptionNotificationEnabled: boolean;
 }
 
 const DEFAULT_SETTINGS: NotificationSettings = {
@@ -35,6 +37,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   sentimentAlertEnabled: true,
   sentimentAlertThreshold: 30,
   sentimentConsecutiveCount: 2,
+  transcriptionNotificationEnabled: true,
 };
 
 export const useNotificationSettings = () => {
@@ -54,7 +57,7 @@ export const useNotificationSettings = () => {
       try {
         const { data, error } = await supabase
           .from('user_settings')
-          .select('sound_enabled, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, browser_notifications_enabled, sentiment_alert_enabled, sentiment_alert_threshold, sentiment_consecutive_count')
+          .select('sound_enabled, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, browser_notifications_enabled, sentiment_alert_enabled, sentiment_alert_threshold, sentiment_consecutive_count, transcription_notification_enabled')
           .eq('user_id', user.id)
           .maybeSingle();
 
@@ -71,6 +74,7 @@ export const useNotificationSettings = () => {
             sentimentAlertEnabled: data.sentiment_alert_enabled ?? DEFAULT_SETTINGS.sentimentAlertEnabled,
             sentimentAlertThreshold: data.sentiment_alert_threshold ?? DEFAULT_SETTINGS.sentimentAlertThreshold,
             sentimentConsecutiveCount: data.sentiment_consecutive_count ?? DEFAULT_SETTINGS.sentimentConsecutiveCount,
+            transcriptionNotificationEnabled: data.transcription_notification_enabled ?? DEFAULT_SETTINGS.transcriptionNotificationEnabled,
           }));
         }
       } catch (error) {
@@ -118,6 +122,9 @@ export const useNotificationSettings = () => {
       if ('sentimentConsecutiveCount' in updates) {
         dbUpdates.sentiment_consecutive_count = updates.sentimentConsecutiveCount;
       }
+      if ('transcriptionNotificationEnabled' in updates) {
+        dbUpdates.transcription_notification_enabled = updates.transcriptionNotificationEnabled;
+      }
 
       // Only save to DB if we have DB-mappable fields
       if (Object.keys(dbUpdates).length > 0) {
@@ -157,6 +164,7 @@ export const useNotificationSettings = () => {
           browser_notifications_enabled: DEFAULT_SETTINGS.browserNotifications,
           sentiment_alert_enabled: DEFAULT_SETTINGS.sentimentAlertEnabled,
           sentiment_alert_threshold: DEFAULT_SETTINGS.sentimentAlertThreshold,
+          transcription_notification_enabled: DEFAULT_SETTINGS.transcriptionNotificationEnabled,
           sentiment_consecutive_count: DEFAULT_SETTINGS.sentimentConsecutiveCount,
           updated_at: new Date().toISOString(),
         }, {

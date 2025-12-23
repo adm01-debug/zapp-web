@@ -28,7 +28,7 @@ export function useTranscriptionNotifications(options: TranscriptionNotification
   }, []);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !settings.transcriptionNotificationEnabled) return;
 
     const channel = supabase
       .channel('transcription-notifications')
@@ -106,7 +106,7 @@ export function useTranscriptionNotifications(options: TranscriptionNotification
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [enabled, showToast, playSound, showBrowserNotif, settings, isQuietHours]);
+  }, [enabled, showToast, playSound, showBrowserNotif, settings, isQuietHours, settings.transcriptionNotificationEnabled]);
 
   // Cleanup processed IDs periodically to prevent memory leak
   useEffect(() => {
