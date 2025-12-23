@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
+// Default ElevenLabs voice: Sarah
+const DEFAULT_TTS_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
+
 export interface UserSettings {
   id?: string;
   user_id?: string;
@@ -34,6 +37,9 @@ export interface UserSettings {
   theme: string;
   language: string;
   compact_mode: boolean;
+  
+  // TTS
+  tts_voice_id: string;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -59,6 +65,8 @@ const DEFAULT_SETTINGS: UserSettings = {
   theme: 'system',
   language: 'pt-BR',
   compact_mode: false,
+  
+  tts_voice_id: DEFAULT_TTS_VOICE_ID,
 };
 
 export function useUserSettings() {
@@ -111,6 +119,7 @@ export function useUserSettings() {
             theme: data.theme ?? DEFAULT_SETTINGS.theme,
             language: data.language ?? DEFAULT_SETTINGS.language,
             compact_mode: data.compact_mode ?? DEFAULT_SETTINGS.compact_mode,
+            tts_voice_id: (data as any).tts_voice_id ?? DEFAULT_SETTINGS.tts_voice_id,
           });
         }
       } catch (err) {
@@ -161,6 +170,7 @@ export function useUserSettings() {
         theme: settings.theme,
         language: settings.language,
         compact_mode: settings.compact_mode,
+        tts_voice_id: settings.tts_voice_id,
       };
 
       const { error } = await supabase

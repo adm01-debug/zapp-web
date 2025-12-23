@@ -35,6 +35,7 @@ import { FileUploader, FileUploaderRef } from './FileUploader';
 import { TextToSpeechButton } from './TextToSpeechButton';
 import { VoiceSelector } from './VoiceSelector';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -165,8 +166,20 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   // Quick replies from DB
   const { quickReplies: dbQuickReplies, incrementUseCount } = useQuickReplies();
 
-  // Text to speech hook
-  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId } = useTextToSpeech();
+  // User settings for TTS voice preference
+  const { settings, updateSettings, saveSettings } = useUserSettings();
+
+  // Text to speech hook with persistence
+  const handleVoiceChange = (newVoiceId: string) => {
+    updateSettings({ tts_voice_id: newVoiceId });
+    // Auto-save voice preference
+    setTimeout(() => saveSettings(), 100);
+  };
+
+  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId } = useTextToSpeech({
+    initialVoiceId: settings.tts_voice_id,
+    onVoiceChange: handleVoiceChange,
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
