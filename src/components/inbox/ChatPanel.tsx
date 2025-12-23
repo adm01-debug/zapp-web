@@ -34,6 +34,7 @@ import { AIConversationAssistant } from './AIConversationAssistant';
 import { FileUploader, FileUploaderRef } from './FileUploader';
 import { TextToSpeechButton } from './TextToSpeechButton';
 import { VoiceSelector } from './VoiceSelector';
+import { SpeedSelector } from './SpeedSelector';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
@@ -176,9 +177,17 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     setTimeout(() => saveSettings(), 100);
   };
 
-  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId } = useTextToSpeech({
+  const handleSpeedChange = (newSpeed: number) => {
+    updateSettings({ tts_speed: newSpeed });
+    // Auto-save speed preference
+    setTimeout(() => saveSettings(), 100);
+  };
+
+  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId, speed, setSpeed } = useTextToSpeech({
     initialVoiceId: settings.tts_voice_id,
+    initialSpeed: settings.tts_speed,
     onVoiceChange: handleVoiceChange,
+    onSpeedChange: handleSpeedChange,
   });
 
   const scrollToBottom = () => {
@@ -571,6 +580,10 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           <VoiceSelector
             selectedVoiceId={voiceId}
             onVoiceChange={setVoiceId}
+          />
+          <SpeedSelector
+            speed={speed}
+            onSpeedChange={setSpeed}
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
