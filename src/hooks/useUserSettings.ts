@@ -5,6 +5,7 @@ import { toast } from '@/hooks/use-toast';
 
 // Default ElevenLabs voice: Sarah
 const DEFAULT_TTS_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
+const DEFAULT_TTS_SPEED = 1.0;
 
 export interface UserSettings {
   id?: string;
@@ -40,6 +41,7 @@ export interface UserSettings {
   
   // TTS
   tts_voice_id: string;
+  tts_speed: number;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -67,6 +69,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   compact_mode: false,
   
   tts_voice_id: DEFAULT_TTS_VOICE_ID,
+  tts_speed: DEFAULT_TTS_SPEED,
 };
 
 export function useUserSettings() {
@@ -120,6 +123,7 @@ export function useUserSettings() {
             language: data.language ?? DEFAULT_SETTINGS.language,
             compact_mode: data.compact_mode ?? DEFAULT_SETTINGS.compact_mode,
             tts_voice_id: (data as any).tts_voice_id ?? DEFAULT_SETTINGS.tts_voice_id,
+            tts_speed: (data as any).tts_speed ?? DEFAULT_SETTINGS.tts_speed,
           });
         }
       } catch (err) {
@@ -171,6 +175,7 @@ export function useUserSettings() {
         language: settings.language,
         compact_mode: settings.compact_mode,
         tts_voice_id: settings.tts_voice_id,
+        tts_speed: settings.tts_speed,
       };
 
       const { error } = await supabase

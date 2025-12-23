@@ -6,7 +6,9 @@ const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
 
 interface UseTextToSpeechOptions {
   initialVoiceId?: string;
+  initialSpeed?: number;
   onVoiceChange?: (voiceId: string) => void;
+  onSpeedChange?: (speed: number) => void;
 }
 
 export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
@@ -14,6 +16,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
   const [voiceId, setVoiceIdState] = useState(options.initialVoiceId || DEFAULT_VOICE_ID);
+  const [speed, setSpeedState] = useState(options.initialSpeed || 1.0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
 
@@ -25,10 +28,33 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.initialVoiceId]);
 
+  // Sync with external speed changes
+  useEffect(() => {
+    if (options.initialSpeed !== undefined && options.initialSpeed !== speed) {
+      setSpeedState(options.initialSpeed);
+      // Update current audio playback rate if playing
+      if (audioRef.current) {
+        audioRef.current.playbackRate = options.initialSpeed;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.initialSpeed]);
+
   const setVoiceId = useCallback((newVoiceId: string) => {
     setVoiceIdState(newVoiceId);
     options.onVoiceChange?.(newVoiceId);
   }, [options.onVoiceChange]);
+
+  const setSpeed = useCallback((newSpeed: number) => {
+    // Clamp speed between 0.5 and 2.0
+    const clampedSpeed = Math.max(0.5, Math.min(2.0, newSpeed));
+    setSpeedState(clampedSpeed);
+    // Update current audio playback rate if playing
+    if (audioRef.current) {
+      audioRef.current.playbackRate = clampedSpeed;
+    }
+    options.onSpeedChange?.(clampedSpeed);
+  }, [options.onSpeedChange]);
 
   const stop = useCallback(() => {
     if (audioRef.current) {
@@ -94,6 +120,9 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
 
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
+      
+      // Set playback rate
+      audio.playbackRate = speed;
 
       audio.onplay = () => setIsPlaying(true);
       audio.onended = () => {
@@ -119,7 +148,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [voiceId, stop]);
+  }, [voiceId, speed, stop]);
 
   return {
     speak,
@@ -129,5 +158,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
     currentMessageId,
     voiceId,
     setVoiceId,
+    speed,
+    setSpeed,
   };
 }
