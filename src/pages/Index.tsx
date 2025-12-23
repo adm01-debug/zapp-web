@@ -15,6 +15,7 @@ import { ClientWalletView } from '@/components/wallet/ClientWalletView';
 import { AdminView } from '@/components/admin/AdminView';
 import { ProductManagement } from '@/components/catalog/ProductManagement';
 import { GroupsView } from '@/components/groups/GroupsView';
+import { TranscriptionsHistoryView } from '@/components/transcriptions/TranscriptionsHistoryView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -131,6 +132,8 @@ const Index = () => {
         return <ClientWalletView />;
       case 'catalog':
         return <ProductManagement />;
+      case 'transcriptions':
+        return <TranscriptionsHistoryView />;
       case 'admin':
         return <AdminView />;
       case 'tags':
