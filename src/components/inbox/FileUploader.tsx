@@ -38,6 +38,8 @@ import { toast } from 'sonner';
 interface FileUploaderProps {
   instanceName?: string;
   recipientNumber?: string;
+  contactId?: string;
+  connectionId?: string;
   onFileSelect?: (file: File, category: string) => void;
   onFileSent?: (messageData: any) => void;
   disabled?: boolean;
@@ -55,7 +57,9 @@ export interface FileUploaderRef {
 
 export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({ 
   instanceName, 
-  recipientNumber, 
+  recipientNumber,
+  contactId,
+  connectionId,
   onFileSelect, 
   onFileSent,
   disabled 
@@ -177,9 +181,11 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       // Step 2: Send via Evolution API
       const category = filePreview.validation.category;
       let result;
+      let externalId: string | null = null;
 
       if (category === 'audio') {
         result = await sendAudioMessage(instanceName, recipientNumber, mediaUrl);
+        externalId = result?.key?.id || null;
       } else {
         result = await sendMediaMessage({
           instanceName,
@@ -188,12 +194,39 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
           mediaType: category as 'image' | 'video' | 'audio' | 'document',
           caption: caption || undefined,
         });
+        externalId = result?.key?.id || null;
+      }
+
+      // Step 3: Save message to database
+      if (contactId) {
+        const messageContent = category === 'document' 
+          ? filePreview.file.name 
+          : caption || `[${category === 'image' ? 'Imagem' : category === 'video' ? 'Vídeo' : category === 'audio' ? 'Áudio' : 'Arquivo'}]`;
+
+        const { error: dbError } = await supabase
+          .from('messages')
+          .insert({
+            contact_id: contactId,
+            whatsapp_connection_id: connectionId || null,
+            content: messageContent,
+            message_type: category || 'document',
+            media_url: mediaUrl,
+            sender: 'agent',
+            external_id: externalId,
+            status: 'sent',
+          });
+
+        if (dbError) {
+          console.error('Error saving message to database:', dbError);
+        } else {
+          console.log('Media message saved to database');
+        }
       }
 
       setUploadProgress(100);
       
       toast.success('Arquivo enviado com sucesso!');
-      onFileSent?.(result);
+      onFileSent?.({ ...result, mediaUrl, messageType: category });
       handleClose();
     } catch (error: any) {
       console.error('Error sending file:', error);
