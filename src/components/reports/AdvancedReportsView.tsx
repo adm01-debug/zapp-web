@@ -41,9 +41,12 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
+  GitCompare,
 } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO } from 'date-fns';
+import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAgents } from '@/hooks/useAgents';
@@ -68,6 +71,7 @@ export function AdvancedReportsView() {
   const [period, setPeriod] = useState('30');
   const [selectedAgent, setSelectedAgent] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
+  const [compareEnabled, setCompareEnabled] = useState(false);
 
   const { agents } = useAgents();
   const { tags } = useTags();
@@ -77,6 +81,15 @@ export function AdvancedReportsView() {
     return {
       from: startOfDay(subDays(new Date(), days)),
       to: endOfDay(new Date()),
+    };
+  }, [period]);
+
+  // Previous period date range for comparison
+  const previousDateRange = useMemo(() => {
+    const days = parseInt(period);
+    return {
+      from: startOfDay(subDays(new Date(), days * 2)),
+      to: endOfDay(subDays(new Date(), days + 1)),
     };
   }, [period]);
 
@@ -100,6 +113,27 @@ export function AdvancedReportsView() {
     },
   });
 
+  // Fetch previous period messages for comparison
+  const { data: previousMessagesData, isLoading: loadingPreviousMessages } = useQuery({
+    queryKey: ['reports-messages-previous', period, selectedAgent],
+    queryFn: async () => {
+      let query = supabase
+        .from('messages')
+        .select('id, created_at, sender, agent_id, contact_id, is_read')
+        .gte('created_at', previousDateRange.from.toISOString())
+        .lte('created_at', previousDateRange.to.toISOString());
+
+      if (selectedAgent !== 'all') {
+        query = query.eq('agent_id', selectedAgent);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: compareEnabled,
+  });
+
   // Fetch contacts data
   const { data: contactsData, isLoading: loadingContacts } = useQuery({
     queryKey: ['reports-contacts', period, selectedAgent, selectedTag],
@@ -118,6 +152,27 @@ export function AdvancedReportsView() {
       if (error) throw error;
       return data || [];
     },
+  });
+
+  // Fetch previous period contacts for comparison
+  const { data: previousContactsData, isLoading: loadingPreviousContacts } = useQuery({
+    queryKey: ['reports-contacts-previous', period, selectedAgent, selectedTag],
+    queryFn: async () => {
+      let query = supabase
+        .from('contacts')
+        .select('id, created_at, assigned_to, tags, contact_type')
+        .gte('created_at', previousDateRange.from.toISOString())
+        .lte('created_at', previousDateRange.to.toISOString());
+
+      if (selectedAgent !== 'all') {
+        query = query.eq('assigned_to', selectedAgent);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: compareEnabled,
   });
 
   // Process data for charts
@@ -219,30 +274,50 @@ export function AdvancedReportsView() {
     return { byType, byTag, daily };
   }, [contactsData, dateRange]);
 
-  // Calculate summary stats
+  // Calculate summary stats with real comparison data
   const stats = useMemo(() => {
     const totalMessages = messagesData?.length || 0;
     const sentMessages = messagesData?.filter(m => m.sender === 'agent').length || 0;
+    const receivedMessages = messagesData?.filter(m => m.sender === 'contact').length || 0;
     const totalContacts = contactsData?.length || 0;
     const activeAgents = new Set(messagesData?.map(m => m.agent_id).filter(Boolean)).size;
 
-    // Calculate trends (compare to previous period)
-    const previousPeriodMessages = Math.floor(totalMessages * 0.85); // Simulated
-    const messagesTrend = previousPeriodMessages > 0 
-      ? ((totalMessages - previousPeriodMessages) / previousPeriodMessages) * 100 
-      : 0;
+    // Previous period stats
+    const prevTotalMessages = previousMessagesData?.length || 0;
+    const prevSentMessages = previousMessagesData?.filter(m => m.sender === 'agent').length || 0;
+    const prevReceivedMessages = previousMessagesData?.filter(m => m.sender === 'contact').length || 0;
+    const prevTotalContacts = previousContactsData?.length || 0;
+    const prevActiveAgents = new Set(previousMessagesData?.map(m => m.agent_id).filter(Boolean)).size;
+
+    // Calculate trends
+    const calculateTrend = (current: number, previous: number) => {
+      if (!compareEnabled || previous === 0) return undefined;
+      return ((current - previous) / previous) * 100;
+    };
 
     return {
       totalMessages,
       sentMessages,
+      receivedMessages,
       totalContacts,
       activeAgents,
-      messagesTrend,
       avgMessagesPerDay: Math.round(totalMessages / parseInt(period)),
+      // Comparison data
+      prevTotalMessages,
+      prevSentMessages,
+      prevReceivedMessages,
+      prevTotalContacts,
+      prevActiveAgents,
+      prevAvgMessagesPerDay: Math.round(prevTotalMessages / parseInt(period)),
+      // Trends
+      messagesTrend: calculateTrend(totalMessages, prevTotalMessages),
+      sentTrend: calculateTrend(sentMessages, prevSentMessages),
+      contactsTrend: calculateTrend(totalContacts, prevTotalContacts),
+      agentsTrend: calculateTrend(activeAgents, prevActiveAgents),
     };
-  }, [messagesData, contactsData, period]);
+  }, [messagesData, contactsData, previousMessagesData, previousContactsData, period, compareEnabled]);
 
-  const isLoading = loadingMessages || loadingContacts;
+  const isLoading = loadingMessages || loadingContacts || (compareEnabled && (loadingPreviousMessages || loadingPreviousContacts));
 
   const getExportData = () => ({
     title: 'Relatório de Atendimento',
@@ -278,7 +353,20 @@ export function AdvancedReportsView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Compare Toggle */}
+          <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border">
+            <GitCompare className="w-4 h-4 text-muted-foreground" />
+            <Label htmlFor="compare-mode" className="text-sm cursor-pointer">
+              Comparar períodos
+            </Label>
+            <Switch
+              id="compare-mode"
+              checked={compareEnabled}
+              onCheckedChange={setCompareEnabled}
+            />
+          </div>
+
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-40">
               <Calendar className="w-4 h-4 mr-2" />
@@ -312,28 +400,58 @@ export function AdvancedReportsView() {
         </div>
       </div>
 
+      {/* Comparison Period Indicator */}
+      {compareEnabled && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-muted/30 border rounded-lg p-4"
+        >
+          <div className="flex items-center gap-3 text-sm">
+            <GitCompare className="w-4 h-4 text-primary" />
+            <span className="text-muted-foreground">Comparando:</span>
+            <Badge variant="outline" className="gap-1">
+              <span className="font-medium">Atual:</span>
+              {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}
+            </Badge>
+            <span className="text-muted-foreground">vs</span>
+            <Badge variant="secondary" className="gap-1">
+              <span className="font-medium">Anterior:</span>
+              {format(previousDateRange.from, 'dd/MM/yyyy')} - {format(previousDateRange.to, 'dd/MM/yyyy')}
+            </Badge>
+          </div>
+        </motion.div>
+      )}
+
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { 
             label: 'Total de Mensagens', 
             value: stats.totalMessages, 
+            prevValue: stats.prevTotalMessages,
             icon: MessageSquare,
             trend: stats.messagesTrend,
           },
           { 
             label: 'Mensagens Enviadas', 
             value: stats.sentMessages, 
+            prevValue: stats.prevSentMessages,
             icon: TrendingUp,
+            trend: stats.sentTrend,
           },
           { 
             label: 'Novos Contatos', 
             value: stats.totalContacts, 
+            prevValue: stats.prevTotalContacts,
             icon: Users,
+            trend: stats.contactsTrend,
           },
           { 
             label: 'Média por Dia', 
             value: stats.avgMessagesPerDay, 
+            prevValue: stats.prevAvgMessagesPerDay,
             icon: Clock,
           },
         ].map((stat, index) => (
@@ -373,6 +491,12 @@ export function AdvancedReportsView() {
                         </Badge>
                       )}
                     </div>
+                    {/* Comparison value */}
+                    {compareEnabled && stat.prevValue !== undefined && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Período anterior: <span className="font-medium">{stat.prevValue.toLocaleString()}</span>
+                      </p>
+                    )}
                   </>
                 )}
               </CardContent>
