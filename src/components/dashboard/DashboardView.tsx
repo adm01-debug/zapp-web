@@ -29,6 +29,7 @@ import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { SLAMetricsDashboard } from './SLAMetricsDashboard';
 import { AIQuickAccess } from './AIQuickAccess';
 import { AIStatsWidget } from './AIStatsWidget';
+import { GoalsDashboard } from './GoalsDashboard';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
@@ -184,6 +185,10 @@ export function DashboardView() {
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
             Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="goals" className="flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            Metas
           </TabsTrigger>
           <TabsTrigger value="ai" className="flex items-center gap-2">
             <Brain className="w-4 h-4" />
@@ -476,6 +481,10 @@ export function DashboardView() {
       >
         <DemoAchievements />
       </motion.div>
+        </TabsContent>
+
+        <TabsContent value="goals" className="space-y-6">
+          <GoalsDashboard />
         </TabsContent>
 
         <TabsContent value="ai" className="space-y-6">
