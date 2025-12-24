@@ -16,6 +16,7 @@ import { AdminView } from '@/components/admin/AdminView';
 import { ProductManagement } from '@/components/catalog/ProductManagement';
 import { GroupsView } from '@/components/groups/GroupsView';
 import { TranscriptionsHistoryView } from '@/components/transcriptions/TranscriptionsHistoryView';
+import { AdvancedReportsView } from '@/components/reports/AdvancedReportsView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -140,6 +141,8 @@ const Index = () => {
         return <TagsView />;
       case 'sentiment':
         return <SentimentAlertsDashboard />;
+      case 'reports':
+        return <AdvancedReportsView />;
       case 'settings':
         return <SettingsView />;
       default:
