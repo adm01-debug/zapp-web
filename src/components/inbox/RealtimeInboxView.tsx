@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
 import { ChatPanel } from './ChatPanel';
 import { ContactDetails } from './ContactDetails';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react';
+import { BulkActionsToolbar } from './BulkActionsToolbar';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +20,7 @@ import { ptBR } from 'date-fns/locale';
 import { Search } from 'lucide-react';
 import { Conversation, Message } from '@/types/chat';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export function RealtimeInboxView() {
   const { 
@@ -39,6 +41,10 @@ export function RealtimeInboxView() {
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
   
+  // Bulk selection state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   // Filter conversations by search
   const filteredConversations = useMemo(() => {
@@ -90,6 +96,117 @@ export function RealtimeInboxView() {
       toast.error('Erro ao enviar mensagem');
     }
   };
+
+  // Toggle selection mode
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    if (selectionMode) {
+      setSelectedIds(new Set());
+    }
+  };
+
+  // Toggle item selection
+  const toggleSelection = useCallback((contactId: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(contactId)) {
+        newSet.delete(contactId);
+      } else {
+        newSet.add(contactId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Clear selection
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+    setSelectionMode(false);
+  }, []);
+
+  // Bulk mark as read
+  const bulkMarkAsRead = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    
+    setBulkLoading(true);
+    try {
+      const contactIds = Array.from(selectedIds);
+      
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .in('contact_id', contactIds)
+        .eq('is_read', false);
+      
+      if (error) throw error;
+      
+      toast.success(`${contactIds.length} conversa(s) marcada(s) como lida(s)`);
+      clearSelection();
+      refetch();
+    } catch (err) {
+      toast.error('Erro ao marcar como lido');
+    } finally {
+      setBulkLoading(false);
+    }
+  }, [selectedIds, clearSelection, refetch]);
+
+  // Bulk transfer
+  const bulkTransfer = useCallback(async (type: 'agent' | 'queue', targetId: string, message?: string) => {
+    if (selectedIds.size === 0) return;
+    
+    setBulkLoading(true);
+    try {
+      const contactIds = Array.from(selectedIds);
+      
+      const updateData: { assigned_to?: string; queue_id?: string } = {};
+      if (type === 'agent') {
+        updateData.assigned_to = targetId;
+      } else {
+        updateData.queue_id = targetId;
+      }
+      
+      const { error } = await supabase
+        .from('contacts')
+        .update(updateData)
+        .in('id', contactIds);
+      
+      if (error) throw error;
+      
+      toast.success(`${contactIds.length} contato(s) transferido(s)`);
+      clearSelection();
+      refetch();
+    } catch (err) {
+      toast.error('Erro ao transferir contatos');
+    } finally {
+      setBulkLoading(false);
+    }
+  }, [selectedIds, clearSelection, refetch]);
+
+  // Bulk archive (mark as archived by removing from view)
+  const bulkArchive = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    
+    setBulkLoading(true);
+    try {
+      const contactIds = Array.from(selectedIds);
+      
+      // For archiving, we'll set assigned_to to null (unassign)
+      const { error } = await supabase
+        .from('contacts')
+        .update({ assigned_to: null })
+        .in('id', contactIds);
+      
+      if (error) throw error;
+      
+      toast.success(`${contactIds.length} contato(s) arquivado(s)`);
+      clearSelection();
+      refetch();
+    } catch (err) {
+      toast.error('Erro ao arquivar contatos');
+    } finally {
+      setBulkLoading(false);
+    }
+  }, [selectedIds, clearSelection, refetch]);
 
   // Convert to legacy format for ChatPanel compatibility
   const legacyConversation: Conversation | null = selectedConversation
@@ -194,6 +311,16 @@ export function RealtimeInboxView() {
 
       {/* Conversation List */}
       <div className="w-96 flex-shrink-0 relative z-10 border-r border-border/20 bg-card/50 backdrop-blur-sm flex flex-col">
+        {/* Bulk Actions Toolbar */}
+        <BulkActionsToolbar
+          selectedCount={selectedIds.size}
+          onMarkAsRead={bulkMarkAsRead}
+          onTransfer={bulkTransfer}
+          onArchive={bulkArchive}
+          onClearSelection={clearSelection}
+          isLoading={bulkLoading}
+        />
+
         {/* Header */}
         <div className="p-4 border-b border-border/20">
           <div className="flex items-center justify-between mb-4">
@@ -208,6 +335,18 @@ export function RealtimeInboxView() {
               </Badge>
             </div>
             <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleSelectionMode}
+                className={cn(
+                  'w-8 h-8',
+                  selectionMode ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                )}
+                title={selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
+              >
+                <CheckSquare className="w-4 h-4" />
+              </Button>
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -263,6 +402,9 @@ export function RealtimeInboxView() {
               conversations={filteredConversations}
               selectedContactId={selectedContactId}
               onSelectConversation={handleSelectConversation}
+              selectionMode={selectionMode}
+              selectedIds={selectedIds}
+              onToggleSelection={toggleSelection}
             />
           )}
         </div>
