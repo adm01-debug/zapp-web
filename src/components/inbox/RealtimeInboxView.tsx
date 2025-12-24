@@ -208,6 +208,56 @@ export function RealtimeInboxView() {
     }
   }, [selectedIds, clearSelection, refetch]);
 
+  // Select all conversations
+  const selectAll = useCallback(() => {
+    if (!selectionMode) {
+      setSelectionMode(true);
+    }
+    const allIds = new Set(filteredConversations.map(c => c.contact.id));
+    setSelectedIds(allIds);
+    toast.success(`${allIds.size} conversa(s) selecionada(s)`);
+  }, [filteredConversations, selectionMode]);
+
+  // Keyboard shortcuts for bulk actions
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if user is typing in an input field
+      const activeElement = document.activeElement;
+      const isInputField = activeElement?.tagName === 'INPUT' || 
+                          activeElement?.tagName === 'TEXTAREA' ||
+                          activeElement?.getAttribute('contenteditable') === 'true';
+      
+      if (isInputField) return;
+
+      // Ctrl+A or Cmd+A: Select all
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+        e.preventDefault();
+        selectAll();
+      }
+
+      // Delete or Backspace: Archive selected (only when in selection mode with items selected)
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectionMode && selectedIds.size > 0) {
+        e.preventDefault();
+        bulkArchive();
+      }
+
+      // Escape: Clear selection
+      if (e.key === 'Escape' && selectionMode) {
+        e.preventDefault();
+        clearSelection();
+      }
+
+      // R: Mark as read (only when in selection mode with items selected)
+      if (e.key === 'r' && selectionMode && selectedIds.size > 0 && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        bulkMarkAsRead();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectAll, bulkArchive, bulkMarkAsRead, clearSelection, selectionMode, selectedIds.size]);
+
   // Convert to legacy format for ChatPanel compatibility
   const legacyConversation: Conversation | null = selectedConversation
     ? {
