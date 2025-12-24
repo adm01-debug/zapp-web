@@ -6,6 +6,7 @@ import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { InboxFilters, InboxFiltersState } from './InboxFilters';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -469,6 +470,7 @@ export function RealtimeInboxView() {
               <Button variant="ghost" size="icon" onClick={refetch} disabled={loading}>
                 <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
               </Button>
+              <KeyboardShortcutsHelp />
             </div>
           </div>
 
