@@ -25,12 +25,14 @@ import {
   Trophy,
   Zap,
   Calendar,
+  Settings,
 } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { GoalsConfigDialog } from './GoalsConfigDialog';
 
 interface Goal {
   id: string;
@@ -50,12 +52,11 @@ const PERIOD_OPTIONS = [
   { value: 'month', label: 'Este Mês' },
 ];
 
-// Default goal targets (could be made configurable)
+// Default goal targets
 const DEFAULT_GOALS = {
-  messagesSent: { daily: 50, weekly: 250, monthly: 1000 },
-  contactsHandled: { daily: 10, weekly: 50, monthly: 200 },
-  responseTime: { daily: 5, weekly: 5, monthly: 5 }, // in minutes
-  resolutionRate: { daily: 80, weekly: 80, monthly: 85 }, // percentage
+  messages_sent: { daily: 50, weekly: 250, monthly: 1000 },
+  contacts_handled: { daily: 10, weekly: 50, monthly: 200 },
+  resolution_rate: { daily: 80, weekly: 80, monthly: 85 },
 };
 
 function getDateRange(period: string) {
@@ -72,17 +73,39 @@ function getDateRange(period: string) {
   }
 }
 
-function getGoalTarget(goalKey: keyof typeof DEFAULT_GOALS, period: string) {
-  const goals = DEFAULT_GOALS[goalKey];
+function getGoalTarget(
+  goalType: string, 
+  period: string, 
+  customGoals?: Array<{ goal_type: string; daily_target: number; weekly_target: number; monthly_target: number; is_active: boolean }>
+): number {
+  // Check if there's a custom goal
+  const customGoal = customGoals?.find(g => g.goal_type === goalType && g.is_active);
+  if (customGoal) {
+    switch (period) {
+      case 'today':
+        return customGoal.daily_target;
+      case 'week':
+        return customGoal.weekly_target;
+      case 'month':
+        return customGoal.monthly_target;
+      default:
+        return customGoal.daily_target;
+    }
+  }
+
+  // Fallback to defaults
+  const defaultGoal = DEFAULT_GOALS[goalType as keyof typeof DEFAULT_GOALS];
+  if (!defaultGoal) return 0;
+  
   switch (period) {
     case 'today':
-      return goals.daily;
+      return defaultGoal.daily;
     case 'week':
-      return goals.weekly;
+      return defaultGoal.weekly;
     case 'month':
-      return goals.monthly;
+      return defaultGoal.monthly;
     default:
-      return goals.daily;
+      return defaultGoal.daily;
   }
 }
 
@@ -102,6 +125,7 @@ function getProgressBgColor(percentage: number): string {
 
 export function GoalsDashboard() {
   const [period, setPeriod] = useState('today');
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const { user } = useAuth();
 
   const dateRange = useMemo(() => getDateRange(period), [period]);
@@ -173,6 +197,21 @@ export function GoalsDashboard() {
     enabled: !!profile?.id,
   });
 
+  // Fetch custom goal configurations
+  const { data: customGoals } = useQuery({
+    queryKey: ['goals-config', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const { data, error } = await supabase
+        .from('goals_configurations')
+        .select('*')
+        .eq('profile_id', profile.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.id,
+  });
+
   // Calculate goals
   const goals = useMemo((): Goal[] => {
     const messagesSent = messagesData?.filter(m => m.sender === 'agent').length || 0;
@@ -181,42 +220,57 @@ export function GoalsDashboard() {
     const resolvedAnalyses = analysesData?.filter(a => a.status === 'resolvido').length || 0;
     const resolutionRate = totalAnalyses > 0 ? Math.round((resolvedAnalyses / totalAnalyses) * 100) : 0;
 
-    return [
-      {
+    // Check if custom goals are active
+    const isMessageGoalActive = !customGoals?.find(g => g.goal_type === 'messages_sent')?.is_active === false;
+    const isContactGoalActive = !customGoals?.find(g => g.goal_type === 'contacts_handled')?.is_active === false;
+    const isResolutionGoalActive = !customGoals?.find(g => g.goal_type === 'resolution_rate')?.is_active === false;
+
+    const allGoals: Goal[] = [];
+
+    if (isMessageGoalActive) {
+      allGoals.push({
         id: 'messages-sent',
         label: 'Mensagens Enviadas',
         description: 'Total de mensagens enviadas no período',
-        target: getGoalTarget('messagesSent', period),
+        target: getGoalTarget('messages_sent', period, customGoals),
         current: messagesSent,
         unit: 'mensagens',
         icon: MessageSquare,
         color: 'hsl(var(--primary))',
         priority: 'high',
-      },
-      {
+      });
+    }
+
+    if (isContactGoalActive) {
+      allGoals.push({
         id: 'contacts-handled',
         label: 'Contatos Atendidos',
         description: 'Novos contatos atribuídos a você',
-        target: getGoalTarget('contactsHandled', period),
+        target: getGoalTarget('contacts_handled', period, customGoals),
         current: contactsHandled,
         unit: 'contatos',
         icon: Users,
         color: 'hsl(var(--chart-2))',
         priority: 'high',
-      },
-      {
+      });
+    }
+
+    if (isResolutionGoalActive) {
+      allGoals.push({
         id: 'resolution-rate',
         label: 'Taxa de Resolução',
         description: 'Percentual de conversas resolvidas',
-        target: getGoalTarget('resolutionRate', period),
+        target: getGoalTarget('resolution_rate', period, customGoals),
         current: resolutionRate,
         unit: '%',
         icon: CheckCircle2,
         color: 'hsl(var(--chart-3))',
         priority: 'medium',
-      },
-    ];
-  }, [messagesData, contactsData, analysesData, period]);
+      });
+    }
+
+    return allGoals;
+  }, [messagesData, contactsData, analysesData, period, customGoals]);
 
   // Calculate overall progress
   const overallProgress = useMemo(() => {
@@ -249,20 +303,35 @@ export function GoalsDashboard() {
           </p>
         </div>
 
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-40">
-            <Calendar className="w-4 h-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PERIOD_OPTIONS.map(opt => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfigDialogOpen(true)}
+            className="gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            Configurar Metas
+          </Button>
+
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-40">
+              <Calendar className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PERIOD_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* Goals Config Dialog */}
+      <GoalsConfigDialog open={configDialogOpen} onOpenChange={setConfigDialogOpen} />
 
       {/* Overall Progress Card */}
       <motion.div
