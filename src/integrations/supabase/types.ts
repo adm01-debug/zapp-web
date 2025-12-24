@@ -618,6 +618,60 @@ export type Database = {
           },
         ]
       }
+      goals_configurations: {
+        Row: {
+          created_at: string
+          daily_target: number
+          goal_type: string
+          id: string
+          is_active: boolean | null
+          monthly_target: number
+          profile_id: string | null
+          queue_id: string | null
+          updated_at: string
+          weekly_target: number
+        }
+        Insert: {
+          created_at?: string
+          daily_target?: number
+          goal_type: string
+          id?: string
+          is_active?: boolean | null
+          monthly_target?: number
+          profile_id?: string | null
+          queue_id?: string | null
+          updated_at?: string
+          weekly_target?: number
+        }
+        Update: {
+          created_at?: string
+          daily_target?: number
+          goal_type?: string
+          id?: string
+          is_active?: boolean | null
+          monthly_target?: number
+          profile_id?: string | null
+          queue_id?: string | null
+          updated_at?: string
+          weekly_target?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_configurations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_configurations_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_reactions: {
         Row: {
           contact_id: string | null
