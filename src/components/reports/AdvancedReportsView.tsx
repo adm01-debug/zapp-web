@@ -228,6 +228,81 @@ export function AdvancedReportsView() {
     return { daily, byAgent, bySender };
   }, [messagesData, dateRange, agents]);
 
+  // Process previous period data for comparison charts
+  const previousChartData = useMemo(() => {
+    if (!previousMessagesData || !compareEnabled) return { daily: [], byAgent: [], bySender: [], totals: { sent: 0, received: 0, total: 0 } };
+
+    const days = eachDayOfInterval({ start: previousDateRange.from, end: previousDateRange.to });
+    
+    // Daily messages
+    const daily = days.map((day, index) => {
+      const dayStr = format(day, 'yyyy-MM-dd');
+      const dayMessages = previousMessagesData.filter(m => 
+        format(parseISO(m.created_at), 'yyyy-MM-dd') === dayStr
+      );
+      const sent = dayMessages.filter(m => m.sender === 'agent').length;
+      const received = dayMessages.filter(m => m.sender === 'contact').length;
+      
+      return {
+        date: `Dia ${index + 1}`,
+        enviadas: sent,
+        recebidas: received,
+        total: sent + received,
+      };
+    });
+
+    // Messages by agent
+    const agentCounts: Record<string, number> = {};
+    previousMessagesData.forEach(m => {
+      if (m.agent_id) {
+        agentCounts[m.agent_id] = (agentCounts[m.agent_id] || 0) + 1;
+      }
+    });
+
+    const byAgent = Object.entries(agentCounts)
+      .map(([agentId, count]) => {
+        const agent = agents.find(a => a.id === agentId);
+        return {
+          name: agent?.name || 'Desconhecido',
+          mensagens: count,
+        };
+      })
+      .sort((a, b) => b.mensagens - a.mensagens)
+      .slice(0, 10);
+
+    // Messages by sender type
+    const sent = previousMessagesData.filter(m => m.sender === 'agent').length;
+    const received = previousMessagesData.filter(m => m.sender === 'contact').length;
+    const bySender = [
+      { name: 'Enviadas', value: sent },
+      { name: 'Recebidas', value: received },
+    ];
+
+    return { daily, byAgent, bySender, totals: { sent, received, total: sent + received } };
+  }, [previousMessagesData, previousDateRange, agents, compareEnabled]);
+
+  // Comparison summary data for bar charts
+  const comparisonSummary = useMemo(() => {
+    if (!compareEnabled) return [];
+    
+    const currentTotal = messagesData?.length || 0;
+    const currentSent = messagesData?.filter(m => m.sender === 'agent').length || 0;
+    const currentReceived = messagesData?.filter(m => m.sender === 'contact').length || 0;
+    const currentContacts = contactsData?.length || 0;
+
+    const prevTotal = previousMessagesData?.length || 0;
+    const prevSent = previousMessagesData?.filter(m => m.sender === 'agent').length || 0;
+    const prevReceived = previousMessagesData?.filter(m => m.sender === 'contact').length || 0;
+    const prevContacts = previousContactsData?.length || 0;
+
+    return [
+      { name: 'Total Mensagens', atual: currentTotal, anterior: prevTotal },
+      { name: 'Enviadas', atual: currentSent, anterior: prevSent },
+      { name: 'Recebidas', atual: currentReceived, anterior: prevReceived },
+      { name: 'Novos Contatos', atual: currentContacts, anterior: prevContacts },
+    ];
+  }, [messagesData, contactsData, previousMessagesData, previousContactsData, compareEnabled]);
+
   // Process contacts data
   const contactsChartData = useMemo(() => {
     if (!contactsData) return { byType: [], byTag: [], daily: [] };
@@ -524,97 +599,325 @@ export function AdvancedReportsView() {
         </TabsList>
 
         <TabsContent value="messages" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Daily Messages Chart */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Mensagens por Dia</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={chartData.daily}>
-                      <defs>
-                        <linearGradient id="colorEnviadas" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorRecebidas" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="enviadas"
-                        stroke="hsl(var(--primary))"
-                        fill="url(#colorEnviadas)"
-                        strokeWidth={2}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="recebidas"
-                        stroke="hsl(var(--chart-2))"
-                        fill="url(#colorRecebidas)"
-                        strokeWidth={2}
-                      />
-                      <Legend />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
+          {/* Comparison Summary Bar Chart */}
+          {compareEnabled && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <GitCompare className="w-4 h-4 text-primary" />
+                    Comparação de Métricas: Atual vs Anterior
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <Skeleton className="h-[250px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={comparisonSummary} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={120} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="atual" name="Período Atual" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="anterior" name="Período Anterior" fill="hsl(var(--muted-foreground))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
-            {/* Messages Distribution Pie */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Distribuição</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={chartData.bySender}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {chartData.bySender.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                        }}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Side by Side Charts when comparison is enabled */}
+          {compareEnabled ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Current Period Chart */}
+              <Card className="border-primary/30">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Período Atual</CardTitle>
+                    <Badge className="bg-primary/20 text-primary border-primary/30">
+                      {format(dateRange.from, 'dd/MM')} - {format(dateRange.to, 'dd/MM')}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <Skeleton className="h-[250px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <AreaChart data={chartData.daily}>
+                        <defs>
+                          <linearGradient id="colorEnviadasCurrent" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="total"
+                          stroke="hsl(var(--primary))"
+                          fill="url(#colorEnviadasCurrent)"
+                          strokeWidth={2}
+                          name="Total"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+                  <div className="mt-3 flex items-center justify-center gap-6 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-primary" />
+                      <span className="text-muted-foreground">Total:</span>
+                      <span className="font-bold">{stats.totalMessages}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Previous Period Chart */}
+              <Card className="border-muted-foreground/30">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Período Anterior</CardTitle>
+                    <Badge variant="secondary">
+                      {format(previousDateRange.from, 'dd/MM')} - {format(previousDateRange.to, 'dd/MM')}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <Skeleton className="h-[250px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <AreaChart data={previousChartData.daily}>
+                        <defs>
+                          <linearGradient id="colorEnviadasPrev" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="total"
+                          stroke="hsl(var(--muted-foreground))"
+                          fill="url(#colorEnviadasPrev)"
+                          strokeWidth={2}
+                          name="Total"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+                  <div className="mt-3 flex items-center justify-center gap-6 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-muted-foreground" />
+                      <span className="text-muted-foreground">Total:</span>
+                      <span className="font-bold">{stats.prevTotalMessages}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Current Distribution Pie */}
+              <Card className="border-primary/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Distribuição Atual</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <Skeleton className="h-[200px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={chartData.bySender}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {chartData.bySender.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Previous Distribution Pie */}
+              <Card className="border-muted-foreground/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Distribuição Anterior</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <Skeleton className="h-[200px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={previousChartData.bySender}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {previousChartData.bySender.map((_, index) => (
+                            <Cell key={`cell-prev-${index}`} fill={index === 0 ? 'hsl(var(--chart-4))' : 'hsl(var(--chart-5))'} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Daily Messages Chart */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-base">Mensagens por Dia</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <Skeleton className="h-[300px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={chartData.daily}>
+                        <defs>
+                          <linearGradient id="colorEnviadas" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="colorRecebidas" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="enviadas"
+                          stroke="hsl(var(--primary))"
+                          fill="url(#colorEnviadas)"
+                          strokeWidth={2}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="recebidas"
+                          stroke="hsl(var(--chart-2))"
+                          fill="url(#colorRecebidas)"
+                          strokeWidth={2}
+                        />
+                        <Legend />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Messages Distribution Pie */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Distribuição</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <Skeleton className="h-[300px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={chartData.bySender}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {chartData.bySender.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="agents" className="space-y-4">
