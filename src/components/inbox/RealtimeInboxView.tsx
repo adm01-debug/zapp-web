@@ -3,6 +3,7 @@ import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '
 import { ChatPanel } from './ChatPanel';
 import { ContactDetails } from './ContactDetails';
 import { NewMessageIndicator } from './NewMessageIndicator';
+import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -10,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ export function RealtimeInboxView() {
   const [search, setSearch] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
+  
 
   // Filter conversations by search
   const filteredConversations = useMemo(() => {
@@ -236,8 +237,8 @@ export function RealtimeInboxView() {
           </div>
         </div>
 
-        {/* Conversation List */}
-        <ScrollArea className="flex-1">
+        {/* Virtualized Conversation List */}
+        <div className="flex-1 overflow-hidden">
           {loading ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -258,82 +259,13 @@ export function RealtimeInboxView() {
               </p>
             </div>
           ) : (
-            <div className="p-2">
-              <AnimatePresence mode="popLayout">
-                {filteredConversations.map((conversation) => (
-                  <motion.div
-                    key={conversation.contact.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <button
-                      onClick={() => handleSelectConversation(conversation.contact.id)}
-                      className={cn(
-                        'w-full p-3 rounded-xl flex items-start gap-3 transition-all text-left',
-                        'hover:bg-muted/50',
-                        selectedContactId === conversation.contact.id &&
-                          'bg-primary/10 border border-primary/20'
-                      )}
-                    >
-                      <div className="relative">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {conversation.contact.name
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        {conversation.unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
-                            {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-foreground truncate">
-                            {conversation.contact.name}
-                          </span>
-                          {conversation.lastMessage && (
-                            <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
-                                addSuffix: false,
-                                locale: ptBR,
-                              })}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {conversation.lastMessage?.content || 'Sem mensagens'}
-                        </p>
-                        {conversation.contact.tags && conversation.contact.tags.length > 0 && (
-                          <div className="flex gap-1 mt-1">
-                            {conversation.contact.tags.slice(0, 2).map((tag) => (
-                              <Badge
-                                key={tag}
-                                variant="outline"
-                                className="text-[10px] px-1.5 py-0"
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+            <VirtualizedRealtimeList 
+              conversations={filteredConversations}
+              selectedContactId={selectedContactId}
+              onSelectConversation={handleSelectConversation}
+            />
           )}
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Chat Panel */}
