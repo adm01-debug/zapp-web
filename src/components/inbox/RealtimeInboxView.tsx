@@ -5,6 +5,7 @@ import { ContactDetails } from './ContactDetails';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
+import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Search } from 'lucide-react';
 import { Conversation, Message } from '@/types/chat';
@@ -46,17 +47,73 @@ export function RealtimeInboxView() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  // Filter conversations by search
+  // Advanced filters state
+  const [filters, setFilters] = useState<InboxFiltersState>({
+    status: [],
+    tags: [],
+    agentId: null,
+    dateRange: { from: null, to: null },
+  });
+
+  // Filter conversations by search and advanced filters
   const filteredConversations = useMemo(() => {
-    if (!search.trim()) return conversations;
-    const searchLower = search.toLowerCase();
-    return conversations.filter(
-      (c) =>
-        c.contact.name.toLowerCase().includes(searchLower) ||
-        c.contact.phone.includes(search) ||
-        c.contact.email?.toLowerCase().includes(searchLower)
-    );
-  }, [conversations, search]);
+    let result = conversations;
+
+    // Search filter
+    if (search.trim()) {
+      const searchLower = search.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.contact.name.toLowerCase().includes(searchLower) ||
+          c.contact.phone.includes(search) ||
+          c.contact.email?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Status filter
+    if (filters.status.length > 0) {
+      result = result.filter((c) => {
+        const hasUnread = c.unreadCount > 0;
+        if (filters.status.includes('unread') && hasUnread) return true;
+        if (filters.status.includes('read') && !hasUnread) return true;
+        return false;
+      });
+    }
+
+    // Tags filter
+    if (filters.tags.length > 0) {
+      result = result.filter((c) => {
+        const contactTags = c.contact.tags || [];
+        return filters.tags.some(tagId => 
+          contactTags.some(t => t.toLowerCase().includes(tagId.toLowerCase()))
+        );
+      });
+    }
+
+    // Agent filter
+    if (filters.agentId) {
+      result = result.filter((c) => c.contact.assigned_to === filters.agentId);
+    }
+
+    // Date range filter
+    if (filters.dateRange.from) {
+      result = result.filter((c) => {
+        const lastMessageDate = c.lastMessage 
+          ? new Date(c.lastMessage.created_at)
+          : new Date(c.contact.created_at);
+        
+        if (filters.dateRange.from && isBefore(lastMessageDate, startOfDay(filters.dateRange.from))) {
+          return false;
+        }
+        if (filters.dateRange.to && isAfter(lastMessageDate, endOfDay(filters.dateRange.to))) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    return result;
+  }, [conversations, search, filters]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
@@ -423,6 +480,11 @@ export function RealtimeInboxView() {
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-muted/20"
             />
+          </div>
+
+          {/* Advanced Filters */}
+          <div className="mt-3">
+            <InboxFilters filters={filters} onFiltersChange={setFilters} />
           </div>
         </div>
 
