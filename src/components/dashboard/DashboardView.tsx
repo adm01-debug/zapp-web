@@ -70,6 +70,18 @@ export function DashboardView() {
     );
   }
 
+  // Generate mock sparkline data based on current values
+  const generateSparklineData = (baseValue: number, trend: 'up' | 'down' | 'stable') => {
+    const variance = baseValue * 0.15;
+    const data = [];
+    for (let i = 0; i < 7; i++) {
+      const trendFactor = trend === 'up' ? i * 0.08 : trend === 'down' ? -i * 0.08 : 0;
+      const randomVariance = (Math.random() - 0.5) * variance;
+      data.push(Math.max(0, baseValue * (1 + trendFactor) + randomVariance));
+    }
+    return data;
+  };
+
   const statsCards = [
     {
       title: 'Conversas Abertas',
@@ -80,16 +92,19 @@ export function DashboardView() {
       gradient: 'from-primary to-amber-500',
       iconBg: 'bg-primary/15',
       streak: 5,
+      sparklineData: generateSparklineData(stats.openConversations, 'up'),
     },
     {
       title: 'Tempo Médio de Resposta',
       value: formatResponseTime(stats.avgResponseTime),
       change: '-8%',
       changeType: 'positive' as const,
+      invertTrend: true, // Lower is better for response time
       icon: Clock,
       gradient: 'from-info to-cyan-400',
       iconBg: 'bg-info/15',
       achievement: { label: 'Resposta Rápida!', unlocked: stats.avgResponseTime !== null && stats.avgResponseTime < 180 },
+      sparklineData: generateSparklineData(stats.avgResponseTime || 120, 'down'),
     },
     {
       title: 'Atendentes Online',
@@ -99,6 +114,7 @@ export function DashboardView() {
       icon: Users,
       gradient: 'from-success to-emerald-400',
       iconBg: 'bg-success/15',
+      sparklineData: generateSparklineData(stats.onlineAgents, 'stable'),
     },
     {
       title: 'Resolvidas Hoje',
@@ -110,6 +126,7 @@ export function DashboardView() {
       iconBg: 'bg-coins/15',
       achievement: { label: 'Meta Batida!', unlocked: stats.resolvedToday >= 5 },
       streak: 3,
+      sparklineData: generateSparklineData(stats.resolvedToday, 'up'),
     },
   ];
 
@@ -125,6 +142,8 @@ export function DashboardView() {
                 value={stat.value}
                 change={stat.change}
                 changeType={stat.changeType}
+                invertTrend={stat.invertTrend}
+                sparklineData={stat.sparklineData}
                 icon={stat.icon}
                 gradient={stat.gradient}
                 iconBg={stat.iconBg}
