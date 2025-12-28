@@ -23,12 +23,15 @@ import { PageTransition } from '@/components/ui/motion';
 import { TourProvider, DEFAULT_ONBOARDING_STEPS, useTour } from '@/components/onboarding/OnboardingTour';
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
+import { BottomNavigation, MobileDrawer } from '@/components/ui/mobile-components';
 import { useAuth } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { logAudit } from '@/lib/audit';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function IndexContent() {
   const navigate = useNavigate();
@@ -37,12 +40,22 @@ function IndexContent() {
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
   const [currentView, setCurrentView] = useState('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
   
   // Enable transcription notifications globally
   useTranscriptionNotifications({ enabled: !!user });
 
   // Show checklist on dashboard if not complete
   const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
+
+  // Mobile navigation items
+  const mobileNavItems = [
+    { id: 'inbox', icon: <MessageSquare className="w-5 h-5" />, label: 'Inbox', badge: 12 },
+    { id: 'contacts', icon: <Users className="w-5 h-5" />, label: 'Contatos' },
+    { id: 'dashboard', icon: <BarChart3 className="w-5 h-5" />, label: 'Dashboard' },
+    { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Config' },
+  ];
 
   useEffect(() => {
     if (!loading && !user) {
@@ -194,52 +207,109 @@ function IndexContent() {
     <SLANotificationProvider>
       <GoalNotificationProvider>
         <div className="flex h-screen bg-background overflow-hidden relative">
-        {/* Subtle background gradients */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
-        </div>
-        
-        <Sidebar
-          currentView={currentView}
-          onViewChange={setCurrentView}
-          currentAgent={{
-            name: profile?.name || user.email || 'Usuário',
-            avatar: profile?.avatar_url || undefined,
-            status: 'online',
-          }}
-          onLogout={signOut}
-        />
-        
-        <main className="flex-1 overflow-hidden relative">
-          {/* Onboarding Checklist - shown on dashboard */}
-          {showChecklist && currentView === 'dashboard' && (
-            <div className="absolute top-4 right-4 z-20 w-96 max-w-[calc(100%-2rem)]">
-              <OnboardingChecklist onNavigate={setCurrentView} />
+          {/* Subtle background gradients */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
+          </div>
+          
+          {/* Mobile Header */}
+          {isMobile && (
+            <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 bg-card/95 backdrop-blur-lg border-b border-border safe-area-top">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Abrir menu"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <span className="font-display font-bold">MultiChat</span>
+              </div>
+              <div className="w-10" /> {/* Spacer */}
             </div>
           )}
-          
-          <AnimatePresence mode="wait">
-            <PageTransition key={currentView}>
-              {renderView()}
-            </PageTransition>
-          </AnimatePresence>
-        </main>
-      </div>
 
-      {/* Welcome Modal for new users */}
-      <WelcomeModal
-        isOpen={showWelcome}
-        onClose={() => {
-          setShowWelcome(false);
-          completeOnboarding();
-        }}
-        onStartTour={() => {
-          setShowWelcome(false);
-          completeOnboarding();
-        }}
-        userName={profile?.name}
-      />
+          {/* Mobile Drawer */}
+          <MobileDrawer 
+            isOpen={mobileMenuOpen} 
+            onClose={() => setMobileMenuOpen(false)}
+            side="left"
+          >
+            <div className="pt-16 px-4">
+              <Sidebar
+                currentView={currentView}
+                onViewChange={(view) => {
+                  setCurrentView(view);
+                  setMobileMenuOpen(false);
+                }}
+                currentAgent={{
+                  name: profile?.name || user.email || 'Usuário',
+                  avatar: profile?.avatar_url || undefined,
+                  status: 'online',
+                }}
+                onLogout={signOut}
+              />
+            </div>
+          </MobileDrawer>
+          
+          {/* Desktop Sidebar */}
+          {!isMobile && (
+            <Sidebar
+              currentView={currentView}
+              onViewChange={setCurrentView}
+              currentAgent={{
+                name: profile?.name || user.email || 'Usuário',
+                avatar: profile?.avatar_url || undefined,
+                status: 'online',
+              }}
+              onLogout={signOut}
+            />
+          )}
+          
+          <main 
+            id="main-content" 
+            className={`flex-1 overflow-hidden relative ${isMobile ? 'pt-14 pb-16' : ''}`}
+          >
+            {/* Onboarding Checklist - shown on dashboard */}
+            {showChecklist && currentView === 'dashboard' && (
+              <div className="absolute top-4 right-4 z-20 w-96 max-w-[calc(100%-2rem)]">
+                <OnboardingChecklist onNavigate={setCurrentView} />
+              </div>
+            )}
+            
+            <AnimatePresence mode="wait">
+              <PageTransition key={currentView}>
+                {renderView()}
+              </PageTransition>
+            </AnimatePresence>
+          </main>
+
+          {/* Mobile Bottom Navigation */}
+          {isMobile && (
+            <BottomNavigation
+              items={mobileNavItems}
+              activeId={currentView}
+              onChange={setCurrentView}
+            />
+          )}
+        </div>
+
+        {/* Welcome Modal for new users */}
+        <WelcomeModal
+          isOpen={showWelcome}
+          onClose={() => {
+            setShowWelcome(false);
+            completeOnboarding();
+          }}
+          onStartTour={() => {
+            setShowWelcome(false);
+            completeOnboarding();
+          }}
+          userName={profile?.name}
+        />
       </GoalNotificationProvider>
     </SLANotificationProvider>
   );
