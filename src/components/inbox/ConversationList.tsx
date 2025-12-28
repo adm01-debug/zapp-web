@@ -112,14 +112,26 @@ export function ConversationList({
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         {filteredConversations.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-full text-muted-foreground p-4"
-          >
-            <Search className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">Nenhuma conversa encontrada</p>
-          </motion.div>
+          <div className="flex items-center justify-center h-full p-4">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'var(--gradient-primary)' }}
+              >
+                <Search className="w-7 h-7 text-primary-foreground" />
+              </motion.div>
+              <h3 className="font-semibold text-foreground mb-1">Nenhuma conversa</h3>
+              <p className="text-sm text-muted-foreground max-w-[200px]">
+                {search ? 'Nenhum resultado para sua busca' : 'Suas conversas aparecerão aqui'}
+              </p>
+            </motion.div>
+          </div>
         ) : (
           <StaggeredList className="p-2 space-y-1">
             {filteredConversations.map((conversation) => {
