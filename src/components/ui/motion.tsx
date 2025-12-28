@@ -1,31 +1,45 @@
-import { motion, HTMLMotionProps, Variants } from 'framer-motion';
-import { forwardRef, ReactNode } from 'react';
+import { motion, HTMLMotionProps, Variants, AnimatePresence } from 'framer-motion';
+import { forwardRef, ReactNode, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-// Animation variants
+// ============ ANIMATION VARIANTS ============
+
 export const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
+  },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
 };
 
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1 },
+  visible: { opacity: 1, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } }
 };
 
 export const scaleIn: Variants = {
   hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: { duration: 0.2, ease: "easeOut" }
+  },
+  exit: { opacity: 0, scale: 0.95 }
 };
 
 export const slideInRight: Variants = {
   hidden: { opacity: 0, x: 20 },
-  visible: { opacity: 1, x: 0 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  exit: { opacity: 0, x: 20 }
 };
 
 export const slideInLeft: Variants = {
   hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  exit: { opacity: 0, x: -20 }
 };
 
 export const staggerContainer: Variants = {
@@ -33,7 +47,7 @@ export const staggerContainer: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: 0.08,
       delayChildren: 0.1,
     },
   },
@@ -68,12 +82,32 @@ export const neonReveal: Variants = {
     opacity: 0,
     y: -20,
     filter: 'blur(5px)',
-    transition: {
-      duration: 0.3,
-      ease: 'easeIn',
-    }
+    transition: { duration: 0.3, ease: 'easeIn' }
   }
 };
+
+export const staggeredNeonContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.15,
+    },
+  },
+};
+
+export const staggeredNeonItem: Variants = {
+  hidden: { opacity: 0, y: 20, filter: 'blur(4px)' },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+  },
+};
+
+// ============ MOTION COMPONENTS ============
 
 // Page transition wrapper
 interface PageTransitionProps {
@@ -90,7 +124,6 @@ export function PageTransition({ children, className }: PageTransitionProps) {
       variants={neonReveal}
       className={cn('h-full relative', className)}
     >
-      {/* Neon glow overlay on enter */}
       <motion.div
         initial={{ opacity: 0.8, scale: 1.5 }}
         animate={{ opacity: 0, scale: 1 }}
@@ -100,7 +133,6 @@ export function PageTransition({ children, className }: PageTransitionProps) {
           background: 'radial-gradient(ellipse at center, hsl(var(--secondary) / 0.15) 0%, transparent 70%)',
         }}
       />
-      {/* Scan line effect */}
       <motion.div
         initial={{ top: '-100%' }}
         animate={{ top: '200%' }}
@@ -116,7 +148,7 @@ export function PageTransition({ children, className }: PageTransitionProps) {
   );
 }
 
-// Enhanced neon page reveal with more effects
+// Enhanced neon page reveal
 interface NeonPageRevealProps {
   children: ReactNode;
   className?: string;
@@ -131,15 +163,10 @@ export function NeonPageReveal({ children, className, delay = 0 }: NeonPageRevea
         opacity: 1, 
         y: 0, 
         scale: 1,
-        transition: {
-          duration: 0.6,
-          delay,
-          ease: [0.22, 1, 0.36, 1],
-        }
+        transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }
       }}
       className={cn('relative', className)}
     >
-      {/* Corner glow effects */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: [0, 0.5, 0] }}
@@ -165,35 +192,6 @@ export function NeonPageReveal({ children, className, delay = 0 }: NeonPageRevea
   );
 }
 
-// Staggered neon reveal for lists
-export const staggeredNeonContainer: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.15,
-    },
-  },
-};
-
-export const staggeredNeonItem: Variants = {
-  hidden: { 
-    opacity: 0, 
-    y: 20,
-    filter: 'blur(4px)',
-  },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    filter: 'blur(0px)',
-    transition: { 
-      duration: 0.4, 
-      ease: [0.22, 1, 0.36, 1],
-    }
-  },
-};
-
 // Motion Card with hover effects
 interface MotionCardProps extends HTMLMotionProps<'div'> {
   children: ReactNode;
@@ -202,22 +200,20 @@ interface MotionCardProps extends HTMLMotionProps<'div'> {
 }
 
 export const MotionCard = forwardRef<HTMLDivElement, MotionCardProps>(
-  ({ children, className, hover = true, tap = true, ...props }, ref) => {
-    return (
-      <motion.div
-        ref={ref}
-        whileHover={hover ? { y: -4, transition: { duration: 0.2 } } : undefined}
-        whileTap={tap ? { scale: 0.98 } : undefined}
-        className={cn(
-          'rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-glow',
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </motion.div>
-    );
-  }
+  ({ children, className, hover = true, tap = true, ...props }, ref) => (
+    <motion.div
+      ref={ref}
+      whileHover={hover ? { y: -4, transition: { duration: 0.2 } } : undefined}
+      whileTap={tap ? { scale: 0.98 } : undefined}
+      className={cn(
+        'rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-glow-primary',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
 );
 MotionCard.displayName = 'MotionCard';
 
@@ -227,20 +223,18 @@ interface MotionButtonProps extends HTMLMotionProps<'button'> {
 }
 
 export const MotionButton = forwardRef<HTMLButtonElement, MotionButtonProps>(
-  ({ children, className, ...props }, ref) => {
-    return (
-      <motion.button
-        ref={ref}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.15 }}
-        className={className}
-        {...props}
-      >
-        {children}
-      </motion.button>
-    );
-  }
+  ({ children, className, ...props }, ref) => (
+    <motion.button
+      ref={ref}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15 }}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.button>
+  )
 );
 MotionButton.displayName = 'MotionButton';
 
@@ -269,21 +263,231 @@ interface StaggeredItemProps extends HTMLMotionProps<'div'> {
 }
 
 export const StaggeredItem = forwardRef<HTMLDivElement, StaggeredItemProps>(
-  ({ children, className, ...props }, ref) => {
-    return (
-      <motion.div
-        ref={ref}
-        variants={staggerItem}
-        className={className}
-        {...props}
-      >
-        {children}
-      </motion.div>
-    );
-  }
+  ({ children, className, ...props }, ref) => (
+    <motion.div
+      ref={ref}
+      variants={staggerItem}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
 );
 StaggeredItem.displayName = 'StaggeredItem';
 
-// Animated presence wrapper for conditional rendering
-export { AnimatePresence } from 'framer-motion';
-export { motion };
+// ============ NEW ACCESSIBILITY-ENHANCED COMPONENTS ============
+
+// Motion container with fade-in
+interface MotionFadeInProps extends HTMLMotionProps<'div'> {
+  children: ReactNode;
+  delay?: number;
+}
+
+export const MotionFadeIn = forwardRef<HTMLDivElement, MotionFadeInProps>(
+  ({ children, className, delay = 0, ...props }, ref) => (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={fadeIn}
+      transition={{ delay }}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+);
+MotionFadeIn.displayName = 'MotionFadeIn';
+
+// Motion slide up
+export const MotionSlideUp = forwardRef<HTMLDivElement, MotionFadeInProps>(
+  ({ children, className, delay = 0, ...props }, ref) => (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={fadeInUp}
+      transition={{ delay }}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+);
+MotionSlideUp.displayName = 'MotionSlideUp';
+
+// Motion scale
+export const MotionScale = forwardRef<HTMLDivElement, MotionFadeInProps>(
+  ({ children, className, delay = 0, ...props }, ref) => (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={scaleIn}
+      transition={{ delay }}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+);
+MotionScale.displayName = 'MotionScale';
+
+// Interactive hover/tap component
+interface MotionInteractiveProps extends HTMLMotionProps<'div'> {
+  children: ReactNode;
+  hoverScale?: number;
+  tapScale?: number;
+}
+
+export const MotionInteractive = forwardRef<HTMLDivElement, MotionInteractiveProps>(
+  ({ children, className, hoverScale = 1.02, tapScale = 0.98, ...props }, ref) => (
+    <motion.div
+      ref={ref}
+      whileHover={{ scale: hoverScale }}
+      whileTap={{ scale: tapScale }}
+      transition={{ duration: 0.2 }}
+      className={cn('cursor-pointer', className)}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+);
+MotionInteractive.displayName = 'MotionInteractive';
+
+// Skeleton with shimmer effect
+interface SkeletonShimmerProps {
+  className?: string;
+  rounded?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+}
+
+export function SkeletonShimmer({ className, rounded = 'md' }: SkeletonShimmerProps) {
+  const roundedClasses = {
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    xl: 'rounded-xl',
+    full: 'rounded-full'
+  };
+
+  return (
+    <div className={cn(
+      'relative overflow-hidden bg-muted',
+      roundedClasses[rounded],
+      className
+    )}>
+      <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-background/60 to-transparent" />
+    </div>
+  );
+}
+
+// Animated counter
+interface AnimatedCounterProps {
+  value: number;
+  duration?: number;
+  className?: string;
+}
+
+export function AnimatedCounter({ value, duration = 1, className }: AnimatedCounterProps) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+    const startValue = displayValue;
+    const diff = value - startValue;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(startValue + diff * easeProgress));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value, duration]);
+
+  return (
+    <motion.span
+      key={displayValue}
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={className}
+    >
+      {displayValue.toLocaleString()}
+    </motion.span>
+  );
+}
+
+// Animated progress bar
+interface AnimatedProgressProps {
+  value: number;
+  max?: number;
+  className?: string;
+  showValue?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export function AnimatedProgress({
+  value,
+  max = 100,
+  className,
+  showValue = false,
+  size = 'md'
+}: AnimatedProgressProps) {
+  const percentage = Math.min((value / max) * 100, 100);
+  
+  const sizeClasses = {
+    sm: 'h-1',
+    md: 'h-2',
+    lg: 'h-3'
+  };
+
+  return (
+    <div className={cn('relative w-full', className)}>
+      <div className={cn('w-full bg-muted rounded-full overflow-hidden', sizeClasses[size])}>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="h-full bg-primary rounded-full"
+        />
+      </div>
+      {showValue && (
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute right-0 -top-6 text-xs text-muted-foreground"
+        >
+          {Math.round(percentage)}%
+        </motion.span>
+      )}
+    </div>
+  );
+}
+
+// Presence wrapper
+interface PresenceProps {
+  children: ReactNode;
+  mode?: 'wait' | 'sync' | 'popLayout';
+}
+
+export function Presence({ children, mode = 'wait' }: PresenceProps) {
+  return <AnimatePresence mode={mode}>{children}</AnimatePresence>;
+}
+
+// Re-exports
+export { AnimatePresence, motion };

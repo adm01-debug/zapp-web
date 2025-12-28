@@ -31,7 +31,7 @@ export function VisuallyHidden({
 export function useAnnounce() {
   const [announcement, setAnnouncement] = React.useState('');
 
-  const announce = React.useCallback((message: string, politeness: 'polite' | 'assertive' = 'polite') => {
+  const announce = React.useCallback((message: string, _politeness: 'polite' | 'assertive' = 'polite') => {
     // Clear first to ensure re-announcement of same message
     setAnnouncement('');
     setTimeout(() => setAnnouncement(message), 100);
@@ -59,4 +59,19 @@ export function useAnnounce() {
   }, [announcement]);
 
   return { announce, Announcer };
+}
+
+/**
+ * Global live region for screen reader announcements
+ */
+export function LiveRegion() {
+  return (
+    <div
+      id="live-region"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className="sr-only"
+    />
+  );
 }
