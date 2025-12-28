@@ -11,20 +11,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-
-interface ShortcutItem {
-  keys: string[];
-  description: string;
-}
-
-const SHORTCUTS: ShortcutItem[] = [
-  { keys: ['Ctrl', 'A'], description: 'Selecionar todas as conversas' },
-  { keys: ['Delete'], description: 'Arquivar selecionados' },
-  { keys: ['R'], description: 'Marcar como lido' },
-  { keys: ['Esc'], description: 'Limpar seleção' },
-];
+import { useCustomShortcuts } from '@/hooks/useCustomShortcuts';
 
 export function KeyboardShortcutsHelp() {
+  const { shortcuts, formatShortcut } = useCustomShortcuts();
+  
+  // Filter shortcuts relevant to inbox/selection
+  const inboxShortcuts = shortcuts.filter(s => 
+    s.category === 'selection' || 
+    s.id === 'global-search' ||
+    s.id === 'next-conversation' ||
+    s.id === 'prev-conversation'
+  );
+
   return (
     <TooltipProvider>
       <Popover>
@@ -53,32 +52,35 @@ export function KeyboardShortcutsHelp() {
             </h4>
           </div>
           <div className="p-2 space-y-1">
-            {SHORTCUTS.map((shortcut, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-muted/50"
-              >
-                <span className="text-sm text-muted-foreground">
-                  {shortcut.description}
-                </span>
-                <div className="flex items-center gap-1">
-                  {shortcut.keys.map((key, keyIndex) => (
-                    <span key={keyIndex}>
-                      <kbd className="px-2 py-1 text-xs font-semibold text-foreground bg-muted border border-border rounded shadow-sm">
-                        {key}
-                      </kbd>
-                      {keyIndex < shortcut.keys.length - 1 && (
-                        <span className="mx-0.5 text-muted-foreground">+</span>
-                      )}
-                    </span>
-                  ))}
+            {inboxShortcuts.map((shortcut) => {
+              const keys = formatShortcut(shortcut);
+              return (
+                <div
+                  key={shortcut.id}
+                  className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-muted/50"
+                >
+                  <span className="text-sm text-muted-foreground">
+                    {shortcut.name}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {keys.map((key, keyIndex) => (
+                      <span key={keyIndex}>
+                        <kbd className="px-2 py-1 text-xs font-semibold text-foreground bg-muted border border-border rounded shadow-sm">
+                          {key}
+                        </kbd>
+                        {keyIndex < keys.length - 1 && (
+                          <span className="mx-0.5 text-muted-foreground">+</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="p-2 border-t border-border bg-muted/30">
             <p className="text-xs text-muted-foreground text-center">
-              Ative o modo seleção para usar os atalhos
+              Personalize em Configurações → Atalhos
             </p>
           </div>
         </PopoverContent>
