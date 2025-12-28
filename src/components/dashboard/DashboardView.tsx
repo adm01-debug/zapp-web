@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import {
   MessageSquare,
   Users,
@@ -232,7 +233,13 @@ export function DashboardView() {
             </CardHeader>
             <CardContent className="p-6">
               {stats.queuesStats.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Nenhuma fila configurada</p>
+                <EmptyState
+                  icon={Sparkles}
+                  title="Nenhuma fila configurada"
+                  description="Configure filas para organizar seus atendimentos"
+                  illustration="queues"
+                  size="sm"
+                />
               ) : (
                 <StaggeredList className="space-y-5">
                   {stats.queuesStats.map((queue) => {
@@ -309,7 +316,13 @@ export function DashboardView() {
             </CardHeader>
             <CardContent className="p-4">
               {stats.recentActivity.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Nenhuma atividade recente</p>
+                <EmptyState
+                  icon={MessageSquare}
+                  title="Nenhuma atividade recente"
+                  description="As conversas aparecerão aqui quando você começar a atender"
+                  illustration="inbox"
+                  size="sm"
+                />
               ) : (
                 <StaggeredList className="space-y-2">
                   {stats.recentActivity.slice(0, 5).map((activity) => (

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -336,9 +337,15 @@ export function ClientWalletView() {
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Carregando...</div>
           ) : rules.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhuma regra configurada. Crie uma regra para atribuir clientes automaticamente.
-            </div>
+            <EmptyState
+              icon={Wallet}
+              title="Nenhuma regra configurada"
+              description="Configure regras para atribuir clientes automaticamente aos vendedores certos"
+              illustration="wallet"
+              size="sm"
+              actionLabel="Criar Primeira Regra"
+              onAction={() => setIsAddDialogOpen(true)}
+            />
           ) : (
             <Table>
               <TableHeader>
