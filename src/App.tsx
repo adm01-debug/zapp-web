@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 import { RealtimeSentimentAlertProvider } from "@/components/notifications/RealtimeSentimentAlertProvider";
 import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProvider";
+import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { SkipLink } from "@/components/ui/skip-link";
 import { VisuallyHidden, LiveRegion } from "@/components/ui/visually-hidden";
@@ -63,9 +64,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <GamificationProvider>
-        <TooltipProvider delayDuration={300}>
-          <AppContent />
-        </TooltipProvider>
+        <AccessibleToastProvider>
+          <TooltipProvider delayDuration={300}>
+            <AppContent />
+          </TooltipProvider>
+        </AccessibleToastProvider>
       </GamificationProvider>
     </AuthProvider>
   </QueryClientProvider>
