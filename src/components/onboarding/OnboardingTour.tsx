@@ -1,0 +1,388 @@
+import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { X, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+export interface TourStep {
+  id: string;
+  target: string; // CSS selector
+  title: string;
+  description: string;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  spotlightPadding?: number;
+}
+
+interface TourContextType {
+  isActive: boolean;
+  currentStep: number;
+  steps: TourStep[];
+  startTour: (steps: TourStep[]) => void;
+  endTour: () => void;
+  nextStep: () => void;
+  prevStep: () => void;
+  goToStep: (index: number) => void;
+}
+
+const TourContext = createContext<TourContextType | null>(null);
+
+export function useTour() {
+  const context = useContext(TourContext);
+  if (!context) {
+    throw new Error('useTour must be used within a TourProvider');
+  }
+  return context;
+}
+
+interface TourProviderProps {
+  children: ReactNode;
+  onComplete?: () => void;
+}
+
+export function TourProvider({ children, onComplete }: TourProviderProps) {
+  const [isActive, setIsActive] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [steps, setSteps] = useState<TourStep[]>([]);
+
+  const startTour = useCallback((tourSteps: TourStep[]) => {
+    setSteps(tourSteps);
+    setCurrentStep(0);
+    setIsActive(true);
+  }, []);
+
+  const endTour = useCallback(() => {
+    setIsActive(false);
+    setCurrentStep(0);
+    setSteps([]);
+    onComplete?.();
+  }, [onComplete]);
+
+  const nextStep = useCallback(() => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    } else {
+      endTour();
+    }
+  }, [currentStep, steps.length, endTour]);
+
+  const prevStep = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  }, [currentStep]);
+
+  const goToStep = useCallback((index: number) => {
+    if (index >= 0 && index < steps.length) {
+      setCurrentStep(index);
+    }
+  }, [steps.length]);
+
+  return (
+    <TourContext.Provider value={{
+      isActive,
+      currentStep,
+      steps,
+      startTour,
+      endTour,
+      nextStep,
+      prevStep,
+      goToStep
+    }}>
+      {children}
+      <TourOverlay />
+    </TourContext.Provider>
+  );
+}
+
+function TourOverlay() {
+  const { isActive, currentStep, steps, nextStep, prevStep, endTour, goToStep } = useTour();
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
+  const currentStepData = steps[currentStep];
+
+  useEffect(() => {
+    if (!isActive || !currentStepData) return;
+
+    const updatePosition = () => {
+      const element = document.querySelector(currentStepData.target);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        setTargetRect(rect);
+
+        // Calculate tooltip position
+        const padding = currentStepData.spotlightPadding || 8;
+        const tooltipWidth = 320;
+        const tooltipHeight = 200;
+        const position = currentStepData.position || 'bottom';
+
+        let x = rect.left + rect.width / 2 - tooltipWidth / 2;
+        let y = rect.bottom + padding + 12;
+
+        switch (position) {
+          case 'top':
+            y = rect.top - tooltipHeight - padding - 12;
+            break;
+          case 'left':
+            x = rect.left - tooltipWidth - padding - 12;
+            y = rect.top + rect.height / 2 - tooltipHeight / 2;
+            break;
+          case 'right':
+            x = rect.right + padding + 12;
+            y = rect.top + rect.height / 2 - tooltipHeight / 2;
+            break;
+        }
+
+        // Keep tooltip in viewport
+        x = Math.max(16, Math.min(x, window.innerWidth - tooltipWidth - 16));
+        y = Math.max(16, Math.min(y, window.innerHeight - tooltipHeight - 16));
+
+        setTooltipPosition({ x, y });
+
+        // Scroll element into view
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
+    };
+  }, [isActive, currentStep, currentStepData]);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'Escape':
+          endTour();
+          break;
+        case 'ArrowRight':
+        case 'Enter':
+          nextStep();
+          break;
+        case 'ArrowLeft':
+          prevStep();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isActive, nextStep, prevStep, endTour]);
+
+  if (!isActive || !currentStepData || !targetRect) return null;
+
+  const padding = currentStepData.spotlightPadding || 8;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[10000]"
+      >
+        {/* Dark overlay with spotlight cutout */}
+        <svg className="absolute inset-0 w-full h-full">
+          <defs>
+            <mask id="spotlight-mask">
+              <rect x="0" y="0" width="100%" height="100%" fill="white" />
+              <motion.rect
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                x={targetRect.left - padding}
+                y={targetRect.top - padding}
+                width={targetRect.width + padding * 2}
+                height={targetRect.height + padding * 2}
+                rx="12"
+                fill="black"
+              />
+            </mask>
+          </defs>
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            fill="rgba(0, 0, 0, 0.75)"
+            mask="url(#spotlight-mask)"
+          />
+        </svg>
+
+        {/* Spotlight border/glow */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute rounded-xl pointer-events-none"
+          style={{
+            left: targetRect.left - padding,
+            top: targetRect.top - padding,
+            width: targetRect.width + padding * 2,
+            height: targetRect.height + padding * 2,
+            boxShadow: '0 0 0 3px hsl(var(--primary)), 0 0 30px hsl(var(--primary) / 0.4)',
+          }}
+        />
+
+        {/* Pulsing ring animation */}
+        <motion.div
+          className="absolute rounded-xl pointer-events-none border-2 border-primary/50"
+          style={{
+            left: targetRect.left - padding,
+            top: targetRect.top - padding,
+            width: targetRect.width + padding * 2,
+            height: targetRect.height + padding * 2,
+          }}
+          animate={{
+            scale: [1, 1.05, 1],
+            opacity: [0.5, 0, 0.5],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+          }}
+        />
+
+        {/* Tooltip */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute w-80 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+          style={{
+            left: tooltipPosition.x,
+            top: tooltipPosition.y,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          {/* Header */}
+          <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-primary/20">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Passo {currentStep + 1} de {steps.length}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 -mr-1"
+                onClick={endTour}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-4">
+            <h3 className="font-display font-semibold text-lg text-foreground mb-2">
+              {currentStepData.title}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {currentStepData.description}
+            </p>
+          </div>
+
+          {/* Progress dots */}
+          <div className="flex justify-center gap-1.5 pb-3">
+            {steps.map((_, index) => (
+              <motion.div
+                key={index}
+                className={cn(
+                  'w-2 h-2 rounded-full transition-all cursor-pointer',
+                  index === currentStep
+                    ? 'bg-primary w-4'
+                    : index < currentStep
+                    ? 'bg-primary/50'
+                    : 'bg-muted-foreground/30'
+                )}
+                whileHover={{ scale: 1.2 }}
+                onClick={() => goToStep(index)}
+              />
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between p-4 pt-2 border-t border-border/50">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className="gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Anterior
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={nextStep}
+              className="gap-1"
+            >
+              {currentStep === steps.length - 1 ? 'Concluir' : 'Próximo'}
+              {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4" />}
+            </Button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}
+
+// Default onboarding steps
+export const DEFAULT_ONBOARDING_STEPS: TourStep[] = [
+  {
+    id: 'inbox',
+    target: '[data-tour="inbox"]',
+    title: 'Inbox de Conversas',
+    description: 'Aqui você encontra todas as suas conversas em tempo real. Veja mensagens não lidas, responda clientes e gerencie seus atendimentos.',
+    position: 'right',
+  },
+  {
+    id: 'contacts',
+    target: '[data-tour="contacts"]',
+    title: 'Gestão de Contatos',
+    description: 'Acesse sua base de contatos, adicione novas informações e visualize o histórico completo de cada cliente.',
+    position: 'right',
+  },
+  {
+    id: 'dashboard',
+    target: '[data-tour="dashboard"]',
+    title: 'Dashboard & Métricas',
+    description: 'Acompanhe suas metas, visualize estatísticas de atendimento e monitore seu desempenho em tempo real.',
+    position: 'right',
+  },
+  {
+    id: 'queues',
+    target: '[data-tour="queues"]',
+    title: 'Filas de Atendimento',
+    description: 'Organize seus atendimentos em filas por departamento ou prioridade para melhor distribuição.',
+    position: 'right',
+  },
+  {
+    id: 'notifications',
+    target: '[data-tour="notifications"]',
+    title: 'Central de Notificações',
+    description: 'Receba alertas importantes sobre SLAs, metas alcançadas e atualizações do sistema.',
+    position: 'right',
+  },
+  {
+    id: 'theme',
+    target: '[data-tour="theme"]',
+    title: 'Personalização',
+    description: 'Alterne entre tema claro e escuro conforme sua preferência. Sua experiência, suas regras!',
+    position: 'right',
+  },
+];

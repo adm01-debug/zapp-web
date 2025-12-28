@@ -123,6 +123,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           const button = (
             <motion.button
               key={item.id}
+              data-tour={item.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: index * 0.04 }}
@@ -205,16 +206,21 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
         })}
         {/* Theme Toggle & Notifications */}
         <div className="mt-2 pt-2 border-t border-border/20 space-y-1">
-          <div className={cn(
-            "flex items-center",
-            isCollapsed ? "justify-center" : "px-3 py-2"
-          )}>
+          <div 
+            data-tour="notifications"
+            className={cn(
+              "flex items-center",
+              isCollapsed ? "justify-center" : "px-3 py-2"
+            )}
+          >
             <NotificationCenter />
             {!isCollapsed && (
               <span className="ml-3 text-sm text-muted-foreground">Notificações</span>
             )}
           </div>
-          <ThemeToggle collapsed={isCollapsed} />
+          <div data-tour="theme">
+            <ThemeToggle collapsed={isCollapsed} />
+          </div>
         </div>
       </nav>
 

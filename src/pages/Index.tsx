@@ -19,15 +19,20 @@ import { TranscriptionsHistoryView } from '@/components/transcriptions/Transcrip
 import { AdvancedReportsView } from '@/components/reports/AdvancedReportsView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
+import { TourProvider, DEFAULT_ONBOARDING_STEPS, useTour } from '@/components/onboarding/OnboardingTour';
+import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { logAudit } from '@/lib/audit';
 import { Sparkles } from 'lucide-react';
 
-const Index = () => {
+function IndexContent() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
+  const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const [currentView, setCurrentView] = useState('inbox');
+  const [showWelcome, setShowWelcome] = useState(false);
   
   // Enable transcription notifications globally
   useTranscriptionNotifications({ enabled: !!user });
@@ -39,6 +44,13 @@ const Index = () => {
       logAudit({ action: 'login', details: { email: user.email } });
     }
   }, [user, loading, navigate]);
+
+  // Show welcome modal for new users
+  useEffect(() => {
+    if (!loadingOnboarding && hasCompletedOnboarding === false && user) {
+      setShowWelcome(true);
+    }
+  }, [loadingOnboarding, hasCompletedOnboarding, user]);
 
   if (loading) {
     return (
@@ -199,7 +211,50 @@ const Index = () => {
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Welcome Modal for new users */}
+      <WelcomeModal
+        isOpen={showWelcome}
+        onClose={() => {
+          setShowWelcome(false);
+          completeOnboarding();
+        }}
+        onStartTour={() => {
+          setShowWelcome(false);
+          completeOnboarding();
+        }}
+        userName={profile?.name}
+      />
     </SLANotificationProvider>
+  );
+}
+
+// Wrapper component with TourProvider
+const Index = () => {
+  const { user, loading } = useAuth();
+  const { completeOnboarding } = useOnboarding();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+          </div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <TourProvider onComplete={completeOnboarding}>
+      <IndexContent />
+    </TourProvider>
   );
 };
 
