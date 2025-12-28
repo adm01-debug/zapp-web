@@ -7,7 +7,9 @@ import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare } from 'lucide-react';
+import { GlobalSearch } from './GlobalSearch';
+import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +25,15 @@ import { Search } from 'lucide-react';
 import { Conversation, Message } from '@/types/chat';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
+interface SearchResult {
+  id: string;
+  type: 'message' | 'contact' | 'transcription';
+  title: string;
+  preview: string;
+  timestamp: Date;
+  contactId?: string;
+}
 
 export function RealtimeInboxView() {
   const { 
@@ -42,11 +53,15 @@ export function RealtimeInboxView() {
   const [search, setSearch] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   
   // Bulk selection state
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Global search shortcut Ctrl+K
+  useGlobalSearchShortcut({ onOpen: () => setGlobalSearchOpen(true) });
 
   // Advanced filters state
   const [filters, setFilters] = useState<InboxFiltersState>({
@@ -127,6 +142,13 @@ export function RealtimeInboxView() {
     setSelectedContactId(contactId);
     setSelectedContact(contactId);
     markAsRead(contactId);
+  };
+
+  // Handle global search result
+  const handleGlobalSearchResult = (result: SearchResult) => {
+    if (result.contactId) {
+      handleSelectConversation(result.contactId);
+    }
   };
 
   // Handle notification view click
@@ -398,6 +420,13 @@ export function RealtimeInboxView() {
 
   return (
     <div className="flex h-full relative bg-background">
+      {/* Global Search Modal */}
+      <GlobalSearch 
+        open={globalSearchOpen} 
+        onOpenChange={setGlobalSearchOpen} 
+        onSelectResult={handleGlobalSearchResult}
+      />
+
       {/* New Message Notification Indicator */}
       <NewMessageIndicator
         show={!!newMessageNotification}
@@ -477,11 +506,16 @@ export function RealtimeInboxView() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar conversas..."
+              placeholder="Buscar conversas... (Ctrl+K)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-muted/20"
+              onClick={() => setGlobalSearchOpen(true)}
+              className="pl-9 bg-muted/20 cursor-pointer"
+              readOnly
             />
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded font-mono">
+              Ctrl+K
+            </kbd>
           </div>
 
           {/* Advanced Filters */}
