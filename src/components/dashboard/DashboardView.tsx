@@ -12,8 +12,6 @@ import {
   CheckCircle2,
   TrendingUp,
   Sparkles,
-  Flame,
-  Trophy,
   Target,
   Zap,
   BarChart3,
@@ -31,12 +29,23 @@ import { AIQuickAccess } from './AIQuickAccess';
 import { AIStatsWidget } from './AIStatsWidget';
 import { GoalsDashboard } from './GoalsDashboard';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
+import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
+import { DraggableWidgetContainer } from './DraggableWidgetContainer';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function DashboardView() {
   const { stats, isLoading, refetch } = useDashboardData();
+  const {
+    widgets,
+    visibleWidgets,
+    isEditMode,
+    setIsEditMode,
+    reorderWidgets,
+    toggleWidgetVisibility,
+    resetToDefaults,
+  } = useDashboardWidgets();
 
   // Loading skeleton
   if (isLoading || !stats) {
@@ -102,6 +111,258 @@ export function DashboardView() {
       streak: 3,
     },
   ];
+
+  const renderWidget = (widget: DashboardWidget) => {
+    switch (widget.type) {
+      case 'stats':
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {statsCards.map((stat, index) => (
+              <StatCardWithGamification
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                change={stat.change}
+                changeType={stat.changeType}
+                icon={stat.icon}
+                gradient={stat.gradient}
+                iconBg={stat.iconBg}
+                achievement={stat.achievement}
+                streak={stat.streak}
+                index={index}
+              />
+            ))}
+          </div>
+        );
+
+      case 'challenges':
+        return (
+          <Card className="card-glow-gradient border-secondary/20 overflow-hidden bg-card">
+            <CardHeader className="border-b border-secondary/20 bg-secondary/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Target className="w-5 h-5 text-secondary" />
+                  </motion.div>
+                  <CardTitle className="font-display text-lg text-foreground">Desafios do Dia</CardTitle>
+                </div>
+                <AnimatedBadge value="2/4" variant="achievement" size="sm" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { title: 'Responder 10 mensagens', progress: Math.min((stats.totalConversations / 10) * 100, 100), xp: 50, completed: stats.totalConversations >= 10 },
+                  { title: 'Resolver 5 conversas', progress: Math.min((stats.resolvedToday / 5) * 100, 100), xp: 100, completed: stats.resolvedToday >= 5 },
+                  { title: 'Tempo médio < 3min', progress: stats.avgResponseTime && stats.avgResponseTime < 180 ? 100 : 45, xp: 75, completed: stats.avgResponseTime !== null && stats.avgResponseTime < 180 },
+                  { title: 'Sem pendências às 18h', progress: stats.pendingConversations === 0 ? 100 : Math.max(0, 100 - (stats.pendingConversations * 10)), xp: 150, completed: stats.pendingConversations === 0 },
+                ].map((challenge, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 + i * 0.05 }}
+                    whileHover={{ scale: 1.02 }}
+                    className={cn(
+                      "p-4 rounded-xl border transition-all duration-300",
+                      challenge.completed 
+                        ? "bg-success/10 border-success/30" 
+                        : "bg-muted/30 border-border/30 hover:border-primary/20"
+                    )}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="text-sm font-medium text-foreground">{challenge.title}</p>
+                      {challenge.completed && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 500 }}
+                        >
+                          <CheckCircle2 className="w-5 h-5 text-success" />
+                        </motion.div>
+                      )}
+                    </div>
+                    
+                    <div className="relative h-2 bg-muted rounded-full overflow-hidden mb-2">
+                      <motion.div
+                        className={cn(
+                          "absolute inset-y-0 left-0 rounded-full",
+                          challenge.completed ? "bg-success" : "bg-primary"
+                        )}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${challenge.progress}%` }}
+                        transition={{ duration: 1, delay: 0.2 + i * 0.1 }}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{Math.round(challenge.progress)}%</span>
+                      <div className="flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-xp" />
+                        <span className="text-xs font-semibold text-xp">+{challenge.xp} XP</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'ai-stats':
+        return <AIStatsWidget />;
+
+      case 'queues':
+        return (
+          <Card className="border-secondary/20 overflow-hidden bg-card hover:border-secondary/40 transition-all duration-300">
+            <CardHeader className="border-b border-secondary/20 bg-secondary/5">
+              <div className="flex items-center gap-3">
+                <motion.div 
+                  className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  <Sparkles className="w-5 h-5 text-secondary" />
+                </motion.div>
+                <CardTitle className="font-display text-lg text-foreground">Status das Filas</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {stats.queuesStats.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">Nenhuma fila configurada</p>
+              ) : (
+                <StaggeredList className="space-y-5">
+                  {stats.queuesStats.map((queue) => {
+                    const progressPercent = Math.min((queue.waitingCount / 10) * 100, 100);
+
+                    return (
+                      <StaggeredItem key={queue.id}>
+                        <motion.div 
+                          className="p-4 rounded-xl bg-muted/30 border border-border/30 hover:border-primary/20 transition-all duration-300 group"
+                          whileHover={{ x: 4, scale: 1.01 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <motion.div
+                                className="w-4 h-4 rounded-full ring-4 ring-offset-2 ring-offset-background ring-primary/20"
+                                style={{ backgroundColor: queue.color }}
+                                animate={{ scale: [1, 1.1, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              />
+                              <span className="font-semibold text-foreground">{queue.name}</span>
+                              <Badge 
+                                variant="secondary" 
+                                className="text-xs bg-primary/10 text-primary border-0 font-semibold"
+                              >
+                                {queue.waitingCount} aguardando
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Users className="w-4 h-4" />
+                              <span className="font-medium">
+                                {queue.onlineAgents}/{queue.totalAgents}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="relative">
+                            <Progress
+                              value={progressPercent}
+                              className="h-2.5 bg-muted"
+                            />
+                            <motion.div
+                              className="absolute inset-0 rounded-full opacity-30"
+                              style={{
+                                background: `linear-gradient(90deg, ${queue.color}, transparent)`,
+                                width: `${progressPercent}%`
+                              }}
+                              animate={{ opacity: [0.3, 0.5, 0.3] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            />
+                          </div>
+                        </motion.div>
+                      </StaggeredItem>
+                    );
+                  })}
+                </StaggeredList>
+              )}
+            </CardContent>
+          </Card>
+        );
+
+      case 'leaderboard':
+        return <Leaderboard />;
+
+      case 'activity':
+        return (
+          <Card className="border-secondary/20 overflow-hidden bg-card hover:border-secondary/40 transition-all duration-300">
+            <CardHeader className="border-b border-secondary/20 bg-secondary/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow">
+                  <MessageSquare className="w-5 h-5 text-secondary" />
+                </div>
+                <CardTitle className="font-display text-lg text-foreground">Atividade Recente</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              {stats.recentActivity.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">Nenhuma atividade recente</p>
+              ) : (
+                <StaggeredList className="space-y-2">
+                  {stats.recentActivity.slice(0, 5).map((activity) => (
+                    <StaggeredItem key={activity.id}>
+                      <motion.div
+                        className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-muted/40 transition-all duration-200 cursor-pointer group"
+                        whileHover={{ x: 4, scale: 1.005 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-10 h-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
+                            <AvatarImage src={activity.contactAvatar || undefined} />
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                              {activity.contactName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{activity.contactName}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-1">
+                              {activity.lastMessage}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true, locale: ptBR })}
+                          </span>
+                          <Badge
+                            className={cn(
+                              'capitalize shrink-0 font-semibold border-0 text-xs',
+                              activity.status === 'unread' && 'bg-success/10 text-success',
+                              activity.status === 'read' && 'bg-muted text-muted-foreground'
+                            )}
+                          >
+                            {activity.status === 'unread' ? 'Novo' : 'Lido'}
+                          </Badge>
+                        </div>
+                      </motion.div>
+                    </StaggeredItem>
+                  ))}
+                </StaggeredList>
+              )}
+            </CardContent>
+          </Card>
+        );
+
+      case 'achievements':
+        return <DemoAchievements />;
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
@@ -200,287 +461,19 @@ export function DashboardView() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Stats Grid with Gamification */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
-            {statsCards.map((stat, index) => (
-              <StatCardWithGamification
-                key={stat.title}
-                title={stat.title}
-                value={stat.value}
-                change={stat.change}
-                changeType={stat.changeType}
-                icon={stat.icon}
-                gradient={stat.gradient}
-                iconBg={stat.iconBg}
-                achievement={stat.achievement}
-                streak={stat.streak}
-                index={index}
-              />
-            ))}
-          </div>
-
-      {/* Daily Challenges */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.5 }}
-      >
-        <Card className="card-glow-gradient border-secondary/20 overflow-hidden bg-card">
-          <CardHeader className="border-b border-secondary/20 bg-secondary/5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <motion.div 
-                  className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Target className="w-5 h-5 text-secondary" />
-                </motion.div>
-                <CardTitle className="font-display text-lg text-foreground">Desafios do Dia</CardTitle>
-              </div>
-              <AnimatedBadge value="2/4" variant="achievement" size="sm" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { title: 'Responder 10 mensagens', progress: Math.min((stats.totalConversations / 10) * 100, 100), xp: 50, completed: stats.totalConversations >= 10 },
-                { title: 'Resolver 5 conversas', progress: Math.min((stats.resolvedToday / 5) * 100, 100), xp: 100, completed: stats.resolvedToday >= 5 },
-                { title: 'Tempo médio < 3min', progress: stats.avgResponseTime && stats.avgResponseTime < 180 ? 100 : 45, xp: 75, completed: stats.avgResponseTime !== null && stats.avgResponseTime < 180 },
-                { title: 'Sem pendências às 18h', progress: stats.pendingConversations === 0 ? 100 : Math.max(0, 100 - (stats.pendingConversations * 10)), xp: 150, completed: stats.pendingConversations === 0 },
-              ].map((challenge, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6 + i * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  className={cn(
-                    "p-4 rounded-xl border transition-all duration-300",
-                    challenge.completed 
-                      ? "bg-success/10 border-success/30" 
-                      : "bg-muted/30 border-border/30 hover:border-primary/20"
-                  )}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <p className="text-sm font-medium text-foreground">{challenge.title}</p>
-                    {challenge.completed && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 500 }}
-                      >
-                        <CheckCircle2 className="w-5 h-5 text-success" />
-                      </motion.div>
-                    )}
-                  </div>
-                  
-                  <div className="relative h-2 bg-muted rounded-full overflow-hidden mb-2">
-                    <motion.div
-                      className={cn(
-                        "absolute inset-y-0 left-0 rounded-full",
-                        challenge.completed ? "bg-success" : "bg-primary"
-                      )}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${challenge.progress}%` }}
-                      transition={{ duration: 1, delay: 0.8 + i * 0.1 }}
-                    />
-                    {!challenge.completed && (
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                        animate={{ x: ['-100%', '200%'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{Math.round(challenge.progress)}%</span>
-                    <div className="flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-xp" />
-                      <span className="text-xs font-semibold text-xp">+{challenge.xp} XP</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* AI Stats Widget + Queues Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-        {/* AI Stats Widget */}
-        <AIStatsWidget />
-
-        {/* Queues Status */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="lg:col-span-2"
-        >
-          <Card className="border-secondary/20 overflow-hidden bg-card hover:border-secondary/40 transition-all duration-300">
-            <CardHeader className="border-b border-secondary/20 bg-secondary/5">
-              <div className="flex items-center gap-3">
-                <motion.div 
-                  className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  <Sparkles className="w-5 h-5 text-secondary" />
-                </motion.div>
-                <CardTitle className="font-display text-lg text-foreground">Status das Filas</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              {stats.queuesStats.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Nenhuma fila configurada</p>
-              ) : (
-                <StaggeredList className="space-y-5">
-                  {stats.queuesStats.map((queue) => {
-                    const progressPercent = Math.min((queue.waitingCount / 10) * 100, 100);
-
-                    return (
-                      <StaggeredItem key={queue.id}>
-                        <motion.div 
-                          className="p-4 rounded-xl bg-muted/30 border border-border/30 hover:border-primary/20 transition-all duration-300 group"
-                          whileHover={{ x: 4, scale: 1.01 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <motion.div
-                                className="w-4 h-4 rounded-full ring-4 ring-offset-2 ring-offset-background ring-primary/20"
-                                style={{ backgroundColor: queue.color }}
-                                animate={{ scale: [1, 1.1, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                              />
-                              <span className="font-semibold text-foreground">{queue.name}</span>
-                              <Badge 
-                                variant="secondary" 
-                                className="text-xs bg-primary/10 text-primary border-0 font-semibold"
-                              >
-                                {queue.waitingCount} aguardando
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="w-4 h-4" />
-                              <span className="font-medium">
-                                {queue.onlineAgents}/{queue.totalAgents}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="relative">
-                            <Progress
-                              value={progressPercent}
-                              className="h-2.5 bg-muted"
-                            />
-                            <motion.div
-                              className="absolute inset-0 rounded-full opacity-30"
-                              style={{
-                                background: `linear-gradient(90deg, ${queue.color}, transparent)`,
-                                width: `${progressPercent}%`
-                              }}
-                              animate={{ opacity: [0.3, 0.5, 0.3] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            />
-                          </div>
-                        </motion.div>
-                      </StaggeredItem>
-                    );
-                  })}
-                </StaggeredList>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-        {/* Leaderboard Component */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          className="lg:col-span-3"
-        >
-          <Leaderboard />
-        </motion.div>
-      </div>
-
-      {/* Recent Activity */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.6 }}
-      >
-        <Card className="border-secondary/20 overflow-hidden bg-card hover:border-secondary/40 transition-all duration-300">
-          <CardHeader className="border-b border-secondary/20 bg-secondary/5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow">
-                <MessageSquare className="w-5 h-5 text-secondary" />
-              </div>
-              <CardTitle className="font-display text-lg text-foreground">Atividade Recente</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            {stats.recentActivity.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">Nenhuma atividade recente</p>
-            ) : (
-              <StaggeredList className="space-y-2">
-                {stats.recentActivity.slice(0, 5).map((activity) => (
-                  <StaggeredItem key={activity.id}>
-                    <motion.div
-                      className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-muted/40 transition-all duration-200 cursor-pointer group"
-                      whileHover={{ x: 4, scale: 1.005 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
-                          <AvatarImage src={activity.contactAvatar || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                            {activity.contactName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{activity.contactName}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            {activity.lastMessage}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true, locale: ptBR })}
-                        </span>
-                        <Badge
-                          className={cn(
-                            'capitalize shrink-0 font-semibold border-0 text-xs',
-                            activity.status === 'unread' && 'bg-success/10 text-success',
-                            activity.status === 'read' && 'bg-muted text-muted-foreground'
-                          )}
-                        >
-                          {activity.status === 'unread' ? 'Novo' : 'Lido'}
-                        </Badge>
-                      </div>
-                    </motion.div>
-                  </StaggeredItem>
-                ))}
-              </StaggeredList>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Demo Achievements Panel */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.7 }}
-      >
-        <DemoAchievements />
-      </motion.div>
+        <TabsContent value="overview" className="space-y-6 pl-12">
+          <DraggableWidgetContainer
+            widgets={widgets}
+            visibleWidgets={visibleWidgets}
+            isEditMode={isEditMode}
+            setIsEditMode={setIsEditMode}
+            onReorder={reorderWidgets}
+            onToggleVisibility={toggleWidgetVisibility}
+            onReset={resetToDefaults}
+            renderWidget={renderWidget}
+          >
+            {null}
+          </DraggableWidgetContainer>
         </TabsContent>
 
         <TabsContent value="goals" className="space-y-6">
