@@ -10,7 +10,7 @@ const getAudioContext = () => {
 };
 
 export type SoundType = 'beep' | 'chime' | 'bell' | 'alert' | 'soft';
-export type NotificationType = 'message' | 'mention' | 'sla_breach' | 'sla_warning' | 'achievement';
+export type NotificationType = 'message' | 'mention' | 'sla_breach' | 'sla_warning' | 'achievement' | 'goal_achieved';
 
 interface SoundConfig {
   frequencies: number[];
@@ -57,6 +57,13 @@ const SOUND_CONFIGS: Record<SoundType, Record<NotificationType, SoundConfig>> = 
       gains: [0.25, 0.3, 0.35, 0.4],
       delays: [0, 0.15, 0.3, 0.45],
     },
+    goal_achieved: {
+      frequencies: [659, 784, 988, 1319],
+      durations: [0.15, 0.12, 0.12, 0.35],
+      waveform: 'sine',
+      gains: [0.3, 0.35, 0.4, 0.45],
+      delays: [0, 0.18, 0.36, 0.55],
+    },
   },
   chime: {
     message: {
@@ -94,6 +101,13 @@ const SOUND_CONFIGS: Record<SoundType, Record<NotificationType, SoundConfig>> = 
       gains: [0.2, 0.25, 0.3, 0.35, 0.4],
       delays: [0, 0.1, 0.2, 0.3, 0.45],
     },
+    goal_achieved: {
+      frequencies: [659, 784, 988, 1319],
+      durations: [0.15, 0.12, 0.12, 0.35],
+      waveform: 'sine',
+      gains: [0.3, 0.35, 0.4, 0.45],
+      delays: [0, 0.18, 0.36, 0.55],
+    },
   },
   bell: {
     message: {
@@ -125,6 +139,13 @@ const SOUND_CONFIGS: Record<SoundType, Record<NotificationType, SoundConfig>> = 
       delays: [0, 0.28],
     },
     achievement: {
+      frequencies: [587, 784, 988, 1175, 1480],
+      durations: [0.12, 0.12, 0.12, 0.15, 0.4],
+      waveform: 'sine',
+      gains: [0.25, 0.3, 0.35, 0.4, 0.45],
+      delays: [0, 0.12, 0.24, 0.36, 0.5],
+    },
+    goal_achieved: {
       frequencies: [587, 784, 988, 1175, 1480],
       durations: [0.12, 0.12, 0.12, 0.15, 0.4],
       waveform: 'sine',
@@ -168,6 +189,13 @@ const SOUND_CONFIGS: Record<SoundType, Record<NotificationType, SoundConfig>> = 
       gains: [0.2, 0.25, 0.3, 0.35],
       delays: [0, 0.1, 0.2, 0.3],
     },
+    goal_achieved: {
+      frequencies: [600, 800, 1000, 1200],
+      durations: [0.08, 0.08, 0.08, 0.2],
+      waveform: 'square',
+      gains: [0.2, 0.25, 0.3, 0.35],
+      delays: [0, 0.1, 0.2, 0.3],
+    },
   },
   soft: {
     message: {
@@ -199,6 +227,13 @@ const SOUND_CONFIGS: Record<SoundType, Record<NotificationType, SoundConfig>> = 
       delays: [0, 0.28],
     },
     achievement: {
+      frequencies: [392, 440, 523, 659],
+      durations: [0.15, 0.15, 0.18, 0.4],
+      waveform: 'sine',
+      gains: [0.15, 0.18, 0.22, 0.28],
+      delays: [0, 0.18, 0.36, 0.55],
+    },
+    goal_achieved: {
       frequencies: [392, 440, 523, 659],
       durations: [0.15, 0.15, 0.18, 0.4],
       waveform: 'sine',
