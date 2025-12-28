@@ -35,6 +35,7 @@ import { FileUploader, FileUploaderRef } from './FileUploader';
 import { TextToSpeechButton } from './TextToSpeechButton';
 import { VoiceSelector } from './VoiceSelector';
 import { SpeedSelector } from './SpeedSelector';
+import { SlashCommands, SlashCommand } from './SlashCommands';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
@@ -132,6 +133,7 @@ function MessageStatusIcon({ status }: { status: Message['status'] }) {
 export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelProps) {
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [showSlashCommands, setShowSlashCommands] = useState(false);
   const [reactions, setReactions] = useState(mockReactions);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
@@ -255,15 +257,30 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    if (e.target.value.length > 0) {
-      handleTypingStart(); // Signal that agent is typing
+    const value = e.target.value;
+    setInputValue(value);
+    
+    // Show slash commands when input starts with /
+    if (value.startsWith('/')) {
+      setShowSlashCommands(true);
+      setShowQuickReplies(false);
+    } else {
+      setShowSlashCommands(false);
+    }
+    
+    if (value.length > 0) {
+      handleTypingStart();
     } else {
       handleTypingStop();
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Don't send if slash commands are open
+    if (showSlashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      return; // Let SlashCommands handle these keys
+    }
+    
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -273,10 +290,103 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       e.preventDefault();
       setShowGlobalSearch(true);
     }
-    if (inputValue.startsWith('/')) {
-      setShowQuickReplies(true);
-    } else {
-      setShowQuickReplies(false);
+    // Escape to close slash commands
+    if (e.key === 'Escape' && showSlashCommands) {
+      setShowSlashCommands(false);
+    }
+  };
+
+  const handleSlashCommand = (command: SlashCommand, subCommand?: string) => {
+    setShowSlashCommands(false);
+    setInputValue('');
+    
+    switch (command.id) {
+      case 'transfer':
+        setShowTransferDialog(true);
+        break;
+      case 'resolve':
+        toast({
+          title: '✅ Conversa Resolvida',
+          description: 'A conversa foi marcada como resolvida.',
+        });
+        break;
+      case 'template':
+        toast({
+          title: '📝 Templates',
+          description: 'Use o botão de templates no input para selecionar.',
+        });
+        break;
+      case 'note':
+        toast({
+          title: '📝 Nota Privada',
+          description: 'Funcionalidade de notas será aberta.',
+        });
+        break;
+      case 'tag':
+        if (subCommand === 'add') {
+          toast({
+            title: '🏷️ Adicionar Tag',
+            description: 'Selecione uma tag para adicionar.',
+          });
+        } else {
+          toast({
+            title: '🏷️ Remover Tag',
+            description: 'Selecione uma tag para remover.',
+          });
+        }
+        break;
+      case 'priority':
+        const priorityLabels = { high: 'Alta', medium: 'Média', low: 'Baixa' };
+        toast({
+          title: '⚡ Prioridade Definida',
+          description: `Prioridade definida como ${priorityLabels[subCommand as keyof typeof priorityLabels] || subCommand}.`,
+        });
+        break;
+      case 'assign':
+        toast({
+          title: '👤 Atribuir Conversa',
+          description: 'Selecione um agente para atribuir.',
+        });
+        break;
+      case 'snooze':
+        const snoozeLabels = { '1h': '1 hora', '3h': '3 horas', tomorrow: 'amanhã', nextweek: 'próxima semana' };
+        toast({
+          title: '⏰ Conversa Adiada',
+          description: `Conversa adiada para ${snoozeLabels[subCommand as keyof typeof snoozeLabels] || subCommand}.`,
+        });
+        break;
+      case 'star':
+        toast({
+          title: '⭐ Conversa Favoritada',
+          description: 'A conversa foi marcada como favorita.',
+        });
+        break;
+      case 'archive':
+        toast({
+          title: '📦 Conversa Arquivada',
+          description: 'A conversa foi arquivada.',
+        });
+        break;
+      case 'remind':
+        toast({
+          title: '🔔 Lembrete Criado',
+          description: 'Um lembrete foi criado para esta conversa.',
+        });
+        break;
+      case 'quick':
+        toast({
+          title: '⚡ Resposta Rápida',
+          description: 'Use / seguido do atalho para respostas rápidas.',
+        });
+        break;
+      case 'summary':
+        setShowAIAssistant(true);
+        break;
+      default:
+        toast({
+          title: `Comando: ${command.label}`,
+          description: command.description,
+        });
     }
   };
 
@@ -1031,13 +1141,21 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
           </div>
 
           <div className="flex-1 relative group">
+            {/* Slash Commands Menu */}
+            <SlashCommands
+              inputValue={inputValue}
+              onSelectCommand={handleSlashCommand}
+              onClose={() => setShowSlashCommands(false)}
+              isOpen={showSlashCommands}
+            />
+            
             <Input
               ref={inputRef}
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onBlur={handleTypingStop}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite uma mensagem..."}
+              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos..."}
               className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
             />
             <motion.div 
