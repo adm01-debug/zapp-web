@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +33,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { GoalsConfigDialog } from './GoalsConfigDialog';
+import { CelebrationOverlay } from '@/components/effects/Confetti';
 
 interface Goal {
   id: string;
@@ -126,6 +127,10 @@ function getProgressBgColor(percentage: number): string {
 export function GoalsDashboard() {
   const [period, setPeriod] = useState('today');
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState({ title: '', subtitle: '', emoji: '🎉' });
+  const previousCompletedGoals = useRef<Set<string>>(new Set());
+  const previousOverallComplete = useRef(false);
   const { user } = useAuth();
 
   const dateRange = useMemo(() => getDateRange(period), [period]);
@@ -289,8 +294,58 @@ export function GoalsDashboard() {
 
   const isLoading = loadingMessages || loadingContacts || loadingAnalyses;
 
+  // Celebration effect when goals are completed
+  useEffect(() => {
+    if (isLoading || goals.length === 0) return;
+
+    // Check if all goals are completed (overall celebration)
+    const allGoalsCompleted = overallProgress >= 100;
+    if (allGoalsCompleted && !previousOverallComplete.current) {
+      setCelebrationData({
+        title: 'Todas as Metas Alcançadas! 🏆',
+        subtitle: 'Parabéns! Você completou todas as metas do período!',
+        emoji: '🎉'
+      });
+      setShowCelebration(true);
+      previousOverallComplete.current = true;
+    } else if (!allGoalsCompleted) {
+      previousOverallComplete.current = false;
+    }
+
+    // Check individual goals for new completions
+    const currentCompletedIds = new Set(
+      goals.filter(g => g.current >= g.target).map(g => g.id)
+    );
+
+    // Find newly completed goals
+    currentCompletedIds.forEach(id => {
+      if (!previousCompletedGoals.current.has(id)) {
+        const goal = goals.find(g => g.id === id);
+        if (goal && !allGoalsCompleted) {
+          setCelebrationData({
+            title: `Meta Alcançada!`,
+            subtitle: `${goal.label}: ${goal.current}/${goal.target} ${goal.unit}`,
+            emoji: goal.id === 'messages-sent' ? '💬' : goal.id === 'contacts-handled' ? '👥' : '✅'
+          });
+          setShowCelebration(true);
+        }
+      }
+    });
+
+    previousCompletedGoals.current = currentCompletedIds;
+  }, [goals, overallProgress, isLoading]);
+
   return (
     <div className="space-y-6">
+      {/* Celebration Overlay */}
+      <CelebrationOverlay
+        isActive={showCelebration}
+        title={celebrationData.title}
+        subtitle={celebrationData.subtitle}
+        emoji={celebrationData.emoji}
+        onComplete={() => setShowCelebration(false)}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
