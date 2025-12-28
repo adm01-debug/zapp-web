@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Trophy, Star, Flame, Zap, Crown, Target, Award } from 'lucide-react';
+import { Trophy, Star, Flame, Zap, Crown, Target, Award, TrendingUp, TrendingDown, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface AnimatedBadgeProps {
@@ -132,11 +132,73 @@ export function AnimatedBadge({
   );
 }
 
+// Mini Sparkline component for stat cards
+interface MiniSparklineProps {
+  data: number[];
+  isPositive: boolean;
+  delay?: number;
+}
+
+function MiniSparkline({ data, isPositive, delay = 0 }: MiniSparklineProps) {
+  const width = 50;
+  const height = 20;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+
+  const points = data.map((value, index) => {
+    const x = (index / (data.length - 1)) * width;
+    const y = height - ((value - min) / range) * (height - 4) - 2;
+    return { x, y };
+  });
+
+  const pathD = points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ');
+
+  return (
+    <motion.svg
+      width={width}
+      height={height}
+      className="overflow-visible"
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4, delay }}
+    >
+      <motion.path
+        d={pathD}
+        fill="none"
+        stroke={isPositive ? 'hsl(var(--success))' : 'hsl(var(--destructive))'}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.8, delay: delay + 0.1 }}
+      />
+      <motion.circle
+        cx={points[points.length - 1]?.x || 0}
+        cy={points[points.length - 1]?.y || 0}
+        r="3"
+        fill={isPositive ? 'hsl(var(--success))' : 'hsl(var(--destructive))'}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.3, delay: delay + 0.6 }}
+      />
+    </motion.svg>
+  );
+}
+
 interface StatCardWithGamificationProps {
   title: string;
   value: string | number;
   change: string;
   changeType: 'positive' | 'negative';
+  changePercentage?: number;
+  previousValue?: number;
+  currentValue?: number;
+  invertTrend?: boolean; // For metrics where lower is better
+  sparklineData?: number[];
   icon: LucideIcon;
   gradient: string;
   iconBg?: string;
@@ -153,6 +215,11 @@ export function StatCardWithGamification({
   value,
   change,
   changeType,
+  changePercentage,
+  previousValue,
+  currentValue,
+  invertTrend = false,
+  sparklineData,
   icon: Icon,
   gradient,
   iconBg,
@@ -160,6 +227,10 @@ export function StatCardWithGamification({
   streak,
   index,
 }: StatCardWithGamificationProps) {
+  // Calculate if trend is positive based on invertTrend
+  const isPositiveTrend = invertTrend ? changeType === 'negative' : changeType === 'positive';
+  const ArrowIcon = changeType === 'positive' ? ArrowUp : ArrowDown;
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -226,26 +297,47 @@ export function StatCardWithGamification({
           </motion.p>
         </div>
 
-        {/* Change badge with animation */}
+        {/* Enhanced Change badge with animated arrow */}
         <motion.div 
-          className="flex items-center gap-2 mt-3"
+          className="flex items-center justify-between gap-2 mt-3"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: index * 0.1 + 0.4 }}
         >
-          <motion.div 
-            className={cn(
-              "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold",
-              changeType === 'positive'
-                ? 'bg-success/15 text-success'
-                : 'bg-destructive/15 text-destructive'
-            )}
-            whileHover={{ scale: 1.05 }}
-          >
-            <span>{changeType === 'positive' ? '↑' : '↓'}</span>
-            {change}
-          </motion.div>
-          <span className="text-xs text-muted-foreground">vs ontem</span>
+          <div className="flex items-center gap-2">
+            <motion.div 
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border",
+                isPositiveTrend
+                  ? 'bg-success/15 text-success border-success/30'
+                  : 'bg-destructive/15 text-destructive border-destructive/30'
+              )}
+              whileHover={{ scale: 1.08 }}
+              transition={{ type: 'spring', stiffness: 400 }}
+            >
+              {/* Animated bouncing arrow */}
+              <motion.div
+                animate={changeType === 'positive' 
+                  ? { y: [0, -2, 0] }
+                  : { y: [0, 2, 0] }
+                }
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <ArrowIcon className="w-3.5 h-3.5" />
+              </motion.div>
+              {change}
+            </motion.div>
+            <span className="text-xs text-muted-foreground">vs ontem</span>
+          </div>
+
+          {/* Mini sparkline visualization */}
+          {sparklineData && sparklineData.length > 1 && (
+            <MiniSparkline 
+              data={sparklineData} 
+              isPositive={isPositiveTrend}
+              delay={index * 0.1 + 0.5}
+            />
+          )}
         </motion.div>
 
         {/* Achievement badge */}
