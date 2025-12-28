@@ -8,6 +8,8 @@ import { GamificationProvider } from "@/components/gamification/GamificationProv
 import { RealtimeSentimentAlertProvider } from "@/components/notifications/RealtimeSentimentAlertProvider";
 import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProvider";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
+import { SkipLink } from "@/components/ui/skip-link";
+import { VisuallyHidden, LiveRegion } from "@/components/ui/visually-hidden";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import QueueDetails from "./pages/QueueDetails";
@@ -16,7 +18,14 @@ import SLADashboard from "./pages/SLADashboard";
 import SLAHistory from "./pages/SLAHistory";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 function AppContent() {
   // Register service worker for push notifications
@@ -24,6 +33,13 @@ function AppContent() {
 
   return (
     <BrowserRouter>
+      {/* Skip links for accessibility */}
+      <SkipLink href="#main-content">Pular para conteúdo principal</SkipLink>
+      <SkipLink href="#main-navigation">Pular para navegação</SkipLink>
+      
+      {/* Live region for announcements */}
+      <LiveRegion />
+      
       <GlobalKeyboardProvider>
         <RealtimeSentimentAlertProvider />
         <Toaster />
@@ -47,7 +63,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <GamificationProvider>
-        <TooltipProvider>
+        <TooltipProvider delayDuration={300}>
           <AppContent />
         </TooltipProvider>
       </GamificationProvider>

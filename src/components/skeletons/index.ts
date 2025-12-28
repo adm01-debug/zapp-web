@@ -17,7 +17,8 @@ export {
   DashboardStatsSkeleton,
   DashboardChartSkeleton,
   DashboardTableSkeleton,
-  DashboardWidgetSkeleton
+  DashboardWidgetSkeleton,
+  DashboardPageSkeleton
 } from './DashboardSkeletons';
 
 // Generic skeletons
