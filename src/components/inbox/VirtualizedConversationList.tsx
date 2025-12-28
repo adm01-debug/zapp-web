@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from '@/components/ui/motion';
 import { SLAIndicator } from './SLAIndicator';
+import { SentimentEmoji, getSentimentFromScore, type SentimentLevel } from './SentimentIndicator';
 import {
   Search,
   Filter,
@@ -25,6 +26,9 @@ interface VirtualizedConversationListProps {
   conversations: Conversation[];
   selectedId?: string;
   onSelect: (conversation: Conversation) => void;
+  compactMode?: boolean;
+  onArchive?: (conversation: Conversation) => void;
+  onMarkRead?: (conversation: Conversation) => void;
 }
 
 const statusIcons = {
@@ -42,15 +46,93 @@ const statusColors = {
 };
 
 const ITEM_HEIGHT = 140;
+const COMPACT_ITEM_HEIGHT = 80;
 
 interface ConversationItemProps {
   conversation: Conversation;
   isSelected: boolean;
   onSelect: (conversation: Conversation) => void;
+  compact?: boolean;
 }
 
-function ConversationItem({ conversation, isSelected, onSelect }: ConversationItemProps) {
+function ConversationItem({ conversation, isSelected, onSelect, compact = false }: ConversationItemProps) {
   const StatusIcon = statusIcons[conversation.status];
+  
+  // Get sentiment - use stored or calculate from score
+  const sentiment: SentimentLevel | null = conversation.sentiment || 
+    (conversation.sentimentScore !== undefined ? getSentimentFromScore(conversation.sentimentScore) : null);
+
+  if (compact) {
+    return (
+      <motion.div
+        onClick={() => onSelect(conversation)}
+        whileHover={{ x: 2 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.15 }}
+        className={cn(
+          'relative p-2 rounded-lg cursor-pointer transition-all duration-200 h-full mx-2',
+          isSelected 
+            ? 'bg-primary/10 border border-primary/30' 
+            : 'hover:bg-muted/30 border border-transparent'
+        )}
+      >
+        {isSelected && (
+          <motion.div 
+            layoutId="conversationActiveCompact"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-full bg-primary"
+          />
+        )}
+
+        <div className="flex items-center gap-2 relative z-10">
+          <div className="relative flex-shrink-0">
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={conversation.contact.avatar} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <span
+              className={cn(
+                'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-1 ring-sidebar',
+                statusColors[conversation.status]
+              )}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 min-w-0">
+                <span className={cn(
+                  "font-medium text-xs truncate",
+                  isSelected ? "text-primary" : "text-foreground"
+                )}>
+                  {conversation.contact.name}
+                </span>
+                {sentiment && <SentimentEmoji sentiment={sentiment} animated={false} />}
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <span className="text-[10px] text-muted-foreground">
+                  {formatDistanceToNow(conversation.updatedAt, { addSuffix: false, locale: ptBR })}
+                </span>
+                {conversation.unreadCount > 0 && (
+                  <span className="min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[9px] font-bold bg-primary text-primary-foreground">
+                    {conversation.unreadCount}
+                  </span>
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground truncate">
+              {conversation.lastMessage?.content || 'Sem mensagens'}
+            </p>
+          </div>
+
+          {conversation.priority === 'high' && (
+            <div className="w-0.5 h-5 rounded-full bg-destructive flex-shrink-0" />
+          )}
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -95,13 +177,18 @@ function ConversationItem({ conversation, isSelected, onSelect }: ConversationIt
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <span className={cn(
-              "font-medium text-sm truncate transition-colors",
-              isSelected ? "text-primary" : "text-foreground"
-            )}>
-              {conversation.contact.name}
-            </span>
-            <span className="text-xs text-muted-foreground flex-shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className={cn(
+                "font-medium text-sm truncate transition-colors",
+                isSelected ? "text-primary" : "text-foreground"
+              )}>
+                {conversation.contact.name}
+              </span>
+              {sentiment && (
+                <SentimentEmoji sentiment={sentiment} animated={false} />
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
               {formatDistanceToNow(conversation.updatedAt, {
                 addSuffix: false,
                 locale: ptBR,
@@ -163,10 +250,15 @@ export function VirtualizedConversationList({
   conversations,
   selectedId,
   onSelect,
+  compactMode = false,
+  onArchive,
+  onMarkRead,
 }: VirtualizedConversationListProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const parentRef = useRef<HTMLDivElement>(null);
+
+  const itemHeight = compactMode ? COMPACT_ITEM_HEIGHT : ITEM_HEIGHT;
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((conv) => {
@@ -187,7 +279,7 @@ export function VirtualizedConversationList({
   const virtualizer = useVirtualizer({
     count: filteredConversations.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => ITEM_HEIGHT,
+    estimateSize: () => itemHeight,
     overscan: 5,
   });
 
@@ -198,10 +290,12 @@ export function VirtualizedConversationList({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="p-4 border-b border-border/20 space-y-4"
+        className={cn("p-4 border-b border-border/20", compactMode ? "space-y-2" : "space-y-4")}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
+          <h2 className={cn("font-semibold text-foreground", compactMode ? "text-base" : "text-lg")}>
+            Conversas
+          </h2>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button variant="ghost" size="icon" className="hover:bg-primary/10 text-muted-foreground hover:text-foreground">
               <Filter className="w-4 h-4" />
@@ -216,23 +310,29 @@ export function VirtualizedConversationList({
             placeholder="Buscar conversas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-muted/30 border-border/30 focus:border-primary/50 focus:ring-primary/20 transition-all"
+            className={cn(
+              "pl-9 bg-muted/30 border-border/30 focus:border-primary/50 focus:ring-primary/20 transition-all",
+              compactMode && "h-8 text-sm"
+            )}
           />
         </div>
 
         {/* Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 bg-muted/30 border border-border/20">
-            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsList className={cn(
+            "w-full grid grid-cols-4 bg-muted/30 border border-border/20",
+            compactMode && "h-8"
+          )}>
+            <TabsTrigger value="all" className={cn("text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground", compactMode && "text-[10px] py-1")}>
               Todas ({counts.all})
             </TabsTrigger>
-            <TabsTrigger value="open" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="open" className={cn("text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground", compactMode && "text-[10px] py-1")}>
               Abertas ({counts.open})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="pending" className={cn("text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground", compactMode && "text-[10px] py-1")}>
               Pendentes ({counts.pending})
             </TabsTrigger>
-            <TabsTrigger value="waiting" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="waiting" className={cn("text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground", compactMode && "text-[10px] py-1")}>
               Aguardando ({counts.waiting})
             </TabsTrigger>
           </TabsList>
@@ -278,6 +378,7 @@ export function VirtualizedConversationList({
                     conversation={conversation}
                     isSelected={selectedId === conversation.id}
                     onSelect={onSelect}
+                    compact={compactMode}
                   />
                 </div>
               );

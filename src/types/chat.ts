@@ -113,6 +113,9 @@ export interface Conversation {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+  // Sentiment tracking
+  sentiment?: 'positive' | 'neutral' | 'negative' | 'critical';
+  sentimentScore?: number;
 }
 
 export interface Agent {
