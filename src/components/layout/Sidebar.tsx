@@ -25,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 interface SidebarProps {
   currentView: string;
@@ -202,8 +203,17 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
           return button;
         })}
-        {/* Theme Toggle */}
-        <div className="mt-2 pt-2 border-t border-border/20">
+        {/* Theme Toggle & Notifications */}
+        <div className="mt-2 pt-2 border-t border-border/20 space-y-1">
+          <div className={cn(
+            "flex items-center",
+            isCollapsed ? "justify-center" : "px-3 py-2"
+          )}>
+            <NotificationCenter />
+            {!isCollapsed && (
+              <span className="ml-3 text-sm text-muted-foreground">Notificações</span>
+            )}
+          </div>
           <ThemeToggle collapsed={isCollapsed} />
         </div>
       </nav>
