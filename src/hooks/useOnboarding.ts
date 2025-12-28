@@ -1,0 +1,73 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+
+const ONBOARDING_KEY = 'onboarding_completed';
+
+export function useOnboarding() {
+  const { user } = useAuth();
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Check localStorage first for quick response
+    const localCompleted = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`);
+    if (localCompleted === 'true') {
+      setHasCompletedOnboarding(true);
+      setLoading(false);
+      return;
+    }
+
+    // Check user_settings in database
+    const checkOnboarding = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_settings')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        // If user has settings, they've been here before
+        if (data) {
+          setHasCompletedOnboarding(true);
+          localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true');
+        } else {
+          setHasCompletedOnboarding(false);
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+        setHasCompletedOnboarding(true); // Default to completed on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkOnboarding();
+  }, [user]);
+
+  const completeOnboarding = () => {
+    if (user) {
+      localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true');
+      setHasCompletedOnboarding(true);
+    }
+  };
+
+  const resetOnboarding = () => {
+    if (user) {
+      localStorage.removeItem(`${ONBOARDING_KEY}_${user.id}`);
+      setHasCompletedOnboarding(false);
+    }
+  };
+
+  return {
+    hasCompletedOnboarding,
+    loading,
+    completeOnboarding,
+    resetOnboarding,
+  };
+}
