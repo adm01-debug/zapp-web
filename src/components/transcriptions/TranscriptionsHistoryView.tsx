@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -331,23 +332,18 @@ export function TranscriptionsHistoryView() {
         <div className="space-y-4 relative z-10 pr-4">
           <AnimatePresence>
             {Object.entries(groupedByContact).length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-12"
-              >
-                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                  <Mic className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  Nenhuma transcrição encontrada
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {searchQuery
-                    ? 'Tente ajustar sua busca'
-                    : 'As transcrições de áudio aparecerão aqui'}
-                </p>
-              </motion.div>
+              <EmptyState
+                icon={Mic}
+                title={searchQuery ? 'Nenhum resultado encontrado' : 'Nenhuma transcrição ainda'}
+                description={
+                  searchQuery
+                    ? 'Tente ajustar os termos da busca ou filtros'
+                    : 'Transcrições de áudios aparecerão aqui automaticamente'
+                }
+                illustration="transcriptions"
+                secondaryActionLabel={searchQuery ? 'Limpar busca' : undefined}
+                onSecondaryAction={searchQuery ? () => setSearchQuery('') : undefined}
+              />
             ) : (
               Object.entries(groupedByContact).map(([contactId, { contact, transcriptions }], index) => {
                 const isExpanded = expandedContacts.has(contactId);
