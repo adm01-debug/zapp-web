@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -239,15 +240,14 @@ export function TagsView() {
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : tags.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Tag className="w-12 h-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">Nenhuma etiqueta ainda</h3>
-          <p className="text-muted-foreground mb-4">Crie sua primeira etiqueta para organizar seus contatos</p>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="bg-whatsapp hover:bg-whatsapp-dark">
-            <Plus className="w-4 h-4 mr-2" />
-            Criar Etiqueta
-          </Button>
-        </div>
+        <EmptyState
+          icon={Tag}
+          title="Nenhuma etiqueta ainda"
+          description="Etiquetas ajudam a organizar seus contatos e conversas por categoria, prioridade ou status"
+          illustration="tags"
+          actionLabel="Criar Primeira Etiqueta"
+          onAction={() => setIsAddDialogOpen(true)}
+        />
       ) : (
         /* Tags Grid */
         <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

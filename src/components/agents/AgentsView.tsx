@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useAgents } from '@/hooks/useAgents';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -167,9 +168,14 @@ export function AgentsView() {
 
       {/* Agents Grid */}
       {filteredAgents.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Nenhum atendente encontrado</p>
-        </div>
+        <EmptyState
+          icon={Search}
+          title="Nenhum atendente encontrado"
+          description={search ? "Tente ajustar o termo de busca" : "Não há atendentes cadastrados no sistema"}
+          illustration="agents"
+          secondaryActionLabel={search ? "Limpar Busca" : undefined}
+          onSecondaryAction={search ? () => setSearch('') : undefined}
+        />
       ) : (
         <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAgents.map((agent) => {

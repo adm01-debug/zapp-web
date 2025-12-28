@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Conversation } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -244,14 +245,13 @@ export function VirtualizedConversationList({
         className="flex-1 overflow-auto scrollbar-thin"
       >
         {filteredConversations.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-full text-muted-foreground p-4"
-          >
-            <Search className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">Nenhuma conversa encontrada</p>
-          </motion.div>
+          <EmptyState
+            icon={Search}
+            title="Nenhuma conversa encontrada"
+            description="Ajuste os filtros ou aguarde novas mensagens chegarem"
+            illustration="inbox"
+            size="sm"
+          />
         ) : (
           <div
             style={{

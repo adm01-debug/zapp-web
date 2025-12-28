@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from '@/components/ui/motion';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
@@ -720,10 +721,16 @@ export function ContactsView() {
               <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           ) : filteredContacts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Phone className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhum contato encontrado</p>
-            </div>
+            <EmptyState
+              icon={Phone}
+              title="Nenhum contato encontrado"
+              description={search ? "Tente ajustar seus filtros ou termo de busca" : "Adicione seu primeiro contato para começar a gerenciar suas conversas"}
+              illustration="contacts"
+              actionLabel={!search ? "Novo Contato" : undefined}
+              onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
+              secondaryActionLabel={search ? "Limpar Busca" : undefined}
+              onSecondaryAction={search ? () => setSearch('') : undefined}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

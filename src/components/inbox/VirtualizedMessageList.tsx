@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
 import { Message, InteractiveButton } from '@/types/chat';
@@ -329,8 +330,14 @@ export const VirtualizedMessageList = forwardRef<VirtualizedMessageListRef, Virt
 
   if (messages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <p className="text-sm">Nenhuma mensagem ainda</p>
+      <div className="flex items-center justify-center h-full">
+        <EmptyState
+          icon={Clock}
+          title="Nenhuma mensagem ainda"
+          description="As mensagens aparecerão aqui quando a conversa começar"
+          illustration="messages"
+          size="sm"
+        />
       </div>
     );
   }
