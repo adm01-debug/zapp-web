@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -291,9 +292,21 @@ export function GroupsView() {
             <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredGroups.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-muted-foreground">
-            <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum grupo encontrado</p>
+          <div className="col-span-full">
+            <EmptyState
+              icon={Users}
+              title={search ? 'Nenhum grupo encontrado' : 'Nenhum grupo cadastrado'}
+              description={
+                search
+                  ? 'Tente ajustar o termo de busca'
+                  : 'Adicione grupos do WhatsApp para gerenciá-los aqui'
+              }
+              illustration="contacts"
+              actionLabel={!search ? 'Adicionar Grupo' : undefined}
+              onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
+              secondaryActionLabel={search ? 'Limpar busca' : undefined}
+              onSecondaryAction={search ? () => setSearch('') : undefined}
+            />
           </div>
         ) : (
           filteredGroups.map((group, index) => (

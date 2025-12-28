@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from './ProductCard';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -499,13 +500,22 @@ export const ProductManagement: React.FC = () => {
                 ))
               ) : filteredProducts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground">
-                      {search
-                        ? 'Nenhum produto encontrado'
-                        : 'Nenhum produto cadastrado'}
-                    </p>
+                  <TableCell colSpan={8} className="p-0">
+                    <EmptyState
+                      icon={Package}
+                      title={search ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
+                      description={
+                        search
+                          ? 'Tente ajustar os termos da busca'
+                          : 'Adicione produtos ao catálogo para começar a vender'
+                      }
+                      illustration="data"
+                      size="sm"
+                      actionLabel={!search ? 'Adicionar Produto' : undefined}
+                      onAction={!search ? () => setShowForm(true) : undefined}
+                      secondaryActionLabel={search ? 'Limpar busca' : undefined}
+                      onSecondaryAction={search ? () => setSearch('') : undefined}
+                    />
                   </TableCell>
                 </TableRow>
               ) : (

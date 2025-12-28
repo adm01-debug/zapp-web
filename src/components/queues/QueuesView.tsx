@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ import {
   Eye,
   Target,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueues, QueueWithMembers } from '@/hooks/useQueues';

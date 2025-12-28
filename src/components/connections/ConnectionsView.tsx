@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -629,19 +630,14 @@ export function ConnectionsView() {
           Carregando conexões...
         </div>
       ) : connections.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Smartphone className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Nenhuma conexão configurada</h3>
-            <p className="text-muted-foreground mb-4">
-              Adicione sua primeira conexão WhatsApp para começar a atender.
-            </p>
-            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-whatsapp hover:bg-whatsapp-dark">
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Conexão
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Smartphone}
+          title="Nenhuma conexão configurada"
+          description="Adicione sua primeira conexão WhatsApp para começar a atender seus clientes."
+          illustration="inbox"
+          actionLabel="Adicionar Conexão"
+          onAction={() => setIsAddDialogOpen(true)}
+        />
       ) : (
         <StaggeredList className="space-y-4">
           {connections.map((connection) => {
