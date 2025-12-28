@@ -25,12 +25,21 @@ import {
   RefreshCw,
   Loader2,
   Mic,
+  GraduationCap,
 } from 'lucide-react';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { useUserSettings } from '@/hooks/useUserSettings';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { toast } from 'sonner';
 
 export function SettingsView() {
   const { settings, isLoading, isSaving, updateSettings, saveSettings, toggleWorkDay } = useUserSettings();
+  const { resetOnboarding } = useOnboarding();
+
+  const handleResetOnboarding = () => {
+    resetOnboarding();
+    toast.success('Tour de onboarding reiniciado! Volte ao Dashboard para iniciar o tour.');
+  };
 
   const workDays = [
     { id: 0, label: 'Dom' },
@@ -460,6 +469,28 @@ export function SettingsView() {
                       updateSettings({ compact_mode: checked })
                     }
                   />
+                </div>
+
+                <div className="pt-4 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-base flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-whatsapp" />
+                        Tour de Onboarding
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Reinicie o tour guiado para conhecer todas as funcionalidades
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={handleResetOnboarding}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Reiniciar Tour
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
