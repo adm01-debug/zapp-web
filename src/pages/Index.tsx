@@ -22,8 +22,10 @@ import { GoalNotificationProvider } from '@/components/notifications/GoalNotific
 import { PageTransition } from '@/components/ui/motion';
 import { TourProvider, DEFAULT_ONBOARDING_STEPS, useTour } from '@/components/onboarding/OnboardingTour';
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
 import { useAuth } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { logAudit } from '@/lib/audit';
 import { Sparkles } from 'lucide-react';
@@ -32,11 +34,15 @@ function IndexContent() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
+  const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
   const [currentView, setCurrentView] = useState('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
   
   // Enable transcription notifications globally
   useTranscriptionNotifications({ enabled: !!user });
+
+  // Show checklist on dashboard if not complete
+  const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
 
   useEffect(() => {
     if (!loading && !user) {
@@ -206,6 +212,13 @@ function IndexContent() {
         />
         
         <main className="flex-1 overflow-hidden relative">
+          {/* Onboarding Checklist - shown on dashboard */}
+          {showChecklist && currentView === 'dashboard' && (
+            <div className="absolute top-4 right-4 z-20 w-96 max-w-[calc(100%-2rem)]">
+              <OnboardingChecklist onNavigate={setCurrentView} />
+            </div>
+          )}
+          
           <AnimatePresence mode="wait">
             <PageTransition key={currentView}>
               {renderView()}
