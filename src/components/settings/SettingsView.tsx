@@ -26,8 +26,10 @@ import {
   Loader2,
   Mic,
   GraduationCap,
+  Keyboard,
 } from 'lucide-react';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
+import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { toast } from 'sonner';
@@ -128,6 +130,10 @@ export function SettingsView() {
           <TabsTrigger value="appearance" className="gap-2">
             <Palette className="w-4 h-4" />
             Aparência
+          </TabsTrigger>
+          <TabsTrigger value="shortcuts" className="gap-2">
+            <Keyboard className="w-4 h-4" />
+            Atalhos
           </TabsTrigger>
         </TabsList>
 
@@ -494,6 +500,16 @@ export function SettingsView() {
                 </div>
               </CardContent>
             </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* Atalhos de Teclado */}
+        <TabsContent value="shortcuts">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <KeyboardShortcutsSettings />
           </motion.div>
         </TabsContent>
       </Tabs>
