@@ -2,7 +2,7 @@
 <html lang="pt-BR" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5" />
     
     <!-- Primary Meta Tags -->
     <title>WhatsApp Omnichannel - Plataforma de Multiatendimento</title>
@@ -30,13 +30,24 @@
     <meta name="twitter:title" content="WhatsApp Omnichannel" />
     <meta name="twitter:description" content="Plataforma completa de multiatendimento WhatsApp para equipes comerciais." />
     
-    <!-- Fonts Preconnect -->
+    <!-- Fonts Preconnect with display swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/index.css" as="style" />
   </head>
 
   <body>
+    <!-- Skip Links for Accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-primary focus:text-primary-foreground focus:font-medium focus:text-sm focus:shadow-lg focus:ring-2 focus:ring-offset-2">
+      Pular para o conteúdo principal
+    </a>
+    <a href="#main-navigation" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-primary focus:text-primary-foreground focus:font-medium focus:text-sm focus:shadow-lg focus:ring-2 focus:ring-offset-2">
+      Pular para navegação
+    </a>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
