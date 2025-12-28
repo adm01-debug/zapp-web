@@ -18,6 +18,7 @@ import { GroupsView } from '@/components/groups/GroupsView';
 import { TranscriptionsHistoryView } from '@/components/transcriptions/TranscriptionsHistoryView';
 import { AdvancedReportsView } from '@/components/reports/AdvancedReportsView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
+import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
 import { TourProvider, DEFAULT_ONBOARDING_STEPS, useTour } from '@/components/onboarding/OnboardingTour';
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
@@ -185,7 +186,8 @@ function IndexContent() {
 
   return (
     <SLANotificationProvider>
-      <div className="flex h-screen bg-background overflow-hidden relative">
+      <GoalNotificationProvider>
+        <div className="flex h-screen bg-background overflow-hidden relative">
         {/* Subtle background gradients */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
@@ -225,6 +227,7 @@ function IndexContent() {
         }}
         userName={profile?.name}
       />
+      </GoalNotificationProvider>
     </SLANotificationProvider>
   );
 }
