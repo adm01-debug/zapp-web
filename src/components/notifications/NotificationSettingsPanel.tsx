@@ -23,19 +23,66 @@ import {
   Activity,
   Mic
 } from 'lucide-react';
-import { useNotificationSettings, NotificationSettings } from '@/hooks/useNotificationSettings';
-import { previewSound, requestNotificationPermission, SoundType } from '@/utils/notificationSounds';
+import { useNotificationSettings, NotificationSettings, SoundTypeOption } from '@/hooks/useNotificationSettings';
+import { previewSound, requestNotificationPermission, SoundType, playNotificationSound, NotificationType } from '@/utils/notificationSounds';
 import { toast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const SOUND_TYPES: { value: SoundType; label: string; description: string }[] = [
+const SOUND_TYPES: { value: SoundTypeOption; label: string; description: string }[] = [
   { value: 'chime', label: 'Chime', description: 'Tom suave e harmonioso' },
   { value: 'beep', label: 'Beep', description: 'Som eletrônico clássico' },
   { value: 'bell', label: 'Sino', description: 'Som de campainha' },
   { value: 'alert', label: 'Alerta', description: 'Som mais chamativo' },
   { value: 'soft', label: 'Suave', description: 'Notificação discreta' },
 ];
+
+interface SoundSelectorProps {
+  value: SoundTypeOption;
+  onChange: (value: SoundTypeOption) => void;
+  notificationType: NotificationType;
+  label: string;
+}
+
+function SoundSelector({ value, onChange, notificationType, label }: SoundSelectorProps) {
+  const { settings } = useNotificationSettings();
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleTest = () => {
+    setIsTesting(true);
+    playNotificationSound(notificationType, value as SoundType, settings.soundVolume);
+    setTimeout(() => setIsTesting(false), 1000);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Select
+        value={value}
+        onValueChange={(v: SoundTypeOption) => onChange(v)}
+      >
+        <SelectTrigger className="w-[130px]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {SOUND_TYPES.map((type) => (
+            <SelectItem key={type.value} value={type.value}>
+              {type.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleTest}
+        disabled={isTesting}
+        className="h-8 w-8"
+      >
+        <Play className={cn("w-3 h-3", isTesting && "animate-pulse text-primary")} />
+      </Button>
+    </div>
+  );
+}
 
 export function NotificationSettingsPanel() {
   const { settings, updateSettings, resetSettings, isQuietHours } = useNotificationSettings();
@@ -184,10 +231,20 @@ export function NotificationSettingsPanel() {
                 <p className="text-sm text-muted-foreground">Receber quando chegar nova mensagem</p>
               </div>
             </div>
-            <Switch
-              checked={settings.newMessageSound}
-              onCheckedChange={(checked) => updateSettings({ newMessageSound: checked })}
-            />
+            <div className="flex items-center gap-3">
+              {settings.newMessageSound && settings.soundEnabled && (
+                <SoundSelector
+                  value={settings.messageSoundType}
+                  onChange={(value) => updateSettings({ messageSoundType: value })}
+                  notificationType="message"
+                  label="Som"
+                />
+              )}
+              <Switch
+                checked={settings.newMessageSound}
+                onCheckedChange={(checked) => updateSettings({ newMessageSound: checked })}
+              />
+            </div>
           </div>
 
           <Separator />
@@ -201,10 +258,20 @@ export function NotificationSettingsPanel() {
                 <p className="text-sm text-muted-foreground">Quando alguém mencionar você</p>
               </div>
             </div>
-            <Switch
-              checked={settings.mentionSound}
-              onCheckedChange={(checked) => updateSettings({ mentionSound: checked })}
-            />
+            <div className="flex items-center gap-3">
+              {settings.mentionSound && settings.soundEnabled && (
+                <SoundSelector
+                  value={settings.mentionSoundType}
+                  onChange={(value) => updateSettings({ mentionSoundType: value })}
+                  notificationType="mention"
+                  label="Som"
+                />
+              )}
+              <Switch
+                checked={settings.mentionSound}
+                onCheckedChange={(checked) => updateSettings({ mentionSound: checked })}
+              />
+            </div>
           </div>
 
           <Separator />
@@ -218,10 +285,43 @@ export function NotificationSettingsPanel() {
                 <p className="text-sm text-muted-foreground">Alerta quando SLA for violado</p>
               </div>
             </div>
-            <Switch
-              checked={settings.slaBreachSound}
-              onCheckedChange={(checked) => updateSettings({ slaBreachSound: checked })}
-            />
+            <div className="flex items-center gap-3">
+              {settings.slaBreachSound && settings.soundEnabled && (
+                <SoundSelector
+                  value={settings.slaSoundType}
+                  onChange={(value) => updateSettings({ slaSoundType: value })}
+                  notificationType="sla_breach"
+                  label="Som"
+                />
+              )}
+              <Switch
+                checked={settings.slaBreachSound}
+                onCheckedChange={(checked) => updateSettings({ slaBreachSound: checked })}
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Goal Achieved */}
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-success" />
+              <div>
+                <p className="font-medium">Metas Alcançadas</p>
+                <p className="text-sm text-muted-foreground">Quando uma meta for atingida</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {settings.soundEnabled && (
+                <SoundSelector
+                  value={settings.goalSoundType}
+                  onChange={(value) => updateSettings({ goalSoundType: value })}
+                  notificationType="goal_achieved"
+                  label="Som"
+                />
+              )}
+            </div>
           </div>
 
           <Separator />
@@ -235,10 +335,20 @@ export function NotificationSettingsPanel() {
                 <p className="text-sm text-muted-foreground">Quando áudio for transcrito automaticamente</p>
               </div>
             </div>
-            <Switch
-              checked={settings.transcriptionNotificationEnabled}
-              onCheckedChange={(checked) => updateSettings({ transcriptionNotificationEnabled: checked })}
-            />
+            <div className="flex items-center gap-3">
+              {settings.transcriptionNotificationEnabled && settings.soundEnabled && (
+                <SoundSelector
+                  value={settings.transcriptionSoundType}
+                  onChange={(value) => updateSettings({ transcriptionSoundType: value })}
+                  notificationType="achievement"
+                  label="Som"
+                />
+              )}
+              <Switch
+                checked={settings.transcriptionNotificationEnabled}
+                onCheckedChange={(checked) => updateSettings({ transcriptionNotificationEnabled: checked })}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
