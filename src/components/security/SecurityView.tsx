@@ -11,6 +11,7 @@ import { SecurityNotificationsPanel } from './SecurityNotificationsPanel';
 import { BlockedIPsPanel } from './BlockedIPsPanel';
 import { IPWhitelistPanel } from './IPWhitelistPanel';
 import { GeoBlockingPanel } from './GeoBlockingPanel';
+import { PasswordResetRequestsPanel } from './PasswordResetRequestsPanel';
 import { RateLimitRealtimeAlerts } from './RateLimitRealtimeAlerts';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSecurityPushNotifications } from '@/hooks/useSecurityPushNotifications';
@@ -120,48 +121,52 @@ export function SecurityView() {
               </TabsContent>
 
               <TabsContent value="admin">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-primary" />
-                        Rate Limit Dashboard
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        Monitore tentativas de acesso e gerencie rate limiting
-                      </p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-4"
-                        onClick={() => window.location.href = '/admin/rate-limit'}
-                      >
-                        Ver Dashboard
-                      </Button>
-                    </CardContent>
-                  </Card>
+                <div className="space-y-6">
+                  <PasswordResetRequestsPanel />
+                  
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-primary" />
+                          Rate Limit Dashboard
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Monitore tentativas de acesso e gerencie rate limiting
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          className="mt-4"
+                          onClick={() => window.location.href = '/admin/rate-limit'}
+                        >
+                          Ver Dashboard
+                        </Button>
+                      </CardContent>
+                    </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary" />
-                        Gerenciamento de Roles
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        Configure roles e permissões para usuários
-                      </p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-4"
-                        onClick={() => window.location.href = '/admin/roles'}
-                      >
-                        Gerenciar Roles
-                      </Button>
-                    </CardContent>
-                  </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-primary" />
+                          Gerenciamento de Roles
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Configure roles e permissões para usuários
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          className="mt-4"
+                          onClick={() => window.location.href = '/admin/roles'}
+                        >
+                          Gerenciar Roles
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               </TabsContent>
             </>
