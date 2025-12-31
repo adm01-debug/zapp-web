@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
-import { Shield, Key, Lock, Activity, Users, Bell, Smartphone, LayoutDashboard } from 'lucide-react';
+import { Shield, Key, Lock, Activity, Users, Bell, Smartphone, LayoutDashboard, Fingerprint } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SecuritySettingsPanel } from './SecuritySettingsPanel';
 import { SecurityOverview } from './SecurityOverview';
 import { DevicesPanel } from './DevicesPanel';
+import { PasskeysPanel } from './PasskeysPanel';
 import { SecurityNotificationsPanel } from './SecurityNotificationsPanel';
 import { BlockedIPsPanel } from './BlockedIPsPanel';
 import { IPWhitelistPanel } from './IPWhitelistPanel';
@@ -45,7 +46,7 @@ export function SecurityView() {
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5 md:grid-cols-7">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -53,6 +54,10 @@ export function SecurityView() {
             <TabsTrigger value="account" className="gap-2">
               <Key className="w-4 h-4" />
               <span className="hidden sm:inline">Conta</span>
+            </TabsTrigger>
+            <TabsTrigger value="passkeys" className="gap-2">
+              <Fingerprint className="w-4 h-4" />
+              <span className="hidden sm:inline">Passkeys</span>
             </TabsTrigger>
             <TabsTrigger value="devices" className="gap-2">
               <Smartphone className="w-4 h-4" />
@@ -82,6 +87,10 @@ export function SecurityView() {
 
           <TabsContent value="account">
             <SecuritySettingsPanel />
+          </TabsContent>
+
+          <TabsContent value="passkeys">
+            <PasskeysPanel />
           </TabsContent>
 
           <TabsContent value="devices">
