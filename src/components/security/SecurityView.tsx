@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Shield, Key, Lock, Activity, Users, Bell, Smartphone, LayoutDashboard, Fingerprint } from 'lucide-react';
+import { Shield, Key, Lock, Activity, Users, Bell, Smartphone, LayoutDashboard, Fingerprint, Globe } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +10,7 @@ import { PasskeysPanel } from './PasskeysPanel';
 import { SecurityNotificationsPanel } from './SecurityNotificationsPanel';
 import { BlockedIPsPanel } from './BlockedIPsPanel';
 import { IPWhitelistPanel } from './IPWhitelistPanel';
+import { GeoBlockingPanel } from './GeoBlockingPanel';
 import { RateLimitRealtimeAlerts } from './RateLimitRealtimeAlerts';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSecurityPushNotifications } from '@/hooks/useSecurityPushNotifications';
@@ -46,7 +47,7 @@ export function SecurityView() {
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 md:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-5 md:grid-cols-8">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -72,6 +73,10 @@ export function SecurityView() {
                 <TabsTrigger value="blocked" className="gap-2">
                   <Lock className="w-4 h-4" />
                   <span className="hidden sm:inline">IPs</span>
+                </TabsTrigger>
+                <TabsTrigger value="geo" className="gap-2">
+                  <Globe className="w-4 h-4" />
+                  <span className="hidden sm:inline">Geo</span>
                 </TabsTrigger>
                 <TabsTrigger value="admin" className="gap-2">
                   <Users className="w-4 h-4" />
@@ -108,6 +113,10 @@ export function SecurityView() {
                   <BlockedIPsPanel />
                   <IPWhitelistPanel />
                 </div>
+              </TabsContent>
+
+              <TabsContent value="geo">
+                <GeoBlockingPanel />
               </TabsContent>
 
               <TabsContent value="admin">
