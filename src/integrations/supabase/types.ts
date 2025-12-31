@@ -182,6 +182,33 @@ export type Database = {
           },
         ]
       }
+      blocked_countries: {
+        Row: {
+          blocked_by: string | null
+          country_code: string
+          country_name: string
+          created_at: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_by?: string | null
+          country_code: string
+          country_name: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_by?: string | null
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       blocked_ips: {
         Row: {
           blocked_at: string
@@ -1919,6 +1946,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_supervisor: { Args: { _user_id: string }; Returns: boolean }
+      is_country_blocked: {
+        Args: { check_country_code: string }
+        Returns: boolean
+      }
       is_ip_blocked: { Args: { check_ip: string }; Returns: boolean }
       is_ip_whitelisted: { Args: { check_ip: string }; Returns: boolean }
       is_within_business_hours: {
