@@ -810,6 +810,42 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          last_attempt_at: string
+          locked_until: string | null
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          last_attempt_at?: string
+          locked_until?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          last_attempt_at?: string
+          locked_until?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           contact_id: string | null
@@ -2037,12 +2073,21 @@ export type Database = {
     Functions: {
       calculate_level: { Args: { xp_amount: number }; Returns: number }
       cleanup_expired_challenges: { Args: never; Returns: undefined }
+      clear_login_attempts: { Args: { p_email: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      is_account_locked: {
+        Args: { check_email: string }
+        Returns: {
+          attempts: number
+          is_locked: boolean
+          locked_until: string
+        }[]
       }
       is_admin_or_supervisor: { Args: { _user_id: string }; Returns: boolean }
       is_country_allowed: {
@@ -2058,6 +2103,14 @@ export type Database = {
       is_within_business_hours: {
         Args: { connection_id: string }
         Returns: boolean
+      }
+      record_failed_login: {
+        Args: { p_email: string; p_ip_address?: string; p_user_agent?: string }
+        Returns: {
+          attempts: number
+          is_locked: boolean
+          locked_until: string
+        }[]
       }
       user_has_permission: {
         Args: { _permission_name: string; _user_id: string }
