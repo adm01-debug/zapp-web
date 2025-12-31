@@ -46,6 +46,7 @@ self.addEventListener('push', (event) => {
     badge: '/favicon.ico',
     tag: 'default',
     data: {},
+    category: 'general',
   };
 
   if (event.data) {
@@ -57,18 +58,36 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // Define actions based on notification category
+  let actions = [
+    { action: 'view', title: 'Ver' },
+    { action: 'dismiss', title: 'Dispensar' },
+  ];
+
+  // Security-specific actions
+  if (data.category === 'security') {
+    actions = [
+      { action: 'view', title: 'Ver Detalhes' },
+      { action: 'secure', title: 'Proteger Conta' },
+    ];
+  }
+
+  // Determine icon based on category
+  let icon = data.icon;
+  if (data.category === 'security') {
+    icon = '/favicon.ico'; // Could use a security-specific icon
+  }
+
   const options = {
     body: data.body,
-    icon: data.icon,
+    icon: icon,
     badge: data.badge,
-    tag: data.tag,
-    data: data.data,
-    vibrate: [200, 100, 200],
-    requireInteraction: data.requireInteraction || false,
-    actions: data.actions || [
-      { action: 'view', title: 'Ver conversa' },
-      { action: 'dismiss', title: 'Dispensar' },
-    ],
+    tag: data.tag || data.category + '-' + Date.now(),
+    data: { ...data.data, category: data.category },
+    vibrate: data.category === 'security' ? [300, 100, 300, 100, 300] : [200, 100, 200],
+    requireInteraction: data.category === 'security' || data.requireInteraction || false,
+    actions: actions,
+    silent: data.silent || false,
   };
 
   event.waitUntil(
@@ -85,8 +104,10 @@ self.addEventListener('notificationclick', (event) => {
   const notificationData = event.notification.data || {};
   let targetUrl = '/';
 
-  // Determine target URL based on notification data
-  if (notificationData.conversationId) {
+  // Determine target URL based on notification data and category
+  if (notificationData.category === 'security') {
+    targetUrl = '/?view=security';
+  } else if (notificationData.conversationId) {
     targetUrl = `/?conversation=${notificationData.conversationId}`;
   } else if (notificationData.url) {
     targetUrl = notificationData.url;
@@ -109,6 +130,24 @@ self.addEventListener('notificationclick', (event) => {
         // Open a new window if none exists
         if (clients.openWindow) {
           return clients.openWindow(targetUrl);
+        }
+      })
+    );
+  } else if (event.action === 'secure') {
+    // Handle security action - go directly to security settings
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes(self.registration.scope) && 'focus' in client) {
+            client.postMessage({
+              type: 'SECURITY_ACTION',
+              data: notificationData,
+            });
+            return client.focus();
+          }
+        }
+        if (clients.openWindow) {
+          return clients.openWindow('/?view=security');
         }
       })
     );
