@@ -10,13 +10,14 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Smartphone, Mail, User, ArrowRight, Sparkles, Fingerprint, Loader2 } from 'lucide-react';
+import { Smartphone, Mail, User, ArrowRight, Sparkles, Fingerprint, Loader2, Lock, AlertTriangle } from 'lucide-react';
 import { z } from 'zod';
 import { PasswordInput } from '@/components/auth/PasswordInput';
 import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter';
 import { SocialProof } from '@/components/auth/SocialProof';
 import { HeroBenefits } from '@/components/auth/HeroBenefits';
 import { supabase } from '@/integrations/supabase/client';
+import { checkAccountLock, recordFailedLogin, clearLoginAttempts, formatLockTime } from '@/lib/loginAttempts';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -36,6 +37,11 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
+  const [lockStatus, setLockStatus] = useState<{ isLocked: boolean; remainingTime: number; attempts: number }>({
+    isLocked: false,
+    remainingTime: 0,
+    attempts: 0
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -56,6 +62,35 @@ export default function Auth() {
     }
   }, [isSupported, isPlatformAuthenticatorAvailable]);
 
+  // Countdown timer for lock
+  useEffect(() => {
+    if (lockStatus.remainingTime > 0) {
+      const timer = setInterval(() => {
+        setLockStatus(prev => {
+          const newTime = prev.remainingTime - 1;
+          if (newTime <= 0) {
+            return { ...prev, isLocked: false, remainingTime: 0 };
+          }
+          return { ...prev, remainingTime: newTime };
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [lockStatus.remainingTime]);
+
+  // Check lock status when email changes
+  useEffect(() => {
+    const checkLock = async () => {
+      if (formData.email && formData.email.includes('@')) {
+        const status = await checkAccountLock(formData.email);
+        setLockStatus(status);
+      }
+    };
+    
+    const debounce = setTimeout(checkLock, 500);
+    return () => clearTimeout(debounce);
+  }, [formData.email]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -72,19 +107,46 @@ export default function Auth() {
       return;
     }
 
+    // Check if account is locked
+    const currentLock = await checkAccountLock(formData.email);
+    if (currentLock.isLocked) {
+      setLockStatus(currentLock);
+      toast({
+        title: 'Conta bloqueada',
+        description: `Muitas tentativas. Aguarde ${formatLockTime(currentLock.remainingTime)}.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     const { error } = await signIn(formData.email, formData.password);
     setLoading(false);
 
     if (error) {
-      toast({
-        title: 'Erro ao entrar',
-        description: error.message === 'Invalid login credentials' 
-          ? 'Email ou senha incorretos' 
-          : error.message,
-        variant: 'destructive',
-      });
+      // Record failed attempt
+      const lockResult = await recordFailedLogin(formData.email);
+      setLockStatus(lockResult);
+
+      if (lockResult.isLocked) {
+        toast({
+          title: 'Conta bloqueada temporariamente',
+          description: `Após ${lockResult.attempts} tentativas, sua conta foi bloqueada por ${formatLockTime(lockResult.remainingTime)}.`,
+          variant: 'destructive',
+        });
+      } else {
+        const remainingAttempts = 5 - lockResult.attempts;
+        toast({
+          title: 'Erro ao entrar',
+          description: error.message === 'Invalid login credentials' 
+            ? `Email ou senha incorretos. ${remainingAttempts > 0 ? `${remainingAttempts} tentativa${remainingAttempts > 1 ? 's' : ''} restante${remainingAttempts > 1 ? 's' : ''}.` : ''}`
+            : error.message,
+          variant: 'destructive',
+        });
+      }
     } else {
+      // Clear login attempts on success
+      await clearLoginAttempts(formData.email);
       toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
       navigate('/');
     }
@@ -263,6 +325,64 @@ export default function Auth() {
 
                 <CardContent className="pt-6">
                   <TabsContent value="login" className="mt-0">
+                    {/* Lock Warning */}
+                    <AnimatePresence>
+                      {lockStatus.isLocked && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                          className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-full bg-destructive/20">
+                              <Lock className="w-5 h-5 text-destructive" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-destructive">
+                                Conta bloqueada temporariamente
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Muitas tentativas de login falhadas. Aguarde antes de tentar novamente.
+                              </p>
+                              <div className="mt-3 flex items-center gap-2">
+                                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                                  <motion.div
+                                    initial={{ width: '100%' }}
+                                    animate={{ width: '0%' }}
+                                    transition={{ duration: lockStatus.remainingTime, ease: 'linear' }}
+                                    className="h-full bg-destructive rounded-full"
+                                  />
+                                </div>
+                                <span className="text-sm font-mono text-destructive min-w-[60px] text-right">
+                                  {Math.floor(lockStatus.remainingTime / 60)}:{(lockStatus.remainingTime % 60).toString().padStart(2, '0')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Attempts Warning */}
+                    <AnimatePresence>
+                      {!lockStatus.isLocked && lockStatus.attempts > 0 && lockStatus.attempts < 5 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20"
+                        >
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                            <p className="text-sm text-amber-600 dark:text-amber-400">
+                              {5 - lockStatus.attempts} tentativa{5 - lockStatus.attempts > 1 ? 's' : ''} restante{5 - lockStatus.attempts > 1 ? 's' : ''} antes do bloqueio
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <form onSubmit={handleLogin} className="space-y-4">
                       <motion.div 
                         initial={{ opacity: 0, x: -10 }}
