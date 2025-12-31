@@ -52,6 +52,7 @@ const menuItems = [
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
   { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
+  { id: 'security', icon: Shield, label: 'Segurança' },
   { id: 'admin', icon: Shield, label: 'Admin' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
 ];
