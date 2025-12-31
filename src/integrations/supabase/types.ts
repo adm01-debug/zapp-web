@@ -111,6 +111,30 @@ export type Database = {
           },
         ]
       }
+      allowed_countries: {
+        Row: {
+          added_by: string | null
+          country_code: string
+          country_name: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          added_by?: string | null
+          country_code: string
+          country_name: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          added_by?: string | null
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -683,6 +707,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      geo_blocking_settings: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       goals_configurations: {
         Row: {
@@ -1946,6 +1994,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_supervisor: { Args: { _user_id: string }; Returns: boolean }
+      is_country_allowed: {
+        Args: { check_country_code: string }
+        Returns: boolean
+      }
       is_country_blocked: {
         Args: { check_country_code: string }
         Returns: boolean
