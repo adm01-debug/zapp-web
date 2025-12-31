@@ -1,19 +1,24 @@
 import { motion } from 'framer-motion';
-import { Shield, Key, Lock, Activity, Users, AlertTriangle, Smartphone, LayoutDashboard } from 'lucide-react';
+import { Shield, Key, Lock, Activity, Users, Bell, Smartphone, LayoutDashboard } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SecuritySettingsPanel } from './SecuritySettingsPanel';
 import { SecurityOverview } from './SecurityOverview';
 import { DevicesPanel } from './DevicesPanel';
+import { SecurityNotificationsPanel } from './SecurityNotificationsPanel';
 import { BlockedIPsPanel } from './BlockedIPsPanel';
 import { IPWhitelistPanel } from './IPWhitelistPanel';
 import { RateLimitRealtimeAlerts } from './RateLimitRealtimeAlerts';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useSecurityPushNotifications } from '@/hooks/useSecurityPushNotifications';
 
 export function SecurityView() {
   const { hasRole } = useUserRole();
   const isAdmin = hasRole('admin');
+  
+  // Initialize security push notifications
+  useSecurityPushNotifications();
 
   return (
     <div className="h-full overflow-auto p-6">
@@ -40,7 +45,7 @@ export function SecurityView() {
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-6">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -52,6 +57,10 @@ export function SecurityView() {
             <TabsTrigger value="devices" className="gap-2">
               <Smartphone className="w-4 h-4" />
               <span className="hidden sm:inline">Dispositivos</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2">
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">Alertas</span>
             </TabsTrigger>
             {isAdmin && (
               <>
@@ -77,6 +86,10 @@ export function SecurityView() {
 
           <TabsContent value="devices">
             <DevicesPanel />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <SecurityNotificationsPanel />
           </TabsContent>
 
           {isAdmin && (

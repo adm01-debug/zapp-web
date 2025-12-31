@@ -1,0 +1,133 @@
+import { useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { toast } from 'sonner';
+
+interface SecurityAlert {
+  id: string;
+  alert_type: string;
+  severity: string;
+  title: string;
+  description: string | null;
+  ip_address: string | null;
+  created_at: string;
+  is_resolved: boolean | null;
+}
+
+export function useSecurityPushNotifications() {
+  const { user } = useAuth();
+  const { isSubscribed, permission, showNotification } = usePushNotifications();
+
+  const sendSecurityNotification = useCallback(async (alert: SecurityAlert) => {
+    if (permission !== 'granted' || !isSubscribed) {
+      console.log('Push notifications not available, using toast fallback');
+      
+      // Fallback to toast notification
+      const toastType = alert.severity === 'high' || alert.severity === 'critical' 
+        ? 'error' 
+        : alert.severity === 'medium' 
+          ? 'warning' 
+          : 'info';
+
+      if (toastType === 'error') {
+        toast.error(alert.title, { description: alert.description || undefined });
+      } else if (toastType === 'warning') {
+        toast.warning(alert.title, { description: alert.description || undefined });
+      } else {
+        toast.info(alert.title, { description: alert.description || undefined });
+      }
+      return;
+    }
+
+    // Determine notification urgency
+    const isUrgent = alert.severity === 'high' || alert.severity === 'critical';
+
+    // Format the body with details
+    let body = alert.description || 'Alerta de segurança detectado';
+    if (alert.ip_address) {
+      body += ` (IP: ${alert.ip_address})`;
+    }
+
+    // Show push notification
+    await showNotification({
+      title: `🔐 ${alert.title}`,
+      body,
+      tag: `security-${alert.id}`,
+      requireInteraction: isUrgent,
+      data: {
+        alertId: alert.id,
+        alertType: alert.alert_type,
+        severity: alert.severity,
+        category: 'security',
+      },
+      vibrate: isUrgent ? [300, 100, 300, 100, 300] : [200, 100, 200],
+    });
+
+    console.log('Security notification sent:', alert.title);
+  }, [permission, isSubscribed, showNotification]);
+
+  // Subscribe to realtime security alerts
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('Setting up security alerts subscription for user:', user.id);
+
+    const channel = supabase
+      .channel('security-alerts-push')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'security_alerts',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('New security alert received:', payload);
+          const alert = payload.new as SecurityAlert;
+          sendSecurityNotification(alert);
+        }
+      )
+      .subscribe((status) => {
+        console.log('Security alerts subscription status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up security alerts subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [user, sendSecurityNotification]);
+
+  // Listen for service worker messages
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      console.log('Message from service worker:', event.data);
+
+      if (event.data.type === 'SECURITY_ACTION') {
+        // Navigate to security view or take action
+        toast.info('Redirecionando para Central de Segurança...');
+        // Could dispatch a navigation event here
+      }
+
+      if (event.data.type === 'NOTIFICATION_CLICK' && event.data.data?.category === 'security') {
+        toast.info('Abrindo detalhes do alerta...');
+      }
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+    }
+
+    return () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleMessage);
+      }
+    };
+  }, []);
+
+  return {
+    sendSecurityNotification,
+    isEnabled: isSubscribed && permission === 'granted',
+  };
+}
