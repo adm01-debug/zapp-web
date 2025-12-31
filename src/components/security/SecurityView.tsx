@@ -1,10 +1,11 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Key, Users, Activity, ArrowLeft, Lock, AlertTriangle } from 'lucide-react';
+import { Shield, Key, Lock, Activity, Users, AlertTriangle, Smartphone, LayoutDashboard } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SecuritySettingsPanel } from './SecuritySettingsPanel';
+import { SecurityOverview } from './SecurityOverview';
+import { DevicesPanel } from './DevicesPanel';
 import { BlockedIPsPanel } from './BlockedIPsPanel';
 import { IPWhitelistPanel } from './IPWhitelistPanel';
 import { RateLimitRealtimeAlerts } from './RateLimitRealtimeAlerts';
@@ -38,56 +39,67 @@ export function SecurityView() {
         {isAdmin && <RateLimitRealtimeAlerts />}
 
         {/* Tabs */}
-        <Tabs defaultValue="account" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              <span className="hidden sm:inline">Visão Geral</span>
+            </TabsTrigger>
             <TabsTrigger value="account" className="gap-2">
               <Key className="w-4 h-4" />
-              <span className="hidden sm:inline">Minha Conta</span>
+              <span className="hidden sm:inline">Conta</span>
+            </TabsTrigger>
+            <TabsTrigger value="devices" className="gap-2">
+              <Smartphone className="w-4 h-4" />
+              <span className="hidden sm:inline">Dispositivos</span>
             </TabsTrigger>
             {isAdmin && (
               <>
                 <TabsTrigger value="blocked" className="gap-2">
                   <Lock className="w-4 h-4" />
-                  <span className="hidden sm:inline">IPs Bloqueados</span>
+                  <span className="hidden sm:inline">IPs</span>
                 </TabsTrigger>
-                <TabsTrigger value="whitelist" className="gap-2">
-                  <Shield className="w-4 h-4" />
-                  <span className="hidden sm:inline">Whitelist</span>
-                </TabsTrigger>
-                <TabsTrigger value="overview" className="gap-2">
-                  <Activity className="w-4 h-4" />
-                  <span className="hidden sm:inline">Visão Geral</span>
+                <TabsTrigger value="admin" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">Admin</span>
                 </TabsTrigger>
               </>
             )}
           </TabsList>
 
+          <TabsContent value="overview">
+            <SecurityOverview />
+          </TabsContent>
+
           <TabsContent value="account">
             <SecuritySettingsPanel />
+          </TabsContent>
+
+          <TabsContent value="devices">
+            <DevicesPanel />
           </TabsContent>
 
           {isAdmin && (
             <>
               <TabsContent value="blocked">
-                <BlockedIPsPanel />
+                <div className="space-y-6">
+                  <BlockedIPsPanel />
+                  <IPWhitelistPanel />
+                </div>
               </TabsContent>
 
-              <TabsContent value="whitelist">
-                <IPWhitelistPanel />
-              </TabsContent>
-
-              <TabsContent value="overview">
+              <TabsContent value="admin">
                 <div className="grid gap-6 md:grid-cols-2">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-warning" />
-                        Alertas Recentes
+                        <Activity className="w-5 h-5 text-primary" />
+                        Rate Limit Dashboard
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        Visualize alertas de segurança recentes no Dashboard de Rate Limit
+                        Monitore tentativas de acesso e gerencie rate limiting
                       </p>
                       <Button 
                         variant="outline" 
@@ -108,7 +120,7 @@ export function SecurityView() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        Configure roles e permissões para usuários do sistema
+                        Configure roles e permissões para usuários
                       </p>
                       <Button 
                         variant="outline" 
