@@ -1,0 +1,352 @@
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+
+interface PasskeyCredential {
+  id: string;
+  credential_id: string;
+  friendly_name: string | null;
+  device_type: string | null;
+  created_at: string;
+  last_used_at: string | null;
+}
+
+export function useWebAuthn() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [passkeys, setPasskeys] = useState<PasskeyCredential[]>([]);
+
+  // Check if WebAuthn is supported
+  const isSupported = useCallback(() => {
+    return window.PublicKeyCredential !== undefined &&
+      typeof window.PublicKeyCredential === 'function';
+  }, []);
+
+  // Check if platform authenticator is available (Touch ID, Face ID, Windows Hello)
+  const isPlatformAuthenticatorAvailable = useCallback(async () => {
+    if (!isSupported()) return false;
+    try {
+      return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch {
+      return false;
+    }
+  }, [isSupported]);
+
+  // Fetch user's passkeys
+  const fetchPasskeys = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('passkey_credentials')
+      .select('id, credential_id, friendly_name, device_type, created_at, last_used_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to fetch passkeys:', error);
+      return;
+    }
+
+    setPasskeys(data || []);
+  }, [user]);
+
+  // Register a new passkey
+  const registerPasskey = useCallback(async (friendlyName?: string) => {
+    if (!user) {
+      toast.error('Você precisa estar logado para registrar uma passkey');
+      return { success: false };
+    }
+
+    if (!isSupported()) {
+      toast.error('WebAuthn não é suportado neste navegador');
+      return { success: false };
+    }
+
+    setLoading(true);
+
+    try {
+      // Get registration options from server
+      const { data: optionsData, error: optionsError } = await supabase.functions.invoke('webauthn', {
+        body: {
+          action: 'registration-options',
+          userId: user.id,
+          userEmail: user.email,
+          userName: user.user_metadata?.name || user.email,
+        },
+      });
+
+      if (optionsError || !optionsData?.options) {
+        throw new Error(optionsError?.message || 'Falha ao obter opções de registro');
+      }
+
+      const options = optionsData.options;
+
+      // Convert challenge and user.id from base64url to ArrayBuffer
+      const challengeBuffer = base64URLToBuffer(options.challenge);
+      const userIdBuffer = base64URLToBuffer(options.user.id);
+
+      // Prepare credential creation options
+      const credentialCreationOptions: CredentialCreationOptions = {
+        publicKey: {
+          ...options,
+          challenge: challengeBuffer,
+          user: {
+            ...options.user,
+            id: userIdBuffer,
+          },
+          excludeCredentials: options.excludeCredentials?.map((cred: any) => ({
+            ...cred,
+            id: base64URLToBuffer(cred.id),
+          })),
+        },
+      };
+
+      // Create credential
+      const credential = await navigator.credentials.create(credentialCreationOptions) as PublicKeyCredential;
+
+      if (!credential) {
+        throw new Error('Falha ao criar credencial');
+      }
+
+      const response = credential.response as AuthenticatorAttestationResponse;
+
+      // Prepare credential for server verification
+      const credentialForServer = {
+        id: credential.id,
+        rawId: bufferToBase64URL(credential.rawId),
+        type: credential.type,
+        authenticatorAttachment: (credential as any).authenticatorAttachment,
+        response: {
+          clientDataJSON: bufferToBase64URL(response.clientDataJSON),
+          attestationObject: bufferToBase64URL(response.attestationObject),
+          transports: response.getTransports?.() || ['internal'],
+          publicKeyAlgorithm: response.getPublicKeyAlgorithm?.(),
+        },
+      };
+
+      // Verify registration on server
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('webauthn', {
+        body: {
+          action: 'verify-registration',
+          userId: user.id,
+          credential: credentialForServer,
+          friendlyName: friendlyName || getDeviceName(),
+        },
+      });
+
+      if (verifyError || !verifyData?.success) {
+        throw new Error(verifyError?.message || 'Falha ao verificar registro');
+      }
+
+      toast.success('Passkey registrada com sucesso!');
+      await fetchPasskeys();
+      return { success: true };
+
+    } catch (error: any) {
+      console.error('Passkey registration error:', error);
+      
+      if (error.name === 'NotAllowedError') {
+        toast.error('Registro cancelado pelo usuário');
+      } else if (error.name === 'SecurityError') {
+        toast.error('Erro de segurança. Verifique se está usando HTTPS.');
+      } else {
+        toast.error(error.message || 'Falha ao registrar passkey');
+      }
+      
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, isSupported, fetchPasskeys]);
+
+  // Authenticate with passkey
+  const authenticateWithPasskey = useCallback(async (email?: string) => {
+    if (!isSupported()) {
+      toast.error('WebAuthn não é suportado neste navegador');
+      return { success: false };
+    }
+
+    setLoading(true);
+
+    try {
+      // Get authentication options from server
+      const { data: optionsData, error: optionsError } = await supabase.functions.invoke('webauthn', {
+        body: {
+          action: 'authentication-options',
+          userEmail: email,
+        },
+      });
+
+      if (optionsError || !optionsData?.options) {
+        throw new Error(optionsError?.message || 'Falha ao obter opções de autenticação');
+      }
+
+      const options = optionsData.options;
+
+      // Prepare credential request options
+      const credentialRequestOptions: CredentialRequestOptions = {
+        publicKey: {
+          ...options,
+          challenge: base64URLToBuffer(options.challenge),
+          allowCredentials: options.allowCredentials?.map((cred: any) => ({
+            ...cred,
+            id: base64URLToBuffer(cred.id),
+          })),
+        },
+      };
+
+      // Get credential
+      const credential = await navigator.credentials.get(credentialRequestOptions) as PublicKeyCredential;
+
+      if (!credential) {
+        throw new Error('Falha ao obter credencial');
+      }
+
+      const response = credential.response as AuthenticatorAssertionResponse;
+
+      // Prepare credential for server verification
+      const credentialForServer = {
+        id: credential.id,
+        rawId: bufferToBase64URL(credential.rawId),
+        type: credential.type,
+        response: {
+          clientDataJSON: bufferToBase64URL(response.clientDataJSON),
+          authenticatorData: bufferToBase64URL(response.authenticatorData),
+          signature: bufferToBase64URL(response.signature),
+          userHandle: response.userHandle ? bufferToBase64URL(response.userHandle) : null,
+        },
+      };
+
+      // Verify authentication on server
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('webauthn', {
+        body: {
+          action: 'verify-authentication',
+          credential: credentialForServer,
+        },
+      });
+
+      if (verifyError || !verifyData?.success) {
+        throw new Error(verifyError?.message || 'Falha ao verificar autenticação');
+      }
+
+      toast.success('Autenticado com passkey!');
+      return { 
+        success: true, 
+        userId: verifyData.userId,
+        userEmail: verifyData.userEmail,
+      };
+
+    } catch (error: any) {
+      console.error('Passkey authentication error:', error);
+      
+      if (error.name === 'NotAllowedError') {
+        toast.error('Autenticação cancelada pelo usuário');
+      } else {
+        toast.error(error.message || 'Falha na autenticação com passkey');
+      }
+      
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  }, [isSupported]);
+
+  // Delete a passkey
+  const deletePasskey = useCallback(async (passkeyId: string) => {
+    if (!user) return { success: false };
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('passkey_credentials')
+        .delete()
+        .eq('id', passkeyId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Passkey removida com sucesso');
+      await fetchPasskeys();
+      return { success: true };
+
+    } catch (error: any) {
+      console.error('Failed to delete passkey:', error);
+      toast.error('Falha ao remover passkey');
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, fetchPasskeys]);
+
+  // Rename a passkey
+  const renamePasskey = useCallback(async (passkeyId: string, newName: string) => {
+    if (!user) return { success: false };
+
+    try {
+      const { error } = await supabase
+        .from('passkey_credentials')
+        .update({ friendly_name: newName })
+        .eq('id', passkeyId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Passkey renomeada');
+      await fetchPasskeys();
+      return { success: true };
+
+    } catch (error: any) {
+      console.error('Failed to rename passkey:', error);
+      toast.error('Falha ao renomear passkey');
+      return { success: false };
+    }
+  }, [user, fetchPasskeys]);
+
+  return {
+    loading,
+    passkeys,
+    isSupported,
+    isPlatformAuthenticatorAvailable,
+    fetchPasskeys,
+    registerPasskey,
+    authenticateWithPasskey,
+    deletePasskey,
+    renamePasskey,
+  };
+}
+
+// Utility functions
+function base64URLToBuffer(base64url: string): ArrayBuffer {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const padding = '='.repeat((4 - base64.length % 4) % 4);
+  const binary = atob(base64 + padding);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+function bufferToBase64URL(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let str = '';
+  for (let i = 0; i < bytes.length; i++) {
+    str += String.fromCharCode(bytes[i]);
+  }
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function getDeviceName(): string {
+  const ua = navigator.userAgent;
+  
+  if (/iPhone/.test(ua)) return 'iPhone';
+  if (/iPad/.test(ua)) return 'iPad';
+  if (/Mac/.test(ua)) return 'Mac';
+  if (/Windows/.test(ua)) return 'Windows PC';
+  if (/Android/.test(ua)) return 'Android';
+  if (/Linux/.test(ua)) return 'Linux';
+  
+  return 'Dispositivo';
+}
