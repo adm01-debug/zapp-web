@@ -182,6 +182,45 @@ export type Database = {
           },
         ]
       }
+      blocked_ips: {
+        Row: {
+          blocked_at: string
+          blocked_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          ip_address: string
+          is_permanent: boolean | null
+          last_attempt_at: string | null
+          reason: string
+          request_count: number | null
+        }
+        Insert: {
+          blocked_at?: string
+          blocked_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip_address: string
+          is_permanent?: boolean | null
+          last_attempt_at?: string | null
+          reason: string
+          request_count?: number | null
+        }
+        Update: {
+          blocked_at?: string
+          blocked_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string
+          is_permanent?: boolean | null
+          last_attempt_at?: string | null
+          reason?: string
+          request_count?: number | null
+        }
+        Relationships: []
+      }
       business_hours: {
         Row: {
           close_time: string | null
@@ -672,6 +711,30 @@ export type Database = {
           },
         ]
       }
+      ip_whitelist: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          ip_address: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          ip_address: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          ip_address?: string
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           contact_id: string | null
@@ -839,6 +902,33 @@ export type Database = {
           },
         ]
       }
+      mfa_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          factor_id: string
+          id: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          factor_id: string
+          id?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          factor_id?: string
+          id?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -872,6 +962,30 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -1107,6 +1221,110 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_configs: {
+        Row: {
+          block_duration_minutes: number
+          created_at: string
+          endpoint_pattern: string
+          id: string
+          is_active: boolean | null
+          max_requests: number
+          name: string
+          updated_at: string
+          window_seconds: number
+        }
+        Insert: {
+          block_duration_minutes?: number
+          created_at?: string
+          endpoint_pattern: string
+          id?: string
+          is_active?: boolean | null
+          max_requests?: number
+          name: string
+          updated_at?: string
+          window_seconds?: number
+        }
+        Update: {
+          block_duration_minutes?: number
+          created_at?: string
+          endpoint_pattern?: string
+          id?: string
+          is_active?: boolean | null
+          max_requests?: number
+          name?: string
+          updated_at?: string
+          window_seconds?: number
+        }
+        Relationships: []
+      }
+      rate_limit_logs: {
+        Row: {
+          blocked: boolean | null
+          city: string | null
+          country: string | null
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string
+          request_count: number
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address: string
+          request_count?: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string
+          request_count?: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scheduled_messages: {
         Row: {
           contact_id: string
@@ -1176,6 +1394,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          description: string | null
+          id: string
+          ip_address: string | null
+          is_resolved: boolean | null
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       sla_configurations: {
         Row: {
@@ -1491,8 +1754,14 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_supervisor: { Args: { _user_id: string }; Returns: boolean }
+      is_ip_blocked: { Args: { check_ip: string }; Returns: boolean }
+      is_ip_whitelisted: { Args: { check_ip: string }; Returns: boolean }
       is_within_business_hours: {
         Args: { connection_id: string }
+        Returns: boolean
+      }
+      user_has_permission: {
+        Args: { _permission_name: string; _user_id: string }
         Returns: boolean
       }
     }
