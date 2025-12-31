@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, Loader2, Clock } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
@@ -14,6 +15,7 @@ const emailSchema = z.string().email('Email inválido');
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
+  const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -33,17 +35,40 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      // First, find the user by email
+      // We need to create a reset request instead of directly sending
+      const { data: existingUser, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('email', email)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (!existingUser) {
+        // Don't reveal if user exists or not for security
+        setSent(true);
+        toast.success('Se o email existir, sua solicitação será analisada.');
+        return;
+      }
+
+      // Create password reset request
+      const { error: insertError } = await supabase
+        .from('password_reset_requests')
+        .insert({
+          user_id: existingUser.user_id,
+          email,
+          reason: reason || null,
+          ip_address: null, // Could get from an API if needed
+          user_agent: navigator.userAgent,
+        });
+
+      if (insertError) throw insertError;
 
       setSent(true);
-      toast.success('Email de recuperação enviado!');
+      toast.success('Solicitação enviada! Aguarde a aprovação de um administrador.');
     } catch (err: any) {
-      setError(err.message || 'Erro ao enviar email de recuperação');
-      toast.error('Erro ao enviar email');
+      console.error('Error submitting reset request:', err);
+      setError('Erro ao enviar solicitação. Tente novamente.');
+      toast.error('Erro ao enviar solicitação');
     } finally {
       setLoading(false);
     }
@@ -63,18 +88,26 @@ export default function ForgotPassword() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: 'spring' }}
-                className="mx-auto mb-4 w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center"
+                className="mx-auto mb-4 w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center"
               >
-                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
               </motion.div>
-              <CardTitle>Email Enviado!</CardTitle>
+              <CardTitle>Solicitação Enviada!</CardTitle>
               <CardDescription>
-                Enviamos um link de recuperação para <strong>{email}</strong>
+                Sua solicitação de reset para <strong>{email}</strong> foi enviada para análise.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Verifique sua caixa de entrada e spam. O link expira em 1 hora.
+              <div className="p-4 rounded-lg bg-muted text-sm space-y-2">
+                <p className="font-medium">Próximos passos:</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li>Um administrador irá analisar sua solicitação</li>
+                  <li>Você receberá um email quando for aprovada</li>
+                  <li>Use o link do email para redefinir sua senha</li>
+                </ol>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Este processo pode levar alguns minutos. Verifique seu email regularmente.
               </p>
               <Button variant="outline" className="w-full" asChild>
                 <Link to="/auth">
@@ -104,7 +137,7 @@ export default function ForgotPassword() {
             </div>
             <CardTitle>Esqueceu sua senha?</CardTitle>
             <CardDescription>
-              Digite seu email e enviaremos um link para redefinir sua senha
+              Digite seu email e envie uma solicitação de reset. Um administrador irá analisar.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -131,6 +164,22 @@ export default function ForgotPassword() {
                 )}
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="reason">Motivo (opcional)</Label>
+                <Textarea
+                  id="reason"
+                  placeholder="Ex: Esqueci minha senha após férias..."
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  disabled={loading}
+                  className="resize-none"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ajuda o administrador a validar sua identidade
+                </p>
+              </div>
+
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
@@ -138,7 +187,7 @@ export default function ForgotPassword() {
                     Enviando...
                   </>
                 ) : (
-                  'Enviar link de recuperação'
+                  'Solicitar Reset de Senha'
                 )}
               </Button>
 
