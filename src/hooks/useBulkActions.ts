@@ -1,12 +1,12 @@
 /**
- * FINANCE HUB - Hook para Ações em Massa
+ * Hook para Ações em Massa
  * 
  * @module hooks/useBulkActions
  * @description Gerenciamento de seleção e ações em múltiplos itens
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -128,7 +128,8 @@ export function useBulkActions<T extends { id: string }>(
         },
         action: async (items: T[]) => {
           const ids = items.map((i) => i.id);
-          const { error } = await supabase
+          // Use any to work around Supabase's dynamic table typing
+          const { error } = await (supabase as any)
             .from(tableName)
             .delete()
             .in('id', ids);
@@ -143,7 +144,8 @@ export function useBulkActions<T extends { id: string }>(
         variant: 'outline' as const,
         action: async (items: T[]) => {
           const ids = items.map((i) => i.id);
-          const { error } = await supabase
+          // Use any to work around Supabase's dynamic table typing
+          const { error } = await (supabase as any)
             .from(tableName)
             .update({ status: 'archived', updated_at: new Date().toISOString() })
             .in('id', ids);

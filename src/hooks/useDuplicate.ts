@@ -2,9 +2,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface UseDuplicateOptions { tableName: string; queryKey: string[]; excludeFields?: string[]; transformData?: (data: Record<string, unknown>) => Record<string, unknown>; }
+interface UseDuplicateOptions { 
+  tableName: string; 
+  queryKey: string[]; 
+  excludeFields?: string[]; 
+  transformData?: (data: Record<string, unknown>) => Record<string, unknown>; 
+}
 
-export function useDuplicate<T extends { id: string }>({ tableName, queryKey, excludeFields = ['id', 'created_at', 'updated_at'], transformData }: UseDuplicateOptions) {
+export function useDuplicate<T extends { id: string }>({ 
+  tableName, 
+  queryKey, 
+  excludeFields = ['id', 'created_at', 'updated_at'], 
+  transformData 
+}: UseDuplicateOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -14,7 +24,13 @@ export function useDuplicate<T extends { id: string }>({ tableName, queryKey, ex
       if (duplicateData.name) duplicateData.name = `${duplicateData.name} (Cópia)`;
       if (duplicateData.titulo) duplicateData.titulo = `${duplicateData.titulo} (Cópia)`;
       const finalData = transformData ? transformData(duplicateData) : duplicateData;
-      const { data, error } = await supabase.from(tableName).insert(finalData).select().single();
+      
+      // Use any to work around Supabase's dynamic table typing
+      const { data, error } = await (supabase as any)
+        .from(tableName)
+        .insert(finalData)
+        .select()
+        .single();
       if (error) throw error;
       return data as T;
     },

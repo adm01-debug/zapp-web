@@ -20,14 +20,15 @@ export function useVersions(entityType: string, entityId: string) {
   const { data: versions = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Use any to work around Supabase's dynamic table typing
+      const { data, error } = await (supabase as any)
         .from('entity_versions')
         .select('*')
         .eq('entity_type', entityType)
         .eq('entity_id', entityId)
         .order('version_number', { ascending: false });
       if (error) throw error;
-      return data as Version[];
+      return (data || []) as Version[];
     },
     enabled: !!entityId,
   });
@@ -36,7 +37,9 @@ export function useVersions(entityType: string, entityId: string) {
     mutationFn: async (versionId: string) => {
       const version = versions.find(v => v.id === versionId);
       if (!version) throw new Error('Versão não encontrada');
-      const { error } = await supabase
+      
+      // Use any to work around Supabase's dynamic table typing
+      const { error } = await (supabase as any)
         .from(entityType)
         .update(version.data)
         .eq('id', entityId);
@@ -48,5 +51,10 @@ export function useVersions(entityType: string, entityId: string) {
     },
   });
 
-  return { versions, isLoading, restoreVersion: restoreMutation.mutate, currentVersion: versions[0] };
+  return { 
+    versions, 
+    isLoading, 
+    restoreVersion: restoreMutation.mutate, 
+    currentVersion: versions[0] 
+  };
 }
