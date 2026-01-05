@@ -33,11 +33,21 @@ export function useSearch<T extends Record<string, unknown>>(
     queryFn: async () => {
       if (!shouldSearch) return [];
       const orConditions = columns.map(col => `${col}.ilike.%${debouncedTerm}%`).join(',');
-      let query = supabase.from(tableName).select('*').or(orConditions).limit(limit);
-      if (orderBy) query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+      
+      // Use any to work around Supabase's dynamic table typing
+      let query = (supabase as any)
+        .from(tableName)
+        .select('*')
+        .or(orConditions)
+        .limit(limit);
+      
+      if (orderBy) {
+        query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+      }
+      
       const { data, error } = await query;
       if (error) throw error;
-      return data as T[];
+      return (data || []) as T[];
     },
     enabled: shouldSearch,
   });
@@ -45,7 +55,15 @@ export function useSearch<T extends Record<string, unknown>>(
   const clearSearch = useCallback(() => setSearchTerm(''), []);
   const results = useMemo(() => data ?? [], [data]);
 
-  return { results, isLoading: shouldSearch && isLoading, error: error as Error | null, searchTerm, setSearchTerm, clearSearch, hasResults: results.length > 0 };
+  return { 
+    results, 
+    isLoading: shouldSearch && isLoading, 
+    error: error as Error | null, 
+    searchTerm, 
+    setSearchTerm, 
+    clearSearch, 
+    hasResults: results.length > 0 
+  };
 }
 
 export default useSearch;

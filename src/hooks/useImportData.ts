@@ -1,5 +1,5 @@
 /**
- * FINANCE HUB - Hook para Importação de Dados
+ * Hook para Importação de Dados
  * 
  * @module hooks/useImportData
  * @description Importação de CSV e Excel com validação Zod
@@ -7,7 +7,6 @@
 
 import { useState, useCallback } from 'react';
 import { z } from 'zod';
-import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
@@ -49,21 +48,43 @@ export function useImportData<T>(options: UseImportDataOptions<T>) {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult<T> | null>(null);
 
-  // Parsear CSV
+  // Parsear CSV usando xlsx
   const parseCSV = useCallback(async (file: File): Promise<unknown[]> => {
     return new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        transformHeader: (header) => header.trim().toLowerCase().replace(/\s+/g, '_'),
-        complete: (results) => {
-          if (skipFirstRow && results.data.length > 0) {
-            results.data.shift();
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          const workbook = XLSX.read(text, { type: 'string' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(sheet, {
+            defval: '',
+            raw: false,
+          });
+          
+          // Normalizar headers
+          const normalized = jsonData.map((row: any) => {
+            const newRow: Record<string, unknown> = {};
+            Object.keys(row).forEach(key => {
+              const normalizedKey = key.trim().toLowerCase().replace(/\s+/g, '_');
+              newRow[normalizedKey] = row[key];
+            });
+            return newRow;
+          });
+          
+          if (skipFirstRow && normalized.length > 0) {
+            normalized.shift();
           }
-          resolve(results.data);
-        },
-        error: (error) => reject(error),
-      });
+          
+          resolve(normalized);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+      reader.readAsText(file);
     });
   }, [skipFirstRow]);
 
@@ -83,7 +104,7 @@ export function useImportData<T>(options: UseImportDataOptions<T>) {
           });
           
           // Normalizar headers
-          const normalized = jsonData.map((row: Record<string, unknown>) => {
+          const normalized = jsonData.map((row: any) => {
             const newRow: Record<string, unknown> = {};
             Object.keys(row).forEach(key => {
               const normalizedKey = key.trim().toLowerCase().replace(/\s+/g, '_');
