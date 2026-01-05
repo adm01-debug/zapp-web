@@ -38,23 +38,49 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-const menuItems = [
-  { id: 'inbox', icon: MessageSquare, label: 'Inbox', badge: 12 },
-  { id: 'contacts', icon: Users, label: 'Contatos' },
-  { id: 'groups', icon: UsersRound, label: 'Grupos' },
-  { id: 'agents', icon: Phone, label: 'Atendentes' },
-  { id: 'queues', icon: Tag, label: 'Filas' },
-  { id: 'connections', icon: Zap, label: 'Conexões' },
-  { id: 'wallet', icon: Wallet, label: 'Carteira' },
-  { id: 'catalog', icon: Package, label: 'Catálogo' },
-  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
-  { id: 'tags', icon: Tag, label: 'Etiquetas' },
-  { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-  { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-  { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
-  { id: 'security', icon: Shield, label: 'Segurança' },
-  { id: 'admin', icon: Shield, label: 'Admin' },
-  { id: 'settings', icon: Settings, label: 'Configurações' },
+// Menu organizado por categorias para melhor UX
+const menuGroups = [
+  {
+    title: 'Comunicação',
+    items: [
+      { id: 'inbox', icon: MessageSquare, label: 'Inbox', badge: 12 },
+      { id: 'contacts', icon: Users, label: 'Contatos' },
+      { id: 'groups', icon: UsersRound, label: 'Grupos' },
+    ],
+  },
+  {
+    title: 'Operações',
+    items: [
+      { id: 'agents', icon: Phone, label: 'Atendentes' },
+      { id: 'queues', icon: Tag, label: 'Filas' },
+      { id: 'connections', icon: Zap, label: 'Conexões' },
+      { id: 'wallet', icon: Wallet, label: 'Carteira' },
+    ],
+  },
+  {
+    title: 'Recursos',
+    items: [
+      { id: 'catalog', icon: Package, label: 'Catálogo' },
+      { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
+      { id: 'tags', icon: Tag, label: 'Etiquetas' },
+    ],
+  },
+  {
+    title: 'Analytics',
+    items: [
+      { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
+      { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
+      { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
+    ],
+  },
+  {
+    title: 'Sistema',
+    items: [
+      { id: 'security', icon: Shield, label: 'Segurança' },
+      { id: 'admin', icon: Shield, label: 'Admin' },
+      { id: 'settings', icon: Settings, label: 'Configurações' },
+    ],
+  },
 ];
 
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
@@ -116,95 +142,125 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       </div>
 
       {/* Navigation */}
-      <nav className="relative flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin">
-        {menuItems.map((item, index) => {
-          const Icon = item.icon;
-          const isActive = currentView === item.id;
-
-          const button = (
-            <motion.button
-              key={item.id}
-              data-tour={item.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.04 }}
-              whileHover={{ x: 2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onViewChange(item.id)}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
-                isActive 
-                  ? 'text-secondary nav-item-neon-active' 
-                  : 'text-muted-foreground hover:text-secondary nav-item-neon-hover'
-              )}
-            >
-              {/* Active indicator bar with neon effect */}
-              {isActive && (
+      <nav className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin">
+        {menuGroups.map((group, groupIndex) => (
+          <div key={group.title} className="space-y-1">
+            {/* Group Label */}
+            <AnimatePresence mode="wait">
+              {!isCollapsed && (
                 <motion.div
-                  layoutId="activeNav"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full nav-indicator-neon"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-              
-              <Icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-all duration-300",
-                isActive ? "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.6)]" : "group-hover:text-secondary"
-              )} />
-              
-              <AnimatePresence mode="wait">
-                {!isCollapsed && (
-                  <motion.div
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center flex-1 overflow-hidden"
-                  >
-                    <span className={cn(
-                      "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-300",
-                      isActive ? "text-secondary" : "text-foreground group-hover:text-secondary"
-                    )}>
-                      {item.label}
-                    </span>
-                    {item.badge && (
-                      <motion.span 
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold badge-neon text-white"
-                      >
-                        {item.badge}
-                      </motion.span>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.button>
-          );
-
-          if (isCollapsed) {
-            return (
-              <Tooltip key={item.id} delayDuration={0}>
-                <TooltipTrigger asChild>{button}</TooltipTrigger>
-                <TooltipContent 
-                  side="right" 
-                  className="border-border/30 bg-card"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2, delay: groupIndex * 0.05 }}
+                  className="px-3 py-1.5"
                 >
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{item.label}</p>
-                    {item.badge && (
-                      <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            );
-          }
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                    {group.title}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          return button;
-        })}
+            {/* Group Items */}
+            {group.items.map((item, itemIndex) => {
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+              const globalIndex = menuGroups
+                .slice(0, groupIndex)
+                .reduce((acc, g) => acc + g.items.length, 0) + itemIndex;
+
+              const button = (
+                <motion.button
+                  key={item.id}
+                  data-tour={item.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: globalIndex * 0.03 }}
+                  whileHover={{ x: 4, transition: { duration: 0.15 } }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onViewChange(item.id)}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
+                    isActive 
+                      ? 'text-secondary nav-item-neon-active' 
+                      : 'text-muted-foreground hover:text-secondary nav-item-neon-hover'
+                  )}
+                >
+                  {/* Active indicator bar with neon effect */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full nav-indicator-neon"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  
+                  <motion.div
+                    whileHover={{ rotate: isActive ? 0 : 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Icon className={cn(
+                      "w-5 h-5 flex-shrink-0 transition-all duration-300",
+                      isActive ? "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.6)]" : "group-hover:text-secondary"
+                    )} />
+                  </motion.div>
+                  
+                  <AnimatePresence mode="wait">
+                    {!isCollapsed && (
+                      <motion.div
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center flex-1 overflow-hidden"
+                      >
+                        <span className={cn(
+                          "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-300",
+                          isActive ? "text-secondary" : "text-foreground group-hover:text-secondary"
+                        )}>
+                          {item.label}
+                        </span>
+                        {item.badge && (
+                          <motion.span 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold badge-neon text-white"
+                          >
+                            {item.badge}
+                          </motion.span>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              );
+
+              if (isCollapsed) {
+                return (
+                  <Tooltip key={item.id} delayDuration={0}>
+                    <TooltipTrigger asChild>{button}</TooltipTrigger>
+                    <TooltipContent 
+                      side="right" 
+                      className="border-border/30 bg-card"
+                    >
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{item.label}</p>
+                        {item.badge && (
+                          <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+
+              return button;
+            })}
+          </div>
+        ))}
         {/* Theme Toggle & Notifications */}
         <div className="mt-2 pt-2 border-t border-border/20 space-y-1">
           <div 
