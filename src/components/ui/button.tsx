@@ -2,6 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { motion, HTMLMotionProps } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -20,12 +21,16 @@ const buttonVariants = cva(
         glowGradient: "bg-gradient-to-r from-primary to-secondary text-white border border-secondary/30 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.5),0_0_60px_hsl(var(--primary)/0.3)] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-500",
         neon: "bg-transparent border-2 border-secondary text-secondary hover:bg-secondary/10 hover:shadow-[0_0_20px_hsl(var(--secondary)/0.5),inset_0_0_20px_hsl(var(--secondary)/0.1)] hover:border-secondary",
         neonOutline: "bg-transparent border border-secondary/50 text-secondary hover:border-secondary hover:shadow-[0_0_25px_hsl(var(--secondary)/0.5),0_0_50px_hsl(var(--secondary)/0.2)] hover:text-secondary-foreground hover:bg-secondary/20 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-secondary/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700",
+        success: "bg-success text-success-foreground hover:bg-success/90 hover:shadow-[0_0_20px_hsl(var(--success)/0.5)]",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
+        xl: "h-12 rounded-lg px-10 text-base",
         icon: "h-10 w-10",
+        "icon-sm": "h-8 w-8",
+        "icon-lg": "h-12 w-12",
       },
     },
     defaultVariants: {
@@ -39,12 +44,31 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  isLoading?: boolean;
+  loadingText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, isLoading = false, loadingText, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    
+    return (
+      <Comp 
+        className={cn(buttonVariants({ variant, size, className }))} 
+        ref={ref} 
+        disabled={disabled || isLoading}
+        {...props}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            {loadingText || children}
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
+    );
   }
 );
 Button.displayName = "Button";
@@ -52,22 +76,35 @@ Button.displayName = "Button";
 // Motion button with built-in hover/tap animations and neon glow
 interface MotionButtonProps
   extends Omit<HTMLMotionProps<"button">, "ref">,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  isLoading?: boolean;
+  loadingText?: string;
+}
 
 const MotionButton = React.forwardRef<HTMLButtonElement, MotionButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, isLoading, loadingText, children, disabled, ...props }, ref) => {
     return (
       <motion.button
         ref={ref}
         whileHover={{ 
-          scale: 1.02, 
-          y: -2,
+          scale: disabled || isLoading ? 1 : 1.02, 
+          y: disabled || isLoading ? 0 : -2,
           transition: { duration: 0.2, ease: "easeOut" }
         }}
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
         className={cn(buttonVariants({ variant, size, className }))}
+        disabled={disabled || isLoading}
         {...props}
-      />
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            {loadingText || children}
+          </>
+        ) : (
+          children
+        )}
+      </motion.button>
     );
   }
 );
