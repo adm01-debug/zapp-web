@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { DemoAchievements } from '@/components/gamification/DemoAchievements';
+import { TrainingMiniGames } from '@/components/gamification/TrainingMiniGames';
 import { FloatingParticles } from './FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { SLAMetricsDashboard } from './SLAMetricsDashboard';
@@ -405,6 +406,9 @@ export function DashboardView() {
 
       case 'achievements':
         return <DemoAchievements />;
+
+      case 'mini-games':
+        return <TrainingMiniGames />;
 
       default:
         return null;
