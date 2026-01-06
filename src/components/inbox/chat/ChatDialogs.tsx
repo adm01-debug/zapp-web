@@ -11,11 +11,12 @@ import { toast } from '@/hooks/use-toast';
 
 interface SearchResult {
   id: string;
-  type: 'message' | 'contact' | 'transcription';
+  type: 'message' | 'contact' | 'transcription' | 'action';
   title: string;
   preview: string;
   timestamp: Date;
   contactId?: string;
+  action?: () => void;
 }
 
 interface ChatDialogsProps {

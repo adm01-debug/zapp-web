@@ -1,6 +1,10 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText, Filter, Clock, History, Tag, Trash2, Command } from 'lucide-react';
+import { 
+  Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText, 
+  Filter, Clock, History, Tag, Trash2, Command, Plus, UserPlus, 
+  Send, Settings, LayoutDashboard, Inbox, Zap, ArrowRight
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +29,7 @@ import { useSearchHistory } from '@/hooks/useSearchHistory';
 
 interface SearchResult {
   id: string;
-  type: 'message' | 'contact' | 'transcription';
+  type: 'message' | 'contact' | 'transcription' | 'action';
   title: string;
   preview: string;
   timestamp: Date;
@@ -33,9 +37,19 @@ interface SearchResult {
   contactName?: string;
   messageType?: string;
   tags?: string[];
+  action?: () => void;
 }
 
-type ResultType = 'message' | 'contact' | 'transcription';
+interface QuickAction {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  action: () => void;
+  keywords: string[];
+}
+
+type ResultType = 'message' | 'contact' | 'transcription' | 'action';
 type DateFilter = 'all' | 'today' | '7days' | '30days' | '90days';
 
 interface TagSuggestion {
@@ -61,11 +75,82 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   // Filters
-  const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact']));
+  const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action']));
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
 
   // History
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
+
+  // Quick actions - always available for power users
+  const quickActions: QuickAction[] = useMemo(() => [
+    {
+      id: 'new-conversation',
+      title: 'Nova conversa',
+      description: 'Iniciar uma nova conversa',
+      icon: <Plus className="h-4 w-4" />,
+      action: () => {
+        onOpenChange(false);
+        // Trigger new conversation action - would integrate with parent
+      },
+      keywords: ['nova', 'novo', 'conversa', 'chat', 'iniciar', 'criar'],
+    },
+    {
+      id: 'go-inbox',
+      title: 'Ir para Inbox',
+      description: 'Abrir caixa de entrada',
+      icon: <Inbox className="h-4 w-4" />,
+      action: () => {
+        onOpenChange(false);
+        window.location.hash = '#inbox';
+      },
+      keywords: ['inbox', 'caixa', 'entrada', 'mensagens'],
+    },
+    {
+      id: 'go-dashboard',
+      title: 'Ir para Dashboard',
+      description: 'Ver métricas e estatísticas',
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      action: () => {
+        onOpenChange(false);
+        window.location.hash = '#dashboard';
+      },
+      keywords: ['dashboard', 'métricas', 'estatísticas', 'painel'],
+    },
+    {
+      id: 'go-settings',
+      title: 'Configurações',
+      description: 'Ajustar preferências do sistema',
+      icon: <Settings className="h-4 w-4" />,
+      action: () => {
+        onOpenChange(false);
+        window.location.hash = '#settings';
+      },
+      keywords: ['config', 'configurações', 'preferências', 'ajustes', 'settings'],
+    },
+    {
+      id: 'quick-reply',
+      title: 'Respostas rápidas',
+      description: 'Gerenciar templates de resposta',
+      icon: <Zap className="h-4 w-4" />,
+      action: () => {
+        onOpenChange(false);
+        // Trigger quick replies manager
+      },
+      keywords: ['resposta', 'rápida', 'template', 'templates', 'atalho'],
+    },
+  ], [onOpenChange]);
+
+  // Filter actions based on search
+  const filteredActions = useMemo(() => {
+    if (!search || search.startsWith('#')) return quickActions;
+    
+    const query = search.toLowerCase();
+    return quickActions.filter((action) => 
+      action.title.toLowerCase().includes(query) ||
+      action.description.toLowerCase().includes(query) ||
+      action.keywords.some((k) => k.includes(query))
+    );
+  }, [search, quickActions]);
 
   // Load tags on mount
   useEffect(() => {
@@ -313,6 +398,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return <Mic className="h-4 w-4" />;
       case 'message': return <MessageSquare className="h-4 w-4" />;
       case 'contact': return <User className="h-4 w-4" />;
+      case 'action': return <Zap className="h-4 w-4" />;
     }
   };
 
@@ -321,6 +407,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return 'bg-orange-500/10 text-orange-500';
       case 'message': return 'bg-primary/10 text-primary';
       case 'contact': return 'bg-secondary/10 text-secondary';
+      case 'action': return 'bg-accent/10 text-accent';
     }
   };
 
@@ -329,11 +416,13 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return 'Transcrição';
       case 'message': return 'Texto';
       case 'contact': return 'Contato';
+      case 'action': return 'Ação';
     }
   };
 
-  const activeFiltersCount = (activeTypes.size < 3 ? 1 : 0) + (dateFilter !== 'all' ? 1 : 0) + (selectedTags.length > 0 ? 1 : 0);
+  const activeFiltersCount = (activeTypes.size < 4 ? 1 : 0) + (dateFilter !== 'all' ? 1 : 0) + (selectedTags.length > 0 ? 1 : 0);
   const showHistory = search.length === 0 && history.length > 0 && tagSuggestions.length === 0;
+  const showActions = activeTypes.has('action') && filteredActions.length > 0 && (search.length === 0 || search.length >= 1);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -429,6 +518,9 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Tipo</label>
                   <div className="flex flex-wrap gap-2">
+                    <Toggle pressed={activeTypes.has('action')} onPressedChange={() => toggleType('action')} size="sm" className="gap-1.5 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground">
+                      <Zap className="h-3.5 w-3.5" /> Ações
+                    </Toggle>
                     <Toggle pressed={activeTypes.has('message')} onPressedChange={() => toggleType('message')} size="sm" className="gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
                       <FileText className="h-3.5 w-3.5" /> Textos
                     </Toggle>
@@ -460,7 +552,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
 
                 {activeFiltersCount > 0 && (
                   <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => {
-                    setActiveTypes(new Set(['message', 'transcription', 'contact']));
+                    setActiveTypes(new Set(['message', 'transcription', 'contact', 'action']));
                     setDateFilter('all');
                     setSelectedTags([]);
                   }}>
@@ -489,6 +581,33 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                 >
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
                   <span className="text-sm">{tag.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          {showActions && tagSuggestions.length === 0 && (
+            <div className="p-2 border-b border-border">
+              <div className="px-2 pb-2 text-xs text-muted-foreground flex items-center gap-1">
+                <Zap className="h-3 w-3" /> Ações rápidas
+              </div>
+              {filteredActions.map((action, index) => (
+                <button
+                  key={action.id}
+                  onClick={() => action.action()}
+                  className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-colors ${
+                    !search && index === selectedIndex ? 'bg-muted' : 'hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="p-2 rounded-full bg-accent/10 text-accent">
+                    {action.icon}
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm font-medium">{action.title}</span>
+                    <p className="text-xs text-muted-foreground">{action.description}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </button>
               ))}
             </div>
