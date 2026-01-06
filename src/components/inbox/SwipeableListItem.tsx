@@ -19,6 +19,9 @@ interface SwipeableListItemProps {
   rightSecondaryAction?: SwipeAction;
   threshold?: number;
   secondaryThreshold?: number;
+  velocityThreshold?: number; // Velocity to trigger action immediately
+  hapticFeedback?: boolean;
+  showHints?: boolean; // Show action hints on first render
   className?: string;
   disabled?: boolean;
 }
@@ -47,11 +50,15 @@ export function SwipeableListItem({
   rightSecondaryAction,
   threshold = 80,
   secondaryThreshold = 150,
+  velocityThreshold = 500,
+  hapticFeedback = true,
+  showHints = false,
   className,
   disabled = false,
 }: SwipeableListItemProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [triggeredAction, setTriggeredAction] = useState<'left' | 'right' | 'left-secondary' | 'right-secondary' | null>(null);
+  const [showHint, setShowHint] = useState(showHints);
   const constraintsRef = useRef(null);
   const x = useMotionValue(0);
   
@@ -81,29 +88,37 @@ export function SwipeableListItem({
     return rightAction.bgColor;
   });
 
-  // Haptic feedback simulation
-  const triggerHaptic = () => {
+  // Haptic feedback
+  const triggerHaptic = (intensity: 'light' | 'medium' | 'heavy' = 'light') => {
+    if (!hapticFeedback) return;
     if ('vibrate' in navigator) {
-      navigator.vibrate(10);
+      const duration = intensity === 'light' ? 10 : intensity === 'medium' ? 25 : 50;
+      navigator.vibrate(duration);
     }
+  };
+
+  // Hide hint after first interaction
+  const handleDragStart = () => {
+    setIsDragging(true);
+    setShowHint(false);
   };
 
   const handleDrag = (_: any, info: PanInfo) => {
     const offsetX = info.offset.x;
     
-    // Check for secondary actions
+    // Check for secondary actions with haptic feedback
     if (leftSecondaryAction && offsetX > secondaryThreshold && triggeredAction !== 'left-secondary') {
       setTriggeredAction('left-secondary');
-      triggerHaptic();
+      triggerHaptic('heavy');
     } else if (offsetX > threshold && offsetX <= secondaryThreshold && triggeredAction !== 'left') {
       setTriggeredAction('left');
-      triggerHaptic();
+      triggerHaptic('light');
     } else if (rightSecondaryAction && offsetX < -secondaryThreshold && triggeredAction !== 'right-secondary') {
       setTriggeredAction('right-secondary');
-      triggerHaptic();
+      triggerHaptic('heavy');
     } else if (offsetX < -threshold && offsetX >= -secondaryThreshold && triggeredAction !== 'right') {
       setTriggeredAction('right');
-      triggerHaptic();
+      triggerHaptic('light');
     } else if (Math.abs(offsetX) < threshold) {
       setTriggeredAction(null);
     }
@@ -116,21 +131,30 @@ export function SwipeableListItem({
     if (disabled) return;
     
     const offsetX = info.offset.x;
+    const velocityX = info.velocity.x;
+    
+    // Fast swipe triggers action even before threshold
+    const fastSwipeRight = velocityX > velocityThreshold && offsetX > threshold / 2;
+    const fastSwipeLeft = velocityX < -velocityThreshold && offsetX < -threshold / 2;
     
     // Trigger secondary left action (swipe far right)
     if (leftSecondaryAction && offsetX > secondaryThreshold) {
+      triggerHaptic('medium');
       leftSecondaryAction.action();
     }
-    // Trigger left action (swiped right)
-    else if (offsetX > threshold) {
+    // Trigger left action (swiped right or fast swipe)
+    else if (offsetX > threshold || fastSwipeRight) {
+      triggerHaptic('medium');
       leftAction.action();
     }
     // Trigger secondary right action (swipe far left)
     else if (rightSecondaryAction && offsetX < -secondaryThreshold) {
+      triggerHaptic('medium');
       rightSecondaryAction.action();
     }
-    // Trigger right action (swiped left)
-    else if (offsetX < -threshold) {
+    // Trigger right action (swiped left or fast swipe)
+    else if (offsetX < -threshold || fastSwipeLeft) {
+      triggerHaptic('medium');
       rightAction.action();
     }
   };
@@ -215,12 +239,30 @@ export function SwipeableListItem({
         </motion.div>
       </motion.div>
 
+      {/* Swipe hint animation */}
+      <AnimatePresence>
+        {showHint && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-20 pointer-events-none"
+          >
+            <motion.div
+              animate={{ x: [0, 30, 0, -30, 0] }}
+              transition={{ duration: 2, repeat: 2, repeatDelay: 1 }}
+              className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-16 bg-gradient-to-r from-transparent via-primary/10 to-transparent rounded-xl"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Draggable content */}
       <motion.div
         drag="x"
         dragConstraints={{ left: -200, right: 200 }}
         dragElastic={0.1}
-        onDragStart={() => setIsDragging(true)}
+        onDragStart={handleDragStart}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         style={{ x }}
