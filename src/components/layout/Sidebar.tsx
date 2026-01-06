@@ -88,14 +88,17 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
   return (
     <motion.aside
+      id="main-navigation"
+      role="navigation"
+      aria-label="Menu de navegação principal"
       initial={false}
       animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       className="flex flex-col h-screen border-r border-secondary/30 relative bg-sidebar sidebar-neon"
     >
       {/* Neon gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 via-primary/3 to-transparent pointer-events-none" />
-      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-secondary/50 via-primary/30 to-secondary/50 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 via-primary/3 to-transparent pointer-events-none" aria-hidden="true" />
+      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-secondary/50 via-primary/30 to-secondary/50 pointer-events-none" aria-hidden="true" />
       
       {/* Logo */}
       <div className="relative flex items-center justify-between p-4 border-b border-secondary/20">
@@ -112,6 +115,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                 className="w-10 h-10 rounded-xl logo-neon flex items-center justify-center relative overflow-hidden"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400 }}
+                aria-hidden="true"
               >
                 <Sparkles className="w-5 h-5 text-secondary relative z-10" />
               </motion.div>
@@ -131,24 +135,30 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
             size="icon"
             className="text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all duration-300"
             onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
+            aria-expanded={!isCollapsed}
           >
             {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
             ) : (
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             )}
           </Button>
         </motion.div>
       </div>
 
       {/* Navigation */}
-      <nav className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin">
+      <nav 
+        className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin"
+        aria-label="Menu principal"
+      >
         {menuGroups.map((group, groupIndex) => (
-          <div key={group.title} className="space-y-1">
+        <div key={group.title} className="space-y-1" role="group" aria-labelledby={`group-${group.title.toLowerCase()}`}>
             {/* Group Label */}
             <AnimatePresence mode="wait">
               {!isCollapsed && (
                 <motion.div
+                  id={`group-${group.title.toLowerCase()}`}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
@@ -180,6 +190,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                   whileHover={{ x: 4, transition: { duration: 0.15 } }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onViewChange(item.id)}
+                  aria-label={item.badge ? `${item.label} - ${item.badge} notificações` : item.label}
+                  aria-current={isActive ? 'page' : undefined}
+                  role="menuitem"
                   className={cn(
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
                     isActive 
@@ -288,6 +301,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="relative p-3 border-t border-secondary/20"
+          role="region"
+          aria-label="Perfil do usuário"
         >
           <motion.div
             whileHover={{ scale: 1.01 }}
@@ -297,13 +312,16 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               'profile-card-neon bg-secondary/5 hover:bg-secondary/10',
               isCollapsed && 'justify-center'
             )}
+            role="status"
+            aria-live="polite"
+            aria-label={`${currentAgent.name} - ${currentAgent.status === 'online' ? 'Online' : currentAgent.status === 'away' ? 'Ausente' : 'Offline'}`}
           >
             <div className="relative">
               <Avatar className={cn(
                 "w-10 h-10 ring-2 transition-all duration-300",
                 currentAgent.status === 'online' ? "ring-secondary/50 avatar-neon-online" : "ring-border/30"
               )}>
-                <AvatarImage src={currentAgent.avatar} />
+                <AvatarImage src={currentAgent.avatar} alt={`Avatar de ${currentAgent.name}`} />
                 <AvatarFallback className="bg-secondary/15 text-secondary font-display font-semibold">
                   {currentAgent.name.split(' ').map((n) => n[0]).join('')}
                 </AvatarFallback>
@@ -319,6 +337,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                   currentAgent.status === 'away' && 'bg-warning',
                   currentAgent.status === 'offline' && 'bg-muted-foreground'
                 )}
+                aria-hidden="true"
               />
             </div>
             <AnimatePresence mode="wait">
@@ -357,8 +376,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                     size="icon"
                     className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg flex-shrink-0"
                     onClick={onLogout}
+                    aria-label="Sair da conta"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4" aria-hidden="true" />
                   </Button>
                 </motion.div>
               )}
