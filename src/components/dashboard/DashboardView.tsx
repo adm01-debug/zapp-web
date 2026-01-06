@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -32,12 +33,20 @@ import { GoalsDashboard } from './GoalsDashboard';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
 import { DraggableWidgetContainer } from './DraggableWidgetContainer';
+import { DashboardFilters, DashboardFiltersState, getDefaultFilters } from './DashboardFilters';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function DashboardView() {
-  const { stats, isLoading, refetch } = useDashboardData();
+  const [filters, setFilters] = useState<DashboardFiltersState>(getDefaultFilters());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  const { stats, isLoading, refetch } = useDashboardData({
+    dateRange: filters.dateRange,
+    queueId: filters.queueId,
+    agentId: filters.agentId,
+  });
   const {
     widgets,
     visibleWidgets,
@@ -47,6 +56,12 @@ export function DashboardView() {
     toggleWidgetVisibility,
     resetToDefaults,
   } = useDashboardWidgets();
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   // Loading skeleton
   if (isLoading || !stats) {
@@ -449,17 +464,8 @@ export function DashboardView() {
             </div>
           </div>
 
-          {/* Gamification badges and refresh */}
+          {/* Gamification badges */}
           <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              className="gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Atualizar
-            </Button>
             <AnimatedBadge value="1.250" label="XP" variant="xp" size="md" />
             <AnimatedBadge value="89" variant="coins" size="md" />
             <AnimatedBadge value="7" variant="streak" size="md" />
@@ -470,6 +476,21 @@ export function DashboardView() {
         <div className="mt-4">
           <LevelProgress currentXP={1250} requiredXP={2000} level={12} />
         </div>
+      </motion.div>
+
+      {/* Global Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="relative z-10"
+      >
+        <DashboardFilters 
+          filters={filters} 
+          onFiltersChange={setFilters}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+        />
       </motion.div>
 
       {/* Tabs for Dashboard Views */}

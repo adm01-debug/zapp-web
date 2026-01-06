@@ -1,5 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { startOfDay, endOfDay } from 'date-fns';
+
+export interface DashboardFilters {
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
+  queueId?: string | null;
+  agentId?: string | null;
+}
 
 export interface DashboardStats {
   openConversations: number;
@@ -33,16 +43,31 @@ export interface RecentActivity {
   unreadCount: number;
 }
 
-export const useDashboardData = () => {
+const getDefaultFilters = (): DashboardFilters => ({
+  dateRange: {
+    from: startOfDay(new Date()),
+    to: endOfDay(new Date()),
+  },
+  queueId: null,
+  agentId: null,
+});
+
+export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()) => {
+  const { dateRange, queueId, agentId } = { ...getDefaultFilters(), ...filters };
   // Fetch agents stats
   const agentsQuery = useQuery({
-    queryKey: ['dashboard-agents'],
+    queryKey: ['dashboard-agents', agentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
         .select('id, name, is_active, role')
-        .eq('role', 'agent')
         .or('role.eq.agent,role.eq.supervisor');
+      
+      if (agentId) {
+        query = query.eq('id', agentId);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -51,17 +76,14 @@ export const useDashboardData = () => {
       
       return { agents: data || [], onlineAgents, totalAgents };
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   // Fetch contacts with conversation status
   const contactsQuery = useQuery({
-    queryKey: ['dashboard-contacts'],
+    queryKey: ['dashboard-contacts', queueId, agentId, dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { data: contacts, error } = await supabase
+      let query = supabase
         .from('contacts')
         .select(`
           id,
@@ -75,6 +97,26 @@ export const useDashboardData = () => {
         `)
         .order('updated_at', { ascending: false });
       
+      // Apply queue filter
+      if (queueId) {
+        query = query.eq('queue_id', queueId);
+      }
+      
+      // Apply agent filter
+      if (agentId) {
+        query = query.eq('assigned_to', agentId);
+      }
+      
+      // Apply date range filter
+      if (dateRange?.from) {
+        query = query.gte('updated_at', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+        query = query.lte('updated_at', dateRange.to.toISOString());
+      }
+      
+      const { data: contacts, error } = await query;
+      
       if (error) throw error;
       
       return contacts || [];
@@ -84,12 +126,9 @@ export const useDashboardData = () => {
 
   // Fetch messages for recent activity and stats
   const messagesQuery = useQuery({
-    queryKey: ['dashboard-messages'],
+    queryKey: ['dashboard-messages', dateRange?.from?.toISOString(), dateRange?.to?.toISOString(), agentId],
     queryFn: async () => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { data: messages, error } = await supabase
+      let query = supabase
         .from('messages')
         .select(`
           id,
@@ -98,17 +137,39 @@ export const useDashboardData = () => {
           sender,
           created_at,
           is_read,
+          agent_id,
           contacts (
             id,
             name,
             phone,
-            avatar_url
+            avatar_url,
+            queue_id
           )
         `)
         .order('created_at', { ascending: false })
         .limit(100);
       
+      // Apply date range filter
+      if (dateRange?.from) {
+        query = query.gte('created_at', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+        query = query.lte('created_at', dateRange.to.toISOString());
+      }
+      
+      // Apply agent filter
+      if (agentId) {
+        query = query.eq('agent_id', agentId);
+      }
+      
+      const { data: messages, error } = await query;
+      
       if (error) throw error;
+      
+      // If queue filter is active, filter messages by contact queue
+      if (queueId && messages) {
+        return messages.filter((msg: any) => msg.contacts?.queue_id === queueId);
+      }
       
       return messages || [];
     },
