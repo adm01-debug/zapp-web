@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 export interface DashboardWidget {
   id: string;
   title: string;
-  type: 'stats' | 'challenges' | 'ai-stats' | 'queues' | 'leaderboard' | 'activity' | 'achievements';
+  type: 'stats' | 'challenges' | 'ai-stats' | 'queues' | 'leaderboard' | 'activity' | 'achievements' | 'mini-games';
   visible: boolean;
   order: number;
   size: 'small' | 'medium' | 'large' | 'full';
@@ -23,6 +23,7 @@ const defaultWidgets: DashboardWidget[] = [
   { id: 'leaderboard', title: 'Ranking', type: 'leaderboard', visible: true, order: 4, size: 'medium', column: 0, row: 2, width: 2, height: 1 },
   { id: 'activity', title: 'Atividade Recente', type: 'activity', visible: true, order: 5, size: 'medium', column: 2, row: 2, width: 2, height: 1 },
   { id: 'achievements', title: 'Conquistas', type: 'achievements', visible: true, order: 6, size: 'full', column: 0, row: 3, width: 4, height: 1 },
+  { id: 'mini-games', title: 'Mini-games', type: 'mini-games', visible: true, order: 7, size: 'full', column: 0, row: 4, width: 4, height: 1 },
 ];
 
 const STORAGE_KEY = 'dashboard-widgets-config-v2';
