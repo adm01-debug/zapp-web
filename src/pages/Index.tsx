@@ -31,7 +31,7 @@ import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { logAudit } from '@/lib/audit';
-import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu } from 'lucide-react';
+import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function IndexContent() {
@@ -50,12 +50,13 @@ function IndexContent() {
   // Show checklist on dashboard if not complete
   const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
 
-  // Mobile navigation items
+  // Mobile navigation items - 5 items com "More" para acessar todas as seções
   const mobileNavItems = [
     { id: 'inbox', icon: <MessageSquare className="w-5 h-5" />, label: 'Inbox', badge: 12 },
-    { id: 'contacts', icon: <Users className="w-5 h-5" />, label: 'Contatos' },
     { id: 'dashboard', icon: <BarChart3 className="w-5 h-5" />, label: 'Dashboard' },
-    { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Config' },
+    { id: 'contacts', icon: <Users className="w-5 h-5" />, label: 'Contatos' },
+    { id: 'agents', icon: <Phone className="w-5 h-5" />, label: 'Equipe' },
+    { id: 'more', icon: <Menu className="w-5 h-5" />, label: 'Mais' },
   ];
 
   useEffect(() => {
@@ -295,7 +296,13 @@ function IndexContent() {
             <BottomNavigation
               items={mobileNavItems}
               activeId={currentView}
-              onChange={setCurrentView}
+              onChange={(id) => {
+                if (id === 'more') {
+                  setMobileMenuOpen(true);
+                } else {
+                  setCurrentView(id);
+                }
+              }}
             />
           )}
         </div>

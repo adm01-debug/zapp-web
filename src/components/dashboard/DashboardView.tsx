@@ -33,6 +33,7 @@ import { AIStatsWidget } from './AIStatsWidget';
 import { GoalsDashboard } from './GoalsDashboard';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
+import { ProgressiveDisclosureDashboard } from './ProgressiveDisclosureDashboard';
 import { DraggableWidgetContainer } from './DraggableWidgetContainer';
 import { DashboardFilters, DashboardFiltersState, getDefaultFilters } from './DashboardFilters';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,9 @@ export function DashboardView() {
   const {
     widgets,
     visibleWidgets,
+    level1Widgets,
+    level2Widgets,
+    level3Widgets,
     isEditMode,
     setIsEditMode,
     reorderWidgets,
@@ -518,19 +522,14 @@ export function DashboardView() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6 pl-12">
-          <DraggableWidgetContainer
-            widgets={widgets}
-            visibleWidgets={visibleWidgets}
-            isEditMode={isEditMode}
-            setIsEditMode={setIsEditMode}
-            onReorder={reorderWidgets}
-            onToggleVisibility={toggleWidgetVisibility}
-            onReset={resetToDefaults}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Progressive Disclosure Dashboard */}
+          <ProgressiveDisclosureDashboard
+            level1Widgets={level1Widgets}
+            level2Widgets={level2Widgets}
+            level3Widgets={level3Widgets}
             renderWidget={renderWidget}
-          >
-            {null}
-          </DraggableWidgetContainer>
+          />
         </TabsContent>
 
         <TabsContent value="goals" className="space-y-6">
