@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,7 +20,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  ArrowLeft,
   Users,
   Clock,
   MessageSquare,
@@ -27,6 +27,7 @@ import {
   CheckCircle,
   AlertCircle,
   User,
+  Settings,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -236,32 +237,25 @@ export default function QueueDetails() {
       <AuroraBorealis />
       <FloatingParticles />
       
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/')}
-            className="hover:bg-muted/30"
-          >
-            <ArrowLeft className="w-5 h-5" />
+      {/* Page Header with Breadcrumbs */}
+      <PageHeader
+        title={queue.name}
+        subtitle={queue.description || undefined}
+        showBack
+        onBack={() => navigate('/')}
+        breadcrumbs={[
+          { label: 'Filas', onClick: () => navigate('/'), href: '/' },
+          { label: queue.name },
+        ]}
+        actions={
+          <Button variant="outline" size="sm" className="gap-2">
+            <Settings className="w-4 h-4" />
+            Configurar
           </Button>
-          <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: `${queue.color}20` }}
-            >
-              <MessageSquare className="w-6 h-6" style={{ color: queue.color }} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{queue.name}</h1>
-              {queue.description && (
-                <p className="text-muted-foreground">{queue.description}</p>
-              )}
-            </div>
-          </div>
-        </div>
+        }
+      />
+      
+      <div className="p-6 space-y-6">
 
         {/* Metrics Cards */}
         {metrics && (

@@ -9,6 +9,8 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { GlobalSearch } from './GlobalSearch';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
+import { useUrlFilters } from '@/hooks/useUrlFilters';
+import { useUndoableAction } from '@/hooks/useUndoableAction';
 import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -17,9 +19,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { formatDistanceToNow, isAfter, isBefore, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Search } from 'lucide-react';
 import { Conversation, Message } from '@/types/chat';
@@ -50,7 +53,6 @@ export function RealtimeInboxView() {
   } = useRealtimeMessages();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(true);
-  const [search, setSearch] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
@@ -60,16 +62,42 @@ export function RealtimeInboxView() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
 
+  // URL-persisted filters
+  const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
+  
+  // Undoable action hook for bulk operations
+  const { execute: executeUndoable } = useUndoableAction();
+
   // Global search shortcut Ctrl+K
   useGlobalSearchShortcut({ onOpen: () => setGlobalSearchOpen(true) });
 
-  // Advanced filters state
-  const [filters, setFilters] = useState<InboxFiltersState>({
-    status: [],
-    tags: [],
-    agentId: null,
-    dateRange: { from: null, to: null },
-  });
+  // Convert URL filters to InboxFiltersState
+  const filters = useMemo<InboxFiltersState>(() => ({
+    status: urlFilters.status,
+    tags: urlFilters.tags,
+    agentId: urlFilters.agentId,
+    dateRange: {
+      from: urlFilters.dateFrom ? parseISO(urlFilters.dateFrom) : null,
+      to: urlFilters.dateTo ? parseISO(urlFilters.dateTo) : null,
+    },
+  }), [urlFilters]);
+
+  // Sync search from URL
+  const search = urlFilters.search;
+  const setSearch = useCallback((value: string) => {
+    setUrlFilters({ search: value });
+  }, [setUrlFilters]);
+
+  // Update filters and sync to URL
+  const setFilters = useCallback((newFilters: InboxFiltersState) => {
+    setUrlFilters({
+      status: newFilters.status,
+      tags: newFilters.tags,
+      agentId: newFilters.agentId,
+      dateFrom: newFilters.dateRange.from?.toISOString().split('T')[0] || null,
+      dateTo: newFilters.dateRange.to?.toISOString().split('T')[0] || null,
+    });
+  }, [setUrlFilters]);
 
   // Filter conversations by search and advanced filters
   const filteredConversations = useMemo(() => {
@@ -262,31 +290,55 @@ export function RealtimeInboxView() {
     }
   }, [selectedIds, clearSelection, refetch]);
 
-  // Bulk archive (mark as archived by removing from view)
+  // Bulk archive with undo capability
   const bulkArchive = useCallback(async () => {
     if (selectedIds.size === 0) return;
     
     setBulkLoading(true);
+    const contactIds = Array.from(selectedIds);
+    
+    // Store original assignments for undo
+    const { data: originalContacts } = await supabase
+      .from('contacts')
+      .select('id, assigned_to')
+      .in('id', contactIds);
+    
     try {
-      const contactIds = Array.from(selectedIds);
-      
-      // For archiving, we'll set assigned_to to null (unassign)
-      const { error } = await supabase
-        .from('contacts')
-        .update({ assigned_to: null })
-        .in('id', contactIds);
-      
-      if (error) throw error;
-      
-      toast.success(`${contactIds.length} contato(s) arquivado(s)`);
-      clearSelection();
-      refetch();
+      await executeUndoable({
+        successMessage: `${contactIds.length} contato(s) arquivado(s)`,
+        undoMessage: 'Arquivamento desfeito',
+        action: async () => {
+          const { error } = await supabase
+            .from('contacts')
+            .update({ assigned_to: null })
+            .in('id', contactIds);
+          
+          if (error) throw error;
+          clearSelection();
+          refetch();
+        },
+        undoAction: async () => {
+          // Restore original assignments
+          if (originalContacts) {
+            for (const contact of originalContacts) {
+              await supabase
+                .from('contacts')
+                .update({ assigned_to: contact.assigned_to })
+                .eq('id', contact.id);
+            }
+          }
+          refetch();
+        },
+        onCommit: () => {
+          // Action committed after undo period
+        },
+      });
     } catch (err) {
       toast.error('Erro ao arquivar contatos');
     } finally {
       setBulkLoading(false);
     }
-  }, [selectedIds, clearSelection, refetch]);
+  }, [selectedIds, clearSelection, refetch, executeUndoable]);
 
   // Select all conversations
   const selectAll = useCallback(() => {
@@ -472,33 +524,60 @@ export function RealtimeInboxView() {
               </Badge>
             </div>
             <div className="flex items-center gap-1">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleSelectionMode}
-                className={cn(
-                  'w-8 h-8',
-                  selectionMode ? 'text-primary bg-primary/10' : 'text-muted-foreground'
-                )}
-                title={selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
-              >
-                <CheckSquare className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleSound}
-                className={cn(
-                  'w-8 h-8',
-                  soundOn ? 'text-primary' : 'text-muted-foreground'
-                )}
-                title={soundOn ? 'Som ativado' : 'Som desativado'}
-              >
-                {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={refetch} disabled={loading}>
-                <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={toggleSelectionMode}
+                    className={cn(
+                      'w-8 h-8',
+                      selectionMode ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                    )}
+                    aria-label={selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={toggleSound}
+                    className={cn(
+                      'w-8 h-8',
+                      soundOn ? 'text-primary' : 'text-muted-foreground'
+                    )}
+                    aria-label={soundOn ? 'Desativar som' : 'Ativar som'}
+                  >
+                    {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {soundOn ? 'Desativar som' : 'Ativar som'}
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={refetch} 
+                    disabled={loading}
+                    aria-label="Atualizar conversas"
+                  >
+                    <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Atualizar conversas</TooltipContent>
+              </Tooltip>
               <KeyboardShortcutsHelp />
             </div>
           </div>

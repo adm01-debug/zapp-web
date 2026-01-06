@@ -1,0 +1,133 @@
+import { ChevronLeft, Home } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+  onClick?: () => void;
+}
+
+interface PageHeaderProps {
+  title: string;
+  subtitle?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  showBack?: boolean;
+  onBack?: () => void;
+  actions?: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * Contextual page header with breadcrumbs and quick actions
+ * Provides wayfinding and navigation context
+ */
+export function PageHeader({
+  title,
+  subtitle,
+  breadcrumbs = [],
+  showBack = false,
+  onBack,
+  actions,
+  className,
+}: PageHeaderProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
+
+  return (
+    <header className={cn(
+      'flex flex-col gap-2 px-6 py-4 border-b border-border/50 bg-card/50 backdrop-blur-sm',
+      className
+    )}>
+      {/* Breadcrumbs row */}
+      {breadcrumbs.length > 0 && (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink 
+                href="/" 
+                className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Home className="w-3.5 h-3.5" />
+                <span className="sr-only">Início</span>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+
+            {breadcrumbs.map((crumb, index) => {
+              const isLast = index === breadcrumbs.length - 1;
+              
+              return (
+                <BreadcrumbItem key={crumb.label}>
+                  <BreadcrumbSeparator />
+                  {isLast ? (
+                    <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink
+                      href={crumb.href}
+                      onClick={(e) => {
+                        if (crumb.onClick) {
+                          e.preventDefault();
+                          crumb.onClick();
+                        }
+                      }}
+                      className="hover:text-foreground transition-colors"
+                    >
+                      {crumb.label}
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
+      )}
+
+      {/* Title row with actions */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          {showBack && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="w-8 h-8 shrink-0"
+              aria-label="Voltar"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          )}
+
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold text-foreground truncate">{title}</h1>
+            {subtitle && (
+              <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+            )}
+          </div>
+        </div>
+
+        {actions && (
+          <div className="flex items-center gap-2 shrink-0">
+            {actions}
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
