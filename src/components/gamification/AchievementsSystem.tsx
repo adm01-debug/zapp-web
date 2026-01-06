@@ -31,7 +31,7 @@ import {
   Check,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { toast } from '@/hooks/use-toast';
+import { useCelebration } from '@/components/effects/Confetti';
 
 interface Achievement {
   id: string;
@@ -85,6 +85,7 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
   const [totalXP, setTotalXP] = useState(0);
   const [level, setLevel] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const { celebrate } = useCelebration();
 
   useEffect(() => {
     // Load achievements
@@ -207,11 +208,11 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
   }, [userId]);
 
   const handleClaimAchievement = useCallback((achievement: Achievement) => {
-    // Trigger confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
+    // Trigger celebration effect
+    celebrate({
+      title: achievement.name,
+      subtitle: `+${achievement.xpReward} XP`,
+      emoji: '🏆',
     });
 
     toast({
@@ -225,7 +226,7 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
         a.id === achievement.id ? { ...a, isNew: false } : a
       )
     );
-  }, []);
+  }, [celebrate]);
 
   const unlockedCount = achievements.filter(a => a.isUnlocked).length;
   const xpToNextLevel = (level * 500) - totalXP;
