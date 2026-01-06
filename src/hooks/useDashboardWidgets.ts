@@ -11,22 +11,30 @@ export interface DashboardWidget {
   row?: number;
   width?: number;
   height?: number;
+  // Progressive Disclosure Level
+  level: 1 | 2 | 3; // 1 = Always visible, 2 = Expandable, 3 = On demand
 }
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
+export type DisclosureLevel = 1 | 2 | 3;
 
 const defaultWidgets: DashboardWidget[] = [
-  { id: 'stats', title: 'Estatísticas', type: 'stats', visible: true, order: 0, size: 'full', column: 0, row: 0, width: 4, height: 1 },
-  { id: 'challenges', title: 'Desafios do Dia', type: 'challenges', visible: true, order: 1, size: 'medium', column: 0, row: 1, width: 2, height: 1 },
-  { id: 'ai-stats', title: 'IA Stats', type: 'ai-stats', visible: true, order: 2, size: 'small', column: 2, row: 1, width: 1, height: 1 },
-  { id: 'queues', title: 'Status das Filas', type: 'queues', visible: true, order: 3, size: 'small', column: 3, row: 1, width: 1, height: 1 },
-  { id: 'leaderboard', title: 'Ranking', type: 'leaderboard', visible: true, order: 4, size: 'medium', column: 0, row: 2, width: 2, height: 1 },
-  { id: 'activity', title: 'Atividade Recente', type: 'activity', visible: true, order: 5, size: 'medium', column: 2, row: 2, width: 2, height: 1 },
-  { id: 'achievements', title: 'Conquistas', type: 'achievements', visible: true, order: 6, size: 'full', column: 0, row: 3, width: 4, height: 1 },
-  { id: 'mini-games', title: 'Mini-games', type: 'mini-games', visible: true, order: 7, size: 'full', column: 0, row: 4, width: 4, height: 1 },
+  // Level 1 - Always Visible: KPIs críticos
+  { id: 'stats', title: 'Estatísticas', type: 'stats', visible: true, order: 0, size: 'full', column: 0, row: 0, width: 4, height: 1, level: 1 },
+  
+  // Level 2 - Expandable: Detalhes operacionais
+  { id: 'challenges', title: 'Desafios do Dia', type: 'challenges', visible: true, order: 1, size: 'full', column: 0, row: 1, width: 4, height: 1, level: 2 },
+  { id: 'queues', title: 'Status das Filas', type: 'queues', visible: true, order: 2, size: 'medium', column: 0, row: 2, width: 2, height: 1, level: 2 },
+  { id: 'activity', title: 'Atividade Recente', type: 'activity', visible: true, order: 3, size: 'medium', column: 2, row: 2, width: 2, height: 1, level: 2 },
+  
+  // Level 3 - On Demand: Gamificação e extras
+  { id: 'ai-stats', title: 'IA Stats', type: 'ai-stats', visible: true, order: 4, size: 'medium', column: 0, row: 3, width: 2, height: 1, level: 3 },
+  { id: 'leaderboard', title: 'Ranking', type: 'leaderboard', visible: true, order: 5, size: 'medium', column: 2, row: 3, width: 2, height: 1, level: 3 },
+  { id: 'achievements', title: 'Conquistas', type: 'achievements', visible: true, order: 6, size: 'full', column: 0, row: 4, width: 4, height: 1, level: 3 },
+  { id: 'mini-games', title: 'Mini-games', type: 'mini-games', visible: true, order: 7, size: 'full', column: 0, row: 5, width: 4, height: 1, level: 3 },
 ];
 
-const STORAGE_KEY = 'dashboard-widgets-config-v2';
+const STORAGE_KEY = 'dashboard-widgets-config-v3';
 
 const sizeToGrid: Record<WidgetSize, { width: number; height: number }> = {
   small: { width: 1, height: 1 },
@@ -137,10 +145,18 @@ export function useDashboardWidgets() {
   }, []);
 
   const visibleWidgets = widgets.filter(w => w.visible);
+  
+  // Progressive Disclosure: widgets by level
+  const level1Widgets = visibleWidgets.filter(w => w.level === 1);
+  const level2Widgets = visibleWidgets.filter(w => w.level === 2);
+  const level3Widgets = visibleWidgets.filter(w => w.level === 3);
 
   return {
     widgets,
     visibleWidgets,
+    level1Widgets,
+    level2Widgets,
+    level3Widgets,
     isEditMode,
     setIsEditMode,
     draggedWidget,

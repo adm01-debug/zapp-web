@@ -21,8 +21,10 @@ import {
   FileBarChart,
   Globe,
   Contrast,
+  ChevronDown,
 } from 'lucide-react';
 import { useState } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -42,44 +44,46 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-// Menu organizado por categorias para melhor UX
-const menuGroups = [
+// Menu consolidado em 4 grupos - Smart defaults: mais usados no topo
+const menuGroups: Array<{
+  title: string;
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+  items: Array<{ id: string; icon: any; label: string; badge?: number }>;
+}> = [
   {
-    title: 'Comunicação',
+    title: 'Principal',
     items: [
       { id: 'inbox', icon: MessageSquare, label: 'Inbox', badge: 12 },
+      { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
       { id: 'contacts', icon: Users, label: 'Contatos' },
-      { id: 'groups', icon: UsersRound, label: 'Grupos' },
     ],
   },
   {
     title: 'Operações',
     items: [
       { id: 'agents', icon: Phone, label: 'Atendentes' },
-      { id: 'queues', icon: Tag, label: 'Filas' },
+      { id: 'queues', icon: Zap, label: 'Filas' },
       { id: 'connections', icon: Zap, label: 'Conexões' },
-      { id: 'wallet', icon: Wallet, label: 'Carteira' },
+      { id: 'groups', icon: UsersRound, label: 'Grupos' },
     ],
   },
   {
     title: 'Recursos',
     items: [
+      { id: 'wallet', icon: Wallet, label: 'Carteira' },
       { id: 'catalog', icon: Package, label: 'Catálogo' },
-      { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
       { id: 'tags', icon: Tag, label: 'Etiquetas' },
-    ],
-  },
-  {
-    title: 'Analytics',
-    items: [
-      { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-      { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-      { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
+      { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
     ],
   },
   {
     title: 'Sistema',
+    collapsible: true,
+    defaultCollapsed: true,
     items: [
+      { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
+      { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
       { id: 'security', icon: Shield, label: 'Segurança' },
       { id: 'admin', icon: Shield, label: 'Admin' },
       { id: 'settings', icon: Settings, label: 'Configurações' },
@@ -89,6 +93,7 @@ const menuGroups = [
 
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [systemGroupOpen, setSystemGroupOpen] = useState(false);
 
   return (
     <motion.aside
@@ -156,128 +161,179 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
         className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin"
         aria-label="Menu principal"
       >
-        {menuGroups.map((group, groupIndex) => (
-        <div key={group.title} className="space-y-1" role="group" aria-labelledby={`group-${group.title.toLowerCase()}`}>
-            {/* Group Label */}
-            <AnimatePresence mode="wait">
-              {!isCollapsed && (
-                <motion.div
-                  id={`group-${group.title.toLowerCase()}`}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.2, delay: groupIndex * 0.05 }}
-                  className="px-3 py-1.5"
-                >
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                    {group.title}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+        {menuGroups.map((group, groupIndex) => {
+          const isCollapsibleGroup = group.collapsible === true;
+          const isSystemGroup = group.title === 'Sistema';
+          
+          // Check if any item in this group is active
+          const hasActiveItem = group.items.some(item => currentView === item.id);
+          
+          // Auto-open if active item is in collapsible group
+          const shouldBeOpen = isSystemGroup ? (systemGroupOpen || hasActiveItem) : true;
+          
+          const groupContent = (
+            <>
+              {/* Group Items */}
+              {group.items.map((item, itemIndex) => {
+                const Icon = item.icon;
+                const isActive = currentView === item.id;
+                const globalIndex = menuGroups
+                  .slice(0, groupIndex)
+                  .reduce((acc, g) => acc + g.items.length, 0) + itemIndex;
 
-            {/* Group Items */}
-            {group.items.map((item, itemIndex) => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
-              const globalIndex = menuGroups
-                .slice(0, groupIndex)
-                .reduce((acc, g) => acc + g.items.length, 0) + itemIndex;
-
-              const button = (
-                <motion.button
-                  key={item.id}
-                  data-tour={item.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: globalIndex * 0.03 }}
-                  whileHover={{ x: 4, transition: { duration: 0.15 } }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => onViewChange(item.id)}
-                  aria-label={item.badge ? `${item.label} - ${item.badge} notificações` : item.label}
-                  aria-current={isActive ? 'page' : undefined}
-                  role="menuitem"
-                  className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
-                    isActive 
-                      ? 'text-secondary nav-item-neon-active' 
-                      : 'text-muted-foreground hover:text-secondary nav-item-neon-hover'
-                  )}
-                >
-                  {/* Active indicator bar with neon effect */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full nav-indicator-neon"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  
-                  <motion.div
-                    whileHover={{ rotate: isActive ? 0 : 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Icon className={cn(
-                      "w-5 h-5 flex-shrink-0 transition-all duration-300",
-                      isActive ? "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.6)]" : "group-hover:text-secondary"
-                    )} />
-                  </motion.div>
-                  
-                  <AnimatePresence mode="wait">
-                    {!isCollapsed && (
-                      <motion.div
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: 'auto' }}
-                        exit={{ opacity: 0, width: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center flex-1 overflow-hidden"
-                      >
-                        <span className={cn(
-                          "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-300",
-                          isActive ? "text-secondary" : "text-foreground group-hover:text-secondary"
-                        )}>
-                          {item.label}
-                        </span>
-                        {item.badge && (
-                          <motion.span 
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold badge-neon text-white"
-                          >
-                            {item.badge}
-                          </motion.span>
-                        )}
-                      </motion.div>
+                const button = (
+                  <motion.button
+                    key={item.id}
+                    data-tour={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: globalIndex * 0.03 }}
+                    whileHover={{ x: 4, transition: { duration: 0.15 } }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => onViewChange(item.id)}
+                    aria-label={item.badge ? `${item.label} - ${item.badge} notificações` : item.label}
+                    aria-current={isActive ? 'page' : undefined}
+                    role="menuitem"
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
+                      isActive 
+                        ? 'text-secondary nav-item-neon-active' 
+                        : 'text-muted-foreground hover:text-secondary nav-item-neon-hover'
                     )}
-                  </AnimatePresence>
-                </motion.button>
-              );
-
-              if (isCollapsed) {
-                return (
-                  <Tooltip key={item.id} delayDuration={0}>
-                    <TooltipTrigger asChild>{button}</TooltipTrigger>
-                    <TooltipContent 
-                      side="right" 
-                      className="border-border/30 bg-card"
+                  >
+                    {/* Active indicator bar with neon effect */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeNav"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full nav-indicator-neon"
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    
+                    <motion.div
+                      whileHover={{ rotate: isActive ? 0 : 5 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{item.label}</p>
-                        {item.badge && (
-                          <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
-                            {item.badge}
+                      <Icon className={cn(
+                        "w-5 h-5 flex-shrink-0 transition-all duration-300",
+                        isActive ? "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.6)]" : "group-hover:text-secondary"
+                      )} />
+                    </motion.div>
+                    
+                    <AnimatePresence mode="wait">
+                      {!isCollapsed && (
+                        <motion.div
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center flex-1 overflow-hidden"
+                        >
+                          <span className={cn(
+                            "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-300",
+                            isActive ? "text-secondary" : "text-foreground group-hover:text-secondary"
+                          )}>
+                            {item.label}
                           </span>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
+                          {item.badge && (
+                            <motion.span 
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold badge-neon text-white"
+                            >
+                              {item.badge}
+                            </motion.span>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 );
-              }
 
-              return button;
-            })}
-          </div>
-        ))}
+                if (isCollapsed) {
+                  return (
+                    <Tooltip key={item.id} delayDuration={0}>
+                      <TooltipTrigger asChild>{button}</TooltipTrigger>
+                      <TooltipContent 
+                        side="right" 
+                        className="border-border/30 bg-card"
+                      >
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{item.label}</p>
+                          {item.badge && (
+                            <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return button;
+              })}
+            </>
+          );
+
+          // Render collapsible group (Sistema)
+          if (isCollapsibleGroup && !isCollapsed) {
+            return (
+              <Collapsible 
+                key={group.title} 
+                open={shouldBeOpen} 
+                onOpenChange={setSystemGroupOpen}
+                className="space-y-1"
+              >
+                <CollapsibleTrigger asChild>
+                  <motion.button
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2, delay: groupIndex * 0.05 }}
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors group"
+                  >
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground">
+                      {group.title}
+                    </span>
+                    <motion.div
+                      animate={{ rotate: shouldBeOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown className="w-3 h-3 text-muted-foreground/60" />
+                    </motion.div>
+                  </motion.button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-1">
+                  {groupContent}
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          }
+
+          // Render normal group
+          return (
+            <div key={group.title} className="space-y-1" role="group" aria-labelledby={`group-${group.title.toLowerCase()}`}>
+              {/* Group Label */}
+              <AnimatePresence mode="wait">
+                {!isCollapsed && (
+                  <motion.div
+                    id={`group-${group.title.toLowerCase()}`}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.2, delay: groupIndex * 0.05 }}
+                    className="px-3 py-1.5"
+                  >
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                      {group.title}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {groupContent}
+            </div>
+          );
+        })}
         {/* Theme Toggle, Accessibility & Notifications */}
         <div className="mt-2 pt-2 border-t border-border/20 space-y-1">
           <div 
