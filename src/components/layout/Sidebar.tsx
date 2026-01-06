@@ -19,6 +19,8 @@ import {
   AlertTriangle,
   Mic,
   FileBarChart,
+  Globe,
+  Contrast,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,6 +28,8 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { LanguageSelector } from '@/components/settings/LanguageSelector';
+import { AccessibilitySettings, HighContrastToggle } from '@/components/theme/HighContrastToggle';
 
 interface SidebarProps {
   currentView: string;
@@ -274,7 +278,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
             })}
           </div>
         ))}
-        {/* Theme Toggle & Notifications */}
+        {/* Theme Toggle, Accessibility & Notifications */}
         <div className="mt-2 pt-2 border-t border-border/20 space-y-1">
           <div 
             data-tour="notifications"
@@ -290,6 +294,55 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           </div>
           <div data-tour="theme">
             <ThemeToggle collapsed={isCollapsed} />
+          </div>
+          
+          {/* Language Selector */}
+          <div 
+            className={cn(
+              "flex items-center",
+              isCollapsed ? "justify-center" : "px-3 py-2"
+            )}
+          >
+            {isCollapsed ? (
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-secondary">
+                    <Globe className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Idioma</TooltipContent>
+              </Tooltip>
+            ) : (
+              <>
+                <Globe className="h-5 w-5 text-muted-foreground" />
+                <div className="ml-3 flex-1">
+                  <LanguageSelector />
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Accessibility Settings */}
+          <div 
+            className={cn(
+              "flex items-center",
+              isCollapsed ? "justify-center" : "px-3 py-2"
+            )}
+          >
+            {isCollapsed ? (
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <HighContrastToggle />
+                </TooltipTrigger>
+                <TooltipContent side="right">Acessibilidade</TooltipContent>
+              </Tooltip>
+            ) : (
+              <>
+                <Contrast className="h-5 w-5 text-muted-foreground" />
+                <span className="ml-3 text-sm text-muted-foreground flex-1">Acessibilidade</span>
+                <AccessibilitySettings />
+              </>
+            )}
           </div>
         </div>
       </nav>
