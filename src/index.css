@@ -203,12 +203,28 @@
     --spacing-section: 2rem;
     --spacing-section-lg: 3rem;
 
-    /* ===== CHART ===== */
+    /* ===== CHART PALETTE (10 harmonious colors) ===== */
     --chart-1: 142 70% 45%;
-    --chart-2: 175 60% 45%;
-    --chart-3: 45 93% 50%;
-    --chart-4: 280 85% 60%;
-    --chart-5: 15 95% 55%;
+    --chart-2: 270 70% 55%;
+    --chart-3: 200 80% 50%;
+    --chart-4: 45 93% 50%;
+    --chart-5: 340 75% 55%;
+    --chart-6: 175 60% 45%;
+    --chart-7: 280 85% 60%;
+    --chart-8: 15 95% 55%;
+    --chart-9: 220 70% 50%;
+    --chart-10: 160 60% 40%;
+    
+    /* Chart Status Colors */
+    --chart-status-resolved: 142 70% 45%;
+    --chart-status-pending: 45 93% 50%;
+    --chart-status-waiting: 200 80% 50%;
+    --chart-status-open: 270 70% 55%;
+    
+    /* Chart Sentiment Colors */
+    --chart-sentiment-positive: 142 70% 45%;
+    --chart-sentiment-neutral: 220 10% 50%;
+    --chart-sentiment-negative: 0 84% 60%;
   }
 
   .dark {
@@ -325,12 +341,28 @@
     --elevated: 160 10% 13%;
     --elevated-hover: 160 10% 16%;
 
-    /* ===== CHART ===== */
+    /* ===== CHART PALETTE (10 harmonious colors) ===== */
     --chart-1: 142 72% 55%;
-    --chart-2: 175 65% 55%;
-    --chart-3: 45 93% 60%;
-    --chart-4: 280 85% 70%;
-    --chart-5: 15 95% 60%;
+    --chart-2: 270 75% 65%;
+    --chart-3: 200 85% 60%;
+    --chart-4: 45 93% 60%;
+    --chart-5: 340 80% 65%;
+    --chart-6: 175 65% 55%;
+    --chart-7: 280 85% 70%;
+    --chart-8: 15 95% 60%;
+    --chart-9: 220 75% 60%;
+    --chart-10: 160 65% 50%;
+    
+    /* Chart Status Colors */
+    --chart-status-resolved: 142 72% 55%;
+    --chart-status-pending: 45 93% 60%;
+    --chart-status-waiting: 200 85% 60%;
+    --chart-status-open: 270 75% 65%;
+    
+    /* Chart Sentiment Colors */
+    --chart-sentiment-positive: 142 72% 55%;
+    --chart-sentiment-neutral: 220 15% 60%;
+    --chart-sentiment-negative: 0 72% 60%;
   }
 }
 
