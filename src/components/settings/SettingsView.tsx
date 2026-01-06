@@ -27,7 +27,9 @@ import {
   Mic,
   GraduationCap,
   Keyboard,
+  Volume2,
 } from 'lucide-react';
+import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
 import { useUserSettings } from '@/hooks/useUserSettings';
@@ -134,6 +136,10 @@ export function SettingsView() {
           <TabsTrigger value="shortcuts" className="gap-2">
             <Keyboard className="w-4 h-4" />
             Atalhos
+          </TabsTrigger>
+          <TabsTrigger value="sounds" className="gap-2">
+            <Volume2 className="w-4 h-4" />
+            Sons
           </TabsTrigger>
         </TabsList>
 
@@ -510,6 +516,16 @@ export function SettingsView() {
             animate={{ opacity: 1, y: 0 }}
           >
             <KeyboardShortcutsSettings />
+          </motion.div>
+        </TabsContent>
+
+        {/* Sons Personalizados */}
+        <TabsContent value="sounds">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <SoundCustomizationPanel />
           </motion.div>
         </TabsContent>
       </Tabs>
