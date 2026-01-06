@@ -16,6 +16,8 @@ import { VisuallyHidden, LiveRegion } from "@/components/ui/visually-hidden";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
+import { EasterEggsProvider } from "@/components/effects/EasterEggs";
+import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
 
 // Critical routes - load immediately
 import Index from "./pages/Index";
@@ -119,13 +121,17 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <GamificationProvider>
-          <AccessibleToastProvider>
-            <TooltipProvider delayDuration={300}>
-              <AppContent />
-            </TooltipProvider>
-          </AccessibleToastProvider>
-        </GamificationProvider>
+        <HighContrastProvider>
+          <GamificationProvider>
+            <EasterEggsProvider>
+              <AccessibleToastProvider>
+                <TooltipProvider delayDuration={300}>
+                  <AppContent />
+                </TooltipProvider>
+              </AccessibleToastProvider>
+            </EasterEggsProvider>
+          </GamificationProvider>
+        </HighContrastProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>
