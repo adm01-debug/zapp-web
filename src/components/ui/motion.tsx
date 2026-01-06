@@ -489,5 +489,198 @@ export function Presence({ children, mode = 'wait' }: PresenceProps) {
   return <AnimatePresence mode={mode}>{children}</AnimatePresence>;
 }
 
+// ============ NEW CHOREOGRAPHY COMPONENTS ============
+
+// Stagger container for coordinated animations
+interface StaggerContainerEnhancedProps {
+  children: ReactNode;
+  staggerDelay?: number;
+  className?: string;
+  delayChildren?: number;
+}
+
+export function StaggerContainerEnhanced({ 
+  children, 
+  staggerDelay = 0.1,
+  delayChildren = 0.1,
+  className 
+}: StaggerContainerEnhancedProps) {
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: staggerDelay,
+        delayChildren
+      }
+    }
+  };
+
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Slide transitions
+type SlideDirection = 'left' | 'right' | 'up' | 'down';
+
+interface SlideTransitionProps {
+  children: ReactNode;
+  direction?: SlideDirection;
+  distance?: number;
+  className?: string;
+}
+
+export function SlideTransition({ 
+  children, 
+  direction = 'up', 
+  distance = 20,
+  className 
+}: SlideTransitionProps) {
+  const getInitial = () => {
+    switch (direction) {
+      case 'left': return { opacity: 0, x: distance };
+      case 'right': return { opacity: 0, x: -distance };
+      case 'up': return { opacity: 0, y: distance };
+      case 'down': return { opacity: 0, y: -distance };
+    }
+  };
+
+  return (
+    <motion.div
+      initial={getInitial()}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      exit={getInitial()}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Hover animation wrapper
+interface HoverScaleProps {
+  children: ReactNode;
+  className?: string;
+  scale?: number;
+}
+
+export function HoverScale({ 
+  children, 
+  className,
+  scale = 1.02
+}: HoverScaleProps) {
+  return (
+    <motion.div
+      whileHover={{ scale }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// List animation wrapper
+interface AnimatedListProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function AnimatedList({ children, className }: AnimatedListProps) {
+  return (
+    <AnimatePresence mode="popLayout">
+      <motion.ul className={className} layout>
+        {children}
+      </motion.ul>
+    </AnimatePresence>
+  );
+}
+
+// List item with animation
+interface AnimatedListItemProps {
+  children: ReactNode;
+  className?: string;
+  layoutId?: string;
+}
+
+export function AnimatedListItem({ 
+  children, 
+  className,
+  layoutId
+}: AnimatedListItemProps) {
+  return (
+    <motion.li
+      layout
+      layoutId={layoutId}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ 
+        duration: 0.2,
+        layout: { duration: 0.3 }
+      }}
+      className={className}
+    >
+      {children}
+    </motion.li>
+  );
+}
+
+// Typewriter effect
+interface TypewriterProps {
+  text: string;
+  speed?: number;
+  className?: string;
+  onComplete?: () => void;
+}
+
+export function Typewriter({ 
+  text, 
+  speed = 50, 
+  className,
+  onComplete 
+}: TypewriterProps) {
+  const [displayText, setDisplayText] = useState('');
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index <= text.length) {
+        setDisplayText(text.slice(0, index));
+        index++;
+      } else {
+        clearInterval(interval);
+        onComplete?.();
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed, onComplete]);
+
+  return (
+    <span className={className}>
+      {displayText}
+      {displayText.length < text.length && (
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+        >
+          |
+        </motion.span>
+      )}
+    </span>
+  );
+}
+
 // Re-exports
 export { AnimatePresence, motion };
