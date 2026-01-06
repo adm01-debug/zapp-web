@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { X, Archive, Forward, CheckCheck } from 'lucide-react';
+import { X, Archive, Forward, CheckCheck, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TransferDialog } from './TransferDialog';
 
@@ -42,52 +43,82 @@ export function BulkActionsToolbar({
         >
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClearSelection}
-                className="text-primary-foreground hover:bg-primary-foreground/20 w-8 h-8"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClearSelection}
+                    className="text-primary-foreground hover:bg-primary-foreground/20 w-8 h-8"
+                    aria-label="Limpar seleção"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Limpar seleção (Esc)</TooltipContent>
+              </Tooltip>
               <Badge variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0">
                 {selectedCount} selecionado{selectedCount > 1 ? 's' : ''}
               </Badge>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onMarkAsRead}
-                disabled={isLoading}
-                className="text-primary-foreground hover:bg-primary-foreground/20 gap-2"
-              >
-                <CheckCheck className="w-4 h-4" />
-                Marcar como lido
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onMarkAsRead}
+                    disabled={isLoading}
+                    className="text-primary-foreground hover:bg-primary-foreground/20 gap-2"
+                    aria-label="Marcar como lido"
+                  >
+                    <CheckCheck className="w-4 h-4" />
+                    <span className="hidden sm:inline">Marcar como lido</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Marcar como lido (R)</TooltipContent>
+              </Tooltip>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowTransferDialog(true)}
-                disabled={isLoading}
-                className="text-primary-foreground hover:bg-primary-foreground/20 gap-2"
-              >
-                <Forward className="w-4 h-4" />
-                Transferir
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTransferDialog(true)}
+                    disabled={isLoading}
+                    className="text-primary-foreground hover:bg-primary-foreground/20 gap-2"
+                    aria-label="Transferir"
+                  >
+                    <Forward className="w-4 h-4" />
+                    <span className="hidden sm:inline">Transferir</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Transferir para agente ou fila</TooltipContent>
+              </Tooltip>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onArchive}
-                disabled={isLoading}
-                className="text-primary-foreground hover:bg-primary-foreground/20 gap-2"
-              >
-                <Archive className="w-4 h-4" />
-                Arquivar
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onArchive}
+                    disabled={isLoading}
+                    className="text-primary-foreground hover:bg-primary-foreground/20 gap-2"
+                    aria-label="Arquivar"
+                  >
+                    <Archive className="w-4 h-4" />
+                    <span className="hidden sm:inline">Arquivar</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <div className="flex items-center gap-1.5">
+                    Arquivar selecionados
+                    <kbd className="text-[10px] px-1 py-0.5 bg-muted/50 rounded font-mono">Del</kbd>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">Você pode desfazer em 5s</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </motion.div>
