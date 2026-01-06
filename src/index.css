@@ -1449,3 +1449,90 @@ select:focus-visible {
   filter: blur(0);
   opacity: 1;
 }
+
+/* ===== HIGH CONTRAST MODE ===== */
+.high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --primary: 220 100% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 20%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 90%;
+  --muted-foreground: 0 0% 20%;
+  --accent: 220 100% 40%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 100% 40%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 0%;
+  --input: 0 0% 90%;
+  --ring: 220 100% 40%;
+}
+
+.dark.high-contrast {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 220 100% 60%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 80%;
+  --secondary-foreground: 0 0% 0%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 80%;
+  --accent: 220 100% 60%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 100% 60%;
+  --destructive-foreground: 0 0% 0%;
+  --border: 0 0% 100%;
+  --input: 0 0% 15%;
+  --ring: 220 100% 60%;
+}
+
+/* Increase font weights in high contrast */
+.high-contrast * {
+  font-weight: calc(var(--font-weight, 400) + 100);
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast [role="button"] {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ===== REDUCED MOTION ===== */
+.reduced-motion,
+.reduced-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ===== LARGE TEXT MODE ===== */
+.large-text {
+  font-size: 120%;
+}
+
+.large-text h1 { font-size: 2.5rem; }
+.large-text h2 { font-size: 2rem; }
+.large-text h3 { font-size: 1.75rem; }
+.large-text p, .large-text span, .large-text li { font-size: 1.1rem; }
+.large-text button { font-size: 1rem; }
+.large-text input, .large-text textarea { font-size: 1.1rem; }
+
+/* ===== CONTRAST LEVEL ADJUSTMENT ===== */
+:root {
+  --contrast-multiplier: 1;
+}
+
+.high-contrast {
+  filter: contrast(var(--contrast-multiplier));
+}
