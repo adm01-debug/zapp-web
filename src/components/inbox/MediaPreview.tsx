@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   X, 
   Download, 
@@ -78,7 +79,7 @@ export function DocumentPreview({ url, fileName, fileSize, isSent }: DocumentPre
       document.body.removeChild(a);
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      console.error('Download failed:', error);
+      log.error('Download failed:', error);
       // Fallback: open in new tab
       window.open(url, '_blank');
     } finally {

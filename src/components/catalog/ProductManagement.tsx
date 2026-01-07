@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 import { Product } from './ProductCard';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -316,7 +317,7 @@ export const ProductManagement: React.FC = () => {
 
       setProducts(typedProducts);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      log.error('Error fetching products:', error);
       toast({
         title: 'Erro ao carregar produtos',
         variant: 'destructive',
@@ -368,7 +369,7 @@ export const ProductManagement: React.FC = () => {
       setEditingProduct(null);
       fetchProducts();
     } catch (error: unknown) {
-      console.error('Error saving product:', error);
+      log.error('Error saving product:', error);
       toast({
         title: 'Erro ao salvar produto',
         description: error instanceof Error ? error.message : 'Erro desconhecido',
@@ -394,7 +395,7 @@ export const ProductManagement: React.FC = () => {
       setDeleteProduct(null);
       fetchProducts();
     } catch (error) {
-      console.error('Error deleting product:', error);
+      log.error('Error deleting product:', error);
       toast({
         title: 'Erro ao excluir produto',
         variant: 'destructive',

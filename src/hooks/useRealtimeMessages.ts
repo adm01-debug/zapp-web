@@ -117,7 +117,7 @@ export function useRealtimeMessages() {
 
       setConversations(sortedConversations);
     } catch (err) {
-      console.error('Error fetching conversations:', err);
+      log.error('Error fetching conversations:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch conversations');
     } finally {
       setLoading(false);
@@ -264,7 +264,7 @@ export function useRealtimeMessages() {
       .single();
 
     if (error) {
-      console.error('Error sending message:', error);
+      log.error('Error sending message:', error);
       throw error;
     }
 
@@ -281,7 +281,7 @@ export function useRealtimeMessages() {
       .eq('is_read', false);
 
     if (error) {
-      console.error('Error marking messages as read:', error);
+      log.error('Error marking messages as read:', error);
     }
 
     // Update local state

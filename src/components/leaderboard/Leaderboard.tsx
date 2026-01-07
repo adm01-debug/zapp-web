@@ -381,7 +381,7 @@ export function Leaderboard() {
 
       setAgents(leaderboardAgents);
     } catch (error) {
-      console.error('Error fetching leaderboard:', error);
+      log.error('Error fetching leaderboard:', error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

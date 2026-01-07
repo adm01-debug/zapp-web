@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { Clock, Sun, Moon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -46,7 +47,7 @@ export function BusinessHoursIndicator({
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching business hours:', error);
+        log.error('Error fetching business hours:', error);
         setIsOpen(null);
         setLoading(false);
         return;
@@ -76,7 +77,7 @@ export function BusinessHoursIndicator({
       setTodayHours(`${openTime} - ${closeTime}`);
       setLoading(false);
     } catch (error) {
-      console.error('Error checking business hours:', error);
+      log.error('Error checking business hours:', error);
       setIsOpen(null);
       setLoading(false);
     }

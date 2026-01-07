@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 export interface Call {
   id: string;
@@ -68,7 +69,7 @@ export const useCalls = () => {
       setCurrentCallId(data.id);
       return data.id;
     } catch (error) {
-      console.error('Error starting call:', error);
+      log.error('Error starting call:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível registrar a chamada',
@@ -94,7 +95,7 @@ export const useCalls = () => {
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error('Error answering call:', error);
+      log.error('Error answering call:', error);
       return false;
     }
   }, []);
@@ -116,7 +117,7 @@ export const useCalls = () => {
       setCurrentCallId(null);
       return true;
     } catch (error) {
-      console.error('Error ending call:', error);
+      log.error('Error ending call:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível finalizar a chamada',
@@ -142,7 +143,7 @@ export const useCalls = () => {
       setCurrentCallId(null);
       return true;
     } catch (error) {
-      console.error('Error marking call as missed:', error);
+      log.error('Error marking call as missed:', error);
       return false;
     }
   }, []);
@@ -158,7 +159,7 @@ export const useCalls = () => {
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error('Error adding call notes:', error);
+      log.error('Error adding call notes:', error);
       return false;
     }
   }, []);
@@ -175,7 +176,7 @@ export const useCalls = () => {
       if (error) throw error;
       return (data || []) as Call[];
     } catch (error) {
-      console.error('Error fetching contact calls:', error);
+      log.error('Error fetching contact calls:', error);
       return [];
     }
   }, []);

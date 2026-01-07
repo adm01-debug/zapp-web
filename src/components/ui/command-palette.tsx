@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Command as CommandPrimitive } from 'cmdk';
+import { log } from '@/lib/logger';
 import {
   Search,
   Command,
@@ -302,7 +303,7 @@ export function CommandPalette({
       const results = await onSearch(searchQuery);
       setSearchResults(results);
     } catch (error) {
-      console.error('Search error:', error);
+      log.error('Search error:', error);
       setSearchResults([]);
     } finally {
       setIsSearching(false);

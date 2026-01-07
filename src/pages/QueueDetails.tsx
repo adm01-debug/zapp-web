@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { log } from '@/lib/logger';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -195,7 +196,7 @@ export default function QueueDetails() {
       });
 
     } catch (error) {
-      console.error('Error fetching queue data:', error);
+      log.error('Error fetching queue data:', error);
     } finally {
       setLoading(false);
     }

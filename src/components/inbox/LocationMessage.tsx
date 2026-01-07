@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, ExternalLink, Clock, Radio } from 'lucide-react';
+import { log } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { LocationMessage as LocationMessageType } from '@/types/chat';
@@ -29,7 +30,7 @@ export function LocationMessageDisplay({ location, isSent }: LocationMessageDisp
           setMapboxToken(data.token);
         }
       } catch (err) {
-        console.error('Error fetching Mapbox token:', err);
+        log.error('Error fetching Mapbox token:', err);
       }
     };
     fetchToken();
