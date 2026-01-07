@@ -94,9 +94,13 @@ export function DemandPrediction({
     return { maxPredicted, avgPredicted, currentActual, trend, peakTime, capacityRisk };
   }, [data, currentCapacity]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface TooltipPayload {
+    payload: PredictionPoint;
+  }
+
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipPayload[] }) => {
     if (!active || !payload?.length) return null;
-    const point = payload[0].payload as PredictionPoint;
+    const point = payload[0].payload;
     
     return (
       <div className="bg-popover/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg">

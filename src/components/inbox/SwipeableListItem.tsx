@@ -103,7 +103,7 @@ export function SwipeableListItem({
     setShowHint(false);
   };
 
-  const handleDrag = (_: any, info: PanInfo) => {
+  const handleDrag = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const offsetX = info.offset.x;
     
     // Check for secondary actions with haptic feedback
@@ -124,7 +124,7 @@ export function SwipeableListItem({
     }
   };
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     setIsDragging(false);
     setTriggeredAction(null);
     

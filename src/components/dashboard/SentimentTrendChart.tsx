@@ -120,8 +120,26 @@ function TrendIndicator({ current, previous }: { current: number; previous: numb
   );
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload || !payload.length) return null;
+interface SentimentDataPoint {
+  date: string;
+  positive: number;
+  neutral: number;
+  negative: number;
+  alerts_count: number;
+}
+
+interface TooltipPayloadItem {
+  payload: SentimentDataPoint;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (!active || !payload || !payload.length || !label) return null;
   
   const data = payload[0]?.payload;
   if (!data) return null;

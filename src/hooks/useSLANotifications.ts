@@ -4,6 +4,9 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { playNotificationSound, showBrowserNotification } from '@/utils/notificationSounds';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SLANotifications');
 
 interface SLABreachPayload {
   id: string;
@@ -23,7 +26,7 @@ export const useSLANotifications = () => {
   useEffect(() => {
     if (!user) return;
 
-    console.log('[SLA Notifications] Setting up realtime subscription');
+    log.debug('Setting up realtime subscription');
 
     const handleBreachNotification = async (
       type: 'first_response' | 'resolution',
@@ -81,7 +84,7 @@ export const useSLANotifications = () => {
           const newRecord = payload.new as SLABreachPayload;
           const oldRecord = payload.old as Partial<SLABreachPayload>;
 
-          console.log('[SLA Notifications] Received update:', { newRecord, oldRecord });
+          log.debug('Received update', { newRecord, oldRecord });
 
           // Check for new first response breach
           if (newRecord.first_response_breached && !oldRecord.first_response_breached) {
@@ -112,7 +115,7 @@ export const useSLANotifications = () => {
         async (payload) => {
           const newRecord = payload.new as SLABreachPayload;
           
-          console.log('[SLA Notifications] New SLA record:', newRecord);
+          log.debug('New SLA record', { newRecord });
 
           // Check if already breached on insert
           if (newRecord.first_response_breached) {
@@ -133,11 +136,11 @@ export const useSLANotifications = () => {
         }
       )
       .subscribe((status) => {
-        console.log('[SLA Notifications] Subscription status:', status);
+        log.debug('Subscription status', { status });
       });
 
     return () => {
-      console.log('[SLA Notifications] Cleaning up subscription');
+      log.debug('Cleaning up subscription');
       supabase.removeChannel(channel);
     };
   }, [user, settings, isQuietHours]);

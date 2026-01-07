@@ -4,6 +4,9 @@ import { toast } from 'sonner';
 import { playNotificationSound } from '@/utils/notificationSound';
 import { showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SentimentAlerts');
 
 interface SentimentAlertPayload {
   id: string;
@@ -28,7 +31,7 @@ export function useRealtimeSentimentAlerts() {
   const { settings, isQuietHours } = useNotificationSettings();
 
   const handleNewAlert = useCallback(async (payload: SentimentAlertPayload) => {
-    console.log('New sentiment alert received:', payload);
+    log.debug('New sentiment alert received', { payload });
 
     const details = payload.details || {};
     const contactName = details.contact_name || 'Cliente';
@@ -75,7 +78,7 @@ export function useRealtimeSentimentAlerts() {
   }, [settings, isQuietHours]);
 
   useEffect(() => {
-    console.log('Setting up realtime sentiment alerts subscription...');
+    log.debug('Setting up realtime subscription');
 
     const channel = supabase
       .channel('sentiment-alerts-realtime')
@@ -88,16 +91,16 @@ export function useRealtimeSentimentAlerts() {
           filter: 'action=eq.sentiment_alert',
         },
         (payload) => {
-          console.log('Realtime sentiment alert payload:', payload);
+          log.debug('Realtime payload', { payload });
           handleNewAlert(payload.new as SentimentAlertPayload);
         }
       )
       .subscribe((status) => {
-        console.log('Sentiment alerts subscription status:', status);
+        log.debug('Subscription status', { status });
       });
 
     return () => {
-      console.log('Cleaning up sentiment alerts subscription...');
+      log.debug('Cleaning up subscription');
       supabase.removeChannel(channel);
     };
   }, [handleNewAlert]);

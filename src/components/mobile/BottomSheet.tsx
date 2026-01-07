@@ -35,7 +35,7 @@ export function BottomSheet({
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const velocity = info.velocity.y;
     const offset = info.offset.y;
 

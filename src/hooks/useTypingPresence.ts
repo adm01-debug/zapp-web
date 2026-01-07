@@ -9,6 +9,13 @@ interface TypingUser {
   lastTyped: string;
 }
 
+interface PresenceState {
+  oderId?: string;
+  name?: string;
+  isTyping?: boolean;
+  lastTyped?: string;
+}
+
 interface UseTypingPresenceProps {
   conversationId: string;
   currentUserId?: string;
@@ -85,13 +92,14 @@ export function useTypingPresence({
 
       Object.entries(state).forEach(([key, presences]) => {
         if (key !== currentUserId && Array.isArray(presences)) {
-          presences.forEach((presence: any) => {
-            if (presence.isTyping) {
+          presences.forEach((presence) => {
+            const p = presence as unknown as PresenceState;
+            if (p.isTyping) {
               users.push({
-                oderId: presence.oderId || key,
-                name: presence.name || 'Contato',
-                isTyping: presence.isTyping,
-                lastTyped: presence.lastTyped
+                oderId: p.oderId || key,
+                name: p.name || 'Contato',
+                isTyping: p.isTyping,
+                lastTyped: p.lastTyped || new Date().toISOString()
               });
             }
           });

@@ -22,7 +22,7 @@ export function MobileDrawer({
   const dragX = useMotionValue(0);
   const dragThreshold = 100;
 
-  const handleDragEnd = (_: any, info: { offset: { x: number } }) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number } }) => {
     if (side === 'left' && info.offset.x < -dragThreshold) {
       onClose();
     } else if (side === 'right' && info.offset.x > dragThreshold) {

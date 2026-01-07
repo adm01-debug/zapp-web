@@ -38,7 +38,7 @@ export function SwipeableRow({
   const leftScale = useTransform(x, [0, threshold], [0.5, 1]);
   const rightScale = useTransform(x, [-threshold, 0], [1, 0.5]);
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const shouldOpenLeft = info.offset.x > threshold && leftActions.length > 0;
     const shouldOpenRight = info.offset.x < -threshold && rightActions.length > 0;
 

@@ -130,7 +130,7 @@ export function SlideOverPanel({
   const panelRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     const velocity = side === 'right' ? info.velocity.x : -info.velocity.x;
     const offset = side === 'right' ? info.offset.x : -info.offset.x;

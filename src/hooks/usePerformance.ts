@@ -115,16 +115,25 @@ export function useMemoryUsage(): { usedJSHeapSize: number; totalJSHeapSize: num
   const [memory, setMemory] = useState<{ usedJSHeapSize: number; totalJSHeapSize: number } | null>(null);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return;
+    if (import.meta.env.PROD) return;
+    
+    // Chrome-specific Performance API extension
+    interface PerformanceMemory {
+      usedJSHeapSize: number;
+      totalJSHeapSize: number;
+      jsHeapSizeLimit: number;
+    }
+    
+    interface PerformanceWithMemory extends Performance {
+      memory?: PerformanceMemory;
+    }
     
     const checkMemory = () => {
-      // @ts-ignore - performance.memory is Chrome-only
-      if (performance.memory) {
+      const perf = performance as PerformanceWithMemory;
+      if (perf.memory) {
         setMemory({
-          // @ts-ignore
-          usedJSHeapSize: performance.memory.usedJSHeapSize,
-          // @ts-ignore
-          totalJSHeapSize: performance.memory.totalJSHeapSize,
+          usedJSHeapSize: perf.memory.usedJSHeapSize,
+          totalJSHeapSize: perf.memory.totalJSHeapSize,
         });
       }
     };
