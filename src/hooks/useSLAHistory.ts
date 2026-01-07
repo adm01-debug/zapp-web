@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 import { startOfDay, subDays, format, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -181,7 +182,7 @@ export const useSLAHistory = (period: HistoryPeriod = '30d') => {
           bestDays
         });
       } catch (error) {
-        console.error('Error fetching SLA history:', error);
+        log.error('Error fetching SLA history:', error);
       } finally {
         setLoading(false);
       }

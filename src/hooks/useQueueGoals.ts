@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 export interface QueueGoal {
   id: string;
@@ -56,7 +57,7 @@ export function useQueueGoals() {
 
       setGoals(goalsMap);
     } catch (error) {
-      console.error('Error fetching queue goals:', error);
+      log.error('Error fetching queue goals:', error);
     } finally {
       setLoading(false);
     }
@@ -91,7 +92,7 @@ export function useQueueGoals() {
 
       await fetchGoals();
     } catch (error) {
-      console.error('Error saving queue goal:', error);
+      log.error('Error saving queue goal:', error);
       toast({
         title: 'Erro ao salvar metas',
         description: 'Não foi possível salvar as metas.',

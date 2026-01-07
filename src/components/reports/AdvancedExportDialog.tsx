@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import {
   Dialog,
   DialogContent,
@@ -188,7 +189,7 @@ export function AdvancedExportDialog({
       onOpenChange(false);
       setStep(1);
     } catch (error) {
-      console.error('Export error:', error);
+      log.error('Export error:', error);
       toast({
         title: 'Erro na exportação',
         description: 'Não foi possível gerar o arquivo.',

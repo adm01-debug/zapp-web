@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 import {
   Dialog,
   DialogContent,
@@ -56,7 +57,7 @@ export function AddMemberDialog({
       if (error) throw error;
       setProfiles(data || []);
     } catch (err) {
-      console.error('Error fetching profiles:', err);
+      log.error('Error fetching profiles:', err);
     } finally {
       setLoading(false);
     }

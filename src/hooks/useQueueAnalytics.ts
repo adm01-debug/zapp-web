@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 import { startOfDay, subDays, format, startOfHour, eachDayOfInterval, eachHourOfInterval, startOfToday, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -109,7 +110,7 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
       setStatusData(statusAggregation);
 
     } catch (error) {
-      console.error('Error fetching queue analytics:', error);
+      log.error('Error fetching queue analytics:', error);
     } finally {
       setLoading(false);
     }

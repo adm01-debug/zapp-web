@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { Play, Pause, Loader2, FileText, Volume2, RefreshCw, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -137,7 +138,7 @@ export function AudioMessagePlayer({
           .eq('id', messageId);
       }
     } catch (error) {
-      console.error('Transcription error:', error);
+      log.error('Transcription error:', error);
       setTranscriptionStatus('failed');
       toast({
         title: 'Erro na transcrição',

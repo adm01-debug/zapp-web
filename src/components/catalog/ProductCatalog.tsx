@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 import { ProductCard, Product } from './ProductCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -79,7 +80,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
       ) as string[];
       setCategories(uniqueCategories);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      log.error('Error fetching products:', error);
       toast({
         title: 'Erro ao carregar produtos',
         description: 'Não foi possível carregar o catálogo.',

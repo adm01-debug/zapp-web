@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 
 export interface ConversationAnalysis {
   id: string;
@@ -39,7 +40,7 @@ export function useConversationAnalyses(contactId: string | null) {
       
       setAnalyses((data || []) as ConversationAnalysis[]);
     } catch (err) {
-      console.error('Error fetching analyses:', err);
+      log.error('Error fetching analyses:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
@@ -82,7 +83,7 @@ export function useConversationAnalyses(contactId: string | null) {
       
       return data as ConversationAnalysis;
     } catch (err) {
-      console.error('Error saving analysis:', err);
+      log.error('Error saving analysis:', err);
       throw err;
     }
   };

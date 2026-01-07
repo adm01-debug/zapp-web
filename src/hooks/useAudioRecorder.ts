@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 interface UseAudioRecorderOptions {
   onRecordingComplete?: (audioBlob: Blob, audioUrl: string) => void;
@@ -66,7 +67,7 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
       }, 1000);
       
     } catch (error) {
-      console.error('Error starting recording:', error);
+      log.error('Error starting recording:', error);
       toast({
         title: 'Erro ao gravar',
         description: 'Não foi possível acessar o microfone.',

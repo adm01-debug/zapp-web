@@ -62,7 +62,7 @@ export function useRealtimeSentimentAlerts() {
       try {
         playNotificationSound('alert');
       } catch (err) {
-        console.error('Error playing notification sound:', err);
+        log.error('Error playing notification sound:', err);
       }
     }
 
