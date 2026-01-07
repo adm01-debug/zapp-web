@@ -36,8 +36,9 @@ export function useReauthentication() {
       }
 
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message || 'Erro na re-autenticação' };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro na re-autenticação';
+      return { success: false, error: errorMessage };
     } finally {
       setIsReauthenticating(false);
     }
@@ -59,8 +60,9 @@ export function useReauthentication() {
         try {
           await pendingCallback();
           toast.success('Ação realizada com sucesso');
-        } catch (error: any) {
-          toast.error(error.message || 'Erro ao executar ação');
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Erro ao executar ação';
+          toast.error(errorMessage);
           return false;
         }
       }

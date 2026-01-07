@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
+import { log } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -428,7 +429,7 @@ export function TemplatesWithVariables({
   
   const handleSave = async (data: Partial<Template>) => {
     // In production, this would save to database
-    console.log('Saving template:', { ...editingTemplate, ...data });
+    log.debug('Saving template:', { ...editingTemplate, ...data });
     toast.success(editingTemplate ? 'Template atualizado!' : 'Template criado!');
   };
 

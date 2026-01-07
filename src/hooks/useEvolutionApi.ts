@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 interface SendMessageParams {
   instanceName: string;
@@ -28,8 +29,9 @@ export function useEvolutionApi() {
 
       if (error) throw error;
       return data;
-    } catch (error: any) {
-      console.error(`Evolution API error (${action}):`, error);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      log.error(`Evolution API error (${action}):`, error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -41,9 +43,9 @@ export function useEvolutionApi() {
       const data = await callEvolutionApi('create-instance', { instanceName });
       toast.success('Instância criada com sucesso');
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao criar instância');
-      throw error;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao criar instância';
+      toast.error(errorMessage);
     }
   };
 
@@ -51,8 +53,9 @@ export function useEvolutionApi() {
     try {
       const data = await callEvolutionApi('connect', { instanceName });
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao conectar instância');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao conectar instância';
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -61,8 +64,8 @@ export function useEvolutionApi() {
     try {
       const data = await callEvolutionApi('status', { instanceName });
       return data;
-    } catch (error: any) {
-      console.error('Status check error:', error);
+    } catch (error) {
+      log.error('Status check error:', error);
       throw error;
     }
   };
@@ -71,8 +74,9 @@ export function useEvolutionApi() {
     try {
       const data = await callEvolutionApi('send-text', { instanceName, number, text });
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao enviar mensagem');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao enviar mensagem';
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -81,9 +85,9 @@ export function useEvolutionApi() {
     try {
       const data = await callEvolutionApi('send-media', params);
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao enviar mídia');
-      throw error;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao enviar mídia';
+      toast.error(errorMessage);
     }
   };
 
@@ -91,8 +95,9 @@ export function useEvolutionApi() {
     try {
       const data = await callEvolutionApi('send-audio', { instanceName, number, mediaUrl });
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao enviar áudio');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao enviar áudio';
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -101,9 +106,9 @@ export function useEvolutionApi() {
     try {
       const data = await callEvolutionApi('send-location', params);
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao enviar localização');
-      throw error;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao enviar localização';
+      toast.error(errorMessage);
     }
   };
 
@@ -111,8 +116,8 @@ export function useEvolutionApi() {
     try {
       const data = await callEvolutionApi('list-instances', undefined, 'GET');
       return data;
-    } catch (error: any) {
-      console.error('List instances error:', error);
+    } catch (error) {
+      log.error('List instances error:', error);
       throw error;
     }
   };
@@ -122,9 +127,9 @@ export function useEvolutionApi() {
       const data = await callEvolutionApi('disconnect', { instanceName });
       toast.success('Instância desconectada');
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao desconectar');
-      throw error;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao desconectar';
+      toast.error(errorMessage);
     }
   };
 
@@ -133,9 +138,9 @@ export function useEvolutionApi() {
       const data = await callEvolutionApi('delete-instance', { instanceName }, 'DELETE');
       toast.success('Instância excluída');
       return data;
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao excluir instância');
-      throw error;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao excluir instância';
+      toast.error(errorMessage);
     }
   };
 

@@ -2,6 +2,13 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
+
+interface ExcludeCredential {
+  id: string;
+  type: string;
+  transports?: string[];
+}
 
 interface PasskeyCredential {
   id: string;
@@ -95,7 +102,7 @@ export function useWebAuthn() {
             ...options.user,
             id: userIdBuffer,
           },
-          excludeCredentials: options.excludeCredentials?.map((cred: any) => ({
+          excludeCredentials: options.excludeCredentials?.map((cred: ExcludeCredential) => ({
             ...cred,
             id: base64URLToBuffer(cred.id),
           })),
@@ -116,7 +123,7 @@ export function useWebAuthn() {
         id: credential.id,
         rawId: bufferToBase64URL(credential.rawId),
         type: credential.type,
-        authenticatorAttachment: (credential as any).authenticatorAttachment,
+        authenticatorAttachment: (credential as PublicKeyCredential & { authenticatorAttachment?: string }).authenticatorAttachment,
         response: {
           clientDataJSON: bufferToBase64URL(response.clientDataJSON),
           attestationObject: bufferToBase64URL(response.attestationObject),
@@ -143,15 +150,16 @@ export function useWebAuthn() {
       await fetchPasskeys();
       return { success: true };
 
-    } catch (error: any) {
-      console.error('Passkey registration error:', error);
+    } catch (error) {
+      log.error('Passkey registration error:', error);
       
-      if (error.name === 'NotAllowedError') {
+      const err = error as Error & { name?: string };
+      if (err.name === 'NotAllowedError') {
         toast.error('Registro cancelado pelo usuário');
-      } else if (error.name === 'SecurityError') {
+      } else if (err.name === 'SecurityError') {
         toast.error('Erro de segurança. Verifique se está usando HTTPS.');
       } else {
-        toast.error(error.message || 'Falha ao registrar passkey');
+        toast.error(err.message || 'Falha ao registrar passkey');
       }
       
       return { success: false };

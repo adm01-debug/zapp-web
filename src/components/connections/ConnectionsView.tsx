@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { log } from '@/lib/logger';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -125,7 +126,7 @@ export function ConnectionsView() {
           table: 'whatsapp_connections',
         },
         (payload) => {
-          console.log('Connection update:', payload);
+          log.debug('Connection update:', payload);
           if (payload.eventType === 'UPDATE') {
             setConnections((prev) =>
               prev.map((conn) =>

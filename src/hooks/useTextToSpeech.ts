@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 // Default voice: Sarah
 const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
@@ -140,8 +141,8 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
       };
 
       await audio.play();
-    } catch (error: unknown) {
-      console.error('TTS error:', error);
+    } catch (error) {
+      log.error('TTS error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro ao gerar áudio';
       toast.error(errorMessage);
       setCurrentMessageId(null);
