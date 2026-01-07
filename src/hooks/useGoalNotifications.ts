@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { playNotificationSound, showBrowserNotification } from '@/utils/notificationSounds';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth } from 'date-fns';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -52,7 +53,7 @@ export function useGoalNotifications() {
           metadata: jsonMetadata
         }]);
     } catch (error) {
-      console.error('Error creating notification:', error);
+      log.error('Error creating notification:', error);
     }
   }, [user]);
 
@@ -178,7 +179,7 @@ export function useGoalNotifications() {
         }
       }
     } catch (error) {
-      console.error('Error checking goal progress:', error);
+      log.error('Error checking goal progress:', error);
     }
   }, [user, settings, isQuietHours, createNotification]);
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { log } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -115,7 +116,7 @@ export function AIAvatarGenerator({
         throw new Error('No image in response');
       }
     } catch (error) {
-      console.error('Error generating avatar:', error);
+      log.error('Error generating avatar:', error);
       toast({
         title: 'Erro ao gerar avatar',
         description: 'Tente novamente ou use um estilo diferente.',

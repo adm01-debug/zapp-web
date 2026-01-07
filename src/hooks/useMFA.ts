@@ -118,7 +118,7 @@ export function useMFA() {
       
       return data;
     } catch (err) {
-      console.error('Error getting assurance level:', err);
+      log.error('Error getting assurance level:', err);
       return null;
     }
   }, []);

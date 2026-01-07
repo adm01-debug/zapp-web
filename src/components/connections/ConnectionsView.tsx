@@ -219,11 +219,12 @@ export function ConnectionsView() {
       if (data) {
         handleShowQrCode(data);
       }
-    } catch (error: any) {
-      console.error('Error creating connection:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      log.error('Error creating connection:', error);
       toast({
         title: 'Erro ao criar conexão',
-        description: error.message || 'Verifique se a Evolution API está configurada corretamente.',
+        description: errorMessage || 'Verifique se a Evolution API está configurada corretamente.',
         variant: 'destructive',
       });
     } finally {
@@ -294,7 +295,7 @@ export function ConnectionsView() {
           });
         }
       } catch (error) {
-        console.error('Status polling error:', error);
+        log.error('Status polling error:', error);
       }
     }, 3000);
 

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 
 interface LockStatus {
   isLocked: boolean;
@@ -13,7 +14,7 @@ export async function checkAccountLock(email: string): Promise<LockStatus> {
   });
 
   if (error) {
-    console.error('Error checking account lock:', error);
+    log.error('Error checking account lock:', error);
     return { isLocked: false, lockedUntil: null, attempts: 0, remainingTime: 0 };
   }
 
@@ -41,7 +42,7 @@ export async function recordFailedLogin(email: string): Promise<LockStatus> {
   });
 
   if (error) {
-    console.error('Error recording failed login:', error);
+    log.error('Error recording failed login:', error);
     return { isLocked: false, lockedUntil: null, attempts: 0, remainingTime: 0 };
   }
 
@@ -67,7 +68,7 @@ export async function clearLoginAttempts(email: string): Promise<void> {
   });
 
   if (error) {
-    console.error('Error clearing login attempts:', error);
+    log.error('Error clearing login attempts:', error);
   }
 }
 

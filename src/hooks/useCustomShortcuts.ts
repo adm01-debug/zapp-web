@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { log } from '@/lib/logger';
 
 export interface ShortcutBinding {
   id: string;
@@ -243,7 +244,7 @@ export function useCustomShortcuts() {
           return shortcut;
         }));
       } catch (e) {
-        console.error('Failed to parse stored shortcuts:', e);
+        log.error('Failed to parse stored shortcuts:', e);
       }
     }
   }, []);

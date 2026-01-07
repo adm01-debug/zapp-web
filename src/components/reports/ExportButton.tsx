@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { log } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -56,7 +57,7 @@ export const ExportButton = ({
           break;
       }
     } catch (error) {
-      console.error('Export error:', error);
+      log.error('Export error:', error);
       toast({
         title: 'Erro na Exportação',
         description: 'Não foi possível exportar o relatório.',

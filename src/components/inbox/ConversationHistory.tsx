@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   MessageSquare, 
   Clock, 
@@ -101,7 +102,7 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
       const { data: messages, error } = await query;
 
       if (error) {
-        console.error('Error fetching conversation history:', error);
+        log.error('Error fetching conversation history:', error);
         setConversations([]);
         return;
       }
@@ -156,7 +157,7 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
 
       setConversations(historyItems);
     } catch (error) {
-      console.error('Error:', error);
+      log.error('Error fetching conversation history:', error);
       setConversations([]);
     } finally {
       setIsLoading(false);

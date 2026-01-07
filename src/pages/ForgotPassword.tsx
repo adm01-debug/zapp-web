@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, ArrowLeft, CheckCircle, Loader2, Clock } from 'lucide-react';
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -65,8 +66,8 @@ export default function ForgotPassword() {
 
       setSent(true);
       toast.success('Solicitação enviada! Aguarde a aprovação de um administrador.');
-    } catch (err: any) {
-      console.error('Error submitting reset request:', err);
+    } catch (err: unknown) {
+      log.error('Error submitting reset request:', err);
       setError('Erro ao enviar solicitação. Tente novamente.');
       toast.error('Erro ao enviar solicitação');
     } finally {

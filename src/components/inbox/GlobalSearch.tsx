@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText, 
   Filter, Clock, History, Tag, Trash2, Command, Plus, UserPlus, 
@@ -318,7 +319,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
         addToHistory(cleanQuery, searchResults.length);
       }
     } catch (error) {
-      console.error('Search error:', error);
+      log.error('Search error:', error);
       setResults([]);
     } finally {
       setIsLoading(false);

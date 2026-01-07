@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { log } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from '@/components/ui/motion';
@@ -190,7 +191,7 @@ export function SLAMetricsDashboard() {
 
       setAgentSLAData(formattedData);
     } catch (error) {
-      console.error('Error fetching SLA metrics:', error);
+      log.error('Error fetching SLA metrics:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

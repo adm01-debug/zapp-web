@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { log } from '@/lib/logger';
 
 export function useServiceWorker() {
   useEffect(() => {
@@ -9,7 +10,7 @@ export function useServiceWorker() {
             scope: '/',
           });
 
-          console.log('[ServiceWorker] Registration successful:', registration.scope);
+          log.debug('[ServiceWorker] Registration successful:', registration.scope);
 
           // Check for updates periodically
           setInterval(() => {
@@ -22,8 +23,7 @@ export function useServiceWorker() {
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New content is available, notify user
-                  console.log('[ServiceWorker] New content available');
+                  log.debug('[ServiceWorker] New content available');
                   document.dispatchEvent(new CustomEvent('sw-update-available'));
                 }
               });
@@ -32,7 +32,7 @@ export function useServiceWorker() {
 
           // Listen for messages from service worker
           navigator.serviceWorker.addEventListener('message', (event) => {
-            console.log('[ServiceWorker] Message received:', event.data);
+            log.debug('[ServiceWorker] Message received:', event.data);
             
             if (event.data.type === 'NOTIFICATION_CLICK') {
               document.dispatchEvent(new CustomEvent('notification-click', { 
@@ -42,7 +42,7 @@ export function useServiceWorker() {
           });
 
         } catch (error) {
-          console.error('[ServiceWorker] Registration failed:', error);
+          log.error('[ServiceWorker] Registration failed:', error);
         }
       }
     };

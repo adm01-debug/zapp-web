@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { log } from '@/lib/logger';
 import {
   Search,
   X,
@@ -116,7 +117,7 @@ export function UnifiedSearch({
         const searchResults = await onSearch(query);
         setResults(searchResults);
       } catch (error) {
-        console.error('Search error:', error);
+        log.error('Search error:', error);
       } finally {
         setIsLoading(false);
       }

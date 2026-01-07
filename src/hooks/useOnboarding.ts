@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { log } from '@/lib/logger';
 
 const ONBOARDING_KEY = 'onboarding_completed';
 
@@ -40,7 +41,7 @@ export function useOnboarding() {
           setHasCompletedOnboarding(false);
         }
       } catch (error) {
-        console.error('Error checking onboarding status:', error);
+        log.error('Error checking onboarding status:', error);
         setHasCompletedOnboarding(true); // Default to completed on error
       } finally {
         setLoading(false);

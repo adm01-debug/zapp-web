@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 export interface QuickReplyTemplate {
   id: string;
@@ -133,7 +134,7 @@ export function useQuickReplies() {
     },
     onError: (error) => {
       toast.error('Erro ao criar resposta rápida');
-      console.error(error);
+      log.error('Error creating quick reply:', error);
     },
   });
 
@@ -163,7 +164,7 @@ export function useQuickReplies() {
     },
     onError: (error) => {
       toast.error('Erro ao atualizar resposta rápida');
-      console.error(error);
+      log.error('Error updating quick reply:', error);
     },
   });
 
@@ -187,7 +188,7 @@ export function useQuickReplies() {
     },
     onError: (error) => {
       toast.error('Erro ao excluir resposta rápida');
-      console.error(error);
+      log.error('Error deleting quick reply:', error);
     },
   });
 

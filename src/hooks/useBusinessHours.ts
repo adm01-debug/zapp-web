@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 export interface BusinessHour {
   id?: string;
@@ -118,7 +119,7 @@ export function useBusinessHours(connectionId: string) {
       });
     },
     onError: (error) => {
-      console.error('Error saving business hours:', error);
+      log.error('Error saving business hours:', error);
       toast({
         title: 'Erro ao salvar',
         description: 'Não foi possível salvar as configurações.',

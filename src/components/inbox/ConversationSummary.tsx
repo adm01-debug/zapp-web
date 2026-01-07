@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   FileText, 
   Loader2, 
@@ -85,7 +86,7 @@ export function ConversationSummary({ messages, contactName }: ConversationSumma
       setIsExpanded(true);
       toast.success('Resumo gerado com sucesso!');
     } catch (error) {
-      console.error('Error generating summary:', error);
+      log.error('Error generating summary:', error);
       toast.error('Erro ao gerar resumo. Tente novamente.');
     } finally {
       setIsLoading(false);

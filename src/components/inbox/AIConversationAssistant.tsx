@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   Brain, 
   Loader2, 
@@ -167,7 +168,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
       toast.success('Análise completa e salva!');
     } catch (error) {
-      console.error('Error analyzing conversation:', error);
+      log.error('Error analyzing conversation:', error);
       toast.error('Erro ao analisar conversa. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -197,7 +198,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       setAnalysis(prev => prev ? { ...prev, transcriptions } : null);
       toast.success(`${transcriptions.length} áudio(s) transcrito(s)!`);
     } catch (error) {
-      console.error('Error transcribing audios:', error);
+      log.error('Error transcribing audios:', error);
       toast.error('Erro ao transcrever áudios.');
     } finally {
       setIsTranscribing(false);
