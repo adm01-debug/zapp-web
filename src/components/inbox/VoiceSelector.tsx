@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { log } from '@/lib/logger';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -117,7 +118,7 @@ export function VoiceSelector({ selectedVoiceId, onVoiceChange, className }: Voi
 
       await audio.play();
     } catch (error) {
-      console.error('Preview error:', error);
+      log.error('Preview error:', error);
       toast.error('Erro ao carregar preview da voz');
     } finally {
       setLoadingVoiceId(null);

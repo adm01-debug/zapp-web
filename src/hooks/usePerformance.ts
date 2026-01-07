@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { log } from '@/lib/logger';
 
 // ============================================
 // PERFORMANCE HOOKS
@@ -276,7 +277,7 @@ export function usePrefetch<T>(
         dataRef.current = await fetcher();
         setIsPrefetched(true);
       } catch (error) {
-        console.error('Prefetch failed:', error);
+        log.error('Prefetch failed:', error);
       }
     }, delay);
   }, [fetcher, delay, isPrefetched]);

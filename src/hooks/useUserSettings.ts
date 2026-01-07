@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 // Default ElevenLabs voice: Sarah
 const DEFAULT_TTS_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
@@ -98,7 +99,7 @@ export function useUserSettings() {
 
         if (error && error.code !== 'PGRST116') {
           // PGRST116 = no rows returned
-          console.error('Error fetching settings:', error);
+          log.error('Error fetching settings:', error);
           return;
         }
 
@@ -130,7 +131,7 @@ export function useUserSettings() {
           });
         }
       } catch (err) {
-        console.error('Error in fetchSettings:', err);
+        log.error('Error in fetchSettings:', err);
       } finally {
         setIsLoading(false);
       }
@@ -187,7 +188,7 @@ export function useUserSettings() {
         .upsert(settingsData, { onConflict: 'user_id' });
 
       if (error) {
-        console.error('Error saving settings:', error);
+        log.error('Error saving settings:', error);
         toast({
           title: 'Erro ao salvar',
           description: 'Não foi possível salvar as configurações.',
@@ -202,7 +203,7 @@ export function useUserSettings() {
       });
       return true;
     } catch (err) {
-      console.error('Error in saveSettings:', err);
+      log.error('Error in saveSettings:', err);
       toast({
         title: 'Erro ao salvar',
         description: 'Ocorreu um erro inesperado.',

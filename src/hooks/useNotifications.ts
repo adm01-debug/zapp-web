@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { log } from '@/lib/logger';
 import type { Json } from '@/integrations/supabase/types';
 
 export interface Notification {
@@ -38,7 +39,7 @@ export function useNotifications() {
       setNotifications(typedData);
       setUnreadCount(typedData.filter(n => !n.is_read).length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      log.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -104,7 +105,7 @@ export function useNotifications() {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      log.error('Error marking notification as read:', error);
     }
   };
 
@@ -125,7 +126,7 @@ export function useNotifications() {
       );
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      log.error('Error marking all as read:', error);
     }
   };
 
@@ -145,7 +146,7 @@ export function useNotifications() {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      log.error('Error deleting notification:', error);
     }
   };
 
@@ -163,7 +164,7 @@ export function useNotifications() {
       setNotifications([]);
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error clearing notifications:', error);
+      log.error('Error clearing notifications:', error);
     }
   };
 
@@ -188,7 +189,7 @@ export function useNotifications() {
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error creating notification:', error);
+      log.error('Error creating notification:', error);
     }
   };
 

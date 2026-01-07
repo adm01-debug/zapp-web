@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   MapPin, Navigation, Search, Crosshair, Clock, 
   Radio, Loader2, X, Send, LocateFixed
@@ -69,7 +70,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
             setMapboxToken(data.token);
           }
         } catch (err) {
-          console.error('Error fetching Mapbox token:', err);
+          log.error('Error fetching Mapbox token:', err);
         }
       };
       fetchToken();
@@ -152,7 +153,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
         setSelectedLocation({ lat, lng });
       }
     } catch (error) {
-      console.error('Error reverse geocoding:', error);
+      log.error('Error reverse geocoding:', error);
       setSelectedLocation({ lat, lng });
     }
   };
@@ -178,7 +179,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
         setIsLoadingLocation(false);
       },
       (error) => {
-        console.error('Error getting location:', error);
+        log.error('Error getting location:', error);
         toast({
           title: 'Erro ao obter localização',
           description: 'Verifique se a permissão de localização está ativada.',
@@ -219,7 +220,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
         });
       }
     } catch (error) {
-      console.error('Error searching location:', error);
+      log.error('Error searching location:', error);
     } finally {
       setIsSearching(false);
     }

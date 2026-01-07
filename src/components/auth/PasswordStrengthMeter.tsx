@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, AlertTriangle, Shield, ShieldCheck, ShieldAlert, Loader2 } from 'lucide-react';
+import { log } from '@/lib/logger';
 
 interface PasswordStrengthMeterProps {
   password: string;
@@ -110,7 +111,7 @@ export function PasswordStrengthMeter({ password, onStrengthChange }: PasswordSt
         setIsBreached(false);
         setBreachCount(0);
       } catch (error) {
-        console.error('Error checking password breach:', error);
+        log.error('Error checking password breach:', error);
         setIsBreached(null);
       } finally {
         setCheckingBreach(false);

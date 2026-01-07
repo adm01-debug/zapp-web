@@ -77,7 +77,7 @@ export function RealtimeTranscription({
 
       toast.success('Transcrição em tempo real ativada');
     } catch (error) {
-      console.error('Failed to start realtime transcription:', error);
+      log.error('Failed to start realtime transcription:', error);
       setStatus('error');
       onStatusChange?.('error');
       toast.error('Erro ao iniciar transcrição em tempo real');

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 
 export interface ChecklistStatus {
   profile: boolean;
@@ -77,7 +78,7 @@ export function useOnboardingChecklist() {
 
       setStatus(newStatus);
     } catch (error) {
-      console.error('Error checking checklist status:', error);
+      log.error('Error checking checklist status:', error);
     } finally {
       setIsLoading(false);
     }

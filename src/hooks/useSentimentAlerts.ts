@@ -52,7 +52,7 @@ export function useSentimentAlerts() {
       });
 
       if (error) {
-        console.error('Error invoking sentiment alert:', error);
+        log.error('Error invoking sentiment alert:', error);
         return { triggered: false, error: error.message };
       }
 
@@ -97,7 +97,7 @@ export function useSentimentAlerts() {
 
       return { triggered: false, reason: alertResult?.reason };
     } catch (err) {
-      console.error('Failed to check sentiment alert:', err);
+      log.error('Failed to check sentiment alert:', err);
       return { triggered: false, error: err instanceof Error ? err.message : 'Unknown error' };
     }
   }, [settings, isQuietHours, threshold, consecutiveRequired, alertsEnabled]);
@@ -120,7 +120,7 @@ export function useSentimentAlerts() {
         ...((log.details || {}) as Record<string, unknown>),
       })) || [];
     } catch (err) {
-      console.error('Failed to fetch recent alerts:', err);
+      log.error('Failed to fetch recent alerts:', err);
       return [];
     }
   }, []);

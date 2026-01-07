@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 export interface ContactNote {
   id: string;
@@ -101,7 +102,7 @@ export function useContactNotes(contactId: string) {
       });
     },
     onError: (error) => {
-      console.error('Error adding note:', error);
+      log.error('Error adding note:', error);
       toast({
         title: 'Erro ao adicionar nota',
         description: 'Não foi possível salvar a nota.',
@@ -128,7 +129,7 @@ export function useContactNotes(contactId: string) {
       });
     },
     onError: (error) => {
-      console.error('Error deleting note:', error);
+      log.error('Error deleting note:', error);
       toast({
         title: 'Erro ao remover nota',
         description: 'Não foi possível remover a nota.',

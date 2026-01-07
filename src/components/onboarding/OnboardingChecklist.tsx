@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   CheckCircle2, 
   Circle, 
@@ -167,7 +168,7 @@ export function OnboardingChecklist({ onNavigate, onDismiss, compact = false }: 
             completed.push(step.id);
           }
         } catch (error) {
-          console.error(`Error checking step ${step.id}:`, error);
+          log.error(`Error checking step ${step.id}:`, error);
         }
       }
       

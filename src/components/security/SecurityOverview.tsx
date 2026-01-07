@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   Shield, 
   Smartphone, 
@@ -71,7 +72,7 @@ export function SecurityOverview() {
         if (error) throw error;
         setSecurityAlerts(data || []);
       } catch (error) {
-        console.error('Error fetching alerts:', error);
+        log.error('Error fetching alerts:', error);
       } finally {
         setLoadingAlerts(false);
       }

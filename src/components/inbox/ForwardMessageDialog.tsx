@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { 
   Forward, Search, Users, User, Check, X, 
   MessageSquare, Phone, Send, Loader2
@@ -79,7 +80,7 @@ export function ForwardMessageDialog({
       if (error) throw error;
       setContacts(data || []);
     } catch (error) {
-      console.error('Error fetching contacts:', error);
+      log.error('Error fetching contacts:', error);
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +96,7 @@ export function ForwardMessageDialog({
       if (error) throw error;
       setGroups(data || []);
     } catch (error) {
-      console.error('Error fetching groups:', error);
+      log.error('Error fetching groups:', error);
     }
   };
 
