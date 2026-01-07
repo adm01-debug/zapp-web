@@ -80,17 +80,12 @@ export function SafeAnimation({
     );
   }
   
-  // Type-safe animation props
-  const safeInitial = initial as { opacity?: number; x?: number; scale?: number };
-  const safeAnimate = animate as { opacity?: number; x?: number; scale?: number };
-  const safeExit = exit as { opacity?: number; x?: number; scale?: number };
-  
   return (
     <motion.div
-      initial={initial}
-      animate={animate}
-      exit={exit}
-      transition={transition}
+      initial={initial as Record<string, number | string>}
+      animate={animate as Record<string, number | string>}
+      exit={exit as Record<string, number | string>}
+      transition={transition as Record<string, number | string>}
       className={className}
     >
       {children}
