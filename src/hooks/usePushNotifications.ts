@@ -61,7 +61,7 @@ export function usePushNotifications() {
         const subscription = await registration.pushManager.getSubscription();
         isSubscribed = !!subscription;
       } catch (error) {
-        console.error('Error checking subscription:', error);
+        log.error('Error checking subscription:', error);
       }
 
       setState({
@@ -94,7 +94,7 @@ export function usePushNotifications() {
       }
       return false;
     } catch (error) {
-      console.error('Error requesting permission:', error);
+      log.error('Error requesting permission:', error);
       toast.error('Erro ao solicitar permissão');
       return false;
     }
@@ -123,7 +123,7 @@ export function usePushNotifications() {
 
       return subscription;
     } catch (error) {
-      console.error('Error subscribing to push:', error);
+      log.error('Error subscribing to push:', error);
       toast.error('Erro ao ativar notificações push');
       return null;
     }
@@ -142,7 +142,7 @@ export function usePushNotifications() {
       }
       return false;
     } catch (error) {
-      console.error('Error unsubscribing:', error);
+      log.error('Error unsubscribing:', error);
       toast.error('Erro ao desativar notificações');
       return false;
     }
@@ -171,7 +171,7 @@ export function usePushNotifications() {
 
       return true;
     } catch (error) {
-      console.error('Error showing notification:', error);
+      log.error('Error showing notification:', error);
       return false;
     }
   }, [state.permission]);

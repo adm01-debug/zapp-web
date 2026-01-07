@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { log } from '@/lib/logger';
 
 interface UserDevice {
   id: string;
@@ -112,10 +113,10 @@ export function useDeviceDetection() {
 
       if (response.data) {
         setCurrentDeviceId(response.data.device_id);
-        console.log('Device check result:', response.data);
+        log.debug('Device check result:', response.data);
       }
     } catch (error) {
-      console.error('Error checking device:', error);
+      log.error('Error checking device:', error);
     }
   }, [user, generateFingerprint, getBrowserInfo]);
 
@@ -132,7 +133,7 @@ export function useDeviceDetection() {
       if (error) throw error;
       setDevices(data || []);
     } catch (error) {
-      console.error('Error fetching devices:', error);
+      log.error('Error fetching devices:', error);
     }
   }, [user]);
 
@@ -150,7 +151,7 @@ export function useDeviceDetection() {
       if (error) throw error;
       setSessions(data || []);
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      log.error('Error fetching sessions:', error);
     }
   }, [user]);
 
@@ -165,7 +166,7 @@ export function useDeviceDetection() {
       if (error) throw error;
       await fetchDevices();
     } catch (error) {
-      console.error('Error trusting device:', error);
+      log.error('Error trusting device:', error);
     }
   }, [fetchDevices]);
 
@@ -188,7 +189,7 @@ export function useDeviceDetection() {
       await fetchDevices();
       await fetchSessions();
     } catch (error) {
-      console.error('Error removing device:', error);
+      log.error('Error removing device:', error);
     }
   }, [fetchDevices, fetchSessions]);
 
@@ -203,7 +204,7 @@ export function useDeviceDetection() {
       if (error) throw error;
       await fetchSessions();
     } catch (error) {
-      console.error('Error ending session:', error);
+      log.error('Error ending session:', error);
     }
   }, [fetchSessions]);
 
@@ -221,7 +222,7 @@ export function useDeviceDetection() {
       if (error) throw error;
       await fetchSessions();
     } catch (error) {
-      console.error('Error ending sessions:', error);
+      log.error('Error ending sessions:', error);
     }
   }, [currentDeviceId, fetchSessions]);
 

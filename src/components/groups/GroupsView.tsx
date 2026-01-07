@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -88,7 +89,7 @@ export function GroupsView() {
 
     if (error) {
       toast.error('Erro ao carregar grupos');
-      console.error(error);
+      log.error('Error fetching groups:', error);
     } else {
       setGroups(data || []);
     }
@@ -102,7 +103,7 @@ export function GroupsView() {
       .order('name', { ascending: true });
 
     if (error) {
-      console.error(error);
+      log.error('Error fetching connections:', error);
     } else {
       setConnections(data || []);
     }
@@ -123,7 +124,7 @@ export function GroupsView() {
 
     if (error) {
       toast.error('Erro ao adicionar grupo');
-      console.error(error);
+      log.error('Error adding group:', error);
     } else {
       toast.success('Grupo adicionado com sucesso');
       setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '' });
@@ -137,7 +138,7 @@ export function GroupsView() {
 
     if (error) {
       toast.error('Erro ao excluir grupo');
-      console.error(error);
+      log.error('Error deleting group:', error);
     } else {
       toast.success('Grupo excluído');
       fetchGroups();

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Plus, Trash2, Search, MapPin, AlertTriangle, Shield, ShieldOff, ShieldCheck } from 'lucide-react';
+import { log } from '@/lib/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -172,7 +173,7 @@ export function GeoBlockingPanel() {
 
       setBlockedCountries(blockedData || []);
     } catch (error) {
-      console.error('Error fetching geo data:', error);
+      log.error('Error fetching geo data:', error);
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
@@ -202,7 +203,7 @@ export function GeoBlockingPanel() {
       
       toast.success(`Modo alterado para: ${modeLabels[mode]}`);
     } catch (error) {
-      console.error('Error updating mode:', error);
+      log.error('Error updating mode:', error);
       toast.error('Erro ao alterar modo');
     }
   };
@@ -243,7 +244,7 @@ export function GeoBlockingPanel() {
       setSelectedCountry('');
       fetchData();
     } catch (error) {
-      console.error('Error adding country:', error);
+      log.error('Error adding country:', error);
       toast.error('Erro ao adicionar país');
     }
   };
@@ -265,7 +266,7 @@ export function GeoBlockingPanel() {
       setCountryToRemove(null);
       fetchData();
     } catch (error) {
-      console.error('Error removing country:', error);
+      log.error('Error removing country:', error);
       toast.error('Erro ao remover país');
     }
   };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { log } from '@/lib/logger';
 import {
   AlertTriangle,
   TrendingDown,
@@ -133,7 +134,7 @@ export function SentimentAlertsDashboard() {
       setAgents((agentsData || []) as AgentProfile[]);
 
     } catch (error) {
-      console.error('Error fetching sentiment data:', error);
+      log.error('Error fetching sentiment data:', error);
     } finally {
       setLoading(false);
     }

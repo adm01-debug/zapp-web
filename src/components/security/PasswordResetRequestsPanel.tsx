@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { Key, Clock, CheckCircle, XCircle, AlertTriangle, Search, User, Mail, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,7 +86,7 @@ export function PasswordResetRequestsPanel() {
       if (error) throw error;
       setRequests((data || []) as ResetRequest[]);
     } catch (error) {
-      console.error('Error fetching requests:', error);
+      log.error('Error fetching requests:', error);
       toast.error('Erro ao carregar solicitações');
     } finally {
       setLoading(false);
@@ -103,9 +104,9 @@ export function PasswordResetRequestsPanel() {
       
       toast.success('Solicitação aprovada! Email de reset enviado.');
       fetchRequests();
-    } catch (error: any) {
-      console.error('Error approving request:', error);
-      toast.error(error.message || 'Erro ao aprovar solicitação');
+    } catch (error) {
+      log.error('Error approving request:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao aprovar solicitação');
     } finally {
       setProcessing(false);
       setSelectedRequest(null);
@@ -132,9 +133,9 @@ export function PasswordResetRequestsPanel() {
       setRejectionReason('');
       setSelectedRequest(null);
       fetchRequests();
-    } catch (error: any) {
-      console.error('Error rejecting request:', error);
-      toast.error(error.message || 'Erro ao rejeitar solicitação');
+    } catch (error) {
+      log.error('Error rejecting request:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao rejeitar solicitação');
     } finally {
       setProcessing(false);
     }

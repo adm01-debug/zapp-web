@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { AchievementToast, AchievementType } from './AchievementToast';
 import { useAgentGamification, ACHIEVEMENT_TYPES, calculateLevel } from '@/hooks/useAgentGamification';
+import { log } from '@/lib/logger';
 
 interface Achievement {
   type: AchievementType;
@@ -121,7 +122,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
 
       showAchievement(toastType, message, xpReward);
     } catch (error) {
-      console.error('Error triggering fast response achievement:', error);
+      log.error('Error triggering fast response achievement:', error);
       // Still show toast even if DB fails
       if (seconds <= 30) {
         showAchievement('speed_demon', `Incrível! Respondeu em ${seconds}s!`, 50);
@@ -162,7 +163,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
 
       showAchievement('streak', message, xpReward);
     } catch (error) {
-      console.error('Error triggering streak achievement:', error);
+      log.error('Error triggering streak achievement:', error);
     }
   }, [grantAchievement, showAchievement]);
 
@@ -179,7 +180,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
 
       showAchievement('resolution', 'Cliente satisfeito! Problema resolvido!', 40);
     } catch (error) {
-      console.error('Error triggering resolution achievement:', error);
+      log.error('Error triggering resolution achievement:', error);
     }
   }, [incrementResolutions, grantAchievement, showAchievement]);
 
@@ -194,7 +195,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
 
       showAchievement('perfect_rating', 'O cliente deu nota máxima! ⭐⭐⭐⭐⭐', 75);
     } catch (error) {
-      console.error('Error triggering perfect rating achievement:', error);
+      log.error('Error triggering perfect rating achievement:', error);
     }
   }, [grantAchievement, showAchievement]);
 
@@ -209,7 +210,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
 
       showAchievement('level_up', `Você alcançou o Nível ${level}!`, 100);
     } catch (error) {
-      console.error('Error triggering level up achievement:', error);
+      log.error('Error triggering level up achievement:', error);
     }
   }, [grantAchievement, showAchievement]);
 
@@ -224,7 +225,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
 
       showAchievement('daily_goal', `Meta "${goal}" concluída!`, 60);
     } catch (error) {
-      console.error('Error triggering daily goal achievement:', error);
+      log.error('Error triggering daily goal achievement:', error);
     }
   }, [grantAchievement, showAchievement]);
 
@@ -251,7 +252,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
         );
       }
     } catch (error) {
-      console.error('Error tracking message sent:', error);
+      log.error('Error tracking message sent:', error);
     }
   }, [incrementMessages, updateStreak, grantAchievement, showAchievement, dbStats]);
 
@@ -259,7 +260,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     try {
       await incrementMessages('received');
     } catch (error) {
-      console.error('Error tracking message received:', error);
+      log.error('Error tracking message received:', error);
     }
   }, [incrementMessages]);
 

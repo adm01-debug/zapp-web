@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 type EntityType = 'lead' | 'contact' | 'deal' | 'activity' | 'call';
 
@@ -42,10 +43,10 @@ export const useBitrixApi = () => {
       }
 
       return response;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao comunicar com Bitrix';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao comunicar com Bitrix';
       setError(errorMessage);
-      console.error('Bitrix API error:', err);
+      log.error('Bitrix API error:', err);
       return null;
     } finally {
       setLoading(false);
