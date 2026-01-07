@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { log } from '@/lib/logger';
 
 export type SoundTypeOption = 'beep' | 'chime' | 'bell' | 'alert' | 'soft';
 
@@ -96,7 +97,7 @@ export const useNotificationSettings = () => {
           }));
         }
       } catch (error) {
-        console.warn('Failed to load notification settings:', error);
+        log.warn('Failed to load notification settings:', error);
       } finally {
         setIsLoading(false);
       }
@@ -174,7 +175,7 @@ export const useNotificationSettings = () => {
         if (error) throw error;
       }
     } catch (error) {
-      console.warn('Failed to save notification settings:', error);
+      log.warn('Failed to save notification settings:', error);
     } finally {
       setIsSaving(false);
     }
@@ -209,7 +210,7 @@ export const useNotificationSettings = () => {
           onConflict: 'user_id',
         });
     } catch (error) {
-      console.warn('Failed to reset notification settings:', error);
+      log.warn('Failed to reset notification settings:', error);
     }
   }, [user]);
 

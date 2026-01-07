@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
+import { log } from '@/lib/logger';
 
 interface PrefetchOptions {
   /**
@@ -61,7 +62,7 @@ export function usePrefetch<T>(
       prefetchCache.set(key, { data, timestamp: Date.now() });
       return data;
     } catch (error) {
-      console.warn(`Prefetch failed for ${key}:`, error);
+      log.warn(`Prefetch failed for ${key}:`, error);
       return null;
     } finally {
       pendingPrefetches.delete(key);
@@ -218,7 +219,7 @@ export function useCriticalDataPrefetch(
             const data = await fetch();
             prefetchCache.set(key, { data, timestamp: Date.now() });
           } catch (error) {
-            console.warn(`Failed to prefetch ${key}:`, error);
+            log.warn(`Failed to prefetch ${key}:`, error);
           }
         }
       }

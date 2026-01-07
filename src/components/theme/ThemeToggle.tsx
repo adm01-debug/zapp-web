@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Monitor, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,17 +38,8 @@ export function ThemeToggle({ collapsed = false, variant = 'full' }: ThemeToggle
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative w-9 h-9 rounded-xl">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={theme}
-                initial={{ scale: 0, rotate: -90 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 90 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Icon className="w-4 h-4" />
-              </motion.div>
-            </AnimatePresence>
+            <span className="sr-only">Alterar tema</span>
+            <Icon className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">

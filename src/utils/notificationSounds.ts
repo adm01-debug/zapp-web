@@ -1,4 +1,5 @@
 // Advanced notification sound system with customizable sounds
+import { log } from '@/lib/logger';
 
 let audioContext: AudioContext | null = null;
 
@@ -285,7 +286,7 @@ export const playNotificationSound = (
       }, delay * 1000);
     });
   } catch (error) {
-    console.warn('Could not play notification sound:', error);
+    log.warn('Could not play notification sound:', error);
   }
 };
 
@@ -297,7 +298,7 @@ export const previewSound = (soundType: SoundType, volume: number = 70) => {
 // Request notification permission
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!('Notification' in window)) {
-    console.warn('This browser does not support notifications');
+    log.warn('This browser does not support notifications');
     return false;
   }
 
