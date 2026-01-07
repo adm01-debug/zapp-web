@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 
 interface MessageStatusUpdate {
   id: string;
@@ -29,7 +30,7 @@ export const useMessageStatus = (contactId?: string) => {
           .not('status', 'is', null);
 
         if (error) {
-          console.error('Error fetching message statuses:', error);
+          log.error('Error fetching message statuses:', error);
           return;
         }
 
@@ -47,7 +48,7 @@ export const useMessageStatus = (contactId?: string) => {
           setStatusUpdates(statusMap);
         }
       } catch (err) {
-        console.error('Error in fetchInitialStatuses:', err);
+        log.error('Error in fetchInitialStatuses:', err);
       } finally {
         setIsLoading(false);
       }

@@ -481,7 +481,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       title: 'Botão clicado',
       description: `Resposta: ${button.title}`,
     });
-    console.log('Button clicked:', button);
+    log.debug('Button clicked:', button);
   };
 
   const handleSendLocation = (location: LocationMessage) => {
@@ -491,7 +491,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         ? `Localização em tempo real por ${location.liveUntil ? Math.round((location.liveUntil.getTime() - Date.now()) / 60000) : 15} minutos`
         : location.name || 'Localização compartilhada',
     });
-    console.log('Location sent:', location);
+    log.debug('Location sent:', location);
   };
 
   const handleSendProduct = (product: Product) => {
@@ -499,7 +499,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       title: 'Produto enviado!',
       description: `${product.name} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: product.currency }).format(product.price)}`,
     });
-    console.log('Product sent:', product);
+    log.debug('Product sent:', product);
   };
 
   const filteredQuickReplies = dbQuickReplies.filter(
@@ -1073,7 +1073,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
                   title: 'Arquivo enviado!',
                   description: 'O arquivo foi enviado com sucesso via WhatsApp.',
                 });
-                console.log('File sent:', result);
+                log.debug('File sent:', result);
               }}
             />
             
@@ -1285,7 +1285,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
         open={showGlobalSearch}
         onOpenChange={setShowGlobalSearch}
         onSelectResult={(result) => {
-          console.log('Selected:', result);
+          log.debug('Selected:', result);
           toast({
             title: "Resultado selecionado",
             description: result.title

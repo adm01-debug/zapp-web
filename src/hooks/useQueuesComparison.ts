@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { subDays } from 'date-fns';
+import { log } from '@/lib/logger';
 
 interface QueuePerformance {
   id: string;
@@ -128,7 +129,7 @@ export function useQueuesComparison(dateRange: DateRange) {
 
       setQueuesPerformance(performance);
     } catch (error) {
-      console.error('Error fetching queues comparison:', error);
+      log.error('Error fetching queues comparison:', error);
     } finally {
       setLoading(false);
     }

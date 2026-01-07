@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 interface MFAFactor {
   id: string;
@@ -33,8 +34,8 @@ export function useMFA() {
       
       setFactors(data.totp || []);
       return data.totp || [];
-    } catch (err: any) {
-      console.error('Error fetching MFA factors:', err);
+    } catch (err) {
+      log.error('Error fetching MFA factors:', err);
       return [];
     } finally {
       setLoading(false);
@@ -53,8 +54,9 @@ export function useMFA() {
 
       setEnrollmentData(data);
       return data;
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao iniciar enrollment MFA');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao iniciar enrollment MFA';
+      toast.error(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -81,8 +83,9 @@ export function useMFA() {
       setEnrollmentData(null);
       await fetchFactors();
       return data;
-    } catch (err: any) {
-      toast.error(err.message || 'Código inválido');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Código inválido';
+      toast.error(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -98,8 +101,9 @@ export function useMFA() {
 
       toast.success('MFA removido com sucesso');
       await fetchFactors();
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao remover MFA');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao remover MFA';
+      toast.error(errorMessage);
       throw err;
     } finally {
       setLoading(false);
