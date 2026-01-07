@@ -1,5 +1,6 @@
 import { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from '@/components/ui/motion';
+import { log } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -36,13 +37,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { toast } from 'sonner';
 
+interface FileMessageData {
+  mediaUrl?: string;
+  messageType?: string;
+  [key: string]: unknown;
+}
+
 interface FileUploaderProps {
   instanceName?: string;
   recipientNumber?: string;
   contactId?: string;
   connectionId?: string;
   onFileSelect?: (file: File, category: string) => void;
-  onFileSent?: (messageData: any) => void;
+  onFileSent?: (messageData: FileMessageData) => void;
   disabled?: boolean;
 }
 
@@ -294,9 +301,9 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
           });
 
         if (dbError) {
-          console.error('Error saving message to database:', dbError);
+          log.error('Error saving message to database:', dbError);
         } else {
-          console.log('Media message saved to database');
+          log.debug('Media message saved to database');
         }
       }
 
@@ -305,8 +312,9 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       toast.success('Arquivo enviado com sucesso!');
       onFileSent?.({ ...result, mediaUrl, messageType: category });
       handleClose();
-    } catch (error: any) {
-      console.error('Error sending file:', error);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
+      log.error('Error sending file:', error);
       toast.error(error.message || 'Erro ao enviar arquivo');
     } finally {
       setUploading(false);
@@ -394,8 +402,9 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
 
       onFileSent?.({ ...result, mediaUrl, messageType: category });
       return true;
-    } catch (error: any) {
-      console.error('Error sending queued file:', error);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
+      log.error('Error sending queued file:', error);
       setFileQueue(prev => prev.map((f, i) => 
         i === index ? { ...f, status: 'error', error: error.message } : f
       ));

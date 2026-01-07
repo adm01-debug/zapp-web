@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { Sparkles, Loader2, Check, MessageCircle, HelpCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,8 +60,9 @@ export function AISuggestions({ messages, contactName, onSelectSuggestion }: AIS
       if (data?.suggestions) {
         setSuggestions(data.suggestions);
       }
-    } catch (error: any) {
-      console.error('Error fetching suggestions:', error);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
+      log.error('Error fetching suggestions:', error);
       toast({
         title: "Erro ao gerar sugestões",
         description: error.message || "Tente novamente mais tarde.",

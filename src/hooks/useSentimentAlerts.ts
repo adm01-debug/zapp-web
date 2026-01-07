@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { playNotificationSound } from '@/utils/notificationSound';
 import { showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { log } from '@/lib/logger';
 
 interface SentimentAlertData {
   contactId: string;
@@ -34,7 +35,7 @@ export function useSentimentAlerts() {
       return { triggered: false, reason: 'Sentiment above threshold' };
     }
 
-    console.log('Checking sentiment alert for:', { contactName, sentimentScore, threshold, consecutiveRequired });
+    log.debug('Checking sentiment alert for:', { contactName, sentimentScore, threshold, consecutiveRequired });
 
     try {
       // Call edge function to check consecutive analyses and send alerts
@@ -66,8 +67,7 @@ export function useSentimentAlerts() {
             action: {
               label: 'Ver conversa',
               onClick: () => {
-                // User can click to see the conversation
-                console.log('Navigate to conversation:', contactId);
+                log.debug('Navigate to conversation:', contactId);
               },
             },
           }

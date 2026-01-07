@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 interface PushNotificationState {
   isSupported: boolean;
@@ -118,7 +119,7 @@ export function usePushNotifications() {
       setState(prev => ({ ...prev, isSubscribed: true }));
       toast.success('Notificações push ativadas!');
 
-      console.log('Push subscription:', JSON.stringify(subscription));
+      log.debug('Push subscription:', JSON.stringify(subscription));
 
       return subscription;
     } catch (error) {
