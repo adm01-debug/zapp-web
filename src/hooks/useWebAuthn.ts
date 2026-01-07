@@ -51,7 +51,7 @@ export function useWebAuthn() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to fetch passkeys:', error);
+      log.error('Failed to fetch passkeys:', error);
       return;
     }
 
@@ -245,13 +245,13 @@ export function useWebAuthn() {
         userEmail: verifyData.userEmail,
       };
 
-    } catch (error: any) {
-      console.error('Passkey authentication error:', error);
+    } catch (error) {
+      log.error('Passkey authentication error:', error);
       
-      if (error.name === 'NotAllowedError') {
+      if (error instanceof Error && error.name === 'NotAllowedError') {
         toast.error('Autenticação cancelada pelo usuário');
       } else {
-        toast.error(error.message || 'Falha na autenticação com passkey');
+        toast.error(error instanceof Error ? error.message : 'Falha na autenticação com passkey');
       }
       
       return { success: false };
@@ -279,8 +279,8 @@ export function useWebAuthn() {
       await fetchPasskeys();
       return { success: true };
 
-    } catch (error: any) {
-      console.error('Failed to delete passkey:', error);
+    } catch (error) {
+      log.error('Failed to delete passkey:', error);
       toast.error('Falha ao remover passkey');
       return { success: false };
     } finally {
@@ -305,8 +305,8 @@ export function useWebAuthn() {
       await fetchPasskeys();
       return { success: true };
 
-    } catch (error: any) {
-      console.error('Failed to rename passkey:', error);
+    } catch (error) {
+      log.error('Failed to rename passkey:', error);
       toast.error('Falha ao renomear passkey');
       return { success: false };
     }

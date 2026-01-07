@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 export interface Queue {
   id: string;
@@ -88,7 +89,7 @@ export function useQueues() {
       setQueues(queuesWithMembers);
       setError(null);
     } catch (err) {
-      console.error('Error fetching queues:', err);
+      log.error('Error fetching queues:', err);
       setError(err as Error);
     } finally {
       setLoading(false);
@@ -119,7 +120,7 @@ export function useQueues() {
       await fetchQueues();
       return data;
     } catch (err) {
-      console.error('Error creating queue:', err);
+      log.error('Error creating queue:', err);
       toast({
         title: 'Erro ao criar fila',
         description: 'Não foi possível criar a fila.',
@@ -145,7 +146,7 @@ export function useQueues() {
 
       await fetchQueues();
     } catch (err) {
-      console.error('Error updating queue:', err);
+      log.error('Error updating queue:', err);
       toast({
         title: 'Erro ao atualizar fila',
         description: 'Não foi possível atualizar a fila.',
@@ -171,7 +172,7 @@ export function useQueues() {
 
       await fetchQueues();
     } catch (err) {
-      console.error('Error deleting queue:', err);
+      log.error('Error deleting queue:', err);
       toast({
         title: 'Erro ao excluir fila',
         description: 'Não foi possível excluir a fila.',
@@ -199,7 +200,7 @@ export function useQueues() {
 
       await fetchQueues();
     } catch (err) {
-      console.error('Error adding member:', err);
+      log.error('Error adding member:', err);
       toast({
         title: 'Erro ao adicionar membro',
         description: 'Não foi possível adicionar o atendente.',
@@ -226,7 +227,7 @@ export function useQueues() {
 
       await fetchQueues();
     } catch (err) {
-      console.error('Error removing member:', err);
+      log.error('Error removing member:', err);
       toast({
         title: 'Erro ao remover membro',
         description: 'Não foi possível remover o atendente.',
@@ -252,7 +253,7 @@ export function useQueues() {
           : 'O contato foi removido da fila.'
       });
     } catch (err) {
-      console.error('Error assigning contact:', err);
+      log.error('Error assigning contact:', err);
       toast({
         title: 'Erro ao atribuir contato',
         description: 'Não foi possível atribuir o contato à fila.',

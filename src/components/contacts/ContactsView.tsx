@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from '@/components/ui/motion';
+import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -165,7 +166,7 @@ export function ContactsView() {
 
     if (error) {
       toast.error('Erro ao carregar contatos');
-      console.error(error);
+      log.error('Error fetching contacts:', error);
     } else {
       setContacts(data || []);
     }
@@ -259,7 +260,7 @@ export function ContactsView() {
 
     if (error) {
       toast.error('Erro ao adicionar contato');
-      console.error(error);
+      log.error('Error adding contact:', error);
     } else {
       toast.success('Contato adicionado com sucesso');
       setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
@@ -287,7 +288,7 @@ export function ContactsView() {
 
     if (error) {
       toast.error('Erro ao atualizar contato');
-      console.error(error);
+      log.error('Error updating contact:', error);
     } else {
       toast.success('Contato atualizado com sucesso');
       setIsEditDialogOpen(false);
@@ -301,7 +302,7 @@ export function ContactsView() {
 
     if (error) {
       toast.error('Erro ao excluir contato');
-      console.error(error);
+      log.error('Error deleting contact:', error);
     } else {
       toast.success('Contato excluído');
       fetchContacts();

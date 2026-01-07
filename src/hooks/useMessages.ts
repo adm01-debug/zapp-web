@@ -55,7 +55,7 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
 
       setMessages((data || []) as Message[]);
     } catch (err) {
-      console.error('Error fetching messages:', err);
+      log.error('Error fetching messages:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch messages');
     } finally {
       setLoading(false);

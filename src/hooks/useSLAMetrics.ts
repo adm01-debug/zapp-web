@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, subDays, startOfWeek, startOfMonth } from 'date-fns';
+import { log } from '@/lib/logger';
 
 export type PeriodFilter = 'today' | 'week' | 'month' | 'all';
 
@@ -172,7 +173,7 @@ export const useSLAMetrics = (period: PeriodFilter = 'today') => {
 
         setData({ overall, byAgent });
       } catch (error) {
-        console.error('Error fetching SLA metrics:', error);
+        log.error('Error fetching SLA metrics:', error);
       } finally {
         setLoading(false);
       }
