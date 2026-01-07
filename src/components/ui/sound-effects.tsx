@@ -1,4 +1,5 @@
 import { useCallback, useRef, useEffect, createContext, useContext, useState, ReactNode } from 'react';
+import { log } from '@/lib/logger';
 
 // Sound effect types
 export type SoundEffectType = 
@@ -218,7 +219,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         }, delay * 1000);
       });
     } catch (error) {
-      console.warn('Could not play sound:', error);
+      log.warn('Could not play sound:', error);
     }
   }, [enabled, volume, getAudioContext]);
 

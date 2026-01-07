@@ -1,4 +1,6 @@
 // Notification sound utilities
+import { log } from '@/lib/logger';
+
 let audioContext: AudioContext | null = null;
 
 const getAudioContext = () => {
@@ -60,7 +62,7 @@ export const playNotificationSound = (type: 'message' | 'mention' | 'alert' = 'm
       }, 100);
     }
   } catch (error) {
-    console.warn('Could not play notification sound:', error);
+    log.warn('Could not play notification sound:', error);
   }
 };
 

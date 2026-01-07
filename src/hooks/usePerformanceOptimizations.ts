@@ -84,23 +84,13 @@ export function usePerformanceMetrics() {
   return metrics;
 }
 
-// Debounced value hook
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+// Re-export from usePerformance for backwards compatibility
+export { useDebounce, useThrottle } from './usePerformance';
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
+// Throttled callback hook (different signature - for callbacks)
+type AnyFunction = (...args: unknown[]) => unknown;
 
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-
-  return debouncedValue;
-}
-
-// Throttled callback hook
-export function useThrottle<T extends (...args: any[]) => any>(
+export function useThrottledCallback<T extends AnyFunction>(
   callback: T,
   delay: number
 ): T {

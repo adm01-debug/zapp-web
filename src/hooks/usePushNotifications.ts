@@ -150,7 +150,7 @@ export function usePushNotifications() {
 
   const showNotification = useCallback(async (payload: NotificationPayload): Promise<boolean> => {
     if (state.permission !== 'granted') {
-      console.warn('Notification permission not granted');
+      log.warn('Notification permission not granted');
       return false;
     }
 
