@@ -71,7 +71,7 @@ export function SwipeToReply({
     setIsDragging(true);
   };
 
-  const handleDrag = (_: any, info: PanInfo) => {
+  const handleDrag = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const offset = info.offset.x;
     const triggered = isLeftSwipe ? offset < -threshold : offset > threshold;
     
@@ -83,7 +83,7 @@ export function SwipeToReply({
     }
   };
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     setIsDragging(false);
     setIsTriggered(false);
     

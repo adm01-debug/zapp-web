@@ -255,7 +255,7 @@ export function SwipeableDrawer({
     half: 'h-[50vh]',
   };
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (side === 'bottom') {
       if (info.offset.y > 100 || info.velocity.y > 500) {
         onClose();
