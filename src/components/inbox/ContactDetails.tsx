@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { Conversation, Agent } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -268,7 +269,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <ConversationHistory 
             contactId={contact.id || contact.phone} 
             contactPhone={contact.phone}
-            onSelectConversation={(id) => console.log('Selected conversation:', id)}
+            onSelectConversation={(id) => log.debug('Selected conversation:', id)}
           />
         </motion.div>
         <motion.div 

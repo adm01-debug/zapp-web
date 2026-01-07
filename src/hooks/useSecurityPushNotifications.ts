@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 interface SecurityAlert {
   id: string;
@@ -21,7 +22,7 @@ export function useSecurityPushNotifications() {
 
   const sendSecurityNotification = useCallback(async (alert: SecurityAlert) => {
     if (permission !== 'granted' || !isSubscribed) {
-      console.log('Push notifications not available, using toast fallback');
+      log.debug('Push notifications not available, using toast fallback');
       
       // Fallback to toast notification
       const toastType = alert.severity === 'high' || alert.severity === 'critical' 
@@ -64,14 +65,14 @@ export function useSecurityPushNotifications() {
       vibrate: isUrgent ? [300, 100, 300, 100, 300] : [200, 100, 200],
     });
 
-    console.log('Security notification sent:', alert.title);
+    log.debug('Security notification sent:', alert.title);
   }, [permission, isSubscribed, showNotification]);
 
   // Subscribe to realtime security alerts
   useEffect(() => {
     if (!user) return;
 
-    console.log('Setting up security alerts subscription for user:', user.id);
+    log.debug('Setting up security alerts subscription for user:', user.id);
 
     const channel = supabase
       .channel('security-alerts-push')
@@ -84,17 +85,17 @@ export function useSecurityPushNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('New security alert received:', payload);
+          log.debug('New security alert received:', payload);
           const alert = payload.new as SecurityAlert;
           sendSecurityNotification(alert);
         }
       )
       .subscribe((status) => {
-        console.log('Security alerts subscription status:', status);
+        log.debug('Security alerts subscription status:', status);
       });
 
     return () => {
-      console.log('Cleaning up security alerts subscription');
+      log.debug('Cleaning up security alerts subscription');
       supabase.removeChannel(channel);
     };
   }, [user, sendSecurityNotification]);
@@ -102,7 +103,7 @@ export function useSecurityPushNotifications() {
   // Listen for service worker messages
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log('Message from service worker:', event.data);
+      log.debug('Message from service worker:', event.data);
 
       if (event.data.type === 'SECURITY_ACTION') {
         // Navigate to security view or take action

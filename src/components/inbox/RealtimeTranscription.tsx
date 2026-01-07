@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { log } from '@/lib/logger';
 
 interface RealtimeTranscriptionProps {
   onTranscript?: (text: string, isFinal: boolean) => void;
@@ -25,15 +26,15 @@ export function RealtimeTranscription({
     modelId: 'scribe_v2_realtime',
     commitStrategy: CommitStrategy.VAD, // Use VAD for automatic speech detection
     onPartialTranscript: (data) => {
-      console.log('Partial transcript:', data.text);
+      log.debug('Partial transcript:', data.text);
       onTranscript?.(data.text, false);
     },
     onCommittedTranscript: (data) => {
-      console.log('Committed transcript:', data.text);
+      log.debug('Committed transcript:', data.text);
       onTranscript?.(data.text, true);
     },
     onCommittedTranscriptWithTimestamps: (data) => {
-      console.log('Committed with timestamps:', data.text, data.words);
+      log.debug('Committed with timestamps:', data.text, data.words);
     },
   });
 
@@ -62,7 +63,7 @@ export function RealtimeTranscription({
       }
 
       tokenRef.current = data.token;
-      console.log('Token received, connecting to ElevenLabs...');
+      log.debug('Token received, connecting to ElevenLabs...');
 
       // Connect with microphone
       await scribe.connect({

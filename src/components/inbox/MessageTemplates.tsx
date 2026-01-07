@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { FileText, Plus, Search, Trash2, Edit2, X, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,8 +51,8 @@ export function MessageTemplates({ onSelectTemplate }: MessageTemplatesProps) {
 
       if (error) throw error;
       setTemplates(data || []);
-    } catch (error: any) {
-      console.error('Error fetching templates:', error);
+    } catch (err) {
+      log.error('Error fetching templates:', err);
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +107,8 @@ export function MessageTemplates({ onSelectTemplate }: MessageTemplatesProps) {
       setNewTemplate({ title: '', content: '', shortcut: '', category: 'general' });
       setShowAddForm(false);
       fetchTemplates();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
       toast({
         title: "Erro ao criar template",
         description: error.message,
@@ -138,10 +140,10 @@ export function MessageTemplates({ onSelectTemplate }: MessageTemplatesProps) {
 
       setEditingTemplate(null);
       fetchTemplates();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
       toast({
         title: "Erro ao atualizar",
-        description: error.message,
         variant: "destructive"
       });
     }
@@ -162,10 +164,10 @@ export function MessageTemplates({ onSelectTemplate }: MessageTemplatesProps) {
       });
 
       fetchTemplates();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
       toast({
         title: "Erro ao excluir",
-        description: error.message,
         variant: "destructive"
       });
     }

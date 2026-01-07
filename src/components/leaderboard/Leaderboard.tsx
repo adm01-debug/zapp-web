@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 import {
   Trophy,
   Medal,
@@ -401,7 +402,7 @@ export function Leaderboard() {
           table: 'agent_stats',
         },
         () => {
-          console.log('Agent stats updated, refreshing leaderboard...');
+          log.debug('Agent stats updated, refreshing leaderboard...');
           fetchLeaderboard();
         }
       )

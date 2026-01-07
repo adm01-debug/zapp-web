@@ -30,24 +30,24 @@ class Logger {
     return true;
   }
 
-  debug(message: string, context?: LogContext): void {
+  debug(message: string, ...args: unknown[]): void {
     if (!this.shouldLog('debug')) return;
-    console.debug(this.formatMessage('debug', message, context), context || '');
+    console.debug(this.formatMessage('debug', message), ...args);
   }
 
-  info(message: string, context?: LogContext): void {
+  info(message: string, ...args: unknown[]): void {
     if (!this.shouldLog('info')) return;
-    console.info(this.formatMessage('info', message, context), context || '');
+    console.info(this.formatMessage('info', message), ...args);
   }
 
-  warn(message: string, context?: LogContext): void {
+  warn(message: string, ...args: unknown[]): void {
     if (!this.shouldLog('warn')) return;
-    console.warn(this.formatMessage('warn', message, context), context || '');
+    console.warn(this.formatMessage('warn', message), ...args);
   }
 
-  error(message: string, error?: Error | unknown, context?: LogContext): void {
+  error(message: string, ...args: unknown[]): void {
     if (!this.shouldLog('error')) return;
-    console.error(this.formatMessage('error', message, context), error, context || '');
+    console.error(this.formatMessage('error', message), ...args);
   }
 }
 
@@ -59,7 +59,8 @@ export function createLogger(module: string): Logger {
 // Default logger for quick usage
 export const logger = new Logger('App');
 
-// Specific module loggers (lazy-loaded)
+// Shorthand export for convenience
+export const log = logger;
 const loggers: Record<string, Logger> = {};
 
 export function getLogger(module: string): Logger {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { log } from '@/lib/logger';
 import { Conversation, Message, QuickReply, InteractiveMessage, InteractiveButton, LocationMessage, MessageReaction } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -204,7 +205,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
     if (inputValue.trim()) {
       // In real implementation, include replyTo data
       if (replyToMessage) {
-        console.log('Sending reply to:', replyToMessage.id);
+        log.debug('Sending reply to:', replyToMessage.id);
         toast({
           title: 'Resposta enviada',
           description: `Respondendo a: "${replyToMessage.content.slice(0, 30)}..."`,
@@ -252,8 +253,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
 
   const handleForwardToTargets = (targetIds: string[], targetType: 'contact' | 'group') => {
     // In a real implementation, this would send via WhatsApp API
-    console.log('Forwarding to:', { targetIds, targetType, message: forwardMessage });
-    // The toast is shown in the ForwardMessageDialog component
+    log.debug('Forwarding to:', { targetIds, targetType, message: forwardMessage });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -447,7 +447,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
   };
 
   const handleScheduleMessage = (message: string, scheduledAt: Date, attachment?: File) => {
-    console.log('Scheduled message:', { message, scheduledAt, attachment });
+    log.debug('Scheduled message:', { message, scheduledAt, attachment });
   };
 
   const handleAudioSend = (audioBlob: Blob) => {
@@ -473,7 +473,7 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
       title: 'Mensagem interativa enviada!',
       description: `Mensagem com ${interactive.buttons?.length || 0} botões enviada.`,
     });
-    console.log('Interactive message:', interactive);
+    log.debug('Interactive message:', interactive);
   };
 
   const handleInteractiveButtonClick = (button: InteractiveButton) => {

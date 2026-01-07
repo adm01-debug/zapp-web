@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { log } from '@/lib/logger';
 
 export interface Message {
   id: string;
@@ -151,7 +152,7 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
         handleMessageDelete
       )
       .subscribe((status) => {
-        console.log(`Messages realtime subscription (${contactId}):`, status);
+        log.debug(`Messages realtime subscription (${contactId}):`, status);
       });
 
     return () => {
