@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ConversationWithMessages } from '@/hooks/useRealtimeMessages';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -55,24 +55,27 @@ export function VirtualizedRealtimeList({
   const isMobile = useIsMobile();
   const [recentlyActioned, setRecentlyActioned] = useState<Set<string>>(new Set());
 
-  // Sort conversations: pinned first, then by last message date
-  const sortedConversations = [...conversations].sort((a, b) => {
-    const aIsPinned = pinnedIds.has(a.contact.id);
-    const bIsPinned = pinnedIds.has(b.contact.id);
-    
-    if (aIsPinned && !bIsPinned) return -1;
-    if (!aIsPinned && bIsPinned) return 1;
-    
-    const aTime = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : 0;
-    const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
-    return bTime - aTime;
-  });
+  const sortedConversations = useMemo(() => {
+    // Sort conversations: pinned first, then by last message date
+    return [...conversations].sort((a, b) => {
+      const aIsPinned = pinnedIds.has(a.contact.id);
+      const bIsPinned = pinnedIds.has(b.contact.id);
+
+      if (aIsPinned && !bIsPinned) return -1;
+      if (!aIsPinned && bIsPinned) return 1;
+
+      const aTime = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : 0;
+      const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
+      return bTime - aTime;
+    });
+  }, [conversations, pinnedIds]);
 
   const virtualizer = useVirtualizer({
     count: sortedConversations.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => ITEM_HEIGHT,
     overscan: 5,
+    getItemKey: (index) => sortedConversations[index]?.contact.id ?? index,
   });
 
   const handleClick = (contactId: string, e: React.MouseEvent) => {
