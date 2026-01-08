@@ -189,7 +189,7 @@ export function useIntersectionPrefetch<T>(
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasPrefetched.current) {
             hasPrefetched.current = true;
-            fetcher().catch(console.warn);
+            fetcher().catch((err) => log.warn('Intersection prefetch failed:', err));
             observer.disconnect();
           }
         });

@@ -102,7 +102,7 @@ export function useRenderCount(componentName: string): number {
   useEffect(() => {
     renderCount.current += 1;
     if (process.env.NODE_ENV === 'development') {
-      console.log(`${componentName} rendered ${renderCount.current} times`);
+      log.debug(`${componentName} rendered ${renderCount.current} times`);
     }
   });
 
@@ -353,7 +353,7 @@ export function usePerformanceMonitor(
     if (startTime.current && process.env.NODE_ENV === 'development') {
       const renderTime = performance.now() - startTime.current;
       if (renderTime > threshold) {
-        console.warn(
+        log.warn(
           `⚠️ Slow render in ${componentName}: ${renderTime.toFixed(2)}ms (threshold: ${threshold}ms)`
         );
       }
