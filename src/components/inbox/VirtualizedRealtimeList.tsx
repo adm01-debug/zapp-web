@@ -45,11 +45,19 @@ interface VirtualizedRealtimeListProps {
 }
 
 const ITEM_HEIGHT = 88;
+const EMPTY_SET: ReadonlySet<string> = new Set();
 
 export function VirtualizedRealtimeList({
-  conversations, selectedContactId, onSelectConversation, selectionMode = false,
-  selectedIds = new Set(), onToggleSelection, onMarkAsRead, onArchive, onPin,
-  pinnedIds = new Set(),
+  conversations,
+  selectedContactId,
+  onSelectConversation,
+  selectionMode = false,
+  selectedIds = EMPTY_SET as Set<string>,
+  onToggleSelection,
+  onMarkAsRead,
+  onArchive,
+  onPin,
+  pinnedIds = EMPTY_SET as Set<string>,
 }: VirtualizedRealtimeListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
