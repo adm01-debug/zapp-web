@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { log } from '@/lib/logger';
 
 interface TypingUser {
   oderId: string;
@@ -44,7 +45,7 @@ export function useTypingPresence({
         lastTyped: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error tracking typing status:', error);
+      log.error('Error tracking typing status:', error);
     }
   }, [currentUserId, currentUserName]);
 
@@ -112,18 +113,18 @@ export function useTypingPresence({
 
     // Handle join event
     channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-      console.log('User joined typing channel:', key, newPresences);
+      log.debug('User joined typing channel:', key, newPresences);
     });
 
     // Handle leave event
     channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-      console.log('User left typing channel:', key, leftPresences);
+      log.debug('User left typing channel:', key, leftPresences);
     });
 
     // Subscribe to channel
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('Subscribed to typing presence for conversation:', conversationId);
+        log.debug('Subscribed to typing presence for conversation:', conversationId);
       }
     });
 

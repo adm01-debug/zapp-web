@@ -61,7 +61,7 @@ export const useMessageStatus = (contactId?: string) => {
   useEffect(() => {
     if (!contactId) return;
 
-    console.log('Setting up realtime status subscription for contact:', contactId);
+    log.debug('Setting up realtime status subscription for contact:', contactId);
 
     const channel = supabase
       .channel(`message-status-${contactId}`)
@@ -74,7 +74,7 @@ export const useMessageStatus = (contactId?: string) => {
           filter: `contact_id=eq.${contactId}`,
         },
         (payload) => {
-          console.log('Message status update received:', payload);
+          log.debug('Message status update received:', payload);
           const newData = payload.new as { id: string; status: string; status_updated_at: string };
           
           if (newData.status) {
@@ -91,11 +91,11 @@ export const useMessageStatus = (contactId?: string) => {
         }
       )
       .subscribe((status) => {
-        console.log('Status subscription status:', status);
+        log.debug('Status subscription status:', status);
       });
 
     return () => {
-      console.log('Cleaning up status subscription');
+      log.debug('Cleaning up status subscription');
       supabase.removeChannel(channel);
     };
   }, [contactId]);
