@@ -22,6 +22,8 @@ import {
   Globe,
   Contrast,
   ChevronDown,
+  Search,
+  Command,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -154,6 +156,31 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
             )}
           </Button>
         </motion.div>
+      </div>
+
+      {/* Search / Command Palette Button */}
+      <div className="relative px-3 py-2">
+        <motion.button
+          onClick={() => document.dispatchEvent(new Event('open-command-palette'))}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300",
+            "bg-muted/30 hover:bg-muted/50 border border-border/50 hover:border-secondary/50",
+            "text-muted-foreground hover:text-foreground group"
+          )}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          aria-label="Abrir busca universal (Ctrl+K ou ⌘K)"
+        >
+          <Search className="h-4 w-4 text-muted-foreground group-hover:text-secondary transition-colors" />
+          {!isCollapsed && (
+            <>
+              <span className="flex-1 text-left text-sm">Buscar...</span>
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-background/80 rounded text-[10px] font-mono text-muted-foreground border border-border/50">
+                <Command className="h-2.5 w-2.5" />K
+              </kbd>
+            </>
+          )}
+        </motion.button>
       </div>
 
       {/* Navigation */}

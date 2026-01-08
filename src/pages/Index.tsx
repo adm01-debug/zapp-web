@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -25,6 +25,8 @@ import { TourProvider, DEFAULT_ONBOARDING_STEPS, useTour } from '@/components/on
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
 import { BottomNavigation, MobileDrawer } from '@/components/ui/mobile-components';
+import { CommandPaletteButton } from '@/components/ui/command-palette-button';
+import { useGlobalKeyboard } from '@/components/keyboard/GlobalKeyboardProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
@@ -43,6 +45,15 @@ function IndexContent() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Import and use global keyboard context for Command Palette navigation
+  const { registerNavigationHandler, unregisterNavigationHandler } = useGlobalKeyboard();
+  
+  // Register navigation handler for Command Palette
+  useEffect(() => {
+    registerNavigationHandler(setCurrentView);
+    return () => unregisterNavigationHandler();
+  }, [registerNavigationHandler, unregisterNavigationHandler]);
   
   // Enable transcription notifications globally
   useTranscriptionNotifications({ enabled: !!user });
