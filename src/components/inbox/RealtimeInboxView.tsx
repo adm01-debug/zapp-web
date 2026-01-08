@@ -646,6 +646,8 @@ export function RealtimeInboxView() {
                 conversation={legacyConversation}
                 messages={legacyMessages}
                 onSendMessage={handleSendMessage}
+                showDetails={showDetails}
+                onToggleDetails={() => setShowDetails(!showDetails)}
               />
             </div>
             {showDetails && (
