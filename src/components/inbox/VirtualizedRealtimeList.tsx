@@ -44,7 +44,7 @@ interface VirtualizedRealtimeListProps {
   pinnedIds?: Set<string>;
 }
 
-const ITEM_HEIGHT = 90;
+const ITEM_HEIGHT = 88;
 
 export function VirtualizedRealtimeList({
   conversations, selectedContactId, onSelectConversation, selectionMode = false,
@@ -146,7 +146,7 @@ export function VirtualizedRealtimeList({
               transition={{ duration: 0.2 }}
               onClick={(e) => handleClick(conversation.contact.id, e)}
               className={cn(
-                'w-full p-3 rounded-xl flex items-start gap-3 transition-all text-left h-full hover:bg-muted/50',
+                'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
                 selectedContactId === conversation.contact.id && 'bg-primary/10 border border-primary/20',
                 isSelected && 'bg-primary/20 border border-primary/30',
                 isPinned && 'bg-primary/5 border-l-2 border-l-primary'
@@ -164,14 +164,15 @@ export function VirtualizedRealtimeList({
                 </div>
               )}
               <div className="relative flex-shrink-0">
-                <Avatar className="w-12 h-12">
+                <Avatar className="w-11 h-11">
                   <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
                     {conversation.contact.name
-                      .split(' ')
+                      ?.split(' ')
                       .map((n) => n[0])
                       .join('')
-                      .slice(0, 2)}
+                      .slice(0, 2)
+                      .toUpperCase() || '??'}
                   </AvatarFallback>
                 </Avatar>
                 {conversation.unreadCount > 0 && (
@@ -180,42 +181,49 @@ export function VirtualizedRealtimeList({
                   </span>
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     {isPinned && <Pin className="w-3 h-3 text-primary flex-shrink-0" />}
-                    <span className="font-medium text-foreground truncate">{conversation.contact.name}</span>
-                  </div>
-                  {conversation.lastMessage && (
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
-                      {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
-                        addSuffix: false,
-                        locale: ptBR,
-                      })}
+                    <span className="font-medium text-foreground truncate text-sm">
+                      {conversation.contact.name || 'Sem nome'}
                     </span>
-                  )}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {conversation.lastMessage && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
+                          addSuffix: false,
+                          locale: ptBR,
+                        })}
+                      </span>
+                    )}
+                    {conversation.lastMessage && (
+                      <SentimentEmoji
+                        sentiment={analyzeMessageSentiment(conversation.lastMessage.content).sentiment}
+                        animated={false}
+                      />
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground truncate">
                   {conversation.lastMessage?.content || 'Sem mensagens'}
                 </p>
                 {conversation.contact.tags && conversation.contact.tags.length > 0 && (
-                  <div className="flex gap-1 mt-1">
+                  <div className="flex gap-1 mt-1.5">
                     {conversation.contact.tags.slice(0, 2).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">
+                      <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0 h-4">
                         {tag}
                       </Badge>
                     ))}
+                    {conversation.contact.tags.length > 2 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        +{conversation.contact.tags.length - 2}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
-              {conversation.lastMessage && (
-                <div className="flex-shrink-0 self-center">
-                  <SentimentEmoji
-                    sentiment={analyzeMessageSentiment(conversation.lastMessage.content).sentiment}
-                    animated={false}
-                  />
-                </div>
-              )}
             </motion.button>
           );
 
