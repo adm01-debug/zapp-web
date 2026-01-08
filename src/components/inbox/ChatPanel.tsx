@@ -80,6 +80,7 @@ import {
   MapPin,
   Package,
   Brain,
+  Info,
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -89,6 +90,8 @@ interface ChatPanelProps {
   conversation: Conversation;
   messages: Message[];
   onSendMessage: (content: string) => void;
+  showDetails?: boolean;
+  onToggleDetails?: () => void;
 }
 
 // Mock reactions data with new format
@@ -131,7 +134,7 @@ function MessageStatusIcon({ status }: { status: Message['status'] }) {
   }
 }
 
-export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelProps) {
+export function ChatPanel({ conversation, messages, onSendMessage, showDetails = false, onToggleDetails }: ChatPanelProps) {
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
@@ -687,6 +690,22 @@ export function ChatPanel({ conversation, messages, onSendMessage }: ChatPanelPr
               <Brain className="w-4 h-4" />
             </Button>
           </motion.div>
+          {onToggleDetails && (
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={cn(
+                  "text-muted-foreground hover:text-primary hover:bg-primary/10",
+                  showDetails && "text-primary bg-primary/10"
+                )}
+                onClick={onToggleDetails}
+                title="Detalhes do contato"
+              >
+                <Info className="w-4 h-4" />
+              </Button>
+            </motion.div>
+          )}
           <VoiceSelector
             selectedVoiceId={voiceId}
             onVoiceChange={setVoiceId}

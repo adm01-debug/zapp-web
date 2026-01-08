@@ -27,15 +27,18 @@ import {
   PhoneCall,
   Search,
   Brain,
+  Info,
 } from 'lucide-react';
 
 interface ChatHeaderProps {
   conversation: Conversation;
   isContactTyping: boolean;
   showAIAssistant: boolean;
+  showDetails: boolean;
   voiceId: string;
   speed: number;
   onToggleAIAssistant: () => void;
+  onToggleDetails: () => void;
   onStartCall: () => void;
   onOpenSearch: () => void;
   onOpenTransfer: () => void;
@@ -48,9 +51,11 @@ export function ChatHeader({
   conversation,
   isContactTyping,
   showAIAssistant,
+  showDetails,
   voiceId,
   speed,
   onToggleAIAssistant,
+  onToggleDetails,
   onStartCall,
   onOpenSearch,
   onOpenTransfer,
@@ -179,6 +184,26 @@ export function ChatHeader({
             </motion.div>
           </TooltipTrigger>
           <TooltipContent>Assistente IA</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={cn(
+                  "text-muted-foreground hover:text-primary hover:bg-primary/10",
+                  showDetails && "text-primary bg-primary/10"
+                )}
+                onClick={onToggleDetails}
+                aria-label="Detalhes do contato"
+              >
+                <Info className="w-4 h-4" />
+              </Button>
+            </motion.div>
+          </TooltipTrigger>
+          <TooltipContent>Detalhes do contato</TooltipContent>
         </Tooltip>
 
         <VoiceSelector
