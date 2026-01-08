@@ -12,7 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 import { Pin } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 function analyzeMessageSentiment(content: string): { sentiment: SentimentLevel; score: number } {
   const lowerContent = content.toLowerCase();
@@ -130,121 +130,136 @@ export function VirtualizedRealtimeList({
   return (
     <div ref={parentRef} className="h-full overflow-auto scrollbar-thin">
       <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-        <AnimatePresence>
-          {virtualizer.getVirtualItems().map((virtualRow) => {
-            const conversation = sortedConversations[virtualRow.index];
-            const isSelected = selectedIds.has(conversation.contact.id);
-            const isPinned = pinnedIds.has(conversation.contact.id);
-            const wasActioned = recentlyActioned.has(conversation.contact.id);
-            
-            const itemContent = (
-              <motion.button
-                initial={false}
-                animate={{ 
-                  scale: wasActioned ? 0.98 : 1,
-                  opacity: wasActioned ? 0.7 : 1,
-                }}
-                transition={{ duration: 0.2 }}
-                onClick={(e) => handleClick(conversation.contact.id, e)}
-                className={cn(
-                  'w-full p-3 rounded-xl flex items-start gap-3 transition-all text-left h-full hover:bg-muted/50',
-                  selectedContactId === conversation.contact.id && 'bg-primary/10 border border-primary/20',
-                  isSelected && 'bg-primary/20 border border-primary/30',
-                  isPinned && 'bg-primary/5 border-l-2 border-l-primary'
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const conversation = sortedConversations[virtualRow.index];
+          const isSelected = selectedIds.has(conversation.contact.id);
+          const isPinned = pinnedIds.has(conversation.contact.id);
+          const wasActioned = recentlyActioned.has(conversation.contact.id);
+
+          const itemContent = (
+            <motion.button
+              initial={false}
+              animate={{
+                scale: wasActioned ? 0.98 : 1,
+                opacity: wasActioned ? 0.7 : 1,
+              }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => handleClick(conversation.contact.id, e)}
+              className={cn(
+                'w-full p-3 rounded-xl flex items-start gap-3 transition-all text-left h-full hover:bg-muted/50',
+                selectedContactId === conversation.contact.id && 'bg-primary/10 border border-primary/20',
+                isSelected && 'bg-primary/20 border border-primary/30',
+                isPinned && 'bg-primary/5 border-l-2 border-l-primary'
+              )}
+            >
+              {selectionMode && (
+                <div
+                  className="flex-shrink-0 flex items-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSelection?.(conversation.contact.id);
+                  }}
+                >
+                  <Checkbox checked={isSelected} className="data-[state=checked]:bg-primary" />
+                </div>
+              )}
+              <div className="relative flex-shrink-0">
+                <Avatar className="w-12 h-12">
+                  <AvatarImage src={conversation.contact.avatar_url || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {conversation.contact.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                {conversation.unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
+                    {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                  </span>
                 )}
-              >
-                {selectionMode && (
-                  <div className="flex-shrink-0 flex items-center" onClick={(e) => { e.stopPropagation(); onToggleSelection?.(conversation.contact.id); }}>
-                    <Checkbox checked={isSelected} className="data-[state=checked]:bg-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {isPinned && <Pin className="w-3 h-3 text-primary flex-shrink-0" />}
+                    <span className="font-medium text-foreground truncate">{conversation.contact.name}</span>
                   </div>
-                )}
-                <div className="relative flex-shrink-0">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {conversation.unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
-                      {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                  {conversation.lastMessage && (
+                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                      {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
+                        addSuffix: false,
+                        locale: ptBR,
+                      })}
                     </span>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {isPinned && (
-                        <Pin className="w-3 h-3 text-primary flex-shrink-0" />
-                      )}
-                      <span className="font-medium text-foreground truncate">{conversation.contact.name}</span>
-                    </div>
-                    {conversation.lastMessage && (
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
-                        {formatDistanceToNow(new Date(conversation.lastMessage.created_at), { addSuffix: false, locale: ptBR })}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground truncate">{conversation.lastMessage?.content || 'Sem mensagens'}</p>
-                  {conversation.contact.tags && conversation.contact.tags.length > 0 && (
-                    <div className="flex gap-1 mt-1">
-                      {conversation.contact.tags.slice(0, 2).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">{tag}</Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {conversation.lastMessage && (
-                  <div className="flex-shrink-0 self-center">
-                    <SentimentEmoji sentiment={analyzeMessageSentiment(conversation.lastMessage.content).sentiment} animated={false} />
+                <p className="text-sm text-muted-foreground truncate">
+                  {conversation.lastMessage?.content || 'Sem mensagens'}
+                </p>
+                {conversation.contact.tags && conversation.contact.tags.length > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {conversation.contact.tags.slice(0, 2).map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">
+                        {tag}
+                      </Badge>
+                    ))}
                   </div>
                 )}
-              </motion.button>
-            );
-            
-            return (
-              <motion.div 
-                key={conversation.contact.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.2 }}
-                style={{ 
-                  position: 'absolute', 
-                  top: 0, 
-                  left: 0, 
-                  width: '100%', 
-                  height: `${virtualRow.size}px`, 
-                  transform: `translateY(${virtualRow.start}px)` 
-                }} 
-                className="px-2"
-              >
-                {isMobile && !selectionMode ? (
-                  <SwipeableListItem
-                    leftAction={SWIPE_ACTIONS.markAsRead(() => handleMarkAsRead(conversation.contact.id))}
-                    leftSecondaryAction={
-                      isPinned 
-                        ? SWIPE_ACTIONS.unpin(() => handlePin(conversation.contact.id))
-                        : SWIPE_ACTIONS.pin(() => handlePin(conversation.contact.id))
-                    }
-                    rightAction={SWIPE_ACTIONS.archive(() => handleArchive(conversation.contact.id))}
-                    rightSecondaryAction={SWIPE_ACTIONS.delete(() => {
-                      toast({ 
-                        title: '🗑️ Excluir conversa?', 
+              </div>
+              {conversation.lastMessage && (
+                <div className="flex-shrink-0 self-center">
+                  <SentimentEmoji
+                    sentiment={analyzeMessageSentiment(conversation.lastMessage.content).sentiment}
+                    animated={false}
+                  />
+                </div>
+              )}
+            </motion.button>
+          );
+
+          return (
+            <div
+              key={conversation.contact.id}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              className="px-2"
+            >
+              {isMobile && !selectionMode ? (
+                <SwipeableListItem
+                  leftAction={SWIPE_ACTIONS.markAsRead(() => handleMarkAsRead(conversation.contact.id))}
+                  leftSecondaryAction={
+                    isPinned
+                      ? SWIPE_ACTIONS.unpin(() => handlePin(conversation.contact.id))
+                      : SWIPE_ACTIONS.pin(() => handlePin(conversation.contact.id))
+                  }
+                  rightAction={SWIPE_ACTIONS.archive(() => handleArchive(conversation.contact.id))}
+                  rightSecondaryAction={
+                    SWIPE_ACTIONS.delete(() => {
+                      toast({
+                        title: '🗑️ Excluir conversa?',
                         description: 'Esta ação não pode ser desfeita.',
                         variant: 'destructive',
                         duration: 3000,
                       });
-                    })}
-                  >
-                    {itemContent}
-                  </SwipeableListItem>
-                ) : itemContent}
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+                    })
+                  }
+                >
+                  {itemContent}
+                </SwipeableListItem>
+              ) : (
+                itemContent
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { Smile, Meh, Frown, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -135,7 +136,10 @@ export function SentimentIndicator({
 }
 
 // Compact emoji-only indicator for list views
-export function SentimentEmoji({ sentiment, animated = true }: { sentiment: SentimentLevel; animated?: boolean }) {
+export const SentimentEmoji = forwardRef<
+  HTMLSpanElement,
+  { sentiment: SentimentLevel; animated?: boolean; className?: string }
+>(({ sentiment, animated = true, className }, ref) => {
   const config = sentimentConfig[sentiment];
 
   return (
@@ -143,13 +147,15 @@ export function SentimentEmoji({ sentiment, animated = true }: { sentiment: Sent
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.span
+            ref={ref}
             initial={animated ? { scale: 0, rotate: -180 } : false}
             animate={{ scale: 1, rotate: 0 }}
             whileHover={{ scale: 1.2 }}
             transition={{ type: 'spring', stiffness: 300 }}
             className={cn(
-              "text-sm cursor-help",
-              sentiment === 'critical' && "animate-pulse"
+              'text-sm cursor-help',
+              sentiment === 'critical' && 'animate-pulse',
+              className
             )}
           >
             {config.emoji}
@@ -161,7 +167,8 @@ export function SentimentEmoji({ sentiment, animated = true }: { sentiment: Sent
       </Tooltip>
     </TooltipProvider>
   );
-}
+});
+SentimentEmoji.displayName = 'SentimentEmoji';
 
 // Bar indicator showing sentiment distribution
 export function SentimentBar({ score }: { score: number }) {
