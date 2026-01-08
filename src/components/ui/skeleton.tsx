@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -32,27 +33,30 @@ interface SkeletonProps
   delay?: number;
 }
 
-function Skeleton({ 
-  className, 
-  variant, 
-  speed,
-  delay = 0,
-  style,
-  ...props 
-}: SkeletonProps) {
-  return (
-    <div 
-      className={cn(skeletonVariants({ variant, speed }), className)} 
-      style={{ 
-        ...style,
-        animationDelay: delay ? `${delay}ms` : undefined,
-      }}
-      role="status"
-      aria-label="Loading..."
-      {...props} 
-    />
-  );
-}
+const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
+  function Skeleton({ 
+    className, 
+    variant, 
+    speed,
+    delay = 0,
+    style,
+    ...props 
+  }, ref) {
+    return (
+      <div 
+        ref={ref}
+        className={cn(skeletonVariants({ variant, speed }), className)} 
+        style={{ 
+          ...style,
+          animationDelay: delay ? `${delay}ms` : undefined,
+        }}
+        role="status"
+        aria-label="Loading..."
+        {...props} 
+      />
+    );
+  }
+);
 
 /** Skeleton with shimmer wrapper for cards */
 function SkeletonCard({ 
