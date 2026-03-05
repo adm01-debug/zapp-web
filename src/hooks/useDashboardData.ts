@@ -296,8 +296,8 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
     });
 
     // Recent activity from messages
-    const contactMessages = new Map<string, any>();
-    messages.forEach((msg: any) => {
+    const contactMessages = new Map<string, Record<string, unknown>>();
+    messages.forEach((msg: Record<string, unknown>) => {
       if (!contactMessages.has(msg.contact_id)) {
         contactMessages.set(msg.contact_id, msg);
       }
