@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.cleanup-rate-limit-logs]
 verify_jwt = false
+
+[functions.evolution-sync]
+verify_jwt = false
