@@ -9,12 +9,14 @@ interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  resetKey?: string | number;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  prevResetKey?: string | number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
