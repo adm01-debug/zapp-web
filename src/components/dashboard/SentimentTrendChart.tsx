@@ -216,9 +216,11 @@ export function SentimentTrendChart({
 }: SentimentTrendChartProps) {
   const [period, setPeriod] = useState<'7' | '14' | '30'>('14');
   
+  const realSentimentData = useRealSentimentData(parseInt(period));
+  
   const data = useMemo(() => {
-    return externalData || generateMockData(parseInt(period));
-  }, [externalData, period]);
+    return externalData || realSentimentData || [];
+  }, [externalData, realSentimentData]);
   
   // Calculate stats
   const stats = useMemo(() => {

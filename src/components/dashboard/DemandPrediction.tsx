@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { 
   TrendingUp, TrendingDown, Clock, AlertTriangle, 
   ArrowUp, ArrowDown, Minus, Brain, Sparkles, Info

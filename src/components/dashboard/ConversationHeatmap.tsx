@@ -27,72 +27,49 @@ const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const DAYS_FULL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-// Generate mock data
-const generateMockData = (): HeatmapData[] => {
-  const data: HeatmapData[] = [];
-  
-  for (let day = 0; day < 7; day++) {
-    for (let hour = 0; hour < 24; hour++) {
-      // Simulate realistic patterns
-      let baseValue = 0;
+// Generate heatmap data from real messages
+function useHeatmapData() {
+  return useQuery({
+    queryKey: ['conversation-heatmap'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('created_at')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
       
-      // Weekend is quieter
-      if (day === 0 || day === 6) {
-        baseValue = 20;
-      } else {
-        // Weekday patterns
-        if (hour >= 9 && hour <= 18) {
-          baseValue = 60 + Math.random() * 40; // Business hours peak
-        } else if (hour >= 19 && hour <= 22) {
-          baseValue = 40 + Math.random() * 20; // Evening moderate
-        } else {
-          baseValue = 5 + Math.random() * 15; // Night/early morning low
+      if (error) throw error;
+      
+      const heatmap: HeatmapData[] = [];
+      const counts = new Map<string, number>();
+      
+      (data || []).forEach(m => {
+        const d = new Date(m.created_at);
+        const key = `${d.getDay()}-${d.getHours()}`;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      
+      for (let day = 0; day < 7; day++) {
+        for (let hour = 0; hour < 24; hour++) {
+          const key = `${day}-${hour}`;
+          const value = counts.get(key) || 0;
+          heatmap.push({ day, hour, value, count: value });
         }
       }
       
-      // Add some randomness
-      const value = Math.max(0, Math.round(baseValue + (Math.random() - 0.5) * 20));
-      
-      data.push({
-        day,
-        hour,
-        value,
-        count: Math.round(value * 2.5),
-      });
-    }
-  }
-  
-  return data;
-};
-
-const METRIC_CONFIG = {
-  volume: {
-    label: 'Volume de Mensagens',
-    colorScale: ['#f0fdf4', '#86efac', '#22c55e', '#15803d', '#14532d'],
-    unit: 'msgs',
-    description: 'Número total de mensagens por período',
-  },
-  response_time: {
-    label: 'Tempo de Resposta',
-    colorScale: ['#fef9c3', '#fde047', '#facc15', '#eab308', '#ca8a04'],
-    unit: 'seg',
-    description: 'Tempo médio de primeira resposta',
-  },
-  satisfaction: {
-    label: 'Satisfação',
-    colorScale: ['#fef2f2', '#fecaca', '#f87171', '#ef4444', '#dc2626'],
-    unit: '/5',
-    description: 'Nota média de satisfação do cliente',
-    invert: true,
-  },
-};
+      return heatmap;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 export function ConversationHeatmap({
-  data = generateMockData(),
+  data: externalData,
   metric = 'volume',
   className,
   onCellClick,
 }: ConversationHeatmapProps) {
+  const { data: realData } = useHeatmapData();
+  const data = externalData || realData || [];
   const [selectedMetric, setSelectedMetric] = useState(metric);
   const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null);
 
