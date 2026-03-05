@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebAuthn } from '@/hooks/useWebAuthn';
@@ -440,6 +440,14 @@ export default function Auth() {
                             </motion.p>
                           )}
                         </AnimatePresence>
+                        <div className="flex justify-end">
+                          <Link 
+                            to="/forgot-password" 
+                            className="text-xs text-primary hover:text-primary/80 hover:underline transition-colors"
+                          >
+                            Esqueci minha senha
+                          </Link>
+                        </div>
                       </motion.div>
                       
                       <motion.div
