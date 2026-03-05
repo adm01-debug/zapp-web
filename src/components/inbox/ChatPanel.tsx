@@ -94,14 +94,7 @@ interface ChatPanelProps {
   onToggleDetails?: () => void;
 }
 
-// Mock reactions data with new format
-const mockReactions: Record<string, MessageReaction[]> = {
-  'msg-1': [{ emoji: '👍', userId: 'agent', userName: 'Agente', timestamp: new Date() }],
-  'msg-3': [
-    { emoji: '❤️', userId: 'contact', userName: 'Cliente', timestamp: new Date() },
-    { emoji: '❤️', userId: 'agent', userName: 'Agente', timestamp: new Date() }
-  ],
-};
+// Reactions are now managed by useMessageReactions hook via MessageReactions component
 
 // Format timestamp intelligently
 function formatMessageTime(date: Date): string {
