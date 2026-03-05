@@ -102,7 +102,8 @@ export function RealtimeInboxView() {
 
   // Filter conversations by search and advanced filters
   const filteredConversations = useMemo(() => {
-    let result = conversations;
+    // Safety: filter out any conversations with missing contact data
+    let result = conversations.filter(c => c && c.contact && c.contact.id);
 
     // Search filter
     if (search.trim()) {
