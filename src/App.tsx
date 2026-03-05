@@ -171,8 +171,9 @@ function AppWithErrorRecovery() {
   );
 }
 
+const log = getLogger('App');
+
 const App = () => <AppWithErrorRecovery />;
 
-const log = getLogger('App');
 
 export default App;
