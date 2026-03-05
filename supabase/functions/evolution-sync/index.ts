@@ -444,20 +444,27 @@ serve(async (req) => {
         conn = newConn;
       }
 
-      // Step 3: Import contacts (first 3 pages = 300 contacts)
+      // Step 3: Import contacts from Evolution API (POST method)
       let totalSynced = 0;
-      for (let p = 1; p <= 3; p++) {
-        try {
-          const contactsResponse = await fetch(
-            `${evolutionApiUrl}/chat/findContacts/${instanceName}?page=${p}&offset=100`,
-            { method: 'GET', headers: { 'apikey': evolutionApiKey } }
-          );
+      try {
+        const contactsResponse = await fetch(
+          `${evolutionApiUrl}/chat/findContacts/${instanceName}`,
+          { 
+            method: 'POST', 
+            headers: { 
+              'Content-Type': 'application/json',
+              'apikey': evolutionApiKey,
+            },
+            body: JSON.stringify({ where: {} }),
+          }
+        );
 
-          if (!contactsResponse.ok) break;
+        if (contactsResponse.ok) {
           const contactsData = await contactsResponse.json();
-          if (!Array.isArray(contactsData) || contactsData.length === 0) break;
+          const contactsList = Array.isArray(contactsData) ? contactsData : [];
+          console.log(`[FullSync] Fetched ${contactsList.length} contacts from Evolution API`);
 
-          for (const contact of contactsData) {
+          for (const contact of contactsList) {
             const remoteJid = contact.id || contact.remoteJid || '';
             if (remoteJid.includes('@g.us') || remoteJid.includes('@broadcast') || !remoteJid.includes('@')) continue;
 
@@ -466,24 +473,33 @@ serve(async (req) => {
 
             const name = contact.pushName || contact.name || contact.verifiedName || phone;
 
-            // Simple insert, ignore duplicates
-            await supabase
+            // Simple insert, ignore duplicates (phone has unique constraint)
+            const { error: insErr } = await supabase
               .from('contacts')
               .insert({
                 phone,
                 name,
                 avatar_url: contact.profilePictureUrl || null,
                 whatsapp_connection_id: conn!.id,
-              })
-              .select('id')
-              .maybeSingle();
+              });
 
-            totalSynced++;
+            if (!insErr) {
+              totalSynced++;
+            } else if (insErr.code === '23505') {
+              // Duplicate - update name/avatar
+              await supabase
+                .from('contacts')
+                .update({ name, avatar_url: contact.profilePictureUrl || null })
+                .eq('phone', phone);
+              totalSynced++;
+            }
           }
-        } catch (e) {
-          console.warn(`[FullSync] Page ${p} error:`, e);
-          break;
+        } else {
+          const errText = await contactsResponse.text();
+          console.error(`[FullSync] findContacts error [${contactsResponse.status}]:`, errText);
         }
+      } catch (e) {
+        console.warn('[FullSync] Contact sync error:', e);
       }
       results.contacts = { synced: totalSynced };
 
