@@ -197,7 +197,7 @@ export function useWebAuthn() {
         publicKey: {
           ...options,
           challenge: base64URLToBuffer(options.challenge),
-          allowCredentials: options.allowCredentials?.map((cred: any) => ({
+          allowCredentials: options.allowCredentials?.map((cred: { id: string; type: string; transports?: string[] }) => ({
             ...cred,
             id: base64URLToBuffer(cred.id),
           })),

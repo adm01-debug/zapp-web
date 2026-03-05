@@ -12,7 +12,7 @@ interface BitrixEntity {
   LAST_NAME?: string;
   PHONE?: Array<{ VALUE: string; VALUE_TYPE: string }>;
   EMAIL?: Array<{ VALUE: string; VALUE_TYPE: string }>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const useBitrixApi = () => {

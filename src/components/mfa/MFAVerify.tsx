@@ -44,7 +44,7 @@ export function MFAVerify({
     try {
       await verifyTOTP(verifiedFactor.id, code);
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Código inválido. Tente novamente.');
       setCode('');
     } finally {

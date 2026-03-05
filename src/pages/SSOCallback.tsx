@@ -65,9 +65,9 @@ export default function SSOCallback() {
             authData.subscription.unsubscribe();
           };
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setStatus('error');
-        setErrorMessage(err.message || 'Erro durante autenticação');
+        setErrorMessage(err instanceof Error ? err.message : 'Erro durante autenticação');
         toast.error('Erro no login SSO');
       }
     };

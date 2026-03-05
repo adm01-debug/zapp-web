@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform, useSpring, useMotionValue, useVelocity, useAnimationFrame } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useMotionValue, useVelocity, useAnimationFrame, type MotionValue } from 'framer-motion';
 import { ReactNode, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { wrap } from '@/lib/utils';
@@ -79,7 +79,7 @@ export function TextReveal({ text, className, delay = 0 }: TextRevealProps) {
 
 interface WordProps {
   children: string;
-  progress: any;
+  progress: MotionValue<number>;
   range: [number, number];
 }
 

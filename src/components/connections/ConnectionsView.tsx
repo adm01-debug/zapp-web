@@ -264,11 +264,11 @@ export function ConnectionsView() {
 
         // Start polling for status
         startStatusPolling(connection.instance_id, connection.id);
-      } catch (error: any) {
+      } catch (error: unknown) {
         setQrCodeDialog((prev) => ({
           ...prev,
           status: 'error',
-          errorMessage: error.message || 'Erro ao gerar QR Code',
+          errorMessage: error instanceof Error ? error.message : 'Erro ao gerar QR Code',
         }));
       }
     }
@@ -318,11 +318,11 @@ export function ConnectionsView() {
           status: 'pending',
         }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setQrCodeDialog((prev) => ({
         ...prev,
         status: 'error',
-        errorMessage: error.message || 'Erro ao atualizar QR Code',
+        errorMessage: error instanceof Error ? error.message : 'Erro ao atualizar QR Code',
       }));
     }
   };
@@ -357,10 +357,10 @@ export function ConnectionsView() {
         .from('whatsapp_connections')
         .update({ status: 'disconnected', qr_code: null })
         .eq('id', connection.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Erro ao desconectar',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
         variant: 'destructive',
       });
     }
@@ -389,10 +389,10 @@ export function ConnectionsView() {
           description: 'A conexão foi excluída com sucesso.',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Erro ao excluir',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
         variant: 'destructive',
       });
     }

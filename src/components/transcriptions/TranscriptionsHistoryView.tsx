@@ -108,7 +108,7 @@ export function TranscriptionsHistoryView() {
 
       if (error) throw error;
 
-      const formattedData: TranscriptionRecord[] = (data || []).map((item: any) => ({
+      const formattedData: TranscriptionRecord[] = (data || []).map((item: { id: string; content: string; transcription: string | null; media_url: string | null; created_at: string; contact_id: string | null; contacts?: { name?: string; phone?: string; avatar_url?: string | null } | null }) => ({
         id: item.id,
         content: item.content,
         transcription: item.transcription,

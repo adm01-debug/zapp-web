@@ -74,8 +74,8 @@ export default function ResetPassword() {
       setTimeout(() => {
         navigate('/auth');
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao alterar senha');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao alterar senha');
       toast.error('Erro ao alterar senha');
     } finally {
       setLoading(false);
