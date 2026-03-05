@@ -4,6 +4,7 @@ import { ChatPanel } from './ChatPanel';
 import { ContactDetails } from './ContactDetails';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
+import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
