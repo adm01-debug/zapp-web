@@ -455,8 +455,9 @@ serve(async (req) => {
         conn = newConn;
       }
 
-      // Step 3: Import contacts from Evolution API (POST method)
+      // Step 3: Import contacts from Evolution API (POST method) - batch insert
       let totalSynced = 0;
+      let totalSkipped = 0;
       try {
         const contactsResponse = await fetch(
           `${evolutionApiUrl}/chat/findContacts/${instanceName}`,
@@ -475,34 +476,62 @@ serve(async (req) => {
           const contactsList = Array.isArray(contactsData) ? contactsData : [];
           console.log(`[FullSync] Fetched ${contactsList.length} contacts from Evolution API`);
 
+          // Parse and filter contacts
+          const validContacts: { phone: string; name: string; avatar_url: string | null; whatsapp_connection_id: string }[] = [];
+          
           for (const contact of contactsList) {
             const remoteJid = contact.id || contact.remoteJid || '';
-            if (remoteJid.includes('@g.us') || remoteJid.includes('@broadcast') || !remoteJid.includes('@')) continue;
+            if (remoteJid.includes('@g.us') || remoteJid.includes('@broadcast') || !remoteJid.includes('@')) {
+              totalSkipped++;
+              continue;
+            }
 
             const phone = remoteJid.replace('@s.whatsapp.net', '');
-            if (!phone || phone.length < 6) continue;
+            if (!phone || phone.length < 6) {
+              totalSkipped++;
+              continue;
+            }
 
             const name = contact.pushName || contact.name || contact.verifiedName || phone;
+            validContacts.push({
+              phone,
+              name,
+              avatar_url: contact.profilePictureUrl || null,
+              whatsapp_connection_id: conn!.id,
+            });
+          }
 
-            // Simple insert, ignore duplicates (phone has unique constraint)
-            const { error: insErr } = await supabase
-              .from('contacts')
-              .insert({
-                phone,
-                name,
-                avatar_url: contact.profilePictureUrl || null,
-                whatsapp_connection_id: conn!.id,
-              });
+          console.log(`[FullSync] ${validContacts.length} valid contacts, ${totalSkipped} skipped`);
 
-            if (!insErr) {
-              totalSynced++;
-            } else if (insErr.code === '23505') {
-              // Duplicate - update name/avatar
-              await supabase
+          // Batch insert in chunks of 50
+          const BATCH_SIZE = 50;
+          for (let i = 0; i < validContacts.length; i += BATCH_SIZE) {
+            const batch = validContacts.slice(i, i + BATCH_SIZE);
+            
+            // Use upsert-like approach: insert ignoring conflicts
+            for (const c of batch) {
+              const { error: insErr } = await supabase
                 .from('contacts')
-                .update({ name, avatar_url: contact.profilePictureUrl || null })
-                .eq('phone', phone);
-              totalSynced++;
+                .insert(c);
+
+              if (!insErr) {
+                totalSynced++;
+              } else if (insErr.code === '23505') {
+                // Duplicate phone - update
+                await supabase
+                  .from('contacts')
+                  .update({ name: c.name, avatar_url: c.avatar_url, whatsapp_connection_id: c.whatsapp_connection_id })
+                  .eq('phone', c.phone);
+                totalSynced++;
+              } else {
+                console.warn(`[FullSync] Insert error for ${c.phone}:`, insErr.message);
+              }
+            }
+
+            // Break early if we're approaching timeout (process max 500 contacts)
+            if (totalSynced + totalSkipped >= 500) {
+              console.log(`[FullSync] Reached 500 contact limit, stopping to avoid timeout`);
+              break;
             }
           }
         } else {
@@ -512,7 +541,7 @@ serve(async (req) => {
       } catch (e) {
         console.warn('[FullSync] Contact sync error:', e);
       }
-      results.contacts = { synced: totalSynced };
+      results.contacts = { synced: totalSynced, skipped: totalSkipped };
 
       // Step 4: Setup webhook
       const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`;
