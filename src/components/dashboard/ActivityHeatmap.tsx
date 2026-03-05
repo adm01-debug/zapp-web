@@ -19,6 +19,8 @@ import {
 import { Calendar, Activity, TrendingUp, Flame } from 'lucide-react';
 import { format, subDays, startOfWeek, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface ActivityData {
   date: Date;
