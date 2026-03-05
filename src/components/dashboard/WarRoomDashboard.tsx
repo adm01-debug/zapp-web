@@ -57,37 +57,112 @@ interface WarRoomDashboardProps {
   className?: string;
 }
 
-// Mock data for demo
-const MOCK_AGENTS: Agent[] = [
-  { id: '1', name: 'Ana Silva', status: 'online', activeChats: 4, maxChats: 6, avgResponseTime: 45, resolvedToday: 23, satisfaction: 4.8 },
-  { id: '2', name: 'Carlos Santos', status: 'busy', activeChats: 6, maxChats: 6, avgResponseTime: 62, resolvedToday: 18, satisfaction: 4.5 },
-  { id: '3', name: 'Maria Oliveira', status: 'online', activeChats: 2, maxChats: 6, avgResponseTime: 38, resolvedToday: 31, satisfaction: 4.9 },
-  { id: '4', name: 'João Pedro', status: 'away', activeChats: 0, maxChats: 6, avgResponseTime: 55, resolvedToday: 15, satisfaction: 4.6 },
-  { id: '5', name: 'Lucia Costa', status: 'online', activeChats: 5, maxChats: 6, avgResponseTime: 42, resolvedToday: 27, satisfaction: 4.7 },
-];
+// Hook to fetch real War Room data
+function useWarRoomData() {
+  const { data: agents = [] } = useQuery({
+    queryKey: ['warroom-agents'],
+    queryFn: async () => {
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url, is_active, max_chats')
+        .eq('is_active', true);
+      if (error) throw error;
 
-const MOCK_QUEUES: QueueMetric[] = [
-  { id: '1', name: 'Vendas', color: '#22c55e', waiting: 12, avgWaitTime: 3.2, slaBreaches: 2, slaWarnings: 4, inProgress: 8 },
-  { id: '2', name: 'Suporte', color: '#3b82f6', waiting: 28, avgWaitTime: 8.5, slaBreaches: 7, slaWarnings: 12, inProgress: 15 },
-  { id: '3', name: 'Financeiro', color: '#f59e0b', waiting: 5, avgWaitTime: 2.1, slaBreaches: 0, slaWarnings: 1, inProgress: 4 },
-  { id: '4', name: 'Técnico', color: '#8b5cf6', waiting: 18, avgWaitTime: 6.3, slaBreaches: 3, slaWarnings: 8, inProgress: 11 },
-];
+      // Get agent stats
+      const { data: stats } = await supabase
+        .from('agent_stats')
+        .select('profile_id, messages_sent, conversations_resolved, avg_response_time_seconds, customer_satisfaction_score');
 
-const MOCK_ALERTS: Alert[] = [
-  { id: '1', type: 'critical', title: 'SLA Crítico', message: 'Fila Suporte com 7 violações de SLA', timestamp: new Date(), isNew: true },
-  { id: '2', type: 'warning', title: 'Alta Demanda', message: 'Volume 40% acima do normal', timestamp: new Date(Date.now() - 300000) },
-  { id: '3', type: 'info', title: 'Agente Indisponível', message: 'João Pedro está ausente há 15min', timestamp: new Date(Date.now() - 600000) },
-];
+      // Get active chat counts from contacts table
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('assigned_to');
+
+      const contactCounts = (contacts || []).reduce((acc, c) => {
+        if (c.assigned_to) acc[c.assigned_to] = (acc[c.assigned_to] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const statsMap = new Map((stats || []).map(s => [s.profile_id, s]));
+
+      return (profiles || []).map((p): Agent => {
+        const agentStats = statsMap.get(p.id);
+        const activeChats = contactCounts[p.id] || 0;
+        return {
+          id: p.id,
+          name: p.name,
+          avatar: p.avatar_url || undefined,
+          status: activeChats >= (p.max_chats || 5) ? 'busy' : 'online',
+          activeChats,
+          maxChats: p.max_chats || 5,
+          avgResponseTime: agentStats?.avg_response_time_seconds || 0,
+          resolvedToday: agentStats?.conversations_resolved || 0,
+          satisfaction: Number(agentStats?.customer_satisfaction_score) || 0,
+        };
+      });
+    },
+    refetchInterval: 30000,
+  });
+
+  const { data: queues = [] } = useQuery({
+    queryKey: ['warroom-queues'],
+    queryFn: async () => {
+      const { data: dbQueues, error } = await supabase
+        .from('queues')
+        .select('id, name, color, is_active')
+        .eq('is_active', true);
+      if (error) throw error;
+
+      // Get contacts per queue
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('queue_id, assigned_to');
+
+      const { data: slaData } = await supabase
+        .from('conversation_sla')
+        .select('contact_id, first_response_breached, resolution_breached');
+
+      const breachedContacts = new Set(
+        (slaData || []).filter(s => s.first_response_breached || s.resolution_breached).map(s => s.contact_id)
+      );
+
+      return (dbQueues || []).map((q): QueueMetric => {
+        const queueContacts = (contacts || []).filter(c => c.queue_id === q.id);
+        const waiting = queueContacts.filter(c => !c.assigned_to).length;
+        const inProgress = queueContacts.filter(c => c.assigned_to).length;
+        const slaBreaches = queueContacts.filter(c => breachedContacts.has(c.queue_id)).length;
+
+        return {
+          id: q.id,
+          name: q.name,
+          color: q.color,
+          waiting,
+          avgWaitTime: 0,
+          slaBreaches,
+          slaWarnings: 0,
+          inProgress,
+        };
+      });
+    },
+    refetchInterval: 30000,
+  });
+
+  return { agents, queues, alerts: [] as Alert[] };
+}
 
 export function WarRoomDashboard({
-  agents = MOCK_AGENTS,
-  queues = MOCK_QUEUES,
-  alerts = MOCK_ALERTS,
+  agents: propsAgents,
+  queues: propsQueues,
+  alerts: propsAlerts,
   onAgentClick,
   onQueueClick,
   onAlertDismiss,
   className,
 }: WarRoomDashboardProps) {
+  const realData = useWarRoomData();
+  const agents = propsAgents || realData.agents;
+  const queues = propsQueues || realData.queues;
+  const alerts = propsAlerts || realData.alerts;
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
