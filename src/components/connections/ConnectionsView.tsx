@@ -357,10 +357,10 @@ export function ConnectionsView() {
         .from('whatsapp_connections')
         .update({ status: 'disconnected', qr_code: null })
         .eq('id', connection.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Erro ao desconectar',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
         variant: 'destructive',
       });
     }
