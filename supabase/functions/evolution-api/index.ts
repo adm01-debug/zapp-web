@@ -411,25 +411,20 @@ serve(async (req) => {
     // 5. CHAT MANAGEMENT
     // =============================================
 
-    // GET /chat/findChats/{instance}
+    // POST /chat/findChats/{instance}
     if (action === 'find-chats') {
-      const params = new URLSearchParams();
-      if (body.page) params.set('page', body.page);
-      if (body.offset) params.set('offset', body.offset);
-      const qs = params.toString() ? `?${params.toString()}` : '';
-      return await proxy(`/chat/findChats/${instance}${qs}`, 'GET');
+      return await proxy(`/chat/findChats/${instance}`, 'POST', {
+        where: body.where || {},
+      });
     }
 
-    // GET /chat/findMessages/{instance}
+    // POST /chat/findMessages/{instance}
     if (action === 'find-messages') {
-      const params = new URLSearchParams();
-      if (body.remoteJid) params.set('remoteJid', body.remoteJid);
-      if (body.page) params.set('page', String(body.page));
-      if (body.offset) params.set('offset', String(body.offset));
-      if (body.timestampStart) params.set('timestampStart', String(body.timestampStart));
-      if (body.timestampEnd) params.set('timestampEnd', String(body.timestampEnd));
-      const qs = params.toString() ? `?${params.toString()}` : '';
-      return await proxy(`/chat/findMessages/${instance}${qs}`, 'GET');
+      return await proxy(`/chat/findMessages/${instance}`, 'POST', {
+        where: body.where || {},
+        page: body.page,
+        offset: body.offset,
+      });
     }
 
     // GET /chat/findStatusMessage/{instance}
