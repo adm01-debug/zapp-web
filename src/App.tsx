@@ -134,24 +134,43 @@ function AppContent() {
   );
 }
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <HighContrastProvider>
-          <GamificationProvider>
-            <EasterEggsProvider>
-              <AccessibleToastProvider>
-                <TooltipProvider delayDuration={300}>
-                  <AppContent />
-                </TooltipProvider>
-              </AccessibleToastProvider>
-            </EasterEggsProvider>
-          </GamificationProvider>
-        </HighContrastProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+function AppWithErrorRecovery() {
+  const [errorKey, setErrorKey] = useState(0);
+
+  // Auto-recover from stale errors on mount
+  useEffect(() => {
+    setErrorKey(prev => prev + 1);
+  }, []);
+
+  return (
+    <ErrorBoundary
+      resetKey={errorKey}
+      onError={(error) => {
+        console.error('[App ErrorBoundary]', error.message, error.stack);
+        // Auto-retry after 2 seconds
+        setTimeout(() => setErrorKey(prev => prev + 1), 2000);
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <HighContrastProvider>
+            <GamificationProvider>
+              <EasterEggsProvider>
+                <AccessibleToastProvider>
+                  <TooltipProvider delayDuration={300}>
+                    <AppContent />
+                  </TooltipProvider>
+                </AccessibleToastProvider>
+              </EasterEggsProvider>
+            </GamificationProvider>
+          </HighContrastProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
+
+const App = () => <AppWithErrorRecovery />;
+
 
 export default App;
