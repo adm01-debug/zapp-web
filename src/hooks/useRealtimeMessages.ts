@@ -80,11 +80,12 @@ export function useRealtimeMessages() {
 
       if (contactsError) throw contactsError;
 
-      // Fetch all messages
+      // Fetch recent messages (last 50 per contact, up to 5000 total)
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
         .select('*')
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(5000);
 
       if (messagesError) throw messagesError;
 
