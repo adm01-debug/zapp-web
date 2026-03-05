@@ -13,7 +13,7 @@ import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { SkipLinks } from "@/components/ui/skip-link";
-import { VisuallyHidden, LiveRegion } from "@/components/ui/visually-hidden";
+import { LiveRegion } from "@/components/ui/visually-hidden";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
