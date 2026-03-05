@@ -264,11 +264,11 @@ export function ConnectionsView() {
 
         // Start polling for status
         startStatusPolling(connection.instance_id, connection.id);
-      } catch (error: any) {
+      } catch (error: unknown) {
         setQrCodeDialog((prev) => ({
           ...prev,
           status: 'error',
-          errorMessage: error.message || 'Erro ao gerar QR Code',
+          errorMessage: error instanceof Error ? error.message : 'Erro ao gerar QR Code',
         }));
       }
     }
