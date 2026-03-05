@@ -195,7 +195,7 @@ export function ConnectionsView() {
 
     try {
       // Create Evolution API instance
-      await createInstance(instanceName);
+      await createInstance({ instanceName });
 
       // Save to database
       const { data, error } = await supabase.from('whatsapp_connections').insert({
