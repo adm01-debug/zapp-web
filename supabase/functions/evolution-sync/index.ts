@@ -177,8 +177,19 @@ serve(async (req) => {
       const remoteJid = contactPhone.includes('@') ? contactPhone : `${contactPhone}@s.whatsapp.net`;
       
       const messagesResponse = await fetch(
-        `${evolutionApiUrl}/chat/findMessages/${instanceName}?remoteJid=${remoteJid}&page=1&offset=50`,
-        { method: 'GET', headers: { 'apikey': evolutionApiKey } }
+        `${evolutionApiUrl}/chat/findMessages/${instanceName}`,
+        { 
+          method: 'POST', 
+          headers: { 
+            'Content-Type': 'application/json',
+            'apikey': evolutionApiKey,
+          },
+          body: JSON.stringify({
+            where: { key: { remoteJid } },
+            page: 1,
+            offset: 50,
+          }),
+        }
       );
 
       if (!messagesResponse.ok) {
