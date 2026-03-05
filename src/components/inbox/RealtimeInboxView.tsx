@@ -409,8 +409,8 @@ export function RealtimeInboxView() {
               id: selectedConversation.lastMessage.id,
               conversationId: selectedConversation.contact.id,
               content: selectedConversation.lastMessage.content,
-              type: selectedConversation.lastMessage.message_type as any,
-              sender: selectedConversation.lastMessage.sender as any,
+              type: selectedConversation.lastMessage.message_type as Message['type'],
+              sender: selectedConversation.lastMessage.sender as Message['sender'],
               timestamp: new Date(selectedConversation.lastMessage.created_at),
               status: 'read' as const,
             }
