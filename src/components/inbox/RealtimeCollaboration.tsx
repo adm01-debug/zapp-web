@@ -420,7 +420,7 @@ function InternalNotesPanel({ contactId }: { contactId: string }) {
           ) : (
             <div className="space-y-3 pr-2">
               <AnimatePresence>
-                {notes?.map((note: any, index: number) => (
+                {notes?.map((note: { id: string; content: string; created_at: string; author?: { name?: string; avatar_url?: string } }, index: number) => (
                   <motion.div
                     key={note.id}
                     initial={{ opacity: 0, y: 10 }}
