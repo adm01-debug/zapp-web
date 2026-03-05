@@ -2,8 +2,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n"; // Initialize i18n
+import { getLogger } from "./lib/logger";
 
-// Force cache bust on rebuild
-console.log('[App] Initialized at', new Date().toISOString());
+const log = getLogger('App');
+log.info('Initialized at', new Date().toISOString());
 
 createRoot(document.getElementById("root")!).render(<App />);

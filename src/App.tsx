@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { getLogger } from "@/lib/logger";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +13,7 @@ import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { SkipLinks } from "@/components/ui/skip-link";
-import { VisuallyHidden, LiveRegion } from "@/components/ui/visually-hidden";
+import { LiveRegion } from "@/components/ui/visually-hidden";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
@@ -70,11 +71,11 @@ function AppContent() {
   // Global unhandled rejection handler
   useEffect(() => {
     const handler = (event: PromiseRejectionEvent) => {
-      console.error("[GlobalErrorHandler] Unhandled promise rejection:", event.reason);
+      log.error("Unhandled promise rejection:", event.reason);
       event.preventDefault();
     };
     const errorHandler = (event: ErrorEvent) => {
-      console.error("[GlobalErrorHandler] Uncaught error:", event.error);
+      log.error("Uncaught error:", event.error);
     };
     window.addEventListener("unhandledrejection", handler);
     window.addEventListener("error", errorHandler);
@@ -146,7 +147,7 @@ function AppWithErrorRecovery() {
     <ErrorBoundary
       resetKey={errorKey}
       onError={(error) => {
-        console.error('[App ErrorBoundary]', error.message, error.stack);
+        log.error('ErrorBoundary caught:', error.message, error.stack);
         // Auto-retry after 2 seconds
         setTimeout(() => setErrorKey(prev => prev + 1), 2000);
       }}
@@ -169,6 +170,8 @@ function AppWithErrorRecovery() {
     </ErrorBoundary>
   );
 }
+
+const log = getLogger('App');
 
 const App = () => <AppWithErrorRecovery />;
 

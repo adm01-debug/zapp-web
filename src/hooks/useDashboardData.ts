@@ -168,7 +168,10 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       // If queue filter is active, filter messages by contact queue
       if (queueId && messages) {
-        return messages.filter((msg: any) => msg.contacts?.queue_id === queueId);
+        return messages.filter((msg) => {
+          const contacts = (msg as { contacts?: { queue_id?: string } | null }).contacts;
+          return contacts?.queue_id === queueId;
+        });
       }
       
       return messages || [];
@@ -281,7 +284,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
     // Queue stats
     const queuesStats: QueueStats[] = queues.map(queue => {
       const members = queue.queue_members || [];
-      const onlineMembers = members.filter((m: any) => 
+      const onlineMembers = members.filter((m: { is_active?: boolean; profiles?: { is_active?: boolean } }) => 
         m.is_active && m.profiles?.is_active
       ).length;
 
@@ -296,16 +299,17 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
     });
 
     // Recent activity from messages
-    const contactMessages = new Map<string, any>();
-    messages.forEach((msg: any) => {
-      if (!contactMessages.has(msg.contact_id)) {
-        contactMessages.set(msg.contact_id, msg);
+    const contactMessages = new Map<string, { id: string; contact_id: string; content: string; created_at: string; is_read: boolean | null; contacts?: { name?: string; phone?: string; avatar_url?: string | null } | null }>();
+    messages.forEach((msg) => {
+      const m = msg as { id: string; contact_id: string; content: string; created_at: string; is_read: boolean | null; contacts?: { name?: string; phone?: string; avatar_url?: string | null } | null };
+      if (!contactMessages.has(m.contact_id)) {
+        contactMessages.set(m.contact_id, m);
       }
     });
 
     const recentActivity: RecentActivity[] = Array.from(contactMessages.values())
       .slice(0, 10)
-      .map((msg: any) => ({
+      .map((msg) => ({
         id: msg.id,
         contactName: msg.contacts?.name || 'Desconhecido',
         contactPhone: msg.contacts?.phone || '',

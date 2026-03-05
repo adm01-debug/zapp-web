@@ -80,11 +80,12 @@ export function useRealtimeMessages() {
 
       if (contactsError) throw contactsError;
 
-      // Fetch all messages
+      // Fetch recent messages (last 50 per contact, up to 5000 total)
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
         .select('*')
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(5000);
 
       if (messagesError) throw messagesError;
 
@@ -97,6 +98,8 @@ export function useRealtimeMessages() {
           status: (m as unknown as { status?: string }).status as RealtimeMessage['status'] || 'sent',
           status_updated_at: (m as unknown as { status_updated_at?: string }).status_updated_at || null,
         }));
+        // Sort ascending (oldest first) for display since we fetched desc
+        contactMessages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         const unreadCount = contactMessages.filter((m) => !m.is_read && m.sender === 'contact').length;
         const lastMessage = contactMessages.length > 0 ? contactMessages[contactMessages.length - 1] : null;
 

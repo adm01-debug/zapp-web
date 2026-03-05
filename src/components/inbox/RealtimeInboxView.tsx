@@ -15,20 +15,19 @@ import { useUndoableAction } from '@/hooks/useUndoableAction';
 import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon } from 'lucide-react';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow, isAfter, isBefore, startOfDay, endOfDay, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Search } from 'lucide-react';
+import { isAfter, isBefore, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { Conversation, Message } from '@/types/chat';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('RealtimeInboxView');
 
 interface SearchResult {
   id: string;
@@ -410,8 +409,8 @@ export function RealtimeInboxView() {
               id: selectedConversation.lastMessage.id,
               conversationId: selectedConversation.contact.id,
               content: selectedConversation.lastMessage.content,
-              type: selectedConversation.lastMessage.message_type as any,
-              sender: selectedConversation.lastMessage.sender as any,
+              type: selectedConversation.lastMessage.message_type as Message['type'],
+              sender: selectedConversation.lastMessage.sender as Message['sender'],
               timestamp: new Date(selectedConversation.lastMessage.created_at),
               status: 'read' as const,
             }
@@ -430,14 +429,14 @@ export function RealtimeInboxView() {
       id: m.id,
       conversationId: selectedConversation.contact.id,
       content: m.content,
-      type: m.message_type as any,
-      sender: m.sender as any,
+      type: m.message_type as Message['type'],
+      sender: m.sender as Message['sender'],
       agentId: m.agent_id || undefined,
       timestamp: new Date(m.created_at),
       status: m.is_read ? 'read' : 'delivered',
       mediaUrl: m.media_url || undefined,
       transcription: m.transcription || null,
-      transcriptionStatus: m.transcription_status as any || null,
+      transcriptionStatus: m.transcription_status as Message['transcriptionStatus'] || null,
     })) || [];
 
   // Check online status
@@ -585,7 +584,7 @@ export function RealtimeInboxView() {
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar conversas... (Ctrl+K)"
               value={search}
@@ -635,7 +634,7 @@ export function RealtimeInboxView() {
                 </div>
               }
               onError={(error, info) => {
-                console.error('[InboxErrorBoundary] VirtualizedRealtimeList crashed:', error.message, error.stack, info);
+                log.error('VirtualizedRealtimeList crashed:', error.message, error.stack, info);
               }}
             >
               <VirtualizedRealtimeList 
