@@ -455,7 +455,7 @@ serve(async (req) => {
         conn = newConn;
       }
 
-      // Step 3: Import contacts from Evolution API (POST method) - batch insert
+      // Step 3: Import contacts from Evolution API
       let totalSynced = 0;
       let totalSkipped = 0;
       try {
@@ -463,80 +463,52 @@ serve(async (req) => {
           `${evolutionApiUrl}/chat/findContacts/${instanceName}`,
           { 
             method: 'POST', 
-            headers: { 
-              'Content-Type': 'application/json',
-              'apikey': evolutionApiKey,
-            },
+            headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
             body: JSON.stringify({ where: {} }),
           }
         );
 
         if (contactsResponse.ok) {
-          const contactsData = await contactsResponse.json();
-          const contactsList = Array.isArray(contactsData) ? contactsData : [];
-          console.log(`[FullSync] Fetched ${contactsList.length} contacts from Evolution API`);
+          const contactsList = await contactsResponse.json();
+          console.log(`[FullSync] Fetched ${contactsList.length} contacts`);
 
-          // Parse and filter contacts
           const validContacts: { phone: string; name: string; avatar_url: string | null; whatsapp_connection_id: string }[] = [];
           
-          for (const contact of contactsList) {
-            const remoteJid = contact.id || contact.remoteJid || '';
-            if (remoteJid.includes('@g.us') || remoteJid.includes('@broadcast') || !remoteJid.includes('@')) {
-              totalSkipped++;
-              continue;
-            }
+          for (const c of contactsList) {
+            const jid = c.remoteJid || '';
+            // Only import @s.whatsapp.net contacts (skip @lid, @g.us, @broadcast)
+            if (!jid.endsWith('@s.whatsapp.net')) { totalSkipped++; continue; }
+            if (c.isGroup) { totalSkipped++; continue; }
 
-            const phone = remoteJid.replace('@s.whatsapp.net', '');
-            if (!phone || phone.length < 6) {
-              totalSkipped++;
-              continue;
-            }
+            const phone = jid.replace('@s.whatsapp.net', '');
+            if (!phone || phone.length < 6) { totalSkipped++; continue; }
 
-            const name = contact.pushName || contact.name || contact.verifiedName || phone;
+            const name = (c.pushName && c.pushName.trim()) || phone;
             validContacts.push({
-              phone,
-              name,
-              avatar_url: contact.profilePictureUrl || null,
+              phone, name,
+              avatar_url: c.profilePicUrl || null,
               whatsapp_connection_id: conn!.id,
             });
           }
 
-          console.log(`[FullSync] ${validContacts.length} valid contacts, ${totalSkipped} skipped`);
+          console.log(`[FullSync] ${validContacts.length} valid, ${totalSkipped} skipped`);
 
-          // Batch insert in chunks of 50
-          const BATCH_SIZE = 50;
-          for (let i = 0; i < validContacts.length; i += BATCH_SIZE) {
-            const batch = validContacts.slice(i, i + BATCH_SIZE);
-            
-            // Use upsert-like approach: insert ignoring conflicts
-            for (const c of batch) {
-              const { error: insErr } = await supabase
-                .from('contacts')
-                .insert(c);
-
-              if (!insErr) {
-                totalSynced++;
-              } else if (insErr.code === '23505') {
-                // Duplicate phone - update
-                await supabase
-                  .from('contacts')
-                  .update({ name: c.name, avatar_url: c.avatar_url, whatsapp_connection_id: c.whatsapp_connection_id })
-                  .eq('phone', c.phone);
-                totalSynced++;
-              } else {
-                console.warn(`[FullSync] Insert error for ${c.phone}:`, insErr.message);
-              }
-            }
-
-            // Break early if we're approaching timeout (process max 500 contacts)
-            if (totalSynced + totalSkipped >= 500) {
-              console.log(`[FullSync] Reached 500 contact limit, stopping to avoid timeout`);
-              break;
+          // Insert up to 500 to avoid timeout
+          const limit = Math.min(validContacts.length, 500);
+          for (let i = 0; i < limit; i++) {
+            const ct = validContacts[i];
+            const { error: insErr } = await supabase.from('contacts').insert(ct);
+            if (!insErr) {
+              totalSynced++;
+            } else if (insErr.code === '23505') {
+              await supabase.from('contacts')
+                .update({ name: ct.name, avatar_url: ct.avatar_url, whatsapp_connection_id: ct.whatsapp_connection_id })
+                .eq('phone', ct.phone);
+              totalSynced++;
             }
           }
         } else {
-          const errText = await contactsResponse.text();
-          console.error(`[FullSync] findContacts error [${contactsResponse.status}]:`, errText);
+          console.error(`[FullSync] findContacts error:`, await contactsResponse.text());
         }
       } catch (e) {
         console.warn('[FullSync] Contact sync error:', e);
