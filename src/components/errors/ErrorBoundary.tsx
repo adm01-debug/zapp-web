@@ -26,8 +26,16 @@ export class ErrorBoundary extends Component<Props, State> {
     errorInfo: null,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error, errorInfo: null };
+  }
+
+  public static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    // Auto-reset when resetKey changes
+    if (props.resetKey !== undefined && props.resetKey !== state.prevResetKey) {
+      return { hasError: false, error: null, errorInfo: null, prevResetKey: props.resetKey };
+    }
+    return null;
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
