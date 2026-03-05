@@ -392,40 +392,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     incrementUseCount(reply.id);
   };
 
-  const handleReaction = (messageId: string, emoji: string) => {
-    setReactions((prev) => {
-      const messageReactions = prev[messageId] || [];
-      const newReaction: MessageReaction = {
-        emoji,
-        userId: 'agent',
-        userName: 'Agente',
-        timestamp: new Date(),
-      };
-      
-      return {
-        ...prev,
-        [messageId]: [...messageReactions, newReaction],
-      };
-    });
-    
-    toast({
-      title: 'Reação adicionada',
-      description: `Você reagiu com ${emoji}`,
-    });
-  };
-
-  const handleRemoveReaction = (messageId: string, emoji: string) => {
-    setReactions((prev) => {
-      const messageReactions = prev[messageId] || [];
-      const filtered = messageReactions.filter(
-        r => !(r.emoji === emoji && r.userId === 'agent')
-      );
-      
-      return {
-        ...prev,
-        [messageId]: filtered,
-      };
-    });
+  // Reactions are now handled directly by the MessageReactions component
+  // which uses the useMessageReactions hook for real Supabase data
     
     toast({
       title: 'Reação removida',
