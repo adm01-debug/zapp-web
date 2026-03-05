@@ -51,7 +51,7 @@ const menuGroups: Array<{
   title: string;
   collapsible?: boolean;
   defaultCollapsed?: boolean;
-  items: Array<{ id: string; icon: any; label: string; badge?: number }>;
+  items: Array<{ id: string; icon: React.ComponentType<{ className?: string }>; label: string; badge?: number }>;
 }> = [
   {
     title: 'Principal',

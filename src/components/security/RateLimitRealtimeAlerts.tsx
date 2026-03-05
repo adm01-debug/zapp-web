@@ -17,7 +17,7 @@ interface SecurityAlert {
   is_resolved: boolean;
 }
 
-const ALERT_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
+const ALERT_CONFIG: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string; bg: string }> = {
   rate_limit: { icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
   blocked_ip: { icon: Ban, color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-900/30' },
   suspicious: { icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30' },

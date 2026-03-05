@@ -79,7 +79,7 @@ export function TextReveal({ text, className, delay = 0 }: TextRevealProps) {
 
 interface WordProps {
   children: string;
-  progress: any;
+  progress: MotionValue<number>;
   range: [number, number];
 }
 
