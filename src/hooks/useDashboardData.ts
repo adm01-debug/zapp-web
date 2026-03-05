@@ -168,7 +168,10 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       // If queue filter is active, filter messages by contact queue
       if (queueId && messages) {
-        return messages.filter((msg: Record<string, unknown>) => (msg.contacts as Record<string, unknown> | null)?.queue_id === queueId);
+        return messages.filter((msg) => {
+          const contacts = (msg as { contacts?: { queue_id?: string } | null }).contacts;
+          return contacts?.queue_id === queueId;
+        });
       }
       
       return messages || [];
