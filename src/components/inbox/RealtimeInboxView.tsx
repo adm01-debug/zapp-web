@@ -436,7 +436,7 @@ export function RealtimeInboxView() {
       status: m.is_read ? 'read' : 'delivered',
       mediaUrl: m.media_url || undefined,
       transcription: m.transcription || null,
-      transcriptionStatus: m.transcription_status as any || null,
+      transcriptionStatus: m.transcription_status as Message['transcriptionStatus'] || null,
     })) || [];
 
   // Check online status
