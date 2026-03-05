@@ -634,7 +634,7 @@ export function RealtimeInboxView() {
                 </div>
               }
               onError={(error, info) => {
-                console.error('[InboxErrorBoundary] VirtualizedRealtimeList crashed:', error.message, error.stack, info);
+                log.error('VirtualizedRealtimeList crashed:', error.message, error.stack, info);
               }}
             >
               <VirtualizedRealtimeList 
