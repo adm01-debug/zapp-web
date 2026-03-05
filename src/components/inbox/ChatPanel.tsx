@@ -131,7 +131,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
-  const [reactions, setReactions] = useState(mockReactions);
+  // Reactions are now managed per-message by the MessageReactions component
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
