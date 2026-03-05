@@ -242,7 +242,7 @@ export function VirtualizedRealtimeList({
 
           return (
             <div
-              key={conversation.contact.id}
+              key={contactId}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -255,13 +255,13 @@ export function VirtualizedRealtimeList({
             >
               {isMobile && !selectionMode ? (
                 <SwipeableListItem
-                  leftAction={SWIPE_ACTIONS.markAsRead(() => handleMarkAsRead(conversation.contact.id))}
+                  leftAction={SWIPE_ACTIONS.markAsRead(() => handleMarkAsRead(contactId))}
                   leftSecondaryAction={
                     isPinned
-                      ? SWIPE_ACTIONS.unpin(() => handlePin(conversation.contact.id))
-                      : SWIPE_ACTIONS.pin(() => handlePin(conversation.contact.id))
+                      ? SWIPE_ACTIONS.unpin(() => handlePin(contactId))
+                      : SWIPE_ACTIONS.pin(() => handlePin(contactId))
                   }
-                  rightAction={SWIPE_ACTIONS.archive(() => handleArchive(conversation.contact.id))}
+                  rightAction={SWIPE_ACTIONS.archive(() => handleArchive(contactId))}
                   rightSecondaryAction={
                     SWIPE_ACTIONS.delete(() => {
                       toast({
