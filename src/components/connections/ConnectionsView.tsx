@@ -318,11 +318,11 @@ export function ConnectionsView() {
           status: 'pending',
         }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setQrCodeDialog((prev) => ({
         ...prev,
         status: 'error',
-        errorMessage: error.message || 'Erro ao atualizar QR Code',
+        errorMessage: error instanceof Error ? error.message : 'Erro ao atualizar QR Code',
       }));
     }
   };
