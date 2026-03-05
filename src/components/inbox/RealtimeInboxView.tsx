@@ -27,6 +27,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getLogger } from '@/lib/logger';
 
+const log = getLogger('RealtimeInboxView');
+
 interface SearchResult {
   id: string;
   type: 'message' | 'contact' | 'transcription';
