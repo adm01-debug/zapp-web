@@ -147,7 +147,7 @@ function AppWithErrorRecovery() {
     <ErrorBoundary
       resetKey={errorKey}
       onError={(error) => {
-        console.error('[App ErrorBoundary]', error.message, error.stack);
+        log.error('ErrorBoundary caught:', error.message, error.stack);
         // Auto-retry after 2 seconds
         setTimeout(() => setErrorKey(prev => prev + 1), 2000);
       }}
