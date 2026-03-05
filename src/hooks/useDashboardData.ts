@@ -296,16 +296,17 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
     });
 
     // Recent activity from messages
-    const contactMessages = new Map<string, Record<string, unknown>>();
-    messages.forEach((msg: Record<string, unknown>) => {
-      if (!contactMessages.has(msg.contact_id)) {
-        contactMessages.set(msg.contact_id, msg);
+    const contactMessages = new Map<string, { id: string; contact_id: string; content: string; created_at: string; is_read: boolean | null; contacts?: { name?: string; phone?: string; avatar_url?: string | null } | null }>();
+    messages.forEach((msg) => {
+      const m = msg as { id: string; contact_id: string; content: string; created_at: string; is_read: boolean | null; contacts?: { name?: string; phone?: string; avatar_url?: string | null } | null };
+      if (!contactMessages.has(m.contact_id)) {
+        contactMessages.set(m.contact_id, m);
       }
     });
 
     const recentActivity: RecentActivity[] = Array.from(contactMessages.values())
       .slice(0, 10)
-      .map((msg: Record<string, unknown>) => ({
+      .map((msg) => ({
         id: msg.id,
         contactName: msg.contacts?.name || 'Desconhecido',
         contactPhone: msg.contacts?.phone || '',
