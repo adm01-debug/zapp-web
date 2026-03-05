@@ -143,9 +143,11 @@ export function VirtualizedRealtimeList({
       <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
         {virtualizer.getVirtualItems().map((virtualRow) => {
           const conversation = sortedConversations[virtualRow.index];
-          const isSelected = selectedIds.has(conversation.contact.id);
-          const isPinned = pinnedIds.has(conversation.contact.id);
-          const wasActioned = recentlyActioned.has(conversation.contact.id);
+          if (!conversation || !conversation.contact) return null;
+          const contactId = conversation.contact.id;
+          const isSelected = selectedIds.has(contactId);
+          const isPinned = pinnedIds.has(contactId);
+          const wasActioned = recentlyActioned.has(contactId);
 
           const itemContent = (
             <motion.button
