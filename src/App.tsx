@@ -71,7 +71,7 @@ function AppContent() {
   // Global unhandled rejection handler
   useEffect(() => {
     const handler = (event: PromiseRejectionEvent) => {
-      console.error("[GlobalErrorHandler] Unhandled promise rejection:", event.reason);
+      log.error("Unhandled promise rejection:", event.reason);
       event.preventDefault();
     };
     const errorHandler = (event: ErrorEvent) => {
