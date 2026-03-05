@@ -4,6 +4,7 @@ import { ChatPanel } from './ChatPanel';
 import { ContactDetails } from './ContactDetails';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
+import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
@@ -101,7 +102,8 @@ export function RealtimeInboxView() {
 
   // Filter conversations by search and advanced filters
   const filteredConversations = useMemo(() => {
-    let result = conversations;
+    // Safety: filter out any conversations with missing contact data
+    let result = conversations.filter(c => c && c.contact && c.contact.id);
 
     // Search filter
     if (search.trim()) {
@@ -625,14 +627,26 @@ export function RealtimeInboxView() {
               </p>
             </div>
           ) : (
-            <VirtualizedRealtimeList 
-              conversations={filteredConversations}
-              selectedContactId={selectedContactId}
-              onSelectConversation={handleSelectConversation}
-              selectionMode={selectionMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
-            />
+            <ErrorBoundary
+              fallback={
+                <div className="p-8 text-center">
+                  <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">Erro ao carregar conversas. Tente recarregar.</p>
+                </div>
+              }
+              onError={(error, info) => {
+                console.error('[InboxErrorBoundary] VirtualizedRealtimeList crashed:', error.message, error.stack, info);
+              }}
+            >
+              <VirtualizedRealtimeList 
+                conversations={filteredConversations}
+                selectedContactId={selectedContactId}
+                onSelectConversation={handleSelectConversation}
+                selectionMode={selectionMode}
+                selectedIds={selectedIds}
+                onToggleSelection={toggleSelection}
+              />
+            </ErrorBoundary>
           )}
         </div>
       </div>
