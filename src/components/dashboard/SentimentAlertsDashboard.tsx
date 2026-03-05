@@ -105,11 +105,11 @@ export function SentimentAlertsDashboard() {
 
       if (alertError) throw alertError;
 
-      const formattedAlerts = (alertData || []).map(log => ({
-        id: log.id,
-        contactId: log.entity_id,
-        createdAt: log.created_at,
-        ...((log.details || {}) as Record<string, unknown>),
+      const formattedAlerts = (alertData || []).map(entry => ({
+        id: entry.id,
+        contactId: entry.entity_id,
+        createdAt: entry.created_at,
+        ...((entry.details || {}) as Record<string, unknown>),
       })) as SentimentAlert[];
 
       setAlerts(formattedAlerts);

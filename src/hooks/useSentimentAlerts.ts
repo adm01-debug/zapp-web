@@ -113,11 +113,11 @@ export function useSentimentAlerts() {
 
       if (error) throw error;
 
-      return data?.map(log => ({
-        id: log.id,
-        contactId: log.entity_id,
-        createdAt: log.created_at,
-        ...((log.details || {}) as Record<string, unknown>),
+      return data?.map(entry => ({
+        id: entry.id,
+        contactId: entry.entity_id,
+        createdAt: entry.created_at,
+        ...((entry.details || {}) as Record<string, unknown>),
       })) || [];
     } catch (err) {
       log.error('Failed to fetch recent alerts:', err);
