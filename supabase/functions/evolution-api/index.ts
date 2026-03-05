@@ -437,13 +437,11 @@ serve(async (req) => {
       return await proxy(`/chat/findStatusMessage/${instance}`, 'GET');
     }
 
-    // GET /chat/findContacts/{instance}
+    // POST /chat/findContacts/{instance}
     if (action === 'find-contacts') {
-      const params = new URLSearchParams();
-      if (body.page) params.set('page', String(body.page));
-      if (body.offset) params.set('offset', String(body.offset));
-      const qs = params.toString() ? `?${params.toString()}` : '';
-      return await proxy(`/chat/findContacts/${instance}${qs}`, 'GET');
+      return await proxy(`/chat/findContacts/${instance}`, 'POST', {
+        where: body.where || {},
+      });
     }
 
     // POST /chat/whatsappNumbers/{instance}
