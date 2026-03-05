@@ -774,7 +774,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
             <StaggeredList className="space-y-3">
               {dayMessages.map((message) => {
                 const isSent = message.sender === 'agent';
-                const messageReactions = reactions[message.id] || [];
+                // Reactions are fetched per-message by MessageReactions component
 
                 return (
                   <StaggeredItem key={message.id}>
