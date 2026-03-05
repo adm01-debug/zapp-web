@@ -84,7 +84,7 @@ const METRIC_CONFIG = {
   },
 };
 
-
+export default function ConversationHeatmap({
   data: externalData,
   metric = 'volume',
   className,
