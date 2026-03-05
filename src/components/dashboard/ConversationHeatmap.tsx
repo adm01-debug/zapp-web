@@ -62,7 +62,29 @@ function useHeatmapData() {
   });
 }
 
-export function ConversationHeatmap({
+const METRIC_CONFIG = {
+  volume: {
+    label: 'Volume de Mensagens',
+    colorScale: ['#f0fdf4', '#86efac', '#22c55e', '#15803d', '#14532d'],
+    unit: 'msgs',
+    description: 'Número total de mensagens por período',
+  },
+  response_time: {
+    label: 'Tempo de Resposta',
+    colorScale: ['#fef9c3', '#fde047', '#facc15', '#eab308', '#ca8a04'],
+    unit: 'seg',
+    description: 'Tempo médio de primeira resposta',
+  },
+  satisfaction: {
+    label: 'Satisfação',
+    colorScale: ['#fef2f2', '#fecaca', '#f87171', '#ef4444', '#dc2626'],
+    unit: '/5',
+    description: 'Nota média de satisfação do cliente',
+    invert: true,
+  },
+};
+
+
   data: externalData,
   metric = 'volume',
   className,
