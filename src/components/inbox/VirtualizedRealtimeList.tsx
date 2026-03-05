@@ -143,9 +143,11 @@ export function VirtualizedRealtimeList({
       <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
         {virtualizer.getVirtualItems().map((virtualRow) => {
           const conversation = sortedConversations[virtualRow.index];
-          const isSelected = selectedIds.has(conversation.contact.id);
-          const isPinned = pinnedIds.has(conversation.contact.id);
-          const wasActioned = recentlyActioned.has(conversation.contact.id);
+          if (!conversation || !conversation.contact) return null;
+          const contactId = conversation.contact.id;
+          const isSelected = selectedIds.has(contactId);
+          const isPinned = pinnedIds.has(contactId);
+          const wasActioned = recentlyActioned.has(contactId);
 
           const itemContent = (
             <motion.button
@@ -155,22 +157,22 @@ export function VirtualizedRealtimeList({
                 opacity: wasActioned ? 0.7 : 1,
               }}
               transition={{ duration: 0.2 }}
-              onClick={(e) => handleClick(conversation.contact.id, e)}
-              className={cn(
-                'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
-                selectedContactId === conversation.contact.id && 'bg-primary/10 border border-primary/20',
-                isSelected && 'bg-primary/20 border border-primary/30',
-                isPinned && 'bg-primary/5 border-l-2 border-l-primary'
-              )}
-            >
-              {selectionMode && (
-                <div
-                  className="flex-shrink-0 flex items-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleSelection?.(conversation.contact.id);
-                  }}
-                >
+               onClick={(e) => handleClick(contactId, e)}
+               className={cn(
+                 'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
+                 selectedContactId === contactId && 'bg-primary/10 border border-primary/20',
+                 isSelected && 'bg-primary/20 border border-primary/30',
+                 isPinned && 'bg-primary/5 border-l-2 border-l-primary'
+               )}
+             >
+               {selectionMode && (
+                 <div
+                   className="flex-shrink-0 flex items-center"
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     onToggleSelection?.(contactId);
+                   }}
+                 >
                   <Checkbox checked={isSelected} className="data-[state=checked]:bg-primary" />
                 </div>
               )}
@@ -240,7 +242,7 @@ export function VirtualizedRealtimeList({
 
           return (
             <div
-              key={conversation.contact.id}
+              key={contactId}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -253,13 +255,13 @@ export function VirtualizedRealtimeList({
             >
               {isMobile && !selectionMode ? (
                 <SwipeableListItem
-                  leftAction={SWIPE_ACTIONS.markAsRead(() => handleMarkAsRead(conversation.contact.id))}
+                  leftAction={SWIPE_ACTIONS.markAsRead(() => handleMarkAsRead(contactId))}
                   leftSecondaryAction={
                     isPinned
-                      ? SWIPE_ACTIONS.unpin(() => handlePin(conversation.contact.id))
-                      : SWIPE_ACTIONS.pin(() => handlePin(conversation.contact.id))
+                      ? SWIPE_ACTIONS.unpin(() => handlePin(contactId))
+                      : SWIPE_ACTIONS.pin(() => handlePin(contactId))
                   }
-                  rightAction={SWIPE_ACTIONS.archive(() => handleArchive(conversation.contact.id))}
+                  rightAction={SWIPE_ACTIONS.archive(() => handleArchive(contactId))}
                   rightSecondaryAction={
                     SWIPE_ACTIONS.delete(() => {
                       toast({
