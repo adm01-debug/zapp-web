@@ -63,9 +63,12 @@ export function VirtualizedRealtimeList({
   const isMobile = useIsMobile();
   const [recentlyActioned, setRecentlyActioned] = useState<Set<string>>(new Set());
 
+  const safeConversations = useMemo(() => {
+    return conversations.filter(c => c && c.contact && c.contact.id);
+  }, [conversations]);
+
   const sortedConversations = useMemo(() => {
-    // Sort conversations: pinned first, then by last message date
-    return [...conversations].sort((a, b) => {
+    return [...safeConversations].sort((a, b) => {
       const aIsPinned = pinnedIds.has(a.contact.id);
       const bIsPinned = pinnedIds.has(b.contact.id);
 
@@ -76,7 +79,7 @@ export function VirtualizedRealtimeList({
       const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
       return bTime - aTime;
     });
-  }, [conversations, pinnedIds]);
+  }, [safeConversations, pinnedIds]);
 
   const virtualizer = useVirtualizer({
     count: sortedConversations.length,
