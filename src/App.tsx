@@ -67,6 +67,23 @@ function AppContent() {
   // Register service worker for push notifications
   useServiceWorker();
 
+  // Global unhandled rejection handler
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      console.error("[GlobalErrorHandler] Unhandled promise rejection:", event.reason);
+      event.preventDefault();
+    };
+    const errorHandler = (event: ErrorEvent) => {
+      console.error("[GlobalErrorHandler] Uncaught error:", event.error);
+    };
+    window.addEventListener("unhandledrejection", handler);
+    window.addEventListener("error", errorHandler);
+    return () => {
+      window.removeEventListener("unhandledrejection", handler);
+      window.removeEventListener("error", errorHandler);
+    };
+  }, []);
+
   return (
     <BrowserRouter>
       {/* Enhanced skip links for accessibility */}
