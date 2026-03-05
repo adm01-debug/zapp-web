@@ -15,7 +15,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
+  const evolutionApiUrl = (Deno.env.get('EVOLUTION_API_URL') || '').replace(/\/+$/, '');
   const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
 
   if (!evolutionApiUrl || !evolutionApiKey) {
