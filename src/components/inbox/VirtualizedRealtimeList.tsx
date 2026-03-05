@@ -157,22 +157,22 @@ export function VirtualizedRealtimeList({
                 opacity: wasActioned ? 0.7 : 1,
               }}
               transition={{ duration: 0.2 }}
-              onClick={(e) => handleClick(conversation.contact.id, e)}
-              className={cn(
-                'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
-                selectedContactId === conversation.contact.id && 'bg-primary/10 border border-primary/20',
-                isSelected && 'bg-primary/20 border border-primary/30',
-                isPinned && 'bg-primary/5 border-l-2 border-l-primary'
-              )}
-            >
-              {selectionMode && (
-                <div
-                  className="flex-shrink-0 flex items-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleSelection?.(conversation.contact.id);
-                  }}
-                >
+               onClick={(e) => handleClick(contactId, e)}
+               className={cn(
+                 'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
+                 selectedContactId === contactId && 'bg-primary/10 border border-primary/20',
+                 isSelected && 'bg-primary/20 border border-primary/30',
+                 isPinned && 'bg-primary/5 border-l-2 border-l-primary'
+               )}
+             >
+               {selectionMode && (
+                 <div
+                   className="flex-shrink-0 flex items-center"
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     onToggleSelection?.(contactId);
+                   }}
+                 >
                   <Checkbox checked={isSelected} className="data-[state=checked]:bg-primary" />
                 </div>
               )}
