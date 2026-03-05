@@ -16,4 +16,8 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "framer-motion"],
   },
+  optimizeDeps: {
+    include: ["react", "react-dom", "framer-motion"],
+    force: true,
+  },
 }));
