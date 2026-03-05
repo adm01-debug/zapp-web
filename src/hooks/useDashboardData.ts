@@ -281,7 +281,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
     // Queue stats
     const queuesStats: QueueStats[] = queues.map(queue => {
       const members = queue.queue_members || [];
-      const onlineMembers = members.filter((m: Record<string, unknown>) => 
+      const onlineMembers = members.filter((m: { is_active?: boolean; profiles?: { is_active?: boolean } }) => 
         m.is_active && m.profiles?.is_active
       ).length;
 
