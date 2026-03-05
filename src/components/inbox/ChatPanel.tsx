@@ -394,12 +394,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
 
   // Reactions are now handled directly by the MessageReactions component
   // which uses the useMessageReactions hook for real Supabase data
-    
-    toast({
-      title: 'Reação removida',
-      description: `Você removeu ${emoji}`,
-    });
-  };
 
   const handleTransfer = (type: 'agent' | 'queue', targetId: string, message?: string) => {
     toast({
