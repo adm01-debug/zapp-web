@@ -94,14 +94,7 @@ interface ChatPanelProps {
   onToggleDetails?: () => void;
 }
 
-// Mock reactions data with new format
-const mockReactions: Record<string, MessageReaction[]> = {
-  'msg-1': [{ emoji: '👍', userId: 'agent', userName: 'Agente', timestamp: new Date() }],
-  'msg-3': [
-    { emoji: '❤️', userId: 'contact', userName: 'Cliente', timestamp: new Date() },
-    { emoji: '❤️', userId: 'agent', userName: 'Agente', timestamp: new Date() }
-  ],
-};
+// Reactions are now managed by useMessageReactions hook via MessageReactions component
 
 // Format timestamp intelligently
 function formatMessageTime(date: Date): string {
@@ -138,7 +131,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
-  const [reactions, setReactions] = useState(mockReactions);
+  // Reactions are now managed per-message by the MessageReactions component
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
@@ -399,46 +392,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     incrementUseCount(reply.id);
   };
 
-  const handleReaction = (messageId: string, emoji: string) => {
-    setReactions((prev) => {
-      const messageReactions = prev[messageId] || [];
-      const newReaction: MessageReaction = {
-        emoji,
-        userId: 'agent',
-        userName: 'Agente',
-        timestamp: new Date(),
-      };
-      
-      return {
-        ...prev,
-        [messageId]: [...messageReactions, newReaction],
-      };
-    });
-    
-    toast({
-      title: 'Reação adicionada',
-      description: `Você reagiu com ${emoji}`,
-    });
-  };
-
-  const handleRemoveReaction = (messageId: string, emoji: string) => {
-    setReactions((prev) => {
-      const messageReactions = prev[messageId] || [];
-      const filtered = messageReactions.filter(
-        r => !(r.emoji === emoji && r.userId === 'agent')
-      );
-      
-      return {
-        ...prev,
-        [messageId]: filtered,
-      };
-    });
-    
-    toast({
-      title: 'Reação removida',
-      description: `Você removeu ${emoji}`,
-    });
-  };
+  // Reactions are now handled directly by the MessageReactions component
+  // which uses the useMessageReactions hook for real Supabase data
 
   const handleTransfer = (type: 'agent' | 'queue', targetId: string, message?: string) => {
     toast({
@@ -813,7 +768,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
             <StaggeredList className="space-y-3">
               {dayMessages.map((message) => {
                 const isSent = message.sender === 'agent';
-                const messageReactions = reactions[message.id] || [];
+                // Reactions are fetched per-message by MessageReactions component
 
                 return (
                   <StaggeredItem key={message.id}>

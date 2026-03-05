@@ -430,7 +430,7 @@ function AutomationEditorDialog({
 
 // Main automations view
 export function AutomationsManager() {
-  const [automations, setAutomations] = useState<Automation[]>(MOCK_AUTOMATIONS);
+  const [automations, setAutomations] = useState<Automation[]>([]);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');

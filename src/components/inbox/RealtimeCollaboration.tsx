@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,20 +66,60 @@ interface RealtimeCollaborationProps {
 // Hook to track who's viewing the conversation
 function useConversationViewers(contactId: string) {
   const { user } = useAuth();
+  const [viewers, setViewers] = useState<Viewer[]>([]);
+
+  // Use Supabase Realtime Presence to track viewers
+  useEffect(() => {
+    if (!user?.id || !contactId) return;
+
+    const channel = supabase.channel(`conversation:${contactId}`, {
+      config: { presence: { key: user.id } },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const presentViewers: Viewer[] = [];
+        
+        Object.entries(state).forEach(([userId, presences]) => {
+          if (userId !== user.id && Array.isArray(presences) && presences.length > 0) {
+            const presence = presences[0] as Record<string, unknown>;
+            presentViewers.push({
+              id: userId,
+              name: (presence.name as string) || 'Agente',
+              avatar_url: (presence.avatar_url as string) || null,
+              is_typing: (presence.is_typing as boolean) || false,
+              last_seen: new Date(),
+            });
+          }
+        });
+        
+        setViewers(presentViewers);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Get current user's profile info
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, avatar_url')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          await channel.track({
+            name: profile?.name || 'Agente',
+            avatar_url: profile?.avatar_url || null,
+            is_typing: false,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [contactId, user?.id]);
   
-  // In production, this would use Supabase Realtime Presence
-  const [viewers] = useState<Viewer[]>([
-    // Mock data for demo
-    {
-      id: '1',
-      name: 'Maria Santos',
-      avatar_url: null,
-      is_typing: false,
-      last_seen: new Date(),
-    },
-  ]);
-  
-  return viewers.filter(v => v.id !== user?.id);
+  return viewers;
 }
 
 // Viewers indicator component

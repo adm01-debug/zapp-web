@@ -19,6 +19,8 @@ import {
 import { Calendar, Activity, TrendingUp, Flame } from 'lucide-react';
 import { format, subDays, startOfWeek, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface ActivityData {
   date: Date;
@@ -50,28 +52,49 @@ export const ActivityHeatmap = ({
   const [selectedPeriod, setSelectedPeriod] = useState<'3m' | '6m' | '1y'>('3m');
   const [hoveredDay, setHoveredDay] = useState<ActivityData | null>(null);
 
-  // Generate mock data if not provided
-  const data = useMemo(() => {
-    if (propData) return propData;
-
-    const days = selectedPeriod === '3m' ? 90 : selectedPeriod === '6m' ? 180 : 365;
-    const endDate = new Date();
-    const startDate = subDays(endDate, days);
-
-    return eachDayOfInterval({ start: startDate, end: endDate }).map(date => {
-      const isWeekend = getDay(date) === 0 || getDay(date) === 6;
-      const baseCount = isWeekend ? Math.random() * 20 : Math.random() * 100;
-      const count = Math.floor(baseCount);
+  // Fetch real activity data from messages table
+  const { data: realData } = useQuery({
+    queryKey: ['activity-heatmap', selectedPeriod, metric],
+    queryFn: async () => {
+      const days = selectedPeriod === '3m' ? 90 : selectedPeriod === '6m' ? 180 : 365;
+      const startDate = subDays(new Date(), days);
       
-      let level: 0 | 1 | 2 | 3 | 4 = 0;
-      if (count > 0) level = 1;
-      if (count > 20) level = 2;
-      if (count > 50) level = 3;
-      if (count > 80) level = 4;
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('created_at')
+        .gte('created_at', startDate.toISOString());
+      
+      if (error) throw error;
+      
+      // Group by day
+      const dayCounts = new Map<string, number>();
+      (messages || []).forEach(m => {
+        const dateKey = format(new Date(m.created_at), 'yyyy-MM-dd');
+        dayCounts.set(dateKey, (dayCounts.get(dateKey) || 0) + 1);
+      });
+      
+      const endDate = new Date();
+      return eachDayOfInterval({ start: startDate, end: endDate }).map(date => {
+        const dateKey = format(date, 'yyyy-MM-dd');
+        const count = dayCounts.get(dateKey) || 0;
+        
+        let level: 0 | 1 | 2 | 3 | 4 = 0;
+        if (count > 0) level = 1;
+        if (count > 20) level = 2;
+        if (count > 50) level = 3;
+        if (count > 80) level = 4;
 
-      return { date, count, level };
-    });
-  }, [propData, selectedPeriod]);
+        return { date, count, level };
+      });
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !propData,
+  });
+
+  // Use provided data, real data, or empty array
+  const data = useMemo(() => {
+    return propData || realData || [];
+  }, [propData, realData]);
 
   // Group data by weeks
   const weeks = useMemo(() => {

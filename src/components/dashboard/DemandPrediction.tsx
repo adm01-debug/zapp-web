@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { 
   TrendingUp, TrendingDown, Clock, AlertTriangle, 
   ArrowUp, ArrowDown, Minus, Brain, Sparkles, Info
@@ -34,33 +36,37 @@ interface DemandPredictionProps {
   className?: string;
 }
 
-// Generate mock prediction data
-const generateMockData = (): PredictionPoint[] => {
+// Generate prediction data based on real message history
+const generatePredictionFromHistory = (messageHistory: { hour: number; count: number }[]): PredictionPoint[] => {
   const now = new Date();
   const data: PredictionPoint[] = [];
+  
+  // Build hourly averages from history
+  const hourlyAvg = new Map<number, number>();
+  messageHistory.forEach(({ hour, count }) => {
+    hourlyAvg.set(hour, count);
+  });
   
   // Past 4 hours (actual data)
   for (let i = -4; i <= 0; i++) {
     const time = new Date(now.getTime() + i * 60 * 60 * 1000);
-    const baseValue = 25 + Math.sin(time.getHours() / 3) * 15;
-    const actual = Math.round(baseValue + (Math.random() - 0.5) * 10);
+    const hourCount = hourlyAvg.get(time.getHours()) || 0;
     
     data.push({
       time: time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      actual,
-      predicted: actual,
-      lower: actual,
-      upper: actual,
+      actual: hourCount,
+      predicted: hourCount,
+      lower: hourCount,
+      upper: hourCount,
       isPrediction: false,
     });
   }
   
-  // Future 4 hours (predictions)
+  // Future 4 hours (predictions based on historical patterns)
   for (let i = 1; i <= 4; i++) {
     const time = new Date(now.getTime() + i * 60 * 60 * 1000);
-    const baseValue = 25 + Math.sin(time.getHours() / 3) * 15;
-    const predicted = Math.round(baseValue + (Math.random() - 0.5) * 8);
-    const variance = 5 + i * 2; // Uncertainty grows with time
+    const predicted = hourlyAvg.get(time.getHours()) || 0;
+    const variance = Math.max(2, Math.round(predicted * 0.2)) + i;
     
     data.push({
       time: time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -75,10 +81,38 @@ const generateMockData = (): PredictionPoint[] => {
 };
 
 export function DemandPrediction({
-  data = generateMockData(),
+  data: externalData,
   currentCapacity = 35,
   className,
 }: DemandPredictionProps) {
+  // Fetch real message volume per hour
+  const { data: messageHistory = [] } = useQuery({
+    queryKey: ['demand-prediction-history'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('created_at')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      // Group by hour and calculate averages
+      const hourCounts = new Map<number, number[]>();
+      (data || []).forEach(m => {
+        const hour = new Date(m.created_at).getHours();
+        if (!hourCounts.has(hour)) hourCounts.set(hour, []);
+        hourCounts.get(hour)!.push(1);
+      });
+      
+      return Array.from(hourCounts.entries()).map(([hour, counts]) => ({
+        hour,
+        count: Math.round(counts.length / 7), // daily average
+      }));
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const data = externalData || generatePredictionFromHistory(messageHistory);
   const [hoveredPoint, setHoveredPoint] = useState<PredictionPoint | null>(null);
 
   // Calculate insights
