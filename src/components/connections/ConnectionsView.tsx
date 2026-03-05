@@ -389,10 +389,10 @@ export function ConnectionsView() {
           description: 'A conexão foi excluída com sucesso.',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Erro ao excluir',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
         variant: 'destructive',
       });
     }
