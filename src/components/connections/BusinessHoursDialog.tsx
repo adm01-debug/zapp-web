@@ -74,7 +74,7 @@ export function BusinessHoursDialog({
     onOpenChange(false);
   };
 
-  const updateHour = (dayOfWeek: number, field: keyof BusinessHour, value: any) => {
+  const updateHour = (dayOfWeek: number, field: keyof BusinessHour, value: string | boolean) => {
     setLocalHours((prev) =>
       prev.map((h) => (h.day_of_week === dayOfWeek ? { ...h, [field]: value } : h))
     );

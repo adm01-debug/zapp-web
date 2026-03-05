@@ -305,7 +305,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
 
     const recentActivity: RecentActivity[] = Array.from(contactMessages.values())
       .slice(0, 10)
-      .map((msg: any) => ({
+      .map((msg: Record<string, unknown>) => ({
         id: msg.id,
         contactName: msg.contacts?.name || 'Desconhecido',
         contactPhone: msg.contacts?.phone || '',
