@@ -63,27 +63,49 @@ interface SentimentTrendChartProps {
   onExport?: () => void;
 }
 
-// Generate mock data for demo
-function generateMockData(days: number): SentimentData[] {
-  const endDate = new Date();
-  const startDate = subDays(endDate, days - 1);
-  const dates = eachDayOfInterval({ start: startDate, end: endDate });
-  
-  return dates.map((date) => {
-    const positive = Math.floor(Math.random() * 40) + 30; // 30-70
-    const negative = Math.floor(Math.random() * 20) + 5; // 5-25
-    const neutral = 100 - positive - negative;
-    const avg_score = (positive * 1 + neutral * 0 + negative * -1) / 100;
-    
-    return {
-      date: format(date, 'yyyy-MM-dd'),
-      positive,
-      neutral,
-      negative,
-      avg_score: Math.round(avg_score * 100) / 100,
-      alerts_count: Math.floor(Math.random() * 5),
-    };
+// Fetch real sentiment data from conversation_analyses
+function useRealSentimentData(days: number): SentimentData[] | null {
+  const { data } = useQuery({
+    queryKey: ['sentiment-trend', days],
+    queryFn: async () => {
+      const startDate = subDays(new Date(), days);
+      const { data: analyses, error } = await supabase
+        .from('conversation_analyses')
+        .select('created_at, sentiment, sentiment_score')
+        .gte('created_at', startDate.toISOString())
+        .order('created_at');
+      
+      if (error) throw error;
+      if (!analyses || analyses.length === 0) return null;
+      
+      // Group by day
+      const dayMap = new Map<string, { positive: number; negative: number; neutral: number; total: number; alerts: number }>();
+      
+      analyses.forEach(a => {
+        const dateKey = format(new Date(a.created_at), 'yyyy-MM-dd');
+        if (!dayMap.has(dateKey)) {
+          dayMap.set(dateKey, { positive: 0, negative: 0, neutral: 0, total: 0, alerts: 0 });
+        }
+        const entry = dayMap.get(dateKey)!;
+        entry.total++;
+        if (a.sentiment === 'positivo') entry.positive++;
+        else if (a.sentiment === 'negativo') { entry.negative++; entry.alerts++; }
+        else entry.neutral++;
+      });
+      
+      return Array.from(dayMap.entries()).map(([date, counts]) => ({
+        date,
+        positive: Math.round((counts.positive / counts.total) * 100),
+        neutral: Math.round((counts.neutral / counts.total) * 100),
+        negative: Math.round((counts.negative / counts.total) * 100),
+        avg_score: (counts.positive - counts.negative) / counts.total,
+        alerts_count: counts.alerts,
+      }));
+    },
+    staleTime: 5 * 60 * 1000,
   });
+  
+  return data ?? null;
 }
 
 function SentimentIcon({ score }: { score: number }) {
