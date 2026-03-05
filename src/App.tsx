@@ -75,7 +75,7 @@ function AppContent() {
       event.preventDefault();
     };
     const errorHandler = (event: ErrorEvent) => {
-      console.error("[GlobalErrorHandler] Uncaught error:", event.error);
+      log.error("Uncaught error:", event.error);
     };
     window.addEventListener("unhandledrejection", handler);
     window.addEventListener("error", errorHandler);
