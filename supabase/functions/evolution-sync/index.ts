@@ -35,12 +35,19 @@ serve(async (req) => {
     // 1. SYNC CONTACTS FROM EVOLUTION API
     // =============================================
     if (action === 'sync-contacts') {
-      console.log(`[Sync] Fetching contacts from instance ${instanceName}, page ${page}, offset ${offset}`);
+      console.log(`[Sync] Fetching contacts from instance ${instanceName}`);
 
-      // Fetch contacts from Evolution API
+      // Fetch contacts from Evolution API (POST with where clause)
       const contactsResponse = await fetch(
-        `${evolutionApiUrl}/chat/findContacts/${instanceName}?page=${page}&offset=${offset}`,
-        { method: 'GET', headers: { 'apikey': evolutionApiKey } }
+        `${evolutionApiUrl}/chat/findContacts/${instanceName}`,
+        { 
+          method: 'POST', 
+          headers: { 
+            'Content-Type': 'application/json',
+            'apikey': evolutionApiKey,
+          },
+          body: JSON.stringify({ where: {} }),
+        }
       );
 
       if (!contactsResponse.ok) {
