@@ -245,4 +245,6 @@ export const AccessibilitySettings = forwardRef<HTMLDivElement>((_, ref) => {
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+AccessibilitySettings.displayName = 'AccessibilitySettings';
