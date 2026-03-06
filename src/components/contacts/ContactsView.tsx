@@ -247,30 +247,35 @@ export function ContactsView() {
 
   const handleAddContact = async () => {
     if (!newContact.name || !newContact.phone) {
-      toast.error('Preencha os campos obrigatórios');
+      feedback.warning('Preencha os campos obrigatórios');
       return;
     }
 
-    const { error } = await supabase.from('contacts').insert({
-      name: newContact.name,
-      nickname: newContact.nickname || null,
-      surname: newContact.surname || null,
-      job_title: newContact.job_title || null,
-      company: newContact.company || null,
-      phone: newContact.phone,
-      email: newContact.email || null,
-      contact_type: newContact.contact_type,
-    });
-
-    if (error) {
-      toast.error('Erro ao adicionar contato');
-      log.error('Error adding contact:', error);
-    } else {
-      toast.success('Contato adicionado com sucesso');
-      setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
-      setIsAddDialogOpen(false);
-      fetchContacts();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('contacts').insert({
+          name: newContact.name,
+          nickname: newContact.nickname || null,
+          surname: newContact.surname || null,
+          job_title: newContact.job_title || null,
+          company: newContact.company || null,
+          phone: newContact.phone,
+          email: newContact.email || null,
+          contact_type: newContact.contact_type,
+        });
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Adicionando contato...',
+        successMessage: 'Contato adicionado com sucesso!',
+        errorMessage: 'Erro ao adicionar contato',
+        onSuccess: () => {
+          setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
+          setIsAddDialogOpen(false);
+          fetchContacts();
+        },
+      }
+    );
   };
 
   const handleEditContact = async () => {
