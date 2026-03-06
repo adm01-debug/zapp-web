@@ -12,13 +12,13 @@ interface MobileDrawerProps {
   className?: string;
 }
 
-export function MobileDrawer({ 
+export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(({ 
   isOpen, 
   onClose, 
   children, 
   side = 'left',
   className 
-}: MobileDrawerProps) {
+}, ref) => {
   const dragX = useMotionValue(0);
   const dragThreshold = 100;
 
@@ -99,7 +99,9 @@ export function MobileDrawer({
       )}
     </AnimatePresence>
   );
-}
+});
+
+MobileDrawer.displayName = 'MobileDrawer';
 
 // Bottom Navigation for mobile
 interface BottomNavItem {

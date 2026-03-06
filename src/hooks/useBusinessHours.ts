@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
@@ -132,9 +132,15 @@ export function useBusinessHours(connectionId: string) {
     return saveMutation.mutateAsync({ hours, away });
   }, [saveMutation]);
 
+  const stableBusinessHours = useMemo(() => businessHours || [], [businessHours]);
+  const stableAwayMessage = useMemo(
+    () => awayMessage || { ...DEFAULT_AWAY_MESSAGE, whatsapp_connection_id: connectionId },
+    [awayMessage, connectionId]
+  );
+
   return {
-    businessHours: businessHours || [],
-    awayMessage: awayMessage || { ...DEFAULT_AWAY_MESSAGE, whatsapp_connection_id: connectionId },
+    businessHours: stableBusinessHours,
+    awayMessage: stableAwayMessage,
     isLoading: loadingHours || loadingAway,
     isSaving: saveMutation.isPending,
     saveSettings,
