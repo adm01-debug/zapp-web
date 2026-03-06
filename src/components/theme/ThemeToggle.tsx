@@ -297,6 +297,4 @@ export function ThemeChangeIndicator() {
       )}
     </AnimatePresence>
   );
-});
-
-ThemeToggle.displayName = 'ThemeToggle';
+}
