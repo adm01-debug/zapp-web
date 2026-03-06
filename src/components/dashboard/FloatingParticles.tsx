@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useMemo } from 'react';
+import { useMemo, forwardRef } from 'react';
 
 interface Particle {
   id: number;
@@ -11,7 +11,7 @@ interface Particle {
   color: 'primary' | 'secondary' | 'accent';
 }
 
-export function FloatingParticles() {
+export const FloatingParticles = forwardRef<HTMLDivElement>((_, ref) => {
   const particles = useMemo<Particle[]>(() => {
     return Array.from({ length: 30 }, (_, i) => ({
       id: i,
