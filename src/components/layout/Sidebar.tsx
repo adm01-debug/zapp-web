@@ -68,7 +68,7 @@ const menuGroups: Array<{
     items: [
       { id: 'agents', icon: Phone, label: 'Atendentes' },
       { id: 'queues', icon: Zap, label: 'Filas' },
-      { id: 'connections', icon: Zap, label: 'Conexões' },
+      { id: 'connections', icon: Link2, label: 'Conexões' },
       { id: 'groups', icon: UsersRound, label: 'Grupos' },
     ],
   },
