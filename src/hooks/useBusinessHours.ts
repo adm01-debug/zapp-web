@@ -132,9 +132,15 @@ export function useBusinessHours(connectionId: string) {
     return saveMutation.mutateAsync({ hours, away });
   }, [saveMutation]);
 
+  const stableBusinessHours = useMemo(() => businessHours || [], [businessHours]);
+  const stableAwayMessage = useMemo(
+    () => awayMessage || { ...DEFAULT_AWAY_MESSAGE, whatsapp_connection_id: connectionId },
+    [awayMessage, connectionId]
+  );
+
   return {
-    businessHours: businessHours || [],
-    awayMessage: awayMessage || { ...DEFAULT_AWAY_MESSAGE, whatsapp_connection_id: connectionId },
+    businessHours: stableBusinessHours,
+    awayMessage: stableAwayMessage,
     isLoading: loadingHours || loadingAway,
     isSaving: saveMutation.isPending,
     saveSettings,
