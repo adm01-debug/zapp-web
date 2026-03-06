@@ -114,38 +114,46 @@ export function GroupsView() {
 
   const handleAddGroup = async () => {
     if (!newGroup.name || !newGroup.group_id) {
-      toast.error('Preencha os campos obrigatórios');
+      feedback.warning('Preencha os campos obrigatórios');
       return;
     }
 
-    const { error } = await supabase.from('whatsapp_groups').insert({
-      name: newGroup.name,
-      group_id: newGroup.group_id,
-      description: newGroup.description || null,
-      whatsapp_connection_id: newGroup.whatsapp_connection_id || null,
-    });
-
-    if (error) {
-      toast.error('Erro ao adicionar grupo');
-      log.error('Error adding group:', error);
-    } else {
-      toast.success('Grupo adicionado com sucesso');
-      setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '' });
-      setIsAddDialogOpen(false);
-      fetchGroups();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('whatsapp_groups').insert({
+          name: newGroup.name,
+          group_id: newGroup.group_id,
+          description: newGroup.description || null,
+          whatsapp_connection_id: newGroup.whatsapp_connection_id || null,
+        });
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Adicionando grupo...',
+        successMessage: 'Grupo adicionado com sucesso!',
+        errorMessage: 'Erro ao adicionar grupo',
+        onSuccess: () => {
+          setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '' });
+          setIsAddDialogOpen(false);
+          fetchGroups();
+        },
+      }
+    );
   };
 
   const handleDeleteGroup = async (id: string) => {
-    const { error } = await supabase.from('whatsapp_groups').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Erro ao excluir grupo');
-      log.error('Error deleting group:', error);
-    } else {
-      toast.success('Grupo excluído');
-      fetchGroups();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('whatsapp_groups').delete().eq('id', id);
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Excluindo grupo...',
+        successMessage: 'Grupo excluído com sucesso!',
+        errorMessage: 'Erro ao excluir grupo',
+        onSuccess: () => fetchGroups(),
+      }
+    );
   };
 
   const filteredGroups = groups.filter(
