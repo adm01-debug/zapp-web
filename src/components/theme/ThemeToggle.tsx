@@ -27,7 +27,7 @@ const themeConfig = {
   system: { icon: Monitor, label: 'Sistema', description: 'Seguir sistema' },
 };
 
-export function ThemeToggle({ collapsed = false, variant = 'full' }: ThemeToggleProps) {
+export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(({ collapsed = false, variant = 'full' }, ref) => {
   const { theme, setTheme, cycleTheme, resolvedTheme } = useTheme();
 
   const Icon = themeConfig[theme].icon;
@@ -204,7 +204,9 @@ export function ThemeToggle({ collapsed = false, variant = 'full' }: ThemeToggle
       </div>
     </motion.button>
   );
-}
+});
+
+ThemeToggle.displayName = 'ThemeToggle';
 
 // Compact animated toggle
 export function ThemeToggleCompact() {

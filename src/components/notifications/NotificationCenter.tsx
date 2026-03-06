@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -135,7 +135,7 @@ function NotificationItem({ notification, onMarkAsRead, onDelete }: Notification
   );
 }
 
-export function NotificationCenter() {
+export const NotificationCenter = forwardRef<HTMLDivElement>((_, ref) => {
   const { 
     notifications, 
     loading, 
@@ -328,4 +328,6 @@ export function NotificationCenter() {
       </SheetContent>
     </Sheet>
   );
-}
+});
+
+NotificationCenter.displayName = 'NotificationCenter';

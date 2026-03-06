@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +10,7 @@ import {
 import { Globe, Check } from 'lucide-react';
 import { useLanguage } from '@/i18n';
 
-export function LanguageSelector() {
+export const LanguageSelector = forwardRef<HTMLDivElement>((_, ref) => {
   const { t } = useTranslation();
   const { currentLanguage, changeLanguage, languages } = useLanguage();
 
@@ -41,4 +42,6 @@ export function LanguageSelector() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
+
+LanguageSelector.displayName = 'LanguageSelector';
