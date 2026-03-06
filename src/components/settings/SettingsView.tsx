@@ -431,7 +431,13 @@ export function SettingsView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Avatar Upload */}
                 <div className="space-y-2">
+                  <Label>Foto do Perfil</Label>
+                  <AvatarUpload />
+                </div>
+
+                <div className="border-t border-border/50 pt-6" />
                   <Label>Tema</Label>
                   <Select
                     value={settings.theme}
