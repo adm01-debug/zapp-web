@@ -328,4 +328,6 @@ export const NotificationCenter = forwardRef<HTMLDivElement>((_, ref) => {
       </SheetContent>
     </Sheet>
   );
-}
+});
+
+NotificationCenter.displayName = 'NotificationCenter';
