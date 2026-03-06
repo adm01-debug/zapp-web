@@ -163,47 +163,27 @@ export function GroupsView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between relative z-10"
-      >
-        <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground neon-underline"
-          >
-            Grupos WhatsApp
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-muted-foreground"
-          >
-            Gerencie seus grupos ({groups.length} grupos)
-          </motion.p>
-        </div>
-        <div className="flex items-center gap-2">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Grupos WhatsApp"
+        subtitle={`Gerencie seus grupos (${groups.length} grupos)`}
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Grupos' },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
             <Button variant="outline" onClick={fetchGroups} disabled={isLoading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
-          </motion.div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
                 <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Grupo
                 </Button>
-              </motion.div>
-            </DialogTrigger>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Adicionar Grupo</DialogTitle>

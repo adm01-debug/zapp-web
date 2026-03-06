@@ -150,13 +150,9 @@ export function AgentsView() {
 
       {/* Agents Grid */}
       {filteredAgents.length === 0 ? (
-        <EmptyState
-          icon={Search}
-          title="Nenhum atendente encontrado"
-          description={search ? "Tente ajustar o termo de busca" : "Não há atendentes cadastrados no sistema"}
-          illustration="agents"
-          secondaryActionLabel={search ? "Limpar Busca" : undefined}
-          onSecondaryAction={search ? () => setSearch('') : undefined}
+        <AgentsEmptyState
+          onInviteAgent={() => {}}
+          onConfigurePermissions={() => {}}
         />
       ) : (
         <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

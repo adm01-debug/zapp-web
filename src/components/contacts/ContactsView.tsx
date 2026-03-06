@@ -438,73 +438,50 @@ export function ContactsView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between relative z-10"
-      >
-        <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground neon-underline"
-          >
-            Contatos
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-muted-foreground"
-          >
-            Base de clientes e leads ({contacts.length} contatos)
-          </motion.p>
-        </div>
-        <div className="flex items-center gap-2">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Contatos"
+        subtitle={`Base de clientes e leads (${contacts.length} contatos)`}
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Contatos' },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
             <Button variant="outline" onClick={fetchContacts} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button variant="outline">
               <Upload className="w-4 h-4 mr-2" />
               Importar
             </Button>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button variant="outline">
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
-          </motion.div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
                 <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Contato
                 </Button>
-              </motion.div>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Adicionar Contato</DialogTitle>
-              </DialogHeader>
-              <ContactForm
-                values={newContact}
-                onChange={(field, value) => setNewContact({ ...newContact, [field]: value })}
-                onSubmit={handleAddContact}
-                submitLabel="Adicionar"
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </motion.div>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Contato</DialogTitle>
+                </DialogHeader>
+                <ContactForm
+                  values={newContact}
+                  onChange={(field, value) => setNewContact({ ...newContact, [field]: value })}
+                  onSubmit={handleAddContact}
+                  submitLabel="Adicionar"
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

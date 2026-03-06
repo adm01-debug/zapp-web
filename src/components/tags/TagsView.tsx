@@ -226,13 +226,8 @@ export function TagsView() {
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : tags.length === 0 ? (
-        <EmptyState
-          icon={Tag}
-          title="Nenhuma etiqueta ainda"
-          description="Etiquetas ajudam a organizar seus contatos e conversas por categoria, prioridade ou status"
-          illustration="tags"
-          actionLabel="Criar Primeira Etiqueta"
-          onAction={() => setIsAddDialogOpen(true)}
+        <TagsEmptyState
+          onCreateTag={() => setIsAddDialogOpen(true)}
         />
       ) : (
         /* Tags Grid */

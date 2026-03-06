@@ -413,87 +413,70 @@ export function ConnectionsView() {
       <AuroraBorealis />
       <FloatingParticles />
       
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between relative z-10"
-      >
-        <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground neon-underline"
-          >
-            Conexões WhatsApp
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-muted-foreground"
-          >
-            Gerencie múltiplas conexões WhatsApp via Evolution API
-          </motion.p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Conexões WhatsApp"
+        subtitle="Gerencie múltiplas conexões WhatsApp via Evolution API"
+        breadcrumbs={[
+          { label: 'Configurações' },
+          { label: 'Conexões' },
+        ]}
+        actions={
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
               <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Conexão
               </Button>
-            </motion.div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Adicionar Nova Conexão</DialogTitle>
-              <DialogDescription>
-                Crie uma nova instância para conectar ao WhatsApp
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label>Nome da Conexão</Label>
-                <Input
-                  placeholder="Ex: WhatsApp Vendas"
-                  value={newConnection.name}
-                  onChange={(e) => setNewConnection({ ...newConnection, name: e.target.value })}
-                />
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Adicionar Nova Conexão</DialogTitle>
+                <DialogDescription>
+                  Crie uma nova instância para conectar ao WhatsApp
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label>Nome da Conexão</Label>
+                  <Input
+                    placeholder="Ex: WhatsApp Vendas"
+                    value={newConnection.name}
+                    onChange={(e) => setNewConnection({ ...newConnection, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Número do WhatsApp</Label>
+                  <Input
+                    placeholder="+55 11 99999-0000"
+                    value={newConnection.phone_number}
+                    onChange={(e) => setNewConnection({ ...newConnection, phone_number: e.target.value })}
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isCreating}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleAddConnection} 
+                    className="bg-whatsapp hover:bg-whatsapp-dark"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Criando...
+                      </>
+                    ) : (
+                      'Adicionar'
+                    )}
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Número do WhatsApp</Label>
-                <Input
-                  placeholder="+55 11 99999-0000"
-                  value={newConnection.phone_number}
-                  onChange={(e) => setNewConnection({ ...newConnection, phone_number: e.target.value })}
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isCreating}>
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={handleAddConnection} 
-                  className="bg-whatsapp hover:bg-whatsapp-dark"
-                  disabled={isCreating}
-                >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Criando...
-                    </>
-                  ) : (
-                    'Adicionar'
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </motion.div>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       {/* QR Code Dialog */}
       <Dialog open={qrCodeDialog.open} onOpenChange={(open) => !open && closeQrDialog()}>
