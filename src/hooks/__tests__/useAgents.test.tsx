@@ -84,7 +84,7 @@ describe('useAgents', () => {
     const { result } = renderHook(() => useAgents(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
 
     // At least one agent should exist

@@ -3,65 +3,51 @@ import { renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn().mockImplementation((table: string) => {
-      const chainable = {
-        select: vi.fn().mockReturnValue(chainable),
-        eq: vi.fn().mockReturnValue(chainable),
-        or: vi.fn().mockReturnValue(chainable),
-        gte: vi.fn().mockReturnValue(chainable),
-        lte: vi.fn().mockReturnValue(chainable),
-        not: vi.fn().mockReturnValue(chainable),
-        is: vi.fn().mockReturnValue(chainable),
-        in: vi.fn().mockReturnValue(chainable),
-        order: vi.fn().mockReturnValue(chainable),
-        limit: vi.fn().mockReturnValue(chainable),
-        then: (resolve: any) => {
-          if (table === 'profiles') {
-            return Promise.resolve({
-              data: [
-                { id: 'p1', name: 'Agent 1', is_active: true, role: 'agent' },
-              ],
-              error: null,
-            }).then(resolve);
-          }
-          if (table === 'contacts') {
-            return Promise.resolve({
-              data: [
-                { id: 'c1', name: 'Contact 1', assigned_to: 'p1', queue_id: 'q1' },
-              ],
-              error: null,
-            }).then(resolve);
-          }
-          if (table === 'messages') {
+vi.mock('@/integrations/supabase/client', () => {
+  function makeChainable(table: string): any {
+    const handler: ProxyHandler<any> = {
+      get(_, prop) {
+        if (prop === 'then') {
+          return (resolve: any) => {
+            if (table === 'profiles') {
+              return Promise.resolve({
+                data: [{ id: 'p1', name: 'Agent 1', is_active: true, role: 'agent' }],
+                error: null,
+              }).then(resolve);
+            }
+            if (table === 'contacts') {
+              return Promise.resolve({
+                data: [{ id: 'c1', name: 'Contact 1', assigned_to: 'p1', queue_id: 'q1' }],
+                error: null,
+              }).then(resolve);
+            }
+            if (table === 'queues') {
+              return Promise.resolve({
+                data: [{ id: 'q1', name: 'Support', color: '#3B82F6' }],
+                error: null,
+              }).then(resolve);
+            }
+            if (table === 'queue_members') {
+              return Promise.resolve({
+                data: [{ queue_id: 'q1', profile_id: 'p1', profile: { is_active: true } }],
+                error: null,
+              }).then(resolve);
+            }
             return Promise.resolve({ data: [], error: null }).then(resolve);
-          }
-          if (table === 'queues') {
-            return Promise.resolve({
-              data: [{ id: 'q1', name: 'Support', color: '#3B82F6' }],
-              error: null,
-            }).then(resolve);
-          }
-          if (table === 'queue_members') {
-            return Promise.resolve({
-              data: [{ queue_id: 'q1', profile_id: 'p1', profile: { is_active: true } }],
-              error: null,
-            }).then(resolve);
-          }
-          return Promise.resolve({ data: [], error: null }).then(resolve);
-        },
-      };
-      // Make chainable self-referencing
-      Object.keys(chainable).forEach(key => {
-        if (key !== 'then') {
-          (chainable as any)[key] = vi.fn().mockReturnValue(chainable);
+          };
         }
-      });
-      return chainable;
-    }),
-  },
-}));
+        return vi.fn().mockReturnValue(new Proxy({}, handler));
+      },
+    };
+    return new Proxy({}, handler);
+  }
+
+  return {
+    supabase: {
+      from: vi.fn().mockImplementation((table: string) => makeChainable(table)),
+    },
+  };
+});
 
 import { useDashboardData, DashboardFilters } from '@/hooks/useDashboardData';
 
