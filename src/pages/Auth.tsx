@@ -459,7 +459,7 @@ export default function Auth() {
                         <RippleButton 
                           type="submit" 
                           variant="primary"
-                          className="w-full text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all group"
+                          className="w-full text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all group bg-primary rounded-md px-4 py-2 font-medium"
                           disabled={loading}
                         >
                           {loading ? (
