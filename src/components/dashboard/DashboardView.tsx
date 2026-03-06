@@ -154,14 +154,12 @@ export function DashboardView() {
                 title={stat.title}
                 value={stat.value}
                 change={stat.change}
-                changeType={stat.changeType}
+                changeType={stat.changeType as 'positive' | 'negative'}
                 invertTrend={stat.invertTrend}
-                sparklineData={stat.sparklineData}
                 icon={stat.icon}
                 gradient={stat.gradient}
                 iconBg={stat.iconBg}
                 achievement={stat.achievement}
-                streak={stat.streak}
                 index={index}
               />
             ))}
