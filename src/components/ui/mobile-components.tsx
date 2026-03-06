@@ -99,7 +99,9 @@ export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
       )}
     </AnimatePresence>
   );
-}
+});
+
+MobileDrawer.displayName = 'MobileDrawer';
 
 // Bottom Navigation for mobile
 interface BottomNavItem {
