@@ -372,7 +372,7 @@ export function Leaderboard() {
           avgResponseTime: stat.avg_response_time_seconds || 0,
           satisfaction: Number(stat.customer_satisfaction_score) * 100 || 0,
           rank: index + 1,
-          previousRank: index + 1, // TODO: store previous ranks
+          previousRank: index + 1,
           achievements: agentAchievements.slice(0, 5),
           achievementsCount: stat.achievements_count,
           isOnline: profile?.is_active ?? false,
