@@ -118,6 +118,7 @@ const SORT_OPTIONS = [
 ];
 
 export function ContactsView() {
+  const feedback = useActionFeedback();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
