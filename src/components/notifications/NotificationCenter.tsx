@@ -43,13 +43,13 @@ import { useNotifications, Notification } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 
 const typeConfig: Record<Notification['type'], { icon: typeof Bell; color: string; label: string }> = {
-  info: { icon: Info, color: 'text-blue-500', label: 'Informação' },
-  success: { icon: CheckCircle, color: 'text-green-500', label: 'Sucesso' },
-  warning: { icon: AlertTriangle, color: 'text-yellow-500', label: 'Aviso' },
-  error: { icon: AlertCircle, color: 'text-red-500', label: 'Erro' },
-  sla: { icon: Clock, color: 'text-orange-500', label: 'SLA' },
-  sentiment: { icon: TrendingDown, color: 'text-purple-500', label: 'Sentimento' },
-  goal: { icon: Target, color: 'text-emerald-500', label: 'Meta' },
+  info: { icon: Info, color: 'text-info', label: 'Informação' },
+  success: { icon: CheckCircle, color: 'text-success', label: 'Sucesso' },
+  warning: { icon: AlertTriangle, color: 'text-warning', label: 'Aviso' },
+  error: { icon: AlertCircle, color: 'text-destructive', label: 'Erro' },
+  sla: { icon: Clock, color: 'text-warning', label: 'SLA' },
+  sentiment: { icon: TrendingDown, color: 'text-secondary', label: 'Sentimento' },
+  goal: { icon: Target, color: 'text-success', label: 'Meta' },
 };
 
 interface NotificationItemProps {

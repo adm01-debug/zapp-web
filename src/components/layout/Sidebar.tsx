@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Wallet,
   Shield,
+  ShieldCheck,
   UsersRound,
   Sparkles,
   Package,
@@ -24,6 +25,7 @@ import {
   ChevronDown,
   Search,
   Command,
+  Link2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -66,7 +68,7 @@ const menuGroups: Array<{
     items: [
       { id: 'agents', icon: Phone, label: 'Atendentes' },
       { id: 'queues', icon: Zap, label: 'Filas' },
-      { id: 'connections', icon: Zap, label: 'Conexões' },
+      { id: 'connections', icon: Link2, label: 'Conexões' },
       { id: 'groups', icon: UsersRound, label: 'Grupos' },
     ],
   },
@@ -87,7 +89,7 @@ const menuGroups: Array<{
       { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
       { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
       { id: 'security', icon: Shield, label: 'Segurança' },
-      { id: 'admin', icon: Shield, label: 'Admin' },
+      { id: 'admin', icon: ShieldCheck, label: 'Admin' },
       { id: 'settings', icon: Settings, label: 'Configurações' },
     ],
   },

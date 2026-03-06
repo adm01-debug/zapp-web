@@ -90,63 +90,56 @@ export function DashboardView() {
     );
   }
 
-  // Generate mock sparkline data based on current values
-  const generateSparklineData = (baseValue: number, trend: 'up' | 'down' | 'stable') => {
-    const variance = baseValue * 0.15;
-    const data = [];
-    for (let i = 0; i < 7; i++) {
-      const trendFactor = trend === 'up' ? i * 0.08 : trend === 'down' ? -i * 0.08 : 0;
-      const randomVariance = (Math.random() - 0.5) * variance;
-      data.push(Math.max(0, baseValue * (1 + trendFactor) + randomVariance));
-    }
-    return data;
-  };
+  // Compute real change percentages (comparing open vs pending)
+  const openRate = stats.totalConversations > 0 
+    ? Math.round((stats.openConversations / stats.totalConversations) * 100) 
+    : 0;
+  const resolvedRate = stats.totalConversations > 0 
+    ? Math.round((stats.resolvedToday / stats.totalConversations) * 100) 
+    : 0;
+  const agentUtilization = stats.totalAgents > 0 
+    ? Math.round((stats.onlineAgents / stats.totalAgents) * 100) 
+    : 0;
 
   const statsCards = [
     {
       title: 'Conversas Abertas',
       value: stats.openConversations,
-      change: '+12%',
-      changeType: 'positive' as const,
+      change: `${openRate}% do total`,
+      changeType: (stats.openConversations > 0 ? 'positive' : 'neutral') as 'positive' | 'neutral',
       icon: MessageSquare,
       gradient: 'from-primary to-amber-500',
       iconBg: 'bg-primary/15',
-      streak: 5,
-      sparklineData: generateSparklineData(stats.openConversations, 'up'),
     },
     {
       title: 'Tempo Médio de Resposta',
       value: formatResponseTime(stats.avgResponseTime),
-      change: '-8%',
-      changeType: 'positive' as const,
-      invertTrend: true, // Lower is better for response time
+      change: stats.avgResponseTime !== null && stats.avgResponseTime < 180 ? 'Dentro do SLA' : stats.avgResponseTime !== null ? 'Acima do SLA' : 'Sem dados',
+      changeType: (stats.avgResponseTime !== null && stats.avgResponseTime < 180 ? 'positive' : 'negative') as 'positive' | 'negative',
+      invertTrend: true,
       icon: Clock,
       gradient: 'from-info to-cyan-400',
       iconBg: 'bg-info/15',
       achievement: { label: 'Resposta Rápida!', unlocked: stats.avgResponseTime !== null && stats.avgResponseTime < 180 },
-      sparklineData: generateSparklineData(stats.avgResponseTime || 120, 'down'),
     },
     {
       title: 'Atendentes Online',
       value: `${stats.onlineAgents}/${stats.totalAgents}`,
-      change: `+${stats.onlineAgents}`,
-      changeType: 'positive' as const,
+      change: `${agentUtilization}% online`,
+      changeType: (stats.onlineAgents > 0 ? 'positive' : 'negative') as 'positive' | 'negative',
       icon: Users,
       gradient: 'from-success to-emerald-400',
       iconBg: 'bg-success/15',
-      sparklineData: generateSparklineData(stats.onlineAgents, 'stable'),
     },
     {
       title: 'Resolvidas Hoje',
       value: stats.resolvedToday,
-      change: '+24%',
-      changeType: 'positive' as const,
+      change: `${resolvedRate}% do total`,
+      changeType: (stats.resolvedToday > 0 ? 'positive' : 'neutral') as 'positive' | 'neutral',
       icon: CheckCircle2,
       gradient: 'from-coins to-amber-400',
       iconBg: 'bg-coins/15',
       achievement: { label: 'Meta Batida!', unlocked: stats.resolvedToday >= 5 },
-      streak: 3,
-      sparklineData: generateSparklineData(stats.resolvedToday, 'up'),
     },
   ];
 
@@ -161,14 +154,12 @@ export function DashboardView() {
                 title={stat.title}
                 value={stat.value}
                 change={stat.change}
-                changeType={stat.changeType}
+                changeType={stat.changeType as 'positive' | 'negative'}
                 invertTrend={stat.invertTrend}
-                sparklineData={stat.sparklineData}
                 icon={stat.icon}
                 gradient={stat.gradient}
                 iconBg={stat.iconBg}
                 achievement={stat.achievement}
-                streak={stat.streak}
                 index={index}
               />
             ))}
