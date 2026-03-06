@@ -295,7 +295,8 @@ export function ClientWalletView() {
             </div>
           </DialogContent>
         </Dialog>
-      </motion.div>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

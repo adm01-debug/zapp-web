@@ -248,7 +248,8 @@ export function GroupsView() {
             </DialogContent>
           </Dialog>
         </div>
-      </motion.div>
+        }
+      />
 
       {/* Search */}
       <motion.div
