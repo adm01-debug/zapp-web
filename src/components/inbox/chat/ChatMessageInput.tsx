@@ -98,19 +98,25 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
   onTypingStart,
   onTypingStop,
 }, ref) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileUploaderRef = useRef<FileUploaderRef>(null);
 
   useImperativeHandle(ref, () => ({
-    focus: () => inputRef.current?.focus(),
+    focus: () => textareaRef.current?.focus(),
     handleExternalFiles: (files: File[]) => {
       fileUploaderRef.current?.handleExternalFiles(files);
     },
   }));
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const autoResize = useCallback((el: HTMLTextAreaElement) => {
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     onInputChange(value);
+    autoResize(e.target);
     
     if (value.length > 0) {
       onTypingStart();
