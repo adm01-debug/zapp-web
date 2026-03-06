@@ -1,8 +1,8 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from '@/components/ui/motion';
@@ -98,19 +98,25 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
   onTypingStart,
   onTypingStop,
 }, ref) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileUploaderRef = useRef<FileUploaderRef>(null);
 
   useImperativeHandle(ref, () => ({
-    focus: () => inputRef.current?.focus(),
+    focus: () => textareaRef.current?.focus(),
     handleExternalFiles: (files: File[]) => {
       fileUploaderRef.current?.handleExternalFiles(files);
     },
   }));
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const autoResize = useCallback((el: HTMLTextAreaElement) => {
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     onInputChange(value);
+    autoResize(e.target);
     
     if (value.length > 0) {
       onTypingStart();
@@ -253,19 +259,20 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
               isOpen={showSlashCommands}
             />
             
-            <Input
-              ref={inputRef}
+            <Textarea
+              ref={textareaRef}
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onBlur={onTypingStop}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos..."}
-              className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos... (Shift+Enter para nova linha)"}
+              className="min-h-[40px] max-h-[120px] resize-none pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all py-2.5"
+              rows={1}
             />
             <motion.div 
               whileHover={{ scale: 1.1 }} 
               whileTap={{ scale: 0.9 }}
-              className="absolute right-1 top-1/2 -translate-y-1/2"
+              className="absolute right-1 top-2"
             >
               <Button
                 variant="ghost"

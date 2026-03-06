@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useDeepLinks } from '@/hooks/useDeepLinks';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -41,7 +42,7 @@ function IndexContent() {
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
-  const [currentView, setCurrentView] = useState('inbox');
+  const { currentView, setCurrentView } = useDeepLinks('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();

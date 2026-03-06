@@ -1,4 +1,5 @@
 import { motion } from '@/components/ui/motion';
+import { AvatarUpload } from '@/components/settings/AvatarUpload';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -430,6 +431,12 @@ export function SettingsView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Avatar Upload */}
+                <div className="space-y-2">
+                  <Label>Foto do Perfil</Label>
+                  <AvatarUpload />
+                </div>
+
                 <div className="space-y-2">
                   <Label>Tema</Label>
                   <Select

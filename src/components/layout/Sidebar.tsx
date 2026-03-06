@@ -264,6 +264,19 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                           )}>
                             {item.label}
                           </span>
+                          {/* Keyboard hints for main items */}
+                          {item.id === 'inbox' && !item.badge && (
+                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G I</kbd>
+                          )}
+                          {item.id === 'dashboard' && (
+                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G D</kbd>
+                          )}
+                          {item.id === 'contacts' && (
+                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G C</kbd>
+                          )}
+                          {item.id === 'settings' && (
+                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G S</kbd>
+                          )}
                           {item.badge && (
                             <motion.span 
                               initial={{ scale: 0 }}
