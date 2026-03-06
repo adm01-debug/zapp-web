@@ -437,7 +437,8 @@ export function SettingsView() {
                   <AvatarUpload />
                 </div>
 
-                <div className="border-t border-border/50 pt-6" />
+                <div className="border-t border-border/50 pt-6">
+                <div className="space-y-2">
                   <Label>Tema</Label>
                   <Select
                     value={settings.theme}
