@@ -83,7 +83,7 @@ export function usePermissions() {
 
     if (perms) {
       const permNames = perms
-        .map(p => (p.permissions as any)?.name)
+        .map(p => (p.permissions as unknown as { name: string } | null)?.name)
         .filter(Boolean) as string[];
       const uniquePerms = [...new Set(permNames)];
       setUserPermissions(uniquePerms);
