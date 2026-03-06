@@ -259,19 +259,20 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
               isOpen={showSlashCommands}
             />
             
-            <Input
-              ref={inputRef}
+            <Textarea
+              ref={textareaRef}
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onBlur={onTypingStop}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos..."}
-              className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos... (Shift+Enter para nova linha)"}
+              className="min-h-[40px] max-h-[120px] resize-none pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all py-2.5"
+              rows={1}
             />
             <motion.div 
               whileHover={{ scale: 1.1 }} 
               whileTap={{ scale: 0.9 }}
-              className="absolute right-1 top-1/2 -translate-y-1/2"
+              className="absolute right-1 top-2"
             >
               <Button
                 variant="ghost"
