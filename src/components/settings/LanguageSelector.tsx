@@ -42,4 +42,6 @@ export const LanguageSelector = forwardRef<HTMLDivElement>((_, ref) => {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
+
+LanguageSelector.displayName = 'LanguageSelector';
