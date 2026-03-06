@@ -281,41 +281,49 @@ export function ContactsView() {
   const handleEditContact = async () => {
     if (!editingContact) return;
 
-    const { error } = await supabase
-      .from('contacts')
-      .update({
-        name: editingContact.name,
-        nickname: editingContact.nickname,
-        surname: editingContact.surname,
-        job_title: editingContact.job_title,
-        company: editingContact.company,
-        phone: editingContact.phone,
-        email: editingContact.email,
-        contact_type: editingContact.contact_type,
-      })
-      .eq('id', editingContact.id);
-
-    if (error) {
-      toast.error('Erro ao atualizar contato');
-      log.error('Error updating contact:', error);
-    } else {
-      toast.success('Contato atualizado com sucesso');
-      setIsEditDialogOpen(false);
-      setEditingContact(null);
-      fetchContacts();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase
+          .from('contacts')
+          .update({
+            name: editingContact.name,
+            nickname: editingContact.nickname,
+            surname: editingContact.surname,
+            job_title: editingContact.job_title,
+            company: editingContact.company,
+            phone: editingContact.phone,
+            email: editingContact.email,
+            contact_type: editingContact.contact_type,
+          })
+          .eq('id', editingContact.id);
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Salvando alterações...',
+        successMessage: 'Contato atualizado com sucesso!',
+        errorMessage: 'Erro ao atualizar contato',
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setEditingContact(null);
+          fetchContacts();
+        },
+      }
+    );
   };
 
   const handleDeleteContact = async (id: string) => {
-    const { error } = await supabase.from('contacts').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Erro ao excluir contato');
-      log.error('Error deleting contact:', error);
-    } else {
-      toast.success('Contato excluído');
-      fetchContacts();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('contacts').delete().eq('id', id);
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Excluindo contato...',
+        successMessage: 'Contato excluído com sucesso!',
+        errorMessage: 'Erro ao excluir contato',
+        onSuccess: () => fetchContacts(),
+      }
+    );
   };
 
   const openEditDialog = (contact: Contact) => {
