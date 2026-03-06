@@ -146,7 +146,8 @@ export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({
       {children}
     </motion.div>
   );
-}
+});
+PageTransition.displayName = 'PageTransition';
 
 // Enhanced neon page reveal
 interface NeonPageRevealProps {
