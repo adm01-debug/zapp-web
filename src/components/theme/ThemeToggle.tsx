@@ -204,7 +204,9 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(({ colla
       </div>
     </motion.button>
   );
-}
+});
+
+ThemeToggle.displayName = 'ThemeToggle';
 
 // Compact animated toggle
 export function ThemeToggleCompact() {
