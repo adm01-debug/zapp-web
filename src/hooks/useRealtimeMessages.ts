@@ -95,8 +95,8 @@ export function useRealtimeMessages() {
       contacts?.forEach((contact) => {
         const contactMessages = (messages?.filter((m) => m.contact_id === contact.id) || []).map((m) => ({
           ...m,
-          status: (m as unknown as { status?: string }).status as RealtimeMessage['status'] || 'sent',
-          status_updated_at: (m as unknown as { status_updated_at?: string }).status_updated_at || null,
+          status: (m.status as RealtimeMessage['status']) || 'sent',
+          status_updated_at: m.status_updated_at || null,
         }));
         // Sort ascending (oldest first) for display since we fetched desc
         contactMessages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
