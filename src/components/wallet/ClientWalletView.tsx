@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ContextualEmptyState } from '@/components/ui/contextual-empty-states';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';

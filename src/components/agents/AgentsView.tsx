@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AgentsEmptyState } from '@/components/ui/contextual-empty-states';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { useAgents } from '@/hooks/useAgents';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
