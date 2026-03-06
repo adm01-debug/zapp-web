@@ -100,5 +100,6 @@ export const FloatingParticles = forwardRef<HTMLDivElement>((_, ref) => {
         transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
     </div>
-  );
-}
+});
+
+FloatingParticles.displayName = 'FloatingParticles';
