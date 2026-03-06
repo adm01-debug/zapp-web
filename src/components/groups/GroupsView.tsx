@@ -65,6 +65,7 @@ interface WhatsAppConnection {
 }
 
 export function GroupsView() {
+  const feedback = useActionFeedback();
   const [groups, setGroups] = useState<WhatsAppGroup[]>([]);
   const [connections, setConnections] = useState<WhatsAppConnection[]>([]);
   const [search, setSearch] = useState('');
