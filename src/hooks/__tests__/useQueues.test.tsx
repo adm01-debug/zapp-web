@@ -17,6 +17,11 @@ const mockWaiting = [
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
+    channel: vi.fn().mockReturnValue({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
+    }),
+    removeChannel: vi.fn(),
     from: vi.fn().mockImplementation((table: string) => {
       if (table === 'queues') {
         return {

@@ -6,7 +6,7 @@ const mockEq = vi.fn();
 const mockOrder = vi.fn();
 const mockChannel = vi.fn();
 
-vi.mock('@/integrations/supabase/client', () => ({
+const mockRemoveChannel = vi.fn();
   supabase: {
     from: vi.fn().mockReturnValue({
       select: (...args: any[]) => {
