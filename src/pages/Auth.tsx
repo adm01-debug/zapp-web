@@ -372,11 +372,11 @@ export default function Auth() {
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20"
+                          className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/20"
                         >
                           <div className="flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-amber-500" />
-                            <p className="text-sm text-amber-600 dark:text-amber-400">
+                            <AlertTriangle className="w-4 h-4 text-warning" />
+                            <p className="text-sm text-warning">
                               {5 - lockStatus.attempts} tentativa{5 - lockStatus.attempts > 1 ? 's' : ''} restante{5 - lockStatus.attempts > 1 ? 's' : ''} antes do bloqueio
                             </p>
                           </div>
