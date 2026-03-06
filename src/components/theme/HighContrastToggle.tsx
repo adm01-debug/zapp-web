@@ -123,7 +123,7 @@ export function HighContrastToggle() {
   );
 }
 
-export function AccessibilitySettings() {
+export const AccessibilitySettings = forwardRef<HTMLDivElement>((_, ref) => {
   const {
     isHighContrast,
     toggleHighContrast,
