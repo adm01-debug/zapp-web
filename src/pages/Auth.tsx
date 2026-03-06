@@ -698,7 +698,7 @@ export default function Auth() {
             className="text-center mt-6"
           >
             <p className="text-xs text-muted-foreground">
-              © 2024 WhatsApp Platform. Todos os direitos reservados.
+              © {new Date().getFullYear()} MultiChat Platform. Todos os direitos reservados.
             </p>
           </motion.div>
         </motion.div>
