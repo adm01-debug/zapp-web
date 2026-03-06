@@ -455,13 +455,11 @@ export default function Auth() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.7 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
                       >
-                        <Button 
+                        <RippleButton 
                           type="submit" 
+                          variant="primary"
                           className="w-full text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all group"
-                          style={{ background: 'var(--gradient-primary)' }}
                           disabled={loading}
                         >
                           {loading ? (
@@ -477,7 +475,7 @@ export default function Auth() {
                               <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                             </>
                           )}
-                        </Button>
+                        </RippleButton>
                       </motion.div>
 
                       {/* Passkey Login */}
