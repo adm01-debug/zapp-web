@@ -1,4 +1,5 @@
 import { motion } from '@/components/ui/motion';
+import { AvatarUpload } from '@/components/settings/AvatarUpload';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

@@ -42,7 +42,7 @@ function IndexContent() {
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
-  const [currentView, setCurrentView] = useState('inbox');
+  const { currentView, setCurrentView } = useDeepLinks('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
