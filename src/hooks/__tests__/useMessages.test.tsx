@@ -1,36 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 
-const mockSelect = vi.fn();
-const mockEq = vi.fn();
-const mockOrder = vi.fn();
-const mockChannel = vi.fn();
-
+const mockFrom = vi.fn();
+const mockChannel = vi.fn().mockReturnValue({
+  on: vi.fn().mockReturnThis(),
+  subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
+});
 const mockRemoveChannel = vi.fn();
+
+vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn().mockReturnValue({
-      select: (...args: any[]) => {
-        mockSelect(...args);
-        return {
-          eq: (...eqArgs: any[]) => {
-            mockEq(...eqArgs);
-            return {
-              order: (...orderArgs: any[]) => {
-                mockOrder(...orderArgs);
-                return Promise.resolve({ data: [], error: null });
-              },
-            };
-          },
-        };
-      },
-    }),
-    channel: (...args: any[]) => {
-      mockChannel(...args);
-      return {
-        on: vi.fn().mockReturnThis(),
-        subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
-      };
-    },
+    from: (...args: any[]) => mockFrom(...args),
+    channel: (...args: any[]) => mockChannel(...args),
+    removeChannel: (...args: any[]) => mockRemoveChannel(...args),
   },
 }));
 
@@ -40,15 +22,24 @@ vi.mock('@/lib/logger', () => ({
 
 import { useMessages } from '@/hooks/useMessages';
 
+function makeQueryChain(data: any[] = [], error: any = null) {
+  return {
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data, error }),
+      }),
+    }),
+  };
+}
+
 describe('useMessages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFrom.mockReturnValue(makeQueryChain());
   });
 
   it('returns empty messages when contactId is null', async () => {
-    const { result } = renderHook(() =>
-      useMessages({ contactId: null })
-    );
+    const { result } = renderHook(() => useMessages({ contactId: null }));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -63,19 +54,9 @@ describe('useMessages', () => {
       { id: 'msg-1', contact_id: 'c1', content: 'Hello', sender: 'contact', created_at: '2024-01-01' },
       { id: 'msg-2', contact_id: 'c1', content: 'Hi!', sender: 'agent', created_at: '2024-01-01' },
     ];
+    mockFrom.mockReturnValue(makeQueryChain(mockMessages));
 
-    const { supabase } = await import('@/integrations/supabase/client');
-    (supabase.from as any).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockMessages, error: null }),
-        }),
-      }),
-    });
-
-    const { result } = renderHook(() =>
-      useMessages({ contactId: 'c1' })
-    );
+    const { result } = renderHook(() => useMessages({ contactId: 'c1' }));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -85,18 +66,9 @@ describe('useMessages', () => {
   });
 
   it('sets error when fetch fails', async () => {
-    const { supabase } = await import('@/integrations/supabase/client');
-    (supabase.from as any).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: null, error: new Error('Network error') }),
-        }),
-      }),
-    });
+    mockFrom.mockReturnValue(makeQueryChain(null, new Error('Network error')));
 
-    const { result } = renderHook(() =>
-      useMessages({ contactId: 'c1' })
-    );
+    const { result } = renderHook(() => useMessages({ contactId: 'c1' }));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -105,16 +77,8 @@ describe('useMessages', () => {
     expect(result.current.error).toBeTruthy();
   });
 
-  it('does not fetch when enabled=false', async () => {
-    const { supabase } = await import('@/integrations/supabase/client');
-
-    const { result } = renderHook(() =>
-      useMessages({ contactId: 'c1', enabled: false })
-    );
-
-    // Should still be in initial state since enabled=false skips the effect
-    // The hook checks contactId first, so it may still fetch
-    // This test verifies the hook accepts the enabled parameter
+  it('does not fetch when enabled=false', () => {
+    const { result } = renderHook(() => useMessages({ contactId: 'c1', enabled: false }));
     expect(result.current).toBeDefined();
   });
 
@@ -122,34 +86,18 @@ describe('useMessages', () => {
     const mockMessages = [
       { id: 'msg-1', contact_id: 'c1', content: 'Hello', sender: 'contact', created_at: '2024-01-01' },
     ];
-
-    const { supabase } = await import('@/integrations/supabase/client');
-    (supabase.from as any).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockMessages, error: null }),
-        }),
-      }),
-    });
+    mockFrom.mockReturnValue(makeQueryChain(mockMessages));
 
     const { result, rerender } = renderHook(
       ({ contactId }: { contactId: string | null }) => useMessages({ contactId }),
-      { initialProps: { contactId: 'c1' } }
+      { initialProps: { contactId: 'c1' as string | null } }
     );
 
     await waitFor(() => {
       expect(result.current.messages).toHaveLength(1);
     });
 
-    // Change contactId to null
-    (supabase.from as any).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      }),
-    });
-
+    mockFrom.mockReturnValue(makeQueryChain());
     rerender({ contactId: null });
 
     await waitFor(() => {
