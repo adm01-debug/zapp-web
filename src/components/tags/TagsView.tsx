@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { TagsEmptyState } from '@/components/ui/contextual-empty-states';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -145,53 +148,36 @@ export function TagsView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between relative z-10"
-      >
-        <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground neon-underline"
-          >
-            Etiquetas
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-muted-foreground"
-          >
-            Organize seus contatos e conversas com etiquetas personalizadas
-          </motion.p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Etiquetas"
+        subtitle="Organize seus contatos e conversas com etiquetas personalizadas"
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Etiquetas' },
+        ]}
+        actions={
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
               <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Etiqueta
               </Button>
-            </motion.div>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Nova Etiqueta</DialogTitle>
-            </DialogHeader>
-            <TagForm
-              tag={newTag}
-              setTag={setNewTag}
-              onSubmit={handleAddTag}
-              isSubmitting={isCreating}
-            />
-          </DialogContent>
-        </Dialog>
-      </motion.div>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Criar Nova Etiqueta</DialogTitle>
+              </DialogHeader>
+              <TagForm
+                tag={newTag}
+                setTag={setNewTag}
+                onSubmit={handleAddTag}
+                isSubmitting={isCreating}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       {/* Edit Dialog */}
       <Dialog open={!!editingTag} onOpenChange={() => setEditingTag(null)}>
@@ -240,13 +226,8 @@ export function TagsView() {
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : tags.length === 0 ? (
-        <EmptyState
-          icon={Tag}
-          title="Nenhuma etiqueta ainda"
-          description="Etiquetas ajudam a organizar seus contatos e conversas por categoria, prioridade ou status"
-          illustration="tags"
-          actionLabel="Criar Primeira Etiqueta"
-          onAction={() => setIsAddDialogOpen(true)}
+        <TagsEmptyState
+          onCreateTag={() => setIsAddDialogOpen(true)}
         />
       ) : (
         /* Tags Grid */

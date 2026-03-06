@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { QueuesEmptyState } from '@/components/ui/contextual-empty-states';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -181,40 +183,42 @@ export function QueuesView() {
       <AuroraBorealis />
       <FloatingParticles />
       
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Filas de Atendimento</h1>
-          <p className="text-muted-foreground">
-            Organize e distribua os atendimentos por departamento
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline"
-            className="border-border/30 hover:bg-muted/30"
-            onClick={() => navigate('/sla')}
-          >
-            <Clock className="w-4 h-4 mr-2" />
-            Dashboard SLA
-          </Button>
-          <Button 
-            variant="outline"
-            className="border-border/30 hover:bg-muted/30"
-            onClick={() => navigate('/queues/comparison')}
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Comparar Filas
-          </Button>
-          <Button 
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => setCreateDialogOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Fila
-          </Button>
-        </div>
-      </div>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Filas de Atendimento"
+        subtitle="Organize e distribua os atendimentos por departamento"
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Filas' },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              className="border-border/30 hover:bg-muted/30"
+              onClick={() => navigate('/sla')}
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Dashboard SLA
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-border/30 hover:bg-muted/30"
+              onClick={() => navigate('/queues/comparison')}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Comparar Filas
+            </Button>
+            <Button 
+              className="bg-primary hover:bg-primary/90"
+              onClick={() => setCreateDialogOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Fila
+            </Button>
+          </div>
+        }
+      />
 
       {/* Alerts Section */}
       {alerts.length > 0 && (

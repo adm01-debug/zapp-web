@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ContextualEmptyState } from '@/components/ui/contextual-empty-states';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -198,21 +201,15 @@ export function ClientWalletView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Wallet className="w-6 h-6 text-whatsapp" />
-            Carteira de Clientes
-          </h1>
-          <p className="text-muted-foreground">
-            Configure regras para atribuição automática de clientes aos vendedores
-          </p>
-        </div>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Carteira de Clientes"
+        subtitle="Configure regras para atribuição automática de clientes aos vendedores"
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Carteira' },
+        ]}
+        actions={
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -298,7 +295,8 @@ export function ClientWalletView() {
             </div>
           </DialogContent>
         </Dialog>
-      </motion.div>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

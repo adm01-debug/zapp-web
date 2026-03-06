@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AgentsEmptyState } from '@/components/ui/contextual-empty-states';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { useAgents } from '@/hooks/useAgents';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -72,47 +74,27 @@ export function AgentsView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between relative z-10"
-      >
-        <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground neon-underline"
-          >
-            Atendentes
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-muted-foreground"
-          >
-            Gerencie sua equipe de atendimento ({stats.totalAgents} atendentes)
-          </motion.p>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="flex gap-2"
-        >
-          <Button variant="outline" onClick={() => refetch()} className="border-secondary/30">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Atualizar
-          </Button>
-          <Button className="bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Atendente
-          </Button>
-        </motion.div>
-      </motion.div>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Atendentes"
+        subtitle={`Gerencie sua equipe de atendimento (${stats.totalAgents} atendentes)`}
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Atendentes' },
+        ]}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => refetch()} className="border-secondary/30">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Atualizar
+            </Button>
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Atendente
+            </Button>
+          </div>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -168,13 +150,9 @@ export function AgentsView() {
 
       {/* Agents Grid */}
       {filteredAgents.length === 0 ? (
-        <EmptyState
-          icon={Search}
-          title="Nenhum atendente encontrado"
-          description={search ? "Tente ajustar o termo de busca" : "Não há atendentes cadastrados no sistema"}
-          illustration="agents"
-          secondaryActionLabel={search ? "Limpar Busca" : undefined}
-          onSecondaryAction={search ? () => setSearch('') : undefined}
+        <AgentsEmptyState
+          onInviteAgent={() => {}}
+          onConfigurePermissions={() => {}}
         />
       ) : (
         <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

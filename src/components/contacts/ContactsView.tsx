@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ContactsEmptyState } from '@/components/ui/contextual-empty-states';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
@@ -115,6 +118,7 @@ const SORT_OPTIONS = [
 ];
 
 export function ContactsView() {
+  const feedback = useActionFeedback();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -243,70 +247,83 @@ export function ContactsView() {
 
   const handleAddContact = async () => {
     if (!newContact.name || !newContact.phone) {
-      toast.error('Preencha os campos obrigatórios');
+      feedback.warning('Preencha os campos obrigatórios');
       return;
     }
 
-    const { error } = await supabase.from('contacts').insert({
-      name: newContact.name,
-      nickname: newContact.nickname || null,
-      surname: newContact.surname || null,
-      job_title: newContact.job_title || null,
-      company: newContact.company || null,
-      phone: newContact.phone,
-      email: newContact.email || null,
-      contact_type: newContact.contact_type,
-    });
-
-    if (error) {
-      toast.error('Erro ao adicionar contato');
-      log.error('Error adding contact:', error);
-    } else {
-      toast.success('Contato adicionado com sucesso');
-      setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
-      setIsAddDialogOpen(false);
-      fetchContacts();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('contacts').insert({
+          name: newContact.name,
+          nickname: newContact.nickname || null,
+          surname: newContact.surname || null,
+          job_title: newContact.job_title || null,
+          company: newContact.company || null,
+          phone: newContact.phone,
+          email: newContact.email || null,
+          contact_type: newContact.contact_type,
+        });
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Adicionando contato...',
+        successMessage: 'Contato adicionado com sucesso!',
+        errorMessage: 'Erro ao adicionar contato',
+        onSuccess: () => {
+          setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
+          setIsAddDialogOpen(false);
+          fetchContacts();
+        },
+      }
+    );
   };
 
   const handleEditContact = async () => {
     if (!editingContact) return;
 
-    const { error } = await supabase
-      .from('contacts')
-      .update({
-        name: editingContact.name,
-        nickname: editingContact.nickname,
-        surname: editingContact.surname,
-        job_title: editingContact.job_title,
-        company: editingContact.company,
-        phone: editingContact.phone,
-        email: editingContact.email,
-        contact_type: editingContact.contact_type,
-      })
-      .eq('id', editingContact.id);
-
-    if (error) {
-      toast.error('Erro ao atualizar contato');
-      log.error('Error updating contact:', error);
-    } else {
-      toast.success('Contato atualizado com sucesso');
-      setIsEditDialogOpen(false);
-      setEditingContact(null);
-      fetchContacts();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase
+          .from('contacts')
+          .update({
+            name: editingContact.name,
+            nickname: editingContact.nickname,
+            surname: editingContact.surname,
+            job_title: editingContact.job_title,
+            company: editingContact.company,
+            phone: editingContact.phone,
+            email: editingContact.email,
+            contact_type: editingContact.contact_type,
+          })
+          .eq('id', editingContact.id);
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Salvando alterações...',
+        successMessage: 'Contato atualizado com sucesso!',
+        errorMessage: 'Erro ao atualizar contato',
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setEditingContact(null);
+          fetchContacts();
+        },
+      }
+    );
   };
 
   const handleDeleteContact = async (id: string) => {
-    const { error } = await supabase.from('contacts').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Erro ao excluir contato');
-      log.error('Error deleting contact:', error);
-    } else {
-      toast.success('Contato excluído');
-      fetchContacts();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('contacts').delete().eq('id', id);
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Excluindo contato...',
+        successMessage: 'Contato excluído com sucesso!',
+        errorMessage: 'Erro ao excluir contato',
+        onSuccess: () => fetchContacts(),
+      }
+    );
   };
 
   const openEditDialog = (contact: Contact) => {
@@ -435,73 +452,50 @@ export function ContactsView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between relative z-10"
-      >
-        <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground neon-underline"
-          >
-            Contatos
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-muted-foreground"
-          >
-            Base de clientes e leads ({contacts.length} contatos)
-          </motion.p>
-        </div>
-        <div className="flex items-center gap-2">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Contatos"
+        subtitle={`Base de clientes e leads (${contacts.length} contatos)`}
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Contatos' },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
             <Button variant="outline" onClick={fetchContacts} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button variant="outline">
               <Upload className="w-4 h-4 mr-2" />
               Importar
             </Button>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button variant="outline">
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
-          </motion.div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
                 <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Contato
                 </Button>
-              </motion.div>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Adicionar Contato</DialogTitle>
-              </DialogHeader>
-              <ContactForm
-                values={newContact}
-                onChange={(field, value) => setNewContact({ ...newContact, [field]: value })}
-                onSubmit={handleAddContact}
-                submitLabel="Adicionar"
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </motion.div>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Contato</DialogTitle>
+                </DialogHeader>
+                <ContactForm
+                  values={newContact}
+                  onChange={(field, value) => setNewContact({ ...newContact, [field]: value })}
+                  onSubmit={handleAddContact}
+                  submitLabel="Adicionar"
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

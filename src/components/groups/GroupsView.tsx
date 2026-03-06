@@ -4,6 +4,8 @@ import { log } from '@/lib/logger';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -63,6 +65,7 @@ interface WhatsAppConnection {
 }
 
 export function GroupsView() {
+  const feedback = useActionFeedback();
   const [groups, setGroups] = useState<WhatsAppGroup[]>([]);
   const [connections, setConnections] = useState<WhatsAppConnection[]>([]);
   const [search, setSearch] = useState('');
@@ -111,38 +114,46 @@ export function GroupsView() {
 
   const handleAddGroup = async () => {
     if (!newGroup.name || !newGroup.group_id) {
-      toast.error('Preencha os campos obrigatórios');
+      feedback.warning('Preencha os campos obrigatórios');
       return;
     }
 
-    const { error } = await supabase.from('whatsapp_groups').insert({
-      name: newGroup.name,
-      group_id: newGroup.group_id,
-      description: newGroup.description || null,
-      whatsapp_connection_id: newGroup.whatsapp_connection_id || null,
-    });
-
-    if (error) {
-      toast.error('Erro ao adicionar grupo');
-      log.error('Error adding group:', error);
-    } else {
-      toast.success('Grupo adicionado com sucesso');
-      setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '' });
-      setIsAddDialogOpen(false);
-      fetchGroups();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('whatsapp_groups').insert({
+          name: newGroup.name,
+          group_id: newGroup.group_id,
+          description: newGroup.description || null,
+          whatsapp_connection_id: newGroup.whatsapp_connection_id || null,
+        });
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Adicionando grupo...',
+        successMessage: 'Grupo adicionado com sucesso!',
+        errorMessage: 'Erro ao adicionar grupo',
+        onSuccess: () => {
+          setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '' });
+          setIsAddDialogOpen(false);
+          fetchGroups();
+        },
+      }
+    );
   };
 
   const handleDeleteGroup = async (id: string) => {
-    const { error } = await supabase.from('whatsapp_groups').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Erro ao excluir grupo');
-      log.error('Error deleting group:', error);
-    } else {
-      toast.success('Grupo excluído');
-      fetchGroups();
-    }
+    await feedback.withFeedback(
+      async () => {
+        const { error } = await supabase.from('whatsapp_groups').delete().eq('id', id);
+        if (error) throw error;
+      },
+      {
+        loadingMessage: 'Excluindo grupo...',
+        successMessage: 'Grupo excluído com sucesso!',
+        errorMessage: 'Erro ao excluir grupo',
+        onSuccess: () => fetchGroups(),
+      }
+    );
   };
 
   const filteredGroups = groups.filter(
@@ -161,47 +172,27 @@ export function GroupsView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between relative z-10"
-      >
-        <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground neon-underline"
-          >
-            Grupos WhatsApp
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-muted-foreground"
-          >
-            Gerencie seus grupos ({groups.length} grupos)
-          </motion.p>
-        </div>
-        <div className="flex items-center gap-2">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      {/* Header with Breadcrumbs */}
+      <PageHeader
+        title="Grupos WhatsApp"
+        subtitle={`Gerencie seus grupos (${groups.length} grupos)`}
+        breadcrumbs={[
+          { label: 'Gestão' },
+          { label: 'Grupos' },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
             <Button variant="outline" onClick={fetchGroups} disabled={isLoading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
-          </motion.div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
                 <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Grupo
                 </Button>
-              </motion.div>
-            </DialogTrigger>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Adicionar Grupo</DialogTitle>
@@ -266,7 +257,8 @@ export function GroupsView() {
             </DialogContent>
           </Dialog>
         </div>
-      </motion.div>
+        }
+      />
 
       {/* Search */}
       <motion.div
