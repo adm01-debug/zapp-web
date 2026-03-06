@@ -115,7 +115,7 @@ interface PageTransitionProps {
   className?: string;
 }
 
-export function PageTransition({ children, className }: PageTransitionProps) {
+export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className }, ref) => {
   return (
     <motion.div
       initial="hidden"
@@ -146,7 +146,8 @@ export function PageTransition({ children, className }: PageTransitionProps) {
       {children}
     </motion.div>
   );
-}
+});
+PageTransition.displayName = 'PageTransition';
 
 // Enhanced neon page reveal
 interface NeonPageRevealProps {

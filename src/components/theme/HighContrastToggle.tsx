@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -123,7 +123,7 @@ export function HighContrastToggle() {
   );
 }
 
-export function AccessibilitySettings() {
+export const AccessibilitySettings = forwardRef<HTMLDivElement>((_, ref) => {
   const {
     isHighContrast,
     toggleHighContrast,
@@ -245,4 +245,6 @@ export function AccessibilitySettings() {
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+AccessibilitySettings.displayName = 'AccessibilitySettings';
