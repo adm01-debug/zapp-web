@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Wallet,
   Shield,
+  ShieldCheck,
   UsersRound,
   Sparkles,
   Package,
@@ -24,6 +25,7 @@ import {
   ChevronDown,
   Search,
   Command,
+  Link2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
