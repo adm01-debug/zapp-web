@@ -135,7 +135,7 @@ function NotificationItem({ notification, onMarkAsRead, onDelete }: Notification
   );
 }
 
-export function NotificationCenter() {
+export const NotificationCenter = forwardRef<HTMLDivElement>((_, ref) => {
   const { 
     notifications, 
     loading, 
