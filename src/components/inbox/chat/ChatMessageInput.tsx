@@ -1,8 +1,8 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from '@/components/ui/motion';
