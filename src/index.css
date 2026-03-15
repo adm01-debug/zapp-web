@@ -841,8 +841,8 @@ select:focus-visible {
 
   /* ===== UNREAD BADGE ===== */
   .unread-badge {
-    @apply min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-semibold;
-    @apply bg-primary text-primary-foreground;
+    @apply min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold;
+    @apply bg-destructive text-destructive-foreground;
   }
 
   /* ===== GLASS MORPHISM ===== */
