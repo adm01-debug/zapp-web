@@ -1,4 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('Audit');
 
 export type AuditAction = 
   | 'login'
@@ -37,10 +40,10 @@ export async function logAudit({ action, entityType, entityId, details }: AuditL
     }]);
 
     if (error) {
-      console.warn('Failed to log audit:', error.message);
+      log.warn('Failed to log audit:', error.message);
     }
   } catch (err: unknown) {
     // Silently fail - audit logging should never break the app
-    console.warn('Audit log error:', err instanceof Error ? err.message : 'unknown');
+    log.warn('Audit log error:', err instanceof Error ? err.message : 'unknown');
   }
 }

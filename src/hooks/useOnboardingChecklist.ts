@@ -47,13 +47,17 @@ export function useOnboardingChecklist() {
         .maybeSingle();
       newStatus.profile = !!(profile?.name && profile.name.length > 2);
 
-      // Check WhatsApp connection
-      const { data: connections } = await supabase
-        .from('whatsapp_connections')
-        .select('id')
-        .eq('status', 'connected')
-        .limit(1);
-      newStatus.connection = (connections?.length || 0) > 0;
+      // Check WhatsApp connection - may fail for non-admin users due to RLS
+      try {
+        const { data: connections } = await supabase
+          .from('whatsapp_connections')
+          .select('id')
+          .eq('status', 'connected')
+          .limit(1);
+        newStatus.connection = (connections?.length || 0) > 0;
+      } catch {
+        newStatus.connection = false;
+      }
 
       // Check user settings
       const { data: settings } = await supabase

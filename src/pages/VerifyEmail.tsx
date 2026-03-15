@@ -16,12 +16,20 @@ export default function VerifyEmail() {
   const [email, setEmail] = useState('');
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setStatus('success');
+        setEmail(session.user.email || '');
+        toast.success('Email verificado com sucesso!');
+      }
+    });
+
     const verifyEmail = async () => {
-      const token = searchParams.get('token');
       const type = searchParams.get('type');
 
       if (type === 'signup' || type === 'email_change') {
-        // Supabase handles the verification automatically via the URL
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -37,17 +45,8 @@ export default function VerifyEmail() {
           setStatus('expired');
         }
       } else {
-        // Check for auth state changes
-        supabase.auth.onAuthStateChange((event, session) => {
-          if (event === 'SIGNED_IN' && session) {
-            setStatus('success');
-            setEmail(session.user.email || '');
-            toast.success('Email verificado com sucesso!');
-          }
-        });
-
         // Wait a bit for the verification to complete
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           supabase.auth.getSession().then(({ data, error }) => {
             if (error || !data.session) {
               setStatus('expired');
@@ -61,6 +60,11 @@ export default function VerifyEmail() {
     };
 
     verifyEmail();
+
+    return () => {
+      subscription.unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [searchParams]);
 
   const handleResendEmail = async () => {
