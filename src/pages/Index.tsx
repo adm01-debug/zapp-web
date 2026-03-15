@@ -209,6 +209,8 @@ function IndexContent() {
         return <ChatbotFlowsView />;
       case 'automations':
         return <AutomationsManager />;
+      case 'integrations':
+        return <IntegrationsHub />;
         return (
           <div className="flex items-center justify-center h-full">
             <motion.div 
