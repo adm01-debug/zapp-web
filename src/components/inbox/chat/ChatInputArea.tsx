@@ -80,6 +80,7 @@ export function ChatInputArea({
   contactId,
   contactPhone,
   contactName,
+  instanceName,
   messages,
   quickReplies,
   onInputChange,
