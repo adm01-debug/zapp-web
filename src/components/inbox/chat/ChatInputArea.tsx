@@ -1,9 +1,8 @@
-import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { motion, AnimatePresence } from '@/components/ui/motion';
+import { AnimatePresence } from '@/components/ui/motion';
 import { ReplyPreview } from '../ReplyQuote';
 import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
