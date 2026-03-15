@@ -205,7 +205,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
       {/* Navigation */}
       <nav 
-        className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin"
+        className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin z-10"
         aria-label="Menu principal"
       >
         {menuGroups.map((group, groupIndex) => {
