@@ -130,7 +130,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
     >
       
       {/* Logo */}
-      <div className="relative flex items-center justify-between p-4 border-b border-secondary/20">
+      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <AnimatePresence mode="wait">
           {!isCollapsed && (
             <motion.div
