@@ -30,7 +30,7 @@ export default function ResetPassword() {
 
   useEffect(() => {
     // Check if user came from password reset email
-    supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setHasSession(true);
       }
@@ -42,6 +42,8 @@ export default function ResetPassword() {
         setHasSession(true);
       }
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
