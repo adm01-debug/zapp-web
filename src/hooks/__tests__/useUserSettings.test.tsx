@@ -129,7 +129,7 @@ describe('useUserSettings', () => {
   it('default assignment method is roundrobin', async () => {
     mockUseAuth.mockReturnValue({ user: null });
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.auto_assignment_method).toBe('roundrobin');
   });
 });
