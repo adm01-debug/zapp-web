@@ -214,10 +214,10 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       <motion.div
                         whileHover={{ scale: 1.005 }}
                         className={cn(
-                          'relative px-3 py-1.5 rounded-lg shadow-sm',
+                          'relative px-2.5 py-1.5 rounded-2xl',
                           isSent 
-                            ? 'rounded-tr-none bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]' 
-                            : 'rounded-tl-none bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
+                            ? 'rounded-tr-sm bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]' 
+                            : 'rounded-tl-sm bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
                         )}
                       >
 
