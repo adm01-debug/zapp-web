@@ -683,6 +683,124 @@ export function useEvolutionApi() {
     return withToast('delete-template', { instanceName, ...templateData }, 'Template excluído', 'Erro ao excluir template', 'DELETE');
   }, [withToast]);
 
+  // =============================================
+  // 18. BLOCK/UNBLOCK CONTACTS
+  // =============================================
+
+  const updateBlockStatus = useCallback(async (instanceName: string, number: string, status: 'block' | 'unblock') => {
+    return withToast('update-block-status', { instanceName, number, status },
+      status === 'block' ? 'Contato bloqueado' : 'Contato desbloqueado',
+      'Erro ao atualizar bloqueio');
+  }, [withToast]);
+
+  // =============================================
+  // 19. SEND PTV (Video Note)
+  // =============================================
+
+  const sendPtvMessage = useCallback(async (instanceName: string, number: string, video: string, delay?: number) => {
+    return callApi('send-ptv', { instanceName, number, video, delay });
+  }, [callApi]);
+
+  // =============================================
+  // 20. OFFER CALL
+  // =============================================
+
+  const offerCall = useCallback(async (instanceName: string, number: string, isVideo?: boolean, callDuration?: number) => {
+    return callApi('offer-call', { instanceName, number, isVideo, callDuration });
+  }, [callApi]);
+
+  // =============================================
+  // 21. SEND CHAT PRESENCE (per chat)
+  // =============================================
+
+  const sendChatPresence = useCallback(async (instanceName: string, number: string, presence: 'composing' | 'recording' | 'paused', delay?: number) => {
+    return callApi('send-chat-presence', { instanceName, number, presence, delay });
+  }, [callApi]);
+
+  // =============================================
+  // 22. BUSINESS CATALOG & COLLECTIONS
+  // =============================================
+
+  const getBusinessCatalog = useCallback(async (instanceName: string, number: string, limit?: number, cursor?: string) => {
+    return callApi('get-catalog', { instanceName, number, limit, cursor });
+  }, [callApi]);
+
+  const getBusinessCollections = useCallback(async (instanceName: string, number: string, limit?: number, cursor?: string) => {
+    return callApi('get-collections', { instanceName, number, limit, cursor });
+  }, [callApi]);
+
+  // =============================================
+  // 23. PROXY CONFIGURATION
+  // =============================================
+
+  const setProxy = useCallback(async (instanceName: string, config: { enabled?: boolean; host: string; port: number; protocol: string; username?: string; password?: string }) => {
+    return withToast('set-proxy', { instanceName, ...config }, 'Proxy configurado', 'Erro ao configurar proxy');
+  }, [withToast]);
+
+  const getProxy = useCallback(async (instanceName: string) => {
+    return callApi('get-proxy', { instanceName }, 'GET');
+  }, [callApi]);
+
+  // =============================================
+  // 24. EVO AI INTEGRATION
+  // =============================================
+
+  const setEvoAI = useCallback(async (instanceName: string, config: { enabled?: boolean; apiUrl: string; apiKey: string; agentId: string; expire?: number; triggerType?: string; triggerOperator?: string; triggerValue?: string; keywordFinish?: string; delayMessage?: number; unknownMessage?: string; listeningFromMe?: boolean; stopBotFromMe?: boolean; keepOpen?: boolean; debounceTime?: number; speechToText?: boolean }) => {
+    return withToast('set-evoai', { instanceName, ...config }, 'EvoAI configurado', 'Erro ao configurar EvoAI');
+  }, [withToast]);
+
+  const getEvoAI = useCallback(async (instanceName: string) => {
+    return callApi('get-evoai', { instanceName }, 'GET');
+  }, [callApi]);
+
+  const deleteEvoAI = useCallback(async (instanceName: string) => {
+    return withToast('delete-evoai', { instanceName }, 'EvoAI removido', 'Erro ao remover EvoAI', 'DELETE');
+  }, [withToast]);
+
+  // =============================================
+  // 25. N8N INTEGRATION
+  // =============================================
+
+  const setN8N = useCallback(async (instanceName: string, config: { enabled?: boolean; webhookUrl: string; expire?: number; triggerType?: string; triggerOperator?: string; triggerValue?: string; keywordFinish?: string; delayMessage?: number; unknownMessage?: string; listeningFromMe?: boolean; stopBotFromMe?: boolean; keepOpen?: boolean; debounceTime?: number }) => {
+    return withToast('set-n8n', { instanceName, ...config }, 'N8N configurado', 'Erro ao configurar N8N');
+  }, [withToast]);
+
+  const getN8N = useCallback(async (instanceName: string) => {
+    return callApi('get-n8n', { instanceName }, 'GET');
+  }, [callApi]);
+
+  const deleteN8N = useCallback(async (instanceName: string) => {
+    return withToast('delete-n8n', { instanceName }, 'N8N removido', 'Erro ao remover N8N', 'DELETE');
+  }, [withToast]);
+
+  // =============================================
+  // 26. EVENT STREAMING (Kafka, NATS, Pusher)
+  // =============================================
+
+  const setKafka = useCallback(async (instanceName: string, enabled: boolean, events?: string[]) => {
+    return callApi('set-kafka', { instanceName, enabled, events });
+  }, [callApi]);
+
+  const getKafka = useCallback(async (instanceName: string) => {
+    return callApi('get-kafka', { instanceName }, 'GET');
+  }, [callApi]);
+
+  const setNats = useCallback(async (instanceName: string, enabled: boolean, events?: string[]) => {
+    return callApi('set-nats', { instanceName, enabled, events });
+  }, [callApi]);
+
+  const getNats = useCallback(async (instanceName: string) => {
+    return callApi('get-nats', { instanceName }, 'GET');
+  }, [callApi]);
+
+  const setPusher = useCallback(async (instanceName: string, config: { enabled?: boolean; appId: string; key: string; secret: string; cluster: string; events?: string[] }) => {
+    return callApi('set-pusher', { instanceName, ...config });
+  }, [callApi]);
+
+  const getPusher = useCallback(async (instanceName: string) => {
+    return callApi('get-pusher', { instanceName }, 'GET');
+  }, [callApi]);
+
   return {
     isLoading,
 
@@ -810,5 +928,43 @@ export function useEvolutionApi() {
     createTemplate,
     findTemplates,
     deleteTemplate,
+
+    // Block/Unblock
+    updateBlockStatus,
+
+    // PTV (Video Note)
+    sendPtvMessage,
+
+    // Offer Call
+    offerCall,
+
+    // Chat Presence
+    sendChatPresence,
+
+    // Business Catalog & Collections
+    getBusinessCatalog,
+    getBusinessCollections,
+
+    // Proxy
+    setProxy,
+    getProxy,
+
+    // EvoAI
+    setEvoAI,
+    getEvoAI,
+    deleteEvoAI,
+
+    // N8N
+    setN8N,
+    getN8N,
+    deleteN8N,
+
+    // Event Streaming
+    setKafka,
+    getKafka,
+    setNats,
+    getNats,
+    setPusher,
+    getPusher,
   };
 }

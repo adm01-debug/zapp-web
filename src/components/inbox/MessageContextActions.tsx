@@ -17,6 +17,7 @@ import {
   Archive,
   CheckCheck,
   EyeOff,
+  Ban,
 } from 'lucide-react';
 
 interface MessageContextActionsProps {
@@ -40,6 +41,7 @@ export function MessageContextActions({
     markMessageAsRead,
     markMessageAsUnread,
     archiveChat,
+    updateBlockStatus,
     isLoading,
   } = useEvolutionApi();
 
@@ -97,6 +99,22 @@ export function MessageContextActions({
     }
   }, [instanceName, contactJid, archiveChat]);
 
+  const handleBlock = useCallback(async () => {
+    try {
+      await updateBlockStatus(instanceName, contactJid, 'block');
+    } catch {
+      toast.error('Erro ao bloquear contato');
+    }
+  }, [instanceName, contactJid, updateBlockStatus]);
+
+  const handleUnblock = useCallback(async () => {
+    try {
+      await updateBlockStatus(instanceName, contactJid, 'unblock');
+    } catch {
+      toast.error('Erro ao desbloquear contato');
+    }
+  }, [instanceName, contactJid, updateBlockStatus]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -134,6 +152,15 @@ export function MessageContextActions({
         <DropdownMenuItem onClick={handleArchive}>
           <Archive className="w-4 h-4 mr-2" />
           Arquivar chat
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleBlock} className="text-destructive">
+          <Ban className="w-4 h-4 mr-2" />
+          Bloquear contato
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleUnblock}>
+          <Ban className="w-4 h-4 mr-2" />
+          Desbloquear contato
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
