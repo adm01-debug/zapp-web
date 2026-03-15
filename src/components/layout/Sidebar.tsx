@@ -251,7 +251,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                     {isActive && (
                       <motion.div
                         layoutId="activeNav"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full nav-indicator-neon"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-primary"
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
                     )}
