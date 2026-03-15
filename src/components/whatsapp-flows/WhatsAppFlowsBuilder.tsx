@@ -11,9 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Plus, Workflow, Trash2, Edit, Eye, Play, Copy, ArrowRight,
-  Type, ListChecks, CalendarDays, Image, ToggleLeft, Smartphone,
-  GripVertical, X, ChevronDown, ChevronUp, Send
+  Plus, Workflow, Trash2, Edit, Eye,
+  Type, ListChecks, CalendarDays, ToggleLeft,
+  X, ChevronDown, Send
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
