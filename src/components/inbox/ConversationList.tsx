@@ -62,7 +62,7 @@ export function ConversationList({
   };
 
   return (
-    <div className="flex flex-col h-full bg-sidebar border-r border-border/30">
+    <div className="flex flex-col h-full bg-sidebar border-r border-border">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
