@@ -492,6 +492,16 @@ export function RealtimeInboxView() {
         onDismiss={dismissNotification}
       />
 
+      {/* New Conversation Modal */}
+      <NewConversationModal
+        open={showNewConversation}
+        onOpenChange={setShowNewConversation}
+        onConversationStarted={(contactId) => {
+          setSelectedContactId(contactId);
+          refetch();
+        }}
+      />
+
       <AuroraBorealis />
       <FloatingParticles />
 
