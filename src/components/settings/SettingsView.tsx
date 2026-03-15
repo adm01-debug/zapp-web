@@ -31,6 +31,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
+import { AutoCloseSettings } from '@/components/settings/AutoCloseSettings';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
 import { useUserSettings } from '@/hooks/useUserSettings';
