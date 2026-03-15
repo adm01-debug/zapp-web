@@ -20,6 +20,9 @@ import { TranscriptionsHistoryView } from '@/components/transcriptions/Transcrip
 import { AdvancedReportsView } from '@/components/reports/AdvancedReportsView';
 import { SecurityView } from '@/components/security/SecurityView';
 import { SystemFeaturesView } from '@/components/docs/SystemFeaturesView';
+import { CampaignsView } from '@/components/campaigns/CampaignsView';
+import { ChatbotFlowsView } from '@/components/chatbot/ChatbotFlowsView';
+import { AutomationsManager } from '@/components/automations/AutomationsManager';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
