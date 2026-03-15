@@ -1,24 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-const mockInvoke = vi.fn().mockResolvedValue({ data: { success: true }, error: null });
-
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     functions: {
-      invoke: (...args: any[]) => mockInvoke(...args),
+      invoke: vi.fn().mockResolvedValue({ data: { success: true }, error: null }),
     },
   },
 }));
 
-const mockToast = { success: vi.fn(), error: vi.fn() };
-vi.mock('sonner', () => ({ toast: mockToast }));
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
 
 vi.mock('@/lib/logger', () => ({
   log: { error: vi.fn(), debug: vi.fn(), info: vi.fn() },
 }));
 
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+const mockInvoke = supabase.functions.invoke as ReturnType<typeof vi.fn>;
+const mockToast = toast as unknown as { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
 describe('useEvolutionApi - Exhaustive Test Suite', () => {
   beforeEach(() => {
