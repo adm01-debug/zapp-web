@@ -60,7 +60,7 @@
   :root {
     /* ===== FONTS ===== */
     --font-sans: 'Inter', 'Segoe UI', 'Helvetica Neue', Helvetica, 'Lucida Grande', Arial, sans-serif;
-    --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+    --font-display: 'Inter', 'Segoe UI', 'Helvetica Neue', Helvetica, 'Lucida Grande', Arial, sans-serif;
 
     /* ===== ANIMATION TOKENS ===== */
     --animation-fast: 150ms;
