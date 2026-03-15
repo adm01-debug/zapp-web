@@ -108,6 +108,11 @@ export function ConnectionsView() {
     connectionId: string;
     connectionName: string;
   }>({ open: false, connectionId: '', connectionName: '' });
+  const [queuesDialog, setQueuesDialog] = useState<{
+    open: boolean;
+    connectionId: string;
+    connectionName: string;
+  }>({ open: false, connectionId: '', connectionName: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
