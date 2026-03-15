@@ -859,6 +859,22 @@ export function ConnectionsView() {
         connectionId={queuesDialog.connectionId}
         connectionName={queuesDialog.connectionName}
       />
+
+      {/* Instance Settings Dialog */}
+      <InstanceSettingsDialog
+        open={settingsDialog.open}
+        onOpenChange={(open) => setSettingsDialog((prev) => ({ ...prev, open }))}
+        instanceName={settingsDialog.instanceName}
+        connectionName={settingsDialog.connectionName}
+      />
+
+      {/* Integrations Panel */}
+      <IntegrationsPanel
+        open={integrationsDialog.open}
+        onOpenChange={(open) => setIntegrationsDialog((prev) => ({ ...prev, open }))}
+        instanceName={integrationsDialog.instanceName}
+        connectionName={integrationsDialog.connectionName}
+      />
     </div>
   );
 }
