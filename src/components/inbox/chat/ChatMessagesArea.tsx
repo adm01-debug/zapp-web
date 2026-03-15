@@ -133,7 +133,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
             animate={{ opacity: 1, scale: 1 }}
             className="flex justify-center my-4"
           >
-            <span className="text-xs text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full font-medium border border-border/20">
+            <span className="text-[11px] text-muted-foreground bg-card px-3 py-1 rounded-lg font-medium shadow-sm">
               {formatDateSeparator(new Date(dateKey))}
             </span>
           </motion.div>
