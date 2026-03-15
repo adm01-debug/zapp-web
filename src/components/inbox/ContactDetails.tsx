@@ -250,6 +250,16 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           </div>
         </motion.div>
 
+        {/* Custom Fields */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="p-4 border-b border-border/30"
+        >
+          <CustomFieldsSection contactId={contact.id || contact.phone} />
+        </motion.div>
+
         {/* Private Notes */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
