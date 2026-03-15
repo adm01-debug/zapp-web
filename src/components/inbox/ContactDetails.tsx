@@ -50,7 +50,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 100, opacity: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="w-80 h-full bg-sidebar border-l border-border/30 flex flex-col overflow-hidden"
+      className="w-80 h-full bg-card border-l border-border flex flex-col overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/30 bg-card">
