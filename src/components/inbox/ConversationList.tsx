@@ -188,7 +188,7 @@ export function ConversationList({
                         <div className="flex items-center justify-between mb-1">
                           <span className={cn(
                             "font-medium text-sm truncate transition-colors",
-                            isSelected ? "text-primary" : "text-foreground"
+                            "text-foreground"
                           )}>
                             {conversation.contact.name}
                           </span>
