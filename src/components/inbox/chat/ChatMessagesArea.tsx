@@ -124,7 +124,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-muted/5">
+    <div className="flex-1 overflow-y-auto p-6 space-y-1 scrollbar-thin" style={{ backgroundColor: 'hsl(var(--background))' }}>
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
           {/* Date separator */}
