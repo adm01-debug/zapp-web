@@ -146,10 +146,10 @@ export function ConversationList({
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.15 }}
                     className={cn(
-                      'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group',
+                      'relative p-3 cursor-pointer transition-all duration-150 group border-b border-border/50',
                       isSelected 
-                        ? 'bg-primary/10 border border-primary/30' 
-                        : 'hover:bg-muted/30 border border-transparent'
+                        ? 'bg-muted' 
+                        : 'hover:bg-muted/50'
                     )}
                   >
                     {/* Selection indicator */}
