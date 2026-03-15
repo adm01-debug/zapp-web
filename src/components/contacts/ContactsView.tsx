@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
