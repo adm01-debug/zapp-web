@@ -49,6 +49,8 @@ import { toast } from '@/hooks/use-toast';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { BusinessHoursDialog } from './BusinessHoursDialog';
 import { BusinessHoursIndicator } from './BusinessHoursIndicator';
+import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
+import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2 } from 'lucide-react';
 
 interface WhatsAppConnection {
   id: string;
@@ -59,6 +61,10 @@ interface WhatsAppConnection {
   qr_code: string | null;
   is_default: boolean;
   created_at: string;
+  battery_level?: number | null;
+  is_plugged?: boolean | null;
+  retry_count?: number | null;
+  max_retries?: number | null;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Wifi }> = {
@@ -98,6 +104,11 @@ export function ConnectionsView() {
   }>({ open: false, connectionId: '', connectionName: '', qrCode: null, status: 'loading' });
   const [newConnection, setNewConnection] = useState({ name: '', phone_number: '' });
   const [businessHoursDialog, setBusinessHoursDialog] = useState<{
+    open: boolean;
+    connectionId: string;
+    connectionName: string;
+  }>({ open: false, connectionId: '', connectionName: '' });
+  const [queuesDialog, setQueuesDialog] = useState<{
     open: boolean;
     connectionId: string;
     connectionName: string;
@@ -678,7 +689,28 @@ export function ConnectionsView() {
                               </Badge>
                               <BusinessHoursIndicator connectionId={connection.id} />
                             </div>
-                            <p className="text-sm text-muted-foreground">{connection.phone_number}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-muted-foreground">{connection.phone_number}</p>
+                              {connection.battery_level != null && (
+                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  {connection.is_plugged ? (
+                                    <BatteryCharging className="w-3.5 h-3.5 text-green-500" />
+                                  ) : connection.battery_level <= 20 ? (
+                                    <BatteryLow className="w-3.5 h-3.5 text-destructive" />
+                                  ) : connection.battery_level <= 50 ? (
+                                    <BatteryMedium className="w-3.5 h-3.5 text-yellow-500" />
+                                  ) : (
+                                    <BatteryFull className="w-3.5 h-3.5 text-green-500" />
+                                  )}
+                                  {connection.battery_level}%
+                                </span>
+                              )}
+                              {(connection.retry_count ?? 0) > 0 && (
+                                <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-yellow-500">
+                                  Retry {connection.retry_count}/{connection.max_retries || 5}
+                                </Badge>
+                              )}
+                            </div>
                             {connection.instance_id && (
                               <p className="text-xs text-muted-foreground mt-1">
                                 Instância: <code className="bg-muted px-1 rounded">{connection.instance_id}</code>
@@ -751,6 +783,14 @@ export function ConnectionsView() {
                                 <Clock className="w-4 h-4 mr-2" />
                                 Horário de Atendimento
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setQueuesDialog({
+                                open: true,
+                                connectionId: connection.id,
+                                connectionName: connection.name,
+                              })}>
+                                <Link2 className="w-4 h-4 mr-2" />
+                                Vincular Filas
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive"
@@ -778,6 +818,14 @@ export function ConnectionsView() {
         onOpenChange={(open) => setBusinessHoursDialog((prev) => ({ ...prev, open }))}
         connectionId={businessHoursDialog.connectionId}
         connectionName={businessHoursDialog.connectionName}
+      />
+
+      {/* Connection Queues Dialog */}
+      <ConnectionQueuesDialog
+        open={queuesDialog.open}
+        onOpenChange={(open) => setQueuesDialog((prev) => ({ ...prev, open }))}
+        connectionId={queuesDialog.connectionId}
+        connectionName={queuesDialog.connectionName}
       />
     </div>
   );

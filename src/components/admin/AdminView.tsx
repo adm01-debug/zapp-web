@@ -52,6 +52,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useUserRole, AppRole } from '@/hooks/useUserRole';
+import { ForceLogoutButton } from './ForceLogoutButton';
 
 interface UserWithRole {
   id: string;
@@ -538,6 +539,7 @@ export function AdminView() {
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
+                            <ForceLogoutButton userId={user.user_id} userName={user.name} />
                             <Switch
                               checked={user.is_active !== false}
                               onCheckedChange={() => handleToggleActive(user)}

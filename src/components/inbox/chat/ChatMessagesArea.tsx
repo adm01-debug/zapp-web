@@ -1,4 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
 import { cn } from '@/lib/utils';
 import { Message, InteractiveButton } from '@/types/chat';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
@@ -195,6 +196,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
                       </div>
 
+                      {(message as any).is_deleted ? (
+                        <DeletedMessagePlaceholder isSent={isSent} />
+                      ) : (
                       <motion.div
                         whileHover={{ scale: 1.01 }}
                         className={cn(
@@ -292,6 +296,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                           {isSent && <MessageStatusIcon status={message.status} />}
                         </div>
                       </motion.div>
+                      )}
 
                       <MessageReactions
                         messageId={message.id}

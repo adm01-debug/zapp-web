@@ -8,6 +8,7 @@ import { MessageReactions } from './MessageReactions';
 import { MessageImage } from './ImagePreview';
 import { DocumentPreview, VideoPreview } from './MediaPreview';
 import { InteractiveMessageDisplay, ButtonResponseBadge } from './InteractiveMessage';
+import { DeletedMessagePlaceholder } from './DeletedMessagePlaceholder';
 import { QuotedMessage } from './ReplyQuote';
 import { LocationMessageDisplay } from './LocationMessage';
 import { AudioMessagePlayer } from './AudioMessagePlayer';
@@ -224,6 +225,9 @@ export const VirtualizedMessageList = forwardRef<VirtualizedMessageListRef, Virt
             )}
           </div>
 
+          {(message as any).is_deleted ? (
+            <DeletedMessagePlaceholder isSent={isSent} />
+          ) : (
           <div
             className={cn(
               'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
@@ -318,6 +322,7 @@ export const VirtualizedMessageList = forwardRef<VirtualizedMessageListRef, Virt
               {isSent && <MessageStatusIcon status={message.status} />}
             </div>
           </div>
+          )}
 
           <MessageReactions
             messageId={message.id}

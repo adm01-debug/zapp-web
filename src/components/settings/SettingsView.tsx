@@ -34,8 +34,10 @@ import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizatio
 import { AutoCloseSettings } from '@/components/settings/AutoCloseSettings';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
+import { GlobalSettingsSection } from '@/components/settings/GlobalSettingsSection';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { Globe } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SettingsView() {
@@ -142,6 +144,10 @@ export function SettingsView() {
           <TabsTrigger value="sounds" className="gap-2">
             <Volume2 className="w-4 h-4" />
             Sons
+          </TabsTrigger>
+          <TabsTrigger value="global" className="gap-2">
+            <Globe className="w-4 h-4" />
+            Global
           </TabsTrigger>
         </TabsList>
 
@@ -536,6 +542,16 @@ export function SettingsView() {
             animate={{ opacity: 1, y: 0 }}
           >
             <SoundCustomizationPanel />
+          </motion.div>
+        </TabsContent>
+
+        {/* Global Settings */}
+        <TabsContent value="global">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <GlobalSettingsSection />
           </motion.div>
         </TabsContent>
       </Tabs>
