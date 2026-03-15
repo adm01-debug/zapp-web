@@ -78,14 +78,14 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
 
         <div className="space-y-6 pt-4">
           {/* Transfer Type */}
-          <RadioGroup
-            value={transferType}
-            onValueChange={(v) => {
-              setTransferType(v as 'agent' | 'queue');
-              setSelectedTarget('');
-            }}
-            className="grid grid-cols-2 gap-4"
-          >
+            <RadioGroup
+              value={transferType}
+              onValueChange={(v) => {
+                setTransferType(v as 'agent' | 'queue' | 'connection');
+                setSelectedTarget('');
+              }}
+              className="grid grid-cols-3 gap-3"
+            >
             <Label
               htmlFor="agent"
               className={cn(
