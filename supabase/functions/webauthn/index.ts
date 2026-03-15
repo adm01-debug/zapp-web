@@ -52,13 +52,31 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Service role client for DB operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const { action, ...params } = await req.json();
     const origin = req.headers.get('origin') || 'https://localhost';
     const rpId = getRpId(origin);
     const rpName = 'WhatsApp Platform';
+
+    // Verify caller identity for actions that require authentication
+    const authHeader = req.headers.get('Authorization');
+    let authenticatedUserId: string | null = null;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const token = authHeader.replace('Bearer ', '');
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims) {
+        authenticatedUserId = claimsData.claims.sub as string;
+      }
+    }
 
     console.log(`WebAuthn action: ${action}, origin: ${origin}, rpId: ${rpId}`);
 
