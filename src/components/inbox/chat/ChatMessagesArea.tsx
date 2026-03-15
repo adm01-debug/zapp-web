@@ -124,19 +124,15 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-muted/5">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-background">
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
           {/* Date separator */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex justify-center my-4"
-          >
-            <span className="text-xs text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full font-medium border border-border/20">
+          <div className="flex justify-center my-4">
+            <span className="text-xs text-muted-foreground bg-muted px-4 py-1.5 rounded-full font-medium">
               {formatDateSeparator(new Date(dateKey))}
             </span>
-          </motion.div>
+          </div>
 
           {/* Messages for this day */}
           <StaggeredList className="space-y-3">
