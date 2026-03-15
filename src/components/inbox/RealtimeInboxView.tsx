@@ -669,7 +669,7 @@ export function RealtimeInboxView() {
       </div>
 
       {/* Chat Panel */}
-      <div className="flex-1 flex relative z-10">
+      <div className="flex-1 flex relative z-10 bg-background">
         {legacyConversation ? (
           <>
             <div className="flex-1 relative">
