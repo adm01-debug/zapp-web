@@ -17,6 +17,7 @@ import {
   Archive,
   CheckCheck,
   EyeOff,
+  Ban,
 } from 'lucide-react';
 
 interface MessageContextActionsProps {
