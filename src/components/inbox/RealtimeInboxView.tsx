@@ -86,16 +86,6 @@ export function RealtimeInboxView() {
     setUrlFilters({ search: value });
   }, [setUrlFilters]);
 
-  // Update filters and sync to URL
-  const setFilters = useCallback((newFilters: InboxFiltersState) => {
-    setUrlFilters({
-      status: newFilters.status,
-      tags: newFilters.tags,
-      agentId: newFilters.agentId,
-      dateFrom: newFilters.dateRange.from?.toISOString().split('T')[0] || null,
-      dateTo: newFilters.dateRange.to?.toISOString().split('T')[0] || null,
-    });
-  }, [setUrlFilters]);
 
   // Filter conversations by search and advanced filters
   const filteredConversations = useMemo(() => {
