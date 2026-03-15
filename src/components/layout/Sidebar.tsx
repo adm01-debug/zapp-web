@@ -183,7 +183,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           onClick={() => document.dispatchEvent(new Event('open-command-palette'))}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300",
-            "bg-muted/30 hover:bg-muted/50 border border-border/50 hover:border-secondary/50",
+            "bg-muted/40 hover:bg-muted/60 border border-border hover:border-primary/30",
             "text-muted-foreground hover:text-foreground group"
           )}
           whileHover={{ scale: 1.02 }}
