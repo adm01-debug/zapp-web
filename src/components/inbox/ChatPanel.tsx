@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { log } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { ConversationSummary } from './ConversationSummary';
 import { TransferDialog } from './TransferDialog';
