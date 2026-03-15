@@ -171,7 +171,7 @@ export function ChatInputArea({
                   </Button>
                 </motion.div>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-0 glass-strong border-border/50" align="start">
+              <PopoverContent className="w-72 p-0 bg-popover border-border" align="start">
                 <div className="p-3 border-b border-border/50 bg-gradient-to-r from-primary/10 to-transparent">
                   <h4 className="font-medium text-sm">Respostas Rápidas</h4>
                   <p className="text-xs text-muted-foreground">

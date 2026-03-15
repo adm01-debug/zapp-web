@@ -261,7 +261,7 @@ export function TranscriptionsHistoryView() {
         className="flex items-center justify-between relative z-10"
       >
         <div>
-          <h1 className="text-2xl font-bold text-foreground neon-underline flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
               <Mic className="w-5 h-5 text-primary-foreground" />
             </div>
