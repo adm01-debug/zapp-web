@@ -32,6 +32,7 @@ import { AIQuickAccess } from './AIQuickAccess';
 import { CSATDashboard } from '@/components/csat/CSATDashboard';
 import { AIStatsWidget } from './AIStatsWidget';
 import { GoalsDashboard } from './GoalsDashboard';
+import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
 import { ProgressiveDisclosureDashboard } from './ProgressiveDisclosureDashboard';
@@ -515,6 +516,9 @@ export function DashboardView() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* Realtime Metrics Panel */}
+          <RealtimeMetricsPanel />
+
           {/* Progressive Disclosure Dashboard */}
           <ProgressiveDisclosureDashboard
             level1Widgets={level1Widgets}
