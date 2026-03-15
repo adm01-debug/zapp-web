@@ -276,8 +276,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                           className="flex items-center flex-1 overflow-hidden"
                         >
                           <span className={cn(
-                            "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-300",
-                            isActive ? "text-secondary" : "text-foreground group-hover:text-secondary"
+                            "flex-1 text-left text-sm font-medium whitespace-nowrap transition-colors duration-200",
+                            isActive ? "text-primary" : "text-sidebar-foreground"
                           )}>
                             {item.label}
                           </span>
