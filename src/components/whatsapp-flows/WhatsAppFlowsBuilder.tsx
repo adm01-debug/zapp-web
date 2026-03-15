@@ -223,7 +223,10 @@ export function WhatsAppFlowsBuilder() {
 
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogContent>
-            <DialogHeader><DialogTitle>Novo WhatsApp Flow</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>Novo WhatsApp Flow</DialogTitle>
+              <DialogDescription>Crie um formulário interativo para o WhatsApp</DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
               <div><Label>Nome *</Label><Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Ex: Cadastro de Lead" /></div>
               <div><Label>Descrição</Label><Textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} rows={2} /></div>

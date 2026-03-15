@@ -212,6 +212,7 @@ export function PaymentLinksView() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Novo Link de Pagamento</DialogTitle>
+            <DialogDescription>Configure o link para enviar ao contato</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

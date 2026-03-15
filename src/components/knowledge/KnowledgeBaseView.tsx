@@ -330,6 +330,7 @@ export function KnowledgeBaseView() {
         <DialogContent size="xl">
           <DialogHeader>
             <DialogTitle>{editingArticle ? 'Editar Artigo' : 'Novo Artigo'}</DialogTitle>
+            <DialogDescription>Adicione conteúdo para treinar a IA</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

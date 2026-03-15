@@ -394,6 +394,7 @@ export function SalesPipelineView() {
         <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>{editingDeal ? 'Editar Deal' : 'Novo Deal'}</DialogTitle>
+            <DialogDescription>Preencha as informações do deal</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">

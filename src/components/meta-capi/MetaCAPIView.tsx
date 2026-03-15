@@ -220,7 +220,10 @@ export function MetaCAPIView() {
       {/* Config Dialog */}
       <Dialog open={showConfig} onOpenChange={setShowConfig}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Configurar Meta CAPI</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Configurar Meta CAPI</DialogTitle>
+            <DialogDescription>Configure o Pixel ID e opções de rastreamento</DialogDescription>
+          </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Meta Pixel ID</Label>
