@@ -79,14 +79,14 @@ export function ConversationList({
           </motion.div>
         </div>
 
-        {/* Search */}
+        {/* Search - WhatsApp Web style */}
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
-            placeholder="Buscar conversas..."
+            placeholder="Buscar ou começar uma nova conversa"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-muted/30 border-border/30 focus:border-primary/50 focus:ring-primary/20 transition-all"
+            className="pl-9 bg-input border-0 focus:ring-0 focus:border-0 rounded-lg text-sm h-9"
           />
         </div>
 
