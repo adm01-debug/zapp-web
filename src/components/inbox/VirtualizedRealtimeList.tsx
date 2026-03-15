@@ -168,20 +168,6 @@ export function VirtualizedRealtimeList({
                   <p className="text-sm text-muted-foreground truncate">
                     {conversation.lastMessage?.content || 'Sem mensagens'}
                   </p>
-                  {conversation.contact.tags && conversation.contact.tags.length > 0 && (
-                    <div className="flex gap-1 mt-1.5">
-                      {conversation.contact.tags.slice(0, 2).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {conversation.contact.tags.length > 2 && (
-                        <span className="text-[10px] text-muted-foreground">
-                          +{conversation.contact.tags.length - 2}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
               </button>
             </div>
