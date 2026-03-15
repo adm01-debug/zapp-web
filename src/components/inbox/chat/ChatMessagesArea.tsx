@@ -199,6 +199,13 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             className="p-1.5 rounded-full bg-card border border-border/50 shadow-sm"
                           />
                         )}
+                        {instanceName && contactJid && (
+                          <MessageContextActions
+                            message={message}
+                            instanceName={instanceName}
+                            contactJid={contactJid}
+                          />
+                        )}
                       </div>
 
                       {(message as any).is_deleted ? (
