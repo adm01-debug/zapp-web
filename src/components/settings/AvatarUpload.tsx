@@ -53,6 +53,7 @@ export function AvatarUpload() {
         if (updateError) throw updateError;
 
         setAvatarUrl(urlWithCache);
+        await refreshProfile();
       },
       {
         loadingMessage: 'Enviando foto...',
