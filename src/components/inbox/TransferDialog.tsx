@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Dialog,
@@ -18,24 +18,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { User, Users, Send, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Users, Send, ArrowRight, Loader2, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAgents } from '@/hooks/useAgents';
 import { useQueues } from '@/hooks/useQueues';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTransfer: (type: 'agent' | 'queue', targetId: string, message?: string) => void;
+  onTransfer: (type: 'agent' | 'queue' | 'connection', targetId: string, message?: string) => void;
 }
 
 export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialogProps) {
-  const [transferType, setTransferType] = useState<'agent' | 'queue'>('agent');
+  const [transferType, setTransferType] = useState<'agent' | 'queue' | 'connection'>('agent');
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [message, setMessage] = useState('');
+  const [connections, setConnections] = useState<{ id: string; name: string; phone_number: string; status: string }[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
 
   const { agents, isLoading: loadingAgents } = useAgents();
   const { queues, loading: loadingQueues } = useQueues();
+
+  // Fetch WhatsApp connections
+  useEffect(() => {
+    if (transferType !== 'connection' || !open) return;
+    setLoadingConnections(true);
+    supabase
+      .from('whatsapp_connections')
+      .select('id, name, phone_number, status')
+      .eq('status', 'connected')
+      .then(({ data }) => {
+        setConnections(data || []);
+        setLoadingConnections(false);
+      });
+  }, [transferType, open]);
 
   const handleTransfer = () => {
     if (selectedTarget) {
