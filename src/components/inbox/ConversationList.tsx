@@ -93,16 +93,16 @@ export function ConversationList({
         {/* Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="w-full">
           <TabsList className="w-full grid grid-cols-4 bg-transparent border-b border-border h-auto p-0 rounded-none">
-            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="all" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
               Todas ({counts.all})
             </TabsTrigger>
-            <TabsTrigger value="open" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="open" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
               Abertas ({counts.open})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="pending" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
               Pendentes ({counts.pending})
             </TabsTrigger>
-            <TabsTrigger value="waiting" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="waiting" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
               Aguardando ({counts.waiting})
             </TabsTrigger>
           </TabsList>
