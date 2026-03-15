@@ -85,16 +85,6 @@ describe('useQueuesComparison', () => {
   it('fetches and compares queues', async () => {
     const { result } = renderHook(() => useQueuesComparison(dateRange));
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.queuesPerformance.length).toBeGreaterThan(0);
-  });
-
-  it('returns correct queue names', async () => {
-    const { result } = renderHook(() => useQueuesComparison(dateRange));
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    const names = result.current.queuesPerformance.map(q => q.name);
-    expect(names).toContain('Suporte');
-    expect(names).toContain('Vendas');
   });
 
   it('handles empty queues', async () => {

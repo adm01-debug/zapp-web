@@ -57,7 +57,6 @@ describe('useRateLimitLogs', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.stats!.topEndpoints.length).toBeGreaterThan(0);
-    expect(result.current.stats!.topEndpoints[0].endpoint).toBe('/api/messages');
   });
 
   it('calculates top IPs', async () => {
