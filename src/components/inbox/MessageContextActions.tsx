@@ -153,6 +153,15 @@ export function MessageContextActions({
           <Archive className="w-4 h-4 mr-2" />
           Arquivar chat
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleBlock} className="text-destructive">
+          <Ban className="w-4 h-4 mr-2" />
+          Bloquear contato
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleUnblock}>
+          <Ban className="w-4 h-4 mr-2" />
+          Desbloquear contato
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
