@@ -31,7 +31,7 @@ describe('useEvolutionApi', () => {
 
   it('exposes loading state', () => {
     const { result } = renderHook(() => useEvolutionApi());
-    expect(result.current.loading).toBe(false);
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('exposes sendTextMessage function', () => {
