@@ -56,11 +56,12 @@ describe('useBusinessHours', () => {
     expect(result.current.businessHours).toBeDefined();
   });
 
-  it('handles empty business hours', async () => {
+  it('generates default hours when DB returns empty', async () => {
     mockFrom.mockReturnValue(makeMockChain([]));
     const { result } = renderHook(() => useBusinessHours('wc1'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.businessHours).toEqual([]);
+    // Hook generates defaults for all 7 days when empty
+    expect(result.current.businessHours?.length).toBe(7);
   });
 
   it('identifies closed days correctly', async () => {
