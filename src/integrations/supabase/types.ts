@@ -171,6 +171,44 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_close_config: {
+        Row: {
+          close_message: string | null
+          created_at: string
+          id: string
+          inactivity_hours: number
+          is_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          close_message?: string | null
+          created_at?: string
+          id?: string
+          inactivity_hours?: number
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          close_message?: string | null
+          created_at?: string
+          id?: string
+          inactivity_hours?: number
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_close_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       away_messages: {
         Row: {
           content: string | null
@@ -704,6 +742,51 @@ export type Database = {
             columns: ["sla_configuration_id"]
             isOneToOne: false
             referencedRelation: "sla_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      csat_surveys: {
+        Row: {
+          agent_id: string | null
+          contact_id: string
+          conversation_resolved_at: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          rating: number
+        }
+        Insert: {
+          agent_id?: string | null
+          contact_id: string
+          conversation_resolved_at?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          rating: number
+        }
+        Update: {
+          agent_id?: string | null
+          contact_id?: string
+          conversation_resolved_at?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csat_surveys_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csat_surveys_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
