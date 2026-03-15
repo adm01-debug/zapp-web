@@ -113,7 +113,7 @@ export function MetaCAPIView() {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Meta Conversions API"
-        description="Rastreie eventos de conversão para otimização de anúncios"
+        subtitle="Rastreie eventos de conversão para otimização de anúncios"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setShowConfig(true)} className="gap-2">
