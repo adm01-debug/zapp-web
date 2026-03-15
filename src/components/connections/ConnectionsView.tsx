@@ -689,7 +689,28 @@ export function ConnectionsView() {
                               </Badge>
                               <BusinessHoursIndicator connectionId={connection.id} />
                             </div>
-                            <p className="text-sm text-muted-foreground">{connection.phone_number}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-muted-foreground">{connection.phone_number}</p>
+                              {connection.battery_level != null && (
+                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  {connection.is_plugged ? (
+                                    <BatteryCharging className="w-3.5 h-3.5 text-green-500" />
+                                  ) : connection.battery_level <= 20 ? (
+                                    <BatteryLow className="w-3.5 h-3.5 text-destructive" />
+                                  ) : connection.battery_level <= 50 ? (
+                                    <BatteryMedium className="w-3.5 h-3.5 text-yellow-500" />
+                                  ) : (
+                                    <BatteryFull className="w-3.5 h-3.5 text-green-500" />
+                                  )}
+                                  {connection.battery_level}%
+                                </span>
+                              )}
+                              {(connection.retry_count ?? 0) > 0 && (
+                                <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-yellow-500">
+                                  Retry {connection.retry_count}/{connection.max_retries || 5}
+                                </Badge>
+                              )}
+                            </div>
                             {connection.instance_id && (
                               <p className="text-xs text-muted-foreground mt-1">
                                 Instância: <code className="bg-muted px-1 rounded">{connection.instance_id}</code>
