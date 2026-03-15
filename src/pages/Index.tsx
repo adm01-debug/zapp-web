@@ -278,7 +278,7 @@ function IndexContent() {
               </Button>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
-                <span className="font-display font-bold">MultiChat</span>
+                <span className="font-display font-bold">ZAPP</span>
               </div>
               <div className="w-10" /> {/* Spacer */}
             </div>
