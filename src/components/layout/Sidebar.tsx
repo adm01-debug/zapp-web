@@ -96,6 +96,7 @@ const menuGroups: Array<{
       { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
       { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
       { id: 'security', icon: Shield, label: 'Segurança' },
+      { id: 'privacy', icon: ShieldCheck, label: 'Privacidade' },
       { id: 'admin', icon: ShieldCheck, label: 'Admin' },
       { id: 'docs', icon: BookOpen, label: 'Documentação' },
       { id: 'settings', icon: Settings, label: 'Configurações' },

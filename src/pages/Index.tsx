@@ -24,6 +24,7 @@ import { CampaignsView } from '@/components/campaigns/CampaignsView';
 import { ChatbotFlowsView } from '@/components/chatbot/ChatbotFlowsView';
 import { AutomationsManager } from '@/components/automations/AutomationsManager';
 import { IntegrationsHub } from '@/components/integrations/IntegrationsHub';
+import { LGPDComplianceView } from '@/components/compliance/LGPDComplianceView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
@@ -211,6 +212,8 @@ function IndexContent() {
         return <AutomationsManager />;
       case 'integrations':
         return <IntegrationsHub />;
+      case 'privacy':
+        return <LGPDComplianceView />;
         return (
           <div className="flex items-center justify-center h-full">
             <motion.div 
