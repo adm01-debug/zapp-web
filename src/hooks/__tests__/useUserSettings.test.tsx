@@ -72,7 +72,7 @@ describe('useUserSettings', () => {
 
   it('loads settings from database', async () => {
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.business_hours_enabled).toBe(true);
     expect(result.current.settings.theme).toBe('dark');
   });
