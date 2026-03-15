@@ -107,7 +107,7 @@ describe('useUserSettings', () => {
   it('default work_days is Monday-Friday', async () => {
     mockUseAuth.mockReturnValue({ user: null });
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.work_days).toEqual([1, 2, 3, 4, 5]);
   });
 
