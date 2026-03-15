@@ -1,9 +1,8 @@
-import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { motion, AnimatePresence } from '@/components/ui/motion';
+import { AnimatePresence } from '@/components/ui/motion';
 import { ReplyPreview } from '../ReplyQuote';
 import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
@@ -87,20 +86,16 @@ export function ChatInputArea({
         )}
       </AnimatePresence>
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-3 py-2 bg-[hsl(var(--chat-input-bg))] border-t border-border"
-      >
-        <div className="flex items-end gap-2">
-          <div className="flex items-center gap-0.5">
+      <div className="px-2 py-[5px] bg-[hsl(var(--chat-input-bg))]">
+        <div className="flex items-end gap-1">
+          <div className="flex items-center gap-0">
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:bg-muted"
+              className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50"
               title="Emoji"
             >
-              <Smile className="w-5 h-5" />
+              <Smile className="w-6 h-6" />
             </Button>
 
             <FileUploader
@@ -122,11 +117,6 @@ export function ChatInputArea({
                 });
               }}
             />
-
-            <AdvancedMessageMenu
-              instanceName={instanceName || ''}
-              recipientNumber={contactPhone}
-            />
           </div>
 
           <div className="flex-1 relative">
@@ -144,7 +134,7 @@ export function ChatInputArea({
               onKeyDown={onKeyDown}
               onBlur={onBlur}
               placeholder={replyToMessage ? 'Responder mensagem...' : 'Digite uma mensagem'}
-              className="h-10 rounded-lg border-0 bg-background pr-4 text-sm"
+              className="h-10 rounded-lg border-0 bg-card text-sm px-4"
             />
           </div>
 
@@ -153,18 +143,18 @@ export function ChatInputArea({
             variant="ghost"
             size="icon"
             className={cn(
-              'rounded-full text-primary hover:bg-primary/10',
+              'w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50',
               isRecordingAudio && 'text-destructive hover:bg-destructive/10'
             )}
             title={hasText ? 'Enviar' : 'Áudio'}
           >
-            {hasText ? <Send className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            {hasText ? <Send className="w-6 h-6 text-muted-foreground" /> : <Mic className="w-6 h-6" />}
           </Button>
         </div>
 
         <AnimatePresence>
           {isRecordingAudio && (
-            <div className="mt-3">
+            <div className="mt-2">
               <AudioRecorder
                 onSend={onAudioSend}
                 onCancel={onAudioCancel}
@@ -172,7 +162,7 @@ export function ChatInputArea({
             </div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </>
   );
 }

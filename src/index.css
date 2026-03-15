@@ -83,30 +83,30 @@
     --z-max: 9999;
 
     /* ===== BASE (WhatsApp Web Light) ===== */
-    --background: 30 18% 89%;
-    --foreground: 200 31% 10%;
+    --background: 30 36% 90%;
+    --foreground: 0 0% 8%;
     
     /* ===== CARDS ===== */
     --card: 0 0% 100%;
-    --card-foreground: 200 31% 10%;
+    --card-foreground: 0 0% 8%;
     --card-elevated: 0 0% 100%;
     
     /* ===== POPOVER/DIALOG ===== */
     --popover: 0 0% 100%;
-    --popover-foreground: 200 31% 10%;
+    --popover-foreground: 0 0% 8%;
     
-    /* ===== CORES PRIMÁRIAS (WhatsApp Teal Green) ===== */
-    --primary: 162 100% 25%;
+    /* ===== CORES PRIMÁRIAS (WhatsApp Teal Green #00a884) ===== */
+    --primary: 162 100% 33%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 162 100% 33%;
+    --primary-glow: 162 100% 40%;
     
-    /* ===== CORES SECUNDÁRIAS (WhatsApp Teal) ===== */
-    --secondary: 162 100% 33%;
+    /* ===== CORES SECUNDÁRIAS (WhatsApp Teal Dark #005c4b) ===== */
+    --secondary: 167 100% 18%;
     --secondary-foreground: 0 0% 100%;
     
     /* ===== MUTED ===== */
-    --muted: 220 17% 95%;
-    --muted-foreground: 198 13% 45%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 45%;
     
     /* ===== ACCENT ===== */
     --accent: 162 100% 33%;
@@ -117,9 +117,9 @@
     --destructive-foreground: 0 0% 100%;
     
     /* ===== BORDAS E INPUTS ===== */
-    --border: 200 20% 92%;
-    --input: 220 17% 95%;
-    --ring: 162 100% 25%;
+    --border: 0 0% 87%;
+    --input: 0 0% 94%;
+    --ring: 162 100% 33%;
     
     /* ===== RADIUS ===== */
     --radius: 0.5rem;
@@ -129,7 +129,7 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    --info: 199 78% 62%;
+    --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
     /* ===== GAMIFICAÇÃO ===== */
@@ -149,8 +149,8 @@
     --rank-bronze-foreground: 30 60% 15%;
 
     /* ===== WhatsApp Specific ===== */
-    --whatsapp: 162 100% 25%;
-    --whatsapp-dark: 162 100% 20%;
+    --whatsapp: 162 100% 33%;
+    --whatsapp-dark: 167 100% 18%;
     --online: 162 100% 33%;
     --away: 45 90% 50%;
     --offline: 0 0% 60%;
@@ -158,21 +158,27 @@
     
     /* ===== Sidebar (WhatsApp Web Light Panel) ===== */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 200 31% 10%;
-    --sidebar-primary: 162 100% 25%;
+    --sidebar-foreground: 0 0% 8%;
+    --sidebar-primary: 162 100% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 17% 95%;
-    --sidebar-accent-foreground: 200 31% 10%;
-    --sidebar-border: 200 20% 92%;
-    --sidebar-ring: 162 100% 25%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 0 0% 8%;
+    --sidebar-border: 0 0% 87%;
+    --sidebar-ring: 162 100% 33%;
+    --sidebar-header: 0 0% 96%;
 
     /* ===== Chat Specific (WhatsApp Web Light) ===== */
-    --chat-bubble-sent: 112 90% 91%;
-    --chat-bubble-sent-foreground: 200 31% 10%;
+    /* #d9fdd3 sent bubble */
+    --chat-bubble-sent: 118 77% 91%;
+    --chat-bubble-sent-foreground: 0 0% 8%;
+    /* white received bubble */
     --chat-bubble-received: 0 0% 100%;
-    --chat-bubble-received-foreground: 200 31% 10%;
-    --chat-header: 220 17% 95%;
-    --chat-input-bg: 220 17% 95%;
+    --chat-bubble-received-foreground: 0 0% 8%;
+    /* #f0f2f5 header */
+    --chat-header: 220 13% 95%;
+    --chat-input-bg: 220 13% 95%;
+    /* #eae6df wallpaper bg */
+    --chat-wallpaper: 30 18% 89%;
 
     /* ===== Status Colors ===== */
     --status-open: 162 100% 33%;
@@ -249,20 +255,20 @@
   }
 
   .dark {
-    /* ===== BASE (WhatsApp Web Dark) ===== */
-    --background: 200 40% 7%;
-    --foreground: 200 10% 92%;
+    /* ===== BASE (WhatsApp Web Dark #111b21) ===== */
+    --background: 200 30% 10%;
+    --foreground: 0 0% 89%;
     
     /* ===== CARDS ===== */
-    --card: 200 31% 10%;
-    --card-foreground: 200 10% 92%;
-    --card-elevated: 200 28% 12%;
+    --card: 200 25% 13%;
+    --card-foreground: 0 0% 89%;
+    --card-elevated: 200 22% 15%;
     
     /* ===== POPOVER/DIALOG ===== */
-    --popover: 200 28% 16%;
-    --popover-foreground: 200 10% 92%;
+    --popover: 200 22% 18%;
+    --popover-foreground: 0 0% 89%;
     
-    /* ===== CORES PRIMÁRIAS (WhatsApp Teal) ===== */
+    /* ===== CORES PRIMÁRIAS (WhatsApp Teal #00a884) ===== */
     --primary: 162 100% 33%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 162 100% 40%;
@@ -272,8 +278,8 @@
     --secondary-foreground: 0 0% 100%;
     
     /* ===== MUTED ===== */
-    --muted: 200 22% 17%;
-    --muted-foreground: 200 13% 58%;
+    --muted: 200 18% 18%;
+    --muted-foreground: 0 0% 62%;
     
     /* ===== ACCENT ===== */
     --accent: 162 100% 33%;
@@ -284,8 +290,8 @@
     --destructive-foreground: 0 0% 100%;
     
     /* ===== BORDAS E INPUTS (WhatsApp Web Dark) ===== */
-    --border: 200 22% 17%;
-    --input: 199 24% 21%;
+    --border: 200 18% 18%;
+    --input: 200 20% 20%;
     --ring: 162 100% 33%;
 
     /* ===== ESTADOS ===== */
@@ -293,7 +299,7 @@
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 55%;
     --warning-foreground: 0 0% 10%;
-    --info: 199 78% 62%;
+    --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
     /* ===== GAMIFICAÇÃO ===== */
@@ -312,23 +318,29 @@
     --rank-bronze: 30 55% 55%;
     --rank-bronze-foreground: 30 60% 95%;
 
-    /* ===== Sidebar (WhatsApp Web Dark Panel) ===== */
-    --sidebar-background: 200 31% 10%;
-    --sidebar-foreground: 200 10% 92%;
+    /* ===== Sidebar (WhatsApp Web Dark Panel #111b21) ===== */
+    --sidebar-background: 200 25% 13%;
+    --sidebar-foreground: 0 0% 89%;
     --sidebar-primary: 162 100% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 199 24% 21%;
-    --sidebar-accent-foreground: 200 10% 92%;
-    --sidebar-border: 200 22% 17%;
+    --sidebar-accent: 200 20% 20%;
+    --sidebar-accent-foreground: 0 0% 89%;
+    --sidebar-border: 200 18% 18%;
     --sidebar-ring: 162 100% 33%;
+    --sidebar-header: 200 22% 15%;
 
     /* ===== Chat Specific (WhatsApp Web Dark) ===== */
-    --chat-bubble-sent: 168 100% 18%;
-    --chat-bubble-sent-foreground: 200 10% 92%;
-    --chat-bubble-received: 200 28% 16%;
-    --chat-bubble-received-foreground: 200 10% 92%;
-    --chat-header: 200 28% 16%;
-    --chat-input-bg: 200 28% 16%;
+    /* #005c4b sent bubble */
+    --chat-bubble-sent: 167 100% 18%;
+    --chat-bubble-sent-foreground: 0 0% 89%;
+    /* #202c33 received bubble */
+    --chat-bubble-received: 200 22% 16%;
+    --chat-bubble-received-foreground: 0 0% 89%;
+    /* #202c33 header */
+    --chat-header: 200 22% 16%;
+    --chat-input-bg: 200 22% 16%;
+    /* #0b141a wallpaper */
+    --chat-wallpaper: 207 40% 7%;
 
     /* ===== GRADIENTS ===== */
     --gradient-primary: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%));
@@ -887,18 +899,14 @@ select:focus-visible {
 
   /* ===== WHATSAPP CHAT WALLPAPER ===== */
   .whatsapp-chat-wallpaper {
-    background-color: hsl(var(--background));
-    background-image:
-      radial-gradient(circle at 25% 25%, hsl(var(--foreground) / 0.035) 1px, transparent 1px),
-      radial-gradient(circle at 75% 75%, hsl(var(--foreground) / 0.02) 1px, transparent 1px);
-    background-size: 22px 22px, 28px 28px;
-    background-position: 0 0, 14px 14px;
+    background-color: #eae6df;
+    background-image: url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='60' height='60' patternUnits='userSpaceOnUse'%3E%3Cpath d='M10 5a2 2 0 110 4 2 2 0 010-4zm20 15a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-15 25a2 2 0 110 4 2 2 0 010-4zm35-10a1 1 0 110 2 1 1 0 010-2zm-5 20a1.5 1.5 0 110 3 1.5 1.5 0 010-3z' fill='%23d1cdc7' fill-opacity='0.4'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 
   .dark .whatsapp-chat-wallpaper {
-    background-image:
-      radial-gradient(circle at 25% 25%, hsl(var(--foreground) / 0.05) 1px, transparent 1px),
-      radial-gradient(circle at 75% 75%, hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+    background-color: #0b141a;
+    background-image: url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='60' height='60' patternUnits='userSpaceOnUse'%3E%3Cpath d='M10 5a2 2 0 110 4 2 2 0 010-4zm20 15a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-15 25a2 2 0 110 4 2 2 0 010-4zm35-10a1 1 0 110 2 1 1 0 010-2zm-5 20a1.5 1.5 0 110 3 1.5 1.5 0 010-3z' fill='%23172329' fill-opacity='0.6'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)'/%3E%3C/svg%3E");
   }
 
   /* ===== STATUS DOT ===== */
