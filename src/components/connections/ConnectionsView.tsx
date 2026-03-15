@@ -49,6 +49,8 @@ import { toast } from '@/hooks/use-toast';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { BusinessHoursDialog } from './BusinessHoursDialog';
 import { BusinessHoursIndicator } from './BusinessHoursIndicator';
+import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
+import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2 } from 'lucide-react';
 
 interface WhatsAppConnection {
   id: string;
