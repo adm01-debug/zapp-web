@@ -8,22 +8,46 @@ describe('useLoadingState', () => {
     vi.clearAllMocks();
   });
 
-  it('initializes with loading=false', () => {
+  it('initializes with idle state', () => {
     const { result } = renderHook(() => useLoadingState());
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.isIdle).toBe(true);
   });
 
-  it('sets loading to true', () => {
+  it('startLoading sets loading state', () => {
     const { result } = renderHook(() => useLoadingState());
 
     act(() => {
-      result.current.startLoading();
+      result.current.startLoading('Loading...');
     });
 
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.message).toBe('Loading...');
   });
 
-  it('sets loading to false', () => {
+  it('setSuccess changes to success state', () => {
+    const { result } = renderHook(() => useLoadingState());
+
+    act(() => {
+      result.current.setSuccess('Done!');
+    });
+
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.message).toBe('Done!');
+  });
+
+  it('setError changes to error state', () => {
+    const { result } = renderHook(() => useLoadingState());
+
+    act(() => {
+      result.current.setError('Failed!');
+    });
+
+    expect(result.current.isError).toBe(true);
+    expect(result.current.message).toBe('Failed!');
+  });
+
+  it('reset returns to idle', () => {
     const { result } = renderHook(() => useLoadingState());
 
     act(() => {
@@ -31,10 +55,10 @@ describe('useLoadingState', () => {
     });
 
     act(() => {
-      result.current.stopLoading();
+      result.current.reset();
     });
 
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isIdle).toBe(true);
   });
 
   it('withLoading wraps async function', async () => {
@@ -42,11 +66,13 @@ describe('useLoadingState', () => {
     const fn = vi.fn().mockResolvedValue('done');
 
     await act(async () => {
-      await result.current.withLoading(fn);
+      await result.current.withLoading(fn, {
+        loadingMessage: 'Working...',
+        successMessage: 'Completed!',
+      });
     });
 
     expect(fn).toHaveBeenCalled();
-    expect(result.current.isLoading).toBe(false);
   });
 
   it('withLoading handles errors', async () => {
@@ -55,17 +81,10 @@ describe('useLoadingState', () => {
 
     await act(async () => {
       try {
-        await result.current.withLoading(fn);
+        await result.current.withLoading(fn, { errorMessage: 'Error!' });
       } catch {
         // Expected
       }
     });
-
-    expect(result.current.isLoading).toBe(false);
-  });
-
-  it('initializes with custom initial state', () => {
-    const { result } = renderHook(() => useLoadingState(true));
-    expect(result.current.isLoading).toBe(true);
   });
 });

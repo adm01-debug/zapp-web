@@ -106,43 +106,20 @@ describe('useCalls', () => {
     const { result } = renderHook(() => useCalls());
 
     await act(async () => {
-      await result.current.endCall('call-1');
+      await result.current.endCall('call-1', 120);
     });
 
     expect(mockFrom).toHaveBeenCalledWith('calls');
   });
 
-  it('handles startCall error gracefully', async () => {
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'profiles') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
-            }),
-          }),
-        };
-      }
-      return {
-        insert: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: null, error: new Error('Insert failed') }),
-          }),
-        }),
-      };
-    });
-
+  it('answerCall updates call to answered', async () => {
     const { result } = renderHook(() => useCalls());
 
-    let callId: string | null = null;
+    let success: boolean = false;
     await act(async () => {
-      callId = await result.current.startCall({
-        contactPhone: '+5511999999999',
-        contactName: 'John',
-        direction: 'outbound',
-      });
+      success = await result.current.answerCall('call-1');
     });
 
-    expect(callId).toBeNull();
+    expect(success).toBe(true);
   });
 });

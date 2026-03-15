@@ -1,15 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 
 const mockFrom = vi.fn();
 const mockGetUser = vi.fn();
-const mockInvoke = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: (...args: any[]) => mockFrom(...args),
     auth: { getUser: (...args: any[]) => mockGetUser(...args) },
-    functions: { invoke: (...args: any[]) => mockInvoke(...args) },
   },
 }));
 
@@ -102,9 +100,23 @@ describe('useConversationAnalyses', () => {
     expect(typeof result.current.saveAnalysis).toBe('function');
   });
 
-  it('exposes refresh function', async () => {
+  it('exposes refetch function', async () => {
     const { result } = renderHook(() => useConversationAnalyses('c1'));
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(typeof result.current.refresh).toBe('function');
+    expect(typeof result.current.refetch).toBe('function');
+  });
+
+  it('getLatestAnalysis returns first analysis', async () => {
+    const { result } = renderHook(() => useConversationAnalyses('c1'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const latest = result.current.getLatestAnalysis();
+    expect(latest?.id).toBe('a1');
+  });
+
+  it('getSentimentTrend returns a trend value', async () => {
+    const { result } = renderHook(() => useConversationAnalyses('c1'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const trend = result.current.getSentimentTrend();
+    expect(['improving', 'declining', 'stable']).toContain(trend);
   });
 });

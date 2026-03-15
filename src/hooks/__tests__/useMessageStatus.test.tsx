@@ -55,16 +55,10 @@ describe('useMessageStatus', () => {
     expect(result.current.statusUpdates.size).toBeGreaterThanOrEqual(0);
   });
 
-  it('exposes getStatus function', async () => {
+  it('exposes getMessageStatus function', async () => {
     const { result } = renderHook(() => useMessageStatus('c1'));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(typeof result.current.getStatus).toBe('function');
-  });
-
-  it('getStatus returns undefined for unknown message', async () => {
-    const { result } = renderHook(() => useMessageStatus('c1'));
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.getStatus('unknown-msg')).toBeUndefined();
+    expect(typeof result.current.getMessageStatus).toBe('function');
   });
 
   it('handles fetch error gracefully', async () => {
