@@ -402,8 +402,9 @@ export function ContactsView() {
                 </DialogHeader>
                 <ContactForm
                   values={newContact}
-                  onChange={(field, value) => setNewContact({ ...newContact, [field]: value })}
+                  onChange={handleNewContactChange}
                   onSubmit={handleAddContact}
+                  onCancel={handleCancelForm}
                   submitLabel="Adicionar"
                 />
               </DialogContent>
