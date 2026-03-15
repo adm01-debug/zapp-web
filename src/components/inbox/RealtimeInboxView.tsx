@@ -51,7 +51,6 @@ export function RealtimeInboxView() {
   } = useRealtimeMessages();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(true);
-  const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [showNewConversation, setShowNewConversation] = useState(false);
