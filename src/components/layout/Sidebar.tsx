@@ -9,8 +9,6 @@ import {
   Tag,
   Zap,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   Wallet,
   Shield,
   ShieldCheck,
@@ -21,10 +19,6 @@ import {
   Mic,
   FileBarChart,
   Globe,
-  Contrast,
-  ChevronDown,
-  Search,
-  Command,
   Link2,
   BookOpen,
   Megaphone,
@@ -35,15 +29,8 @@ import {
   Activity,
   Workflow,
 } from 'lucide-react';
-import { useState } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { NotificationCenter } from '@/components/notifications/NotificationCenter';
-import { LanguageSelector } from '@/components/settings/LanguageSelector';
-import { AccessibilitySettings, HighContrastToggle } from '@/components/theme/HighContrastToggle';
 
 interface SidebarProps {
   currentView: string;
@@ -56,504 +43,146 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-// Menu consolidado em 4 grupos - Smart defaults: mais usados no topo
-const menuGroups: Array<{
-  title: string;
-  collapsible?: boolean;
-  defaultCollapsed?: boolean;
-  items: Array<{ id: string; icon: React.ComponentType<{ className?: string }>; label: string; badge?: number }>;
-}> = [
-  {
-    title: 'Principal',
-    items: [
-      { id: 'inbox', icon: MessageSquare, label: 'Inbox', badge: 12 },
-      { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-      { id: 'contacts', icon: Users, label: 'Contatos' },
-    ],
-  },
-  {
-    title: 'Operações',
-    items: [
-      { id: 'agents', icon: Phone, label: 'Atendentes' },
-      { id: 'queues', icon: Zap, label: 'Filas' },
-      { id: 'connections', icon: Link2, label: 'Conexões' },
-      { id: 'groups', icon: UsersRound, label: 'Grupos' },
-      { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
-      { id: 'chatbot', icon: Bot, label: 'Chatbot' },
-    ],
-  },
-  {
-    title: 'Recursos',
-    items: [
-      { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
-      { id: 'wallet', icon: Wallet, label: 'Carteira' },
-      { id: 'catalog', icon: Package, label: 'Catálogo' },
-      { id: 'payments', icon: CreditCard, label: 'Pagamentos' },
-      { id: 'tags', icon: Tag, label: 'Etiquetas' },
-      { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
-      { id: 'automations', icon: Zap, label: 'Automações' },
-      { id: 'integrations', icon: Globe, label: 'Integrações' },
-      { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
-      { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
-    ],
-  },
-  {
-    title: 'Sistema',
-    collapsible: true,
-    defaultCollapsed: true,
-    items: [
-      { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-      { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
-      { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
-      { id: 'security', icon: Shield, label: 'Segurança' },
-      { id: 'privacy', icon: ShieldCheck, label: 'Privacidade' },
-      { id: 'admin', icon: ShieldCheck, label: 'Admin' },
-      { id: 'docs', icon: BookOpen, label: 'Documentação' },
-      { id: 'settings', icon: Settings, label: 'Configurações' },
-    ],
-  },
+// All nav items in order - DreamsChat style icon-only sidebar
+const navItems: Array<{ id: string; icon: React.ComponentType<{ className?: string }>; label: string; badge?: number }> = [
+  { id: 'inbox', icon: MessageSquare, label: 'Inbox', badge: 12 },
+  { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
+  { id: 'contacts', icon: Users, label: 'Contatos' },
+  { id: 'agents', icon: Phone, label: 'Atendentes' },
+  { id: 'queues', icon: Zap, label: 'Filas' },
+  { id: 'connections', icon: Link2, label: 'Conexões' },
+  { id: 'groups', icon: UsersRound, label: 'Grupos' },
+  { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
+  { id: 'chatbot', icon: Bot, label: 'Chatbot' },
+  { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
+  { id: 'wallet', icon: Wallet, label: 'Carteira' },
+  { id: 'catalog', icon: Package, label: 'Catálogo' },
+  { id: 'payments', icon: CreditCard, label: 'Pagamentos' },
+  { id: 'tags', icon: Tag, label: 'Etiquetas' },
+  { id: 'knowledge', icon: Brain, label: 'Conhecimento' },
+  { id: 'automations', icon: Zap, label: 'Automações' },
+  { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
+  { id: 'settings', icon: Settings, label: 'Configurações' },
 ];
 
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [systemGroupOpen, setSystemGroupOpen] = useState(false);
-
   return (
-    <motion.aside
+    <aside
       id="main-navigation"
       role="navigation"
       aria-label="Menu de navegação principal"
-      initial={false}
-      animate={{ width: isCollapsed ? 72 : 260 }}
-      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex flex-col h-screen border-r border-sidebar-border relative bg-sidebar"
+      className="flex flex-col h-screen w-[60px] border-r border-border bg-sidebar shrink-0"
     >
-      
       {/* Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-        <AnimatePresence mode="wait">
-          {!isCollapsed && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
-              className="flex items-center gap-3"
+      <div className="flex items-center justify-center py-4 border-b border-border">
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => onViewChange('inbox')}
+              className="w-[42px] h-[42px] rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 transition-colors"
+              aria-label="ZAPP - Ir para Inbox"
             >
-              <motion.div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
-                style={{ background: 'var(--gradient-primary)' }}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: 'spring', stiffness: 400 }}
-                aria-hidden="true"
-              >
-                <Sparkles className="w-5 h-5 text-primary-foreground relative z-10" />
-              </motion.div>
-              <div>
-                <span className="font-display font-bold text-lg text-foreground">ZAPP</span>
-                <p className="text-xs text-muted-foreground">Omnichannel</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <motion.div 
-          whileHover={{ scale: 1.1 }} 
-          whileTap={{ scale: 0.9 }}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-primary hover:bg-accent rounded-lg transition-colors duration-200"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            aria-label={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
-            aria-expanded={!isCollapsed}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" aria-hidden="true" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-            )}
-          </Button>
-        </motion.div>
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-semibold">ZAPP</TooltipContent>
+        </Tooltip>
       </div>
 
-      {/* Search / Command Palette Button */}
-      <div className="relative px-3 py-2">
-        <motion.button
-          onClick={() => document.dispatchEvent(new Event('open-command-palette'))}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300",
-            "bg-muted/40 hover:bg-muted/60 border border-border hover:border-primary/30",
-            "text-muted-foreground hover:text-foreground group"
-          )}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          aria-label="Abrir busca universal (Ctrl+K ou ⌘K)"
-        >
-          <Search className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-          {!isCollapsed && (
-            <>
-              <span className="flex-1 text-left text-sm">Buscar...</span>
-              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-background/80 rounded text-[10px] font-mono text-muted-foreground border border-border/50">
-                <Command className="h-2.5 w-2.5" />K
-              </kbd>
-            </>
-          )}
-        </motion.button>
-      </div>
+      {/* Navigation Icons */}
+      <nav className="flex-1 py-2 overflow-y-auto scrollbar-thin" aria-label="Menu principal">
+        <div className="flex flex-col items-center gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
 
-      {/* Navigation */}
-      <nav 
-        className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin"
-        aria-label="Menu principal"
-      >
-        {menuGroups.map((group, groupIndex) => {
-          const isCollapsibleGroup = group.collapsible === true;
-          const isSystemGroup = group.title === 'Sistema';
-          
-          // Check if any item in this group is active
-          const hasActiveItem = group.items.some(item => currentView === item.id);
-          
-          // Auto-open if active item is in collapsible group
-          const shouldBeOpen = isSystemGroup ? (systemGroupOpen || hasActiveItem) : true;
-          
-          const groupContent = (
-            <>
-              {/* Group Items */}
-              {group.items.map((item, itemIndex) => {
-                const Icon = item.icon;
-                const isActive = currentView === item.id;
-                const globalIndex = menuGroups
-                  .slice(0, groupIndex)
-                  .reduce((acc, g) => acc + g.items.length, 0) + itemIndex;
-
-                const button = (
-                  <motion.button
-                    key={item.id}
+            return (
+              <Tooltip key={item.id} delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <button
                     data-tour={item.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: globalIndex * 0.03 }}
-                    whileHover={{ x: 4, transition: { duration: 0.15 } }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => onViewChange(item.id)}
                     aria-label={item.badge ? `${item.label} - ${item.badge} notificações` : item.label}
                     aria-current={isActive ? 'page' : undefined}
-                    role="menuitem"
                     className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative group',
-                      isActive 
-                        ? 'text-primary bg-primary/10' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      'relative w-[42px] h-[42px] rounded-lg flex items-center justify-center transition-all duration-200',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-foreground/70 hover:bg-muted hover:text-foreground'
                     )}
                   >
-                    {/* Active indicator bar with neon effect */}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeNav"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-primary"
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                      />
+                    <Icon className="w-[20px] h-[20px]" />
+                    
+                    {/* Unread badge */}
+                    {item.badge && item.badge > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[10px] font-bold bg-destructive text-destructive-foreground">
+                        {item.badge}
+                      </span>
                     )}
-                    
-                    <motion.div
-                      whileHover={{ rotate: isActive ? 0 : 5 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Icon className={cn(
-                        "w-5 h-5 flex-shrink-0 transition-colors duration-200",
-                        isActive ? "text-primary" : "group-hover:text-foreground"
-                      )} />
-                    </motion.div>
-                    
-                    <AnimatePresence mode="wait">
-                      {!isCollapsed && (
-                        <motion.div
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: 'auto' }}
-                          exit={{ opacity: 0, width: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center flex-1 overflow-hidden"
-                        >
-                          <span className={cn(
-                            "flex-1 text-left text-sm font-medium whitespace-nowrap transition-colors duration-200",
-                            isActive ? "text-primary" : "text-sidebar-foreground"
-                          )}>
-                            {item.label}
-                          </span>
-                          {/* Keyboard hints for main items */}
-                          {item.id === 'inbox' && !item.badge && (
-                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G I</kbd>
-                          )}
-                          {item.id === 'dashboard' && (
-                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G D</kbd>
-                          )}
-                          {item.id === 'contacts' && (
-                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G C</kbd>
-                          )}
-                          {item.id === 'settings' && (
-                            <kbd className="hidden lg:inline text-[9px] font-mono text-muted-foreground bg-muted/50 px-1 rounded border border-border/30">G S</kbd>
-                          )}
-                          {item.badge && (
-                            <motion.span 
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold bg-destructive text-destructive-foreground"
-                            >
-                              {item.badge}
-                            </motion.span>
-                          )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.button>
-                );
-
-                if (isCollapsed) {
-                  return (
-                    <Tooltip key={item.id} delayDuration={0}>
-                      <TooltipTrigger asChild>{button}</TooltipTrigger>
-                      <TooltipContent 
-                        side="right" 
-                        className="border-border/30 bg-card"
-                      >
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{item.label}</p>
-                          {item.badge && (
-                            <span className="bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                }
-
-                return button;
-              })}
-            </>
-          );
-
-          // Render collapsible group (Sistema)
-          if (isCollapsibleGroup && !isCollapsed) {
-            return (
-              <Collapsible 
-                key={group.title} 
-                open={shouldBeOpen} 
-                onOpenChange={setSystemGroupOpen}
-                className="space-y-1"
-              >
-                <CollapsibleTrigger asChild>
-                  <motion.button
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2, delay: groupIndex * 0.05 }}
-                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors group"
-                  >
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground">
-                      {group.title}
-                    </span>
-                    <motion.div
-                      animate={{ rotate: shouldBeOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronDown className="w-3 h-3 text-muted-foreground/60" />
-                    </motion.div>
-                  </motion.button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-1">
-                  {groupContent}
-                </CollapsibleContent>
-              </Collapsible>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-popover border-border">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{item.label}</span>
+                    {item.badge && (
+                      <span className="bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             );
-          }
-
-          // Render normal group
-          return (
-            <div key={group.title} className="space-y-1" role="group" aria-labelledby={`group-${group.title.toLowerCase()}`}>
-              {/* Group Label */}
-              <AnimatePresence mode="wait">
-                {!isCollapsed && (
-                  <motion.div
-                    id={`group-${group.title.toLowerCase()}`}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.2, delay: groupIndex * 0.05 }}
-                    className="px-3 py-1.5"
-                  >
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                      {group.title}
-                    </span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {groupContent}
-            </div>
-          );
-        })}
-        {/* Theme Toggle, Accessibility & Notifications */}
-        <div className="mt-2 pt-2 border-t border-border/20 space-y-1">
-          <div 
-            data-tour="notifications"
-            className={cn(
-              "flex items-center",
-              isCollapsed ? "justify-center" : "px-3 py-2"
-            )}
-          >
-            <NotificationCenter />
-            {!isCollapsed && (
-              <span className="ml-3 text-sm text-muted-foreground">Notificações</span>
-            )}
-          </div>
-          <div data-tour="theme">
-            <ThemeToggle collapsed={isCollapsed} />
-          </div>
-          
-          {/* Language Selector */}
-          <div 
-            className={cn(
-              "flex items-center",
-              isCollapsed ? "justify-center" : "px-3 py-2"
-            )}
-          >
-            {isCollapsed ? (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-secondary">
-                    <Globe className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Idioma</TooltipContent>
-              </Tooltip>
-            ) : (
-              <>
-                <Globe className="h-5 w-5 text-muted-foreground" />
-                <div className="ml-3 flex-1">
-                  <LanguageSelector />
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Accessibility Settings */}
-          <div 
-            className={cn(
-              "flex items-center",
-              isCollapsed ? "justify-center" : "px-3 py-2"
-            )}
-          >
-            {isCollapsed ? (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <HighContrastToggle />
-                </TooltipTrigger>
-                <TooltipContent side="right">Acessibilidade</TooltipContent>
-              </Tooltip>
-            ) : (
-              <>
-                <Contrast className="h-5 w-5 text-muted-foreground" />
-                <span className="ml-3 text-sm text-muted-foreground flex-1">Acessibilidade</span>
-                <AccessibilitySettings />
-              </>
-            )}
-          </div>
+          })}
         </div>
       </nav>
 
-      {/* User Profile */}
+      {/* User Avatar & Logout */}
       {currentAgent && (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="relative p-3 border-t border-secondary/20"
-          role="region"
-          aria-label="Perfil do usuário"
-        >
-          <motion.div
-            whileHover={{ scale: 1.01 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              'flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-300',
-              'profile-card-neon bg-secondary/5 hover:bg-secondary/10',
-              isCollapsed && 'justify-center'
-            )}
-            role="status"
-            aria-live="polite"
-            aria-label={`${currentAgent.name} - ${currentAgent.status === 'online' ? 'Online' : currentAgent.status === 'away' ? 'Ausente' : 'Offline'}`}
-          >
-            <div className="relative">
-              <Avatar className={cn(
-                "w-10 h-10 ring-2 transition-all duration-300",
-                currentAgent.status === 'online' ? "ring-secondary/50 avatar-neon-online" : "ring-border/30"
-              )}>
-                <AvatarImage src={currentAgent.avatar} alt={`Avatar de ${currentAgent.name}`} />
-                <AvatarFallback className="bg-secondary/15 text-secondary font-display font-semibold">
-                  {currentAgent.name.split(' ').map((n) => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <motion.span
-                animate={{ 
-                  scale: currentAgent.status === 'online' ? [1, 1.2, 1] : 1,
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className={cn(
-                  'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-sidebar',
-                  currentAgent.status === 'online' && 'bg-success shadow-[0_0_8px_hsl(var(--success)/0.6)]',
-                  currentAgent.status === 'away' && 'bg-warning',
-                  currentAgent.status === 'offline' && 'bg-muted-foreground'
-                )}
-                aria-hidden="true"
-              />
-            </div>
-            <AnimatePresence mode="wait">
-              {!isCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                  className="flex-1 min-w-0 overflow-hidden"
+        <div className="flex flex-col items-center gap-2 py-3 border-t border-border">
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <div className="relative cursor-pointer">
+                <Avatar className="w-[36px] h-[36px]">
+                  <AvatarImage src={currentAgent.avatar} alt={currentAgent.name} />
+                  <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
+                    {currentAgent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <span
+                  className={cn(
+                    'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar',
+                    currentAgent.status === 'online' && 'bg-[hsl(var(--online))]',
+                    currentAgent.status === 'away' && 'bg-[hsl(var(--away))]',
+                    currentAgent.status === 'offline' && 'bg-[hsl(var(--offline))]'
+                  )}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p className="font-medium">{currentAgent.name}</p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {currentAgent.status === 'online' ? 'Online' : currentAgent.status === 'away' ? 'Ausente' : 'Offline'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+
+          {onLogout && (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onLogout}
+                  className="w-[36px] h-[36px] rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  aria-label="Sair da conta"
                 >
-                  <p className="text-sm font-semibold text-foreground truncate">
-                    {currentAgent.name}
-                  </p>
-                  <p className={cn(
-                    "text-xs font-medium capitalize",
-                    currentAgent.status === 'online' && 'text-success',
-                    currentAgent.status === 'away' && 'text-warning',
-                    currentAgent.status === 'offline' && 'text-muted-foreground'
-                  )}>
-                    {currentAgent.status === 'online' ? 'Online' : currentAgent.status === 'away' ? 'Ausente' : 'Offline'}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence mode="wait">
-              {!isCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg flex-shrink-0"
-                    onClick={onLogout}
-                    aria-label="Sair da conta"
-                  >
-                    <LogOut className="w-4 h-4" aria-hidden="true" />
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </motion.div>
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Sair</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       )}
-    </motion.aside>
+    </aside>
   );
 }
