@@ -530,6 +530,7 @@ export function DashboardView() {
 
         <TabsContent value="ai" className="space-y-6">
           <AIQuickAccess />
+          <CSATDashboard />
         </TabsContent>
 
         <TabsContent value="sla">

@@ -402,6 +402,8 @@ export function SettingsView() {
                 )}
               </CardContent>
             </Card>
+
+            <AutoCloseSettings />
           </motion.div>
         </TabsContent>
 
