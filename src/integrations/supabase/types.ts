@@ -1147,6 +1147,36 @@ export type Database = {
         }
         Relationships: []
       }
+      global_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Relationships: []
+      }
       goals_configurations: {
         Row: {
           created_at: string
@@ -1357,6 +1387,7 @@ export type Database = {
           created_at: string
           external_id: string | null
           id: string
+          is_deleted: boolean | null
           is_read: boolean | null
           media_url: string | null
           message_type: string
@@ -1375,6 +1406,7 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           id?: string
+          is_deleted?: boolean | null
           is_read?: boolean | null
           media_url?: string | null
           message_type?: string
@@ -1393,6 +1425,7 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           id?: string
+          is_deleted?: boolean | null
           is_read?: boolean | null
           media_url?: string | null
           message_type?: string
@@ -1682,6 +1715,7 @@ export type Database = {
           permissions: Json | null
           phone: string | null
           role: string | null
+          session_invalidated_at: string | null
           updated_at: string
           user_id: string
         }
@@ -1699,6 +1733,7 @@ export type Database = {
           permissions?: Json | null
           phone?: string | null
           role?: string | null
+          session_invalidated_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1716,6 +1751,7 @@ export type Database = {
           permissions?: Json | null
           phone?: string | null
           role?: string | null
+          session_invalidated_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2465,8 +2501,45 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_connection_queues: {
+        Row: {
+          created_at: string
+          id: string
+          queue_id: string
+          whatsapp_connection_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          queue_id: string
+          whatsapp_connection_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          queue_id?: string
+          whatsapp_connection_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_connection_queues_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_connection_queues_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_connections: {
         Row: {
+          battery_level: number | null
           created_at: string
           created_by: string | null
           farewell_enabled: boolean | null
@@ -2474,13 +2547,17 @@ export type Database = {
           id: string
           instance_id: string | null
           is_default: boolean | null
+          is_plugged: boolean | null
+          max_retries: number | null
           name: string
           phone_number: string
           qr_code: string | null
+          retry_count: number | null
           status: string | null
           updated_at: string
         }
         Insert: {
+          battery_level?: number | null
           created_at?: string
           created_by?: string | null
           farewell_enabled?: boolean | null
@@ -2488,13 +2565,17 @@ export type Database = {
           id?: string
           instance_id?: string | null
           is_default?: boolean | null
+          is_plugged?: boolean | null
+          max_retries?: number | null
           name: string
           phone_number: string
           qr_code?: string | null
+          retry_count?: number | null
           status?: string | null
           updated_at?: string
         }
         Update: {
+          battery_level?: number | null
           created_at?: string
           created_by?: string | null
           farewell_enabled?: boolean | null
@@ -2502,9 +2583,12 @@ export type Database = {
           id?: string
           instance_id?: string | null
           is_default?: boolean | null
+          is_plugged?: boolean | null
+          max_retries?: number | null
           name?: string
           phone_number?: string
           qr_code?: string | null
+          retry_count?: number | null
           status?: string | null
           updated_at?: string
         }
