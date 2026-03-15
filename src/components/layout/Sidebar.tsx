@@ -29,6 +29,11 @@ import {
   BookOpen,
   Megaphone,
   Bot,
+  Kanban,
+  Brain,
+  CreditCard,
+  Activity,
+  Workflow,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
