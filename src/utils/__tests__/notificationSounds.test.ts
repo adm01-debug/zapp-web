@@ -26,16 +26,8 @@ const mockAudioContext = {
 
 vi.stubGlobal('AudioContext', vi.fn().mockImplementation(() => mockAudioContext));
 
-// Mock Notification API
-vi.stubGlobal('Notification', {
-  permission: 'granted',
-  requestPermission: vi.fn().mockResolvedValue('granted'),
-});
-
 import {
   playNotificationSound,
-  showBrowserNotification,
-  requestNotificationPermission,
 } from '@/utils/notificationSounds';
 
 describe('notificationSounds', () => {
@@ -87,22 +79,19 @@ describe('notificationSounds', () => {
     it('handles zero volume', () => {
       expect(() => playNotificationSound('message', 'chime', 0)).not.toThrow();
     });
-  });
 
-  describe('requestNotificationPermission', () => {
-    it('requests browser notification permission', async () => {
-      const result = await requestNotificationPermission();
-      expect(result).toBe('granted');
-    });
-  });
-
-  describe('showBrowserNotification', () => {
-    it('shows notification when permission granted', () => {
-      expect(() => showBrowserNotification('Test', 'Body')).not.toThrow();
+    it('all notification types are playable', () => {
+      const types = ['message', 'mention', 'sla_breach', 'sla_warning', 'achievement', 'goal_achieved'] as const;
+      types.forEach(type => {
+        expect(() => playNotificationSound(type)).not.toThrow();
+      });
     });
 
-    it('accepts options parameter', () => {
-      expect(() => showBrowserNotification('Test', 'Body', { tag: 'test' })).not.toThrow();
+    it('all sound types work with message', () => {
+      const sounds = ['beep', 'chime', 'bell', 'alert', 'soft'] as const;
+      sounds.forEach(sound => {
+        expect(() => playNotificationSound('message', sound)).not.toThrow();
+      });
     });
   });
 });

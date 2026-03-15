@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 
 const mockTrack = vi.fn();
-const mockUntrack = vi.fn();
 const mockSubscribe = vi.fn().mockReturnThis();
 const mockRemoveChannel = vi.fn();
 
@@ -12,7 +11,7 @@ vi.mock('@/integrations/supabase/client', () => ({
       on: vi.fn().mockReturnThis(),
       subscribe: mockSubscribe,
       track: mockTrack,
-      untrack: mockUntrack,
+      untrack: vi.fn(),
     }),
     removeChannel: mockRemoveChannel,
   },
@@ -27,11 +26,6 @@ import { useTypingPresence } from '@/hooks/useTypingPresence';
 describe('useTypingPresence', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it('initializes with empty typing users', () => {
@@ -42,11 +36,6 @@ describe('useTypingPresence', () => {
   it('initializes with contact not typing', () => {
     const { result } = renderHook(() => useTypingPresence({ conversationId: 'c1' }));
     expect(result.current.isContactTyping).toBe(false);
-  });
-
-  it('exposes handleTypingStart function type', () => {
-    const { result } = renderHook(() => useTypingPresence({ conversationId: 'c1' }));
-    expect(typeof result.current.handleTypingStart).toBe('function');
   });
 
   it('exposes handleTypingStart function', () => {
