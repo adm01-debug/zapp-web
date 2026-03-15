@@ -201,18 +201,14 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       {(message as any).is_deleted ? (
                         <DeletedMessagePlaceholder isSent={isSent} />
                       ) : (
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
+                      <div
                         className={cn(
-                          'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
+                          'relative px-4 py-2.5 rounded-2xl transition-all',
                           isSent 
-                            ? 'rounded-br-md bg-primary text-primary-foreground' 
-                            : 'rounded-bl-md bg-card border border-border/30 text-foreground'
+                            ? 'rounded-br-sm bg-primary text-primary-foreground' 
+                            : 'rounded-bl-sm bg-muted text-foreground'
                         )}
                       >
-                        {isSent && (
-                          <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
-                        )}
 
                         {message.replyTo && (
                           <QuotedMessage
