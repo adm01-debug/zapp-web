@@ -57,6 +57,7 @@ export function RealtimeInboxView() {
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [showNewConversation, setShowNewConversation] = useState(false);
   
   // Bulk selection state
   const [selectionMode, setSelectionMode] = useState(false);
