@@ -50,10 +50,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 100, opacity: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="w-80 h-full bg-sidebar border-l border-border/30 flex flex-col overflow-hidden"
+      className="w-80 h-full bg-card border-l border-border flex flex-col overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/30 bg-card">
+      <div className="flex items-center justify-between p-4 border-b border-border bg-card">
         <h3 className="font-semibold text-foreground">
           Detalhes do Contato
         </h3>
@@ -73,7 +73,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="p-4 flex flex-col items-center text-center border-b border-border/30"
+          className="p-4 flex flex-col items-center text-center border-b border-border"
         >
           <div className="relative">
             <Avatar className="w-20 h-20 mb-3 ring-2 ring-border/30 ring-offset-2 ring-offset-background">

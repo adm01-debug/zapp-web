@@ -239,7 +239,7 @@
   /* ===== DARK MODE - DreamsChat Pixel-Perfect ===== */
   .dark {
     /* ===== BASE — #131313 ===== */
-    --background: 0 0% 7.5%;
+    --background: 0 0% 5%;
     --foreground: 220 30% 88%;
     
     /* ===== CARDS — #181818 ===== */

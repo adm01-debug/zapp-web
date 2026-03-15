@@ -66,7 +66,7 @@ export function ChatPanelHeader({
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between px-4 py-3 border-b border-border/20 bg-card"
+      className="flex items-center justify-between px-4 h-[65px] border-b border-border bg-card shrink-0"
     >
       <div className="flex items-center gap-3">
         <motion.div whileHover={{ scale: 1.05 }}>

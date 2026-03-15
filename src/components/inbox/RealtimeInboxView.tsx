@@ -14,8 +14,6 @@ import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
 import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus } from 'lucide-react';
 import { NewConversationModal } from './NewConversationModal';
-import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
-import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -502,17 +500,8 @@ export function RealtimeInboxView() {
         }}
       />
 
-      <AuroraBorealis />
-      <FloatingParticles />
-
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-secondary/8 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-      </div>
-
       {/* Conversation List */}
-      <div className="w-96 flex-shrink-0 relative z-10 border-r border-border/20 bg-card/50 backdrop-blur-sm flex flex-col">
+      <div className="w-80 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col">
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
@@ -524,7 +513,7 @@ export function RealtimeInboxView() {
         />
 
         {/* Header */}
-        <div className="p-4 border-b border-border/20">
+        <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
@@ -678,7 +667,7 @@ export function RealtimeInboxView() {
       </div>
 
       {/* Chat Panel */}
-      <div className="flex-1 flex relative z-10">
+      <div className="flex-1 flex relative z-10 bg-background">
         {legacyConversation ? (
           <>
             <div className="flex-1 relative">
@@ -698,7 +687,7 @@ export function RealtimeInboxView() {
             )}
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-card/50">
+          <div className="flex-1 flex items-center justify-center bg-background">
             <div className="text-center p-8">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="w-8 h-8 text-primary" />
