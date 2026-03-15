@@ -247,7 +247,7 @@ export function WhatsAppFlowsBuilder() {
     <div className="flex flex-col h-full">
       <PageHeader
         title={selectedFlow.name}
-        description="Editor de WhatsApp Flow"
+        subtitle="Editor de WhatsApp Flow"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setSelectedFlow(null)}>← Voltar</Button>

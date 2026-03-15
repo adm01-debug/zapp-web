@@ -166,7 +166,7 @@ export function KnowledgeBaseView() {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Base de Conhecimento"
-        description="Treine a IA com documentos e artigos da sua empresa"
+        subtitle="Treine a IA com documentos e artigos da sua empresa"
         actions={
           <div className="flex gap-2">
             <label>

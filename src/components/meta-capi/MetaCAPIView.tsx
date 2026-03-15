@@ -181,7 +181,7 @@ export function MetaCAPIView() {
         <h3 className="text-sm font-semibold text-foreground mb-3">Eventos Recentes</h3>
         <div className="space-y-2">
           {events.map(event => {
-            const eventType = EVENT_TYPES.find(et => et.event_name === event.event_name);
+            const eventType = EVENT_TYPES.find(et => et.name === event.event_name);
             const EventIcon = eventType?.icon || Activity;
             return (
               <Card key={event.id} className="bg-card/50 border-border/30">

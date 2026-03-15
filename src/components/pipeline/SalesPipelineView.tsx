@@ -216,7 +216,7 @@ export function SalesPipelineView() {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Pipeline de Vendas"
-        description="Gerencie suas oportunidades de negócio"
+        subtitle="Gerencie suas oportunidades de negócio"
         actions={
           <Button onClick={() => openNewDeal()} className="gap-2">
             <Plus className="w-4 h-4" /> Novo Deal

@@ -112,7 +112,7 @@ export function PaymentLinksView() {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Links de Pagamento"
-        description="Crie e gerencie links de pagamento para enviar no chat"
+        subtitle="Crie e gerencie links de pagamento para enviar no chat"
         actions={
           <Button onClick={() => setShowDialog(true)} className="gap-2">
             <Plus className="w-4 h-4" /> Novo Link
