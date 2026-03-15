@@ -29,6 +29,7 @@ import { FloatingParticles } from './FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { SLAMetricsDashboard } from './SLAMetricsDashboard';
 import { AIQuickAccess } from './AIQuickAccess';
+import { CSATDashboard } from '@/components/csat/CSATDashboard';
 import { AIStatsWidget } from './AIStatsWidget';
 import { GoalsDashboard } from './GoalsDashboard';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
