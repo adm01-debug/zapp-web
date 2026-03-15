@@ -179,6 +179,8 @@
     --chat-input-bg: 220 13% 95%;
     /* #eae6df wallpaper bg */
     --chat-wallpaper: 30 18% 89%;
+    --avatar-fallback: 220 18% 90%;
+    --avatar-fallback-foreground: 200 12% 42%;
 
     /* ===== Status Colors ===== */
     --status-open: 162 100% 33%;
