@@ -202,6 +202,12 @@ function IndexContent() {
         return <SettingsView />;
       case 'docs':
         return <SystemFeaturesView />;
+      case 'campaigns':
+        return <CampaignsView />;
+      case 'chatbot':
+        return <ChatbotFlowsView />;
+      case 'automations':
+        return <AutomationsManager />;
         return (
           <div className="flex items-center justify-center h-full">
             <motion.div 
