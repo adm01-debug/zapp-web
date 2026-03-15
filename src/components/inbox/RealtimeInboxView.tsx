@@ -502,132 +502,98 @@ export function RealtimeInboxView() {
         }}
       />
 
-      <AuroraBorealis />
-      <FloatingParticles />
-
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-secondary/8 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-      </div>
-
       {/* Conversation List */}
-      <div className="w-96 flex-shrink-0 relative z-10 border-r border-border/20 bg-card/50 backdrop-blur-sm flex flex-col">
-        {/* Bulk Actions Toolbar */}
-        <BulkActionsToolbar
-          selectedCount={selectedIds.size}
-          onMarkAsRead={bulkMarkAsRead}
-          onTransfer={bulkTransfer}
-          onArchive={bulkArchive}
-          onClearSelection={clearSelection}
-          isLoading={bulkLoading}
-        />
+      <div className="w-[26rem] min-w-[22rem] max-w-[32rem] flex-shrink-0 relative z-10 border-r border-border bg-sidebar flex flex-col">
+        {selectionMode && (
+          <BulkActionsToolbar
+            selectedCount={selectedIds.size}
+            onMarkAsRead={bulkMarkAsRead}
+            onTransfer={bulkTransfer}
+            onArchive={bulkArchive}
+            onClearSelection={clearSelection}
+            isLoading={bulkLoading}
+          />
+        )}
 
-        {/* Header */}
-        <div className="p-4 border-b border-border/20">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
-              <Badge variant="outline" className={cn(
-                'text-xs gap-1',
-                isOnline ? 'border-success text-success' : 'border-destructive text-destructive'
-              )}>
-                {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                {isOnline ? 'Online' : 'Offline'}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-1">
+        <div className="px-3 py-2 border-b border-border bg-[hsl(var(--chat-header))]">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-medium text-foreground">Conversas</h2>
+            <div className="flex items-center gap-0.5">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleSelectionMode}
-                    className={cn(
-                      'w-8 h-8',
-                      selectionMode ? 'text-primary bg-primary/10' : 'text-muted-foreground'
-                    )}
-                    aria-label={selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleSound}
-                    className={cn(
-                      'w-8 h-8',
-                      soundOn ? 'text-primary' : 'text-muted-foreground'
-                    )}
-                    aria-label={soundOn ? 'Desativar som' : 'Ativar som'}
-                  >
-                    {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {soundOn ? 'Desativar som' : 'Ativar som'}
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={refetch} 
-                    disabled={loading}
-                    aria-label="Atualizar conversas"
-                  >
-                    <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Atualizar conversas</TooltipContent>
-              </Tooltip>
-              <KeyboardShortcutsHelp />
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setShowNewConversation(true)}
-                    className="w-8 h-8 text-primary hover:bg-primary/10"
+                    className="w-8 h-8 text-muted-foreground hover:bg-muted"
                     aria-label="Nova conversa"
                   >
                     <MessageSquarePlus className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Nova Conversa</TooltipContent>
+                <TooltipContent>Nova conversa</TooltipContent>
               </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSelectionMode}
+                    className={cn('w-8 h-8 text-muted-foreground hover:bg-muted', selectionMode && 'text-primary bg-primary/10')}
+                    aria-label={selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{selectionMode ? 'Sair da seleção' : 'Selecionar múltiplos'}</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSound}
+                    className="w-8 h-8 text-muted-foreground hover:bg-muted"
+                    aria-label={soundOn ? 'Desativar som' : 'Ativar som'}
+                  >
+                    {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{soundOn ? 'Som ligado' : 'Som desligado'}</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={refetch}
+                    disabled={loading}
+                    className="w-8 h-8 text-muted-foreground hover:bg-muted"
+                    aria-label="Atualizar"
+                  >
+                    <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Atualizar</TooltipContent>
+              </Tooltip>
+
+              <KeyboardShortcutsHelp />
             </div>
           </div>
 
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar conversas... (Ctrl+K)"
+              placeholder="Pesquisar ou começar uma nova conversa"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={() => setGlobalSearchOpen(true)}
-              className="pl-9 bg-muted/20 cursor-pointer"
+              className="h-9 pl-9 bg-input border-0 cursor-pointer"
               readOnly
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded font-mono">
-              Ctrl+K
-            </kbd>
-          </div>
-
-          {/* Advanced Filters */}
-          <div className="mt-3">
-            <InboxFilters filters={filters} onFiltersChange={setFilters} />
           </div>
         </div>
 
