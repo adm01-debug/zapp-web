@@ -225,6 +225,9 @@ export const VirtualizedMessageList = forwardRef<VirtualizedMessageListRef, Virt
             )}
           </div>
 
+          {(message as any).is_deleted ? (
+            <DeletedMessagePlaceholder isSent={isSent} />
+          ) : (
           <div
             className={cn(
               'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
