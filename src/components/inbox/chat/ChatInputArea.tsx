@@ -158,7 +158,7 @@ export function ChatInputArea({
             {/* Advanced Message Menu (Stickers, Polls, vCard, Status) */}
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <AdvancedMessageMenu
-                instanceName={contactId}
+                instanceName={instanceName || ''}
                 recipientNumber={contactPhone}
               />
             </motion.div>
