@@ -298,7 +298,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                             <motion.span 
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
-                              className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold badge-neon text-white"
+                              className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold bg-primary text-primary-foreground"
                             >
                               {item.badge}
                             </motion.span>
