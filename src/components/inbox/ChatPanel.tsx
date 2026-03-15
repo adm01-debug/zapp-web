@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
-import { ConversationSummary } from './ConversationSummary';
 import { TransferDialog } from './TransferDialog';
 import { ScheduleMessageDialog } from './ScheduleMessageDialog';
 import { CallDialog } from '@/components/calls/CallDialog';
@@ -21,7 +20,6 @@ import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
-import { ChatAssignedBar } from './chat/ChatAssignedBar';
 import { ChatMessagesArea, ChatMessagesAreaRef } from './chat/ChatMessagesArea';
 import { ChatInputArea } from './chat/ChatInputArea';
 import { ChatDragOverlay } from './chat/ChatDragOverlay';
@@ -68,23 +66,17 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
   });
 
   const { quickReplies: dbQuickReplies, incrementUseCount } = useQuickReplies();
-  const { settings, updateSettings, saveSettings } = useUserSettings();
+  const { settings } = useUserSettings();
 
-  const handleVoiceChange = (newVoiceId: string) => {
-    updateSettings({ tts_voice_id: newVoiceId });
-    setTimeout(() => saveSettings(), 100);
-  };
-
-  const handleSpeedChange = (newSpeed: number) => {
-    updateSettings({ tts_speed: newSpeed });
-    setTimeout(() => saveSettings(), 100);
-  };
-
-  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId, speed, setSpeed } = useTextToSpeech({
+  const {
+    speak,
+    stop,
+    isLoading: ttsLoading,
+    isPlaying: ttsPlaying,
+    currentMessageId: ttsMessageId,
+  } = useTextToSpeech({
     initialVoiceId: settings.tts_voice_id,
     initialSpeed: settings.tts_speed,
-    onVoiceChange: handleVoiceChange,
-    onSpeedChange: handleSpeedChange,
   });
 
   // ── Resolve WhatsApp instance name from contact ──
@@ -327,34 +319,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
         <ChatPanelHeader
           conversation={conversation}
           isContactTyping={isContactTyping}
-          showAIAssistant={showAIAssistant}
           showDetails={showDetails}
-          voiceId={voiceId}
-          speed={speed}
-          onToggleAIAssistant={() => setShowAIAssistant(!showAIAssistant)}
           onToggleDetails={onToggleDetails}
           onStartCall={handleStartCall}
           onOpenSearch={() => setShowGlobalSearch(true)}
           onOpenTransfer={() => setShowTransferDialog(true)}
-          onOpenSchedule={() => setShowScheduleDialog(true)}
-          onVoiceChange={setVoiceId}
-          onSpeedChange={setSpeed}
         />
 
-        <ChatAssignedBar
-          conversation={conversation}
-          onOpenTransfer={() => setShowTransferDialog(true)}
-        />
-
-        <ConversationSummary 
-          messages={messages.map(m => ({
-            id: m.id,
-            sender: m.sender,
-            content: m.content,
-            created_at: m.timestamp.toISOString()
-          }))}
-          contactName={conversation.contact.name}
-        />
 
         <ChatMessagesArea
           ref={messagesAreaRef}

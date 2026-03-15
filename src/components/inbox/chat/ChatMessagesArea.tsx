@@ -124,7 +124,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-1 scrollbar-thin" style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-1 scrollbar-thin whatsapp-chat-wallpaper">
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
           {/* Date separator */}
@@ -133,7 +133,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
             animate={{ opacity: 1, scale: 1 }}
             className="flex justify-center my-4"
           >
-            <span className="text-[11px] text-muted-foreground bg-card px-3 py-1 rounded-lg font-medium shadow-sm">
+            <span className="text-[11px] text-muted-foreground bg-background/80 px-3 py-1 rounded-md font-medium">
               {formatDateSeparator(new Date(dateKey))}
             </span>
           </motion.div>
@@ -153,7 +153,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       initial={{ opacity: 0, x: isSent ? 20 : -20, scale: 0.95 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                      className="max-w-[70%] space-y-1 relative"
+                      className="max-w-[78%] md:max-w-[65%] space-y-1 relative"
                     >
                       {/* Message Actions (visible on hover) */}
                       <div className={cn(
@@ -214,10 +214,10 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       <motion.div
                         whileHover={{ scale: 1.005 }}
                         className={cn(
-                          'relative px-3 py-1.5 rounded-lg shadow-sm',
+                          'relative px-2.5 py-1.5 rounded-2xl',
                           isSent 
-                            ? 'rounded-tr-none bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]' 
-                            : 'rounded-tl-none bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
+                            ? 'rounded-tr-sm bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]' 
+                            : 'rounded-tl-sm bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
                         )}
                       >
 

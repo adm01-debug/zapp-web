@@ -885,6 +885,22 @@ select:focus-visible {
     @apply bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))] rounded-bl-md;
   }
 
+  /* ===== WHATSAPP CHAT WALLPAPER ===== */
+  .whatsapp-chat-wallpaper {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(circle at 25% 25%, hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+      radial-gradient(circle at 75% 75%, hsl(var(--foreground) / 0.02) 1px, transparent 1px);
+    background-size: 22px 22px, 28px 28px;
+    background-position: 0 0, 14px 14px;
+  }
+
+  .dark .whatsapp-chat-wallpaper {
+    background-image:
+      radial-gradient(circle at 25% 25%, hsl(var(--foreground) / 0.05) 1px, transparent 1px),
+      radial-gradient(circle at 75% 75%, hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+  }
+
   /* ===== STATUS DOT ===== */
   .status-dot {
     @apply w-2.5 h-2.5 rounded-full;

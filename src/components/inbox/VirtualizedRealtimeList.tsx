@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ConversationWithMessages } from '@/hooks/useRealtimeMessages';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -111,10 +111,10 @@ export function VirtualizedRealtimeList({
               <button
                 onClick={(e) => handleClick(contactId, e)}
                 className={cn(
-                  'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
-                  selectedContactId === contactId && 'bg-primary/10 border border-primary/20',
-                  isSelected && 'bg-primary/20 border border-primary/30',
-                  isPinned && 'bg-primary/5 border-l-2 border-l-primary'
+                  'w-full px-2 py-3 flex items-center gap-3 transition-colors text-left border-b border-border/60 hover:bg-muted/40',
+                  selectedContactId === contactId && 'bg-muted',
+                  isSelected && 'bg-primary/10',
+                  isPinned && 'bg-muted/70'
                 )}
               >
                 {selectionMode && (
@@ -168,20 +168,6 @@ export function VirtualizedRealtimeList({
                   <p className="text-sm text-muted-foreground truncate">
                     {conversation.lastMessage?.content || 'Sem mensagens'}
                   </p>
-                  {conversation.contact.tags && conversation.contact.tags.length > 0 && (
-                    <div className="flex gap-1 mt-1.5">
-                      {conversation.contact.tags.slice(0, 2).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {conversation.contact.tags.length > 2 && (
-                        <span className="text-[10px] text-muted-foreground">
-                          +{conversation.contact.tags.length - 2}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
               </button>
             </div>

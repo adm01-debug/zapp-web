@@ -259,11 +259,12 @@ function IndexContent() {
     <SLANotificationProvider>
       <GoalNotificationProvider>
         <div className="flex h-screen bg-background overflow-hidden relative">
-          {/* Subtle background gradients */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
-          </div>
+          {currentView !== 'inbox' && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
+            </div>
+          )}
           
           {/* Mobile Header */}
           {isMobile && (
@@ -308,7 +309,7 @@ function IndexContent() {
           </MobileDrawer>
           
           {/* Desktop Sidebar */}
-          {!isMobile && (
+          {!isMobile && currentView !== 'inbox' && (
             <Sidebar
               currentView={currentView}
               onViewChange={setCurrentView}
