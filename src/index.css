@@ -59,8 +59,8 @@
 @layer base {
   :root {
     /* ===== FONTS ===== */
-    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-    --font-display: 'Outfit', system-ui, sans-serif;
+    --font-sans: 'Inter', 'Segoe UI', 'Helvetica Neue', Helvetica, 'Lucida Grande', Arial, sans-serif;
+    --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
 
     /* ===== ANIMATION TOKENS ===== */
     --animation-fast: 150ms;
@@ -82,34 +82,34 @@
     --z-toast: 1080;
     --z-max: 9999;
 
-    /* ===== BASE ===== */
-    --background: 150 15% 96%;
-    --foreground: 160 25% 10%;
+    /* ===== BASE (WhatsApp Web Light) ===== */
+    --background: 30 18% 89%;
+    --foreground: 200 31% 10%;
     
     /* ===== CARDS ===== */
-    --card: 150 20% 98%;
-    --card-foreground: 160 25% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 31% 10%;
     --card-elevated: 0 0% 100%;
     
     /* ===== POPOVER/DIALOG ===== */
     --popover: 0 0% 100%;
-    --popover-foreground: 160 25% 10%;
+    --popover-foreground: 200 31% 10%;
     
-    /* ===== CORES PRIMÁRIAS (Verde WhatsApp vibrante) ===== */
-    --primary: 142 70% 45%;
+    /* ===== CORES PRIMÁRIAS (WhatsApp Teal Green) ===== */
+    --primary: 162 100% 25%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 75% 55%;
+    --primary-glow: 162 100% 33%;
     
-    /* ===== CORES SECUNDÁRIAS (Roxo vibrante) ===== */
-    --secondary: 270 70% 55%;
+    /* ===== CORES SECUNDÁRIAS (WhatsApp Teal) ===== */
+    --secondary: 162 100% 33%;
     --secondary-foreground: 0 0% 100%;
     
     /* ===== MUTED ===== */
-    --muted: 260 15% 90%;
-    --muted-foreground: 270 15% 40%;
+    --muted: 220 17% 95%;
+    --muted-foreground: 198 13% 45%;
     
-    /* ===== ACCENT (Roxo claro neon) ===== */
-    --accent: 280 85% 60%;
+    /* ===== ACCENT ===== */
+    --accent: 162 100% 33%;
     --accent-foreground: 0 0% 100%;
     
     /* ===== DESTRUCTIVE ===== */
@@ -117,23 +117,23 @@
     --destructive-foreground: 0 0% 100%;
     
     /* ===== BORDAS E INPUTS ===== */
-    --border: 150 15% 85%;
-    --input: 150 15% 90%;
-    --ring: 142 70% 45%;
+    --border: 200 20% 92%;
+    --input: 220 17% 95%;
+    --ring: 162 100% 25%;
     
     /* ===== RADIUS ===== */
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     /* ===== ESTADOS ===== */
-    --success: 142 71% 45%;
+    --success: 162 100% 33%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    --info: 200 80% 50%;
+    --info: 199 78% 62%;
     --info-foreground: 0 0% 100%;
 
     /* ===== GAMIFICAÇÃO ===== */
-    --xp: 280 85% 60%;
+    --xp: 162 100% 33%;
     --xp-foreground: 0 0% 100%;
     --coins: 45 93% 50%;
     --coins-foreground: 0 0% 10%;
@@ -149,36 +149,36 @@
     --rank-bronze-foreground: 30 60% 15%;
 
     /* ===== WhatsApp Specific ===== */
-    --whatsapp: 142 70% 45%;
-    --whatsapp-dark: 142 70% 35%;
-    --online: 142 70% 50%;
+    --whatsapp: 162 100% 25%;
+    --whatsapp-dark: 162 100% 20%;
+    --online: 162 100% 33%;
     --away: 45 90% 50%;
     --offline: 0 0% 60%;
-    --unread: 142 70% 45%;
+    --unread: 162 100% 33%;
     
-    /* ===== Sidebar ===== */
-    --sidebar-background: 150 20% 98%;
-    --sidebar-foreground: 160 25% 10%;
-    --sidebar-primary: 142 70% 45%;
+    /* ===== Sidebar (WhatsApp Web Light Panel) ===== */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 200 31% 10%;
+    --sidebar-primary: 162 100% 25%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 150 20% 92%;
-    --sidebar-accent-foreground: 160 25% 15%;
-    --sidebar-border: 150 15% 88%;
-    --sidebar-ring: 142 70% 45%;
+    --sidebar-accent: 220 17% 95%;
+    --sidebar-accent-foreground: 200 31% 10%;
+    --sidebar-border: 200 20% 92%;
+    --sidebar-ring: 162 100% 25%;
 
-    /* ===== Chat Specific ===== */
-    --chat-bubble-sent: 142 70% 45%;
-    --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 150 20% 95%;
-    --chat-bubble-received-foreground: 160 25% 15%;
-    --chat-header: 0 0% 100%;
-    --chat-input-bg: 0 0% 100%;
+    /* ===== Chat Specific (WhatsApp Web Light) ===== */
+    --chat-bubble-sent: 112 90% 91%;
+    --chat-bubble-sent-foreground: 200 31% 10%;
+    --chat-bubble-received: 0 0% 100%;
+    --chat-bubble-received-foreground: 200 31% 10%;
+    --chat-header: 220 17% 95%;
+    --chat-input-bg: 220 17% 95%;
 
     /* ===== Status Colors ===== */
-    --status-open: 142 70% 45%;
+    --status-open: 162 100% 33%;
     --status-pending: 45 90% 50%;
     --status-resolved: 220 10% 50%;
-    --status-waiting: 200 80% 50%;
+    --status-waiting: 199 78% 62%;
 
     /* ===== Priority ===== */
     --priority-high: 0 84% 60%;
@@ -186,64 +186,64 @@
     --priority-low: 220 10% 60%;
 
     /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(142 70% 45%), hsl(270 70% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(270 70% 55%), hsl(300 75% 60%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-xp: linear-gradient(90deg, hsl(280 85% 60%), hsl(300 85% 55%));
+    --gradient-primary: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%));
+    --gradient-secondary: linear-gradient(135deg, hsl(162 100% 33%), hsl(162 80% 40%));
+    --gradient-success: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%));
+    --gradient-xp: linear-gradient(90deg, hsl(162 100% 33%), hsl(162 80% 40%));
     --gradient-gold: linear-gradient(135deg, hsl(45 93% 50%), hsl(38 92% 55%));
-    --gradient-surface: linear-gradient(180deg, hsl(260 20% 98%), hsl(260 15% 96%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(270 15% 85% / 0.5), transparent);
-    --gradient-vibrant: linear-gradient(135deg, hsl(142 70% 45%), hsl(280 85% 60%), hsl(270 70% 55%));
-    --gradient-purple-green: linear-gradient(135deg, hsl(270 70% 55%), hsl(142 70% 45%));
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 17% 95%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(200 20% 92% / 0.5), transparent);
+    --gradient-vibrant: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%), hsl(162 80% 40%));
+    --gradient-purple-green: linear-gradient(135deg, hsl(162 100% 33%), hsl(162 100% 25%));
 
-    /* ===== SHADOWS ===== */
-    --shadow-xs: 0 1px 2px hsl(160 25% 10% / 0.03);
-    --shadow-sm: 0 1px 3px hsl(160 25% 10% / 0.04), 0 1px 2px hsl(160 25% 10% / 0.03);
-    --shadow-md: 0 4px 6px -1px hsl(160 25% 10% / 0.05), 0 2px 4px -2px hsl(160 25% 10% / 0.04);
-    --shadow-lg: 0 10px 15px -3px hsl(160 25% 10% / 0.06), 0 4px 6px -4px hsl(160 25% 10% / 0.04);
-    --shadow-xl: 0 20px 25px -5px hsl(160 25% 10% / 0.08), 0 8px 10px -6px hsl(160 25% 10% / 0.05);
-    --shadow-glow-primary: 0 0 25px hsl(142 70% 45% / 0.35);
-    --shadow-glow-secondary: 0 0 25px hsl(270 70% 55% / 0.35);
-    --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.25);
-    --shadow-glow-accent: 0 0 25px hsl(280 85% 60% / 0.4);
-    --shadow-glow-purple: 0 0 30px hsl(270 70% 55% / 0.4);
-    --shadow-header: 0 1px 3px hsl(260 25% 10% / 0.05), 0 1px 2px hsl(260 25% 10% / 0.03);
+    /* ===== SHADOWS (WhatsApp Web - minimal) ===== */
+    --shadow-xs: 0 1px 1px hsl(200 31% 10% / 0.04);
+    --shadow-sm: 0 1px 2px hsl(200 31% 10% / 0.06);
+    --shadow-md: 0 2px 4px hsl(200 31% 10% / 0.08);
+    --shadow-lg: 0 4px 8px hsl(200 31% 10% / 0.1);
+    --shadow-xl: 0 8px 16px hsl(200 31% 10% / 0.12);
+    --shadow-glow-primary: 0 0 8px hsl(162 100% 25% / 0.2);
+    --shadow-glow-secondary: 0 0 8px hsl(162 100% 33% / 0.2);
+    --shadow-glow-success: 0 0 8px hsl(162 100% 33% / 0.2);
+    --shadow-glow-accent: 0 0 8px hsl(162 100% 33% / 0.2);
+    --shadow-glow-purple: 0 0 8px hsl(162 100% 33% / 0.2);
+    --shadow-header: 0 1px 3px hsl(200 31% 10% / 0.08);
 
     /* ===== GLASS ===== */
-    --glass-bg: 0 0% 100% / 0.75;
-    --glass-border: 142 70% 45% / 0.15;
+    --glass-bg: 0 0% 100% / 0.85;
+    --glass-border: 200 20% 92% / 0.8;
 
     /* ===== ELEVAÇÃO ===== */
     --elevated: 0 0% 100%;
-    --elevated-hover: 150 20% 98%;
+    --elevated-hover: 220 17% 97%;
 
     /* ===== SPACING ===== */
-    --spacing-card: 1.5rem;
-    --spacing-card-sm: 1rem;
-    --spacing-card-lg: 2rem;
-    --spacing-section: 2rem;
-    --spacing-section-lg: 3rem;
+    --spacing-card: 1.25rem;
+    --spacing-card-sm: 0.75rem;
+    --spacing-card-lg: 1.5rem;
+    --spacing-section: 1.5rem;
+    --spacing-section-lg: 2rem;
 
     /* ===== CHART PALETTE (10 harmonious colors) ===== */
-    --chart-1: 142 70% 45%;
-    --chart-2: 270 70% 55%;
-    --chart-3: 200 80% 50%;
-    --chart-4: 45 93% 50%;
-    --chart-5: 340 75% 55%;
+    --chart-1: 162 100% 33%;
+    --chart-2: 199 78% 62%;
+    --chart-3: 45 93% 50%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 280 60% 55%;
     --chart-6: 175 60% 45%;
-    --chart-7: 280 85% 60%;
+    --chart-7: 30 80% 55%;
     --chart-8: 15 95% 55%;
     --chart-9: 220 70% 50%;
-    --chart-10: 160 60% 40%;
+    --chart-10: 140 60% 40%;
     
     /* Chart Status Colors */
-    --chart-status-resolved: 142 70% 45%;
+    --chart-status-resolved: 162 100% 33%;
     --chart-status-pending: 45 93% 50%;
-    --chart-status-waiting: 200 80% 50%;
-    --chart-status-open: 270 70% 55%;
+    --chart-status-waiting: 199 78% 62%;
+    --chart-status-open: 162 100% 25%;
     
     /* Chart Sentiment Colors */
-    --chart-sentiment-positive: 142 70% 45%;
+    --chart-sentiment-positive: 162 100% 33%;
     --chart-sentiment-neutral: 220 10% 50%;
     --chart-sentiment-negative: 0 84% 60%;
   }
