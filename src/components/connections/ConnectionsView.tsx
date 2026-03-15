@@ -115,6 +115,16 @@ export function ConnectionsView() {
     connectionId: string;
     connectionName: string;
   }>({ open: false, connectionId: '', connectionName: '' });
+  const [settingsDialog, setSettingsDialog] = useState<{
+    open: boolean;
+    instanceName: string;
+    connectionName: string;
+  }>({ open: false, instanceName: '', connectionName: '' });
+  const [integrationsDialog, setIntegrationsDialog] = useState<{
+    open: boolean;
+    instanceName: string;
+    connectionName: string;
+  }>({ open: false, instanceName: '', connectionName: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
