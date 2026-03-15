@@ -664,16 +664,14 @@ export function RealtimeInboxView() {
             )}
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-card/50">
-            <div className="text-center p-8">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-8 h-8 text-primary" />
+          <div className="flex-1 flex items-center justify-center whatsapp-chat-wallpaper">
+            <div className="text-center p-8 max-w-sm">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Selecione uma conversa
-              </h3>
-              <p className="text-muted-foreground text-sm max-w-xs">
-                Escolha uma conversa na lista ao lado para começar a atender
+              <h3 className="text-lg font-medium text-foreground mb-2">WhatsApp Web</h3>
+              <p className="text-muted-foreground text-sm">
+                Selecione uma conversa para começar a trocar mensagens.
               </p>
             </div>
           </div>
