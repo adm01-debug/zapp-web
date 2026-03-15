@@ -27,6 +27,8 @@ import {
   Command,
   Link2,
   BookOpen,
+  Megaphone,
+  Bot,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -71,6 +73,8 @@ const menuGroups: Array<{
       { id: 'queues', icon: Zap, label: 'Filas' },
       { id: 'connections', icon: Link2, label: 'Conexões' },
       { id: 'groups', icon: UsersRound, label: 'Grupos' },
+      { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
+      { id: 'chatbot', icon: Bot, label: 'Chatbot' },
     ],
   },
   {
@@ -80,6 +84,7 @@ const menuGroups: Array<{
       { id: 'catalog', icon: Package, label: 'Catálogo' },
       { id: 'tags', icon: Tag, label: 'Etiquetas' },
       { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
+      { id: 'automations', icon: Zap, label: 'Automações' },
     ],
   },
   {

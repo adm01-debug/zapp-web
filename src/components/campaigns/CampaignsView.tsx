@@ -1,0 +1,345 @@
+import { useState, useCallback } from 'react';
+import { useCampaigns, Campaign } from '@/hooks/useCampaigns';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
+  Megaphone, Plus, Play, Pause, Trash2, Edit2, Send, Clock, CheckCircle2,
+  XCircle, AlertCircle, Users, BarChart3, Loader2, Eye,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
+  draft: { label: 'Rascunho', color: 'bg-muted text-muted-foreground', icon: Edit2 },
+  scheduled: { label: 'Agendada', color: 'bg-blue-500/20 text-blue-400', icon: Clock },
+  sending: { label: 'Enviando', color: 'bg-yellow-500/20 text-yellow-400', icon: Send },
+  completed: { label: 'Concluída', color: 'bg-green-500/20 text-green-400', icon: CheckCircle2 },
+  cancelled: { label: 'Cancelada', color: 'bg-red-500/20 text-red-400', icon: XCircle },
+  paused: { label: 'Pausada', color: 'bg-orange-500/20 text-orange-400', icon: Pause },
+};
+
+export function CampaignsView() {
+  const { campaigns, isLoading, createCampaign, updateCampaign, deleteCampaign } = useCampaigns();
+  const [showCreate, setShowCreate] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [filter, setFilter] = useState<string>('all');
+  const [search, setSearch] = useState('');
+
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    message_content: '',
+    message_type: 'text',
+    target_type: 'all' as const,
+    send_interval_seconds: 5,
+  });
+
+  const filtered = campaigns.filter(c => {
+    if (filter !== 'all' && c.status !== filter) return false;
+    if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const stats = {
+    total: campaigns.length,
+    active: campaigns.filter(c => c.status === 'sending').length,
+    completed: campaigns.filter(c => c.status === 'completed').length,
+    totalSent: campaigns.reduce((sum, c) => sum + c.sent_count, 0),
+  };
+
+  const handleCreate = useCallback(() => {
+    createCampaign.mutate(form, {
+      onSuccess: () => {
+        setShowCreate(false);
+        setForm({ name: '', description: '', message_content: '', message_type: 'text', target_type: 'all', send_interval_seconds: 5 });
+      },
+    });
+  }, [form, createCampaign]);
+
+  const getProgress = (campaign: Campaign) => {
+    if (campaign.total_contacts === 0) return 0;
+    return Math.round((campaign.sent_count / campaign.total_contacts) * 100);
+  };
+
+  return (
+    <div className="h-full flex flex-col p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+            <Megaphone className="w-7 h-7 text-primary" />
+            Campanhas
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Envio em massa e broadcast para contatos</p>
+        </div>
+        <Button onClick={() => setShowCreate(true)} className="gap-2">
+          <Plus className="w-4 h-4" /> Nova Campanha
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        {[
+          { label: 'Total', value: stats.total, icon: Megaphone, color: 'text-primary' },
+          { label: 'Ativas', value: stats.active, icon: Play, color: 'text-yellow-400' },
+          { label: 'Concluídas', value: stats.completed, icon: CheckCircle2, color: 'text-green-400' },
+          { label: 'Mensagens Enviadas', value: stats.totalSent, icon: Send, color: 'text-blue-400' },
+        ].map(stat => (
+          <Card key={stat.label} className="border-secondary/30">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={cn('p-2 rounded-lg bg-secondary/20', stat.color)}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-3">
+        <Input
+          placeholder="Buscar campanha..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="draft">Rascunho</SelectItem>
+            <SelectItem value="scheduled">Agendada</SelectItem>
+            <SelectItem value="sending">Enviando</SelectItem>
+            <SelectItem value="completed">Concluída</SelectItem>
+            <SelectItem value="cancelled">Cancelada</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Campaign List */}
+      <ScrollArea className="flex-1">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <Megaphone className="w-12 h-12 mb-4 opacity-30" />
+            <p className="font-medium">Nenhuma campanha encontrada</p>
+            <p className="text-sm">Crie sua primeira campanha de broadcast</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {filtered.map(campaign => {
+                const status = statusConfig[campaign.status] || statusConfig.draft;
+                const StatusIcon = status.icon;
+                const progress = getProgress(campaign);
+
+                return (
+                  <motion.div
+                    key={campaign.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <Card className="border-secondary/30 hover:border-primary/30 transition-colors cursor-pointer"
+                      onClick={() => setSelectedCampaign(campaign)}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-foreground truncate">{campaign.name}</h3>
+                              <Badge variant="outline" className={cn('text-xs', status.color)}>
+                                <StatusIcon className="w-3 h-3 mr-1" />
+                                {status.label}
+                              </Badge>
+                            </div>
+                            {campaign.description && (
+                              <p className="text-sm text-muted-foreground truncate">{campaign.description}</p>
+                            )}
+                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3 h-3" /> {campaign.total_contacts} contatos
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Send className="w-3 h-3" /> {campaign.sent_count} enviados
+                              </span>
+                              {campaign.failed_count > 0 && (
+                                <span className="flex items-center gap-1 text-destructive">
+                                  <AlertCircle className="w-3 h-3" /> {campaign.failed_count} erros
+                                </span>
+                              )}
+                              <span>
+                                {format(new Date(campaign.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                              </span>
+                            </div>
+                            {(campaign.status === 'sending' || campaign.status === 'completed') && (
+                              <div className="mt-2 flex items-center gap-2">
+                                <Progress value={progress} className="flex-1 h-2" />
+                                <span className="text-xs text-muted-foreground font-mono">{progress}%</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 ml-4" onClick={e => e.stopPropagation()}>
+                            {campaign.status === 'draft' && (
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-green-400 hover:text-green-300"
+                                onClick={() => updateCampaign.mutate({ id: campaign.id, status: 'sending' })}>
+                                <Play className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {campaign.status === 'sending' && (
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-yellow-400 hover:text-yellow-300"
+                                onClick={() => updateCampaign.mutate({ id: campaign.id, status: 'paused' })}>
+                                <Pause className="w-4 h-4" />
+                              </Button>
+                            )}
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => deleteCampaign.mutate(campaign.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </ScrollArea>
+
+      {/* Create Dialog */}
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Megaphone className="w-5 h-5 text-primary" />
+              Nova Campanha
+            </DialogTitle>
+            <DialogDescription>Configure sua campanha de broadcast</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Nome da campanha</Label>
+              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Ex: Black Friday 2024" />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Breve descrição..." />
+            </div>
+            <div>
+              <Label>Mensagem</Label>
+              <Textarea value={form.message_content} onChange={e => setForm(f => ({ ...f, message_content: e.target.value }))}
+                placeholder="Conteúdo da mensagem..." rows={4} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Tipo de mensagem</Label>
+                <Select value={form.message_type} onValueChange={v => setForm(f => ({ ...f, message_type: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Texto</SelectItem>
+                    <SelectItem value="image">Imagem</SelectItem>
+                    <SelectItem value="document">Documento</SelectItem>
+                    <SelectItem value="video">Vídeo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Público-alvo</Label>
+                <Select value={form.target_type} onValueChange={v => setForm(f => ({ ...f, target_type: v as any }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os contatos</SelectItem>
+                    <SelectItem value="tag">Por etiqueta</SelectItem>
+                    <SelectItem value="queue">Por fila</SelectItem>
+                    <SelectItem value="custom">Seleção manual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Intervalo entre envios (segundos)</Label>
+              <Input type="number" value={form.send_interval_seconds}
+                onChange={e => setForm(f => ({ ...f, send_interval_seconds: Number(e.target.value) }))}
+                min={1} max={60} />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancelar</Button>
+            <Button onClick={handleCreate} disabled={!form.name || !form.message_content || createCampaign.isPending}>
+              {createCampaign.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Criar Campanha
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail Dialog */}
+      <Dialog open={!!selectedCampaign} onOpenChange={() => setSelectedCampaign(null)}>
+        <DialogContent className="sm:max-w-lg">
+          {selectedCampaign && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-primary" />
+                  {selectedCampaign.name}
+                </DialogTitle>
+                <DialogDescription>{selectedCampaign.description || 'Sem descrição'}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Total', value: selectedCampaign.total_contacts },
+                    { label: 'Enviados', value: selectedCampaign.sent_count },
+                    { label: 'Entregues', value: selectedCampaign.delivered_count },
+                    { label: 'Lidos', value: selectedCampaign.read_count },
+                    { label: 'Falhas', value: selectedCampaign.failed_count },
+                    { label: 'Progresso', value: `${getProgress(selectedCampaign)}%` },
+                  ].map(item => (
+                    <div key={item.label} className="bg-secondary/20 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-lg font-bold text-foreground">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-secondary/10 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Mensagem</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{selectedCampaign.message_content}</p>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
