@@ -73,7 +73,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="p-4 flex flex-col items-center text-center border-b border-border/30"
+          className="p-4 flex flex-col items-center text-center border-b border-border"
         >
           <div className="relative">
             <Avatar className="w-20 h-20 mb-3 ring-2 ring-border/30 ring-offset-2 ring-offset-background">
