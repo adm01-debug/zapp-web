@@ -57,7 +57,7 @@ describe('useMFA', () => {
 
     const { result } = renderHook(() => useMFA());
     await act(async () => { await result.current.enrollTOTP(); });
-    expect(supabase.auth.mfa.enroll).toHaveBeenCalledWith({ factorType: 'totp' });
+    expect(supabase.auth.mfa.enroll).toHaveBeenCalledWith({ factorType: 'totp', friendlyName: 'Authenticator App' });
   });
 
   it('verifyTOTP calls challenge then verify', async () => {
