@@ -689,7 +689,7 @@ export function RealtimeInboxView() {
             )}
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-card/50">
+          <div className="flex-1 flex items-center justify-center bg-background">
             <div className="text-center p-8">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="w-8 h-8 text-primary" />
