@@ -240,7 +240,7 @@ export function useRealtimeMessages() {
     };
   }, [fetchConversations, handleNewMessage, handleMessageUpdate]);
 
-  // Send a message
+  // Send a message (saves to DB + sends via Evolution API)
   const sendMessage = async (
     contactId: string,
     content: string,
@@ -253,6 +253,7 @@ export function useRealtimeMessages() {
       .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
       .single();
 
+    // 1. Insert message into DB (optimistic)
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -263,13 +264,138 @@ export function useRealtimeMessages() {
         message_type: messageType,
         media_url: mediaUrl || null,
         is_read: true,
+        status: 'sending',
       })
       .select()
       .single();
 
     if (error) {
-      log.error('Error sending message:', error);
+      log.error('Error saving message to DB:', error);
       throw error;
+    }
+
+    // 2. Get contact phone + connection instance for Evolution API
+    try {
+      const { data: contact } = await supabase
+        .from('contacts')
+        .select('phone, whatsapp_connection_id')
+        .eq('id', contactId)
+        .single();
+
+      if (contact?.whatsapp_connection_id) {
+        const { data: connection } = await supabase
+          .from('whatsapp_connections')
+          .select('instance_id, status')
+          .eq('id', contact.whatsapp_connection_id)
+          .single();
+
+        if (connection?.instance_id && connection.status === 'connected') {
+          const phone = contact.phone.replace(/\D/g, '');
+          let evolutionAction = 'send-text';
+          let evolutionBody: Record<string, unknown> = {
+            instanceName: connection.instance_id,
+            number: phone,
+            text: content,
+          };
+
+          // Handle different message types
+          if (messageType === 'image' && mediaUrl) {
+            evolutionAction = 'send-media';
+            evolutionBody = {
+              instanceName: connection.instance_id,
+              number: phone,
+              mediatype: 'image',
+              media: mediaUrl,
+              caption: content !== '[Imagem]' ? content : undefined,
+            };
+          } else if (messageType === 'audio' && mediaUrl) {
+            evolutionAction = 'send-audio';
+            evolutionBody = {
+              instanceName: connection.instance_id,
+              number: phone,
+              mediaUrl,
+            };
+          } else if (messageType === 'video' && mediaUrl) {
+            evolutionAction = 'send-media';
+            evolutionBody = {
+              instanceName: connection.instance_id,
+              number: phone,
+              mediatype: 'video',
+              media: mediaUrl,
+              caption: content !== '[Vídeo]' ? content : undefined,
+            };
+          } else if (messageType === 'document' && mediaUrl) {
+            evolutionAction = 'send-media';
+            evolutionBody = {
+              instanceName: connection.instance_id,
+              number: phone,
+              mediatype: 'document',
+              media: mediaUrl,
+              fileName: content,
+            };
+          } else if (messageType === 'location') {
+            try {
+              const loc = JSON.parse(content);
+              evolutionAction = 'send-location';
+              evolutionBody = {
+                instanceName: connection.instance_id,
+                number: phone,
+                latitude: loc.latitude,
+                longitude: loc.longitude,
+                name: loc.name || '',
+                address: loc.address || '',
+              };
+            } catch {
+              log.warn('Invalid location content, sending as text');
+            }
+          }
+
+          // Call Evolution API via edge function
+          const { data: apiResult, error: apiError } = await supabase.functions.invoke(
+            `evolution-api/${evolutionAction}`,
+            { body: evolutionBody }
+          );
+
+          if (apiError) {
+            log.error('Evolution API send error:', apiError);
+            // Update message status to failed
+            await supabase
+              .from('messages')
+              .update({ status: 'failed' })
+              .eq('id', data.id);
+          } else {
+            // Update message with external_id and status
+            const externalId = apiResult?.key?.id || apiResult?.messageId || null;
+            await supabase
+              .from('messages')
+              .update({
+                status: 'sent',
+                external_id: externalId,
+              })
+              .eq('id', data.id);
+          }
+        } else {
+          log.warn('WhatsApp connection not active, message saved locally only');
+          // Mark as sent (local only, no WhatsApp delivery)
+          await supabase
+            .from('messages')
+            .update({ status: 'sent' })
+            .eq('id', data.id);
+        }
+      } else {
+        // No connection - mark as sent locally
+        await supabase
+          .from('messages')
+          .update({ status: 'sent' })
+          .eq('id', data.id);
+      }
+    } catch (evolutionError) {
+      log.error('Error sending via Evolution API:', evolutionError);
+      // Don't throw - message is already saved in DB
+      await supabase
+        .from('messages')
+        .update({ status: 'failed' })
+        .eq('id', data.id);
     }
 
     return data;
