@@ -3,7 +3,6 @@ import { Conversation } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { motion } from '@/components/ui/motion';
 import { TypingIndicatorCompact } from '../TypingIndicator';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
@@ -63,39 +62,23 @@ export function ChatPanelHeader({
   onSpeedChange,
 }: ChatPanelHeaderProps) {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between px-4 h-[65px] border-b border-border bg-card shrink-0"
-    >
+    <div className="flex items-center justify-between px-5 h-[65px] border-b border-border bg-card shrink-0">
       <div className="flex items-center gap-3">
-        <motion.div whileHover={{ scale: 1.05 }}>
-          <Avatar className="w-10 h-10 ring-2 ring-border/30">
+        <div className="relative">
+          <Avatar className="w-10 h-10">
             <AvatarImage src={conversation.contact.avatar} />
-            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+            <AvatarFallback className="bg-primary/15 text-primary font-semibold text-sm">
               {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
             </AvatarFallback>
           </Avatar>
-        </motion.div>
+          {/* Online status dot */}
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[hsl(var(--online))] border-2 border-card" />
+        </div>
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground">
+            <h3 className="font-semibold text-foreground text-[15px]">
               {conversation.contact.name}
             </h3>
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-[10px] capitalize border',
-                conversation.status === 'open' && 'border-success/50 text-success bg-success/10',
-                conversation.status === 'pending' && 'border-warning/50 text-warning bg-warning/10',
-                conversation.status === 'resolved' && 'border-muted-foreground/50 text-muted-foreground',
-                conversation.status === 'waiting' && 'border-info/50 text-info bg-info/10'
-              )}
-            >
-              {conversation.status === 'open' ? 'Aberto' : 
-               conversation.status === 'pending' ? 'Pendente' :
-               conversation.status === 'resolved' ? 'Resolvido' : 'Aguardando'}
-            </Badge>
             <SLAIndicator
               firstMessageAt={conversation.createdAt}
               firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
@@ -108,68 +91,68 @@ export function ChatPanelHeader({
             {isContactTyping ? (
               <TypingIndicatorCompact isVisible={true} />
             ) : (
-              conversation.contact.phone
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--online))]" />
+                Online
+              </span>
             )}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-            onClick={onOpenSearch}
-            title="Buscar (Ctrl+K)"
-          >
-            <Search className="w-4 h-4" />
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-            onClick={onStartCall}
-          >
-            <PhoneCall className="w-4 h-4" />
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-            <Video className="w-4 h-4" />
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+      <div className="flex items-center gap-0.5">
+        {/* Action buttons — DreamsChat style: Audio, Video, Chat, Search */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+          onClick={onStartCall}
+          title="Chamada de voz"
+        >
+          <PhoneCall className="w-[18px] h-[18px]" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+          title="Chamada de vídeo"
+        >
+          <Video className="w-[18px] h-[18px]" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+          onClick={onOpenSearch}
+          title="Buscar (Ctrl+K)"
+        >
+          <Search className="w-[18px] h-[18px]" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={cn(
+            "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+            showAIAssistant && "text-primary bg-primary/10"
+          )}
+          onClick={onToggleAIAssistant}
+          title="Assistente IA"
+        >
+          <Brain className="w-[18px] h-[18px]" />
+        </Button>
+        {onToggleDetails && (
           <Button 
             variant="ghost" 
             size="icon" 
             className={cn(
-              "text-muted-foreground hover:text-primary hover:bg-primary/10",
-              showAIAssistant && "text-primary bg-primary/10"
+              "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+              showDetails && "text-primary bg-primary/10"
             )}
-            onClick={onToggleAIAssistant}
-            title="Assistente IA"
+            onClick={onToggleDetails}
+            title="Detalhes do contato"
           >
-            <Brain className="w-4 h-4" />
+            <Info className="w-[18px] h-[18px]" />
           </Button>
-        </motion.div>
-        {onToggleDetails && (
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className={cn(
-                "text-muted-foreground hover:text-primary hover:bg-primary/10",
-                showDetails && "text-primary bg-primary/10"
-              )}
-              onClick={onToggleDetails}
-              title="Detalhes do contato"
-            >
-              <Info className="w-4 h-4" />
-            </Button>
-          </motion.div>
         )}
         <VoiceSelector
           selectedVoiceId={voiceId}
@@ -181,13 +164,11 @@ export function ChatPanelHeader({
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </motion.div>
+            <Button variant="ghost" size="icon" className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted">
+              <MoreVertical className="w-[18px] h-[18px]" />
+            </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-card border-border/30">
+          <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
             <DropdownMenuItem>
               <Tag className="w-4 h-4 mr-2" />
               Adicionar tag
@@ -212,6 +193,6 @@ export function ChatPanelHeader({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -293,7 +293,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                           </span>
                           {isSent && <MessageStatusIcon status={message.status} />}
                         </div>
-                      </motion.div>
+                      </div>
                       )}
 
                       <MessageReactions
