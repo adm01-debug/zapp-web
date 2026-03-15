@@ -41,24 +41,20 @@ export function ChatPanelHeader({
   onOpenTransfer,
 }: ChatPanelHeaderProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between px-4 py-2 border-b border-border bg-[hsl(var(--chat-header))]"
-    >
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="flex items-center justify-between px-4 py-[10px] border-b border-border bg-[hsl(var(--chat-header))]">
+      <div className="flex items-center gap-3 min-w-0 cursor-pointer" onClick={onToggleDetails}>
         <Avatar className="w-10 h-10">
           <AvatarImage src={conversation.contact.avatar} />
-          <AvatarFallback className="bg-muted text-foreground font-medium">
+          <AvatarFallback className="bg-[#dfe5e7] dark:bg-[#6b7c85] text-white text-sm font-normal">
             {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
           </AvatarFallback>
         </Avatar>
 
         <div className="min-w-0">
-          <h3 className="text-sm font-medium text-foreground truncate">
+          <h3 className="text-base font-normal text-foreground truncate leading-tight">
             {conversation.contact.name}
           </h3>
-          <p className="text-xs text-muted-foreground truncate">
+          <p className="text-[13px] text-muted-foreground truncate leading-tight">
             {isContactTyping ? <TypingIndicatorCompact isVisible={true} /> : conversation.contact.phone}
           </p>
         </div>
@@ -68,46 +64,36 @@ export function ChatPanelHeader({
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:bg-muted"
+          className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50"
           onClick={onOpenSearch}
           title="Buscar"
         >
-          <Search className="w-4 h-4" />
+          <Search className="w-5 h-5" />
         </Button>
 
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:bg-muted"
+          className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50"
           onClick={onStartCall}
           title="Ligar"
         >
-          <PhoneCall className="w-4 h-4" />
+          <PhoneCall className="w-5 h-5" />
         </Button>
-
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted" title="Vídeo">
-          <Video className="w-4 h-4" />
-        </Button>
-
-        {onToggleDetails && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn('text-muted-foreground hover:bg-muted', showDetails && 'text-foreground bg-muted')}
-            onClick={onToggleDetails}
-            title="Detalhes"
-          >
-            <Info className="w-4 h-4" />
-          </Button>
-        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted" title="Menu">
-              <MoreVertical className="w-4 h-4" />
+            <Button variant="ghost" size="icon" className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50" title="Menu">
+              <MoreVertical className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuContent align="end" className="w-52">
+            {onToggleDetails && (
+              <DropdownMenuItem onClick={onToggleDetails}>
+                <Info className="w-4 h-4 mr-2" />
+                {showDetails ? 'Fechar detalhes' : 'Dados do contato'}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onOpenTransfer}>Transferir conversa</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
@@ -121,6 +107,6 @@ export function ChatPanelHeader({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </motion.div>
+    </div>
   );
 }
