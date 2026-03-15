@@ -47,6 +47,7 @@ interface ChatInputAreaProps {
   contactId: string;
   contactPhone: string;
   contactName: string;
+  instanceName?: string;
   messages: Message[];
   quickReplies: QuickReplyItem[];
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -79,6 +80,7 @@ export function ChatInputArea({
   contactId,
   contactPhone,
   contactName,
+  instanceName,
   messages,
   quickReplies,
   onInputChange,
@@ -156,7 +158,7 @@ export function ChatInputArea({
             {/* Advanced Message Menu (Stickers, Polls, vCard, Status) */}
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <AdvancedMessageMenu
-                instanceName={contactId}
+                instanceName={instanceName || ''}
                 recipientNumber={contactPhone}
               />
             </motion.div>

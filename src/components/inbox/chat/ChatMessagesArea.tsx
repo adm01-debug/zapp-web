@@ -1,5 +1,6 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
+import { MessageContextActions } from '../MessageContextActions';
 import { cn } from '@/lib/utils';
 import { Message, InteractiveButton } from '@/types/chat';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
@@ -56,6 +57,8 @@ interface ChatMessagesAreaProps {
   ttsLoading: boolean;
   ttsPlaying: boolean;
   ttsMessageId: string | null;
+  instanceName?: string;
+  contactJid?: string;
   onSpeak: (messageId: string, text: string) => void;
   onStop: () => void;
   onReply: (message: Message) => void;
@@ -78,6 +81,8 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   ttsLoading,
   ttsPlaying,
   ttsMessageId,
+  instanceName,
+  contactJid,
   onSpeak,
   onStop,
   onReply,
@@ -192,6 +197,13 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             onSpeak={onSpeak}
                             onStop={onStop}
                             className="p-1.5 rounded-full bg-card border border-border/50 shadow-sm"
+                          />
+                        )}
+                        {instanceName && contactJid && (
+                          <MessageContextActions
+                            message={message}
+                            instanceName={instanceName}
+                            contactJid={contactJid}
                           />
                         )}
                       </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { log } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { ConversationSummary } from './ConversationSummary';
 import { TransferDialog } from './TransferDialog';
@@ -85,6 +86,36 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     onVoiceChange: handleVoiceChange,
     onSpeedChange: handleSpeedChange,
   });
+
+  // ── Resolve WhatsApp instance name from contact ──
+  const [instanceName, setInstanceName] = useState<string>('');
+
+  useEffect(() => {
+    const resolveInstance = async () => {
+      try {
+        // Look up the contact's whatsapp_connection_id → instance_id
+        const { data: contact } = await supabase
+          .from('contacts')
+          .select('whatsapp_connection_id')
+          .eq('id', conversation.contact.id)
+          .maybeSingle();
+        
+        if (contact?.whatsapp_connection_id) {
+          const { data: conn } = await (supabase as any)
+            .from('whatsapp_connections')
+            .select('instance_id')
+            .eq('id', contact.whatsapp_connection_id)
+            .maybeSingle();
+          if (conn?.instance_id) {
+            setInstanceName(conn.instance_id);
+          }
+        }
+      } catch {
+        // Silently fail — instanceName stays empty
+      }
+    };
+    resolveInstance();
+  }, [conversation.contact.id]);
 
   // ── Effects ──
   useEffect(() => {
@@ -333,6 +364,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           ttsLoading={ttsLoading}
           ttsPlaying={ttsPlaying}
           ttsMessageId={ttsMessageId}
+          instanceName={instanceName}
+          contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''}
           onSpeak={speak}
           onStop={stop}
           onReply={handleReplyToMessage}
@@ -357,6 +390,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           contactId={conversation.contact.id}
           contactPhone={conversation.contact.phone}
           contactName={conversation.contact.name}
+          instanceName={instanceName}
           messages={messages}
           quickReplies={dbQuickReplies}
           onInputChange={handleInputChange}
