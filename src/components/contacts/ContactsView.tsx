@@ -422,8 +422,9 @@ export function ContactsView() {
           {editingContact && (
             <ContactForm
               values={editingContact}
-              onChange={(field, value) => setEditingContact({ ...editingContact, [field]: value } as Contact)}
+              onChange={handleEditContactChange}
               onSubmit={handleEditContact}
+              onCancel={handleCancelForm}
               submitLabel="Salvar"
             />
           )}
