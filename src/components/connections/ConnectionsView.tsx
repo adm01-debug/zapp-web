@@ -803,6 +803,26 @@ export function ConnectionsView() {
                                 <Link2 className="w-4 h-4 mr-2" />
                                 Vincular Filas
                               </DropdownMenuItem>
+                              {connection.instance_id && (
+                                <>
+                                  <DropdownMenuItem onClick={() => setSettingsDialog({
+                                    open: true,
+                                    instanceName: connection.instance_id!,
+                                    connectionName: connection.name,
+                                  })}>
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Configurações & Perfil
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setIntegrationsDialog({
+                                    open: true,
+                                    instanceName: connection.instance_id!,
+                                    connectionName: connection.name,
+                                  })}>
+                                    <Boxes className="w-4 h-4 mr-2" />
+                                    Integrações (IA/Bots)
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive"
