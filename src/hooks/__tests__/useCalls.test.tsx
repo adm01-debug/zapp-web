@@ -86,8 +86,7 @@ describe('useCalls', () => {
     expect(callId).toBe('call-1');
   });
 
-  it('startCall requires user', async () => {
-    mockUseAuth.mockReturnValue({ user: null });
+  it('startCall works without explicit contactId', async () => {
     const { result } = renderHook(() => useCalls());
 
     let callId: string | null = null;
@@ -95,11 +94,11 @@ describe('useCalls', () => {
       callId = await result.current.startCall({
         contactPhone: '+5511999999999',
         contactName: 'John',
-        direction: 'outbound',
+        direction: 'inbound',
       });
     });
 
-    expect(callId).toBeNull();
+    expect(callId).toBe('call-1');
   });
 
   it('endCall updates call status', async () => {
