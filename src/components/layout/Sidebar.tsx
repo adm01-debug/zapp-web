@@ -320,7 +320,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{item.label}</p>
                           {item.badge && (
-                            <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                            <span className="bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full font-bold">
                               {item.badge}
                             </span>
                           )}
