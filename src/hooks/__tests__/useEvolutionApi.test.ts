@@ -59,9 +59,9 @@ describe('useEvolutionApi', () => {
     expect(typeof result.current.getInstanceStatus).toBe('function');
   });
 
-  it('exposes getQrCode function', () => {
+  it('exposes connectInstance function', () => {
     const { result } = renderHook(() => useEvolutionApi());
-    expect(typeof result.current.getQrCode).toBe('function');
+    expect(typeof result.current.connectInstance).toBe('function');
   });
 
   it('exposes disconnectInstance function', () => {
