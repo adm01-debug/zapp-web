@@ -88,7 +88,7 @@ export function SettingsView() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-2xl font-bold text-foreground"
+            className="text-2xl font-bold text-foreground neon-underline"
           >
             Configurações
           </motion.h1>

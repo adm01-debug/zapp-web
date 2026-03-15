@@ -156,7 +156,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-3 py-2 bg-[hsl(var(--chat-input-bg))] border-t border-border"
+        className="p-4 glass-strong border-t border-border/50"
       >
         <div className="flex items-end gap-2">
           <div className="flex items-center gap-1">
@@ -210,7 +210,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
                   </Button>
                 </motion.div>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-0 bg-popover border-border" align="start">
+              <PopoverContent className="w-72 p-0 glass-strong border-border/50" align="start">
                 <div className="p-3 border-b border-border/50 bg-gradient-to-r from-primary/10 to-transparent">
                   <h4 className="font-medium text-sm">Respostas Rápidas</h4>
                   <p className="text-xs text-muted-foreground">

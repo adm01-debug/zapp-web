@@ -62,47 +62,47 @@ export function ConversationList({
   };
 
   return (
-    <div className="flex flex-col h-full bg-sidebar border-r border-border">
+    <div className="flex flex-col h-full bg-sidebar border-r border-border/30">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="p-4 border-b border-border space-y-3 bg-[hsl(var(--chat-header))]"
+        className="p-4 border-b border-border/20 space-y-4"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="icon" className="hover:bg-muted/50 text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10 text-muted-foreground hover:text-foreground">
               <Filter className="w-4 h-4" />
             </Button>
           </motion.div>
         </div>
 
-        {/* Search - WhatsApp Web style */}
+        {/* Search */}
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
-            placeholder="Buscar ou começar uma nova conversa"
+            placeholder="Buscar conversas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-input border-0 focus:ring-0 focus:border-0 rounded-lg text-sm h-9"
+            className="pl-9 bg-muted/30 border-border/30 focus:border-primary/50 focus:ring-primary/20 transition-all"
           />
         </div>
 
         {/* Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 bg-transparent border-b border-border h-auto p-0 rounded-none">
-            <TabsTrigger value="all" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
+          <TabsList className="w-full grid grid-cols-4 bg-muted/30 border border-border/20">
+            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Todas ({counts.all})
             </TabsTrigger>
-            <TabsTrigger value="open" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
+            <TabsTrigger value="open" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Abertas ({counts.open})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
+            <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Pendentes ({counts.pending})
             </TabsTrigger>
-            <TabsTrigger value="waiting" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none pb-2">
+            <TabsTrigger value="waiting" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Aguardando ({counts.waiting})
             </TabsTrigger>
           </TabsList>
@@ -146,10 +146,10 @@ export function ConversationList({
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.15 }}
                     className={cn(
-                      'relative p-3 cursor-pointer transition-all duration-150 group border-b border-border/50',
+                      'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group',
                       isSelected 
-                        ? 'bg-muted' 
-                        : 'hover:bg-muted/50'
+                        ? 'bg-primary/10 border border-primary/30' 
+                        : 'hover:bg-muted/30 border border-transparent'
                     )}
                   >
                     {/* Selection indicator */}
@@ -164,7 +164,8 @@ export function ConversationList({
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
                         <Avatar className={cn(
-                          "w-12 h-12",
+                          "w-11 h-11 ring-2 transition-all",
+                          isSelected ? "ring-primary/40" : "ring-border/30"
                         )}>
                           <AvatarImage src={conversation.contact.avatar} />
                           <AvatarFallback className="bg-primary/10 text-primary font-medium">
@@ -188,7 +189,7 @@ export function ConversationList({
                         <div className="flex items-center justify-between mb-1">
                           <span className={cn(
                             "font-medium text-sm truncate transition-colors",
-                            "text-foreground"
+                            isSelected ? "text-primary" : "text-foreground"
                           )}>
                             {conversation.contact.name}
                           </span>

@@ -143,7 +143,7 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedM
             <MoreHorizontal className="w-5 h-5" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-56 p-2 bg-popover border-border" align="start">
+        <PopoverContent className="w-56 p-2 glass-strong border-border/50" align="start">
           <div className="space-y-1">
             {menuItems.map(({ icon: Icon, label, onClick }) => (
               <button

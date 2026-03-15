@@ -1,18 +1,13 @@
-import { useRef, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ConversationWithMessages } from '@/hooks/useRealtimeMessages';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { format, isToday, isYesterday } from 'date-fns';
-import { Check, CheckCheck, Pin } from 'lucide-react';
-
-function formatTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  if (isToday(date)) return format(date, 'HH:mm');
-  if (isYesterday(date)) return 'Ontem';
-  return format(date, 'dd/MM/yyyy');
-}
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Pin } from 'lucide-react';
 
 interface VirtualizedRealtimeListProps {
   conversations: ConversationWithMessages[];
@@ -27,7 +22,7 @@ interface VirtualizedRealtimeListProps {
   pinnedIds?: Set<string>;
 }
 
-const ITEM_HEIGHT = 72;
+const ITEM_HEIGHT = 80;
 const EMPTY_SET = new Set<string>();
 
 export function VirtualizedRealtimeList({
@@ -37,15 +32,20 @@ export function VirtualizedRealtimeList({
   selectionMode = false,
   selectedIds = EMPTY_SET,
   onToggleSelection,
+  onMarkAsRead,
+  onArchive,
+  onPin,
   pinnedIds = EMPTY_SET,
 }: VirtualizedRealtimeListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
+  // Filter out invalid conversations
   const safeConversations = useMemo(() => {
     if (!Array.isArray(conversations)) return [];
-    return conversations.filter((c) => c?.contact?.id);
+    return conversations.filter(c => c?.contact?.id);
   }, [conversations]);
 
+  // Sort: pinned first, then by last message date
   const sortedConversations = useMemo(() => {
     return [...safeConversations].sort((a, b) => {
       const aPin = pinnedIds.has(a.contact.id);
@@ -62,22 +62,21 @@ export function VirtualizedRealtimeList({
     count: sortedConversations.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => ITEM_HEIGHT,
-    overscan: 6,
+    overscan: 5,
   });
 
-  const handleClick = useCallback(
-    (contactId: string, e: React.MouseEvent) => {
-      if (selectionMode && onToggleSelection) {
-        e.preventDefault();
-        onToggleSelection(contactId);
-      } else {
-        onSelectConversation(contactId);
-      }
-    },
-    [selectionMode, onToggleSelection, onSelectConversation]
-  );
+  const handleClick = useCallback((contactId: string, e: React.MouseEvent) => {
+    if (selectionMode && onToggleSelection) {
+      e.preventDefault();
+      onToggleSelection(contactId);
+    } else {
+      onSelectConversation(contactId);
+    }
+  }, [selectionMode, onToggleSelection, onSelectConversation]);
 
-  if (sortedConversations.length === 0) return null;
+  if (sortedConversations.length === 0) {
+    return null;
+  }
 
   return (
     <div ref={parentRef} className="h-full overflow-auto scrollbar-thin">
@@ -93,12 +92,8 @@ export function VirtualizedRealtimeList({
           if (!conversation?.contact?.id) return null;
 
           const contactId = conversation.contact.id;
-          const isActive = selectedContactId === contactId;
           const isSelected = selectedIds.has(contactId);
           const isPinned = pinnedIds.has(contactId);
-          const hasUnread = conversation.unreadCount > 0;
-          const lastMsg = conversation.lastMessage;
-          const isLastSent = lastMsg?.sender === 'agent';
 
           return (
             <div
@@ -111,19 +106,20 @@ export function VirtualizedRealtimeList({
                 height: `${virtualRow.size}px`,
                 transform: `translateY(${virtualRow.start}px)`,
               }}
+              className="px-2"
             >
               <button
                 onClick={(e) => handleClick(contactId, e)}
                 className={cn(
-                  'w-full flex items-center gap-[13px] pl-[13px] pr-[15px] text-left transition-colors duration-75 h-full',
-                  'hover:bg-muted/40',
-                  isActive && 'bg-[hsl(var(--sidebar-accent))]',
-                  isSelected && 'bg-primary/10'
+                  'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
+                  selectedContactId === contactId && 'bg-primary/10 border border-primary/20',
+                  isSelected && 'bg-primary/20 border border-primary/30',
+                  isPinned && 'bg-primary/5 border-l-2 border-l-primary'
                 )}
               >
                 {selectionMode && (
                   <div
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 flex items-center"
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleSelection?.(contactId);
@@ -133,62 +129,59 @@ export function VirtualizedRealtimeList({
                   </div>
                 )}
 
-                <Avatar className="w-[49px] h-[49px] flex-shrink-0">
-                  <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                  <AvatarFallback className="bg-[hsl(var(--avatar-fallback))] text-[hsl(var(--avatar-fallback-foreground))] text-[17px] font-normal">
-                    {(conversation.contact.name || '??')
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative flex-shrink-0">
+                  <Avatar className="w-11 h-11">
+                    <AvatarImage src={conversation.contact.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                      {(conversation.contact.name || '??')
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {conversation.unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
+                      {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                    </span>
+                  )}
+                </div>
 
-                <div className="flex-1 min-w-0 border-b border-border py-[13px]">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <div className="flex items-center gap-1 min-w-0 flex-1">
-                      {isPinned && <Pin className="w-3 h-3 text-muted-foreground flex-shrink-0" />}
-                      <span className="truncate text-[17px] leading-[21px] text-foreground font-normal">
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      {isPinned && <Pin className="w-3 h-3 text-primary flex-shrink-0" />}
+                      <span className="font-medium text-foreground truncate text-sm">
                         {conversation.contact.name || 'Sem nome'}
                       </span>
                     </div>
-                    {lastMsg && (
-                      <span
-                        className={cn(
-                          'text-[12px] flex-shrink-0 font-normal leading-[14px]',
-                          hasUnread ? 'text-primary' : 'text-muted-foreground'
-                        )}
-                      >
-                        {formatTime(lastMsg.created_at)}
+                    {conversation.lastMessage && (
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
+                          addSuffix: false,
+                          locale: ptBR,
+                        })}
                       </span>
                     )}
                   </div>
-
-                  <div className="flex items-center justify-between gap-2 mt-[2px]">
-                    <div className="flex items-center gap-[3px] min-w-0 flex-1">
-                      {isLastSent && (
-                        <span className="flex-shrink-0 text-muted-foreground">
-                          {lastMsg?.is_read ? (
-                            <CheckCheck className="w-[18px] h-[18px] text-[hsl(var(--info))]" />
-                          ) : (
-                            <Check className="w-[18px] h-[18px]" />
-                          )}
+                  <p className="text-sm text-muted-foreground truncate">
+                    {conversation.lastMessage?.content || 'Sem mensagens'}
+                  </p>
+                  {conversation.contact.tags && conversation.contact.tags.length > 0 && (
+                    <div className="flex gap-1 mt-1.5">
+                      {conversation.contact.tags.slice(0, 2).map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {conversation.contact.tags.length > 2 && (
+                        <span className="text-[10px] text-muted-foreground">
+                          +{conversation.contact.tags.length - 2}
                         </span>
                       )}
-                      <p className={cn(
-                        'text-[14px] truncate leading-[20px]',
-                        hasUnread ? 'text-foreground/80' : 'text-muted-foreground'
-                      )}>
-                        {lastMsg?.content || 'Sem mensagens'}
-                      </p>
                     </div>
-                    {hasUnread && (
-                      <span className="flex-shrink-0 min-w-[20px] h-[20px] px-[6px] bg-primary text-primary-foreground text-[12px] rounded-full flex items-center justify-center font-normal">
-                        {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
               </button>
             </div>

@@ -102,13 +102,69 @@ function IndexContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <p className="text-muted-foreground text-sm">Carregando...</p>
+      <div className="flex items-center justify-center h-screen bg-background relative overflow-hidden">
+        {/* Background gradient effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary-glow/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center relative z-10"
+        >
+          <motion.div 
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 relative"
+            style={{ background: 'var(--gradient-primary)' }}
+            animate={{ 
+              rotate: [0, 5, -5, 0],
+              scale: [1, 1.05, 1]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles className="w-8 h-8 text-primary-foreground" />
+            <motion.div
+              className="absolute inset-0 rounded-2xl"
+              style={{ background: 'var(--gradient-primary)' }}
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h2 className="font-display text-xl font-semibold text-foreground mb-2">Carregando</h2>
+            <p className="text-muted-foreground text-sm">Preparando sua experiência...</p>
+          </motion.div>
+          
+          {/* Loading dots */}
+          <motion.div 
+            className="flex gap-1.5 justify-center mt-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-2 rounded-full bg-primary"
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  opacity: [0.5, 1, 0.5]
+                }}
+                transition={{ 
+                  duration: 0.8, 
+                  repeat: Infinity,
+                  delay: i * 0.15
+                }}
+              />
+            ))}
+          </motion.div>
+        </motion.div>
       </div>
     );
   }
@@ -203,6 +259,11 @@ function IndexContent() {
     <SLANotificationProvider>
       <GoalNotificationProvider>
         <div className="flex h-screen bg-background overflow-hidden relative">
+          {/* Subtle background gradients */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
+          </div>
           
           {/* Mobile Header */}
           {isMobile && (
@@ -247,7 +308,7 @@ function IndexContent() {
           </MobileDrawer>
           
           {/* Desktop Sidebar */}
-          {!isMobile && currentView !== 'inbox' && (
+          {!isMobile && (
             <Sidebar
               currentView={currentView}
               onViewChange={setCurrentView}
