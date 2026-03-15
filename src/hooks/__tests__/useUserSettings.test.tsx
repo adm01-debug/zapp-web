@@ -100,7 +100,7 @@ describe('useUserSettings', () => {
 
   it('exposes updateSettings function', async () => {
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(typeof result.current.updateSettings).toBe('function');
   });
 
