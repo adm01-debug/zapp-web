@@ -166,7 +166,7 @@ export function WhatsAppTemplatesManager() {
         content: editingTemplate.content.trim(),
         header_text: editingTemplate.header_text?.trim() || null,
         footer_text: editingTemplate.footer_text?.trim() || null,
-        buttons: editingTemplate.buttons || [],
+        buttons: (editingTemplate.buttons || []) as unknown as Record<string, never>,
         variables: editingTemplate.variables || [],
         status: editingTemplate.status || 'draft',
         created_by: user?.id || null,
