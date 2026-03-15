@@ -73,7 +73,7 @@ export function ConversationList({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10 text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="icon" className="hover:bg-muted/50 text-muted-foreground hover:text-foreground">
               <Filter className="w-4 h-4" />
             </Button>
           </motion.div>
