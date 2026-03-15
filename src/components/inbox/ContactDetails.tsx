@@ -1,5 +1,6 @@
 import { log } from '@/lib/logger';
 import { Conversation, Agent } from '@/types/chat';
+import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
