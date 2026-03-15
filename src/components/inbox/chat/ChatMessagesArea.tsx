@@ -1,5 +1,6 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
+import { MessageContextActions } from '../MessageContextActions';
 import { cn } from '@/lib/utils';
 import { Message, InteractiveButton } from '@/types/chat';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
