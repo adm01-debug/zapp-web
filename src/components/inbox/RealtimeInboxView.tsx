@@ -515,7 +515,7 @@ export function RealtimeInboxView() {
         />
 
         {/* Header */}
-        <div className="p-4 border-b border-border/20">
+        <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
