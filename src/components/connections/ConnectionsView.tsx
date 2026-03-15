@@ -819,6 +819,14 @@ export function ConnectionsView() {
         connectionId={businessHoursDialog.connectionId}
         connectionName={businessHoursDialog.connectionName}
       />
+
+      {/* Connection Queues Dialog */}
+      <ConnectionQueuesDialog
+        open={queuesDialog.open}
+        onOpenChange={(open) => setQueuesDialog((prev) => ({ ...prev, open }))}
+        connectionId={queuesDialog.connectionId}
+        connectionName={queuesDialog.connectionName}
+      />
     </div>
   );
 }
