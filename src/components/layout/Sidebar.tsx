@@ -141,16 +141,17 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               className="flex items-center gap-3"
             >
               <motion.div 
-                className="w-10 h-10 rounded-xl logo-neon flex items-center justify-center relative overflow-hidden"
+                className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
+                style={{ background: 'var(--gradient-primary)' }}
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400 }}
                 aria-hidden="true"
               >
-                <Sparkles className="w-5 h-5 text-secondary relative z-10" />
+                <Sparkles className="w-5 h-5 text-primary-foreground relative z-10" />
               </motion.div>
               <div>
-                <span className="font-display font-bold text-lg text-foreground">MultiChat</span>
-                <p className="text-xs text-secondary/80">Omnichannel</p>
+                <span className="font-display font-bold text-lg text-foreground">ZAPP</span>
+                <p className="text-xs text-muted-foreground">Omnichannel</p>
               </div>
             </motion.div>
           )}
