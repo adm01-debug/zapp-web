@@ -52,6 +52,7 @@ import { cn } from '@/lib/utils';
 import { log } from '@/lib/logger';
 
 interface WhatsAppTemplate {
+  [key: string]: unknown;
   id: string;
   name: string;
   category: string;
