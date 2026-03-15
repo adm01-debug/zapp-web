@@ -7,7 +7,6 @@ import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { InboxFiltersState } from './InboxFilters';
-import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { GlobalSearch } from './GlobalSearch';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
