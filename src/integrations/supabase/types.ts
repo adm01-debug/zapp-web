@@ -1090,6 +1090,48 @@ export type Database = {
           },
         ]
       }
+      deal_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          deal_id: string
+          description: string | null
+          id: string
+          performed_by: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          deal_id: string
+          description?: string | null
+          id?: string
+          performed_by?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          deal_id?: string
+          description?: string | null
+          id?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "sales_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_activities_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_versions: {
         Row: {
           change_summary: string | null
@@ -1254,6 +1296,97 @@ export type Database = {
           ip_address?: string
         }
         Relationships: []
+      }
+      knowledge_base_articles: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          embedding_status: string | null
+          id: string
+          is_published: boolean | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          embedding_status?: string | null
+          id?: string
+          is_published?: boolean | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          embedding_status?: string | null
+          id?: string
+          is_published?: boolean | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_articles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_base_files: {
+        Row: {
+          article_id: string | null
+          created_at: string | null
+          extracted_text: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          processing_status: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string | null
+          extracted_text?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          processing_status?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string | null
+          extracted_text?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          processing_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_files_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_base_articles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       login_attempts: {
         Row: {
@@ -1461,6 +1594,56 @@ export type Database = {
           },
         ]
       }
+      meta_capi_events: {
+        Row: {
+          action_source: string | null
+          contact_id: string | null
+          created_at: string | null
+          custom_data: Json | null
+          event_name: string
+          event_source_url: string | null
+          event_time: string | null
+          id: string
+          meta_response: Json | null
+          pixel_id: string | null
+          sent_to_meta: boolean | null
+        }
+        Insert: {
+          action_source?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          custom_data?: Json | null
+          event_name: string
+          event_source_url?: string | null
+          event_time?: string | null
+          id?: string
+          meta_response?: Json | null
+          pixel_id?: string | null
+          sent_to_meta?: boolean | null
+        }
+        Update: {
+          action_source?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          custom_data?: Json | null
+          event_name?: string
+          event_source_url?: string | null
+          event_time?: string | null
+          id?: string
+          meta_response?: Json | null
+          pixel_id?: string | null
+          sent_to_meta?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_capi_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mfa_sessions: {
         Row: {
           created_at: string
@@ -1616,6 +1799,85 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payment_links: {
+        Row: {
+          amount: number
+          contact_id: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          deal_id: string | null
+          description: string | null
+          expires_at: string | null
+          external_id: string | null
+          id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_url: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          contact_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          deal_id?: string | null
+          description?: string | null
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_url?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          contact_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          deal_id?: string | null
+          description?: string | null
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_url?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_links_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_links_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "sales_deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
@@ -1979,6 +2241,118 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sales_deals: {
+        Row: {
+          assigned_to: string | null
+          contact_id: string | null
+          created_at: string | null
+          currency: string | null
+          expected_close_date: string | null
+          id: string
+          lost_at: string | null
+          lost_reason: string | null
+          notes: string | null
+          priority: string | null
+          stage_id: string | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          value: number | null
+          won_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expected_close_date?: string | null
+          id?: string
+          lost_at?: string | null
+          lost_reason?: string | null
+          notes?: string | null
+          priority?: string | null
+          stage_id?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          value?: number | null
+          won_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expected_close_date?: string | null
+          id?: string
+          lost_at?: string | null
+          lost_reason?: string | null
+          notes?: string | null
+          priority?: string | null
+          stage_id?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          value?: number | null
+          won_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_deals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_deals_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "sales_pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_pipeline_stages: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          position: number
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          position?: number
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          position?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       saved_filters: {
         Row: {
@@ -2598,6 +2972,66 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_flows: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          flow_json: Json
+          id: string
+          name: string
+          published_at: string | null
+          screens: Json
+          status: string | null
+          updated_at: string | null
+          whatsapp_connection_id: string | null
+          whatsapp_flow_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          flow_json?: Json
+          id?: string
+          name: string
+          published_at?: string | null
+          screens?: Json
+          status?: string | null
+          updated_at?: string | null
+          whatsapp_connection_id?: string | null
+          whatsapp_flow_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          flow_json?: Json
+          id?: string
+          name?: string
+          published_at?: string | null
+          screens?: Json
+          status?: string | null
+          updated_at?: string | null
+          whatsapp_connection_id?: string | null
+          whatsapp_flow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_flows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_flows_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
             referencedColumns: ["id"]
           },
         ]
