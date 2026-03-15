@@ -503,7 +503,7 @@ export function RealtimeInboxView() {
       />
 
       {/* Conversation List */}
-      <div className="w-96 flex-shrink-0 relative z-10 border-r border-border/20 bg-card/50 backdrop-blur-sm flex flex-col">
+      <div className="w-80 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col">
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
