@@ -477,8 +477,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-300',
-              'profile-card-neon bg-secondary/5 hover:bg-secondary/10',
+              'flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all duration-200',
+              'bg-muted/30 hover:bg-muted/50',
               isCollapsed && 'justify-center'
             )}
             role="status"
