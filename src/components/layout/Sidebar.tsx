@@ -164,7 +164,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           <Button
             variant="ghost"
             size="icon"
-            className="text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all duration-300"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
             aria-expanded={!isCollapsed}
