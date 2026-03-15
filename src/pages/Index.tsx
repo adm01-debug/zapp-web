@@ -71,10 +71,13 @@ function IndexContent() {
     { id: 'more', icon: <Menu className="w-5 h-5" />, label: 'Mais' },
   ];
 
+  const hasLoggedAudit = useRef(false);
+  
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
-    } else if (user && !loading) {
+    } else if (user && !loading && !hasLoggedAudit.current) {
+      hasLoggedAudit.current = true;
       logAudit({ action: 'login', details: { email: user.email } });
     }
   }, [user, loading, navigate]);
