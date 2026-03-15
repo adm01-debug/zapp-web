@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
@@ -150,6 +151,14 @@ export function ChatInputArea({
               >
                 <Layers className="w-5 h-5" />
               </Button>
+            </motion.div>
+
+            {/* Advanced Message Menu (Stickers, Polls, vCard, Status) */}
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <AdvancedMessageMenu
+                instanceName={contactId}
+                recipientNumber={contactPhone}
+              />
             </motion.div>
 
             <Popover>

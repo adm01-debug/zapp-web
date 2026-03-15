@@ -50,7 +50,9 @@ import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { BusinessHoursDialog } from './BusinessHoursDialog';
 import { BusinessHoursIndicator } from './BusinessHoursIndicator';
 import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
-import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2 } from 'lucide-react';
+import { InstanceSettingsDialog } from './InstanceSettingsDialog';
+import { IntegrationsPanel } from './IntegrationsPanel';
+import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2, Settings, Boxes } from 'lucide-react';
 
 interface WhatsAppConnection {
   id: string;
@@ -113,6 +115,16 @@ export function ConnectionsView() {
     connectionId: string;
     connectionName: string;
   }>({ open: false, connectionId: '', connectionName: '' });
+  const [settingsDialog, setSettingsDialog] = useState<{
+    open: boolean;
+    instanceName: string;
+    connectionName: string;
+  }>({ open: false, instanceName: '', connectionName: '' });
+  const [integrationsDialog, setIntegrationsDialog] = useState<{
+    open: boolean;
+    instanceName: string;
+    connectionName: string;
+  }>({ open: false, instanceName: '', connectionName: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
@@ -791,6 +803,26 @@ export function ConnectionsView() {
                                 <Link2 className="w-4 h-4 mr-2" />
                                 Vincular Filas
                               </DropdownMenuItem>
+                              {connection.instance_id && (
+                                <>
+                                  <DropdownMenuItem onClick={() => setSettingsDialog({
+                                    open: true,
+                                    instanceName: connection.instance_id!,
+                                    connectionName: connection.name,
+                                  })}>
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Configurações & Perfil
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setIntegrationsDialog({
+                                    open: true,
+                                    instanceName: connection.instance_id!,
+                                    connectionName: connection.name,
+                                  })}>
+                                    <Boxes className="w-4 h-4 mr-2" />
+                                    Integrações (IA/Bots)
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive"
@@ -826,6 +858,22 @@ export function ConnectionsView() {
         onOpenChange={(open) => setQueuesDialog((prev) => ({ ...prev, open }))}
         connectionId={queuesDialog.connectionId}
         connectionName={queuesDialog.connectionName}
+      />
+
+      {/* Instance Settings Dialog */}
+      <InstanceSettingsDialog
+        open={settingsDialog.open}
+        onOpenChange={(open) => setSettingsDialog((prev) => ({ ...prev, open }))}
+        instanceName={settingsDialog.instanceName}
+        connectionName={settingsDialog.connectionName}
+      />
+
+      {/* Integrations Panel */}
+      <IntegrationsPanel
+        open={integrationsDialog.open}
+        onOpenChange={(open) => setIntegrationsDialog((prev) => ({ ...prev, open }))}
+        instanceName={integrationsDialog.instanceName}
+        connectionName={integrationsDialog.connectionName}
       />
     </div>
   );
