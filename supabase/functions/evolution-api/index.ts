@@ -918,6 +918,210 @@ serve(async (req) => {
     }
 
     // =============================================
+    // 17. BLOCK/UNBLOCK CONTACTS
+    // =============================================
+
+    // POST /chat/updateBlockStatus/{instance}
+    if (action === 'update-block-status') {
+      return await proxy(`/chat/updateBlockStatus/${instance}`, 'POST', {
+        number: body.number,
+        status: body.status, // 'block' | 'unblock'
+      });
+    }
+
+    // =============================================
+    // 18. SEND PTV (Video Note / Circular Video)
+    // =============================================
+
+    // POST /message/sendPtv/{instance}
+    if (action === 'send-ptv') {
+      return await proxy(`/message/sendPtv/${instance}`, 'POST', {
+        number: body.number,
+        video: body.video || body.mediaUrl,
+        delay: body.delay,
+      });
+    }
+
+    // =============================================
+    // 19. OFFER CALL (Simulate Call)
+    // =============================================
+
+    // POST /call/offerCall/{instance}
+    if (action === 'offer-call') {
+      return await proxy(`/call/offerCall/${instance}`, 'POST', {
+        number: body.number,
+        isVideo: body.isVideo ?? false,
+        callDuration: body.callDuration ?? 5,
+      });
+    }
+
+    // =============================================
+    // 20. SEND PRESENCE (Per Chat)
+    // =============================================
+
+    // POST /chat/sendPresence/{instance}
+    if (action === 'send-chat-presence') {
+      return await proxy(`/chat/sendPresence/${instance}`, 'POST', {
+        number: body.number,
+        presence: body.presence, // composing | recording | paused
+        delay: body.delay ?? 1200,
+      });
+    }
+
+    // =============================================
+    // 21. BUSINESS CATALOG & COLLECTIONS
+    // =============================================
+
+    // POST /business/getCatalog/{instance}
+    if (action === 'get-catalog') {
+      return await proxy(`/business/getCatalog/${instance}`, 'POST', {
+        number: body.number,
+        limit: body.limit,
+        cursor: body.cursor,
+      });
+    }
+
+    // POST /business/getCollections/{instance}
+    if (action === 'get-collections') {
+      return await proxy(`/business/getCollections/${instance}`, 'POST', {
+        number: body.number,
+        limit: body.limit,
+        cursor: body.cursor,
+      });
+    }
+
+    // =============================================
+    // 22. PROXY CONFIGURATION
+    // =============================================
+
+    // POST /proxy/set/{instance}
+    if (action === 'set-proxy') {
+      return await proxy(`/proxy/set/${instance}`, 'POST', {
+        enabled: body.enabled ?? true,
+        host: body.host,
+        port: body.port,
+        protocol: body.protocol, // http | https | socks5
+        username: body.username,
+        password: body.password,
+      });
+    }
+
+    // GET /proxy/find/{instance}
+    if (action === 'get-proxy') {
+      return await proxy(`/proxy/find/${instance}`, 'GET');
+    }
+
+    // =============================================
+    // 23. EVO AI INTEGRATION
+    // =============================================
+
+    // POST /evoai/set/{instance}
+    if (action === 'set-evoai') {
+      return await proxy(`/evoai/set/${instance}`, 'POST', {
+        enabled: body.enabled ?? true,
+        apiUrl: body.apiUrl,
+        apiKey: body.apiKey,
+        agentId: body.agentId,
+        expire: body.expire ?? 30,
+        triggerType: body.triggerType ?? 'all',
+        triggerOperator: body.triggerOperator,
+        triggerValue: body.triggerValue,
+        keywordFinish: body.keywordFinish,
+        delayMessage: body.delayMessage ?? 1000,
+        unknownMessage: body.unknownMessage,
+        listeningFromMe: body.listeningFromMe ?? false,
+        stopBotFromMe: body.stopBotFromMe ?? true,
+        keepOpen: body.keepOpen ?? false,
+        debounceTime: body.debounceTime ?? 10,
+        speechToText: body.speechToText ?? false,
+      });
+    }
+
+    // GET /evoai/find/{instance}
+    if (action === 'get-evoai') {
+      return await proxy(`/evoai/find/${instance}`, 'GET');
+    }
+
+    // DELETE /evoai/delete/{instance}
+    if (action === 'delete-evoai') {
+      return await proxy(`/evoai/delete/${instance}`, 'DELETE');
+    }
+
+    // =============================================
+    // 24. N8N INTEGRATION
+    // =============================================
+
+    // POST /n8n/set/{instance}
+    if (action === 'set-n8n') {
+      return await proxy(`/n8n/set/${instance}`, 'POST', {
+        enabled: body.enabled ?? true,
+        webhookUrl: body.webhookUrl,
+        expire: body.expire ?? 30,
+        triggerType: body.triggerType ?? 'all',
+        triggerOperator: body.triggerOperator,
+        triggerValue: body.triggerValue,
+        keywordFinish: body.keywordFinish,
+        delayMessage: body.delayMessage ?? 1000,
+        unknownMessage: body.unknownMessage,
+        listeningFromMe: body.listeningFromMe ?? false,
+        stopBotFromMe: body.stopBotFromMe ?? true,
+        keepOpen: body.keepOpen ?? false,
+        debounceTime: body.debounceTime ?? 10,
+      });
+    }
+
+    // GET /n8n/find/{instance}
+    if (action === 'get-n8n') {
+      return await proxy(`/n8n/find/${instance}`, 'GET');
+    }
+
+    // DELETE /n8n/delete/{instance}
+    if (action === 'delete-n8n') {
+      return await proxy(`/n8n/delete/${instance}`, 'DELETE');
+    }
+
+    // =============================================
+    // 25. EVENT STREAMING (Kafka, NATS, Pusher)
+    // =============================================
+
+    // Kafka
+    if (action === 'set-kafka') {
+      return await proxy(`/kafka/set/${instance}`, 'POST', {
+        enabled: body.enabled ?? true,
+        events: body.events,
+      });
+    }
+    if (action === 'get-kafka') {
+      return await proxy(`/kafka/find/${instance}`, 'GET');
+    }
+
+    // NATS
+    if (action === 'set-nats') {
+      return await proxy(`/nats/set/${instance}`, 'POST', {
+        enabled: body.enabled ?? true,
+        events: body.events,
+      });
+    }
+    if (action === 'get-nats') {
+      return await proxy(`/nats/find/${instance}`, 'GET');
+    }
+
+    // Pusher
+    if (action === 'set-pusher') {
+      return await proxy(`/pusher/set/${instance}`, 'POST', {
+        enabled: body.enabled ?? true,
+        appId: body.appId,
+        key: body.key,
+        secret: body.secret,
+        cluster: body.cluster,
+        events: body.events,
+      });
+    }
+    if (action === 'get-pusher') {
+      return await proxy(`/pusher/find/${instance}`, 'GET');
+    }
+
+    // =============================================
     // DEFAULT: Unknown action
     // =============================================
     return new Response(JSON.stringify({ error: 'Unknown action', action }), {
