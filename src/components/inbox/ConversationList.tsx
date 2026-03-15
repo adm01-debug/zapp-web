@@ -164,8 +164,7 @@ export function ConversationList({
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
                         <Avatar className={cn(
-                          "w-11 h-11 ring-2 transition-all",
-                          isSelected ? "ring-primary/40" : "ring-border/30"
+                          "w-12 h-12",
                         )}>
                           <AvatarImage src={conversation.contact.avatar} />
                           <AvatarFallback className="bg-primary/10 text-primary font-medium">
