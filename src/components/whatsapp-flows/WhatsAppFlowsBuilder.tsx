@@ -172,7 +172,7 @@ export function WhatsAppFlowsBuilder() {
       <div className="flex flex-col h-full">
         <PageHeader
           title="WhatsApp Flows"
-          description="Crie formulários e fluxos interativos nativos do WhatsApp"
+          subtitle="Crie formulários e fluxos interativos nativos do WhatsApp"
           actions={
             <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
               <Plus className="w-4 h-4" /> Novo Flow
