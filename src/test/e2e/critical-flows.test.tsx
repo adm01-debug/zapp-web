@@ -61,8 +61,8 @@ describe('E2E: Authentication Flow', () => {
     });
 
     // Auth page should be importable
-    const { AuthPage } = await import('@/components/auth/AuthPage');
-    expect(AuthPage).toBeDefined();
+    const Auth = await import('@/pages/Auth');
+    expect(Auth.default).toBeDefined();
   });
 
   it('handles login submission', async () => {

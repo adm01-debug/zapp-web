@@ -516,6 +516,9 @@ export function DashboardView() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* Realtime Metrics Panel */}
+          <RealtimeMetricsPanel />
+
           {/* Progressive Disclosure Dashboard */}
           <ProgressiveDisclosureDashboard
             level1Widgets={level1Widgets}
