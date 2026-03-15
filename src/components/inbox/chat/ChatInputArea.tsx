@@ -230,7 +230,7 @@ export function ChatInputArea({
               onKeyDown={onKeyDown}
               onBlur={onBlur}
               placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos..."}
-              className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+              className="pr-10 bg-input border-0 focus:ring-0 rounded-lg text-sm"
             />
             <motion.div 
               whileHover={{ scale: 1.1 }} 
