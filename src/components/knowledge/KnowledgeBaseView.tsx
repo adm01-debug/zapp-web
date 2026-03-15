@@ -13,8 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, BookOpen, FileText, Search, Upload, Trash2, Edit, Eye, Brain,
-  FolderOpen, Tag, Clock, CheckCircle, AlertCircle, File
+  Plus, BookOpen, FileText, Search, Upload, Trash2, Edit, Brain,
+  Clock, CheckCircle, AlertCircle, File
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
