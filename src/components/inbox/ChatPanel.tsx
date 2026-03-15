@@ -339,20 +339,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           onSpeedChange={setSpeed}
         />
 
-        <ChatAssignedBar
-          conversation={conversation}
-          onOpenTransfer={() => setShowTransferDialog(true)}
-        />
-
-        <ConversationSummary 
-          messages={messages.map(m => ({
-            id: m.id,
-            sender: m.sender,
-            content: m.content,
-            created_at: m.timestamp.toISOString()
-          }))}
-          contactName={conversation.contact.name}
-        />
 
         <ChatMessagesArea
           ref={messagesAreaRef}
