@@ -85,6 +85,7 @@ const menuGroups: Array<{
       { id: 'tags', icon: Tag, label: 'Etiquetas' },
       { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
       { id: 'automations', icon: Zap, label: 'Automações' },
+      { id: 'integrations', icon: Globe, label: 'Integrações' },
     ],
   },
   {
