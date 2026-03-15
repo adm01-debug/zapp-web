@@ -70,7 +70,7 @@ export function SalesPipelineView() {
     setLoading(true);
     const [stagesRes, dealsRes, contactsRes, agentsRes] = await Promise.all([
       supabase.from('sales_pipeline_stages').select('*').order('position'),
-      supabase.from('sales_deals').select('*, contacts(name, phone), profiles!sales_deals_assigned_to_fkey(name)').order('created_at', { ascending: false }),
+      supabase.from('sales_deals').select('*').order('created_at', { ascending: false }),
       supabase.from('contacts').select('id, name, phone').limit(200),
       supabase.from('profiles').select('id, name').eq('is_active', true),
     ]);
