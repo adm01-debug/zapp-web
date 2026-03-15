@@ -242,10 +242,10 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                     aria-current={isActive ? 'page' : undefined}
                     role="menuitem"
                     className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative group',
                       isActive 
-                        ? 'text-secondary nav-item-neon-active' 
-                        : 'text-muted-foreground hover:text-secondary nav-item-neon-hover'
+                        ? 'text-primary bg-primary/10' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     )}
                   >
                     {/* Active indicator bar with neon effect */}
