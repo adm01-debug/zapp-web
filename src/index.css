@@ -255,20 +255,20 @@
   }
 
   .dark {
-    /* ===== BASE (WhatsApp Web Dark) ===== */
-    --background: 200 40% 7%;
-    --foreground: 200 10% 92%;
+    /* ===== BASE (WhatsApp Web Dark #111b21) ===== */
+    --background: 200 30% 10%;
+    --foreground: 0 0% 89%;
     
     /* ===== CARDS ===== */
-    --card: 200 31% 10%;
-    --card-foreground: 200 10% 92%;
-    --card-elevated: 200 28% 12%;
+    --card: 200 25% 13%;
+    --card-foreground: 0 0% 89%;
+    --card-elevated: 200 22% 15%;
     
     /* ===== POPOVER/DIALOG ===== */
-    --popover: 200 28% 16%;
-    --popover-foreground: 200 10% 92%;
+    --popover: 200 22% 18%;
+    --popover-foreground: 0 0% 89%;
     
-    /* ===== CORES PRIMÁRIAS (WhatsApp Teal) ===== */
+    /* ===== CORES PRIMÁRIAS (WhatsApp Teal #00a884) ===== */
     --primary: 162 100% 33%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 162 100% 40%;
@@ -278,8 +278,8 @@
     --secondary-foreground: 0 0% 100%;
     
     /* ===== MUTED ===== */
-    --muted: 200 22% 17%;
-    --muted-foreground: 200 13% 58%;
+    --muted: 200 18% 18%;
+    --muted-foreground: 0 0% 62%;
     
     /* ===== ACCENT ===== */
     --accent: 162 100% 33%;
@@ -290,8 +290,8 @@
     --destructive-foreground: 0 0% 100%;
     
     /* ===== BORDAS E INPUTS (WhatsApp Web Dark) ===== */
-    --border: 200 22% 17%;
-    --input: 199 24% 21%;
+    --border: 200 18% 18%;
+    --input: 200 20% 20%;
     --ring: 162 100% 33%;
 
     /* ===== ESTADOS ===== */
@@ -299,7 +299,7 @@
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 55%;
     --warning-foreground: 0 0% 10%;
-    --info: 199 78% 62%;
+    --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
     /* ===== GAMIFICAÇÃO ===== */
@@ -318,23 +318,29 @@
     --rank-bronze: 30 55% 55%;
     --rank-bronze-foreground: 30 60% 95%;
 
-    /* ===== Sidebar (WhatsApp Web Dark Panel) ===== */
-    --sidebar-background: 200 31% 10%;
-    --sidebar-foreground: 200 10% 92%;
+    /* ===== Sidebar (WhatsApp Web Dark Panel #111b21) ===== */
+    --sidebar-background: 200 25% 13%;
+    --sidebar-foreground: 0 0% 89%;
     --sidebar-primary: 162 100% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 199 24% 21%;
-    --sidebar-accent-foreground: 200 10% 92%;
-    --sidebar-border: 200 22% 17%;
+    --sidebar-accent: 200 20% 20%;
+    --sidebar-accent-foreground: 0 0% 89%;
+    --sidebar-border: 200 18% 18%;
     --sidebar-ring: 162 100% 33%;
+    --sidebar-header: 200 22% 15%;
 
     /* ===== Chat Specific (WhatsApp Web Dark) ===== */
-    --chat-bubble-sent: 168 100% 18%;
-    --chat-bubble-sent-foreground: 200 10% 92%;
-    --chat-bubble-received: 200 28% 16%;
-    --chat-bubble-received-foreground: 200 10% 92%;
-    --chat-header: 200 28% 16%;
-    --chat-input-bg: 200 28% 16%;
+    /* #005c4b sent bubble */
+    --chat-bubble-sent: 167 100% 18%;
+    --chat-bubble-sent-foreground: 0 0% 89%;
+    /* #202c33 received bubble */
+    --chat-bubble-received: 200 22% 16%;
+    --chat-bubble-received-foreground: 0 0% 89%;
+    /* #202c33 header */
+    --chat-header: 200 22% 16%;
+    --chat-input-bg: 200 22% 16%;
+    /* #0b141a wallpaper */
+    --chat-wallpaper: 207 40% 7%;
 
     /* ===== GRADIENTS ===== */
     --gradient-primary: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%));
