@@ -131,9 +131,9 @@ export function VirtualizedRealtimeList({
                 )}
 
                 <div className="relative flex-shrink-0">
-                  <Avatar className="w-11 h-11">
+                  <Avatar className="w-10 h-10">
                     <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                    <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
                       {(conversation.contact.name || '??')
                         .split(' ')
                         .map((n) => n[0])
@@ -142,11 +142,6 @@ export function VirtualizedRealtimeList({
                         .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  {conversation.unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
-                      {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
-                    </span>
-                  )}
                 </div>
 
                 <div className="flex-1 min-w-0 overflow-hidden">
