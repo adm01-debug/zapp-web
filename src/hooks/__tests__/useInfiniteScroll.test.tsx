@@ -56,12 +56,12 @@ describe('useInfiniteScroll', () => {
     expect(typeof result.current.setLoadMoreRef).toBe('function');
   });
 
-  it('exposes allItems array', () => {
+  it('exposes totalLoaded number', () => {
     const { result } = renderHook(
       () => useInfiniteScroll({ tableName: 'contacts' }),
       { wrapper: createWrapper() }
     );
-    expect(Array.isArray(result.current.allItems)).toBe(true);
+    expect(typeof result.current.totalLoaded).toBe('number');
   });
 
   it('accepts custom pageSize', () => {

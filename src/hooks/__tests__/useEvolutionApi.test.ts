@@ -129,8 +129,8 @@ describe('useEvolutionApi', () => {
     expect(typeof result.current.fetchProfilePicture).toBe('function');
   });
 
-  it('exposes checkIsWhatsAppNumber function', () => {
+  it('exposes checkWhatsAppNumbers function', () => {
     const { result } = renderHook(() => useEvolutionApi());
-    expect(typeof result.current.checkIsWhatsAppNumber).toBe('function');
+    expect(typeof result.current.checkWhatsAppNumbers).toBe('function');
   });
 });

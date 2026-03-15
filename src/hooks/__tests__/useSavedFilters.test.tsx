@@ -90,14 +90,14 @@ describe('useSavedFilters', () => {
     expect(typeof result.current.deleteFilter).toBe('function');
   });
 
-  it('exposes applyFilter function', () => {
+  it('exposes updateFilter function', () => {
     const { result } = renderHook(() => useSavedFilters('contacts'), { wrapper: createWrapper() });
-    expect(typeof result.current.applyFilter).toBe('function');
+    expect(typeof result.current.updateFilter).toBe('function');
   });
 
-  it('exposes setDefaultFilter function', () => {
+  it('exposes setDefault function', () => {
     const { result } = renderHook(() => useSavedFilters('contacts'), { wrapper: createWrapper() });
-    expect(typeof result.current.setDefaultFilter).toBe('function');
+    expect(typeof result.current.setDefault).toBe('function');
   });
 
   it('handles different entity types', async () => {

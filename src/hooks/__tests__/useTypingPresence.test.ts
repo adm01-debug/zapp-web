@@ -44,9 +44,9 @@ describe('useTypingPresence', () => {
     expect(result.current.isContactTyping).toBe(false);
   });
 
-  it('exposes setTyping function', () => {
+  it('exposes handleTypingStart function type', () => {
     const { result } = renderHook(() => useTypingPresence({ conversationId: 'c1' }));
-    expect(typeof result.current.setTyping).toBe('function');
+    expect(typeof result.current.handleTypingStart).toBe('function');
   });
 
   it('exposes handleTypingStart function', () => {
