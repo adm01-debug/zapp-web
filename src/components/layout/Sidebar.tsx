@@ -487,8 +487,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           >
             <div className="relative">
               <Avatar className={cn(
-                "w-10 h-10 ring-2 transition-all duration-300",
-                currentAgent.status === 'online' ? "ring-secondary/50 avatar-neon-online" : "ring-border/30"
+                "w-10 h-10 transition-all duration-200",
+                currentAgent.status === 'online' ? "" : ""
               )}>
                 <AvatarImage src={currentAgent.avatar} alt={`Avatar de ${currentAgent.name}`} />
                 <AvatarFallback className="bg-secondary/15 text-secondary font-display font-semibold">
