@@ -53,7 +53,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       className="w-80 h-full bg-card border-l border-border flex flex-col overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/30 bg-card">
+      <div className="flex items-center justify-between p-4 border-b border-border bg-card">
         <h3 className="font-semibold text-foreground">
           Detalhes do Contato
         </h3>
