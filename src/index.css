@@ -249,55 +249,55 @@
   }
 
   .dark {
-    /* ===== BASE ===== */
-    --background: 160 15% 6%;
-    --foreground: 150 15% 92%;
+    /* ===== BASE (WhatsApp Web Dark) ===== */
+    --background: 200 40% 7%;
+    --foreground: 200 10% 92%;
     
     /* ===== CARDS ===== */
-    --card: 160 12% 10%;
-    --card-foreground: 150 15% 92%;
-    --card-elevated: 160 10% 13%;
+    --card: 200 31% 10%;
+    --card-foreground: 200 10% 92%;
+    --card-elevated: 200 28% 12%;
     
     /* ===== POPOVER/DIALOG ===== */
-    --popover: 160 12% 10%;
-    --popover-foreground: 150 15% 92%;
+    --popover: 200 28% 16%;
+    --popover-foreground: 200 10% 92%;
     
-    /* ===== CORES PRIMÁRIAS (Verde WhatsApp vibrante) ===== */
-    --primary: 142 72% 50%;
+    /* ===== CORES PRIMÁRIAS (WhatsApp Teal) ===== */
+    --primary: 162 100% 33%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 75% 60%;
+    --primary-glow: 162 100% 40%;
     
-    /* ===== CORES SECUNDÁRIAS (Roxo vibrante) ===== */
-    --secondary: 270 75% 60%;
+    /* ===== CORES SECUNDÁRIAS ===== */
+    --secondary: 162 100% 33%;
     --secondary-foreground: 0 0% 100%;
     
     /* ===== MUTED ===== */
-    --muted: 260 10% 16%;
-    --muted-foreground: 270 10% 55%;
+    --muted: 200 22% 17%;
+    --muted-foreground: 200 13% 58%;
     
-    /* ===== ACCENT (Roxo neon) ===== */
-    --accent: 280 85% 65%;
+    /* ===== ACCENT ===== */
+    --accent: 162 100% 33%;
     --accent-foreground: 0 0% 100%;
     
     /* ===== DESTRUCTIVE ===== */
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
     
-    /* ===== BORDAS E INPUTS ===== */
-    --border: 160 10% 18%;
-    --input: 160 10% 14%;
-    --ring: 142 72% 50%;
+    /* ===== BORDAS E INPUTS (WhatsApp Web Dark) ===== */
+    --border: 200 22% 17%;
+    --input: 199 24% 21%;
+    --ring: 162 100% 33%;
 
     /* ===== ESTADOS ===== */
-    --success: 142 71% 50%;
+    --success: 162 100% 33%;
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 55%;
     --warning-foreground: 0 0% 10%;
-    --info: 200 80% 55%;
+    --info: 199 78% 62%;
     --info-foreground: 0 0% 100%;
 
     /* ===== GAMIFICAÇÃO ===== */
-    --xp: 280 85% 65%;
+    --xp: 162 100% 33%;
     --xp-foreground: 0 0% 100%;
     --coins: 45 93% 55%;
     --coins-foreground: 0 0% 10%;
@@ -312,77 +312,77 @@
     --rank-bronze: 30 55% 55%;
     --rank-bronze-foreground: 30 60% 95%;
 
-    /* ===== Sidebar ===== */
-    --sidebar-background: 160 15% 8%;
-    --sidebar-foreground: 150 15% 92%;
-    --sidebar-primary: 142 72% 50%;
+    /* ===== Sidebar (WhatsApp Web Dark Panel) ===== */
+    --sidebar-background: 200 31% 10%;
+    --sidebar-foreground: 200 10% 92%;
+    --sidebar-primary: 162 100% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 10% 14%;
-    --sidebar-accent-foreground: 150 15% 92%;
-    --sidebar-border: 160 10% 14%;
-    --sidebar-ring: 142 72% 50%;
+    --sidebar-accent: 199 24% 21%;
+    --sidebar-accent-foreground: 200 10% 92%;
+    --sidebar-border: 200 22% 17%;
+    --sidebar-ring: 162 100% 33%;
 
-    /* ===== Chat Specific ===== */
-    --chat-bubble-sent: 142 72% 48%;
-    --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 160 10% 14%;
-    --chat-bubble-received-foreground: 150 15% 92%;
-    --chat-header: 160 12% 10%;
-    --chat-input-bg: 160 12% 10%;
+    /* ===== Chat Specific (WhatsApp Web Dark) ===== */
+    --chat-bubble-sent: 168 100% 18%;
+    --chat-bubble-sent-foreground: 200 10% 92%;
+    --chat-bubble-received: 200 28% 16%;
+    --chat-bubble-received-foreground: 200 10% 92%;
+    --chat-header: 200 28% 16%;
+    --chat-input-bg: 200 28% 16%;
 
     /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(142 72% 50%), hsl(270 75% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(270 75% 60%), hsl(300 80% 65%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 50%), hsl(142 71% 60%));
-    --gradient-xp: linear-gradient(90deg, hsl(280 85% 65%), hsl(300 85% 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%));
+    --gradient-secondary: linear-gradient(135deg, hsl(162 100% 33%), hsl(162 80% 40%));
+    --gradient-success: linear-gradient(135deg, hsl(162 100% 33%), hsl(162 100% 40%));
+    --gradient-xp: linear-gradient(90deg, hsl(162 100% 33%), hsl(162 80% 40%));
     --gradient-gold: linear-gradient(135deg, hsl(45 93% 55%), hsl(38 92% 50%));
-    --gradient-surface: linear-gradient(180deg, hsl(260 12% 10%), hsl(260 15% 6%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(270 10% 18% / 0.5), transparent);
-    --gradient-vibrant: linear-gradient(135deg, hsl(142 72% 50%), hsl(280 85% 65%), hsl(270 75% 60%));
-    --gradient-purple-green: linear-gradient(135deg, hsl(270 75% 60%), hsl(142 72% 50%));
+    --gradient-surface: linear-gradient(180deg, hsl(200 31% 10%), hsl(200 40% 7%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(200 22% 17% / 0.5), transparent);
+    --gradient-vibrant: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%), hsl(162 80% 40%));
+    --gradient-purple-green: linear-gradient(135deg, hsl(162 100% 33%), hsl(162 100% 25%));
 
-    /* ===== SHADOWS ===== */
-    --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.4);
-    --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.5), 0 1px 2px hsl(0 0% 0% / 0.4);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.5), 0 2px 4px -2px hsl(0 0% 0% / 0.4);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5), 0 4px 6px -4px hsl(0 0% 0% / 0.4);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.6), 0 8px 10px -6px hsl(0 0% 0% / 0.5);
-    --shadow-glow-primary: 0 0 35px hsl(142 72% 50% / 0.4);
-    --shadow-glow-secondary: 0 0 35px hsl(270 75% 60% / 0.4);
-    --shadow-glow-success: 0 0 25px hsl(142 71% 50% / 0.3);
-    --shadow-glow-accent: 0 0 30px hsl(280 85% 65% / 0.45);
-    --shadow-glow-purple: 0 0 40px hsl(270 75% 60% / 0.5);
-    --shadow-header: 0 1px 3px hsl(0 0% 0% / 0.5), inset 0 1px 0 hsl(270 10% 25% / 0.3);
+    /* ===== SHADOWS (WhatsApp Web Dark - very subtle) ===== */
+    --shadow-xs: 0 1px 1px hsl(0 0% 0% / 0.2);
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 2px 4px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 4px 8px hsl(0 0% 0% / 0.3);
+    --shadow-xl: 0 8px 16px hsl(0 0% 0% / 0.4);
+    --shadow-glow-primary: 0 0 8px hsl(162 100% 33% / 0.15);
+    --shadow-glow-secondary: 0 0 8px hsl(162 100% 33% / 0.15);
+    --shadow-glow-success: 0 0 8px hsl(162 100% 33% / 0.15);
+    --shadow-glow-accent: 0 0 8px hsl(162 100% 33% / 0.15);
+    --shadow-glow-purple: 0 0 8px hsl(162 100% 33% / 0.15);
+    --shadow-header: 0 1px 3px hsl(0 0% 0% / 0.3);
 
     /* ===== GLASS ===== */
-    --glass-bg: 160 12% 12% / 0.85;
-    --glass-border: 142 72% 50% / 0.2;
+    --glass-bg: 200 28% 14% / 0.9;
+    --glass-border: 200 22% 17% / 0.8;
 
     /* ===== ELEVAÇÃO ===== */
-    --elevated: 160 10% 13%;
-    --elevated-hover: 160 10% 16%;
+    --elevated: 200 28% 12%;
+    --elevated-hover: 199 24% 21%;
 
-    /* ===== CHART PALETTE (10 harmonious colors) ===== */
-    --chart-1: 142 72% 55%;
-    --chart-2: 270 75% 65%;
-    --chart-3: 200 85% 60%;
-    --chart-4: 45 93% 60%;
-    --chart-5: 340 80% 65%;
+    /* ===== CHART PALETTE ===== */
+    --chart-1: 162 100% 40%;
+    --chart-2: 199 78% 62%;
+    --chart-3: 45 93% 60%;
+    --chart-4: 0 72% 60%;
+    --chart-5: 280 65% 65%;
     --chart-6: 175 65% 55%;
-    --chart-7: 280 85% 70%;
+    --chart-7: 30 85% 60%;
     --chart-8: 15 95% 60%;
     --chart-9: 220 75% 60%;
-    --chart-10: 160 65% 50%;
+    --chart-10: 140 65% 50%;
     
     /* Chart Status Colors */
-    --chart-status-resolved: 142 72% 55%;
+    --chart-status-resolved: 162 100% 40%;
     --chart-status-pending: 45 93% 60%;
-    --chart-status-waiting: 200 85% 60%;
-    --chart-status-open: 270 75% 65%;
+    --chart-status-waiting: 199 78% 62%;
+    --chart-status-open: 162 100% 33%;
     
     /* Chart Sentiment Colors */
-    --chart-sentiment-positive: 142 72% 55%;
-    --chart-sentiment-neutral: 220 15% 60%;
+    --chart-sentiment-positive: 162 100% 40%;
+    --chart-sentiment-neutral: 200 13% 58%;
     --chart-sentiment-negative: 0 72% 60%;
   }
 }
