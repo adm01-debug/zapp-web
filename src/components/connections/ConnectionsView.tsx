@@ -50,7 +50,9 @@ import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { BusinessHoursDialog } from './BusinessHoursDialog';
 import { BusinessHoursIndicator } from './BusinessHoursIndicator';
 import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
-import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2 } from 'lucide-react';
+import { InstanceSettingsDialog } from './InstanceSettingsDialog';
+import { IntegrationsPanel } from './IntegrationsPanel';
+import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2, Settings, Boxes } from 'lucide-react';
 
 interface WhatsAppConnection {
   id: string;
