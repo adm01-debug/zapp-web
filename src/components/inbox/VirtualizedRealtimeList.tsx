@@ -111,10 +111,10 @@ export function VirtualizedRealtimeList({
               <button
                 onClick={(e) => handleClick(contactId, e)}
                 className={cn(
-                  'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
-                  selectedContactId === contactId && 'bg-primary/10 border border-primary/20',
-                  isSelected && 'bg-primary/20 border border-primary/30',
-                  isPinned && 'bg-primary/5 border-l-2 border-l-primary'
+                  'w-full px-2 py-3 flex items-center gap-3 transition-colors text-left border-b border-border/60 hover:bg-muted/40',
+                  selectedContactId === contactId && 'bg-muted',
+                  isSelected && 'bg-primary/10',
+                  isPinned && 'bg-muted/70'
                 )}
               >
                 {selectionMode && (
