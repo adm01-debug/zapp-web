@@ -132,7 +132,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       <div className="absolute inset-x-0 top-0 h-28 bg-primary pointer-events-none" aria-hidden="true" />
       
       {/* Logo */}
-      <div className="relative flex items-center justify-between p-4 border-b border-secondary/20">
+      <div className="relative flex items-center justify-between p-4 border-b border-border z-10">
         <AnimatePresence mode="wait">
           {!isCollapsed && (
             <motion.div
