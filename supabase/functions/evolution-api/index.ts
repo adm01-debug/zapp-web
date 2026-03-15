@@ -477,9 +477,9 @@ serve(async (req) => {
       });
     }
 
-    // GET /group/fetchAllGroups/{instance}
+    // GET /group/fetchAllGroups/{instance}?getParticipants=false
     if (action === 'list-groups') {
-      return await proxy(`/group/fetchAllGroups/${instance}`, 'GET');
+      return await proxy(`/group/fetchAllGroups/${instance}?getParticipants=${body.getParticipants ?? 'false'}`, 'GET');
     }
 
     // GET /group/findGroupInfos/{instance}?groupJid=...
