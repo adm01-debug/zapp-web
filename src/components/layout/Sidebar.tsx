@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useTheme } from '@/providers/ThemeProvider';
+import { useTheme } from '@/hooks/useTheme';
 
 interface SidebarProps {
   currentView: string;
