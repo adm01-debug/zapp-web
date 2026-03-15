@@ -98,19 +98,12 @@ describe('useActionFeedback', () => {
     expect(callArg.description).toContain('Desfazer');
   });
 
-  it('FEEDBACK_ICONS has all types', () => {
-    expect(FEEDBACK_ICONS).toBeDefined();
-    expect(FEEDBACK_ICONS.success).toBeTruthy();
-    expect(FEEDBACK_ICONS.error).toBeTruthy();
-    expect(FEEDBACK_ICONS.warning).toBeTruthy();
-    expect(FEEDBACK_ICONS.info).toBeTruthy();
-    expect(FEEDBACK_ICONS.loading).toBeTruthy();
-  });
-
-  it('FEEDBACK_TITLES has all types', () => {
-    expect(FEEDBACK_TITLES).toBeDefined();
-    expect(FEEDBACK_TITLES.success).toBeTruthy();
-    expect(FEEDBACK_TITLES.error).toBeTruthy();
+  it('all feedback types are callable', () => {
+    const { result } = renderHook(() => useActionFeedback());
+    expect(typeof result.current.success).toBe('function');
+    expect(typeof result.current.error).toBe('function');
+    expect(typeof result.current.warning).toBe('function');
+    expect(typeof result.current.info).toBe('function');
   });
 
   it('exposes withFeedback for async operations', () => {

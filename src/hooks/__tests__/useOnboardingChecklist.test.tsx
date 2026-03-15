@@ -124,11 +124,11 @@ describe('useOnboardingChecklist', () => {
     expect(typeof result.current.checkStatus).toBe('function');
   });
 
-  it('exposes completionPercentage', async () => {
+  it('exposes progress percentage', async () => {
     const { result } = renderHook(() => useOnboardingChecklist());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(typeof result.current.completionPercentage).toBe('number');
-    expect(result.current.completionPercentage).toBeGreaterThanOrEqual(0);
-    expect(result.current.completionPercentage).toBeLessThanOrEqual(100);
+    expect(typeof result.current.progress).toBe('number');
+    expect(result.current.progress).toBeGreaterThanOrEqual(0);
+    expect(result.current.progress).toBeLessThanOrEqual(100);
   });
 });

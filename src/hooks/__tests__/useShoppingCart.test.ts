@@ -15,6 +15,7 @@ const mockProduct = (overrides = {}) => ({
   currency: 'BRL',
   stock_quantity: 10,
   is_active: true,
+  sku: 'SKU-001',
   image_url: null,
   description: null,
   category: null,
