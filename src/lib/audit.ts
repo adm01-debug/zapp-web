@@ -22,16 +22,25 @@ interface AuditLogParams {
 }
 
 export async function logAudit({ action, entityType, entityId, details }: AuditLogParams) {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return;
 
-  await supabase.from('audit_logs').insert([{
-    user_id: user.id,
-    action,
-    entity_type: entityType || null,
-    entity_id: entityId || null,
-    details: JSON.parse(JSON.stringify(details || {})),
-    user_agent: navigator.userAgent,
-  }]);
+    const { error } = await supabase.from('audit_logs').insert([{
+      user_id: user.id,
+      action,
+      entity_type: entityType || null,
+      entity_id: entityId || null,
+      details: JSON.parse(JSON.stringify(details || {})),
+      user_agent: navigator.userAgent,
+    }]);
+
+    if (error) {
+      console.warn('Failed to log audit:', error.message);
+    }
+  } catch (err: unknown) {
+    // Silently fail - audit logging should never break the app
+    console.warn('Audit log error:', err instanceof Error ? err.message : 'unknown');
+  }
 }

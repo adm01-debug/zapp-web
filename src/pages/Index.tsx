@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDeepLinks } from '@/hooks/useDeepLinks';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -71,10 +71,13 @@ function IndexContent() {
     { id: 'more', icon: <Menu className="w-5 h-5" />, label: 'Mais' },
   ];
 
+  const hasLoggedAudit = useRef(false);
+  
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
-    } else if (user && !loading) {
+    } else if (user && !loading && !hasLoggedAudit.current) {
+      hasLoggedAudit.current = true;
       logAudit({ action: 'login', details: { email: user.email } });
     }
   }, [user, loading, navigate]);

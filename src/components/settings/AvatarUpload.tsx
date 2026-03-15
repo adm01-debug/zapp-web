@@ -6,9 +6,12 @@ import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useActionFeedback } from '@/hooks/useActionFeedback';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('AvatarUpload');
 
 export function AvatarUpload() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const feedback = useActionFeedback();
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || null);
@@ -50,6 +53,7 @@ export function AvatarUpload() {
         if (updateError) throw updateError;
 
         setAvatarUrl(urlWithCache);
+        await refreshProfile();
       },
       {
         loadingMessage: 'Enviando foto...',
@@ -71,6 +75,7 @@ export function AvatarUpload() {
           .eq('user_id', user.id);
         if (error) throw error;
         setAvatarUrl(null);
+        await refreshProfile();
       },
       {
         successMessage: 'Foto removida!',
