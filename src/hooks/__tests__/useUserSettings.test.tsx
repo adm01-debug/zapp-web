@@ -94,7 +94,7 @@ describe('useUserSettings', () => {
     });
 
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.auto_assignment_enabled).toBe(true);
   });
 
