@@ -783,6 +783,14 @@ export function ConnectionsView() {
                                 <Clock className="w-4 h-4 mr-2" />
                                 Horário de Atendimento
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setQueuesDialog({
+                                open: true,
+                                connectionId: connection.id,
+                                connectionName: connection.name,
+                              })}>
+                                <Link2 className="w-4 h-4 mr-2" />
+                                Vincular Filas
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive"
