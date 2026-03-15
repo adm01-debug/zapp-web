@@ -259,10 +259,10 @@ function IndexContent() {
     <SLANotificationProvider>
       <GoalNotificationProvider>
         <div className="flex h-screen bg-background overflow-hidden relative">
-          {/* Subtle background gradients */}
+          {/* Subtle background accent */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/3 rounded-full blur-[120px]" />
+            <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] bg-primary/2 rounded-full blur-[100px]" />
           </div>
           
           {/* Mobile Header */}
