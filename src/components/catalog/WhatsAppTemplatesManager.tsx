@@ -236,7 +236,7 @@ export function WhatsAppTemplatesManager() {
   const renderPreviewContent = (content: string, variables: Record<string, string>) => {
     let rendered = content;
     Object.entries(variables).forEach(([key, value]) => {
-      rendered = rendered.replaceAll(key, value || key);
+      rendered = rendered.split(key).join(value || key);
     });
     return rendered;
   };
