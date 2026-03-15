@@ -19,6 +19,7 @@ import { GroupsView } from '@/components/groups/GroupsView';
 import { TranscriptionsHistoryView } from '@/components/transcriptions/TranscriptionsHistoryView';
 import { AdvancedReportsView } from '@/components/reports/AdvancedReportsView';
 import { SecurityView } from '@/components/security/SecurityView';
+import { SystemFeaturesView } from '@/components/docs/SystemFeaturesView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
@@ -196,7 +197,8 @@ function IndexContent() {
         return <SecurityView />;
       case 'settings':
         return <SettingsView />;
-      default:
+      case 'docs':
+        return <SystemFeaturesView />;
         return (
           <div className="flex items-center justify-center h-full">
             <motion.div 

@@ -26,6 +26,7 @@ import {
   Search,
   Command,
   Link2,
+  BookOpen,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -90,6 +91,7 @@ const menuGroups: Array<{
       { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
       { id: 'security', icon: Shield, label: 'Segurança' },
       { id: 'admin', icon: ShieldCheck, label: 'Admin' },
+      { id: 'docs', icon: BookOpen, label: 'Documentação' },
       { id: 'settings', icon: Settings, label: 'Configurações' },
     ],
   },
