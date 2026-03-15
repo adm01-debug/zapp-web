@@ -322,6 +322,7 @@ export const VirtualizedMessageList = forwardRef<VirtualizedMessageListRef, Virt
               {isSent && <MessageStatusIcon status={message.status} />}
             </div>
           </div>
+          )}
 
           <MessageReactions
             messageId={message.id}
