@@ -68,7 +68,7 @@ export function ConversationList({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="p-4 border-b border-border/20 space-y-4"
+        className="p-4 border-b border-border space-y-3 bg-[hsl(var(--chat-header))]"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
