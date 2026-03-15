@@ -122,7 +122,7 @@ describe('useUserSettings', () => {
   it('default TTS speed is 1.0', async () => {
     mockUseAuth.mockReturnValue({ user: null });
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.tts_speed).toBe(1.0);
   });
 
