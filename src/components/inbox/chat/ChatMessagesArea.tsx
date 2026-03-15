@@ -153,7 +153,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       initial={{ opacity: 0, x: isSent ? 20 : -20, scale: 0.95 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                      className="max-w-[70%] space-y-1 relative"
+                      className="max-w-[78%] md:max-w-[65%] space-y-1 relative"
                     >
                       {/* Message Actions (visible on hover) */}
                       <div className={cn(
