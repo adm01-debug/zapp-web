@@ -3,7 +3,6 @@ import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AnimatePresence } from 'framer-motion';
 import { ReplyPreview } from '../ReplyQuote';
@@ -28,6 +27,8 @@ import {
   MapPin,
   Package,
   Layers,
+  Settings,
+  Paperclip,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -115,10 +116,187 @@ export function ChatInputArea({
         )}
       </AnimatePresence>
 
-      {/* Input Footer — DreamsChat style */}
+      {/* Input Footer — DreamsChat style: single row */}
       <div className="px-4 py-3 border-t border-border bg-card">
-        {/* Action icons row */}
-        <div className="flex items-center gap-1 mb-2">
+        {/* Audio Recorder overlay */}
+        <AnimatePresence>
+          {isRecordingAudio && (
+            <div className="mb-3">
+              <AudioRecorder
+                onSend={onAudioSend}
+                onCancel={onAudioCancel}
+              />
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Slash Commands Menu */}
+        <SlashCommands
+          inputValue={inputValue}
+          onSelectCommand={onSlashCommand}
+          onClose={onCloseSlashCommands}
+          isOpen={showSlashCommands}
+        />
+
+        {/* Main input row — DreamsChat: [settings] [input] [emoji] [attach] [send] */}
+        <div className="flex items-center gap-2">
+          {/* Left: Settings/options popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+                title="Opções"
+              >
+                <Settings className="w-[18px] h-[18px]" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2 bg-popover border-border" align="start" side="top">
+              <div className="flex flex-col gap-1">
+                <FileUploader
+                  ref={fileUploaderRef}
+                  instanceName={instanceName || ''}
+                  recipientNumber={contactPhone}
+                  contactId={contactId}
+                  connectionId={undefined}
+                  onFileSelect={(file, category) => {
+                    toast({
+                      title: 'Arquivo selecionado',
+                      description: `${file.name} (${category}) será enviado.`,
+                    });
+                  }}
+                  onFileSent={(result) => {
+                    toast({
+                      title: 'Arquivo enviado!',
+                      description: 'O arquivo foi enviado com sucesso via WhatsApp.',
+                    });
+                  }}
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="justify-start gap-2 text-muted-foreground hover:text-foreground"
+                  onClick={onOpenInteractiveBuilder}
+                >
+                  <Layers className="w-4 h-4" />
+                  Mensagem Interativa
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="justify-start gap-2 text-muted-foreground hover:text-foreground"
+                  onClick={onOpenLocationPicker}
+                >
+                  <MapPin className="w-4 h-4" />
+                  Localização
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="justify-start gap-2 text-muted-foreground hover:text-foreground"
+                  onClick={onOpenSchedule}
+                >
+                  <Clock className="w-4 h-4" />
+                  Agendar
+                </Button>
+                <ProductCatalog
+                  onSendProduct={onSendProduct}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2 text-muted-foreground hover:text-foreground w-full"
+                    >
+                      <Package className="w-4 h-4" />
+                      Catálogo
+                    </Button>
+                  }
+                />
+                <AdvancedMessageMenu
+                  instanceName={instanceName || ''}
+                  recipientNumber={contactPhone}
+                />
+                <AISuggestions
+                  messages={messages.map(m => ({
+                    id: m.id,
+                    content: m.content,
+                    sender: m.sender,
+                    timestamp: m.timestamp
+                  }))}
+                  contactName={contactName}
+                  onSelectSuggestion={onSelectSuggestion}
+                />
+                <MessageTemplates onSelectTemplate={onSelectTemplate} />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="justify-start gap-2 text-muted-foreground hover:text-foreground w-full">
+                      <Zap className="w-4 h-4" />
+                      Respostas Rápidas
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-0 bg-popover border-border" align="start" side="top">
+                    <div className="p-3 border-b border-border">
+                      <h4 className="font-medium text-sm text-foreground">Respostas Rápidas</h4>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto p-2 space-y-1">
+                      {quickReplies.map((reply) => (
+                        <button
+                          key={reply.id}
+                          onClick={() => onQuickReply(reply)}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-foreground">{reply.title}</span>
+                            <Badge variant="outline" className="text-[10px] border-border">
+                              {reply.shortcut}
+                            </Badge>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Input field — transparent bg, DreamsChat style */}
+          <div className="flex-1">
+            <input
+              ref={inputRef}
+              value={inputValue}
+              onChange={onInputChange}
+              onKeyDown={onKeyDown}
+              onBlur={onBlur}
+              placeholder={replyToMessage ? "Digite sua resposta..." : "Type Your Message"}
+              className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground h-10 px-2"
+            />
+          </div>
+
+          {/* Right icons: Emoji, Mic, Attach, Send */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+            title="Emoji"
+          >
+            <Smile className="w-[18px] h-[18px]" />
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0",
+              isRecordingAudio && "text-destructive bg-destructive/10"
+            )}
+            onClick={onRecordToggle}
+            title="Gravar áudio"
+          >
+            <Mic className="w-[18px] h-[18px]" />
+          </Button>
+
           <FileUploader
             ref={fileUploaderRef}
             instanceName={instanceName || ''}
@@ -138,146 +316,8 @@ export function ChatInputArea({
               });
             }}
           />
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-            onClick={onOpenInteractiveBuilder}
-            title="Mensagem Interativa"
-          >
-            <Layers className="w-[18px] h-[18px]" />
-          </Button>
 
-          <AdvancedMessageMenu
-            instanceName={instanceName || ''}
-            recipientNumber={contactPhone}
-          />
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted">
-                <Zap className="w-[18px] h-[18px]" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0 bg-popover border-border" align="start">
-              <div className="p-3 border-b border-border">
-                <h4 className="font-medium text-sm text-foreground">Respostas Rápidas</h4>
-                <p className="text-xs text-muted-foreground">
-                  Digite / para usar atalhos
-                </p>
-              </div>
-              <div className="max-h-64 overflow-y-auto p-2 space-y-1">
-                {quickReplies.map((reply) => (
-                  <button
-                    key={reply.id}
-                    onClick={() => onQuickReply(reply)}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-foreground">{reply.title}</span>
-                      <Badge variant="outline" className="text-[10px] border-border">
-                        {reply.shortcut}
-                      </Badge>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-          
-          {/* AI Suggestions */}
-          <AISuggestions
-            messages={messages.map(m => ({
-              id: m.id,
-              content: m.content,
-              sender: m.sender,
-              timestamp: m.timestamp
-            }))}
-            contactName={contactName}
-            onSelectSuggestion={onSelectSuggestion}
-          />
-          
-          {/* Message Templates */}
-          <MessageTemplates onSelectTemplate={onSelectTemplate} />
-        </div>
-
-        {/* Input row */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 relative">
-            {/* Slash Commands Menu */}
-            <SlashCommands
-              inputValue={inputValue}
-              onSelectCommand={onSlashCommand}
-              onClose={onCloseSlashCommands}
-              isOpen={showSlashCommands}
-            />
-            
-            <Input
-              ref={inputRef}
-              value={inputValue}
-              onChange={onInputChange}
-              onKeyDown={onKeyDown}
-              onBlur={onBlur}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos..."}
-              className="bg-muted border-border rounded-full h-10 px-4 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-0"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 text-muted-foreground hover:text-foreground"
-            >
-              <Smile className="w-[18px] h-[18px]" />
-            </Button>
-          </div>
-
-          {/* Right side action buttons */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={cn(
-              "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0",
-              isRecordingAudio && "text-destructive bg-destructive/10"
-            )}
-            onClick={onRecordToggle}
-          >
-            <Mic className="w-[18px] h-[18px]" />
-          </Button>
-
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-            onClick={onOpenLocationPicker}
-            title="Compartilhar localização"
-          >
-            <MapPin className="w-[18px] h-[18px]" />
-          </Button>
-
-          <ProductCatalog
-            onSendProduct={onSendProduct}
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-                title="Catálogo de produtos"
-              >
-                <Package className="w-[18px] h-[18px]" />
-              </Button>
-            }
-          />
-
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-            onClick={onOpenSchedule}
-          >
-            <Clock className="w-[18px] h-[18px]" />
-          </Button>
-
-          {/* Send button — DreamsChat circular purple */}
+          {/* Send button — circular purple */}
           <Button
             onClick={onSend}
             disabled={!inputValue.trim()}
@@ -287,18 +327,6 @@ export function ChatInputArea({
             <Send className="w-[18px] h-[18px]" />
           </Button>
         </div>
-
-        {/* Audio Recorder */}
-        <AnimatePresence>
-          {isRecordingAudio && (
-            <div className="mt-3">
-              <AudioRecorder
-                onSend={onAudioSend}
-                onCancel={onAudioCancel}
-              />
-            </div>
-          )}
-        </AnimatePresence>
       </div>
     </>
   );

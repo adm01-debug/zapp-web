@@ -13,6 +13,7 @@ import { InteractiveMessageDisplay, ButtonResponseBadge } from '../InteractiveMe
 import { QuotedMessage } from '../ReplyQuote';
 import { LocationMessageDisplay } from '../LocationMessage';
 import { TextToSpeechButton } from '../TextToSpeechButton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Check,
   CheckCheck,
@@ -21,32 +22,33 @@ import {
   Reply,
   Forward,
   Copy,
+  MoreVertical,
 } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 function formatMessageTime(date: Date): string {
-  return format(date, 'HH:mm');
+  return format(date, 'hh:mm a');
 }
 
 function formatDateSeparator(date: Date): string {
   if (isToday(date)) return 'Hoje';
   if (isYesterday(date)) return 'Ontem';
-  return format(date, "d 'de' MMMM", { locale: ptBR });
+  return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
 }
 
 function MessageStatusIcon({ status }: { status: Message['status'] }) {
   switch (status) {
     case 'sent':
-      return <Check className="w-3 h-3" />;
+      return <Check className="w-3.5 h-3.5" />;
     case 'delivered':
-      return <CheckCheck className="w-3 h-3" />;
+      return <CheckCheck className="w-3.5 h-3.5" />;
     case 'read':
-      return <CheckCheck className="w-3 h-3 text-blue-400" />;
+      return <CheckCheck className="w-3.5 h-3.5 text-[hsl(var(--online))]" />;
     case 'failed':
-      return <X className="w-3 h-3 text-destructive" />;
+      return <X className="w-3.5 h-3.5 text-destructive" />;
     default:
-      return <Clock className="w-3 h-3 animate-pulse" />;
+      return <Clock className="w-3.5 h-3.5 animate-pulse" />;
   }
 }
 
@@ -74,7 +76,7 @@ export interface ChatMessagesAreaRef {
   scrollToMessage: (messageId: string) => void;
 }
 
-export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(({
+export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(( {
   messages,
   isContactTyping,
   typingUserName,
@@ -124,36 +126,64 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-background">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin bg-background">
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
-          {/* Date separator */}
-          <div className="flex justify-center my-4">
-            <span className="text-xs text-muted-foreground bg-muted px-4 py-1.5 rounded-full font-medium">
+          {/* Date separator — DreamsChat style */}
+          <div className="flex justify-center my-6">
+            <span className="text-xs text-muted-foreground bg-muted/60 px-4 py-1.5 rounded-full font-medium">
               {formatDateSeparator(new Date(dateKey))}
             </span>
           </div>
 
           {/* Messages for this day */}
-          <StaggeredList className="space-y-3">
+          <StaggeredList className="space-y-5">
             {dayMessages.map((message) => {
               const isSent = message.sender === 'agent';
+              const senderName = isSent ? 'You' : (message as any).senderName || 'Contato';
 
               return (
                 <StaggeredItem key={message.id}>
-                  <div 
+                  <div
                     ref={(el) => { messageRefs.current[message.id] = el; }}
-                    className={cn('flex group', isSent ? 'justify-end' : 'justify-start')}
+                    className={cn('flex group gap-3', isSent ? 'justify-end' : 'justify-start')}
                   >
-                    <motion.div
-                      initial={{ opacity: 0, x: isSent ? 20 : -20, scale: 0.95 }}
-                      animate={{ opacity: 1, x: 0, scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                      className="max-w-[70%] space-y-1 relative"
-                    >
-                      {/* Message Actions (visible on hover) */}
+                    {/* Avatar — received messages (left) */}
+                    {!isSent && (
+                      <Avatar className="w-9 h-9 shrink-0 mt-6">
+                        <AvatarImage src={(message as any).senderAvatar} />
+                        <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                          {senderName.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+
+                    <div className="max-w-[65%] space-y-1 relative">
+                      {/* Sender header — DreamsChat style: "Name • Time ✓✓" or "Time • You" */}
                       <div className={cn(
-                        "absolute top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10",
+                        "flex items-center gap-1.5 text-xs text-muted-foreground mb-1",
+                        isSent ? "justify-end" : "justify-start"
+                      )}>
+                        {isSent ? (
+                          <>
+                            <MessageStatusIcon status={message.status} />
+                            <span>{formatMessageTime(message.timestamp)}</span>
+                            <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                            <span className="font-medium text-foreground">You</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-medium text-foreground">{senderName}</span>
+                            <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                            <span>{formatMessageTime(message.timestamp)}</span>
+                            <MessageStatusIcon status={message.status} />
+                          </>
+                        )}
+                      </div>
+
+                      {/* Hover actions — 3-dot menu */}
+                      <div className={cn(
+                        "absolute top-6 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10",
                         isSent ? "right-full mr-2" : "left-full ml-2"
                       )}>
                         <button
@@ -186,7 +216,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             currentMessageId={ttsMessageId}
                             onSpeak={onSpeak}
                             onStop={onStop}
-                            className="p-1.5 rounded-full bg-card border border-border/50 shadow-sm"
+                            className="p-1.5 rounded-full bg-muted"
                           />
                         )}
                         {instanceName && contactJid && (
@@ -198,6 +228,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
                       </div>
 
+                      {/* Message bubble */}
                       {(message as any).is_deleted ? (
                         <DeletedMessagePlaceholder isSent={isSent} />
                       ) : (
@@ -206,10 +237,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                           'relative px-4 py-2.5 rounded-2xl transition-all',
                           isSent 
                             ? 'rounded-br-sm bg-primary text-primary-foreground' 
-                            : 'rounded-bl-sm bg-muted text-foreground'
+                            : 'rounded-bl-sm bg-card border border-border/40 text-foreground'
                         )}
                       >
-
                         {message.replyTo && (
                           <QuotedMessage
                             replyTo={message.replyTo}
@@ -281,26 +311,24 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && (
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                         )}
-
-                        <div
-                          className={cn(
-                            'flex items-center justify-end gap-1.5 mt-1',
-                            isSent ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                          )}
-                        >
-                          <span className="text-[10px]">
-                            {formatMessageTime(message.timestamp)}
-                          </span>
-                          {isSent && <MessageStatusIcon status={message.status} />}
-                        </div>
                       </div>
                       )}
 
+                      {/* Reactions */}
                       <MessageReactions
                         messageId={message.id}
                         isSent={isSent}
                       />
-                    </motion.div>
+                    </div>
+
+                    {/* Avatar — sent messages (right) */}
+                    {isSent && (
+                      <Avatar className="w-9 h-9 shrink-0 mt-6">
+                        <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
+                          You
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
                   </div>
                 </StaggeredItem>
               );
