@@ -85,10 +85,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 230 25% 12%;
     
-    /* ===== PRIMARY (DreamsChat Purple) ===== */
-    --primary: 258 75% 58%;
+    /* ===== PRIMARY — #6338F6 (light mode variant) ===== */
+    --primary: 254 91% 59%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 258 85% 66%;
+    --primary-glow: 252 91% 63%;
     
     /* ===== SECONDARY (Indigo) ===== */
     --secondary: 240 50% 50%;
