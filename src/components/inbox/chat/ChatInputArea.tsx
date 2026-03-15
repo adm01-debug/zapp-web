@@ -125,7 +125,7 @@ export function ChatInputArea({
           <div className="flex items-center gap-1">
             <FileUploader
               ref={fileUploaderRef}
-              instanceName={contactId}
+              instanceName={instanceName || ''}
               recipientNumber={contactPhone}
               contactId={contactId}
               connectionId={undefined}
