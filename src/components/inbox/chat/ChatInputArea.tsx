@@ -47,6 +47,7 @@ interface ChatInputAreaProps {
   contactId: string;
   contactPhone: string;
   contactName: string;
+  instanceName?: string;
   messages: Message[];
   quickReplies: QuickReplyItem[];
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
