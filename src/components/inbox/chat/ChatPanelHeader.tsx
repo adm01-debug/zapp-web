@@ -2,12 +2,8 @@ import { cn } from '@/lib/utils';
 import { Conversation } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { motion } from '@/components/ui/motion';
 import { TypingIndicatorCompact } from '../TypingIndicator';
-import { SLAIndicator } from '../SLAIndicator';
-import { VoiceSelector } from '../VoiceSelector';
-import { SpeedSelector } from '../SpeedSelector';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +14,10 @@ import {
 import {
   MoreVertical,
   Video,
-  Tag,
   Archive,
   CheckCircle,
-  Clock,
-  ArrowRight,
   PhoneCall,
   Search,
-  Brain,
   Info,
 } from 'lucide-react';
 
