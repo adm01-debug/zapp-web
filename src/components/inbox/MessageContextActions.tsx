@@ -41,6 +41,7 @@ export function MessageContextActions({
     markMessageAsRead,
     markMessageAsUnread,
     archiveChat,
+    updateBlockStatus,
     isLoading,
   } = useEvolutionApi();
 
