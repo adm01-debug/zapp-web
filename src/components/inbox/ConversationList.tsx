@@ -92,7 +92,7 @@ export function ConversationList({
 
         {/* Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 bg-muted/30 border border-border/20">
+          <TabsList className="w-full grid grid-cols-4 bg-transparent border-b border-border h-auto p-0 rounded-none">
             <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Todas ({counts.all})
             </TabsTrigger>
