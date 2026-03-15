@@ -25,6 +25,11 @@ import { ChatbotFlowsView } from '@/components/chatbot/ChatbotFlowsView';
 import { AutomationsManager } from '@/components/automations/AutomationsManager';
 import { IntegrationsHub } from '@/components/integrations/IntegrationsHub';
 import { LGPDComplianceView } from '@/components/compliance/LGPDComplianceView';
+import { SalesPipelineView } from '@/components/pipeline/SalesPipelineView';
+import { KnowledgeBaseView } from '@/components/knowledge/KnowledgeBaseView';
+import { PaymentLinksView } from '@/components/payments/PaymentLinksView';
+import { WhatsAppFlowsBuilder } from '@/components/whatsapp-flows/WhatsAppFlowsBuilder';
+import { MetaCAPIView } from '@/components/meta-capi/MetaCAPIView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
@@ -214,6 +219,16 @@ function IndexContent() {
         return <IntegrationsHub />;
       case 'privacy':
         return <LGPDComplianceView />;
+      case 'pipeline':
+        return <SalesPipelineView />;
+      case 'knowledge':
+        return <KnowledgeBaseView />;
+      case 'payments':
+        return <PaymentLinksView />;
+      case 'wa-flows':
+        return <WhatsAppFlowsBuilder />;
+      case 'meta-capi':
+        return <MetaCAPIView />;
       default:
         return (
           <div className="flex items-center justify-center h-full">

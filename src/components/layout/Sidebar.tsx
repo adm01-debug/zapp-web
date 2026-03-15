@@ -29,6 +29,11 @@ import {
   BookOpen,
   Megaphone,
   Bot,
+  Kanban,
+  Brain,
+  CreditCard,
+  Activity,
+  Workflow,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -80,12 +85,16 @@ const menuGroups: Array<{
   {
     title: 'Recursos',
     items: [
+      { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
       { id: 'wallet', icon: Wallet, label: 'Carteira' },
       { id: 'catalog', icon: Package, label: 'Catálogo' },
+      { id: 'payments', icon: CreditCard, label: 'Pagamentos' },
       { id: 'tags', icon: Tag, label: 'Etiquetas' },
       { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
       { id: 'automations', icon: Zap, label: 'Automações' },
       { id: 'integrations', icon: Globe, label: 'Integrações' },
+      { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
+      { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
     ],
   },
   {
@@ -95,6 +104,7 @@ const menuGroups: Array<{
     items: [
       { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
       { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
+      { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
       { id: 'security', icon: Shield, label: 'Segurança' },
       { id: 'privacy', icon: ShieldCheck, label: 'Privacidade' },
       { id: 'admin', icon: ShieldCheck, label: 'Admin' },
