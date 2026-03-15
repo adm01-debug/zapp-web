@@ -84,9 +84,9 @@ describe('useEvolutionApi', () => {
     expect(typeof result.current.sendReaction).toBe('function');
   });
 
-  it('exposes sendPoll function', () => {
+  it('exposes sendPollMessage function', () => {
     const { result } = renderHook(() => useEvolutionApi());
-    expect(typeof result.current.sendPoll).toBe('function');
+    expect(typeof result.current.sendPollMessage).toBe('function');
   });
 
   it('exposes createGroup function', () => {
