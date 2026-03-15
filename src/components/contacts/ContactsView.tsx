@@ -742,7 +742,7 @@ export function ContactsView() {
               actionLabel={!search ? "Novo Contato" : undefined}
               onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
               secondaryActionLabel={search ? "Limpar Busca" : undefined}
-              onSecondaryAction={search ? () => setSearch('') : undefined}
+              onSecondaryAction={search ? () => { setSearch(''); setSearchInput(''); } : undefined}
             />
           ) : (
             <div className="overflow-x-auto">
