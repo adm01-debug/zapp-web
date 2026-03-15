@@ -139,7 +139,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
           </motion.div>
 
           {/* Messages for this day */}
-          <StaggeredList className="space-y-3">
+          <StaggeredList className="space-y-0.5">
             {dayMessages.map((message) => {
               const isSent = message.sender === 'agent';
 
