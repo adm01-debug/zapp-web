@@ -70,7 +70,7 @@ export function ChatPanelHeader({
     >
       <div className="flex items-center gap-3">
         <motion.div whileHover={{ scale: 1.05 }}>
-          <Avatar className="w-10 h-10 ring-2 ring-border/30">
+          <Avatar className="w-10 h-10">
             <AvatarImage src={conversation.contact.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}

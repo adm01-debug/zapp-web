@@ -308,8 +308,7 @@ export function ChatInputArea({
             <Button
               onClick={onSend}
               disabled={!inputValue.trim()}
-              className="text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50"
-              style={{ background: 'var(--gradient-primary)' }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full w-10 h-10 p-0 disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </Button>
