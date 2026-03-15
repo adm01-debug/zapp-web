@@ -197,7 +197,8 @@ function IndexContent() {
         return <SecurityView />;
       case 'settings':
         return <SettingsView />;
-      default:
+      case 'docs':
+        return <SystemFeaturesView />;
         return (
           <div className="flex items-center justify-center h-full">
             <motion.div 
