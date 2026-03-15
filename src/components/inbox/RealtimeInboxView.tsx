@@ -582,6 +582,21 @@ export function RealtimeInboxView() {
                 <TooltipContent>Atualizar conversas</TooltipContent>
               </Tooltip>
               <KeyboardShortcutsHelp />
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setShowNewConversation(true)}
+                    className="w-8 h-8 text-primary hover:bg-primary/10"
+                    aria-label="Nova conversa"
+                  >
+                    <MessageSquarePlus className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Nova Conversa</TooltipContent>
+              </Tooltip>
             </div>
           </div>
 
