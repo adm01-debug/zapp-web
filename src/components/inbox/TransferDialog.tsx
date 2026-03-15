@@ -148,7 +148,7 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
           </RadioGroup>
 
           {/* Target Selection */}
-          {transferType === 'agent' ? (
+          {transferType === 'agent' && (
             <div className="space-y-2">
               <Label>Selecione um atendente</Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -196,7 +196,49 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
                 )}
               </div>
             </div>
-          ) : (
+          )}
+
+          {transferType === 'connection' && (
+            <div className="space-y-2">
+              <Label>Selecione uma conexão WhatsApp</Label>
+              {loadingConnections ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : connections.length > 0 ? (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {connections.map((conn) => (
+                    <motion.button
+                      key={conn.id}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedTarget(conn.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left',
+                        selectedTarget === conn.id
+                          ? 'border-whatsapp bg-whatsapp/5'
+                          : 'border-border hover:border-muted-foreground'
+                      )}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Smartphone className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{conn.name}</p>
+                        <p className="text-xs text-muted-foreground">{conn.phone_number}</p>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhuma conexão disponível
+                </p>
+              )}
+            </div>
+          )}
+
+          {transferType === 'queue' && (
             <div className="space-y-2">
               <Label>Selecione um departamento</Label>
               {loadingQueues ? (
