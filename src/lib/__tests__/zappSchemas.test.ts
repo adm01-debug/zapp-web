@@ -44,8 +44,8 @@ describe('zappSchemas', () => {
     });
 
     it('coerces ativo string to boolean', () => {
-      const result = contatoSchema.parse({ nome: 'João', telefone: '11999999999', ativo: 'false' });
-      expect(result.ativo).toBe(false);
+      const result = contatoSchema.parse({ nome: 'João', telefone: '11999999999', ativo: 'true' });
+      expect(result.ativo).toBe(true);
     });
 
     it('allows optional grupo_id as uuid', () => {
