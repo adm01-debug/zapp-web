@@ -390,6 +390,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           contactId={conversation.contact.id}
           contactPhone={conversation.contact.phone}
           contactName={conversation.contact.name}
+          instanceName={instanceName}
           messages={messages}
           quickReplies={dbQuickReplies}
           onInputChange={handleInputChange}
