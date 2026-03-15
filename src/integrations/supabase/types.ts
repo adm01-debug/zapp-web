@@ -1599,6 +1599,51 @@ export type Database = {
           },
         ]
       }
+      scheduled_reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          format: string
+          frequency: string
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          name: string
+          next_send_at: string | null
+          recipients: string[]
+          report_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          format?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          name: string
+          next_send_at?: string | null
+          recipients?: string[]
+          report_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          format?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          name?: string
+          next_send_at?: string | null
+          recipients?: string[]
+          report_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_alerts: {
         Row: {
           alert_type: string
@@ -2059,6 +2104,65 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "whatsapp_groups_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates: {
+        Row: {
+          buttons: Json | null
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          footer_text: string | null
+          header_text: string | null
+          id: string
+          language: string
+          name: string
+          status: string
+          updated_at: string
+          variables: string[] | null
+          whatsapp_connection_id: string | null
+        }
+        Insert: {
+          buttons?: Json | null
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          language?: string
+          name: string
+          status?: string
+          updated_at?: string
+          variables?: string[] | null
+          whatsapp_connection_id?: string | null
+        }
+        Update: {
+          buttons?: Json | null
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          language?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          variables?: string[] | null
+          whatsapp_connection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_whatsapp_connection_id_fkey"
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections"

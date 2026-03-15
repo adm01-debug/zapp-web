@@ -36,6 +36,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { toast } from 'sonner';
+import { compressImage, formatCompressionInfo } from '@/utils/imageCompression';
 
 interface FileMessageData {
   mediaUrl?: string;
@@ -213,13 +214,27 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
   };
 
   const uploadFileToStorage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
+    // Compress images before upload
+    let fileToUpload = file;
+    if (file.type.startsWith('image/') && file.type !== 'image/gif') {
+      try {
+        const result = await compressImage(file, { maxWidth: 1920, maxHeight: 1920, quality: 0.8, maxSizeMB: 2 });
+        if (result.wasCompressed) {
+          log.debug('Image compressed:', formatCompressionInfo(result.originalSize, result.compressedSize));
+          fileToUpload = result.file;
+        }
+      } catch (err) {
+        log.warn('Image compression failed, uploading original:', err);
+      }
+    }
+
+    const fileExt = fileToUpload.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
 
     const { data, error } = await supabase.storage
       .from('whatsapp-media')
-      .upload(filePath, file, {
+      .upload(filePath, fileToUpload, {
         cacheControl: '3600',
         upsert: false,
       });
