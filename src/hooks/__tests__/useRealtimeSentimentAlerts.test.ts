@@ -25,7 +25,7 @@ vi.mock('sonner', () => ({
 vi.mock('@/utils/notificationSound', () => ({
   playNotificationSound: vi.fn(),
   showBrowserNotification: vi.fn(),
-  requestNotificationPermission: vi.fn().mockResolvedValue(undefined),
+  requestNotificationPermission: vi.fn(),
 }));
 
 vi.mock('@/lib/logger', () => ({

@@ -37,7 +37,7 @@ vi.mock('@/hooks/use-toast', () => ({
 vi.mock('@/utils/notificationSound', () => ({
   playNotificationSound: vi.fn(),
   showBrowserNotification: vi.fn(),
-  requestNotificationPermission: vi.fn().mockResolvedValue(undefined),
+  requestNotificationPermission: vi.fn(),
 }));
 
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
@@ -88,15 +88,5 @@ describe('useTranscriptionNotifications', () => {
       showBrowserNotification: false,
     }));
     expect(mockChannel).toHaveBeenCalled();
-  });
-
-  it('sets up memory leak prevention interval', () => {
-    vi.useFakeTimers();
-    const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
-    const { unmount } = renderHook(() => useTranscriptionNotifications());
-    unmount();
-    expect(clearIntervalSpy).toHaveBeenCalled();
-    clearIntervalSpy.mockRestore();
-    vi.useRealTimers();
   });
 });

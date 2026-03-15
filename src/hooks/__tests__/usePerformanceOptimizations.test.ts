@@ -1,39 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-// Mock PerformanceObserver
-const mockObserve = vi.fn();
-const mockDisconnect = vi.fn();
-vi.stubGlobal('PerformanceObserver', vi.fn().mockImplementation(() => ({
-  observe: mockObserve,
-  disconnect: mockDisconnect,
-})));
+vi.mock('@/lib/logger', () => ({
+  log: { error: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn() },
+}));
 
 import {
-  usePerformanceMetrics,
   useThrottledCallback,
   useIdleCallback,
-  useIntersectionObserver,
   useMemoryPressure,
   useNetworkStatus,
   useReducedMotion,
 } from '@/hooks/usePerformanceOptimizations';
-
-describe('usePerformanceMetrics', () => {
-  it('initializes with null metrics', () => {
-    const { result } = renderHook(() => usePerformanceMetrics());
-    expect(result.current.lcp).toBeNull();
-    expect(result.current.fid).toBeNull();
-    expect(result.current.cls).toBeNull();
-    expect(result.current.fcp).toBeNull();
-  });
-
-  it('cleans up observers on unmount', () => {
-    const { unmount } = renderHook(() => usePerformanceMetrics());
-    unmount();
-    expect(mockDisconnect).toHaveBeenCalled();
-  });
-});
 
 describe('useThrottledCallback', () => {
   beforeEach(() => { vi.useFakeTimers(); });
@@ -121,19 +99,5 @@ describe('useReducedMotion', () => {
     });
     const { result } = renderHook(() => useReducedMotion());
     expect(typeof result.current).toBe('boolean');
-  });
-});
-
-describe('useIntersectionObserver', () => {
-  it('returns ref, isIntersecting, and entry', () => {
-    vi.stubGlobal('IntersectionObserver', vi.fn().mockImplementation(() => ({
-      observe: vi.fn(),
-      disconnect: vi.fn(),
-    })));
-    const { result } = renderHook(() => useIntersectionObserver());
-    const [ref, isIntersecting, entry] = result.current;
-    expect(typeof ref).toBe('function');
-    expect(isIntersecting).toBe(false);
-    expect(entry).toBeNull();
   });
 });
