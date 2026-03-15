@@ -145,6 +145,10 @@ export function SettingsView() {
             <Volume2 className="w-4 h-4" />
             Sons
           </TabsTrigger>
+          <TabsTrigger value="global" className="gap-2">
+            <Globe className="w-4 h-4" />
+            Global
+          </TabsTrigger>
         </TabsList>
 
         {/* Horário de Atendimento */}
