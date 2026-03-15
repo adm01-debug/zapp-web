@@ -27,6 +27,8 @@ import {
   Command,
   Link2,
   BookOpen,
+  Megaphone,
+  Bot,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
