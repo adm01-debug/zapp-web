@@ -59,14 +59,14 @@ describe('useEvolutionApi', () => {
     expect(typeof result.current.getInstanceStatus).toBe('function');
   });
 
-  it('exposes getQRCode function', () => {
+  it('exposes getQrCode function', () => {
     const { result } = renderHook(() => useEvolutionApi());
-    expect(typeof result.current.getQRCode).toBe('function');
+    expect(typeof result.current.getQrCode).toBe('function');
   });
 
-  it('exposes logoutInstance function', () => {
+  it('exposes disconnectInstance function', () => {
     const { result } = renderHook(() => useEvolutionApi());
-    expect(typeof result.current.logoutInstance).toBe('function');
+    expect(typeof result.current.disconnectInstance).toBe('function');
   });
 
   it('exposes sendLocationMessage function', () => {
