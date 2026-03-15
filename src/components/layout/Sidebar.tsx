@@ -26,6 +26,7 @@ import {
   Search,
   Command,
   Link2,
+  BookOpen,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
