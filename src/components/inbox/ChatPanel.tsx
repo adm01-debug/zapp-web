@@ -87,6 +87,36 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     onSpeedChange: handleSpeedChange,
   });
 
+  // ── Resolve WhatsApp instance name from contact ──
+  const [instanceName, setInstanceName] = useState<string>('');
+
+  useEffect(() => {
+    const resolveInstance = async () => {
+      try {
+        // Look up the contact's whatsapp_connection_id → instance_id
+        const { data: contact } = await supabase
+          .from('contacts')
+          .select('whatsapp_connection_id')
+          .eq('id', conversation.contact.id)
+          .maybeSingle();
+        
+        if (contact?.whatsapp_connection_id) {
+          const { data: conn } = await (supabase as any)
+            .from('whatsapp_connections')
+            .select('instance_id')
+            .eq('id', contact.whatsapp_connection_id)
+            .maybeSingle();
+          if (conn?.instance_id) {
+            setInstanceName(conn.instance_id);
+          }
+        }
+      } catch {
+        // Silently fail — instanceName stays empty
+      }
+    };
+    resolveInstance();
+  }, [conversation.contact.id]);
+
   // ── Effects ──
   useEffect(() => {
     messagesAreaRef.current?.scrollToBottom();
