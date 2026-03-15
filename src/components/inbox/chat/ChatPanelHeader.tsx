@@ -41,147 +41,78 @@ export function ChatPanelHeader({
   onOpenTransfer,
 }: ChatPanelHeaderProps) {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: -10 }}
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center justify-between px-4 py-2 border-b border-border bg-[hsl(var(--chat-header))]"
     >
-      <div className="flex items-center gap-3">
-        <motion.div whileHover={{ scale: 1.05 }}>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src={conversation.contact.avatar} />
-            <AvatarFallback className="bg-primary/10 text-primary font-medium">
-              {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-        </motion.div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground">
-              {conversation.contact.name}
-            </h3>
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-[10px] capitalize border',
-                conversation.status === 'open' && 'border-success/50 text-success bg-success/10',
-                conversation.status === 'pending' && 'border-warning/50 text-warning bg-warning/10',
-                conversation.status === 'resolved' && 'border-muted-foreground/50 text-muted-foreground',
-                conversation.status === 'waiting' && 'border-info/50 text-info bg-info/10'
-              )}
-            >
-              {conversation.status === 'open' ? 'Aberto' : 
-               conversation.status === 'pending' ? 'Pendente' :
-               conversation.status === 'resolved' ? 'Resolvido' : 'Aguardando'}
-            </Badge>
-            <SLAIndicator
-              firstMessageAt={conversation.createdAt}
-              firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
-              resolvedAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
-              firstResponseMinutes={conversation.priority === 'high' ? 2 : 5}
-              resolutionMinutes={conversation.priority === 'high' ? 30 : 60}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {isContactTyping ? (
-              <TypingIndicatorCompact isVisible={true} />
-            ) : (
-              conversation.contact.phone
-            )}
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar className="w-10 h-10">
+          <AvatarImage src={conversation.contact.avatar} />
+          <AvatarFallback className="bg-muted text-foreground font-medium">
+            {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="min-w-0">
+          <h3 className="text-sm font-medium text-foreground truncate">
+            {conversation.contact.name}
+          </h3>
+          <p className="text-xs text-muted-foreground truncate">
+            {isContactTyping ? <TypingIndicatorCompact isVisible={true} /> : conversation.contact.phone}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-            onClick={onOpenSearch}
-            title="Buscar (Ctrl+K)"
-          >
-            <Search className="w-4 h-4" />
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-            onClick={onStartCall}
-          >
-            <PhoneCall className="w-4 h-4" />
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-            <Video className="w-4 h-4" />
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={cn(
-              "text-muted-foreground hover:text-primary hover:bg-primary/10",
-              showAIAssistant && "text-primary bg-primary/10"
-            )}
-            onClick={onToggleAIAssistant}
-            title="Assistente IA"
-          >
-            <Brain className="w-4 h-4" />
-          </Button>
-        </motion.div>
+      <div className="flex items-center gap-0.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:bg-muted"
+          onClick={onOpenSearch}
+          title="Buscar"
+        >
+          <Search className="w-4 h-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:bg-muted"
+          onClick={onStartCall}
+          title="Ligar"
+        >
+          <PhoneCall className="w-4 h-4" />
+        </Button>
+
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted" title="Vídeo">
+          <Video className="w-4 h-4" />
+        </Button>
+
         {onToggleDetails && (
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className={cn(
-                "text-muted-foreground hover:text-primary hover:bg-primary/10",
-                showDetails && "text-primary bg-primary/10"
-              )}
-              onClick={onToggleDetails}
-              title="Detalhes do contato"
-            >
-              <Info className="w-4 h-4" />
-            </Button>
-          </motion.div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn('text-muted-foreground hover:bg-muted', showDetails && 'text-foreground bg-muted')}
+            onClick={onToggleDetails}
+            title="Detalhes"
+          >
+            <Info className="w-4 h-4" />
+          </Button>
         )}
-        <VoiceSelector
-          selectedVoiceId={voiceId}
-          onVoiceChange={onVoiceChange}
-        />
-        <SpeedSelector
-          speed={speed}
-          onSpeedChange={onSpeedChange}
-        />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </motion.div>
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted" title="Menu">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-card border-border/30">
-            <DropdownMenuItem>
-              <Tag className="w-4 h-4 mr-2" />
-              Adicionar tag
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onOpenTransfer}>
-              <ArrowRight className="w-4 h-4 mr-2" />
-              Transferir
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onOpenSchedule}>
-              <Clock className="w-4 h-4 mr-2" />
-              Agendar mensagem
-            </DropdownMenuItem>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onClick={onOpenTransfer}>Transferir conversa</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <CheckCircle className="w-4 h-4 mr-2" />
-              Marcar como resolvido
+              Marcar como resolvida
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Archive className="w-4 h-4 mr-2" />
