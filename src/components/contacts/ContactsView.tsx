@@ -3,6 +3,7 @@ import { motion } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ContactsEmptyState } from '@/components/ui/contextual-empty-states';
+import { ContactForm } from '@/components/contacts/ContactForm';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { Card, CardContent } from '@/components/ui/card';
