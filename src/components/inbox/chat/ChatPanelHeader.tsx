@@ -24,35 +24,21 @@ import {
 interface ChatPanelHeaderProps {
   conversation: Conversation;
   isContactTyping: boolean;
-  showAIAssistant: boolean;
   showDetails?: boolean;
-  voiceId: string;
-  speed: number;
-  onToggleAIAssistant: () => void;
   onToggleDetails?: () => void;
   onStartCall: () => void;
   onOpenSearch: () => void;
   onOpenTransfer: () => void;
-  onOpenSchedule: () => void;
-  onVoiceChange: (voiceId: string) => void;
-  onSpeedChange: (speed: number) => void;
 }
 
 export function ChatPanelHeader({
   conversation,
   isContactTyping,
-  showAIAssistant,
   showDetails,
-  voiceId,
-  speed,
-  onToggleAIAssistant,
   onToggleDetails,
   onStartCall,
   onOpenSearch,
   onOpenTransfer,
-  onOpenSchedule,
-  onVoiceChange,
-  onSpeedChange,
 }: ChatPanelHeaderProps) {
   return (
     <motion.div 
