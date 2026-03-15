@@ -156,11 +156,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         "absolute top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10",
                         isSent ? "right-full mr-2" : "left-full ml-2"
                       )}>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        <button
                           onClick={() => onReply(message)}
-                          className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                          className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
                           title="Responder"
                         >
                           <Reply className="w-3.5 h-3.5" />
