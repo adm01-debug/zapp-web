@@ -11,7 +11,7 @@ import { getLogger } from '@/lib/logger';
 const log = getLogger('AvatarUpload');
 
 export function AvatarUpload() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const feedback = useActionFeedback();
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || null);
