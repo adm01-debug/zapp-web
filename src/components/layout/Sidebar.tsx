@@ -85,12 +85,16 @@ const menuGroups: Array<{
   {
     title: 'Recursos',
     items: [
+      { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
       { id: 'wallet', icon: Wallet, label: 'Carteira' },
       { id: 'catalog', icon: Package, label: 'Catálogo' },
+      { id: 'payments', icon: CreditCard, label: 'Pagamentos' },
       { id: 'tags', icon: Tag, label: 'Etiquetas' },
       { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
       { id: 'automations', icon: Zap, label: 'Automações' },
       { id: 'integrations', icon: Globe, label: 'Integrações' },
+      { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
+      { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
     ],
   },
   {
