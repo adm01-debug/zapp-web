@@ -111,10 +111,11 @@ export function VirtualizedRealtimeList({
               <button
                 onClick={(e) => handleClick(contactId, e)}
                 className={cn(
-                  'w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left hover:bg-muted/50',
-                  selectedContactId === contactId && 'bg-primary/10 border border-primary/20',
-                  isSelected && 'bg-primary/20 border border-primary/30',
-                  isPinned && 'bg-primary/5 border-l-2 border-l-primary'
+                  'w-full px-3 py-3 flex items-center gap-3 transition-all text-left border-b border-border/50',
+                  'hover:bg-muted/50',
+                  selectedContactId === contactId && 'bg-primary/10 border-l-2 border-l-primary',
+                  isSelected && 'bg-primary/15',
+                  isPinned && selectedContactId !== contactId && 'bg-muted/30'
                 )}
               >
                 {selectionMode && (
@@ -130,9 +131,9 @@ export function VirtualizedRealtimeList({
                 )}
 
                 <div className="relative flex-shrink-0">
-                  <Avatar className="w-11 h-11">
+                  <Avatar className="w-10 h-10">
                     <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                    <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
                       {(conversation.contact.name || '??')
                         .split(' ')
                         .map((n) => n[0])
@@ -141,11 +142,6 @@ export function VirtualizedRealtimeList({
                         .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  {conversation.unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
-                      {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
-                    </span>
-                  )}
                 </div>
 
                 <div className="flex-1 min-w-0 overflow-hidden">
@@ -156,16 +152,23 @@ export function VirtualizedRealtimeList({
                         {conversation.contact.name || 'Sem nome'}
                       </span>
                     </div>
-                    {conversation.lastMessage && (
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
-                        {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
-                          addSuffix: false,
-                          locale: ptBR,
-                        })}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {conversation.lastMessage && (
+                        <span className="text-[11px] text-muted-foreground">
+                          {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
+                            addSuffix: false,
+                            locale: ptBR,
+                          })}
+                        </span>
+                      )}
+                      {conversation.unreadCount > 0 && (
+                        <span className="min-w-[18px] h-[18px] px-1 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center font-bold">
+                          {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
+                  <p className="text-[13px] text-muted-foreground truncate">
                     {conversation.lastMessage?.content || 'Sem mensagens'}
                   </p>
                   {conversation.contact.tags && conversation.contact.tags.length > 0 && (

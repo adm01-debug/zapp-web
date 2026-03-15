@@ -124,19 +124,15 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-muted/5">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-background">
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
           {/* Date separator */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex justify-center my-4"
-          >
-            <span className="text-xs text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full font-medium border border-border/20">
+          <div className="flex justify-center my-4">
+            <span className="text-xs text-muted-foreground bg-muted px-4 py-1.5 rounded-full font-medium">
               {formatDateSeparator(new Date(dateKey))}
             </span>
-          </motion.div>
+          </div>
 
           {/* Messages for this day */}
           <StaggeredList className="space-y-3">
@@ -160,33 +156,27 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         "absolute top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10",
                         isSent ? "right-full mr-2" : "left-full ml-2"
                       )}>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        <button
                           onClick={() => onReply(message)}
-                          className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                          className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
                           title="Responder"
                         >
                           <Reply className="w-3.5 h-3.5" />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        </button>
+                        <button
                           onClick={() => onForward(message)}
-                          className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                          className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
                           title="Encaminhar"
                         >
                           <Forward className="w-3.5 h-3.5" />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        </button>
+                        <button
                           onClick={() => onCopy(message.content)}
-                          className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                          className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
                           title="Copiar"
                         >
                           <Copy className="w-3.5 h-3.5" />
-                        </motion.button>
+                        </button>
                         {message.type === 'text' && (
                           <TextToSpeechButton
                             messageId={message.id}
@@ -211,18 +201,14 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       {(message as any).is_deleted ? (
                         <DeletedMessagePlaceholder isSent={isSent} />
                       ) : (
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
+                      <div
                         className={cn(
-                          'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
+                          'relative px-4 py-2.5 rounded-2xl transition-all',
                           isSent 
-                            ? 'rounded-br-md bg-primary text-primary-foreground' 
-                            : 'rounded-bl-md bg-card border border-border/30 text-foreground'
+                            ? 'rounded-br-sm bg-primary text-primary-foreground' 
+                            : 'rounded-bl-sm bg-muted text-foreground'
                         )}
                       >
-                        {isSent && (
-                          <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
-                        )}
 
                         {message.replyTo && (
                           <QuotedMessage
@@ -307,7 +293,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                           </span>
                           {isSent && <MessageStatusIcon status={message.status} />}
                         </div>
-                      </motion.div>
+                      </div>
                       )}
 
                       <MessageReactions

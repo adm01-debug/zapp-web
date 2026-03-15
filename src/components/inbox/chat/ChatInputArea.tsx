@@ -5,7 +5,7 @@ import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { motion, AnimatePresence } from '@/components/ui/motion';
+import { AnimatePresence } from 'framer-motion';
 import { ReplyPreview } from '../ReplyQuote';
 import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
@@ -115,106 +115,96 @@ export function ChatInputArea({
         )}
       </AnimatePresence>
 
-      {/* Input */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-4 glass-strong border-t border-border/50"
-      >
-        <div className="flex items-end gap-2">
-          <div className="flex items-center gap-1">
-            <FileUploader
-              ref={fileUploaderRef}
-              instanceName={instanceName || ''}
-              recipientNumber={contactPhone}
-              contactId={contactId}
-              connectionId={undefined}
-              onFileSelect={(file, category) => {
-                toast({
-                  title: 'Arquivo selecionado',
-                  description: `${file.name} (${category}) será enviado.`,
-                });
-              }}
-              onFileSent={(result) => {
-                toast({
-                  title: 'Arquivo enviado!',
-                  description: 'O arquivo foi enviado com sucesso via WhatsApp.',
-                });
-              }}
-            />
-            
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                onClick={onOpenInteractiveBuilder}
-                title="Mensagem Interativa"
-              >
-                <Layers className="w-5 h-5" />
+      {/* Input Footer — DreamsChat style */}
+      <div className="px-4 py-3 border-t border-border bg-card">
+        {/* Action icons row */}
+        <div className="flex items-center gap-1 mb-2">
+          <FileUploader
+            ref={fileUploaderRef}
+            instanceName={instanceName || ''}
+            recipientNumber={contactPhone}
+            contactId={contactId}
+            connectionId={undefined}
+            onFileSelect={(file, category) => {
+              toast({
+                title: 'Arquivo selecionado',
+                description: `${file.name} (${category}) será enviado.`,
+              });
+            }}
+            onFileSent={(result) => {
+              toast({
+                title: 'Arquivo enviado!',
+                description: 'O arquivo foi enviado com sucesso via WhatsApp.',
+              });
+            }}
+          />
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+            onClick={onOpenInteractiveBuilder}
+            title="Mensagem Interativa"
+          >
+            <Layers className="w-[18px] h-[18px]" />
+          </Button>
+
+          <AdvancedMessageMenu
+            instanceName={instanceName || ''}
+            recipientNumber={contactPhone}
+          />
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted">
+                <Zap className="w-[18px] h-[18px]" />
               </Button>
-            </motion.div>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-0 bg-popover border-border" align="start">
+              <div className="p-3 border-b border-border">
+                <h4 className="font-medium text-sm text-foreground">Respostas Rápidas</h4>
+                <p className="text-xs text-muted-foreground">
+                  Digite / para usar atalhos
+                </p>
+              </div>
+              <div className="max-h-64 overflow-y-auto p-2 space-y-1">
+                {quickReplies.map((reply) => (
+                  <button
+                    key={reply.id}
+                    onClick={() => onQuickReply(reply)}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">{reply.title}</span>
+                      <Badge variant="outline" className="text-[10px] border-border">
+                        {reply.shortcut}
+                      </Badge>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          {/* AI Suggestions */}
+          <AISuggestions
+            messages={messages.map(m => ({
+              id: m.id,
+              content: m.content,
+              sender: m.sender,
+              timestamp: m.timestamp
+            }))}
+            contactName={contactName}
+            onSelectSuggestion={onSelectSuggestion}
+          />
+          
+          {/* Message Templates */}
+          <MessageTemplates onSelectTemplate={onSelectTemplate} />
+        </div>
 
-            {/* Advanced Message Menu (Stickers, Polls, vCard, Status) */}
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <AdvancedMessageMenu
-                instanceName={instanceName || ''}
-                recipientNumber={contactPhone}
-              />
-            </motion.div>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-                    <Zap className="w-5 h-5" />
-                  </Button>
-                </motion.div>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-0 glass-strong border-border/50" align="start">
-                <div className="p-3 border-b border-border/50 bg-gradient-to-r from-primary/10 to-transparent">
-                  <h4 className="font-medium text-sm">Respostas Rápidas</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Digite / para usar atalhos
-                  </p>
-                </div>
-                <div className="max-h-64 overflow-y-auto p-2 space-y-1">
-                  {quickReplies.map((reply) => (
-                    <motion.button
-                      key={reply.id}
-                      whileHover={{ x: 4 }}
-                      onClick={() => onQuickReply(reply)}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{reply.title}</span>
-                        <Badge variant="outline" className="text-[10px] border-primary/30">
-                          {reply.shortcut}
-                        </Badge>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-            
-            {/* AI Suggestions */}
-            <AISuggestions
-              messages={messages.map(m => ({
-                id: m.id,
-                content: m.content,
-                sender: m.sender,
-                timestamp: m.timestamp
-              }))}
-              contactName={contactName}
-              onSelectSuggestion={onSelectSuggestion}
-            />
-            
-            {/* Message Templates */}
-            <MessageTemplates onSelectTemplate={onSelectTemplate} />
-          </div>
-
-          <div className="flex-1 relative group">
+        {/* Input row */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative">
             {/* Slash Commands Menu */}
             <SlashCommands
               inputValue={inputValue}
@@ -230,90 +220,72 @@ export function ChatInputArea({
               onKeyDown={onKeyDown}
               onBlur={onBlur}
               placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos..."}
-              className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+              className="bg-muted border-border rounded-full h-10 px-4 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-0"
             />
-            <motion.div 
-              whileHover={{ scale: 1.1 }} 
-              whileTap={{ scale: 0.9 }}
-              className="absolute right-1 top-1/2 -translate-y-1/2"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 text-muted-foreground hover:text-foreground"
             >
+              <Smile className="w-[18px] h-[18px]" />
+            </Button>
+          </div>
+
+          {/* Right side action buttons */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0",
+              isRecordingAudio && "text-destructive bg-destructive/10"
+            )}
+            onClick={onRecordToggle}
+          >
+            <Mic className="w-[18px] h-[18px]" />
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+            onClick={onOpenLocationPicker}
+            title="Compartilhar localização"
+          >
+            <MapPin className="w-[18px] h-[18px]" />
+          </Button>
+
+          <ProductCatalog
+            onSendProduct={onSendProduct}
+            trigger={
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-primary w-8 h-8"
+                className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+                title="Catálogo de produtos"
               >
-                <Smile className="w-5 h-5" />
+                <Package className="w-[18px] h-[18px]" />
               </Button>
-            </motion.div>
-          </div>
+            }
+          />
 
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className={cn(
-                "text-muted-foreground hover:text-primary hover:bg-primary/10",
-                isRecordingAudio && "text-destructive bg-destructive/10"
-              )}
-              onClick={onRecordToggle}
-            >
-              <Mic className="w-5 h-5" />
-            </Button>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-              onClick={onOpenLocationPicker}
-              title="Compartilhar localização"
-            >
-              <MapPin className="w-5 h-5" />
-            </Button>
-          </motion.div>
-
-          {/* Product Catalog */}
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <ProductCatalog
-              onSendProduct={onSendProduct}
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                  title="Catálogo de produtos"
-                >
-                  <Package className="w-5 h-5" />
-                </Button>
-              }
-            />
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-              onClick={onOpenSchedule}
-            >
-              <Clock className="w-5 h-5" />
-            </Button>
-          </motion.div>
-
-          <motion.div 
-            whileHover={{ scale: 1.05 }} 
-            whileTap={{ scale: 0.95 }}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+            onClick={onOpenSchedule}
           >
-            <Button
-              onClick={onSend}
-              disabled={!inputValue.trim()}
-              className="text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50"
-              style={{ background: 'var(--gradient-primary)' }}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </motion.div>
+            <Clock className="w-[18px] h-[18px]" />
+          </Button>
+
+          {/* Send button — DreamsChat circular purple */}
+          <Button
+            onClick={onSend}
+            disabled={!inputValue.trim()}
+            size="icon"
+            className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 disabled:opacity-40"
+          >
+            <Send className="w-[18px] h-[18px]" />
+          </Button>
         </div>
 
         {/* Audio Recorder */}
@@ -327,7 +299,7 @@ export function ChatInputArea({
             </div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </>
   );
 }
