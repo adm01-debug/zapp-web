@@ -219,6 +219,16 @@ function IndexContent() {
         return <IntegrationsHub />;
       case 'privacy':
         return <LGPDComplianceView />;
+      case 'pipeline':
+        return <SalesPipelineView />;
+      case 'knowledge':
+        return <KnowledgeBaseView />;
+      case 'payments':
+        return <PaymentLinksView />;
+      case 'wa-flows':
+        return <WhatsAppFlowsBuilder />;
+      case 'meta-capi':
+        return <MetaCAPIView />;
       default:
         return (
           <div className="flex items-center justify-center h-full">

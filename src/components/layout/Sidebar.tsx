@@ -104,6 +104,7 @@ const menuGroups: Array<{
     items: [
       { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
       { id: 'sentiment', icon: AlertTriangle, label: 'Alertas' },
+      { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
       { id: 'security', icon: Shield, label: 'Segurança' },
       { id: 'privacy', icon: ShieldCheck, label: 'Privacidade' },
       { id: 'admin', icon: ShieldCheck, label: 'Admin' },
