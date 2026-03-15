@@ -212,6 +212,8 @@ function IndexContent() {
         return <AutomationsManager />;
       case 'integrations':
         return <IntegrationsHub />;
+      case 'privacy':
+        return <LGPDComplianceView />;
         return (
           <div className="flex items-center justify-center h-full">
             <motion.div 
