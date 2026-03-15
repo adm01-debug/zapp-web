@@ -162,25 +162,21 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                           title="Responder"
                         >
                           <Reply className="w-3.5 h-3.5" />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        </button>
+                        <button
                           onClick={() => onForward(message)}
-                          className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                          className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
                           title="Encaminhar"
                         >
                           <Forward className="w-3.5 h-3.5" />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        </button>
+                        <button
                           onClick={() => onCopy(message.content)}
-                          className="p-1.5 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                          className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
                           title="Copiar"
                         >
                           <Copy className="w-3.5 h-3.5" />
-                        </motion.button>
+                        </button>
                         {message.type === 'text' && (
                           <TextToSpeechButton
                             messageId={message.id}
