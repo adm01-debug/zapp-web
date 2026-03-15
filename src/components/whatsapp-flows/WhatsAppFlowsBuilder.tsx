@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, Workflow, Trash2, Edit, Eye,
-  Type, ListChecks, CalendarDays, ToggleLeft,
-  X, ChevronDown, Send
+  Plus, Workflow, Trash2, Edit, Eye, Play, Copy, ArrowRight,
+  Type, ListChecks, CalendarDays, Image, ToggleLeft, Smartphone,
+  GripVertical, X, ChevronDown, ChevronUp, Send
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -223,10 +225,7 @@ export function WhatsAppFlowsBuilder() {
 
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Novo WhatsApp Flow</DialogTitle>
-              <DialogDescription>Crie um formulário interativo para o WhatsApp</DialogDescription>
-            </DialogHeader>
+            <DialogHeader><DialogTitle>Novo WhatsApp Flow</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div><Label>Nome *</Label><Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Ex: Cadastro de Lead" /></div>
               <div><Label>Descrição</Label><Textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} rows={2} /></div>

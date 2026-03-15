@@ -6,13 +6,13 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
-  Activity, Send, CheckCircle, XCircle, BarChart3, Zap,
+  Plus, Activity, Send, CheckCircle, XCircle, BarChart3, Zap,
   MousePointer, ShoppingCart, CreditCard, UserPlus, Eye, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -220,10 +220,7 @@ export function MetaCAPIView() {
       {/* Config Dialog */}
       <Dialog open={showConfig} onOpenChange={setShowConfig}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Configurar Meta CAPI</DialogTitle>
-            <DialogDescription>Configure o Pixel ID e opções de rastreamento</DialogDescription>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Configurar Meta CAPI</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Meta Pixel ID</Label>

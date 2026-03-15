@@ -6,15 +6,15 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, BookOpen, FileText, Search, Upload, Trash2, Edit, Brain,
-  Clock, CheckCircle, AlertCircle, File
+  Plus, BookOpen, FileText, Search, Upload, Trash2, Edit, Eye, Brain,
+  FolderOpen, Tag, Clock, CheckCircle, AlertCircle, File
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -330,7 +330,6 @@ export function KnowledgeBaseView() {
         <DialogContent size="xl">
           <DialogHeader>
             <DialogTitle>{editingArticle ? 'Editar Artigo' : 'Novo Artigo'}</DialogTitle>
-            <DialogDescription>Adicione conteúdo para treinar a IA</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
