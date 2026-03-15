@@ -262,8 +262,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                       transition={{ duration: 0.2 }}
                     >
                       <Icon className={cn(
-                        "w-5 h-5 flex-shrink-0 transition-all duration-300",
-                        isActive ? "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.6)]" : "group-hover:text-secondary"
+                        "w-5 h-5 flex-shrink-0 transition-all duration-200",
+                        isActive ? "text-primary" : "group-hover:text-foreground"
                       )} />
                     </motion.div>
                     
