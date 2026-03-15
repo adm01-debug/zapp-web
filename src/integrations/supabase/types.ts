@@ -727,6 +727,44 @@ export type Database = {
           },
         ]
       }
+      contact_custom_fields: {
+        Row: {
+          contact_id: string
+          created_at: string
+          field_name: string
+          field_type: string
+          field_value: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          field_name: string
+          field_type?: string
+          field_value?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          field_name?: string
+          field_type?: string
+          field_value?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_custom_fields_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_notes: {
         Row: {
           author_id: string
@@ -2431,6 +2469,8 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          farewell_enabled: boolean | null
+          farewell_message: string | null
           id: string
           instance_id: string | null
           is_default: boolean | null
@@ -2443,6 +2483,8 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          farewell_enabled?: boolean | null
+          farewell_message?: string | null
           id?: string
           instance_id?: string | null
           is_default?: boolean | null
@@ -2455,6 +2497,8 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          farewell_enabled?: boolean | null
+          farewell_message?: string | null
           id?: string
           instance_id?: string | null
           is_default?: boolean | null

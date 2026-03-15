@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Dialog,
@@ -18,24 +18,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { User, Users, Send, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Users, Send, ArrowRight, Loader2, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAgents } from '@/hooks/useAgents';
 import { useQueues } from '@/hooks/useQueues';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTransfer: (type: 'agent' | 'queue', targetId: string, message?: string) => void;
+  onTransfer: (type: 'agent' | 'queue' | 'connection', targetId: string, message?: string) => void;
 }
 
 export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialogProps) {
-  const [transferType, setTransferType] = useState<'agent' | 'queue'>('agent');
+  const [transferType, setTransferType] = useState<'agent' | 'queue' | 'connection'>('agent');
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [message, setMessage] = useState('');
+  const [connections, setConnections] = useState<{ id: string; name: string; phone_number: string; status: string }[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
 
   const { agents, isLoading: loadingAgents } = useAgents();
   const { queues, loading: loadingQueues } = useQueues();
+
+  // Fetch WhatsApp connections
+  useEffect(() => {
+    if (transferType !== 'connection' || !open) return;
+    setLoadingConnections(true);
+    supabase
+      .from('whatsapp_connections')
+      .select('id, name, phone_number, status')
+      .eq('status', 'connected')
+      .then(({ data }) => {
+        setConnections(data || []);
+        setLoadingConnections(false);
+      });
+  }, [transferType, open]);
 
   const handleTransfer = () => {
     if (selectedTarget) {
@@ -61,14 +78,14 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
 
         <div className="space-y-6 pt-4">
           {/* Transfer Type */}
-          <RadioGroup
-            value={transferType}
-            onValueChange={(v) => {
-              setTransferType(v as 'agent' | 'queue');
-              setSelectedTarget('');
-            }}
-            className="grid grid-cols-2 gap-4"
-          >
+            <RadioGroup
+              value={transferType}
+              onValueChange={(v) => {
+                setTransferType(v as 'agent' | 'queue' | 'connection');
+                setSelectedTarget('');
+              }}
+              className="grid grid-cols-3 gap-3"
+            >
             <Label
               htmlFor="agent"
               className={cn(
@@ -108,10 +125,30 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
                 <p className="text-xs text-muted-foreground">Transferir para uma fila</p>
               </div>
             </Label>
+
+            <Label
+              htmlFor="connection"
+              className={cn(
+                'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                transferType === 'connection'
+                  ? 'border-whatsapp bg-whatsapp/5'
+                  : 'border-border hover:border-muted-foreground'
+              )}
+            >
+              <RadioGroupItem value="connection" id="connection" className="sr-only" />
+              <Smartphone className={cn(
+                'w-5 h-5',
+                transferType === 'connection' ? 'text-whatsapp' : 'text-muted-foreground'
+              )} />
+              <div>
+                <p className="font-medium">Conexão</p>
+                <p className="text-xs text-muted-foreground">Outro WhatsApp</p>
+              </div>
+            </Label>
           </RadioGroup>
 
           {/* Target Selection */}
-          {transferType === 'agent' ? (
+          {transferType === 'agent' && (
             <div className="space-y-2">
               <Label>Selecione um atendente</Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -159,7 +196,49 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
                 )}
               </div>
             </div>
-          ) : (
+          )}
+
+          {transferType === 'connection' && (
+            <div className="space-y-2">
+              <Label>Selecione uma conexão WhatsApp</Label>
+              {loadingConnections ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : connections.length > 0 ? (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {connections.map((conn) => (
+                    <motion.button
+                      key={conn.id}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedTarget(conn.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left',
+                        selectedTarget === conn.id
+                          ? 'border-whatsapp bg-whatsapp/5'
+                          : 'border-border hover:border-muted-foreground'
+                      )}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Smartphone className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{conn.name}</p>
+                        <p className="text-xs text-muted-foreground">{conn.phone_number}</p>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhuma conexão disponível
+                </p>
+              )}
+            </div>
+          )}
+
+          {transferType === 'queue' && (
             <div className="space-y-2">
               <Label>Selecione um departamento</Label>
               {loadingQueues ? (

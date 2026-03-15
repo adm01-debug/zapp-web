@@ -12,7 +12,8 @@ import { GlobalSearch } from './GlobalSearch';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon } from 'lucide-react';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus } from 'lucide-react';
+import { NewConversationModal } from './NewConversationModal';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +57,7 @@ export function RealtimeInboxView() {
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [showNewConversation, setShowNewConversation] = useState(false);
   
   // Bulk selection state
   const [selectionMode, setSelectionMode] = useState(false);
@@ -490,6 +492,16 @@ export function RealtimeInboxView() {
         onDismiss={dismissNotification}
       />
 
+      {/* New Conversation Modal */}
+      <NewConversationModal
+        open={showNewConversation}
+        onOpenChange={setShowNewConversation}
+        onConversationStarted={(contactId) => {
+          setSelectedContactId(contactId);
+          refetch();
+        }}
+      />
+
       <AuroraBorealis />
       <FloatingParticles />
 
@@ -580,6 +592,21 @@ export function RealtimeInboxView() {
                 <TooltipContent>Atualizar conversas</TooltipContent>
               </Tooltip>
               <KeyboardShortcutsHelp />
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setShowNewConversation(true)}
+                    className="w-8 h-8 text-primary hover:bg-primary/10"
+                    aria-label="Nova conversa"
+                  >
+                    <MessageSquarePlus className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Nova Conversa</TooltipContent>
+              </Tooltip>
             </div>
           </div>
 

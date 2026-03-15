@@ -1,5 +1,6 @@
 import { log } from '@/lib/logger';
 import { Conversation, Agent } from '@/types/chat';
+import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -247,6 +248,16 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
               </Select>
             </div>
           </div>
+        </motion.div>
+
+        {/* Custom Fields */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="p-4 border-b border-border/30"
+        >
+          <CustomFieldsSection contactId={contact.id || contact.phone} />
         </motion.div>
 
         {/* Private Notes */}
