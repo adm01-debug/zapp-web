@@ -606,12 +606,9 @@ export function RealtimeInboxView() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={() => setGlobalSearchOpen(true)}
-              className="pl-9 bg-muted/20 cursor-pointer"
+              className="pl-9 bg-muted border-border rounded-full h-9 text-sm cursor-pointer"
               readOnly
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded font-mono">
-              Ctrl+K
-            </kbd>
           </div>
 
           {/* Advanced Filters */}
