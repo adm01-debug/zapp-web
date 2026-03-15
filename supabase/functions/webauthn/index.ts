@@ -52,13 +52,31 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Service role client for DB operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const { action, ...params } = await req.json();
     const origin = req.headers.get('origin') || 'https://localhost';
     const rpId = getRpId(origin);
     const rpName = 'WhatsApp Platform';
+
+    // Verify caller identity for actions that require authentication
+    const authHeader = req.headers.get('Authorization');
+    let authenticatedUserId: string | null = null;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const token = authHeader.replace('Bearer ', '');
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims) {
+        authenticatedUserId = claimsData.claims.sub as string;
+      }
+    }
 
     console.log(`WebAuthn action: ${action}, origin: ${origin}, rpId: ${rpId}`);
 
@@ -73,8 +91,16 @@ serve(async (req) => {
           );
         }
 
+        // SECURITY: Verify the caller IS the user they claim to be
+        if (!authenticatedUserId || authenticatedUserId !== userId) {
+          return new Response(
+            JSON.stringify({ error: 'Unauthorized: you can only register passkeys for your own account' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         // Get existing credentials to exclude
-        const { data: existingCredentials } = await supabase
+        const { data: existingCredentials } = await supabaseAdmin
           .from('passkey_credentials')
           .select('credential_id')
           .eq('user_id', userId);
@@ -88,14 +114,14 @@ serve(async (req) => {
         // Generate and store challenge
         const challenge = generateChallenge();
         
-        await supabase.from('webauthn_challenges').insert({
+        await supabaseAdmin.from('webauthn_challenges').insert({
           user_id: userId,
           challenge,
           type: 'registration',
         });
 
         // Clean up expired challenges
-        await supabase.rpc('cleanup_expired_challenges');
+        await supabaseAdmin.rpc('cleanup_expired_challenges');
 
         const options = {
           challenge,
@@ -141,8 +167,16 @@ serve(async (req) => {
           );
         }
 
+        // SECURITY: Verify the caller IS the user they claim to be
+        if (!authenticatedUserId || authenticatedUserId !== userId) {
+          return new Response(
+            JSON.stringify({ error: 'Unauthorized: you can only verify passkeys for your own account' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         // Get stored challenge
-        const { data: challengeData, error: challengeError } = await supabase
+        const { data: challengeData, error: challengeError } = await supabaseAdmin
           .from('webauthn_challenges')
           .select('challenge')
           .eq('user_id', userId)
@@ -159,7 +193,7 @@ serve(async (req) => {
           );
         }
 
-        // Verify the credential (simplified verification - in production use a proper library)
+        // Verify the credential
         const { id, rawId, response: credResponse, type, authenticatorAttachment } = credential;
 
         if (type !== 'public-key') {
@@ -191,7 +225,7 @@ serve(async (req) => {
         }
 
         // Store the credential
-        const { error: insertError } = await supabase
+        const { error: insertError } = await supabaseAdmin
           .from('passkey_credentials')
           .insert({
             user_id: userId,
@@ -213,7 +247,7 @@ serve(async (req) => {
         }
 
         // Delete used challenge
-        await supabase
+        await supabaseAdmin
           .from('webauthn_challenges')
           .delete()
           .eq('user_id', userId)
@@ -228,6 +262,7 @@ serve(async (req) => {
       }
 
       case 'authentication-options': {
+        // Authentication options don't require prior auth (user is logging in)
         const { userEmail } = params;
 
         // Generate challenge
@@ -239,13 +274,13 @@ serve(async (req) => {
 
         if (userEmail) {
           // Find user by email
-          const { data: userData } = await supabase.auth.admin.listUsers();
+          const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
           const user = userData?.users?.find(u => u.email === userEmail);
           
           if (user) {
             userId = user.id;
             
-            const { data: credentials } = await supabase
+            const { data: credentials } = await supabaseAdmin
               .from('passkey_credentials')
               .select('credential_id, transports')
               .eq('user_id', user.id);
@@ -259,7 +294,7 @@ serve(async (req) => {
         }
 
         // Store challenge
-        await supabase.from('webauthn_challenges').insert({
+        await supabaseAdmin.from('webauthn_challenges').insert({
           user_id: userId,
           challenge,
           type: 'authentication',
@@ -294,7 +329,7 @@ serve(async (req) => {
         const { id, response: credResponse } = credential;
 
         // Find the stored credential
-        const { data: storedCred, error: credError } = await supabase
+        const { data: storedCred, error: credError } = await supabaseAdmin
           .from('passkey_credentials')
           .select('*')
           .eq('credential_id', id)
@@ -308,10 +343,11 @@ serve(async (req) => {
           );
         }
 
-        // Get the most recent challenge
-        const { data: challengeData } = await supabase
+        // Get the most recent challenge for this user
+        const { data: challengeData } = await supabaseAdmin
           .from('webauthn_challenges')
           .select('challenge')
+          .eq('user_id', storedCred.user_id)
           .eq('type', 'authentication')
           .order('created_at', { ascending: false })
           .limit(1)
@@ -342,7 +378,7 @@ serve(async (req) => {
         }
 
         // Update last used and counter
-        await supabase
+        await supabaseAdmin
           .from('passkey_credentials')
           .update({
             last_used_at: new Date().toISOString(),
@@ -350,14 +386,15 @@ serve(async (req) => {
           })
           .eq('id', storedCred.id);
 
-        // Clean up challenges
-        await supabase
+        // Clean up challenges for this user
+        await supabaseAdmin
           .from('webauthn_challenges')
           .delete()
+          .eq('user_id', storedCred.user_id)
           .eq('type', 'authentication');
 
         // Get user info
-        const { data: userData } = await supabase.auth.admin.getUserById(storedCred.user_id);
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(storedCred.user_id);
 
         console.log('Authentication verified successfully for user:', storedCred.user_id);
 
