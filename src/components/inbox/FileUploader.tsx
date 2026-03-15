@@ -36,6 +36,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { toast } from 'sonner';
+import { compressImage, formatCompressionInfo } from '@/utils/imageCompression';
 
 interface FileMessageData {
   mediaUrl?: string;
