@@ -7,7 +7,7 @@ vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: mockToast }),
 }));
 
-import { useActionFeedback, FEEDBACK_ICONS, FEEDBACK_TITLES } from '@/hooks/useActionFeedback';
+import { useActionFeedback } from '@/hooks/useActionFeedback';
 
 describe('useActionFeedback', () => {
   beforeEach(() => {
