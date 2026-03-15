@@ -57,6 +57,8 @@ interface ChatMessagesAreaProps {
   ttsLoading: boolean;
   ttsPlaying: boolean;
   ttsMessageId: string | null;
+  instanceName?: string;
+  contactJid?: string;
   onSpeak: (messageId: string, text: string) => void;
   onStop: () => void;
   onReply: (message: Message) => void;
