@@ -18,23 +18,23 @@ function formatMessageTime(date: Date): string {
 }
 
 function formatDateSeparator(date: Date): string {
-  if (isToday(date)) return 'Hoje';
-  if (isYesterday(date)) return 'Ontem';
-  return format(date, "d 'de' MMMM", { locale: ptBR });
+  if (isToday(date)) return 'HOJE';
+  if (isYesterday(date)) return 'ONTEM';
+  return format(date, "dd/MM/yyyy", { locale: ptBR });
 }
 
 function MessageStatusIcon({ status }: { status: Message['status'] }) {
   switch (status) {
     case 'sent':
-      return <Check className="w-3.5 h-3.5" />;
+      return <Check className="w-[16px] h-[16px]" />;
     case 'delivered':
-      return <CheckCheck className="w-3.5 h-3.5" />;
+      return <CheckCheck className="w-[16px] h-[16px]" />;
     case 'read':
-      return <CheckCheck className="w-3.5 h-3.5 text-info" />;
+      return <CheckCheck className="w-[16px] h-[16px] text-[hsl(var(--info))]" />;
     case 'failed':
-      return <X className="w-3.5 h-3.5 text-destructive" />;
+      return <X className="w-[16px] h-[16px] text-destructive" />;
     default:
-      return <Clock className="w-3.5 h-3.5 animate-pulse" />;
+      return <Clock className="w-[16px] h-[16px] animate-pulse" />;
   }
 }
 
@@ -94,16 +94,17 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     }, {} as Record<string, Message[]>);
 
     return (
-      <div className="flex-1 overflow-y-auto px-3 md:px-5 py-2 space-y-1 scrollbar-thin whatsapp-chat-wallpaper">
+      <div className="flex-1 overflow-y-auto px-[63px] py-2 space-y-0.5 scrollbar-thin whatsapp-chat-wallpaper">
         {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
           <div key={dateKey}>
-            <div className="flex justify-center my-4">
-              <span className="text-[12px] text-muted-foreground bg-background/85 px-3 py-1 rounded-md shadow-xs">
+            {/* Date separator */}
+            <div className="flex justify-center my-3">
+              <span className="text-[12.5px] text-muted-foreground bg-card/90 px-3 py-[5px] rounded-[7.5px] shadow-xs uppercase tracking-wide">
                 {formatDateSeparator(new Date(dateKey))}
               </span>
             </div>
 
-            <div className="space-y-0.5">
+            <div className="space-y-[2px]">
               {dayMessages.map((message) => {
                 const isSent = message.sender === 'agent';
 
@@ -120,11 +121,14 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                     ) : (
                       <div
                         className={cn(
-                          'relative max-w-[82%] md:max-w-[68%] px-2.5 pt-1.5 pb-1 rounded-lg shadow-xs',
+                          'relative max-w-[65%] px-[9px] pt-[6px] pb-[8px] shadow-xs',
                           isSent
-                            ? 'rounded-tr-[3px] bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]'
-                            : 'rounded-tl-[3px] bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
+                            ? 'bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]'
+                            : 'bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
                         )}
+                        style={{
+                          borderRadius: isSent ? '7.5px 7.5px 0 7.5px' : '7.5px 7.5px 7.5px 0',
+                        }}
                       >
                         {message.replyTo && (
                           <QuotedMessage
@@ -147,19 +151,19 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
 
                         {message.type === 'image' && message.mediaUrl && (
-                          <div className="mb-2 rounded-lg overflow-hidden">
+                          <div className="mb-1 rounded-[4.5px] overflow-hidden">
                             <MessageImage src={message.mediaUrl} />
                           </div>
                         )}
 
                         {message.type === 'video' && message.mediaUrl && (
-                          <div className="mb-2">
+                          <div className="mb-1">
                             <VideoPreview url={message.mediaUrl} caption={message.content} isSent={isSent} />
                           </div>
                         )}
 
                         {message.type === 'audio' && message.mediaUrl && (
-                          <div className="mb-2">
+                          <div className="mb-1">
                             <AudioMessagePlayer
                               audioUrl={message.mediaUrl}
                               messageId={message.id}
@@ -171,7 +175,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
 
                         {message.type === 'document' && message.mediaUrl && (
-                          <div className="mb-2">
+                          <div className="mb-1">
                             <DocumentPreview
                               url={message.mediaUrl}
                               fileName={message.content || 'documento'}
@@ -189,18 +193,19 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                           message.type !== 'location' &&
                           message.type !== 'video' &&
                           message.type !== 'document' && (
-                            <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words">{message.content}</p>
+                            <span className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words">{message.content}</span>
                           )}
 
-                        <div
+                        {/* Time & status - inline */}
+                        <span
                           className={cn(
-                            'flex items-center justify-end gap-1 mt-0.5 text-[11px]',
-                            isSent ? 'text-foreground/55' : 'text-muted-foreground'
+                            'inline-flex items-center gap-0.5 float-right ml-2 mt-1 text-[11px] leading-[15px]',
+                            isSent ? 'text-foreground/50' : 'text-muted-foreground'
                           )}
                         >
                           <span>{formatMessageTime(message.timestamp)}</span>
                           {isSent && <MessageStatusIcon status={message.status} />}
-                        </div>
+                        </span>
                       </div>
                     )}
                   </div>

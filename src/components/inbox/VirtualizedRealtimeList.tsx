@@ -115,8 +115,8 @@ export function VirtualizedRealtimeList({
               <button
                 onClick={(e) => handleClick(contactId, e)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2 text-left transition-colors',
-                  'border-b border-border hover:bg-muted/40',
+                  'w-full flex items-center gap-[13px] pl-[13px] pr-[15px] text-left transition-colors duration-75 h-full',
+                  'hover:bg-muted/40',
                   isActive && 'bg-[hsl(var(--sidebar-accent))]',
                   isSelected && 'bg-primary/10'
                 )}
@@ -135,7 +135,7 @@ export function VirtualizedRealtimeList({
 
                 <Avatar className="w-[49px] h-[49px] flex-shrink-0">
                   <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                  <AvatarFallback className="bg-[hsl(var(--avatar-fallback))] text-[hsl(var(--avatar-fallback-foreground))] text-base font-normal">
+                  <AvatarFallback className="bg-[hsl(var(--avatar-fallback))] text-[hsl(var(--avatar-fallback-foreground))] text-[17px] font-normal">
                     {(conversation.contact.name || '??')
                       .split(' ')
                       .map((n) => n[0])
@@ -145,8 +145,8 @@ export function VirtualizedRealtimeList({
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0 border-b border-border py-[13px]">
+                  <div className="flex items-baseline justify-between gap-2">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                       {isPinned && <Pin className="w-3 h-3 text-muted-foreground flex-shrink-0" />}
                       <span className="truncate text-[17px] leading-[21px] text-foreground font-normal">
@@ -156,7 +156,7 @@ export function VirtualizedRealtimeList({
                     {lastMsg && (
                       <span
                         className={cn(
-                          'text-xs flex-shrink-0 font-normal',
+                          'text-[12px] flex-shrink-0 font-normal leading-[14px]',
                           hasUnread ? 'text-primary' : 'text-muted-foreground'
                         )}
                       >
@@ -165,23 +165,26 @@ export function VirtualizedRealtimeList({
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <div className="flex items-center gap-1 min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 mt-[2px]">
+                    <div className="flex items-center gap-[3px] min-w-0 flex-1">
                       {isLastSent && (
                         <span className="flex-shrink-0 text-muted-foreground">
                           {lastMsg?.is_read ? (
-                            <CheckCheck className="w-4 h-4 text-info" />
+                            <CheckCheck className="w-[18px] h-[18px] text-[hsl(var(--info))]" />
                           ) : (
-                            <Check className="w-4 h-4" />
+                            <Check className="w-[18px] h-[18px]" />
                           )}
                         </span>
                       )}
-                      <p className={cn('text-sm truncate leading-5', hasUnread ? 'text-foreground/85' : 'text-muted-foreground')}>
+                      <p className={cn(
+                        'text-[14px] truncate leading-[20px]',
+                        hasUnread ? 'text-foreground/80' : 'text-muted-foreground'
+                      )}>
                         {lastMsg?.content || 'Sem mensagens'}
                       </p>
                     </div>
                     {hasUnread && (
-                      <span className="flex-shrink-0 min-w-5 h-5 px-1 bg-primary text-primary-foreground text-[11px] rounded-full flex items-center justify-center font-normal">
+                      <span className="flex-shrink-0 min-w-[20px] h-[20px] px-[6px] bg-primary text-primary-foreground text-[12px] rounded-full flex items-center justify-center font-normal">
                         {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                       </span>
                     )}
