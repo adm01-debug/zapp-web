@@ -28,10 +28,10 @@ describe('useUndoableAction', () => {
     expect(result.current.timeRemaining).toBe(0);
   });
 
-  it('exposes execute and undo functions', () => {
+  it('exposes execute and cancelPendingAction functions', () => {
     const { result } = renderHook(() => useUndoableAction());
     expect(typeof result.current.execute).toBe('function');
-    expect(typeof result.current.undo).toBe('function');
+    expect(typeof result.current.cancelPendingAction).toBe('function');
   });
 
   it('execute runs action', async () => {

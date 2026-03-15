@@ -68,23 +68,24 @@ describe('useQueueGoals', () => {
     expect(typeof result.current.saveGoal).toBe('function');
   });
 
-  it('exposes getGoal function', async () => {
+  it('exposes getDefaultGoal function', async () => {
     const { result } = renderHook(() => useQueueGoals());
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(typeof result.current.getGoal).toBe('function');
+    expect(typeof result.current.getDefaultGoal).toBe('function');
   });
 
-  it('getGoal returns goal for queue', async () => {
+  it('getDefaultGoal returns sensible defaults', async () => {
     const { result } = renderHook(() => useQueueGoals());
     await waitFor(() => expect(result.current.loading).toBe(false));
-    const goal = result.current.getGoal('q1');
-    expect(goal?.id).toBe('g1');
+    const defaults = result.current.getDefaultGoal();
+    expect(defaults.max_waiting_contacts).toBeGreaterThan(0);
   });
 
-  it('getGoal returns undefined for unknown queue', async () => {
+  it('goals can be accessed by queue_id', async () => {
     const { result } = renderHook(() => useQueueGoals());
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.getGoal('unknown')).toBeUndefined();
+    expect(result.current.goals['q1']?.id).toBe('g1');
+    expect(result.current.goals['unknown']).toBeUndefined();
   });
 
   it('subscribes to realtime changes', () => {

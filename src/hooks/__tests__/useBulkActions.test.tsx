@@ -44,7 +44,7 @@ describe('useBulkActions', () => {
 
   it('initializes with no selection', () => {
     const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
       { wrapper: createWrapper() }
     );
     expect(result.current.selectedIds.size).toBe(0);
@@ -54,7 +54,7 @@ describe('useBulkActions', () => {
 
   it('toggleSelection adds item', () => {
     const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
       { wrapper: createWrapper() }
     );
 
@@ -69,7 +69,7 @@ describe('useBulkActions', () => {
 
   it('toggleSelection removes item if already selected', () => {
     const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
       { wrapper: createWrapper() }
     );
 
@@ -86,7 +86,7 @@ describe('useBulkActions', () => {
 
   it('deselectAll clears selection', () => {
     const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
       { wrapper: createWrapper() }
     );
 
@@ -104,7 +104,7 @@ describe('useBulkActions', () => {
 
   it('isSelected returns correct value', () => {
     const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
       { wrapper: createWrapper() }
     );
 
@@ -118,7 +118,7 @@ describe('useBulkActions', () => {
 
   it('selectOne adds single item', () => {
     const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
       { wrapper: createWrapper() }
     );
 
@@ -129,19 +129,51 @@ describe('useBulkActions', () => {
     expect(result.current.isSelected('2')).toBe(true);
   });
 
+  it('selectAll selects everything', () => {
+    const { result } = renderHook(
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
+      { wrapper: createWrapper() }
+    );
+
+    act(() => {
+      result.current.selectAll();
+    });
+
+    expect(result.current.isAllSelected).toBe(true);
+    expect(result.current.selectionCount).toBe(3);
+  });
+
+  it('isPartiallySelected is true when some selected', () => {
+    const { result } = renderHook(
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
+      { wrapper: createWrapper() }
+    );
+
+    act(() => {
+      result.current.toggleSelection('1');
+    });
+
+    expect(result.current.isPartiallySelected).toBe(true);
+  });
+
+  it('selectedItems returns correct items', () => {
+    const { result } = renderHook(
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
+      { wrapper: createWrapper() }
+    );
+
+    act(() => {
+      result.current.toggleSelection('2');
+    });
+
+    expect(result.current.selectedItems).toEqual([{ id: '2', name: 'Item 2' }]);
+  });
+
   it('isExecuting is false initially', () => {
     const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
+      () => useBulkActions<TestItem>(testItems, { tableName: 'test' }),
       { wrapper: createWrapper() }
     );
     expect(result.current.isExecuting).toBe(false);
-  });
-
-  it('exposes executeAction function', () => {
-    const { result } = renderHook(
-      () => useBulkActions<TestItem>({ tableName: 'test' }),
-      { wrapper: createWrapper() }
-    );
-    expect(typeof result.current.executeAction).toBe('function');
   });
 });

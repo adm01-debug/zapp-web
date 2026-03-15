@@ -103,16 +103,10 @@ describe('useAgentGamification', () => {
     expect(ACHIEVEMENT_TYPES.FIRST_MESSAGE).toBe('first_message');
   });
 
-  it('exposes addXP function', async () => {
+  it('exposes addXp function', async () => {
     const { result } = renderHook(() => useAgentGamification(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(typeof result.current.addXP).toBe('function');
-  });
-
-  it('exposes checkAchievements function', async () => {
-    const { result } = renderHook(() => useAgentGamification(), { wrapper: createWrapper() });
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(typeof result.current.checkAchievements).toBe('function');
+    expect(typeof result.current.addXp).toBe('function');
   });
 
   it('calculates level from XP', async () => {
@@ -121,5 +115,11 @@ describe('useAgentGamification', () => {
     if (result.current.stats) {
       expect(result.current.stats.level).toBeGreaterThanOrEqual(1);
     }
+  });
+
+  it('exposes profileId', async () => {
+    const { result } = renderHook(() => useAgentGamification(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.profileId).toBeDefined();
   });
 });

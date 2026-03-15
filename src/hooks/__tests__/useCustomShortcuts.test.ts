@@ -19,17 +19,11 @@ describe('useCustomShortcuts', () => {
     expect(result.current.shortcuts.length).toBeGreaterThan(0);
   });
 
-  it('getShortcut returns binding by id', () => {
+  it('finds shortcut by id from list', () => {
     const { result } = renderHook(() => useCustomShortcuts());
-    const sendMessage = result.current.getShortcut('send-message');
+    const sendMessage = result.current.shortcuts.find(s => s.id === 'send-message');
     expect(sendMessage).toBeDefined();
     expect(sendMessage?.id).toBe('send-message');
-  });
-
-  it('getShortcut returns undefined for unknown id', () => {
-    const { result } = renderHook(() => useCustomShortcuts());
-    const unknown = result.current.getShortcut('nonexistent');
-    expect(unknown).toBeUndefined();
   });
 
   it('shortcuts have required fields', () => {
@@ -60,16 +54,16 @@ describe('useCustomShortcuts', () => {
     expect(typeof result.current.resetShortcut).toBe('function');
   });
 
-  it('exposes resetAll function', () => {
+  it('exposes resetAllShortcuts function', () => {
     const { result } = renderHook(() => useCustomShortcuts());
-    expect(typeof result.current.resetAll).toBe('function');
+    expect(typeof result.current.resetAllShortcuts).toBe('function');
   });
 
-  it('resetAll restores defaults', () => {
+  it('resetAllShortcuts restores defaults', () => {
     const { result } = renderHook(() => useCustomShortcuts());
 
     act(() => {
-      result.current.resetAll();
+      result.current.resetAllShortcuts();
     });
 
     const shortcuts = result.current.shortcuts;
@@ -78,19 +72,21 @@ describe('useCustomShortcuts', () => {
     });
   });
 
-  it('getShortcutsByCategory filters by category', () => {
-    const { result } = renderHook(() => useCustomShortcuts());
-    const chatShortcuts = result.current.getShortcutsByCategory('chat');
-    expect(chatShortcuts.length).toBeGreaterThan(0);
-    chatShortcuts.forEach(s => {
-      expect(s.category).toBe('chat');
-    });
-  });
-
   it('no duplicate shortcut IDs', () => {
     const { result } = renderHook(() => useCustomShortcuts());
     const ids = result.current.shortcuts.map(s => s.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(ids.length);
+  });
+
+  it('can filter shortcuts by category', () => {
+    const { result } = renderHook(() => useCustomShortcuts());
+    const chatShortcuts = result.current.shortcuts.filter(s => s.category === 'chat');
+    expect(chatShortcuts.length).toBeGreaterThan(0);
+  });
+
+  it('exposes checkConflict function', () => {
+    const { result } = renderHook(() => useCustomShortcuts());
+    expect(typeof result.current.checkConflict).toBe('function');
   });
 });

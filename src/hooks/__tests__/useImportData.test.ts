@@ -44,11 +44,11 @@ describe('useImportData', () => {
     expect(result.current.result).toBeNull();
   });
 
-  it('exposes importFile function', () => {
+  it('exposes processFile function', () => {
     const { result } = renderHook(() =>
       useImportData<TestRow>({ schema: testSchema, onImport: mockOnImport })
     );
-    expect(typeof result.current.importFile).toBe('function');
+    expect(typeof result.current.processFile).toBe('function');
   });
 
   it('exposes reset function', () => {
@@ -58,16 +58,23 @@ describe('useImportData', () => {
     expect(typeof result.current.reset).toBe('function');
   });
 
+  it('exposes confirmImport function', () => {
+    const { result } = renderHook(() =>
+      useImportData<TestRow>({ schema: testSchema, onImport: mockOnImport })
+    );
+    expect(typeof result.current.confirmImport).toBe('function');
+  });
+
+  it('isProcessing is false initially', () => {
+    const { result } = renderHook(() =>
+      useImportData<TestRow>({ schema: testSchema, onImport: mockOnImport })
+    );
+    expect(result.current.isProcessing).toBe(false);
+  });
+
   it('accepts maxRows option', () => {
     const { result } = renderHook(() =>
       useImportData<TestRow>({ schema: testSchema, onImport: mockOnImport, maxRows: 100 })
-    );
-    expect(result.current.status).toBe('idle');
-  });
-
-  it('accepts skipFirstRow option', () => {
-    const { result } = renderHook(() =>
-      useImportData<TestRow>({ schema: testSchema, onImport: mockOnImport, skipFirstRow: true })
     );
     expect(result.current.status).toBe('idle');
   });
@@ -92,7 +99,7 @@ describe('useImportData', () => {
     expect(testSchema.safeParse(invalidData).success).toBe(false);
   });
 
-  it('validates multiple rows', () => {
+  it('validates multiple rows correctly', () => {
     const rows = [
       { name: 'John', email: 'john@test.com' },
       { name: '', email: 'bad' },
