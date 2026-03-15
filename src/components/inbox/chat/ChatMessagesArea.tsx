@@ -196,6 +196,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
                       </div>
 
+                      {(message as any).is_deleted ? (
+                        <DeletedMessagePlaceholder isSent={isSent} />
+                      ) : (
                       <motion.div
                         whileHover={{ scale: 1.01 }}
                         className={cn(
