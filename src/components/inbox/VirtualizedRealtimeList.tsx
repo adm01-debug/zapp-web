@@ -152,16 +152,23 @@ export function VirtualizedRealtimeList({
                         {conversation.contact.name || 'Sem nome'}
                       </span>
                     </div>
-                    {conversation.lastMessage && (
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
-                        {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
-                          addSuffix: false,
-                          locale: ptBR,
-                        })}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {conversation.lastMessage && (
+                        <span className="text-[11px] text-muted-foreground">
+                          {formatDistanceToNow(new Date(conversation.lastMessage.created_at), {
+                            addSuffix: false,
+                            locale: ptBR,
+                          })}
+                        </span>
+                      )}
+                      {conversation.unreadCount > 0 && (
+                        <span className="min-w-[18px] h-[18px] px-1 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center font-bold">
+                          {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
+                  <p className="text-[13px] text-muted-foreground truncate">
                     {conversation.lastMessage?.content || 'Sem mensagens'}
                   </p>
                   {conversation.contact.tags && conversation.contact.tags.length > 0 && (
