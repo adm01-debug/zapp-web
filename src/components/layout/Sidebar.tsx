@@ -126,11 +126,10 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       initial={false}
       animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex flex-col h-screen border-r border-secondary/30 relative bg-sidebar sidebar-neon"
+      className="flex flex-col h-screen border-r border-border relative bg-sidebar"
     >
-      {/* Neon gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 via-primary/3 to-transparent pointer-events-none" aria-hidden="true" />
-      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-secondary/50 via-primary/30 to-secondary/50 pointer-events-none" aria-hidden="true" />
+      {/* Subtle top gradient */}
+      <div className="absolute inset-x-0 top-0 h-28 bg-primary pointer-events-none" aria-hidden="true" />
       
       {/* Logo */}
       <div className="relative flex items-center justify-between p-4 border-b border-secondary/20">
