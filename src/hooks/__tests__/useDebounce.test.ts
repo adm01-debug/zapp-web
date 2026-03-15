@@ -12,97 +12,97 @@ describe('useDebounce', () => {
     vi.useRealTimers();
   });
 
-  it('returns initial value immediately', () => {
-    const { result } = renderHook(() => useDebounce('hello', 500));
-    expect(result.current).toBe('hello');
+  it('returns a debounced function', () => {
+    const callback = vi.fn();
+    const { result } = renderHook(() => useDebounce(callback, 500));
+    expect(typeof result.current).toBe('function');
   });
 
-  it('does not update value before delay', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
-    );
-
-    rerender({ value: 'updated', delay: 500 });
+  it('does not call callback immediately', () => {
+    const callback = vi.fn();
+    const { result } = renderHook(() => useDebounce(callback, 500));
 
     act(() => {
-      vi.advanceTimersByTime(300);
+      result.current();
     });
 
-    expect(result.current).toBe('initial');
+    expect(callback).not.toHaveBeenCalled();
   });
 
-  it('updates value after delay', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
-    );
+  it('calls callback after delay', () => {
+    const callback = vi.fn();
+    const { result } = renderHook(() => useDebounce(callback, 500));
 
-    rerender({ value: 'updated', delay: 500 });
+    act(() => {
+      result.current();
+    });
 
     act(() => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(result.current).toBe('updated');
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('resets timer on rapid changes', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
-      { initialProps: { value: 'a', delay: 300 } }
-    );
+  it('resets timer on rapid calls', () => {
+    const callback = vi.fn();
+    const { result } = renderHook(() => useDebounce(callback, 300));
 
-    rerender({ value: 'b', delay: 300 });
-    act(() => vi.advanceTimersByTime(200));
+    act(() => {
+      result.current();
+    });
 
-    rerender({ value: 'c', delay: 300 });
-    act(() => vi.advanceTimersByTime(200));
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
 
-    // 'c' hasn't resolved yet (only 200ms since last change)
-    expect(result.current).toBe('a');
+    act(() => {
+      result.current();
+    });
 
-    act(() => vi.advanceTimersByTime(100));
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
 
-    expect(result.current).toBe('c');
+    expect(callback).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('works with zero delay', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
-      { initialProps: { value: 'init', delay: 0 } }
-    );
+  it('passes arguments to callback', () => {
+    const callback = vi.fn();
+    const { result } = renderHook(() => useDebounce(callback, 200));
 
-    rerender({ value: 'zero', delay: 0 });
+    act(() => {
+      result.current('arg1', 'arg2');
+    });
 
-    act(() => vi.advanceTimersByTime(0));
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
 
-    expect(result.current).toBe('zero');
+    expect(callback).toHaveBeenCalledWith('arg1', 'arg2');
   });
 
-  it('handles number values', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }: { value: number; delay: number }) => useDebounce(value, delay),
-      { initialProps: { value: 42, delay: 200 } }
-    );
+  it('only calls with last arguments on rapid calls', () => {
+    const callback = vi.fn();
+    const { result } = renderHook(() => useDebounce(callback, 200));
 
-    rerender({ value: 100, delay: 200 });
-    act(() => vi.advanceTimersByTime(200));
+    act(() => {
+      result.current('first');
+      result.current('second');
+      result.current('third');
+    });
 
-    expect(result.current).toBe(100);
-  });
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
 
-  it('handles null/undefined values', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }: { value: string | null; delay: number }) => useDebounce(value, delay),
-      { initialProps: { value: null as string | null, delay: 200 } }
-    );
-
-    expect(result.current).toBeNull();
-
-    rerender({ value: 'now set', delay: 200 });
-    act(() => vi.advanceTimersByTime(200));
-
-    expect(result.current).toBe('now set');
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback).toHaveBeenCalledWith('third');
   });
 });

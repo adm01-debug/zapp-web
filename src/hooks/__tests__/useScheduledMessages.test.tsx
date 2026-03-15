@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -8,10 +8,21 @@ const mockFrom = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: (...args: any[]) => mockFrom(...args),
+    auth: {
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+    },
   },
 }));
 
+const mockUseAuth = vi.fn();
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+  AuthProvider: ({ children }: any) => children,
+}));
+
 vi.mock('@/hooks/use-toast', () => ({
+  toast: vi.fn(),
   useToast: () => ({ toast: vi.fn() }),
 }));
 
@@ -36,6 +47,7 @@ const mockMessages = [
 describe('useScheduledMessages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseAuth.mockReturnValue({ user: { id: 'u1' } });
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
@@ -64,15 +76,7 @@ describe('useScheduledMessages', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.scheduledMessages).toBeDefined();
-  });
-
-  it('handles null contactId gracefully', async () => {
-    const { result } = renderHook(() => useScheduledMessages(null as any), { wrapper: createWrapper() });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    expect(result.current.messages).toBeDefined();
   });
 
   it('handles fetch error', async () => {
@@ -86,6 +90,14 @@ describe('useScheduledMessages', () => {
     });
 
     const { result } = renderHook(() => useScheduledMessages('c1'), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  it('returns empty messages without contactId', async () => {
+    const { result } = renderHook(() => useScheduledMessages(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

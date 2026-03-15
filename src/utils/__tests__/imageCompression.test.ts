@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
-// Test the compression utility logic
 describe('imageCompression utilities', () => {
   it('validates supported image types', () => {
     const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -14,7 +13,7 @@ describe('imageCompression utilities', () => {
     const invalidTypes = ['application/pdf', 'text/plain', 'video/mp4'];
     
     invalidTypes.forEach(type => {
-      expect(type.startsWith('image/')).toBe(true === false);
+      expect(type.startsWith('image/')).toBe(false);
     });
   });
 
@@ -27,5 +26,12 @@ describe('imageCompression utilities', () => {
     const quality = 0.8;
     expect(quality).toBeGreaterThan(0);
     expect(quality).toBeLessThanOrEqual(1);
+  });
+
+  it('validates common image dimensions', () => {
+    const maxWidth = 1920;
+    const maxHeight = 1080;
+    expect(maxWidth).toBeLessThanOrEqual(4096);
+    expect(maxHeight).toBeLessThanOrEqual(4096);
   });
 });

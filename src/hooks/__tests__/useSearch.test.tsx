@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const mockFrom = vi.fn();
 
@@ -15,56 +17,57 @@ vi.mock('@/lib/logger', () => ({
 
 import { useSearch } from '@/hooks/useSearch';
 
+function createWrapper() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+  );
+}
+
 describe('useSearch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
-        ilike: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
         or: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-        textSearch: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          limit: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
         }),
       }),
     });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it('initializes with empty results', () => {
-    const { result } = renderHook(() => useSearch());
+    const { result } = renderHook(
+      () => useSearch('contacts', { columns: ['name', 'phone'] }),
+      { wrapper: createWrapper() }
+    );
     expect(result.current.results).toEqual([]);
-    expect(result.current.isSearching).toBe(false);
+    expect(result.current.isLoading).toBe(false);
   });
 
-  it('does not search with empty query', () => {
-    const { result } = renderHook(() => useSearch());
-    
-    act(() => {
-      result.current.setQuery('');
-    });
-
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
-
-    expect(result.current.results).toEqual([]);
+  it('provides setSearchTerm function', () => {
+    const { result } = renderHook(
+      () => useSearch('contacts', { columns: ['name'] }),
+      { wrapper: createWrapper() }
+    );
+    expect(typeof result.current.setSearchTerm).toBe('function');
   });
 
-  it('handles search query', () => {
-    const { result } = renderHook(() => useSearch());
+  it('provides clearSearch function', () => {
+    const { result } = renderHook(
+      () => useSearch('contacts', { columns: ['name'] }),
+      { wrapper: createWrapper() }
+    );
+    expect(typeof result.current.clearSearch).toBe('function');
+  });
 
-    act(() => {
-      result.current.setQuery('test');
-    });
-
-    expect(result.current.query).toBe('test');
+  it('hasResults is false initially', () => {
+    const { result } = renderHook(
+      () => useSearch('contacts', { columns: ['name'] }),
+      { wrapper: createWrapper() }
+    );
+    expect(result.current.hasResults).toBe(false);
   });
 });

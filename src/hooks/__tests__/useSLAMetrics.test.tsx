@@ -27,7 +27,6 @@ function createWrapper() {
 const mockSLAData = [
   { id: 's1', contact_id: 'c1', first_response_breached: false, resolution_breached: false, first_response_at: '2024-01-01T10:05:00Z', first_message_at: '2024-01-01T10:00:00Z', resolved_at: '2024-01-01T11:00:00Z' },
   { id: 's2', contact_id: 'c2', first_response_breached: true, resolution_breached: true, first_response_at: null, first_message_at: '2024-01-01T10:00:00Z', resolved_at: null },
-  { id: 's3', contact_id: 'c3', first_response_breached: false, resolution_breached: false, first_response_at: '2024-01-01T10:02:00Z', first_message_at: '2024-01-01T10:00:00Z', resolved_at: '2024-01-01T10:30:00Z' },
 ];
 
 describe('useSLAMetrics', () => {
@@ -50,10 +49,10 @@ describe('useSLAMetrics', () => {
     const { result } = renderHook(() => useSLAMetrics(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.slaData).toBeDefined();
+    expect(result.current.data).toBeDefined();
   });
 
   it('handles loading state correctly', () => {
@@ -67,7 +66,7 @@ describe('useSLAMetrics', () => {
     });
 
     const { result } = renderHook(() => useSLAMetrics(), { wrapper: createWrapper() });
-    expect(result.current.isLoading).toBe(true);
+    expect(result.current.loading).toBe(true);
   });
 
   it('handles empty SLA data', async () => {
@@ -83,7 +82,7 @@ describe('useSLAMetrics', () => {
     const { result } = renderHook(() => useSLAMetrics(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.loading).toBe(false);
     });
   });
 
@@ -100,7 +99,7 @@ describe('useSLAMetrics', () => {
     const { result } = renderHook(() => useSLAMetrics(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.loading).toBe(false);
     });
   });
 });

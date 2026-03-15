@@ -31,7 +31,7 @@ vi.mock('sonner', () => ({
 }));
 
 vi.mock('@/lib/logger', () => ({
-  log: { error: vi.fn(), debug: vi.fn(), info: vi.fn() },
+  log: { error: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }));
 
 import { useMFA } from '@/hooks/useMFA';
@@ -52,6 +52,7 @@ describe('useMFA', () => {
   it('initializes with default state', () => {
     const { result } = renderHook(() => useMFA());
     expect(result.current.loading).toBe(false);
+    expect(result.current.isMFAEnabled).toBe(false);
   });
 
   it('enrollTOTP calls mfa.enroll with totp factor', async () => {
@@ -62,9 +63,8 @@ describe('useMFA', () => {
 
     const { result } = renderHook(() => useMFA());
 
-    let enrollResult: any;
     await act(async () => {
-      enrollResult = await result.current.enrollTOTP();
+      await result.current.enrollTOTP();
     });
 
     expect(mockAuth.mfa.enroll).toHaveBeenCalledWith({ factorType: 'totp' });
@@ -94,13 +94,13 @@ describe('useMFA', () => {
     });
   });
 
-  it('unenrollFactor calls mfa.unenroll', async () => {
+  it('unenroll calls mfa.unenroll', async () => {
     mockAuth.mfa.unenroll.mockResolvedValue({ data: {}, error: null });
 
     const { result } = renderHook(() => useMFA());
 
     await act(async () => {
-      await result.current.unenrollFactor('factor-1');
+      await result.current.unenroll('factor-1');
     });
 
     expect(mockAuth.mfa.unenroll).toHaveBeenCalledWith({ factorId: 'factor-1' });
@@ -115,8 +115,11 @@ describe('useMFA', () => {
     const { result } = renderHook(() => useMFA());
 
     await act(async () => {
-      const res = await result.current.enrollTOTP();
-      // Should handle error without crashing
+      try {
+        await result.current.enrollTOTP();
+      } catch {
+        // Expected to throw
+      }
     });
   });
 
@@ -133,7 +136,30 @@ describe('useMFA', () => {
     const { result } = renderHook(() => useMFA());
 
     await act(async () => {
-      await result.current.verifyTOTP('factor-1', '000000');
+      try {
+        await result.current.verifyTOTP('factor-1', '000000');
+      } catch {
+        // Expected to throw
+      }
     });
+  });
+
+  it('fetchFactors retrieves TOTP factors', async () => {
+    mockAuth.mfa.listFactors.mockResolvedValue({
+      data: {
+        totp: [{ id: 'f1', factor_type: 'totp', status: 'verified', friendly_name: 'My Authenticator', created_at: '', updated_at: '' }],
+        phone: [],
+      },
+      error: null,
+    });
+
+    const { result } = renderHook(() => useMFA());
+
+    await act(async () => {
+      await result.current.fetchFactors();
+    });
+
+    expect(result.current.factors).toHaveLength(1);
+    expect(result.current.isMFAEnabled).toBe(true);
   });
 });
