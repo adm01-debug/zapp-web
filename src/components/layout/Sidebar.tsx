@@ -469,7 +469,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="relative p-3 border-t border-secondary/20"
+          className="relative p-3 border-t border-border"
           role="region"
           aria-label="Perfil do usuário"
         >
