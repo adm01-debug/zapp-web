@@ -61,7 +61,7 @@ export function RealtimeInboxView() {
   const [bulkLoading, setBulkLoading] = useState(false);
 
   // URL-persisted filters
-  const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
+  const { filters: urlFilters, setFilters: setUrlFilters } = useUrlFilters();
   
   // Undoable action hook for bulk operations
   const { execute: executeUndoable } = useUndoableAction();
