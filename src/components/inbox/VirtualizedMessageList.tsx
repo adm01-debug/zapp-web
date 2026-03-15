@@ -8,6 +8,7 @@ import { MessageReactions } from './MessageReactions';
 import { MessageImage } from './ImagePreview';
 import { DocumentPreview, VideoPreview } from './MediaPreview';
 import { InteractiveMessageDisplay, ButtonResponseBadge } from './InteractiveMessage';
+import { DeletedMessagePlaceholder } from './DeletedMessagePlaceholder';
 import { QuotedMessage } from './ReplyQuote';
 import { LocationMessageDisplay } from './LocationMessage';
 import { AudioMessagePlayer } from './AudioMessagePlayer';
