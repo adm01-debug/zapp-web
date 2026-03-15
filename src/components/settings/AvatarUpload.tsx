@@ -75,6 +75,7 @@ export function AvatarUpload() {
           .eq('user_id', user.id);
         if (error) throw error;
         setAvatarUrl(null);
+        await refreshProfile();
       },
       {
         successMessage: 'Foto removida!',
