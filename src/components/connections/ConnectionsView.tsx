@@ -59,6 +59,10 @@ interface WhatsAppConnection {
   qr_code: string | null;
   is_default: boolean;
   created_at: string;
+  battery_level?: number | null;
+  is_plugged?: boolean | null;
+  retry_count?: number | null;
+  max_retries?: number | null;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Wifi }> = {
