@@ -8,7 +8,7 @@ import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
 import { FileUploader, FileUploaderRef } from '../FileUploader';
 import { Product } from '@/components/catalog/ProductCard';
-import { Send, Smile, Mic } from 'lucide-react';
+import { Send, Smile, Mic, Paperclip } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface QuickReplyItem {
@@ -86,83 +86,84 @@ export function ChatInputArea({
         )}
       </AnimatePresence>
 
-      <div className="px-2 py-[5px] bg-[hsl(var(--chat-input-bg))]">
-        <div className="flex items-end gap-1">
-          <div className="flex items-center gap-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50"
-              title="Emoji"
-            >
-              <Smile className="w-6 h-6" />
-            </Button>
-
-            <FileUploader
-              ref={fileUploaderRef}
-              instanceName={instanceName || ''}
-              recipientNumber={contactPhone}
-              contactId={contactId}
-              connectionId={undefined}
-              onFileSelect={(file, category) => {
-                toast({
-                  title: 'Arquivo selecionado',
-                  description: `${file.name} (${category}) será enviado.`,
-                });
-              }}
-              onFileSent={() => {
-                toast({
-                  title: 'Arquivo enviado',
-                  description: 'Mídia enviada com sucesso.',
-                });
-              }}
-            />
-          </div>
-
-          <div className="flex-1 relative">
-            <SlashCommands
-              inputValue={inputValue}
-              onSelectCommand={onSlashCommand}
-              onClose={onCloseSlashCommands}
-              isOpen={showSlashCommands}
-            />
-
-            <Input
-              ref={inputRef}
-              value={inputValue}
-              onChange={onInputChange}
-              onKeyDown={onKeyDown}
-              onBlur={onBlur}
-              placeholder={replyToMessage ? 'Responder mensagem...' : 'Digite uma mensagem'}
-              className="h-10 rounded-lg border-0 bg-card text-sm px-4"
-            />
-          </div>
-
+      <div className="flex items-center gap-1 px-2 h-[62px] bg-[hsl(var(--sidebar-header))] border-t border-border flex-shrink-0">
+        {/* Left icons */}
+        <div className="flex items-center gap-0">
           <Button
-            onClick={hasText ? onSend : onRecordToggle}
             variant="ghost"
             size="icon"
-            className={cn(
-              'w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50',
-              isRecordingAudio && 'text-destructive hover:bg-destructive/10'
-            )}
-            title={hasText ? 'Enviar' : 'Áudio'}
+            className="w-[42px] h-[42px] rounded-full text-[hsl(var(--avatar-fallback-foreground))] hover:bg-muted/60"
+            title="Emoji"
           >
-            {hasText ? <Send className="w-6 h-6 text-muted-foreground" /> : <Mic className="w-6 h-6" />}
+            <Smile className="w-[24px] h-[24px]" />
           </Button>
+
+          <FileUploader
+            ref={fileUploaderRef}
+            instanceName={instanceName || ''}
+            recipientNumber={contactPhone}
+            contactId={contactId}
+            connectionId={undefined}
+            onFileSelect={(file, category) => {
+              toast({
+                title: 'Arquivo selecionado',
+                description: `${file.name} (${category}) será enviado.`,
+              });
+            }}
+            onFileSent={() => {
+              toast({
+                title: 'Arquivo enviado',
+                description: 'Mídia enviada com sucesso.',
+              });
+            }}
+          />
         </div>
 
-        <AnimatePresence>
-          {isRecordingAudio && (
-            <div className="mt-2">
-              <AudioRecorder
-                onSend={onAudioSend}
-                onCancel={onAudioCancel}
-              />
-            </div>
+        {/* Input field */}
+        <div className="flex-1 relative">
+          <SlashCommands
+            inputValue={inputValue}
+            onSelectCommand={onSlashCommand}
+            onClose={onCloseSlashCommands}
+            isOpen={showSlashCommands}
+          />
+
+          <Input
+            ref={inputRef}
+            value={inputValue}
+            onChange={onInputChange}
+            onKeyDown={onKeyDown}
+            onBlur={onBlur}
+            placeholder={replyToMessage ? 'Responder mensagem...' : 'Digite uma mensagem'}
+            className="h-[42px] rounded-lg border-0 bg-card text-[15px] px-3 focus-visible:ring-0 focus-visible:shadow-none"
+          />
+        </div>
+
+        {/* Right icon: Send or Mic */}
+        <Button
+          onClick={hasText ? onSend : onRecordToggle}
+          variant="ghost"
+          size="icon"
+          className={cn(
+            'w-[42px] h-[42px] rounded-full text-[hsl(var(--avatar-fallback-foreground))] hover:bg-muted/60',
+            isRecordingAudio && 'text-destructive hover:bg-destructive/10'
           )}
-        </AnimatePresence>
+          title={hasText ? 'Enviar' : 'Áudio'}
+        >
+          {hasText ? <Send className="w-[24px] h-[24px]" /> : <Mic className="w-[24px] h-[24px]" />}
+        </Button>
       </div>
+
+      <AnimatePresence>
+        {isRecordingAudio && (
+          <div className="px-4 py-2 bg-[hsl(var(--sidebar-header))] border-t border-border">
+            <AudioRecorder
+              onSend={onAudioSend}
+              onCancel={onAudioCancel}
+            />
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
