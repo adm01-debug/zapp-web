@@ -99,6 +99,22 @@ export function MessageContextActions({
     }
   }, [instanceName, contactJid, archiveChat]);
 
+  const handleBlock = useCallback(async () => {
+    try {
+      await updateBlockStatus(instanceName, contactJid, 'block');
+    } catch {
+      toast.error('Erro ao bloquear contato');
+    }
+  }, [instanceName, contactJid, updateBlockStatus]);
+
+  const handleUnblock = useCallback(async () => {
+    try {
+      await updateBlockStatus(instanceName, contactJid, 'unblock');
+    } catch {
+      toast.error('Erro ao desbloquear contato');
+    }
+  }, [instanceName, contactJid, updateBlockStatus]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
