@@ -66,23 +66,17 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
   });
 
   const { quickReplies: dbQuickReplies, incrementUseCount } = useQuickReplies();
-  const { settings, updateSettings, saveSettings } = useUserSettings();
+  const { settings } = useUserSettings();
 
-  const handleVoiceChange = (newVoiceId: string) => {
-    updateSettings({ tts_voice_id: newVoiceId });
-    setTimeout(() => saveSettings(), 100);
-  };
-
-  const handleSpeedChange = (newSpeed: number) => {
-    updateSettings({ tts_speed: newSpeed });
-    setTimeout(() => saveSettings(), 100);
-  };
-
-  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId, speed, setSpeed } = useTextToSpeech({
+  const {
+    speak,
+    stop,
+    isLoading: ttsLoading,
+    isPlaying: ttsPlaying,
+    currentMessageId: ttsMessageId,
+  } = useTextToSpeech({
     initialVoiceId: settings.tts_voice_id,
     initialSpeed: settings.tts_speed,
-    onVoiceChange: handleVoiceChange,
-    onSpeedChange: handleSpeedChange,
   });
 
   // ── Resolve WhatsApp instance name from contact ──
