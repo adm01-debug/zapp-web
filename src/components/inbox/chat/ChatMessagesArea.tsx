@@ -42,7 +42,7 @@ function MessageStatusIcon({ status }: { status: Message['status'] }) {
     case 'delivered':
       return <CheckCheck className="w-3 h-3" />;
     case 'read':
-      return <CheckCheck className="w-3 h-3 text-blue-400" />;
+      return <CheckCheck className="w-3 h-3 text-info" />;
     case 'failed':
       return <X className="w-3 h-3 text-destructive" />;
     default:
@@ -124,7 +124,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-muted/5">
+    <div className="flex-1 overflow-y-auto p-6 space-y-1 scrollbar-thin" style={{ backgroundColor: 'hsl(var(--background))' }}>
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
           {/* Date separator */}
@@ -133,13 +133,13 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
             animate={{ opacity: 1, scale: 1 }}
             className="flex justify-center my-4"
           >
-            <span className="text-xs text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full font-medium border border-border/20">
+            <span className="text-[11px] text-muted-foreground bg-card px-3 py-1 rounded-lg font-medium shadow-sm">
               {formatDateSeparator(new Date(dateKey))}
             </span>
           </motion.div>
 
           {/* Messages for this day */}
-          <StaggeredList className="space-y-3">
+          <StaggeredList className="space-y-0.5">
             {dayMessages.map((message) => {
               const isSent = message.sender === 'agent';
 
@@ -212,17 +212,14 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         <DeletedMessagePlaceholder isSent={isSent} />
                       ) : (
                       <motion.div
-                        whileHover={{ scale: 1.01 }}
+                        whileHover={{ scale: 1.005 }}
                         className={cn(
-                          'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
+                          'relative px-3 py-1.5 rounded-lg shadow-sm',
                           isSent 
-                            ? 'rounded-br-md bg-primary text-primary-foreground' 
-                            : 'rounded-bl-md bg-card border border-border/30 text-foreground'
+                            ? 'rounded-tr-none bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]' 
+                            : 'rounded-tl-none bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
                         )}
                       >
-                        {isSent && (
-                          <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
-                        )}
 
                         {message.replyTo && (
                           <QuotedMessage

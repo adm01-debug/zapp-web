@@ -126,14 +126,13 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       initial={false}
       animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex flex-col h-screen border-r border-secondary/30 relative bg-sidebar sidebar-neon"
+      className="flex flex-col h-screen border-r border-border relative bg-sidebar"
     >
-      {/* Neon gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 via-primary/3 to-transparent pointer-events-none" aria-hidden="true" />
-      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-secondary/50 via-primary/30 to-secondary/50 pointer-events-none" aria-hidden="true" />
+      {/* Subtle top gradient */}
+      <div className="absolute inset-x-0 top-0 h-28 bg-primary pointer-events-none" aria-hidden="true" />
       
       {/* Logo */}
-      <div className="relative flex items-center justify-between p-4 border-b border-secondary/20">
+      <div className="relative flex items-center justify-between p-4 border-b border-border z-10">
         <AnimatePresence mode="wait">
           {!isCollapsed && (
             <motion.div
@@ -144,16 +143,16 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
               className="flex items-center gap-3"
             >
               <motion.div 
-                className="w-10 h-10 rounded-xl logo-neon flex items-center justify-center relative overflow-hidden"
+                className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center relative overflow-hidden"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400 }}
                 aria-hidden="true"
               >
-                <Sparkles className="w-5 h-5 text-secondary relative z-10" />
+                <Sparkles className="w-5 h-5 text-primary-foreground relative z-10" />
               </motion.div>
               <div>
-                <span className="font-display font-bold text-lg text-foreground">MultiChat</span>
-                <p className="text-xs text-secondary/80">Omnichannel</p>
+                <span className="font-display font-bold text-lg text-primary-foreground">MultiChat</span>
+                <p className="text-xs text-primary-foreground/70">Omnichannel</p>
               </div>
             </motion.div>
           )}
@@ -165,7 +164,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           <Button
             variant="ghost"
             size="icon"
-            className="text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all duration-300"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
             aria-expanded={!isCollapsed}
@@ -184,15 +183,15 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
         <motion.button
           onClick={() => document.dispatchEvent(new Event('open-command-palette'))}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300",
-            "bg-muted/30 hover:bg-muted/50 border border-border/50 hover:border-secondary/50",
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+            "bg-muted/30 hover:bg-muted/50 border border-border hover:border-primary/30",
             "text-muted-foreground hover:text-foreground group"
           )}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           aria-label="Abrir busca universal (Ctrl+K ou ⌘K)"
         >
-          <Search className="h-4 w-4 text-muted-foreground group-hover:text-secondary transition-colors" />
+          <Search className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
           {!isCollapsed && (
             <>
               <span className="flex-1 text-left text-sm">Buscar...</span>
@@ -206,7 +205,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
       {/* Navigation */}
       <nav 
-        className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin"
+        className="relative flex-1 p-3 space-y-4 overflow-y-auto scrollbar-thin z-10"
         aria-label="Menu principal"
       >
         {menuGroups.map((group, groupIndex) => {
@@ -243,17 +242,17 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                     aria-current={isActive ? 'page' : undefined}
                     role="menuitem"
                     className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group',
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative group',
                       isActive 
-                        ? 'text-secondary nav-item-neon-active' 
-                        : 'text-muted-foreground hover:text-secondary nav-item-neon-hover'
+                        ? 'text-primary bg-primary/10' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     )}
                   >
                     {/* Active indicator bar with neon effect */}
                     {isActive && (
                       <motion.div
                         layoutId="activeNav"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full nav-indicator-neon"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-primary"
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -263,8 +262,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                       transition={{ duration: 0.2 }}
                     >
                       <Icon className={cn(
-                        "w-5 h-5 flex-shrink-0 transition-all duration-300",
-                        isActive ? "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.6)]" : "group-hover:text-secondary"
+                        "w-5 h-5 flex-shrink-0 transition-all duration-200",
+                        isActive ? "text-primary" : "group-hover:text-foreground"
                       )} />
                     </motion.div>
                     
@@ -278,8 +277,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                           className="flex items-center flex-1 overflow-hidden"
                         >
                           <span className={cn(
-                            "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-300",
-                            isActive ? "text-secondary" : "text-foreground group-hover:text-secondary"
+                            "flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-200",
+                            isActive ? "text-primary" : "text-foreground group-hover:text-foreground"
                           )}>
                             {item.label}
                           </span>
@@ -300,7 +299,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                             <motion.span 
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
-                              className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold badge-neon text-white"
+                              className="min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold bg-primary text-primary-foreground"
                             >
                               {item.badge}
                             </motion.span>

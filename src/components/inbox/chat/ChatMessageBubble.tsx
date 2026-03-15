@@ -46,7 +46,7 @@ function MessageStatusIcon({ status }: { status: Message['status'] }) {
     case 'delivered':
       return <CheckCheck className="w-3 h-3" />;
     case 'read':
-      return <CheckCheck className="w-3 h-3 text-blue-400" />;
+      return <CheckCheck className="w-3 h-3 text-info" />;
     case 'failed':
       return <X className="w-3 h-3 text-destructive" />;
     default:
@@ -151,18 +151,14 @@ export function ChatMessageBubble({
         </div>
 
         <motion.div
-          whileHover={{ scale: 1.01 }}
+          whileHover={{ scale: 1.005 }}
           className={cn(
-            'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
+            'relative px-3 py-1.5 rounded-lg shadow-sm',
             isSent 
-              ? 'rounded-br-md bg-primary text-primary-foreground' 
-              : 'rounded-bl-md bg-card border border-border/30 text-foreground'
+              ? 'rounded-tr-none bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]' 
+              : 'rounded-tl-none bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))]'
           )}
         >
-          {/* Subtle glow for sent messages */}
-          {isSent && (
-            <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
-          )}
 
           {/* Quoted message (reply) */}
           {message.replyTo && (

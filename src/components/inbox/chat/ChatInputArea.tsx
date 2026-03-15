@@ -119,7 +119,7 @@ export function ChatInputArea({
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 glass-strong border-t border-border/50"
+        className="px-3 py-2 bg-[hsl(var(--chat-input-bg))] border-t border-border"
       >
         <div className="flex items-end gap-2">
           <div className="flex items-center gap-1">
@@ -230,7 +230,7 @@ export function ChatInputArea({
               onKeyDown={onKeyDown}
               onBlur={onBlur}
               placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos..."}
-              className="pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+              className="pr-10 bg-input border-0 focus:ring-0 rounded-lg text-sm"
             />
             <motion.div 
               whileHover={{ scale: 1.1 }} 
@@ -308,8 +308,7 @@ export function ChatInputArea({
             <Button
               onClick={onSend}
               disabled={!inputValue.trim()}
-              className="text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50"
-              style={{ background: 'var(--gradient-primary)' }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full w-10 h-10 p-0 disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </Button>
