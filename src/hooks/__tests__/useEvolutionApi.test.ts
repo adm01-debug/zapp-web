@@ -104,9 +104,9 @@ describe('useEvolutionApi', () => {
     expect(typeof result.current.sendListMessage).toBe('function');
   });
 
-  it('exposes sendButtonMessage function', () => {
+  it('exposes sendButtonsMessage function', () => {
     const { result } = renderHook(() => useEvolutionApi());
-    expect(typeof result.current.sendButtonMessage).toBe('function');
+    expect(typeof result.current.sendButtonsMessage).toBe('function');
   });
 
   it('exposes markMessageAsRead function', () => {
