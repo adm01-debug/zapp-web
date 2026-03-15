@@ -80,7 +80,7 @@ describe('useUserSettings', () => {
   it('uses default settings when no user', async () => {
     mockUseAuth.mockReturnValue({ user: null });
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.language).toBe('pt-BR');
   });
 
