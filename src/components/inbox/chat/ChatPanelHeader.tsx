@@ -9,14 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  MoreVertical,
-  Archive,
-  CheckCircle,
-  PhoneCall,
-  Search,
-  Info,
-} from 'lucide-react';
+import { MoreVertical, Archive, CheckCircle, Search, Info } from 'lucide-react';
 
 interface ChatPanelHeaderProps {
   conversation: Conversation;
@@ -33,16 +26,15 @@ export function ChatPanelHeader({
   isContactTyping,
   showDetails,
   onToggleDetails,
-  onStartCall,
   onOpenSearch,
   onOpenTransfer,
 }: ChatPanelHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 py-[10px] border-b border-border bg-[hsl(var(--chat-header))]">
+    <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-[hsl(var(--chat-header))]">
       <div className="flex items-center gap-3 min-w-0 cursor-pointer" onClick={onToggleDetails}>
         <Avatar className="w-10 h-10">
           <AvatarImage src={conversation.contact.avatar} />
-          <AvatarFallback className="bg-[#dfe5e7] dark:bg-[#6b7c85] text-white text-sm font-normal">
+          <AvatarFallback className="bg-[hsl(var(--avatar-fallback))] text-[hsl(var(--avatar-fallback-foreground))] text-sm font-normal">
             {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
           </AvatarFallback>
         </Avatar>
@@ -52,7 +44,7 @@ export function ChatPanelHeader({
             {conversation.contact.name}
           </h3>
           <p className="text-[13px] text-muted-foreground truncate leading-tight">
-            {isContactTyping ? <TypingIndicatorCompact isVisible={true} /> : conversation.contact.phone}
+            {isContactTyping ? <TypingIndicatorCompact isVisible /> : conversation.contact.phone}
           </p>
         </div>
       </div>
@@ -68,19 +60,14 @@ export function ChatPanelHeader({
           <Search className="w-5 h-5" />
         </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50"
-          onClick={onStartCall}
-          title="Ligar"
-        >
-          <PhoneCall className="w-5 h-5" />
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50" title="Menu">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 rounded-full text-muted-foreground hover:bg-muted/50"
+              title="Menu"
+            >
               <MoreVertical className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>

@@ -307,7 +307,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
   // ── Render ──
   return (
     <div 
-      className="flex h-full bg-background relative"
+      className="flex h-full bg-transparent relative"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
