@@ -928,5 +928,43 @@ export function useEvolutionApi() {
     createTemplate,
     findTemplates,
     deleteTemplate,
+
+    // Block/Unblock
+    updateBlockStatus,
+
+    // PTV (Video Note)
+    sendPtvMessage,
+
+    // Offer Call
+    offerCall,
+
+    // Chat Presence
+    sendChatPresence,
+
+    // Business Catalog & Collections
+    getBusinessCatalog,
+    getBusinessCollections,
+
+    // Proxy
+    setProxy,
+    getProxy,
+
+    // EvoAI
+    setEvoAI,
+    getEvoAI,
+    deleteEvoAI,
+
+    // N8N
+    setN8N,
+    getN8N,
+    deleteN8N,
+
+    // Event Streaming
+    setKafka,
+    getKafka,
+    setNats,
+    getNats,
+    setPusher,
+    getPusher,
   };
 }
