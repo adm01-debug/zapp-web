@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -71,19 +70,20 @@ export function SalesPipelineView() {
     setLoading(true);
     const [stagesRes, dealsRes, contactsRes, agentsRes] = await Promise.all([
       supabase.from('sales_pipeline_stages').select('*').order('position'),
-      supabase.from('sales_deals').select('*, contacts(name, phone), profiles!sales_deals_assigned_to_fkey(name)').order('created_at', { ascending: false }),
+      supabase.from('sales_deals').select('*').order('created_at', { ascending: false }),
       supabase.from('contacts').select('id, name, phone').limit(200),
       supabase.from('profiles').select('id, name').eq('is_active', true),
     ]);
 
     if (stagesRes.data) setStages(stagesRes.data);
     if (dealsRes.data) {
-      setDeals(dealsRes.data.map((d: any) => ({
-        ...d,
-        tags: d.tags || [],
-        contact: d.contacts,
-        assignee: d.profiles,
-      })));
+      // Enrich deals with contact/assignee info from separate queries
+      const enrichedDeals = dealsRes.data.map((d: any) => {
+        const contact = contactsRes.data?.find((c: any) => c.id === d.contact_id) || null;
+        const assignee = agentsRes.data?.find((a: any) => a.id === d.assigned_to) || null;
+        return { ...d, tags: d.tags || [], contact, assignee };
+      });
+      setDeals(enrichedDeals);
     }
     if (contactsRes.data) setContacts(contactsRes.data);
     if (agentsRes.data) setAgents(agentsRes.data);
@@ -394,6 +394,7 @@ export function SalesPipelineView() {
         <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>{editingDeal ? 'Editar Deal' : 'Novo Deal'}</DialogTitle>
+            <DialogDescription>Preencha as informações do deal</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
