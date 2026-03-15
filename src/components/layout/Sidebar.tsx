@@ -491,7 +491,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                 currentAgent.status === 'online' ? "" : ""
               )}>
                 <AvatarImage src={currentAgent.avatar} alt={`Avatar de ${currentAgent.name}`} />
-                <AvatarFallback className="bg-secondary/15 text-secondary font-display font-semibold">
+                <AvatarFallback className="bg-primary/15 text-primary font-display font-semibold">
                   {currentAgent.name.split(' ').map((n) => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
