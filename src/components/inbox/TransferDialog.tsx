@@ -125,6 +125,26 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
                 <p className="text-xs text-muted-foreground">Transferir para uma fila</p>
               </div>
             </Label>
+
+            <Label
+              htmlFor="connection"
+              className={cn(
+                'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                transferType === 'connection'
+                  ? 'border-whatsapp bg-whatsapp/5'
+                  : 'border-border hover:border-muted-foreground'
+              )}
+            >
+              <RadioGroupItem value="connection" id="connection" className="sr-only" />
+              <Smartphone className={cn(
+                'w-5 h-5',
+                transferType === 'connection' ? 'text-whatsapp' : 'text-muted-foreground'
+              )} />
+              <div>
+                <p className="font-medium">Conexão</p>
+                <p className="text-xs text-muted-foreground">Outro WhatsApp</p>
+              </div>
+            </Label>
           </RadioGroup>
 
           {/* Target Selection */}
