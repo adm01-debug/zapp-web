@@ -114,7 +114,7 @@ describe('useUserSettings', () => {
   it('default quiet_hours are 22:00-07:00', async () => {
     mockUseAuth.mockReturnValue({ user: null });
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.quiet_hours_start).toBe('22:00');
     expect(result.current.settings.quiet_hours_end).toBe('07:00');
   });
