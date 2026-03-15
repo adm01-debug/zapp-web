@@ -309,7 +309,7 @@ function IndexContent() {
           </MobileDrawer>
           
           {/* Desktop Sidebar */}
-          {!isMobile && (
+          {!isMobile && currentView !== 'inbox' && (
             <Sidebar
               currentView={currentView}
               onViewChange={setCurrentView}
