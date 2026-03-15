@@ -343,6 +343,8 @@
     --chat-input-bg: 200 22% 16%;
     /* #0b141a wallpaper */
     --chat-wallpaper: 207 40% 7%;
+    --avatar-fallback: 200 14% 34%;
+    --avatar-fallback-foreground: 0 0% 92%;
 
     /* ===== GRADIENTS ===== */
     --gradient-primary: linear-gradient(135deg, hsl(162 100% 25%), hsl(162 100% 33%));
