@@ -190,7 +190,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           whileTap={{ scale: 0.98 }}
           aria-label="Abrir busca universal (Ctrl+K ou ⌘K)"
         >
-          <Search className="h-4 w-4 text-muted-foreground group-hover:text-secondary transition-colors" />
+          <Search className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
           {!isCollapsed && (
             <>
               <span className="flex-1 text-left text-sm">Buscar...</span>
