@@ -151,8 +151,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
                 <Sparkles className="w-5 h-5 text-primary-foreground relative z-10" />
               </motion.div>
               <div>
-                <span className="font-display font-bold text-lg text-foreground">MultiChat</span>
-                <p className="text-xs text-secondary/80">Omnichannel</p>
+                <span className="font-display font-bold text-lg text-primary-foreground">MultiChat</span>
+                <p className="text-xs text-primary-foreground/70">Omnichannel</p>
               </div>
             </motion.div>
           )}
