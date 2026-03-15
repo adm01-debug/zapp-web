@@ -214,6 +214,7 @@ function IndexContent() {
         return <IntegrationsHub />;
       case 'privacy':
         return <LGPDComplianceView />;
+      default:
         return (
           <div className="flex items-center justify-center h-full">
             <motion.div 
