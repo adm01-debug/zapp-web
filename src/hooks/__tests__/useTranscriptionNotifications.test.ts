@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
 
 const mockChannel = vi.fn();
 const mockRemoveChannel = vi.fn();
@@ -40,7 +39,9 @@ vi.mock('@/utils/notificationSound', () => ({
   requestNotificationPermission: vi.fn(),
 }));
 
-import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
+// Must import AFTER mocks
+const { useTranscriptionNotifications } = await import('@/hooks/useTranscriptionNotifications');
+const { renderHook } = await import('@testing-library/react');
 
 describe('useTranscriptionNotifications', () => {
   beforeEach(() => {

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
 
 const mockChannel = vi.fn();
 const mockRemoveChannel = vi.fn();
@@ -32,7 +31,8 @@ vi.mock('@/lib/logger', () => ({
   getLogger: () => ({ error: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn() }),
 }));
 
-import { useRealtimeSentimentAlerts } from '@/hooks/useRealtimeSentimentAlerts';
+const { useRealtimeSentimentAlerts } = await import('@/hooks/useRealtimeSentimentAlerts');
+const { renderHook } = await import('@testing-library/react');
 
 describe('useRealtimeSentimentAlerts', () => {
   beforeEach(() => {
