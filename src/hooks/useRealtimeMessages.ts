@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { playNotificationSound, showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
+import { playNotificationSound, showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSounds';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('RealtimeMessages');
