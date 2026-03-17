@@ -41,8 +41,8 @@ export function ChatbotL1Config() {
     },
   });
 
-  const [isActive, setIsActive] = useState(flow?.is_active ?? false);
-  const [name, setName] = useState(flow?.name ?? 'Chatbot IA L1');
+  const [isActive, setIsActive] = useState(false);
+  const [name, setName] = useState('Chatbot IA L1');
   const [confidenceThreshold, setConfidenceThreshold] = useState(60);
   const [welcomeMessage, setWelcomeMessage] = useState(
     'Olá! Sou o assistente virtual. Como posso ajudá-lo hoje?'
@@ -50,6 +50,20 @@ export function ChatbotL1Config() {
   const [transferMessage, setTransferMessage] = useState(
     'Vou transferir você para um de nossos atendentes. Um momento, por favor.'
   );
+
+  // Sync state when flow data loads
+  useEffect(() => {
+    if (flow) {
+      setIsActive(flow.is_active ?? false);
+      setName(flow.name ?? 'Chatbot IA L1');
+      const vars = flow.variables as Record<string, any> | null;
+      if (vars) {
+        if (vars.confidence_threshold) setConfidenceThreshold(vars.confidence_threshold);
+        if (vars.welcome_message) setWelcomeMessage(vars.welcome_message);
+        if (vars.transfer_message) setTransferMessage(vars.transfer_message);
+      }
+    }
+  }, [flow]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
