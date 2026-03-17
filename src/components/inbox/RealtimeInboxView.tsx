@@ -676,23 +676,25 @@ export function RealtimeInboxView() {
       {/* Chat Panel — flexible remaining space */}
       <div className="flex-1 flex min-w-0 relative z-10 bg-background">
         {legacyConversation ? (
-          <>
-            <div className="flex-1 min-w-0 relative">
-              <ChatPanel
-                conversation={legacyConversation}
-                messages={legacyMessages}
-                onSendMessage={handleSendMessage}
-                showDetails={showDetails}
-                onToggleDetails={() => setShowDetails(!showDetails)}
-              />
-            </div>
-            {showDetails && (
-              <ContactDetails
-                conversation={legacyConversation}
-                onClose={() => setShowDetails(false)}
-              />
-            )}
-          </>
+          <Suspense fallback={<ChatFallback />}>
+            <>
+              <div className="flex-1 min-w-0 relative">
+                <ChatPanel
+                  conversation={legacyConversation}
+                  messages={legacyMessages}
+                  onSendMessage={handleSendMessage}
+                  showDetails={showDetails}
+                  onToggleDetails={() => setShowDetails(!showDetails)}
+                />
+              </div>
+              {showDetails && (
+                <ContactDetails
+                  conversation={legacyConversation}
+                  onClose={() => setShowDetails(false)}
+                />
+              )}
+            </>
+          </Suspense>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-background">
             <div className="text-center p-8">
