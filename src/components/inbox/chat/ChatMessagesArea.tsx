@@ -62,6 +62,7 @@ interface ChatMessagesAreaProps {
   ttsMessageId: string | null;
   instanceName?: string;
   contactJid?: string;
+  contactAvatar?: string;
   onSpeak: (messageId: string, text: string) => void;
   onStop: () => void;
   onReply: (message: Message) => void;
