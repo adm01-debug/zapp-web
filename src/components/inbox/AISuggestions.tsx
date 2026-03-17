@@ -53,7 +53,8 @@ export function AISuggestions({ messages, contactName, contactId, onSelectSugges
             content: m.content,
             sender: m.sender
           })),
-          contactName
+          contactName,
+          contactId,
         }
       });
 
