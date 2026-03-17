@@ -704,6 +704,7 @@ export function RealtimeInboxView() {
                   conversation={legacyConversation}
                   messages={legacyMessages}
                   onSendMessage={handleSendMessage}
+                  onSendAudio={handleSendAudio}
                   showDetails={showDetails}
                   onToggleDetails={() => setShowDetails(!showDetails)}
                 />
