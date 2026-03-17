@@ -47,7 +47,7 @@
 @layer base {
   :root {
     /* ===== FONTS ===== */
-    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-sans: 'Outfit', system-ui, sans-serif;
     --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
 
     /* ===== ANIMATION TOKENS ===== */
