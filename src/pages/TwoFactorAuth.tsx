@@ -63,9 +63,7 @@ export default function TwoFactorAuth() {
           onSuccess={() => navigate('/')}
           onCancel={() => {
             // Sign out and go back to login
-            import('@/integrations/supabase/client').then(({ supabase }) => {
-              supabase.auth.signOut().then(() => navigate('/auth'));
-            });
+            supabase.auth.signOut().then(() => navigate('/auth'));
           }}
         />
         
