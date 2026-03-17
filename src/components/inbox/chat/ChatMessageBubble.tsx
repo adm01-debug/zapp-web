@@ -257,7 +257,7 @@ export function ChatMessageBubble({
           )}
 
           {/* Text content */}
-          {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && (
+          {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && message.type !== 'sticker' && (
             <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
           )}
 
