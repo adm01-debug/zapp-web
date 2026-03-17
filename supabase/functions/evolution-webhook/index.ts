@@ -669,22 +669,39 @@ async function handleIncomingMessage(
   // Find or create contact
   let { data: contact } = await supabase
     .from('contacts')
-    .select('id')
+    .select('id, avatar_url')
     .eq('phone', phone)
     .eq('whatsapp_connection_id', connection.id)
     .single();
 
   if (!contact) {
+    // Try to fetch profile picture for new contact
+    let avatarUrl: string | null = null;
+    const picUrl = await fetchProfilePicFromApi(instance, phone);
+    if (picUrl) {
+      avatarUrl = await persistProfilePicture(supabase, phone, picUrl);
+    }
+
     const { data: newContact } = await supabase
       .from('contacts')
       .insert({
         phone,
         name: (data.pushName as string) || phone,
+        avatar_url: avatarUrl,
         whatsapp_connection_id: connection.id,
       })
       .select('id')
       .single();
     contact = newContact;
+  } else if (!contact.avatar_url || contact.avatar_url.includes('pps.whatsapp.net')) {
+    // Existing contact without avatar or with expired WhatsApp URL - try to fetch
+    const picUrl = await fetchProfilePicFromApi(instance, phone);
+    if (picUrl) {
+      const avatarUrl = await persistProfilePicture(supabase, phone, picUrl);
+      if (avatarUrl) {
+        await supabase.from('contacts').update({ avatar_url: avatarUrl }).eq('id', contact.id);
+      }
+    }
   }
 
   if (!contact) return;
