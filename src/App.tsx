@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { EasterEggsProvider } from "@/components/effects/EasterEggs";
 import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
+import { ThemeSync } from "@/hooks/useTheme";
 
 // Lazy-load ALL page routes for optimal initial bundle
 const Index = lazy(() => import("./pages/Index"));
@@ -154,6 +155,7 @@ function AppWithErrorRecovery() {
     >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <ThemeSync />
           <HighContrastProvider>
             <GamificationProvider>
               <EasterEggsProvider>
