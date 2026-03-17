@@ -82,16 +82,15 @@ export function WhisperMode({ contactId, targetAgentId, className }: WhisperMode
 
   // Mark as read when viewing
   useEffect(() => {
-    if (isExpanded && whispers.some(w => !w.is_read && w.target_agent_id === profile?.id)) {
+    if (isExpanded && whispers.some(w => !w.is_read)) {
       supabase
         .from('whisper_messages')
         .update({ is_read: true })
         .eq('contact_id', contactId)
-        .eq('target_agent_id', profile?.id)
         .eq('is_read', false)
         .then();
     }
-  }, [isExpanded, whispers, contactId, profile?.id]);
+  }, [isExpanded, whispers, contactId]);
 
   const unreadCount = whispers.filter(w => !w.is_read).length;
 
