@@ -143,6 +143,41 @@ export type Database = {
           },
         ]
       }
+      ai_conversation_tags: {
+        Row: {
+          confidence: number | null
+          contact_id: string
+          created_at: string | null
+          id: string
+          source: string | null
+          tag_name: string
+        }
+        Insert: {
+          confidence?: number | null
+          contact_id: string
+          created_at?: string | null
+          id?: string
+          source?: string | null
+          tag_name: string
+        }
+        Update: {
+          confidence?: number | null
+          contact_id?: string
+          created_at?: string | null
+          id?: string
+          source?: string | null
+          tag_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversation_tags_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allowed_countries: {
         Row: {
           added_by: string | null
@@ -1245,6 +1280,146 @@ export type Database = {
         }
         Relationships: []
       }
+      followup_executions: {
+        Row: {
+          completed_at: string | null
+          contact_id: string
+          created_at: string | null
+          current_step: number | null
+          id: string
+          next_step_at: string | null
+          sequence_id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          contact_id: string
+          created_at?: string | null
+          current_step?: number | null
+          id?: string
+          next_step_at?: string | null
+          sequence_id: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          contact_id?: string
+          created_at?: string | null
+          current_step?: number | null
+          id?: string
+          next_step_at?: string | null
+          sequence_id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_executions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followup_executions_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "followup_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      followup_sequences: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trigger_event: string
+          updated_at: string | null
+          whatsapp_connection_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trigger_event?: string
+          updated_at?: string | null
+          whatsapp_connection_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trigger_event?: string
+          updated_at?: string | null
+          whatsapp_connection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_sequences_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followup_sequences_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      followup_steps: {
+        Row: {
+          created_at: string | null
+          delay_hours: number
+          id: string
+          is_active: boolean | null
+          message_template: string
+          message_type: string
+          sequence_id: string
+          step_order: number
+        }
+        Insert: {
+          created_at?: string | null
+          delay_hours?: number
+          id?: string
+          is_active?: boolean | null
+          message_template: string
+          message_type?: string
+          sequence_id: string
+          step_order?: number
+        }
+        Update: {
+          created_at?: string | null
+          delay_hours?: number
+          id?: string
+          is_active?: boolean | null
+          message_template?: string
+          message_type?: string
+          sequence_id?: string
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_steps_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "followup_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geo_blocking_settings: {
         Row: {
           created_at: string
@@ -2175,6 +2350,54 @@ export type Database = {
           },
           {
             foreignKeyName: "queue_members_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      queue_positions: {
+        Row: {
+          contact_id: string
+          created_at: string | null
+          entered_at: string | null
+          estimated_wait_minutes: number | null
+          id: string
+          notified: boolean | null
+          position: number
+          queue_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string | null
+          entered_at?: string | null
+          estimated_wait_minutes?: number | null
+          id?: string
+          notified?: boolean | null
+          position?: number
+          queue_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string | null
+          entered_at?: string | null
+          estimated_wait_minutes?: number | null
+          id?: string
+          notified?: boolean | null
+          position?: number
+          queue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_positions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "queue_positions_queue_id_fkey"
             columns: ["queue_id"]
             isOneToOne: false
             referencedRelation: "queues"
@@ -3291,6 +3514,58 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whisper_messages: {
+        Row: {
+          contact_id: string
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          sender_id: string
+          target_agent_id: string
+        }
+        Insert: {
+          contact_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          sender_id: string
+          target_agent_id: string
+        }
+        Update: {
+          contact_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          sender_id?: string
+          target_agent_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whisper_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whisper_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whisper_messages_target_agent_id_fkey"
+            columns: ["target_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
