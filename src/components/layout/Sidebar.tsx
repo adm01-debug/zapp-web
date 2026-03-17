@@ -68,6 +68,7 @@ const toolsNav = [
 
 const systemNav = [
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
+  { id: 'diagnostics', icon: Globe, label: 'Diagnóstico' },
   { id: 'security', icon: Shield, label: 'Segurança' },
   { id: 'docs', icon: BookOpen, label: 'Documentação' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
