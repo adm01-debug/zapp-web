@@ -118,31 +118,13 @@ interface PageTransitionProps {
 export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className }, ref) => {
   return (
     <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={neonReveal}
-      className={cn('h-full relative', className)}
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className={cn('h-full', className)}
     >
-      <motion.div
-        initial={{ opacity: 0.8, scale: 1.5 }}
-        animate={{ opacity: 0, scale: 1 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="absolute inset-0 pointer-events-none z-50"
-        style={{
-          background: 'radial-gradient(ellipse at center, hsl(var(--secondary) / 0.15) 0%, transparent 70%)',
-        }}
-      />
-      <motion.div
-        initial={{ top: '-100%' }}
-        animate={{ top: '200%' }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="absolute left-0 right-0 h-px pointer-events-none z-50"
-        style={{
-          background: 'linear-gradient(90deg, transparent, hsl(var(--secondary) / 0.8), hsl(var(--primary) / 0.6), transparent)',
-          boxShadow: '0 0 20px hsl(var(--secondary) / 0.5), 0 0 40px hsl(var(--secondary) / 0.3)',
-        }}
-      />
       {children}
     </motion.div>
   );
