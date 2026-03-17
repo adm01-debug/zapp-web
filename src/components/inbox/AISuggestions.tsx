@@ -27,7 +27,7 @@ interface AISuggestionsProps {
   onSelectSuggestion: (text: string) => void;
 }
 
-export function AISuggestions({ messages, contactName, onSelectSuggestion }: AISuggestionsProps) {
+export function AISuggestions({ messages, contactName, contactId, onSelectSuggestion }: AISuggestionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
