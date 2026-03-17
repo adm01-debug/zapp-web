@@ -212,6 +212,27 @@ export function RealtimeInboxView() {
     }
   };
 
+  // Handle sending an audio message
+  const handleSendAudio = async (blob: Blob) => {
+    if (!selectedContactId) return;
+
+    const fileName = `${selectedContactId}/${Date.now()}.webm`;
+    const { error: uploadError } = await supabase.storage
+      .from('audio-messages')
+      .upload(fileName, blob, { contentType: 'audio/webm' });
+
+    if (uploadError) {
+      log.error('Error uploading audio:', uploadError);
+      throw uploadError;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('audio-messages')
+      .getPublicUrl(fileName);
+
+    await sendMessage(selectedContactId, '[Áudio]', 'audio', urlData.publicUrl);
+  };
+
   // Toggle selection mode
   const toggleSelectionMode = () => {
     setSelectionMode(!selectionMode);
