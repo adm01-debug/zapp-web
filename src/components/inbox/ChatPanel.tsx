@@ -370,6 +370,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           ttsMessageId={ttsMessageId}
           instanceName={instanceName}
           contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''}
+          contactAvatar={conversation.contact.avatar || conversation.contact.avatar_url || undefined}
           onSpeak={speak}
           onStop={stop}
           onReply={handleReplyToMessage}
