@@ -244,6 +244,18 @@ export function ChatMessageBubble({
             </Suspense>
           )}
 
+          {/* Sticker message */}
+          {message.type === 'sticker' && message.mediaUrl && (
+            <div className="mb-1">
+              <img
+                src={message.mediaUrl}
+                alt="Sticker"
+                className="max-w-[180px] max-h-[180px] object-contain"
+                loading="lazy"
+              />
+            </div>
+          )}
+
           {/* Text content */}
           {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && (
             <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
