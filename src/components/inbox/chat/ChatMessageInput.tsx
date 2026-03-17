@@ -270,20 +270,25 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
               className="min-h-[40px] max-h-[120px] resize-none pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all py-2.5"
               rows={1}
             />
-            <motion.div 
-              whileHover={{ scale: 1.1 }} 
-              whileTap={{ scale: 0.9 }}
-              className="absolute right-1 top-2"
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-primary w-8 h-8"
-                aria-label="Emojis"
+            <div className="absolute right-1 top-1.5 flex items-center gap-0.5">
+              <AIEnhanceButton
+                inputValue={inputValue}
+                onInputChange={onInputChange}
+              />
+              <motion.div 
+                whileHover={{ scale: 1.1 }} 
+                whileTap={{ scale: 0.9 }}
               >
-                <Smile className="w-5 h-5" />
-              </Button>
-            </motion.div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-primary w-8 h-8"
+                  aria-label="Emojis"
+                >
+                  <Smile className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            </div>
           </div>
 
           <Tooltip>

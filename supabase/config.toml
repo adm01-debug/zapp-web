@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.evolution-sync]
 verify_jwt = false
+
+[functions.ai-enhance-message]
+verify_jwt = false
