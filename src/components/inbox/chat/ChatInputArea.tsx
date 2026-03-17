@@ -101,6 +101,7 @@ export function ChatInputArea({
   onOpenSchedule,
   onOpenLocationPicker,
   onSendProduct,
+  onSendSticker,
   onSelectSuggestion,
   onSelectTemplate,
   fileUploaderRef,
