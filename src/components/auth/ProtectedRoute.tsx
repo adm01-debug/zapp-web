@@ -28,13 +28,11 @@ export function ProtectedRoute({
   useEffect(() => {
     if (!loading && user && requiredPermission) {
       // Check permission via database function
-      import('@/integrations/supabase/client').then(({ supabase }) => {
-        supabase.rpc('user_has_permission', {
-          _user_id: user.id,
-          _permission_name: requiredPermission
-        }).then(({ data }) => {
-          setHasPermission(data === true);
-        });
+      supabase.rpc('user_has_permission', {
+        _user_id: user.id,
+        _permission_name: requiredPermission
+      }).then(({ data }) => {
+        setHasPermission(data === true);
       });
     } else if (!requiredPermission) {
       setHasPermission(true);
