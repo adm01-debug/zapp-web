@@ -472,7 +472,7 @@ export function RealtimeInboxView() {
   }
 
   return (
-    <div className="flex h-full relative bg-background">
+    <div className="flex h-full relative bg-background overflow-hidden">
       {/* Global Search Modal */}
       <GlobalSearch 
         open={globalSearchOpen} 
@@ -500,8 +500,8 @@ export function RealtimeInboxView() {
         }}
       />
 
-      {/* Conversation List */}
-      <div className="w-80 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col">
+      {/* Conversation List — DreamsChat: 320px fixed */}
+      <div className="w-[320px] min-w-[320px] max-w-[320px] flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col">
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
@@ -512,20 +512,22 @@ export function RealtimeInboxView() {
           isLoading={bulkLoading}
         />
 
-        {/* Header */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
+        {/* Header — Compact DreamsChat style */}
+        <div className="px-4 pt-4 pb-3 border-b border-border space-y-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
-              <Badge variant="outline" className={cn(
-                'text-xs gap-1',
-                isOnline ? 'border-success text-success' : 'border-destructive text-destructive'
+              <h2 className="text-base font-semibold text-foreground">Conversas</h2>
+              <span className={cn(
+                'flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full',
+                isOnline 
+                  ? 'bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]' 
+                  : 'bg-destructive/15 text-destructive'
               )}>
-                {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                {isOnline ? 'Online' : 'Offline'}
-              </Badge>
+                {isOnline ? <Wifi className="w-2.5 h-2.5" /> : <WifiOff className="w-2.5 h-2.5" />}
+                {isOnline ? 'Live' : 'Off'}
+              </span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
@@ -533,16 +535,16 @@ export function RealtimeInboxView() {
                     size="icon" 
                     onClick={toggleSelectionMode}
                     className={cn(
-                      'w-8 h-8',
+                      'w-7 h-7',
                       selectionMode ? 'text-primary bg-primary/10' : 'text-muted-foreground'
                     )}
                     aria-label={selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
                   >
-                    <CheckSquare className="w-4 h-4" />
+                    <CheckSquare className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  {selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
+                <TooltipContent className="text-xs">
+                  {selectionMode ? 'Sair seleção' : 'Selecionar'}
                 </TooltipContent>
               </Tooltip>
               
@@ -552,18 +554,13 @@ export function RealtimeInboxView() {
                     variant="ghost" 
                     size="icon" 
                     onClick={toggleSound}
-                    className={cn(
-                      'w-8 h-8',
-                      soundOn ? 'text-primary' : 'text-muted-foreground'
-                    )}
+                    className={cn('w-7 h-7', soundOn ? 'text-primary' : 'text-muted-foreground')}
                     aria-label={soundOn ? 'Desativar som' : 'Ativar som'}
                   >
-                    {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                    {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  {soundOn ? 'Desativar som' : 'Ativar som'}
-                </TooltipContent>
+                <TooltipContent className="text-xs">{soundOn ? 'Mudo' : 'Som'}</TooltipContent>
               </Tooltip>
               
               <Tooltip>
@@ -573,77 +570,76 @@ export function RealtimeInboxView() {
                     size="icon" 
                     onClick={refetch} 
                     disabled={loading}
-                    aria-label="Atualizar conversas"
+                    className="w-7 h-7"
+                    aria-label="Atualizar"
                   >
-                    <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+                    <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Atualizar conversas</TooltipContent>
+                <TooltipContent className="text-xs">Atualizar</TooltipContent>
               </Tooltip>
-              <KeyboardShortcutsHelp />
-              
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     onClick={() => setShowNewConversation(true)}
-                    className="w-8 h-8 text-primary hover:bg-primary/10"
+                    className="w-7 h-7 text-primary hover:bg-primary/10"
                     aria-label="Nova conversa"
                   >
-                    <MessageSquarePlus className="w-4 h-4" />
+                    <MessageSquarePlus className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Nova Conversa</TooltipContent>
+                <TooltipContent className="text-xs">Nova Conversa</TooltipContent>
               </Tooltip>
             </div>
           </div>
 
+          {/* Search bar — DreamsChat rounded pill */}
           <div className="relative">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
-              placeholder="Buscar conversas... (Ctrl+K)"
+              placeholder="Buscar conversas..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={() => setGlobalSearchOpen(true)}
-              className="pl-9 bg-muted border-border rounded-full h-9 text-sm cursor-pointer"
+              className="pl-9 bg-muted/50 border-0 rounded-full h-8 text-xs cursor-pointer placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/30"
               readOnly
             />
           </div>
 
-          {/* Advanced Filters */}
-          <div className="mt-3">
-            <InboxFilters filters={filters} onFiltersChange={setFilters} />
-          </div>
+          {/* Filters */}
+          <InboxFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
-        {/* Virtualized Conversation List */}
+        {/* Conversation List */}
         <div className="flex-1 overflow-hidden">
           {loading ? (
-            <div className="p-4 space-y-3">
+            <div className="p-3 space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-3">
-                  <Skeleton className="w-12 h-12 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-48" />
+                <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg">
+                  <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-3.5 w-28" />
+                    <Skeleton className="h-3 w-40" />
                   </div>
                 </div>
               ))}
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-8 text-center">
-              <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">
-                {search ? 'Nenhuma conversa encontrada' : 'Sem conversas ainda'}
+              <MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                {search ? 'Nenhuma conversa encontrada' : 'Sem conversas'}
               </p>
             </div>
           ) : (
             <ErrorBoundary
               fallback={
                 <div className="p-8 text-center">
-                  <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Erro ao carregar conversas. Tente recarregar.</p>
+                  <MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">Erro ao carregar. Recarregue.</p>
                 </div>
               }
               onError={(error, info) => {
@@ -663,11 +659,11 @@ export function RealtimeInboxView() {
         </div>
       </div>
 
-      {/* Chat Panel */}
-      <div className="flex-1 flex relative z-10 bg-background">
+      {/* Chat Panel — flexible remaining space */}
+      <div className="flex-1 flex min-w-0 relative z-10 bg-background">
         {legacyConversation ? (
           <>
-            <div className="flex-1 relative">
+            <div className="flex-1 min-w-0 relative">
               <ChatPanel
                 conversation={legacyConversation}
                 messages={legacyMessages}
@@ -686,14 +682,14 @@ export function RealtimeInboxView() {
         ) : (
           <div className="flex-1 flex items-center justify-center bg-background">
             <div className="text-center p-8">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-8 h-8 text-primary" />
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-7 h-7 text-primary/60" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+              <h3 className="text-base font-semibold text-foreground mb-1">
                 Selecione uma conversa
               </h3>
-              <p className="text-muted-foreground text-sm max-w-xs">
-                Escolha uma conversa na lista ao lado para começar a atender
+              <p className="text-muted-foreground text-xs max-w-[200px]">
+                Escolha uma conversa na lista ao lado para começar
               </p>
             </div>
           </div>

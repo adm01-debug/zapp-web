@@ -128,14 +128,14 @@ export function BottomNavigation({
     <nav
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50',
-        'bg-card/95 backdrop-blur-lg border-t border-border',
+        'bg-card/95 backdrop-blur-xl border-t border-border',
         'safe-area-bottom',
         className
       )}
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-14 px-1">
         {items.map((item) => {
           const isActive = item.id === activeId;
           return (
@@ -143,18 +143,18 @@ export function BottomNavigation({
               key={item.id}
               onClick={() => onChange(item.id)}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 flex-1 h-full',
-                'transition-all duration-200 relative',
+                'flex flex-col items-center justify-center gap-0.5 flex-1 h-full',
+                'transition-all duration-200 relative touch-manipulation',
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.label}
             >
-              {/* Active indicator */}
+              {/* Active indicator pill */}
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-primary"
+                  className="absolute -top-px left-1/2 -translate-x-1/2 w-10 h-[3px] rounded-full bg-primary"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
@@ -162,13 +162,13 @@ export function BottomNavigation({
               {/* Icon with badge */}
               <div className="relative">
                 <motion.div
-                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  animate={{ scale: isActive ? 1.05 : 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 >
                   {item.icon}
                 </motion.div>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-[16px] px-0.5 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
@@ -176,7 +176,7 @@ export function BottomNavigation({
 
               {/* Label */}
               <span className={cn(
-                'text-[10px] font-medium transition-colors',
+                'text-[9px] font-medium leading-none',
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}>
                 {item.label}

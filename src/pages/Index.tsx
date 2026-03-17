@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { cn } from '@/lib/utils';
 import { useDeepLinks } from '@/hooks/useDeepLinks';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -262,20 +263,23 @@ function IndexContent() {
           
           {/* Mobile Header */}
           {isMobile && (
-            <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 bg-card/95 backdrop-blur-lg border-b border-border safe-area-top">
+            <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-12 bg-card/95 backdrop-blur-lg border-b border-border safe-area-top">
               <Button 
                 variant="ghost" 
                 size="icon"
+                className="w-8 h-8"
                 onClick={() => setMobileMenuOpen(true)}
                 aria-label="Abrir menu"
               >
                 <Menu className="w-5 h-5" />
               </Button>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <span className="font-display font-bold">ZAPP</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground text-[10px] font-bold">Z</span>
+                </div>
+                <span className="font-display font-bold text-sm">ZAPP</span>
               </div>
-              <div className="w-10" /> {/* Spacer */}
+              <div className="w-8" />
             </div>
           )}
 
@@ -285,7 +289,7 @@ function IndexContent() {
             onClose={() => setMobileMenuOpen(false)}
             side="left"
           >
-            <div className="pt-16 px-4">
+            <div className="pt-14 px-2">
               <Sidebar
                 currentView={currentView}
                 onViewChange={(view) => {
@@ -318,9 +322,12 @@ function IndexContent() {
           
           <main 
             id="main-content" 
-            className={`flex-1 overflow-hidden relative ${isMobile ? 'pt-14 pb-16' : ''}`}
+            className={cn(
+              'flex-1 overflow-hidden relative min-w-0',
+              isMobile && 'pt-12 pb-14'
+            )}
           >
-            {/* Onboarding Checklist - shown on dashboard */}
+            {/* Onboarding Checklist */}
             {showChecklist && currentView === 'dashboard' && (
               <div className="absolute top-4 right-4 z-20 w-96 max-w-[calc(100%-2rem)]">
                 <OnboardingChecklist onNavigate={setCurrentView} />
@@ -350,7 +357,7 @@ function IndexContent() {
           )}
         </div>
 
-        {/* Welcome Modal for new users */}
+        {/* Welcome Modal */}
         <WelcomeModal
           isOpen={showWelcome}
           onClose={() => {
