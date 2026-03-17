@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
+import { StickerPicker } from '../StickerPicker';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,7 @@ interface ChatInputAreaProps {
   onOpenSchedule: () => void;
   onOpenLocationPicker: () => void;
   onSendProduct: (product: Product) => void;
+  onSendSticker: (stickerUrl: string) => void;
   onSelectSuggestion: (text: string) => void;
   onSelectTemplate: (text: string) => void;
   onExternalFiles?: (files: File[]) => void;
@@ -99,6 +101,7 @@ export function ChatInputArea({
   onOpenSchedule,
   onOpenLocationPicker,
   onSendProduct,
+  onSendSticker,
   onSelectSuggestion,
   onSelectTemplate,
   fileUploaderRef,
@@ -274,7 +277,9 @@ export function ChatInputArea({
             />
           </div>
 
-          {/* Right icons: Emoji, Mic, Attach, Send */}
+          {/* Right icons: Sticker, Emoji, Mic, Attach, Send */}
+          <StickerPicker onSendSticker={onSendSticker} />
+
           <Button
             variant="ghost"
             size="icon"

@@ -6,6 +6,7 @@ import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
 import { Product } from '@/components/catalog/ProductCard';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
+import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
@@ -320,6 +321,22 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     log.debug('Product sent:', product);
   };
 
+  const { sendStickerMessage } = useEvolutionApi();
+
+  const handleSendSticker = async (stickerUrl: string) => {
+    if (!instanceName || !conversation.contact.phone) {
+      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível' });
+      return;
+    }
+    try {
+      const phone = conversation.contact.phone.replace(/\D/g, '');
+      await sendStickerMessage(instanceName, phone, stickerUrl);
+      toast({ title: 'Figurinha enviada!' });
+    } catch {
+      toast({ title: 'Erro ao enviar figurinha', variant: 'destructive' });
+    }
+  };
+
   const filteredQuickReplies = dbQuickReplies.filter(
     (reply) => inputValue.startsWith('/') && reply.shortcut.toLowerCase().includes(inputValue.toLowerCase())
   );
@@ -454,6 +471,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onOpenSchedule={() => setShowScheduleDialog(true)}
           onOpenLocationPicker={() => setShowLocationPicker(true)}
           onSendProduct={handleSendProduct}
+          onSendSticker={handleSendSticker}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef}
