@@ -70,7 +70,7 @@ export interface Message {
   id: string;
   conversationId: string;
   content: string;
-  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'interactive' | 'button_response' | 'location';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'interactive' | 'button_response' | 'location' | 'sticker';
   mediaUrl?: string;
   sender: 'contact' | 'agent';
   agentId?: string;
