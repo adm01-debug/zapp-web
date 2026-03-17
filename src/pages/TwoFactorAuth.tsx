@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMFA } from '@/hooks/useMFA';
 import { MFAVerify } from '@/components/mfa/MFAVerify';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function TwoFactorAuth() {
   const navigate = useNavigate();
@@ -62,9 +63,7 @@ export default function TwoFactorAuth() {
           onSuccess={() => navigate('/')}
           onCancel={() => {
             // Sign out and go back to login
-            import('@/integrations/supabase/client').then(({ supabase }) => {
-              supabase.auth.signOut().then(() => navigate('/auth'));
-            });
+            supabase.auth.signOut().then(() => navigate('/auth'));
           }}
         />
         
