@@ -347,11 +347,13 @@ function IndexContent() {
               </div>
             )}
             
-            <AnimatePresence mode="wait">
-              <PageTransition key={currentView}>
-                {renderView()}
-              </PageTransition>
-            </AnimatePresence>
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={currentView}>
+                  {renderView()}
+                </PageTransition>
+              </AnimatePresence>
+            </Suspense>
           </main>
 
           {/* Mobile Bottom Navigation */}
