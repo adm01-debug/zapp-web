@@ -34,11 +34,12 @@ interface ChatPanelProps {
   conversation: Conversation;
   messages: Message[];
   onSendMessage: (content: string) => void;
+  onSendAudio?: (blob: Blob) => Promise<void>;
   showDetails?: boolean;
   onToggleDetails?: () => void;
 }
 
-export function ChatPanel({ conversation, messages, onSendMessage, showDetails = false, onToggleDetails }: ChatPanelProps) {
+export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails }: ChatPanelProps) {
   // ── State ──
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
@@ -272,8 +273,17 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     }
   };
 
-  const handleAudioSend = (audioBlob: Blob) => {
-    toast({ title: 'Áudio enviado!', description: 'A mensagem de áudio foi enviada com sucesso.' });
+  const handleAudioSend = async (audioBlob: Blob) => {
+    if (onSendAudio) {
+      try {
+        await onSendAudio(audioBlob);
+      } catch (err) {
+        log.error('Error sending audio:', err);
+        toast({ title: 'Erro ao enviar áudio', description: 'Tente novamente.', variant: 'destructive' });
+      }
+    } else {
+      toast({ title: 'Erro', description: 'Envio de áudio não configurado.', variant: 'destructive' });
+    }
     setIsRecordingAudio(false);
   };
 
