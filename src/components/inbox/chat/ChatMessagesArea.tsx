@@ -62,6 +62,7 @@ interface ChatMessagesAreaProps {
   ttsMessageId: string | null;
   instanceName?: string;
   contactJid?: string;
+  contactAvatar?: string;
   onSpeak: (messageId: string, text: string) => void;
   onStop: () => void;
   onReply: (message: Message) => void;
@@ -86,6 +87,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   ttsMessageId,
   instanceName,
   contactJid,
+  contactAvatar,
   onSpeak,
   onStop,
   onReply,
@@ -154,7 +156,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                     {/* Avatar — received messages (left) */}
                     {!isSent && (
                       <Avatar className="w-9 h-9 shrink-0 mt-6">
-                        <AvatarImage src={(message as any).senderAvatar} />
+                        <AvatarImage src={contactAvatar} />
                         <AvatarFallback className="bg-muted text-muted-foreground text-xs">
                           {senderName.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
