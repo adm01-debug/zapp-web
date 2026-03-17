@@ -50,6 +50,7 @@ const KnowledgeBaseView = lazy(() => import('@/components/knowledge/KnowledgeBas
 const PaymentLinksView = lazy(() => import('@/components/payments/PaymentLinksView').then(m => ({ default: m.PaymentLinksView })));
 const WhatsAppFlowsBuilder = lazy(() => import('@/components/whatsapp-flows/WhatsAppFlowsBuilder').then(m => ({ default: m.WhatsAppFlowsBuilder })));
 const MetaCAPIView = lazy(() => import('@/components/meta-capi/MetaCAPIView').then(m => ({ default: m.MetaCAPIView })));
+const DiagnosticsView = lazy(() => import('@/components/diagnostics/DiagnosticsView').then(m => ({ default: m.DiagnosticsView })));
 
 function ViewLoadingFallback() {
   return (
@@ -243,6 +244,8 @@ function IndexContent() {
         return <WhatsAppFlowsBuilder />;
       case 'meta-capi':
         return <MetaCAPIView />;
+      case 'diagnostics':
+        return <DiagnosticsView />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
