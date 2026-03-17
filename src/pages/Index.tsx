@@ -1,36 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useDeepLinks } from '@/hooks/useDeepLinks';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { RealtimeInboxView } from '@/components/inbox/RealtimeInboxView';
-import { DashboardView } from '@/components/dashboard/DashboardView';
-import { SentimentAlertsDashboard } from '@/components/dashboard/SentimentAlertsDashboard';
-import { AgentsView } from '@/components/agents/AgentsView';
-import { QueuesView } from '@/components/queues/QueuesView';
-import { ContactsView } from '@/components/contacts/ContactsView';
-import { ConnectionsView } from '@/components/connections/ConnectionsView';
-import { TagsView } from '@/components/tags/TagsView';
-import { SettingsView } from '@/components/settings/SettingsView';
-import { ClientWalletView } from '@/components/wallet/ClientWalletView';
-import { AdminView } from '@/components/admin/AdminView';
-import { ProductManagement } from '@/components/catalog/ProductManagement';
-import { GroupsView } from '@/components/groups/GroupsView';
-import { TranscriptionsHistoryView } from '@/components/transcriptions/TranscriptionsHistoryView';
-import { AdvancedReportsView } from '@/components/reports/AdvancedReportsView';
-import { SecurityView } from '@/components/security/SecurityView';
-import { SystemFeaturesView } from '@/components/docs/SystemFeaturesView';
-import { CampaignsView } from '@/components/campaigns/CampaignsView';
-import { ChatbotFlowsView } from '@/components/chatbot/ChatbotFlowsView';
-import { AutomationsManager } from '@/components/automations/AutomationsManager';
-import { IntegrationsHub } from '@/components/integrations/IntegrationsHub';
-import { LGPDComplianceView } from '@/components/compliance/LGPDComplianceView';
-import { SalesPipelineView } from '@/components/pipeline/SalesPipelineView';
-import { KnowledgeBaseView } from '@/components/knowledge/KnowledgeBaseView';
-import { PaymentLinksView } from '@/components/payments/PaymentLinksView';
-import { WhatsAppFlowsBuilder } from '@/components/whatsapp-flows/WhatsAppFlowsBuilder';
-import { MetaCAPIView } from '@/components/meta-capi/MetaCAPIView';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
@@ -46,8 +19,48 @@ import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { logAudit } from '@/lib/audit';
-import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu, Phone } from 'lucide-react';
+import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu, Phone, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+// Lazy-loaded views - only the active view is loaded
+const RealtimeInboxView = lazy(() => import('@/components/inbox/RealtimeInboxView').then(m => ({ default: m.RealtimeInboxView })));
+const DashboardView = lazy(() => import('@/components/dashboard/DashboardView').then(m => ({ default: m.DashboardView })));
+const SentimentAlertsDashboard = lazy(() => import('@/components/dashboard/SentimentAlertsDashboard').then(m => ({ default: m.SentimentAlertsDashboard })));
+const AgentsView = lazy(() => import('@/components/agents/AgentsView').then(m => ({ default: m.AgentsView })));
+const QueuesView = lazy(() => import('@/components/queues/QueuesView').then(m => ({ default: m.QueuesView })));
+const ContactsView = lazy(() => import('@/components/contacts/ContactsView').then(m => ({ default: m.ContactsView })));
+const ConnectionsView = lazy(() => import('@/components/connections/ConnectionsView').then(m => ({ default: m.ConnectionsView })));
+const TagsView = lazy(() => import('@/components/tags/TagsView').then(m => ({ default: m.TagsView })));
+const SettingsView = lazy(() => import('@/components/settings/SettingsView').then(m => ({ default: m.SettingsView })));
+const ClientWalletView = lazy(() => import('@/components/wallet/ClientWalletView').then(m => ({ default: m.ClientWalletView })));
+const AdminView = lazy(() => import('@/components/admin/AdminView').then(m => ({ default: m.AdminView })));
+const ProductManagement = lazy(() => import('@/components/catalog/ProductManagement').then(m => ({ default: m.ProductManagement })));
+const GroupsView = lazy(() => import('@/components/groups/GroupsView').then(m => ({ default: m.GroupsView })));
+const TranscriptionsHistoryView = lazy(() => import('@/components/transcriptions/TranscriptionsHistoryView').then(m => ({ default: m.TranscriptionsHistoryView })));
+const AdvancedReportsView = lazy(() => import('@/components/reports/AdvancedReportsView').then(m => ({ default: m.AdvancedReportsView })));
+const SecurityView = lazy(() => import('@/components/security/SecurityView').then(m => ({ default: m.SecurityView })));
+const SystemFeaturesView = lazy(() => import('@/components/docs/SystemFeaturesView').then(m => ({ default: m.SystemFeaturesView })));
+const CampaignsView = lazy(() => import('@/components/campaigns/CampaignsView').then(m => ({ default: m.CampaignsView })));
+const ChatbotFlowsView = lazy(() => import('@/components/chatbot/ChatbotFlowsView').then(m => ({ default: m.ChatbotFlowsView })));
+const AutomationsManager = lazy(() => import('@/components/automations/AutomationsManager').then(m => ({ default: m.AutomationsManager })));
+const IntegrationsHub = lazy(() => import('@/components/integrations/IntegrationsHub').then(m => ({ default: m.IntegrationsHub })));
+const LGPDComplianceView = lazy(() => import('@/components/compliance/LGPDComplianceView').then(m => ({ default: m.LGPDComplianceView })));
+const SalesPipelineView = lazy(() => import('@/components/pipeline/SalesPipelineView').then(m => ({ default: m.SalesPipelineView })));
+const KnowledgeBaseView = lazy(() => import('@/components/knowledge/KnowledgeBaseView').then(m => ({ default: m.KnowledgeBaseView })));
+const PaymentLinksView = lazy(() => import('@/components/payments/PaymentLinksView').then(m => ({ default: m.PaymentLinksView })));
+const WhatsAppFlowsBuilder = lazy(() => import('@/components/whatsapp-flows/WhatsAppFlowsBuilder').then(m => ({ default: m.WhatsAppFlowsBuilder })));
+const MetaCAPIView = lazy(() => import('@/components/meta-capi/MetaCAPIView').then(m => ({ default: m.MetaCAPIView })));
+
+function ViewLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center space-y-3">
+        <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+        <p className="text-sm text-muted-foreground">Carregando módulo...</p>
+      </div>
+    </div>
+  );
+}
 
 function IndexContent() {
   const navigate = useNavigate();
