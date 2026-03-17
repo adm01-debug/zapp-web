@@ -79,8 +79,11 @@ export function RateLimitRealtimeAlerts() {
     try {
       const audio = new Audio('/notification.mp3');
       audio.volume = 0.5;
+      // play() can fail due to autoplay restrictions - safe to ignore
       audio.play().catch(() => {});
-    } catch (e) {}
+    } catch {
+      // Audio construction can fail in some environments - non-critical
+    }
   };
 
   const handleDismiss = async (alertId: string) => {
