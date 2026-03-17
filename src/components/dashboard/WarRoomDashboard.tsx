@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useWarRoomAlerts } from '@/hooks/useWarRoomAlerts';
 import { 
   AlertTriangle, Clock, Users, MessageSquare, TrendingUp, TrendingDown,
   Phone, CheckCircle, XCircle, Timer, Zap, Activity, Bell, Volume2,
@@ -162,7 +163,15 @@ export function WarRoomDashboard({
   const realData = useWarRoomData();
   const agents = propsAgents || realData.agents;
   const queues = propsQueues || realData.queues;
-  const alerts = propsAlerts || realData.alerts;
+  const { alerts: realtimeAlerts, dismissAlert } = useWarRoomAlerts(true);
+  const alerts = propsAlerts || realtimeAlerts.map(a => ({
+    id: a.id,
+    type: a.alert_type as 'critical' | 'warning' | 'info',
+    title: a.title,
+    message: a.message,
+    timestamp: new Date(a.created_at),
+    isNew: !a.is_read,
+  }));
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -337,11 +346,14 @@ export function WarRoomDashboard({
           <CardContent className="space-y-2 max-h-80 overflow-auto">
             <AnimatePresence>
               {alerts.map((alert) => (
-                <AlertRow
-                  key={alert.id}
-                  alert={alert}
-                  onDismiss={() => onAlertDismiss?.(alert.id)}
-                />
+                  <AlertRow
+                    key={alert.id}
+                    alert={alert}
+                    onDismiss={() => {
+                      onAlertDismiss?.(alert.id);
+                      dismissAlert(alert.id);
+                    }}
+                  />
               ))}
             </AnimatePresence>
           </CardContent>

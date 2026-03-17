@@ -52,6 +52,38 @@ export type Database = {
           },
         ]
       }
+      agent_skills: {
+        Row: {
+          created_at: string | null
+          id: string
+          profile_id: string
+          skill_level: number | null
+          skill_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          profile_id: string
+          skill_level?: number | null
+          skill_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          profile_id?: string
+          skill_level?: number | null
+          skill_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_skills_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_stats: {
         Row: {
           achievements_count: number
@@ -1041,6 +1073,54 @@ export type Database = {
             columns: ["sla_configuration_id"]
             isOneToOne: false
             referencedRelation: "sla_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      csat_auto_config: {
+        Row: {
+          created_at: string | null
+          delay_minutes: number | null
+          id: string
+          is_enabled: boolean | null
+          message_template: string | null
+          updated_at: string | null
+          updated_by: string | null
+          whatsapp_connection_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delay_minutes?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          message_template?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          whatsapp_connection_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delay_minutes?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          message_template?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          whatsapp_connection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csat_auto_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csat_auto_config_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -2102,6 +2182,38 @@ export type Database = {
           },
         ]
       }
+      queue_skill_requirements: {
+        Row: {
+          created_at: string | null
+          id: string
+          min_level: number | null
+          queue_id: string
+          skill_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          min_level?: number | null
+          queue_id: string
+          skill_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          min_level?: number | null
+          queue_id?: string
+          skill_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_skill_requirements_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       queues: {
         Row: {
           color: string
@@ -2848,6 +2960,47 @@ export type Database = {
         }
         Relationships: []
       }
+      warroom_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          dismissed_by: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          source: string | null
+          title: string
+        }
+        Insert: {
+          alert_type?: string
+          created_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          source?: string | null
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          source?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warroom_alerts_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webauthn_challenges: {
         Row: {
           challenge: string
@@ -3188,6 +3341,7 @@ export type Database = {
           locked_until: string
         }[]
       }
+      skill_based_assign: { Args: { p_queue_id: string }; Returns: string }
       user_has_permission: {
         Args: { _permission_name: string; _user_id: string }
         Returns: boolean

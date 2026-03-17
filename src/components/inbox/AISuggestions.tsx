@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { Sparkles, Loader2, Check, MessageCircle, HelpCircle, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,15 +18,17 @@ interface Suggestion {
   type: 'direct' | 'empathetic' | 'followup';
   text: string;
   emoji: string;
+  source?: string | null;
 }
 
 interface AISuggestionsProps {
   messages: Message[];
   contactName: string;
+  contactId?: string;
   onSelectSuggestion: (text: string) => void;
 }
 
-export function AISuggestions({ messages, contactName, onSelectSuggestion }: AISuggestionsProps) {
+export function AISuggestions({ messages, contactName, contactId, onSelectSuggestion }: AISuggestionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -51,7 +54,8 @@ export function AISuggestions({ messages, contactName, onSelectSuggestion }: AIS
             content: m.content,
             sender: m.sender
           })),
-          contactName
+          contactName,
+          contactId,
         }
       });
 
@@ -123,10 +127,11 @@ export function AISuggestions({ messages, contactName, onSelectSuggestion }: AIS
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             className="absolute bottom-full right-0 mb-2 w-80 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50"
           >
-            <div className="flex items-center justify-between p-3 border-b border-border bg-muted/50">
+             <div className="flex items-center justify-between p-3 border-b border-border bg-muted/50">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span className="font-medium text-sm">Sugestões de IA</span>
+                <span className="font-medium text-sm">Copilot IA</span>
+                <Badge variant="secondary" className="text-[10px]">KB</Badge>
               </div>
               <Button
                 variant="ghost"
@@ -169,6 +174,11 @@ export function AISuggestions({ messages, contactName, onSelectSuggestion }: AIS
                       <p className="text-sm text-foreground line-clamp-3">
                         {suggestion.emoji} {suggestion.text}
                       </p>
+                      {suggestion.source && (
+                        <p className="text-[10px] text-primary/70 mt-1 flex items-center gap-1">
+                          📚 Fonte: {suggestion.source}
+                        </p>
+                      )}
                     </motion.button>
                   ))}
                 </div>

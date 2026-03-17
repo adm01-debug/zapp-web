@@ -171,7 +171,7 @@ export function useHasFormattableContent(content: string): boolean {
       /`.+?`/, // code
       /https?:\/\/[^\s]+/, // link
       /:[a-z_]+:/, // emoji shortcode
-      /:\)/, /:\(/, /:D/, /;)/, /:P/, /<3/, // simple emojis
+      /:\)/, /:\(/, /:D/, /;\)/, /:P/, /<3/, // simple emojis
     ];
 
     return patterns.some(pattern => pattern.test(content));
