@@ -28,7 +28,7 @@ export function QueuePositionNotifier({ contactId, className }: QueuePositionNot
         .from('queues')
         .select('name, color')
         .eq('id', data.queue_id)
-        .single();
+        .maybeSingle();
 
       return { ...data, queueName: queue?.name, queueColor: queue?.color };
     },
