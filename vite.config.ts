@@ -41,6 +41,10 @@ export default defineConfig(({ mode }) => ({
           "vendor-xlsx": ["xlsx"],
           // PDF
           "vendor-pdf": ["jspdf", "jspdf-autotable"],
+          // Maps (heavy)
+          "vendor-mapbox": ["mapbox-gl"],
+          // ElevenLabs
+          "vendor-elevenlabs": ["@elevenlabs/react"],
         },
       },
     },

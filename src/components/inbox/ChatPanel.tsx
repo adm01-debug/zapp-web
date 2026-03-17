@@ -1,16 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
-import { ConversationSummary } from './ConversationSummary';
-import { TransferDialog } from './TransferDialog';
-import { ScheduleMessageDialog } from './ScheduleMessageDialog';
-import { CallDialog } from '@/components/calls/CallDialog';
-import { GlobalSearch } from './GlobalSearch';
-import { InteractiveMessageBuilder } from './InteractiveMessageBuilder';
-import { ForwardMessageDialog } from './ForwardMessageDialog';
-import { LocationPicker } from './LocationPicker';
-import { AIConversationAssistant } from './AIConversationAssistant';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
 import { Product } from '@/components/catalog/ProductCard';
@@ -26,6 +17,17 @@ import { ChatMessagesArea, ChatMessagesAreaRef } from './chat/ChatMessagesArea';
 import { ChatInputArea } from './chat/ChatInputArea';
 import { ChatDragOverlay } from './chat/ChatDragOverlay';
 import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
+
+// Lazy-load heavy dialog/modal components (only loaded when opened)
+const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
+const TransferDialog = lazy(() => import('./TransferDialog').then(m => ({ default: m.TransferDialog })));
+const ScheduleMessageDialog = lazy(() => import('./ScheduleMessageDialog').then(m => ({ default: m.ScheduleMessageDialog })));
+const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => ({ default: m.CallDialog })));
+const GlobalSearch = lazy(() => import('./GlobalSearch').then(m => ({ default: m.GlobalSearch })));
+const InteractiveMessageBuilder = lazy(() => import('./InteractiveMessageBuilder').then(m => ({ default: m.InteractiveMessageBuilder })));
+const ForwardMessageDialog = lazy(() => import('./ForwardMessageDialog').then(m => ({ default: m.ForwardMessageDialog })));
+const LocationPicker = lazy(() => import('./LocationPicker').then(m => ({ default: m.LocationPicker })));
+const AIConversationAssistant = lazy(() => import('./AIConversationAssistant').then(m => ({ default: m.AIConversationAssistant })));
 
 interface ChatPanelProps {
   conversation: Conversation;
@@ -346,15 +348,17 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           onOpenTransfer={() => setShowTransferDialog(true)}
         />
 
-        <ConversationSummary 
-          messages={messages.map(m => ({
-            id: m.id,
-            sender: m.sender,
-            content: m.content,
-            created_at: m.timestamp.toISOString()
-          }))}
-          contactName={conversation.contact.name}
-        />
+        <Suspense fallback={null}>
+          <ConversationSummary 
+            messages={messages.map(m => ({
+              id: m.id,
+              sender: m.sender,
+              content: m.content,
+              created_at: m.timestamp.toISOString()
+            }))}
+            contactName={conversation.contact.name}
+          />
+        </Suspense>
 
         <ChatMessagesArea
           ref={messagesAreaRef}
@@ -415,43 +419,53 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
         />
 
         {/* Dialogs */}
-        <TransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onTransfer={handleTransfer} />
-        <ScheduleMessageDialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog} onSchedule={handleScheduleMessage} />
-        <CallDialog
-          open={showCallDialog}
-          onOpenChange={setShowCallDialog}
-          contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }}
-          direction={callDirection}
-          onEnd={() => setShowCallDialog(false)}
-        />
-        <GlobalSearch
-          open={showGlobalSearch}
-          onOpenChange={setShowGlobalSearch}
-          onSelectResult={(result) => {
-            log.debug('Selected:', result);
-            toast({ title: 'Resultado selecionado', description: result.title });
-          }}
-        />
-        <InteractiveMessageBuilder open={showInteractiveBuilder} onOpenChange={setShowInteractiveBuilder} onSend={handleSendInteractiveMessage} />
-        <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />
-        <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />
+        <Suspense fallback={null}>
+          {showTransferDialog && <TransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onTransfer={handleTransfer} />}
+          {showScheduleDialog && <ScheduleMessageDialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog} onSchedule={handleScheduleMessage} />}
+          {showCallDialog && (
+            <CallDialog
+              open={showCallDialog}
+              onOpenChange={setShowCallDialog}
+              contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }}
+              direction={callDirection}
+              onEnd={() => setShowCallDialog(false)}
+            />
+          )}
+          {showGlobalSearch && (
+            <GlobalSearch
+              open={showGlobalSearch}
+              onOpenChange={setShowGlobalSearch}
+              onSelectResult={(result) => {
+                log.debug('Selected:', result);
+                toast({ title: 'Resultado selecionado', description: result.title });
+              }}
+            />
+          )}
+          {showInteractiveBuilder && <InteractiveMessageBuilder open={showInteractiveBuilder} onOpenChange={setShowInteractiveBuilder} onSend={handleSendInteractiveMessage} />}
+          {showForwardDialog && <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />}
+          {showLocationPicker && <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />}
+        </Suspense>
       </div>
 
-      {/* AI Conversation Assistant */}
-      <AIConversationAssistant
-        messages={messages.map(m => ({
-          id: m.id,
-          sender: m.sender,
-          content: m.content,
-          type: m.type,
-          mediaUrl: m.mediaUrl,
-          created_at: m.timestamp.toISOString()
-        }))}
-        contactId={conversation.contact.id}
-        contactName={conversation.contact.name}
-        isOpen={showAIAssistant}
-        onClose={() => setShowAIAssistant(false)}
-      />
+      {/* AI Conversation Assistant - lazy */}
+      {showAIAssistant && (
+        <Suspense fallback={null}>
+          <AIConversationAssistant
+            messages={messages.map(m => ({
+              id: m.id,
+              sender: m.sender,
+              content: m.content,
+              type: m.type,
+              mediaUrl: m.mediaUrl,
+              created_at: m.timestamp.toISOString()
+            }))}
+            contactId={conversation.contact.id}
+            contactName={conversation.contact.name}
+            isOpen={showAIAssistant}
+            onClose={() => setShowAIAssistant(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

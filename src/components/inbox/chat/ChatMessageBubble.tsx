@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { Message, MessageReaction, InteractiveButton } from '@/types/chat';
 import { motion } from '@/components/ui/motion';
@@ -9,8 +9,10 @@ import { DocumentPreview, VideoPreview } from '../MediaPreview';
 import { AudioMessagePlayer } from '../AudioMessagePlayer';
 import { InteractiveMessageDisplay, ButtonResponseBadge } from '../InteractiveMessage';
 import { QuotedMessage } from '../ReplyQuote';
-import { LocationMessageDisplay } from '../LocationMessage';
 import { TextToSpeechButton } from '../TextToSpeechButton';
+
+// Lazy-load mapbox-heavy LocationMessage component
+const LocationMessageDisplay = lazy(() => import('../LocationMessage').then(m => ({ default: m.LocationMessageDisplay })));
 import {
   Check,
   CheckCheck,
@@ -232,12 +234,14 @@ export function ChatMessageBubble({
             </div>
           )}
 
-          {/* Location message */}
+          {/* Location message - lazy loaded (mapbox is heavy) */}
           {message.type === 'location' && message.location && (
-            <LocationMessageDisplay
-              location={message.location}
-              isSent={isSent}
-            />
+            <Suspense fallback={<div className="w-full h-32 bg-muted animate-pulse rounded-lg" />}>
+              <LocationMessageDisplay
+                location={message.location}
+                isSent={isSent}
+              />
+            </Suspense>
           )}
 
           {/* Text content */}
