@@ -234,12 +234,14 @@ export function ChatMessageBubble({
             </div>
           )}
 
-          {/* Location message */}
+          {/* Location message - lazy loaded (mapbox is heavy) */}
           {message.type === 'location' && message.location && (
-            <LocationMessageDisplay
-              location={message.location}
-              isSent={isSent}
-            />
+            <Suspense fallback={<div className="w-full h-32 bg-muted animate-pulse rounded-lg" />}>
+              <LocationMessageDisplay
+                location={message.location}
+                isSent={isSent}
+              />
+            </Suspense>
           )}
 
           {/* Text content */}
