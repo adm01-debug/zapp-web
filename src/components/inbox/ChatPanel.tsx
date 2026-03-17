@@ -6,6 +6,7 @@ import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
 import { Product } from '@/components/catalog/ProductCard';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
+import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
