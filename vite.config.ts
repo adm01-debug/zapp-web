@@ -20,4 +20,29 @@ export default defineConfig(({ mode }) => ({
     include: ["react", "react-dom", "framer-motion"],
     force: true,
   },
+  build: {
+    target: "esnext",
+    minify: "esbuild",
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          // UI framework
+          "vendor-ui": ["framer-motion", "class-variance-authority", "clsx", "tailwind-merge"],
+          // Data layer
+          "vendor-data": ["@tanstack/react-query", "@supabase/supabase-js"],
+          // Charts (heavy)
+          "vendor-charts": ["recharts"],
+          // i18n
+          "vendor-i18n": ["i18next", "react-i18next"],
+          // Spreadsheet export (heavy)
+          "vendor-xlsx": ["xlsx"],
+          // PDF
+          "vendor-pdf": ["jspdf", "jspdf-autotable"],
+        },
+      },
+    },
+  },
 }));
