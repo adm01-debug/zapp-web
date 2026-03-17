@@ -19,7 +19,7 @@ export function CSATAutoConfig() {
   const { data: connections = [] } = useQuery({
     queryKey: ['whatsapp-connections-csat'],
     queryFn: async () => {
-      const { data } = await supabase.from('whatsapp_connections').select('id, instance_name, status');
+      const { data } = await supabase.from('whatsapp_connections').select('id, name, status');
       return data || [];
     },
   });
