@@ -214,11 +214,11 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
   };
 
   const uploadFileToStorage = async (file: File): Promise<string> => {
-    // Compress images before upload
+    // Compress images before upload (optimized: WebP, 1280px, OffscreenCanvas)
     let fileToUpload = file;
     if (file.type.startsWith('image/') && file.type !== 'image/gif') {
       try {
-        const result = await compressImage(file, { maxWidth: 1920, maxHeight: 1920, quality: 0.8, maxSizeMB: 2 });
+        const result = await compressImage(file);
         if (result.wasCompressed) {
           log.debug('Image compressed:', formatCompressionInfo(result.originalSize, result.compressedSize));
           fileToUpload = result.file;
@@ -232,10 +232,10 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('whatsapp-media')
       .upload(filePath, fileToUpload, {
-        cacheControl: '3600',
+        cacheControl: '31536000',
         upsert: false,
       });
 
@@ -243,7 +243,6 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       throw new Error(`Erro ao fazer upload: ${error.message}`);
     }
 
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('whatsapp-media')
       .getPublicUrl(filePath);
