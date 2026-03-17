@@ -346,11 +346,14 @@ export function WarRoomDashboard({
           <CardContent className="space-y-2 max-h-80 overflow-auto">
             <AnimatePresence>
               {alerts.map((alert) => (
-                <AlertRow
-                  key={alert.id}
-                  alert={alert}
-                  onDismiss={() => onAlertDismiss?.(alert.id)}
-                />
+                  <AlertRow
+                    key={alert.id}
+                    alert={alert}
+                    onDismiss={() => {
+                      onAlertDismiss?.(alert.id);
+                      dismissAlert(alert.id);
+                    }}
+                  />
               ))}
             </AnimatePresence>
           </CardContent>
