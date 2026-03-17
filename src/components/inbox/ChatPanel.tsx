@@ -34,6 +34,7 @@ interface ChatPanelProps {
   conversation: Conversation;
   messages: Message[];
   onSendMessage: (content: string) => void;
+  onSendAudio?: (blob: Blob) => Promise<void>;
   showDetails?: boolean;
   onToggleDetails?: () => void;
 }
