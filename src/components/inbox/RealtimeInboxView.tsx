@@ -1,20 +1,14 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
-import { ChatPanel } from './ChatPanel';
-import { ContactDetails } from './ContactDetails';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { InboxFilters, InboxFiltersState } from './InboxFilters';
-import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
-import { GlobalSearch } from './GlobalSearch';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus } from 'lucide-react';
-import { NewConversationModal } from './NewConversationModal';
-import { Badge } from '@/components/ui/badge';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,6 +19,18 @@ import { Conversation, Message } from '@/types/chat';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getLogger } from '@/lib/logger';
+
+// Lazy-load heavy sub-components (only loaded when needed)
+const ChatPanel = lazy(() => import('./ChatPanel').then(m => ({ default: m.ChatPanel })));
+const ContactDetails = lazy(() => import('./ContactDetails').then(m => ({ default: m.ContactDetails })));
+const GlobalSearch = lazy(() => import('./GlobalSearch').then(m => ({ default: m.GlobalSearch })));
+const NewConversationModal = lazy(() => import('./NewConversationModal').then(m => ({ default: m.NewConversationModal })));
+
+const ChatFallback = () => (
+  <div className="flex-1 flex items-center justify-center">
+    <Loader2 className="w-6 h-6 text-primary animate-spin" />
+  </div>
+);
 
 const log = getLogger('RealtimeInboxView');
 
