@@ -90,6 +90,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     onSpeedChange: handleSpeedChange,
   });
 
+  const { scheduleMessage } = useScheduledMessages(conversation.contact.id);
+
   // ── Resolve WhatsApp instance name from contact ──
   const [instanceName, setInstanceName] = useState<string>('');
 
