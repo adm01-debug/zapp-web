@@ -32,7 +32,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
-import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   currentView: string;
