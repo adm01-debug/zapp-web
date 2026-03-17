@@ -127,7 +127,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin bg-background">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin bg-background relative">
+      {/* Animated vector watermark background */}
+      <ChatWatermark />
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
           {/* Date separator — DreamsChat style */}
