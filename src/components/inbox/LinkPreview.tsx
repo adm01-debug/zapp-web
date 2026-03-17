@@ -188,7 +188,7 @@ export function LinkPreview({ url, className, compact = false, showRemove, onRem
         {showRemove && (
           <button
             onClick={onRemove}
-            className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+            className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-background/50 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/70"
           >
             <X className="w-4 h-4" />
           </button>
@@ -260,9 +260,9 @@ export function LinkPreview({ url, className, compact = false, showRemove, onRem
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           {metadata.type === 'video' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-              <div className="p-3 rounded-full bg-white/90 group-hover:scale-110 transition-transform">
-                <Play className="w-6 h-6 text-black fill-black" />
+            <div className="absolute inset-0 flex items-center justify-center bg-background/30">
+              <div className="p-3 rounded-full bg-background/90 group-hover:scale-110 transition-transform">
+                <Play className="w-6 h-6 text-foreground fill-black" />
               </div>
             </div>
           )}
@@ -307,7 +307,7 @@ export function LinkPreview({ url, className, compact = false, showRemove, onRem
             e.stopPropagation();
             onRemove?.();
           }}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/50 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/70"
         >
           <X className="w-4 h-4" />
         </button>

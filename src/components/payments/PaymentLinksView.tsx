@@ -99,9 +99,9 @@ export function PaymentLinksView() {
   };
 
   const statusConfig: Record<string, { label: string; icon: any; className: string }> = {
-    active: { label: 'Ativo', icon: Clock, className: 'text-blue-400 bg-blue-500/20 border-blue-500/30' },
-    paid: { label: 'Pago', icon: CheckCircle, className: 'text-green-400 bg-green-500/20 border-green-500/30' },
-    expired: { label: 'Expirado', icon: XCircle, className: 'text-red-400 bg-red-500/20 border-red-500/30' },
+    active: { label: 'Ativo', icon: Clock, className: 'text-info bg-info/20 border-blue-500/30' },
+    paid: { label: 'Pago', icon: CheckCircle, className: 'text-success bg-success/20 border-green-500/30' },
+    expired: { label: 'Expirado', icon: XCircle, className: 'text-destructive bg-destructive/20 border-red-500/30' },
     cancelled: { label: 'Cancelado', icon: XCircle, className: 'text-muted-foreground bg-muted/20 border-border' },
   };
 
@@ -135,9 +135,9 @@ export function PaymentLinksView() {
         <Card className="bg-card/50 border-border/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-              <CheckCircle className="w-3.5 h-3.5 text-green-400" /> Recebidos
+              <CheckCircle className="w-3.5 h-3.5 text-success" /> Recebidos
             </div>
-            <p className="text-lg font-bold text-green-400">
+            <p className="text-lg font-bold text-success">
               R$ {totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </CardContent>

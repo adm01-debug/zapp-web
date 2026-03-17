@@ -109,8 +109,8 @@ export function ChatbotFlowsView() {
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Total de Fluxos', value: stats.total, icon: Bot, color: 'text-primary' },
-          { label: 'Ativos', value: stats.active, icon: Play, color: 'text-green-400' },
-          { label: 'Execuções', value: stats.totalExecutions, icon: BarChart3, color: 'text-blue-400' },
+          { label: 'Ativos', value: stats.active, icon: Play, color: 'text-success' },
+          { label: 'Execuções', value: stats.totalExecutions, icon: BarChart3, color: 'text-info' },
         ].map(stat => (
           <Card key={stat.label} className="border-secondary/30">
             <CardContent className="p-4 flex items-center gap-3">

@@ -39,8 +39,8 @@ const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', '
 
 const getLevelColor = (level: number, isDark: boolean = false) => {
   const colors = isDark
-    ? ['bg-muted/30', 'bg-green-900/50', 'bg-green-700/60', 'bg-green-500/70', 'bg-green-400']
-    : ['bg-muted', 'bg-green-200', 'bg-green-300', 'bg-green-400', 'bg-green-500'];
+    ? ['bg-muted/30', 'bg-green-900/50', 'bg-green-700/60', 'bg-success/70', 'bg-success']
+    : ['bg-muted', 'bg-green-200', 'bg-green-300', 'bg-success', 'bg-success'];
   return colors[level] || colors[0];
 };
 
@@ -208,7 +208,7 @@ export const ActivityHeatmap = ({
             <span className="font-medium">{stats.activeDays}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Flame className="h-4 w-4 text-orange-500" />
+            <Flame className="h-4 w-4 text-warning" />
             <span className="text-muted-foreground">Streak:</span>
             <Badge variant="secondary">{stats.streak} dias</Badge>
           </div>

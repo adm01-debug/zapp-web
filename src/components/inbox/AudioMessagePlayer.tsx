@@ -192,7 +192,7 @@ export function AudioMessagePlayer({
               animate={{ opacity: 1, scale: 1 }}
               className={cn(
                 'flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium',
-                isSent ? 'bg-green-500/20 text-green-200' : 'bg-green-500/10 text-green-600'
+                isSent ? 'bg-success/20 text-green-200' : 'bg-success/10 text-success'
               )}
             >
               <CheckCircle2 className="w-3 h-3" />
@@ -208,7 +208,7 @@ export function AudioMessagePlayer({
             animate={{ opacity: 1, scale: 1 }}
             className={cn(
               'flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium cursor-pointer',
-              isSent ? 'bg-red-500/20 text-red-200' : 'bg-red-500/10 text-red-600'
+              isSent ? 'bg-destructive/20 text-red-200' : 'bg-destructive/10 text-destructive'
             )}
             onClick={handleTranscribe}
           >
@@ -327,7 +327,7 @@ export function AudioMessagePlayer({
                 animate={{ scale: 1 }}
                 className={cn(
                   'absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full',
-                  isSent ? 'bg-green-400' : 'bg-green-500'
+                  isSent ? 'bg-success' : 'bg-success'
                 )}
               />
             )}
@@ -398,7 +398,7 @@ export function AudioMessagePlayer({
                 <div className="flex items-center gap-1.5 text-[10px] opacity-60 mb-1">
                   <Volume2 className="w-3 h-3" />
                   <span>Transcrição</span>
-                  <CheckCircle2 className="w-3 h-3 text-green-500 ml-auto" />
+                  <CheckCircle2 className="w-3 h-3 text-success ml-auto" />
                 </div>
                 <p className="leading-relaxed italic">"{transcription}"</p>
               </div>

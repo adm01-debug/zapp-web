@@ -18,10 +18,10 @@ interface SecurityAlert {
 }
 
 const ALERT_CONFIG: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string; bg: string }> = {
-  rate_limit: { icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
-  blocked_ip: { icon: Ban, color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-900/30' },
+  rate_limit: { icon: Clock, color: 'text-warning', bg: 'bg-warning/10 dark:bg-yellow-900/30' },
+  blocked_ip: { icon: Ban, color: 'text-destructive', bg: 'bg-destructive/10 dark:bg-red-900/30' },
   suspicious: { icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30' },
-  default: { icon: Shield, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' }
+  default: { icon: Shield, color: 'text-info', bg: 'bg-info/10 dark:bg-blue-900/30' }
 };
 
 const SEVERITY_COLORS: Record<string, string> = {

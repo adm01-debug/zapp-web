@@ -44,7 +44,7 @@ const aiFeatures: AIFeature[] = [
     description: 'Resumo, sentimento e pontos-chave automáticos',
     icon: Brain,
     action: 'inbox',
-    gradient: 'from-secondary to-purple-400',
+    gradient: 'from-secondary to-primary',
   },
   {
     id: 'sentiment',
@@ -160,7 +160,7 @@ export function AIQuickAccess() {
                     animate={hoveredFeature === feature.id ? { scale: 1.1, rotate: 5 } : { scale: 1, rotate: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <feature.icon className="w-5 h-5 text-white" />
+                    <feature.icon className="w-5 h-5 text-primary-foreground" />
                   </motion.div>
                   
                   <div className="flex items-center gap-2">

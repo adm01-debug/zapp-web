@@ -335,8 +335,8 @@ function SpeedTypingGame({
                   className={
                     i < userInput.length
                       ? userInput[i] === char
-                        ? 'text-green-500'
-                        : 'text-red-500 bg-red-500/20'
+                        ? 'text-success'
+                        : 'text-destructive bg-destructive/20'
                       : ''
                   }
                 >
@@ -465,7 +465,7 @@ function QuizGame({
           </div>
         ) : (
           <div className="py-8 text-center space-y-4">
-            <Trophy className="h-16 w-16 mx-auto text-yellow-500" />
+            <Trophy className="h-16 w-16 mx-auto text-warning" />
             <h3 className="text-2xl font-bold">{score} pontos!</h3>
             <p className="text-muted-foreground">
               Você acertou {score / 20} de {QUIZ_QUESTIONS.length} perguntas

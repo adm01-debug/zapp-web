@@ -30,11 +30,11 @@ interface CAPIEvent {
 }
 
 const EVENT_TYPES = [
-  { name: 'Purchase', label: 'Compra', icon: CreditCard, color: 'text-green-400' },
-  { name: 'Lead', label: 'Lead', icon: UserPlus, color: 'text-blue-400' },
-  { name: 'InitiateCheckout', label: 'Checkout', icon: ShoppingCart, color: 'text-yellow-400' },
-  { name: 'AddToCart', label: 'Carrinho', icon: ShoppingCart, color: 'text-orange-400' },
-  { name: 'ViewContent', label: 'Visualização', icon: Eye, color: 'text-purple-400' },
+  { name: 'Purchase', label: 'Compra', icon: CreditCard, color: 'text-success' },
+  { name: 'Lead', label: 'Lead', icon: UserPlus, color: 'text-info' },
+  { name: 'InitiateCheckout', label: 'Checkout', icon: ShoppingCart, color: 'text-warning' },
+  { name: 'AddToCart', label: 'Carrinho', icon: ShoppingCart, color: 'text-warning' },
+  { name: 'ViewContent', label: 'Visualização', icon: Eye, color: 'text-primary' },
   { name: 'Contact', label: 'Contato', icon: MousePointer, color: 'text-cyan-400' },
 ];
 
@@ -138,7 +138,7 @@ export function MetaCAPIView() {
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               <Send className="w-3.5 h-3.5" /> Enviados ao Meta
             </div>
-            <p className="text-lg font-bold text-green-400">{sentEvents}</p>
+            <p className="text-lg font-bold text-success">{sentEvents}</p>
           </CardContent>
         </Card>
         <Card className="bg-card/50 border-border/30">
@@ -201,7 +201,7 @@ export function MetaCAPIView() {
                     </p>
                   </div>
                   {event.sent_to_meta
-                    ? <CheckCircle className="w-4 h-4 text-green-400" />
+                    ? <CheckCircle className="w-4 h-4 text-success" />
                     : <XCircle className="w-4 h-4 text-muted-foreground" />}
                 </CardContent>
               </Card>

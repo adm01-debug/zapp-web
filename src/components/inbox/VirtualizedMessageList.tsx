@@ -65,7 +65,7 @@ function MessageStatusIcon({ status }: { status: Message['status'] }) {
     case 'delivered':
       return <CheckCheck className="w-3 h-3" />;
     case 'read':
-      return <CheckCheck className="w-3 h-3 text-blue-400" />;
+      return <CheckCheck className="w-3 h-3 text-info" />;
     case 'failed':
       return <X className="w-3 h-3 text-destructive" />;
     default:

@@ -26,13 +26,13 @@ const categoryConfig = {
     icon: MessageSquare, 
     label: 'Chat', 
     description: 'Atalhos para mensagens',
-    gradient: 'from-blue-500/20 to-blue-600/10'
+    gradient: 'from-info/20 to-info/10'
   },
   navigation: { 
     icon: Navigation, 
     label: 'Navegação', 
     description: 'Navegar pela aplicação',
-    gradient: 'from-purple-500/20 to-purple-600/10'
+    gradient: 'from-primary/20 to-primary/10'
   },
   actions: { 
     icon: Zap, 
@@ -44,7 +44,7 @@ const categoryConfig = {
     icon: MousePointerClick, 
     label: 'Seleção', 
     description: 'Gerenciar seleções',
-    gradient: 'from-green-500/20 to-green-600/10'
+    gradient: 'from-success/20 to-green-600/10'
   },
 };
 

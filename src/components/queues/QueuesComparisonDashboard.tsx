@@ -175,8 +175,8 @@ export function QueuesComparisonDashboard() {
             <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <MessageSquare className="w-5 h-5 text-green-500" />
+                  <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                    <MessageSquare className="w-5 h-5 text-success" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Mensagens</p>
@@ -353,7 +353,7 @@ export function QueuesComparisonDashboard() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-medium">{queue.totalContacts}</TableCell>
-                          <TableCell className="text-right text-green-500">{queue.assignedContacts}</TableCell>
+                          <TableCell className="text-right text-success">{queue.assignedContacts}</TableCell>
                           <TableCell className="text-right text-amber-500">{queue.waitingContacts}</TableCell>
                           <TableCell className="text-right">{queue.totalMessages}</TableCell>
                           <TableCell className="text-right">{queue.avgMessagesPerContact}</TableCell>
@@ -363,10 +363,10 @@ export function QueuesComparisonDashboard() {
                               variant="secondary"
                               className={
                                 assignmentRate >= 80
-                                  ? 'bg-green-500/10 text-green-500'
+                                  ? 'bg-success/10 text-success'
                                   : assignmentRate >= 50
                                   ? 'bg-amber-500/10 text-amber-500'
-                                  : 'bg-red-500/10 text-red-500'
+                                  : 'bg-destructive/10 text-destructive'
                               }
                             >
                               {assignmentRate}%

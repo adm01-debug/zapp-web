@@ -139,8 +139,8 @@ export function IPWhitelistPanel() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <div className="w-10 h-10 bg-success/10 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-success dark:text-success" />
               </div>
               <div>
                 <CardTitle>Whitelist de IPs</CardTitle>
@@ -188,8 +188,8 @@ export function IPWhitelistPanel() {
                     className="flex items-center justify-between p-3 rounded-lg border bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      <div className="w-8 h-8 bg-success/10 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-success dark:text-success" />
                       </div>
                       <div>
                         <code className="font-mono font-medium">{ip.ip_address}</code>

@@ -82,8 +82,8 @@ export default function RateLimitDashboard() {
                   <p className="text-sm text-muted-foreground">Total de Requests</p>
                   <p className="text-2xl font-bold">{stats?.totalRequests || 0}</p>
                 </div>
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="w-10 h-10 bg-info/10 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-info dark:text-info" />
                 </div>
               </div>
             </CardContent>
@@ -102,8 +102,8 @@ export default function RateLimitDashboard() {
                   <p className="text-sm text-muted-foreground">Bloqueados</p>
                   <p className="text-2xl font-bold text-destructive">{stats?.blockedRequests || 0}</p>
                 </div>
-                <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                  <Ban className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <div className="w-10 h-10 bg-destructive/10 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                  <Ban className="w-5 h-5 text-destructive dark:text-destructive" />
                 </div>
               </div>
               <Progress value={blockedPercentage} className="mt-2 h-1" />
@@ -124,8 +124,8 @@ export default function RateLimitDashboard() {
                   <p className="text-sm text-muted-foreground">IPs Únicos</p>
                   <p className="text-2xl font-bold">{stats?.uniqueIPs || 0}</p>
                 </div>
-                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div className="w-10 h-10 bg-success/10 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-success dark:text-success" />
                 </div>
               </div>
             </CardContent>
@@ -142,10 +142,10 @@ export default function RateLimitDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Alertas Ativos</p>
-                  <p className="text-2xl font-bold text-yellow-600">{logs.filter(l => l.blocked).length}</p>
+                  <p className="text-2xl font-bold text-warning">{logs.filter(l => l.blocked).length}</p>
                 </div>
-                <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                <div className="w-10 h-10 bg-warning/10 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-warning dark:text-warning" />
                 </div>
               </div>
             </CardContent>

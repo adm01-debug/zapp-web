@@ -50,10 +50,10 @@ export function MFASettings() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                isMFAEnabled ? 'bg-green-100 dark:bg-green-900/30' : 'bg-muted'
+                isMFAEnabled ? 'bg-success/10 dark:bg-green-900/30' : 'bg-muted'
               }`}>
                 {isMFAEnabled ? (
-                  <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <ShieldCheck className="w-5 h-5 text-success dark:text-success" />
                 ) : (
                   <ShieldOff className="w-5 h-5 text-muted-foreground" />
                 )}
@@ -80,7 +80,7 @@ export function MFASettings() {
               animate={{ opacity: 1 }}
               className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
             >
-              <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-warning dark:text-warning mt-0.5" />
               <div>
                 <p className="font-medium text-sm text-yellow-800 dark:text-yellow-200">
                   Recomendado ativar 2FA

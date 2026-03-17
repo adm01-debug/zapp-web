@@ -46,9 +46,9 @@ export function SecurityNotificationsPanel() {
 
   if (!isSupported) {
     return (
-      <Card className="border-yellow-500/20 bg-yellow-500/5">
+      <Card className="border-yellow-500/20 bg-warning/5">
         <CardContent className="flex items-start gap-4 p-4">
-          <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-warning mt-0.5" />
           <div>
             <h4 className="font-medium">Notificações Push Não Suportadas</h4>
             <p className="text-sm text-muted-foreground mt-1">
@@ -75,9 +75,9 @@ export function SecurityNotificationsPanel() {
         {/* Status */}
         <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
           <div className="flex items-center gap-4">
-            <div className={`p-2 rounded-lg ${isSubscribed ? 'bg-green-500/10' : 'bg-muted'}`}>
+            <div className={`p-2 rounded-lg ${isSubscribed ? 'bg-success/10' : 'bg-muted'}`}>
               {isSubscribed ? (
-                <Bell className="w-5 h-5 text-green-500" />
+                <Bell className="w-5 h-5 text-success" />
               ) : (
                 <BellOff className="w-5 h-5 text-muted-foreground" />
               )}
@@ -89,16 +89,16 @@ export function SecurityNotificationsPanel() {
                   variant="outline" 
                   className={
                     permission === 'granted' 
-                      ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                      ? 'bg-success/10 text-success border-green-500/20'
                       : permission === 'denied'
-                        ? 'bg-red-500/10 text-red-500 border-red-500/20'
-                        : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                        ? 'bg-destructive/10 text-destructive border-red-500/20'
+                        : 'bg-warning/10 text-warning border-yellow-500/20'
                   }
                 >
                   {permission === 'granted' ? 'Permitido' : permission === 'denied' ? 'Bloqueado' : 'Não solicitado'}
                 </Badge>
                 {isSubscribed && (
-                  <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                  <Badge variant="outline" className="bg-success/10 text-success border-green-500/20">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     Ativo
                   </Badge>
@@ -115,10 +115,10 @@ export function SecurityNotificationsPanel() {
 
         {/* Permission denied message */}
         {permission === 'denied' && (
-          <div className="flex items-start gap-4 p-4 rounded-lg border border-red-500/20 bg-red-500/5">
-            <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
+          <div className="flex items-start gap-4 p-4 rounded-lg border border-red-500/20 bg-destructive/5">
+            <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
             <div>
-              <h4 className="font-medium text-red-500">Permissão Negada</h4>
+              <h4 className="font-medium text-destructive">Permissão Negada</h4>
               <p className="text-sm text-muted-foreground mt-1">
                 As notificações foram bloqueadas. Para ativá-las, clique no ícone de cadeado 
                 na barra de endereço e permita notificações para este site.
@@ -132,7 +132,7 @@ export function SecurityNotificationsPanel() {
           <Label className="text-sm font-medium">Tipos de alertas que você receberá:</Label>
           <div className="grid gap-3">
             <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
-              <Shield className="w-4 h-4 text-red-500" />
+              <Shield className="w-4 h-4 text-destructive" />
               <div>
                 <span className="text-sm font-medium">Novo dispositivo detectado</span>
                 <p className="text-xs text-muted-foreground">
@@ -141,7 +141,7 @@ export function SecurityNotificationsPanel() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
-              <AlertTriangle className="w-4 h-4 text-yellow-500" />
+              <AlertTriangle className="w-4 h-4 text-warning" />
               <div>
                 <span className="text-sm font-medium">Tentativas de login suspeitas</span>
                 <p className="text-xs text-muted-foreground">
@@ -150,7 +150,7 @@ export function SecurityNotificationsPanel() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
-              <Smartphone className="w-4 h-4 text-blue-500" />
+              <Smartphone className="w-4 h-4 text-info" />
               <div>
                 <span className="text-sm font-medium">Alterações de segurança</span>
                 <p className="text-xs text-muted-foreground">
@@ -184,10 +184,10 @@ export function SecurityNotificationsPanel() {
         )}
 
         {/* Info */}
-        <div className="flex items-start gap-4 p-4 rounded-lg border bg-blue-500/5 border-blue-500/20">
-          <Shield className="w-5 h-5 text-blue-500 mt-0.5" />
+        <div className="flex items-start gap-4 p-4 rounded-lg border bg-info/5 border-blue-500/20">
+          <Shield className="w-5 h-5 text-info mt-0.5" />
           <div>
-            <h4 className="font-medium text-blue-500">Por que ativar?</h4>
+            <h4 className="font-medium text-info">Por que ativar?</h4>
             <p className="text-sm text-muted-foreground mt-1">
               Receba alertas instantâneos sobre atividades suspeitas na sua conta, 
               mesmo quando não estiver usando o aplicativo. Isso permite uma resposta 

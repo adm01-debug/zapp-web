@@ -180,7 +180,7 @@ export function ConversationList({
                             statusColors[conversation.status]
                           )}
                         >
-                          <StatusIcon className="w-2.5 h-2.5 text-white" />
+                          <StatusIcon className="w-2.5 h-2.5 text-primary-foreground" />
                         </motion.span>
                       </div>
 

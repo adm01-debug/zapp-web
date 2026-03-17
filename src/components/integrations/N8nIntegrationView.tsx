@@ -173,7 +173,7 @@ export function N8nIntegrationView() {
                 <Card key={wf.id} className="border-secondary/30">
                   <CardContent className="py-3 flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      {wf.isActive ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
+                      {wf.isActive ? <CheckCircle2 className="w-4 h-4 text-success" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
                       <Switch checked={wf.isActive} onCheckedChange={() => toggleWorkflow(wf.id)} />
                     </div>
                     <div className="flex-1 min-w-0">

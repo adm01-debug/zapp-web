@@ -15,13 +15,13 @@ interface AnimatedBadgeProps {
 const variantConfig = {
   xp: {
     icon: Zap,
-    gradient: 'from-xp to-purple-400',
+    gradient: 'from-xp to-primary',
     glow: 'shadow-[0_0_20px_hsl(var(--xp)/0.4)]',
     pulse: true,
   },
   coins: {
     icon: Star,
-    gradient: 'from-coins to-yellow-400',
+    gradient: 'from-coins to-warning',
     glow: 'shadow-[0_0_20px_hsl(var(--coins)/0.4)]',
     pulse: true,
   },

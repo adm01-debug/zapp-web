@@ -72,21 +72,21 @@ const FORMAT_OPTIONS = [
     value: 'pdf' as ExportFormat, 
     label: 'PDF', 
     icon: FileText, 
-    color: 'text-red-500',
+    color: 'text-destructive',
     description: 'Ideal para impressão e compartilhamento' 
   },
   { 
     value: 'excel' as ExportFormat, 
     label: 'Excel', 
     icon: FileSpreadsheet, 
-    color: 'text-green-500',
+    color: 'text-success',
     description: 'Planilha com formatação completa' 
   },
   { 
     value: 'csv' as ExportFormat, 
     label: 'CSV', 
     icon: File, 
-    color: 'text-blue-500',
+    color: 'text-info',
     description: 'Dados simples para importação' 
   },
 ];

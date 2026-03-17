@@ -69,9 +69,9 @@ function getDateRange(period: string) {
 function getRankIcon(position: number) {
   switch (position) {
     case 1:
-      return <Crown className="w-5 h-5 text-yellow-500" />;
+      return <Crown className="w-5 h-5 text-warning" />;
     case 2:
-      return <Medal className="w-5 h-5 text-gray-400" />;
+      return <Medal className="w-5 h-5 text-muted-foreground" />;
     case 3:
       return <Award className="w-5 h-5 text-amber-600" />;
     default:
@@ -253,7 +253,7 @@ export function AgentRanking() {
                   className={cn(
                     'flex items-center gap-3 p-3 rounded-lg transition-colors',
                     isTopThree && 'bg-primary/5 border border-primary/10',
-                    position === 1 && 'bg-yellow-500/10 border-yellow-500/20',
+                    position === 1 && 'bg-warning/10 border-yellow-500/20',
                     !isTopThree && 'hover:bg-muted/50'
                   )}
                 >
@@ -266,7 +266,7 @@ export function AgentRanking() {
                   <Avatar className={cn(
                     'h-10 w-10 border-2',
                     position === 1 && 'border-yellow-500',
-                    position === 2 && 'border-gray-400',
+                    position === 2 && 'border-border',
                     position === 3 && 'border-amber-600',
                     !isTopThree && 'border-border'
                   )}>
@@ -282,12 +282,12 @@ export function AgentRanking() {
                       <span className="font-medium truncate">{agent.profile_name}</span>
                       {agent.streak >= 3 && (
                         <Badge variant="secondary" className="gap-1 text-xs">
-                          <Flame className="w-3 h-3 text-orange-500" />
+                          <Flame className="w-3 h-3 text-warning" />
                           {agent.streak}
                         </Badge>
                       )}
                       {agent.completion_rate >= 100 && (
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        <Star className="w-4 h-4 text-warning fill-yellow-500" />
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">

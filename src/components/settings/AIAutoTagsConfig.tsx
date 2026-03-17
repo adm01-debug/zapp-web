@@ -70,14 +70,14 @@ export function AIAutoTagsConfig() {
   });
 
   const tagColors: Record<string, string> = {
-    suporte_tecnico: 'bg-blue-500/15 text-blue-700 border-blue-300',
-    vendas: 'bg-green-500/15 text-green-700 border-green-300',
-    financeiro: 'bg-yellow-500/15 text-yellow-700 border-yellow-300',
-    reclamacao: 'bg-red-500/15 text-red-700 border-red-300',
+    suporte_tecnico: 'bg-info/15 text-blue-700 border-blue-300',
+    vendas: 'bg-success/15 text-green-700 border-green-300',
+    financeiro: 'bg-warning/15 text-yellow-700 border-yellow-300',
+    reclamacao: 'bg-destructive/15 text-red-700 border-red-300',
     elogio: 'bg-emerald-500/15 text-emerald-700 border-emerald-300',
     urgente: 'bg-destructive/15 text-destructive border-destructive/30',
-    cancelamento: 'bg-orange-500/15 text-orange-700 border-orange-300',
-    duvida: 'bg-purple-500/15 text-purple-700 border-purple-300',
+    cancelamento: 'bg-warning/15 text-orange-700 border-orange-300',
+    duvida: 'bg-primary/15 text-purple-700 border-purple-300',
     feedback: 'bg-cyan-500/15 text-cyan-700 border-cyan-300',
   };
 

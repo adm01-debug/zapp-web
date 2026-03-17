@@ -88,38 +88,38 @@ const typeConfig: Record<NotificationType, {
 }> = {
   info: { 
     icon: Info, 
-    color: 'text-blue-500', 
-    bgColor: 'bg-blue-500/10',
+    color: 'text-info', 
+    bgColor: 'bg-info/10',
     label: 'Informação' 
   },
   success: { 
     icon: CheckCircle, 
-    color: 'text-green-500', 
-    bgColor: 'bg-green-500/10',
+    color: 'text-success', 
+    bgColor: 'bg-success/10',
     label: 'Sucesso' 
   },
   warning: { 
     icon: AlertTriangle, 
-    color: 'text-yellow-500', 
-    bgColor: 'bg-yellow-500/10',
+    color: 'text-warning', 
+    bgColor: 'bg-warning/10',
     label: 'Aviso' 
   },
   error: { 
     icon: AlertCircle, 
-    color: 'text-red-500', 
-    bgColor: 'bg-red-500/10',
+    color: 'text-destructive', 
+    bgColor: 'bg-destructive/10',
     label: 'Erro' 
   },
   sla: { 
     icon: Clock, 
-    color: 'text-orange-500', 
-    bgColor: 'bg-orange-500/10',
+    color: 'text-warning', 
+    bgColor: 'bg-warning/10',
     label: 'SLA' 
   },
   sentiment: { 
     icon: TrendingDown, 
-    color: 'text-purple-500', 
-    bgColor: 'bg-purple-500/10',
+    color: 'text-primary', 
+    bgColor: 'bg-primary/10',
     label: 'Sentimento' 
   },
   goal: { 

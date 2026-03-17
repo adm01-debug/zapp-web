@@ -33,7 +33,7 @@ const statusConfig = {
   read: {
     icon: CheckCheck,
     label: 'Lido',
-    color: 'text-blue-500',
+    color: 'text-info',
   },
   failed: {
     icon: AlertCircle,

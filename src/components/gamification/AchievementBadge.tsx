@@ -38,7 +38,7 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.STREAK]: {
     icon: Flame,
-    gradient: 'from-orange-500 to-yellow-400',
+    gradient: 'from-orange-500 to-warning',
     bgGlow: 'shadow-orange-500/30',
     rarity: 'common',
   },
@@ -50,19 +50,19 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.RESOLUTION]: {
     icon: Target,
-    gradient: 'from-green-500 to-emerald-400',
+    gradient: 'from-success to-emerald-400',
     bgGlow: 'shadow-green-500/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.PERFECT_RATING]: {
     icon: Star,
-    gradient: 'from-yellow-400 to-amber-400',
+    gradient: 'from-warning to-amber-400',
     bgGlow: 'shadow-yellow-400/30',
     rarity: 'rare',
   },
   [ACHIEVEMENT_TYPES.LEVEL_UP]: {
     icon: Crown,
-    gradient: 'from-purple-500 to-fuchsia-400',
+    gradient: 'from-primary to-fuchsia-400',
     bgGlow: 'shadow-purple-500/30',
     rarity: 'epic',
   },
@@ -74,19 +74,19 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.FIRST_MESSAGE]: {
     icon: MessageSquare,
-    gradient: 'from-blue-500 to-indigo-400',
+    gradient: 'from-info to-indigo-400',
     bgGlow: 'shadow-blue-500/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.FIRST_RESOLUTION]: {
     icon: CheckCircle2,
-    gradient: 'from-green-400 to-teal-400',
+    gradient: 'from-success to-teal-400',
     bgGlow: 'shadow-green-400/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.MESSAGE_MILESTONE]: {
     icon: Medal,
-    gradient: 'from-indigo-500 to-purple-400',
+    gradient: 'from-indigo-500 to-primary',
     bgGlow: 'shadow-indigo-500/30',
     rarity: 'rare',
   },
@@ -165,7 +165,7 @@ export function AchievementBadge({
           whileHover={{ rotate: [0, -5, 5, 0] }}
           transition={{ duration: 0.3 }}
         >
-          <Icon className={cn(sizeConfig.icon, "text-white drop-shadow-md")} />
+          <Icon className={cn(sizeConfig.icon, "text-primary-foreground drop-shadow-md")} />
         </motion.div>
         
         {/* New indicator */}
@@ -173,16 +173,16 @@ export function AchievementBadge({
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+            className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full flex items-center justify-center"
           >
-            <Sparkles className="w-2.5 h-2.5 text-white" />
+            <Sparkles className="w-2.5 h-2.5 text-primary-foreground" />
           </motion.div>
         )}
 
         {/* Rarity glow effect */}
         {config.rarity === 'legendary' && (
           <motion.div
-            className="absolute inset-0 rounded-xl bg-gradient-to-br from-yellow-400/20 to-amber-400/20"
+            className="absolute inset-0 rounded-xl bg-gradient-to-br from-warning/20 to-amber-400/20"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           />
@@ -198,10 +198,10 @@ export function AchievementBadge({
             </h4>
             <span className={cn(
               "px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide",
-              config.rarity === 'common' && "bg-slate-500/20 text-slate-400",
-              config.rarity === 'rare' && "bg-blue-500/20 text-blue-400",
-              config.rarity === 'epic' && "bg-purple-500/20 text-purple-400",
-              config.rarity === 'legendary' && "bg-yellow-500/20 text-yellow-400",
+              config.rarity === 'common' && "bg-slate-500/20 text-muted-foreground",
+              config.rarity === 'rare' && "bg-info/20 text-info",
+              config.rarity === 'epic' && "bg-primary/20 text-primary",
+              config.rarity === 'legendary' && "bg-warning/20 text-warning",
             )}>
               {config.rarity}
             </span>
@@ -251,7 +251,7 @@ export function AchievementBadgeMini({
       )}
       title={name}
     >
-      <Icon className="w-5 h-5 text-white drop-shadow-sm" />
+      <Icon className="w-5 h-5 text-primary-foreground drop-shadow-sm" />
     </motion.div>
   );
 }

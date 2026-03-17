@@ -108,7 +108,7 @@ export function SettingsView() {
           whileHover={{ scale: 1.02 }} 
           whileTap={{ scale: 0.98 }}
         >
-          <Button onClick={saveSettings} disabled={isSaving} className="bg-whatsapp hover:bg-whatsapp-dark text-white">
+          <Button onClick={saveSettings} disabled={isSaving} className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground">
             {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Salvar Alterações
           </Button>
@@ -219,7 +219,7 @@ export function SettingsView() {
                             onClick={() => toggleWorkDay(day.id)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                               settings.work_days.includes(day.id)
-                                ? 'bg-whatsapp text-white'
+                                ? 'bg-whatsapp text-primary-foreground'
                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
                             }`}
                           >

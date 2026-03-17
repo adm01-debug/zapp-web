@@ -121,12 +121,12 @@ export function PasskeysPanel() {
               </div>
             </div>
             {webauthnSupported ? (
-              <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+              <Badge variant="outline" className="bg-success/10 text-success border-green-500/30">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Suportado
               </Badge>
             ) : (
-              <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">
+              <Badge variant="outline" className="bg-destructive/10 text-destructive border-red-500/30">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Não Suportado
               </Badge>
@@ -145,20 +145,20 @@ export function PasskeysPanel() {
               </div>
             </div>
           ) : !isPlatformAvailable ? (
-            <div className="flex items-center gap-3 p-4 bg-yellow-500/10 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+            <div className="flex items-center gap-3 p-4 bg-warning/10 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-warning" />
               <div>
-                <p className="font-medium text-yellow-600">Autenticador de plataforma não disponível</p>
+                <p className="font-medium text-warning">Autenticador de plataforma não disponível</p>
                 <p className="text-sm text-muted-foreground">
                   Seu dispositivo não possui Touch ID, Face ID ou Windows Hello configurado.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3 p-4 bg-green-500/10 rounded-lg">
-              <Shield className="h-5 w-5 text-green-600" />
+            <div className="flex items-center gap-3 p-4 bg-success/10 rounded-lg">
+              <Shield className="h-5 w-5 text-success" />
               <div>
-                <p className="font-medium text-green-600">Pronto para usar</p>
+                <p className="font-medium text-success">Pronto para usar</p>
                 <p className="text-sm text-muted-foreground">
                   Seu dispositivo suporta autenticação biométrica. Adicione uma passkey abaixo.
                 </p>
@@ -285,8 +285,8 @@ export function PasskeysPanel() {
       <Card className="bg-muted/30">
         <CardContent className="pt-6">
           <div className="flex gap-4">
-            <div className="p-2 bg-blue-500/10 rounded-lg h-fit">
-              <Monitor className="h-5 w-5 text-blue-500" />
+            <div className="p-2 bg-info/10 rounded-lg h-fit">
+              <Monitor className="h-5 w-5 text-info" />
             </div>
             <div className="space-y-2">
               <h4 className="font-medium">O que são Passkeys?</h4>
@@ -296,15 +296,15 @@ export function PasskeysPanel() {
               </p>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   Mais seguro que senhas tradicionais
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   Resistente a phishing
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   Login instantâneo com biometria
                 </li>
               </ul>

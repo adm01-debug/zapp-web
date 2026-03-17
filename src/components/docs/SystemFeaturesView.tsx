@@ -14,7 +14,7 @@ import {
 
 const sections = [
   {
-    id: 1, title: "Autenticação e Segurança", icon: Shield, color: "text-red-500",
+    id: 1, title: "Autenticação e Segurança", icon: Shield, color: "text-destructive",
     items: [
       "Login com email/senha", "Cadastro de novos usuários", "Verificação de email obrigatória",
       "Recuperação de senha", "Reset de senha", "Indicador de força de senha",
@@ -27,7 +27,7 @@ const sections = [
     ]
   },
   {
-    id: 2, title: "Inbox / Chat em Tempo Real", icon: MessageSquare, color: "text-blue-500",
+    id: 2, title: "Inbox / Chat em Tempo Real", icon: MessageSquare, color: "text-info",
     items: [
       "Lista de conversas em tempo real", "Lista virtualizada (performance)", "Lista de mensagens virtualizada",
       "Painel de chat completo", "Detalhes do contato no chat", "Filtros de inbox",
@@ -47,7 +47,7 @@ const sections = [
     ]
   },
   {
-    id: 3, title: "Mensagens WhatsApp (Tipos)", icon: FileText, color: "text-green-500",
+    id: 3, title: "Mensagens WhatsApp (Tipos)", icon: FileText, color: "text-success",
     items: [
       "Texto", "Imagem (até 16MB)", "Vídeo (até 16MB)", "Áudio",
       "Documento (até 100MB)", "Localização", "Mensagens interativas (botões)",
@@ -57,7 +57,7 @@ const sections = [
     ]
   },
   {
-    id: 4, title: "Áudio e Transcrição", icon: Headphones, color: "text-purple-500",
+    id: 4, title: "Áudio e Transcrição", icon: Headphones, color: "text-primary",
     items: [
       "Gravação de áudio no chat", "Player de áudio customizado", "Visualização de ondas de áudio",
       "Seletor de velocidade de reprodução", "Text-to-Speech (ElevenLabs)", "Seletor de vozes TTS",
@@ -67,7 +67,7 @@ const sections = [
     ]
   },
   {
-    id: 5, title: "Inteligência Artificial", icon: Brain, color: "text-pink-500",
+    id: 5, title: "Inteligência Artificial", icon: Brain, color: "text-destructive",
     items: [
       "Sugestão de respostas contextuais", "Resumo automático de conversa",
       "Análise de conversa (sentimento, tópicos, urgência)", "Alertas de sentimento negativo",
@@ -89,7 +89,7 @@ const sections = [
     ]
   },
   {
-    id: 7, title: "Filas de Atendimento", icon: Layers, color: "text-orange-500",
+    id: 7, title: "Filas de Atendimento", icon: Layers, color: "text-warning",
     items: [
       "CRUD de filas", "Cores por fila", "Prioridade por fila",
       "Tempo máximo de espera configurável", "Membros por fila", "Metas por fila (configuráveis)",
@@ -107,7 +107,7 @@ const sections = [
     ]
   },
   {
-    id: 9, title: "Gamificação", icon: Trophy, color: "text-yellow-500",
+    id: 9, title: "Gamificação", icon: Trophy, color: "text-warning",
     items: [
       "Sistema de XP e níveis", "Conquistas/Badges", "Painel de conquistas",
       "Toast de conquista desbloqueada", "Leaderboard (ranking)", "Ranking de agentes por metas",
@@ -116,7 +116,7 @@ const sections = [
     ]
   },
   {
-    id: 10, title: "Dashboard e Métricas", icon: BarChart3, color: "text-indigo-500",
+    id: 10, title: "Dashboard e Métricas", icon: BarChart3, color: "text-primary",
     items: [
       "Dashboard principal com métricas", "Filtros globais (período, fila, agente)",
       "Dashboard personalizável (drag & drop)", "Progressive Disclosure",
@@ -137,7 +137,7 @@ const sections = [
     ]
   },
   {
-    id: 12, title: "CSAT (Satisfação do Cliente)", icon: Star, color: "text-yellow-400",
+    id: 12, title: "CSAT (Satisfação do Cliente)", icon: Star, color: "text-warning",
     items: [
       "Pesquisa de satisfação (1-5 estrelas)", "Feedback textual opcional",
       "Dashboard CSAT (média, distribuição, feedbacks)", "Hook completo de CSAT",
@@ -153,7 +153,7 @@ const sections = [
     ]
   },
   {
-    id: 14, title: "Conexões WhatsApp", icon: Wifi, color: "text-green-400",
+    id: 14, title: "Conexões WhatsApp", icon: Wifi, color: "text-success",
     items: [
       "Gerenciamento de conexões", "QR Code para conexão",
       "Status de conexão", "Horário comercial por conexão",
@@ -202,7 +202,7 @@ const sections = [
     ]
   },
   {
-    id: 20, title: "Notificações", icon: Bell, color: "text-orange-400",
+    id: 20, title: "Notificações", icon: Bell, color: "text-warning",
     items: [
       "Central de notificações", "Central aprimorada", "Push notifications (browser)",
       "Configurações de push", "Painel de configurações", "Sons personalizáveis",
@@ -212,7 +212,7 @@ const sections = [
     ]
   },
   {
-    id: 21, title: "Agendamento de Mensagens", icon: CalendarClock, color: "text-blue-400",
+    id: 21, title: "Agendamento de Mensagens", icon: CalendarClock, color: "text-info",
     items: [
       "Agendar mensagem para envio futuro", "Visualização em calendário",
       "Cancelamento de agendamento", "Filtro por agente",
@@ -220,14 +220,14 @@ const sections = [
     ]
   },
   {
-    id: 22, title: "Localização e Mapas", icon: MapPin, color: "text-red-400",
+    id: 22, title: "Localização e Mapas", icon: MapPin, color: "text-destructive",
     items: [
       "Mapa interativo (Mapbox)", "Seletor de localização",
       "Exibição de localização recebida", "Edge function para token Mapbox"
     ]
   },
   {
-    id: 23, title: "Configurações do Sistema", icon: Settings, color: "text-gray-400",
+    id: 23, title: "Configurações do Sistema", icon: Settings, color: "text-muted-foreground",
     items: [
       "Página de configurações", "Horário de funcionamento",
       "Mensagens automáticas (boas-vindas, ausência, encerramento)",
@@ -238,7 +238,7 @@ const sections = [
     ]
   },
   {
-    id: 24, title: "Segurança Avançada", icon: Lock, color: "text-red-600",
+    id: 24, title: "Segurança Avançada", icon: Lock, color: "text-destructive",
     items: [
       "Visão geral de segurança", "Overview de segurança", "Configurações de segurança",
       "Gerenciamento de dispositivos/sessões", "Passkeys (WebAuthn)", "IP Whitelist",
@@ -278,7 +278,7 @@ const sections = [
     ]
   },
   {
-    id: 28, title: "Atalhos de Teclado", icon: Keyboard, color: "text-slate-400",
+    id: 28, title: "Atalhos de Teclado", icon: Keyboard, color: "text-muted-foreground",
     items: [
       "Atalhos globais (Ctrl+K, Ctrl+N, etc.)", "Atalhos customizáveis pelo usuário",
       "Atalho de busca global", "Provider global de teclado", "Dialog de atalhos",
@@ -287,7 +287,7 @@ const sections = [
     ]
   },
   {
-    id: 29, title: "Onboarding", icon: GraduationCap, color: "text-purple-400",
+    id: 29, title: "Onboarding", icon: GraduationCap, color: "text-primary",
     items: [
       "Tour interativo passo-a-passo", "Checklist de onboarding",
       "Modal de boas-vindas", "Hook de onboarding",
@@ -304,14 +304,14 @@ const sections = [
     ]
   },
   {
-    id: 31, title: "Auditoria", icon: ClipboardList, color: "text-gray-500",
+    id: 31, title: "Auditoria", icon: ClipboardList, color: "text-muted-foreground",
     items: [
       "Logs de auditoria", "Tabela audit_logs com RLS",
       "Log de login/logout", "Log de CRUD", "Informações de IP e user-agent"
     ]
   },
   {
-    id: 32, title: "Design System", icon: Palette, color: "text-pink-400",
+    id: 32, title: "Design System", icon: Palette, color: "text-destructive",
     items: [
       "shadcn/ui + Radix UI (60+ componentes)", "Tailwind CSS utility-first",
       "CSS Variables HSL (light/dark)", "Framer Motion (animações)",
@@ -327,7 +327,7 @@ const sections = [
     ]
   },
   {
-    id: 33, title: "Banco de Dados", icon: Database, color: "text-blue-600",
+    id: 33, title: "Banco de Dados", icon: Database, color: "text-info",
     items: [
       "profiles", "user_roles", "user_settings", "user_sessions", "user_devices",
       "contacts", "contact_tags", "contact_notes", "messages", "message_reactions",
@@ -480,7 +480,7 @@ export function SystemFeaturesView() {
                                 key={idx}
                                 className="flex items-center gap-2 text-xs text-muted-foreground py-1 px-2 rounded bg-muted/30"
                               >
-                                <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                                <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
                                 <span>{item}</span>
                               </div>
                             ))}

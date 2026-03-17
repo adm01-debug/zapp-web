@@ -25,21 +25,21 @@ import { ReportData } from '@/utils/exportReport';
 import { cn } from '@/lib/utils';
 
 const getRateColor = (rate: number) => {
-  if (rate >= 90) return 'text-green-500';
-  if (rate >= 70) return 'text-yellow-500';
-  return 'text-red-500';
+  if (rate >= 90) return 'text-success';
+  if (rate >= 70) return 'text-warning';
+  return 'text-destructive';
 };
 
 const getRateBg = (rate: number) => {
-  if (rate >= 90) return 'bg-green-500/10';
-  if (rate >= 70) return 'bg-yellow-500/10';
-  return 'bg-red-500/10';
+  if (rate >= 90) return 'bg-success/10';
+  if (rate >= 70) return 'bg-warning/10';
+  return 'bg-destructive/10';
 };
 
 const getRateBadge = (rate: number) => {
-  if (rate >= 90) return 'bg-green-500/20 text-green-700 dark:text-green-400';
-  if (rate >= 70) return 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400';
-  return 'bg-red-500/20 text-red-700 dark:text-red-400';
+  if (rate >= 90) return 'bg-success/20 text-green-700 dark:text-success';
+  if (rate >= 70) return 'bg-warning/20 text-yellow-700 dark:text-warning';
+  return 'bg-destructive/20 text-red-700 dark:text-destructive';
 };
 
 export const SLADashboard = () => {
@@ -184,16 +184,16 @@ export const SLADashboard = () => {
                     {data.overall.firstResponse.rate.toFixed(1)}%
                   </p>
                 </div>
-                <div className="p-3 rounded-full bg-blue-500/10">
-                  <Timer className="h-6 w-6 text-blue-500" />
+                <div className="p-3 rounded-full bg-info/10">
+                  <Timer className="h-6 w-6 text-info" />
                 </div>
               </div>
               <div className="flex gap-4 mt-3 text-sm">
-                <span className="text-green-600 flex items-center gap-1">
+                <span className="text-success flex items-center gap-1">
                   <CheckCircle2 className="h-4 w-4" />
                   {data.overall.firstResponse.onTime} no prazo
                 </span>
-                <span className="text-red-500 flex items-center gap-1">
+                <span className="text-destructive flex items-center gap-1">
                   <XCircle className="h-4 w-4" />
                   {data.overall.firstResponse.breached} atrasados
                 </span>
@@ -216,16 +216,16 @@ export const SLADashboard = () => {
                     {data.overall.resolution.rate.toFixed(1)}%
                   </p>
                 </div>
-                <div className="p-3 rounded-full bg-purple-500/10">
-                  <CheckCircle2 className="h-6 w-6 text-purple-500" />
+                <div className="p-3 rounded-full bg-primary/10">
+                  <CheckCircle2 className="h-6 w-6 text-primary" />
                 </div>
               </div>
               <div className="flex gap-4 mt-3 text-sm">
-                <span className="text-green-600 flex items-center gap-1">
+                <span className="text-success flex items-center gap-1">
                   <CheckCircle2 className="h-4 w-4" />
                   {data.overall.resolution.onTime} no prazo
                 </span>
-                <span className="text-red-500 flex items-center gap-1">
+                <span className="text-destructive flex items-center gap-1">
                   <XCircle className="h-4 w-4" />
                   {data.overall.resolution.breached} atrasados
                 </span>
@@ -246,8 +246,8 @@ export const SLADashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">Total Conversas</p>
                   <p className="text-3xl font-bold">{data.overall.totalConversations}</p>
                 </div>
-                <div className="p-3 rounded-full bg-orange-500/10">
-                  <Users className="h-6 w-6 text-orange-500" />
+                <div className="p-3 rounded-full bg-warning/10">
+                  <Users className="h-6 w-6 text-warning" />
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mt-3">
@@ -298,7 +298,7 @@ export const SLADashboard = () => {
                     
                     <div className="flex gap-6 mt-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <Timer className="h-4 w-4 text-blue-500" />
+                        <Timer className="h-4 w-4 text-info" />
                         <span className="text-muted-foreground">1ª Resposta:</span>
                         <span className={getRateColor(agent.firstResponse.rate)}>
                           {agent.firstResponse.rate.toFixed(0)}%
@@ -309,7 +309,7 @@ export const SLADashboard = () => {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-purple-500" />
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
                         <span className="text-muted-foreground">Resolução:</span>
                         <span className={getRateColor(agent.resolution.rate)}>
                           {agent.resolution.rate.toFixed(0)}%
@@ -380,27 +380,27 @@ export const SLADashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-red-500/20">
                 <p className="text-sm text-muted-foreground">Violações 1ª Resposta</p>
-                <p className="text-2xl font-bold text-red-500">
+                <p className="text-2xl font-bold text-destructive">
                   {data.overall.firstResponse.breached}
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-red-500/20">
                 <p className="text-sm text-muted-foreground">Violações Resolução</p>
-                <p className="text-2xl font-bold text-red-500">
+                <p className="text-2xl font-bold text-destructive">
                   {data.overall.resolution.breached}
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+              <div className="p-4 rounded-lg bg-success/10 border border-green-500/20">
                 <p className="text-sm text-muted-foreground">No Prazo 1ª Resposta</p>
-                <p className="text-2xl font-bold text-green-500">
+                <p className="text-2xl font-bold text-success">
                   {data.overall.firstResponse.onTime}
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+              <div className="p-4 rounded-lg bg-success/10 border border-green-500/20">
                 <p className="text-sm text-muted-foreground">No Prazo Resolução</p>
-                <p className="text-2xl font-bold text-green-500">
+                <p className="text-2xl font-bold text-success">
                   {data.overall.resolution.onTime}
                 </p>
               </div>

@@ -213,7 +213,7 @@ export function PasswordInputEnhanced({
     props.onChange?.(e);
   };
 
-  const strengthColors = ['bg-destructive', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+  const strengthColors = ['bg-destructive', 'bg-warning', 'bg-warning', 'bg-success'];
   const strengthLabels = ['Fraca', 'Regular', 'Boa', 'Forte'];
 
   return (
@@ -409,7 +409,7 @@ export function InlineEdit({
         <button
           type="button"
           onClick={handleSave}
-          className="p-1 text-green-500 hover:bg-green-500/10 rounded transition-colors"
+          className="p-1 text-success hover:bg-success/10 rounded transition-colors"
         >
           <Check className="w-4 h-4" />
         </button>

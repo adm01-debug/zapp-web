@@ -8,10 +8,10 @@ import { useCustomShortcuts, type ShortcutBinding } from '@/hooks/useCustomShort
 import { toast } from 'sonner';
 
 const categoryConfig = {
-  chat: { icon: MessageSquare, label: 'Chat', color: 'bg-blue-500/10 text-blue-500' },
-  navigation: { icon: Navigation, label: 'Navegação', color: 'bg-purple-500/10 text-purple-500' },
+  chat: { icon: MessageSquare, label: 'Chat', color: 'bg-info/10 text-info' },
+  navigation: { icon: Navigation, label: 'Navegação', color: 'bg-primary/10 text-primary' },
   actions: { icon: Zap, label: 'Ações', color: 'bg-amber-500/10 text-amber-500' },
-  selection: { icon: MousePointerClick, label: 'Seleção', color: 'bg-green-500/10 text-green-500' },
+  selection: { icon: MousePointerClick, label: 'Seleção', color: 'bg-success/10 text-success' },
 };
 
 function ShortcutKeyDisplay({ keys }: { keys: string[] }) {
@@ -113,7 +113,7 @@ function ShortcutRow({ shortcut }: { shortcut: ShortcutBinding }) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
                 onClick={handleConfirm}
                 disabled={!pendingShortcut}
               >

@@ -171,7 +171,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
               statusColors[conversation.status]
             )}
           >
-            <StatusIcon className="w-2.5 h-2.5 text-white" />
+            <StatusIcon className="w-2.5 h-2.5 text-primary-foreground" />
           </span>
         </div>
 

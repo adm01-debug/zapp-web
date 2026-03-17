@@ -38,7 +38,7 @@ export function DemoAchievements() {
       label: 'Streak 5',
       icon: Flame,
       action: () => triggerStreak(5),
-      gradient: 'from-orange-500 to-yellow-400',
+      gradient: 'from-orange-500 to-warning',
     },
     {
       label: 'Streak 10',
@@ -50,19 +50,19 @@ export function DemoAchievements() {
       label: 'Resolução',
       icon: Target,
       action: () => triggerResolution(),
-      gradient: 'from-green-500 to-emerald-400',
+      gradient: 'from-success to-emerald-400',
     },
     {
       label: 'Nota 5 ⭐',
       icon: Star,
       action: () => triggerPerfectRating(),
-      gradient: 'from-yellow-400 to-amber-400',
+      gradient: 'from-warning to-amber-400',
     },
     {
       label: 'Level Up!',
       icon: Crown,
       action: () => triggerLevelUp((stats?.level || 1) + 1),
-      gradient: 'from-purple-500 to-fuchsia-400',
+      gradient: 'from-primary to-fuchsia-400',
     },
     {
       label: 'Meta Diária',
@@ -97,7 +97,7 @@ export function DemoAchievements() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center">
-            <Trophy className="w-5 h-5 text-white" />
+            <Trophy className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
             <h3 className="font-display font-bold text-foreground">Sistema de Gamificação</h3>
@@ -143,7 +143,7 @@ export function DemoAchievements() {
           <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
             <p className="text-xs text-muted-foreground">Streak Atual</p>
             <p className="text-lg font-bold text-foreground flex items-center gap-1">
-              <Flame className={cn("w-4 h-4", stats.streak > 0 ? "text-orange-500" : "text-muted-foreground")} />
+              <Flame className={cn("w-4 h-4", stats.streak > 0 ? "text-warning" : "text-muted-foreground")} />
               {stats.streak}
             </p>
           </div>
@@ -187,12 +187,12 @@ export function DemoAchievements() {
             className={`
               relative overflow-hidden p-3 rounded-xl
               bg-gradient-to-br ${demo.gradient}
-              text-white font-semibold text-sm
+              text-primary-foreground font-semibold text-sm
               shadow-lg hover:shadow-xl transition-shadow
             `}
           >
             <motion.div
-              className="absolute inset-0 bg-white/20"
+              className="absolute inset-0 bg-background/20"
               initial={{ x: '-100%' }}
               whileHover={{ x: '100%' }}
               transition={{ duration: 0.5 }}

@@ -135,8 +135,8 @@ export function AchievementsPanel() {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg shadow-yellow-500/30">
-              <Trophy className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-warning to-amber-500 flex items-center justify-center shadow-lg shadow-yellow-500/30">
+              <Trophy className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
               <CardTitle className="text-xl">Minhas Conquistas</CardTitle>
@@ -232,7 +232,7 @@ export function AchievementsPanel() {
             className="p-4 rounded-xl bg-muted/30 border border-border/30"
           >
             <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-yellow-500" />
+              <Sparkles className="w-4 h-4 text-warning" />
               <span className="text-xs text-muted-foreground">Recentes</span>
             </div>
             <p className="text-2xl font-bold text-foreground">

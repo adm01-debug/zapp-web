@@ -24,7 +24,7 @@ const integrations = [
     name: 'Google Sheets',
     description: 'Sincronize contatos, mensagens e relatórios com planilhas Google.',
     icon: FileSpreadsheet,
-    color: 'bg-green-600',
+    color: 'bg-success',
     status: 'available' as const,
   },
   {
@@ -89,7 +89,7 @@ export function IntegrationsHub() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${integration.color}`}>
-                    <integration.icon className="w-5 h-5 text-white" />
+                    <integration.icon className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <Badge variant={integration.status === 'available' ? 'default' : 'secondary'}>
                     {integration.status === 'available' ? 'Disponível' : 'Em Breve'}

@@ -118,7 +118,7 @@ export function MFAEnroll({ onSuccess, onCancel }: MFAEnrollProps) {
                 Escaneie este QR code com seu app autenticador
               </p>
               
-              <div className="inline-block p-4 bg-white rounded-lg shadow-sm">
+              <div className="inline-block p-4 bg-background rounded-lg shadow-sm">
                 <img 
                   src={enrollmentData.totp.qr_code} 
                   alt="QR Code para MFA"

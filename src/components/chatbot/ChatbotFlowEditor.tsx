@@ -22,14 +22,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const nodeTypes: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-  start: { label: 'Início', icon: Zap, color: 'border-green-500 bg-green-500/10' },
-  message: { label: 'Mensagem', icon: MessageSquare, color: 'border-blue-500 bg-blue-500/10' },
-  question: { label: 'Pergunta', icon: HelpCircle, color: 'border-purple-500 bg-purple-500/10' },
-  condition: { label: 'Condição', icon: GitBranch, color: 'border-yellow-500 bg-yellow-500/10' },
-  action: { label: 'Ação', icon: Zap, color: 'border-orange-500 bg-orange-500/10' },
+  start: { label: 'Início', icon: Zap, color: 'border-green-500 bg-success/10' },
+  message: { label: 'Mensagem', icon: MessageSquare, color: 'border-blue-500 bg-info/10' },
+  question: { label: 'Pergunta', icon: HelpCircle, color: 'border-purple-500 bg-primary/10' },
+  condition: { label: 'Condição', icon: GitBranch, color: 'border-yellow-500 bg-warning/10' },
+  action: { label: 'Ação', icon: Zap, color: 'border-orange-500 bg-warning/10' },
   delay: { label: 'Aguardar', icon: Clock, color: 'border-cyan-500 bg-cyan-500/10' },
-  transfer: { label: 'Transferir', icon: Users, color: 'border-pink-500 bg-pink-500/10' },
-  end: { label: 'Fim', icon: CheckCircle2, color: 'border-red-500 bg-red-500/10' },
+  transfer: { label: 'Transferir', icon: Users, color: 'border-pink-500 bg-destructive/10' },
+  end: { label: 'Fim', icon: CheckCircle2, color: 'border-red-500 bg-destructive/10' },
 };
 
 interface Props {

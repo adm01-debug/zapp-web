@@ -64,7 +64,7 @@ export function AgentPerformancePanel() {
   });
 
   const rankIcons = [Crown, Medal, Trophy];
-  const rankColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600'];
+  const rankColors = ['text-warning', 'text-muted-foreground', 'text-amber-600'];
 
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${Math.round(seconds)}s`;
@@ -79,7 +79,7 @@ export function AgentPerformancePanel() {
           <Trophy className="w-5 h-5 text-primary" />
           Ranking de Performance
           <Badge variant="outline" className="ml-auto gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
             Ao vivo
           </Badge>
         </CardTitle>
@@ -107,8 +107,8 @@ export function AgentPerformancePanel() {
                 transition={{ delay: i * 0.05 }}
                 className={cn(
                   "p-3 rounded-lg border hover:shadow-md transition-all",
-                  i === 0 && "bg-gradient-to-r from-yellow-500/5 to-transparent border-yellow-500/30",
-                  i === 1 && "bg-gradient-to-r from-gray-400/5 to-transparent border-gray-400/20",
+                  i === 0 && "bg-gradient-to-r from-warning/5 to-transparent border-yellow-500/30",
+                  i === 1 && "bg-gradient-to-r from-gray-400/5 to-transparent border-border/20",
                   i === 2 && "bg-gradient-to-r from-amber-600/5 to-transparent border-amber-600/20"
                 )}
               >
@@ -136,7 +136,7 @@ export function AgentPerformancePanel() {
                         <Zap className="w-2.5 h-2.5" /> Nv.{agent.level}
                       </Badge>
                       {agent.streak > 0 && (
-                        <Badge variant="outline" className="text-[10px] h-4 gap-0.5 text-orange-500 border-orange-300 shrink-0">
+                        <Badge variant="outline" className="text-[10px] h-4 gap-0.5 text-warning border-orange-300 shrink-0">
                           <Flame className="w-2.5 h-2.5" /> {agent.streak}
                         </Badge>
                       )}
@@ -153,7 +153,7 @@ export function AgentPerformancePanel() {
                       </span>
                       {agent.satisfaction > 0 && (
                         <span className="flex items-center gap-0.5">
-                          <Star className="w-3 h-3 text-yellow-500" /> {agent.satisfaction.toFixed(1)}
+                          <Star className="w-3 h-3 text-warning" /> {agent.satisfaction.toFixed(1)}
                         </span>
                       )}
                     </div>

@@ -181,8 +181,8 @@ export function VoiceSelector({ selectedVoiceId, onVoiceChange, className }: Voi
                       <span className={cn(
                         "text-[10px] px-1.5 py-0.5 rounded flex-shrink-0",
                         voice.gender === 'female' 
-                          ? "bg-pink-500/10 text-pink-500" 
-                          : "bg-blue-500/10 text-blue-500"
+                          ? "bg-destructive/10 text-destructive" 
+                          : "bg-info/10 text-info"
                       )}>
                         {voice.gender === 'female' ? '♀' : '♂'}
                       </span>
