@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Shield, Download, Trash2, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { log } from '@/lib/logger';
 
 export function LGPDComplianceView() {
   const { user } = useAuth();
@@ -55,7 +56,7 @@ export function LGPDComplianceView() {
 
       toast.success('Dados exportados com sucesso!');
     } catch (error) {
-      console.error('Export error:', error);
+      log.error('Export error:', error);
       toast.error('Erro ao exportar dados');
     } finally {
       setIsExporting(false);
@@ -82,7 +83,7 @@ export function LGPDComplianceView() {
       toast.success('Solicitação de exclusão registrada. Um administrador irá processar em até 30 dias.');
       setShowDeleteConfirm(false);
     } catch (error) {
-      console.error('Delete request error:', error);
+      log.error('Delete request error:', error);
       toast.error('Erro ao registrar solicitação');
     } finally {
       setIsDeleting(false);

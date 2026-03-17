@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Tags, Brain, RefreshCw, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { log } from '@/lib/logger';
 
 export function AIAutoTagsConfig() {
   const queryClient = useQueryClient();
@@ -53,7 +54,7 @@ export function AIAutoTagsConfig() {
           });
           processed++;
         } catch (e) {
-          console.error('Error tagging contact:', contact.id, e);
+          log.error('Error tagging contact:', contact.id, e);
         }
         // Small delay to avoid rate limits
         await new Promise(r => setTimeout(r, 1000));
