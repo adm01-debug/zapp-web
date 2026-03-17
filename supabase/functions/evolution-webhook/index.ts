@@ -490,7 +490,85 @@ async function handleIncomingMessage(
   } else if (message?.stickerMessage) {
     messageType = 'sticker';
     content = '[Sticker]';
-    mediaUrl = (message.stickerMessage as Record<string, unknown>).url as string || null;
+    // Try direct URL first, then base64 field, then fetch via API
+    const stickerMsg = message.stickerMessage as Record<string, unknown>;
+    mediaUrl = (stickerMsg.url as string) || null;
+
+    // If no direct URL, try to get from base64 in webhook data
+    if (!mediaUrl && (data.base64 || stickerMsg.base64)) {
+      const base64Data = (data.base64 as string) || (stickerMsg.base64 as string);
+      try {
+        // Decode base64 to binary and upload to storage
+        const binaryStr = atob(base64Data.replace(/^data:image\/\w+;base64,/, ''));
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        const fileName = `sticker_${Date.now()}_${key.id.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
+        const { error: uploadErr } = await supabase.storage
+          .from('whatsapp-media')
+          .upload(`stickers/${fileName}`, bytes, {
+            contentType: 'image/webp',
+            cacheControl: '31536000',
+          });
+        if (!uploadErr) {
+          const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
+          mediaUrl = urlData.publicUrl;
+        } else {
+          console.error('Sticker upload error:', uploadErr);
+        }
+      } catch (b64Err) {
+        console.error('Sticker base64 decode error:', b64Err);
+      }
+    }
+
+    // If still no URL, try fetching via Evolution API getBase64
+    if (!mediaUrl) {
+      try {
+        const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
+        const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
+        if (evolutionUrl && evolutionKey) {
+          const resp = await fetch(`${evolutionUrl}/chat/getBase64FromMediaMessage/${instance}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionKey,
+            },
+            body: JSON.stringify({
+              message: { key, message: { stickerMessage: message.stickerMessage } },
+              convertToMp4: false,
+            }),
+          });
+          if (resp.ok) {
+            const result = await resp.json();
+            const b64 = result.base64 as string;
+            if (b64) {
+              const cleanB64 = b64.replace(/^data:image\/\w+;base64,/, '');
+              const binaryStr = atob(cleanB64);
+              const bytes = new Uint8Array(binaryStr.length);
+              for (let i = 0; i < binaryStr.length; i++) {
+                bytes[i] = binaryStr.charCodeAt(i);
+              }
+              const fileName = `sticker_${Date.now()}_${key.id.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
+              const { error: uploadErr } = await supabase.storage
+                .from('whatsapp-media')
+                .upload(`stickers/${fileName}`, bytes, {
+                  contentType: 'image/webp',
+                  cacheControl: '31536000',
+                });
+              if (!uploadErr) {
+                const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
+                mediaUrl = urlData.publicUrl;
+              }
+            }
+          }
+        }
+      } catch (apiErr) {
+        console.error('Sticker API fetch error:', apiErr);
+      }
+    }
+
+    console.log(`Sticker processed, mediaUrl: ${mediaUrl || 'null'}`);
   } else if (message?.reactionMessage) {
     messageType = 'reaction';
     content = (message.reactionMessage as Record<string, unknown>).text as string || '';
