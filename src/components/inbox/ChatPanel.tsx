@@ -39,7 +39,7 @@ interface ChatPanelProps {
   onToggleDetails?: () => void;
 }
 
-export function ChatPanel({ conversation, messages, onSendMessage, showDetails = false, onToggleDetails }: ChatPanelProps) {
+export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails }: ChatPanelProps) {
   // ── State ──
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
