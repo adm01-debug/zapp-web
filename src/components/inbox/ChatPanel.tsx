@@ -273,8 +273,17 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
   };
 
-  const handleAudioSend = (audioBlob: Blob) => {
-    toast({ title: 'Áudio enviado!', description: 'A mensagem de áudio foi enviada com sucesso.' });
+  const handleAudioSend = async (audioBlob: Blob) => {
+    if (onSendAudio) {
+      try {
+        await onSendAudio(audioBlob);
+      } catch (err) {
+        log.error('Error sending audio:', err);
+        toast({ title: 'Erro ao enviar áudio', description: 'Tente novamente.', variant: 'destructive' });
+      }
+    } else {
+      toast({ title: 'Erro', description: 'Envio de áudio não configurado.', variant: 'destructive' });
+    }
     setIsRecordingAudio(false);
   };
 
