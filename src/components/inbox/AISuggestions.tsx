@@ -17,11 +17,13 @@ interface Suggestion {
   type: 'direct' | 'empathetic' | 'followup';
   text: string;
   emoji: string;
+  source?: string | null;
 }
 
 interface AISuggestionsProps {
   messages: Message[];
   contactName: string;
+  contactId?: string;
   onSelectSuggestion: (text: string) => void;
 }
 
