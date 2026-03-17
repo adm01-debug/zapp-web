@@ -348,15 +348,17 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           onOpenTransfer={() => setShowTransferDialog(true)}
         />
 
-        <ConversationSummary 
-          messages={messages.map(m => ({
-            id: m.id,
-            sender: m.sender,
-            content: m.content,
-            created_at: m.timestamp.toISOString()
-          }))}
-          contactName={conversation.contact.name}
-        />
+        <Suspense fallback={null}>
+          <ConversationSummary 
+            messages={messages.map(m => ({
+              id: m.id,
+              sender: m.sender,
+              content: m.content,
+              created_at: m.timestamp.toISOString()
+            }))}
+            contactName={conversation.contact.name}
+          />
+        </Suspense>
 
         <ChatMessagesArea
           ref={messagesAreaRef}
