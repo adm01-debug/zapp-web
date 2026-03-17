@@ -419,43 +419,53 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
         />
 
         {/* Dialogs */}
-        <TransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onTransfer={handleTransfer} />
-        <ScheduleMessageDialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog} onSchedule={handleScheduleMessage} />
-        <CallDialog
-          open={showCallDialog}
-          onOpenChange={setShowCallDialog}
-          contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }}
-          direction={callDirection}
-          onEnd={() => setShowCallDialog(false)}
-        />
-        <GlobalSearch
-          open={showGlobalSearch}
-          onOpenChange={setShowGlobalSearch}
-          onSelectResult={(result) => {
-            log.debug('Selected:', result);
-            toast({ title: 'Resultado selecionado', description: result.title });
-          }}
-        />
-        <InteractiveMessageBuilder open={showInteractiveBuilder} onOpenChange={setShowInteractiveBuilder} onSend={handleSendInteractiveMessage} />
-        <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />
-        <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />
+        <Suspense fallback={null}>
+          {showTransferDialog && <TransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onTransfer={handleTransfer} />}
+          {showScheduleDialog && <ScheduleMessageDialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog} onSchedule={handleScheduleMessage} />}
+          {showCallDialog && (
+            <CallDialog
+              open={showCallDialog}
+              onOpenChange={setShowCallDialog}
+              contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }}
+              direction={callDirection}
+              onEnd={() => setShowCallDialog(false)}
+            />
+          )}
+          {showGlobalSearch && (
+            <GlobalSearch
+              open={showGlobalSearch}
+              onOpenChange={setShowGlobalSearch}
+              onSelectResult={(result) => {
+                log.debug('Selected:', result);
+                toast({ title: 'Resultado selecionado', description: result.title });
+              }}
+            />
+          )}
+          {showInteractiveBuilder && <InteractiveMessageBuilder open={showInteractiveBuilder} onOpenChange={setShowInteractiveBuilder} onSend={handleSendInteractiveMessage} />}
+          {showForwardDialog && <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />}
+          {showLocationPicker && <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />}
+        </Suspense>
       </div>
 
-      {/* AI Conversation Assistant */}
-      <AIConversationAssistant
-        messages={messages.map(m => ({
-          id: m.id,
-          sender: m.sender,
-          content: m.content,
-          type: m.type,
-          mediaUrl: m.mediaUrl,
-          created_at: m.timestamp.toISOString()
-        }))}
-        contactId={conversation.contact.id}
-        contactName={conversation.contact.name}
-        isOpen={showAIAssistant}
-        onClose={() => setShowAIAssistant(false)}
-      />
+      {/* AI Conversation Assistant - lazy */}
+      {showAIAssistant && (
+        <Suspense fallback={null}>
+          <AIConversationAssistant
+            messages={messages.map(m => ({
+              id: m.id,
+              sender: m.sender,
+              content: m.content,
+              type: m.type,
+              mediaUrl: m.mediaUrl,
+              created_at: m.timestamp.toISOString()
+            }))}
+            contactId={conversation.contact.id}
+            contactName={conversation.contact.name}
+            isOpen={showAIAssistant}
+            onClose={() => setShowAIAssistant(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
