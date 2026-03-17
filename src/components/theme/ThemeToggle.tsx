@@ -280,7 +280,7 @@ export function ThemeChangeIndicator() {
             "flex items-center gap-2 px-4 py-2 rounded-full shadow-xl backdrop-blur-xl border",
             resolvedTheme === 'dark' 
               ? 'bg-card/90 border-slate-700 text-primary-foreground' 
-              : 'bg-background/90 border-slate-200 text-slate-900'
+              : 'bg-background/90 border-border text-foreground'
           )}>
             <motion.div
               animate={{ rotate: 360 }}

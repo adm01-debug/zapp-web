@@ -39,7 +39,7 @@ const variantConfig = {
   },
   rank: {
     icon: Crown,
-    gradient: 'from-rank-gold to-yellow-300',
+    gradient: 'from-rank-gold to-warning',
     glow: 'shadow-[0_0_20px_hsl(var(--rank-gold)/0.4)]',
     pulse: false,
   },

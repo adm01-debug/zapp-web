@@ -205,13 +205,13 @@ export function CampaignsView() {
 
                           <div className="flex items-center gap-1 ml-4" onClick={e => e.stopPropagation()}>
                             {campaign.status === 'draft' && (
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-green-300"
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-success"
                                 onClick={() => updateCampaign.mutate({ id: campaign.id, status: 'sending' })}>
                                 <Play className="w-4 h-4" />
                               </Button>
                             )}
                             {campaign.status === 'sending' && (
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-yellow-300"
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-warning"
                                 onClick={() => updateCampaign.mutate({ id: campaign.id, status: 'paused' })}>
                                 <Pause className="w-4 h-4" />
                               </Button>

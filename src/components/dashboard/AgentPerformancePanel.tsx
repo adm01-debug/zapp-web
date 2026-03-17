@@ -136,7 +136,7 @@ export function AgentPerformancePanel() {
                         <Zap className="w-2.5 h-2.5" /> Nv.{agent.level}
                       </Badge>
                       {agent.streak > 0 && (
-                        <Badge variant="outline" className="text-[10px] h-4 gap-0.5 text-warning border-orange-300 shrink-0">
+                        <Badge variant="outline" className="text-[10px] h-4 gap-0.5 text-warning border-warning shrink-0">
                           <Flame className="w-2.5 h-2.5" /> {agent.streak}
                         </Badge>
                       )}

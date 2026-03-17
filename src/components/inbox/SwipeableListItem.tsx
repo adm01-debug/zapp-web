@@ -339,7 +339,7 @@ export const SWIPE_ACTIONS = {
   mute: (onAction: () => void): SwipeAction => ({
     icon: BellOff,
     color: 'text-primary-foreground',
-    bgColor: 'bg-slate-500',
+    bgColor: 'bg-muted',
     label: 'Silenciar',
     action: onAction,
   }),

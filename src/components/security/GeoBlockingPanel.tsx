@@ -370,7 +370,7 @@ export function GeoBlockingPanel() {
               <div className="flex items-start gap-2">
                 <ShieldCheck className="w-5 h-5 text-success shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-green-700 dark:text-success">
+                  <p className="text-sm font-medium text-success dark:text-success">
                     Modo Whitelist Ativo
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">

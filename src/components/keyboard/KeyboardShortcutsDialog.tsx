@@ -44,7 +44,7 @@ const categoryConfig = {
     icon: MousePointerClick, 
     label: 'Seleção', 
     description: 'Gerenciar seleções',
-    gradient: 'from-success/20 to-green-600/10'
+    gradient: 'from-success/20 to-success/10'
   },
 };
 

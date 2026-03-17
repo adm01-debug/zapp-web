@@ -250,7 +250,7 @@ const sections = [
     ]
   },
   {
-    id: 25, title: "Acessibilidade", icon: Accessibility, color: "text-blue-300",
+    id: 25, title: "Acessibilidade", icon: Accessibility, color: "text-info",
     items: [
       "Skip links", "ARIA labels completos", "Focus trap", "Visually hidden",
       "Alto contraste toggle", "Contraste de cores", "Navegação por teclado",
@@ -258,7 +258,7 @@ const sections = [
     ]
   },
   {
-    id: 26, title: "Performance e Otimização", icon: Gauge, color: "text-green-300",
+    id: 26, title: "Performance e Otimização", icon: Gauge, color: "text-success",
     items: [
       "Lazy loading de rotas", "Lista virtualizada (tanstack-virtual)",
       "Imagem otimizada", "Compressão de imagem no upload", "Prefetcher de recursos",

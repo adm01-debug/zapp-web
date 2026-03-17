@@ -192,7 +192,7 @@ export function AudioMessagePlayer({
               animate={{ opacity: 1, scale: 1 }}
               className={cn(
                 'flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium',
-                isSent ? 'bg-success/20 text-green-200' : 'bg-success/10 text-success'
+                isSent ? 'bg-success/20 text-success' : 'bg-success/10 text-success'
               )}
             >
               <CheckCircle2 className="w-3 h-3" />
@@ -208,7 +208,7 @@ export function AudioMessagePlayer({
             animate={{ opacity: 1, scale: 1 }}
             className={cn(
               'flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium cursor-pointer',
-              isSent ? 'bg-destructive/20 text-red-200' : 'bg-destructive/10 text-destructive'
+              isSent ? 'bg-destructive/20 text-destructive' : 'bg-destructive/10 text-destructive'
             )}
             onClick={handleTranscribe}
           >

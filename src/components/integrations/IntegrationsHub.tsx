@@ -16,7 +16,7 @@ const integrations = [
     name: 'n8n',
     description: 'Automação de workflows via webhooks. Conecte eventos do sistema a fluxos n8n.',
     icon: Zap,
-    color: 'bg-orange-600',
+    color: 'bg-warning',
     status: 'available' as const,
   },
   {

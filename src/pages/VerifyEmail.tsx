@@ -113,7 +113,7 @@ export default function VerifyEmail() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: 'spring' }}
-                  className="mx-auto mb-4 w-16 h-16 bg-success/10 dark:bg-green-900/30 rounded-full flex items-center justify-center"
+                  className="mx-auto mb-4 w-16 h-16 bg-success/10 dark:bg-success/20/30 rounded-full flex items-center justify-center"
                 >
                   <CheckCircle className="w-8 h-8 text-success dark:text-success" />
                 </motion.div>
@@ -166,7 +166,7 @@ export default function VerifyEmail() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="mx-auto mb-4 w-16 h-16 bg-warning/10 dark:bg-yellow-900/30 rounded-full flex items-center justify-center"
+                className="mx-auto mb-4 w-16 h-16 bg-warning/10 dark:bg-warning/20/30 rounded-full flex items-center justify-center"
               >
                 <Mail className="w-8 h-8 text-warning dark:text-warning" />
               </motion.div>

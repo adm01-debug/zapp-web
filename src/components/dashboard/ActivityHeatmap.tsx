@@ -39,8 +39,8 @@ const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', '
 
 const getLevelColor = (level: number, isDark: boolean = false) => {
   const colors = isDark
-    ? ['bg-muted/30', 'bg-green-900/50', 'bg-green-700/60', 'bg-success/70', 'bg-success']
-    : ['bg-muted', 'bg-green-200', 'bg-green-300', 'bg-success', 'bg-success'];
+    ? ['bg-muted/30', 'bg-success/20/50', 'bg-success/60', 'bg-success/70', 'bg-success']
+    : ['bg-muted', 'bg-success/20', 'bg-success/30', 'bg-success', 'bg-success'];
   return colors[level] || colors[0];
 };
 

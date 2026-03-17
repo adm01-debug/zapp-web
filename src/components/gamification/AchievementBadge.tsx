@@ -198,7 +198,7 @@ export function AchievementBadge({
             </h4>
             <span className={cn(
               "px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide",
-              config.rarity === 'common' && "bg-slate-500/20 text-muted-foreground",
+              config.rarity === 'common' && "bg-muted/20 text-muted-foreground",
               config.rarity === 'rare' && "bg-info/20 text-info",
               config.rarity === 'epic' && "bg-primary/20 text-primary",
               config.rarity === 'legendary' && "bg-warning/20 text-warning",

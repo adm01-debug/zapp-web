@@ -76,7 +76,7 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
           bg: 'bg-gradient-to-br from-slate-400 to-slate-500',
           shadow: '',
           icon: Medal,
-          iconColor: 'text-slate-100',
+          iconColor: 'text-muted-foreground',
         };
       case 3:
         return {
@@ -221,7 +221,7 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
         agent.rank === 1
           ? 'border-primary/30 bg-primary/5'
           : agent.rank === 2
-          ? 'border-slate-400/20 bg-slate-400/5'
+          ? 'border-border/20 bg-muted/5'
           : agent.rank === 3
           ? 'border-amber-600/20 bg-amber-600/5'
           : 'border-border/20 bg-muted/10 hover:border-primary/20 hover:bg-muted/20'

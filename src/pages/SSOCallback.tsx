@@ -107,7 +107,7 @@ export default function SSOCallback() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring' }}
-                className="mx-auto mb-4 w-16 h-16 bg-success/10 dark:bg-green-900/30 rounded-full flex items-center justify-center"
+                className="mx-auto mb-4 w-16 h-16 bg-success/10 dark:bg-success/20/30 rounded-full flex items-center justify-center"
               >
                 <CheckCircle className="w-8 h-8 text-success dark:text-success" />
               </motion.div>

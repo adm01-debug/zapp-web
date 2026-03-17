@@ -37,9 +37,9 @@ const getRateBg = (rate: number) => {
 };
 
 const getRateBadge = (rate: number) => {
-  if (rate >= 90) return 'bg-success/20 text-green-700 dark:text-success';
-  if (rate >= 70) return 'bg-warning/20 text-yellow-700 dark:text-warning';
-  return 'bg-destructive/20 text-red-700 dark:text-destructive';
+  if (rate >= 90) return 'bg-success/20 text-success dark:text-success';
+  if (rate >= 70) return 'bg-warning/20 text-warning dark:text-warning';
+  return 'bg-destructive/20 text-destructive dark:text-destructive';
 };
 
 export const SLADashboard = () => {

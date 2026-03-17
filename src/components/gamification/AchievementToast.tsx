@@ -62,7 +62,7 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
     title: 'Level Up!',
     gradient: 'from-primary via-violet-400 to-fuchsia-400',
     glowColor: 'hsl(280 85% 60% / 0.5)',
-    particles: 'bg-purple-400',
+    particles: 'bg-primary',
   },
   daily_goal: {
     icon: Trophy,

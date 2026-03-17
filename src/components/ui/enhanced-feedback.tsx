@@ -312,10 +312,10 @@ interface InlineFeedbackProps {
 
 export function InlineFeedback({ type, message, className }: InlineFeedbackProps) {
   const configs = {
-    success: { icon: Check, color: 'text-success', bg: 'bg-green-50 dark:bg-green-950/30' },
+    success: { icon: Check, color: 'text-success', bg: 'bg-success/10 dark:bg-success/15/30' },
     error: { icon: X, color: 'text-destructive', bg: 'bg-destructive/10' },
-    warning: { icon: AlertCircle, color: 'text-warning', bg: 'bg-yellow-50 dark:bg-yellow-950/30' },
-    info: { icon: Info, color: 'text-info', bg: 'bg-blue-50 dark:bg-blue-950/30' },
+    warning: { icon: AlertCircle, color: 'text-warning', bg: 'bg-warning/10 dark:bg-warning/15/30' },
+    info: { icon: Info, color: 'text-info', bg: 'bg-info/10 dark:bg-info/15/30' },
   };
 
   const config = configs[type];
