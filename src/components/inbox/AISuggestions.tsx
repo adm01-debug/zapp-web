@@ -126,10 +126,11 @@ export function AISuggestions({ messages, contactName, contactId, onSelectSugges
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             className="absolute bottom-full right-0 mb-2 w-80 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50"
           >
-            <div className="flex items-center justify-between p-3 border-b border-border bg-muted/50">
+             <div className="flex items-center justify-between p-3 border-b border-border bg-muted/50">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span className="font-medium text-sm">Sugestões de IA</span>
+                <span className="font-medium text-sm">Copilot IA</span>
+                <Badge variant="secondary" className="text-[10px]">KB</Badge>
               </div>
               <Button
                 variant="ghost"
