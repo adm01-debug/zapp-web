@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { log } from '@/lib/logger';
-import { startOfDay, subDays, format, startOfHour, eachDayOfInterval, eachHourOfInterval, startOfToday, differenceInDays } from 'date-fns';
+import { startOfDay, format, startOfHour, eachDayOfInterval, eachHourOfInterval, startOfToday, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface DailyData {
@@ -49,11 +49,15 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
   const [statusData, setStatusData] = useState<StatusData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Memoize ISO strings to prevent infinite re-render loop
+  const fromISO = useMemo(() => dateRange.from?.toISOString(), [dateRange.from?.getTime()]);
+  const toISO = useMemo(() => dateRange.to?.toISOString(), [dateRange.to?.getTime()]);
+
   useEffect(() => {
-    if (queueId && dateRange.from && dateRange.to) {
+    if (queueId && fromISO && toISO) {
       fetchAnalytics();
     }
-  }, [queueId, dateRange.from.toISOString(), dateRange.to.toISOString()]);
+  }, [queueId, fromISO, toISO]);
 
   const fetchAnalytics = async () => {
     try {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 
 interface Profile {
   id: string;
@@ -46,7 +47,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(data as Profile);
       }
     } catch (err: unknown) {
-      // Silently handle - profile may not exist yet for new users
+      // Profile may not exist yet for new users - log but don't break flow
+      if (err instanceof Error) {
+        log.debug('Profile fetch skipped:', err.message);
+      }
     } finally {
       fetchingRef.current = false;
     }

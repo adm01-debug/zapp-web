@@ -3,6 +3,19 @@ import { log } from '@/lib/logger';
 
 export function useServiceWorker() {
   useEffect(() => {
+    let updateInterval: ReturnType<typeof setInterval> | undefined;
+    let cancelled = false;
+
+    const messageHandler = (event: MessageEvent) => {
+      log.debug('[ServiceWorker] Message received:', event.data);
+
+      if (event.data.type === 'NOTIFICATION_CLICK') {
+        document.dispatchEvent(new CustomEvent('notification-click', {
+          detail: event.data.data
+        }));
+      }
+    };
+
     const registerServiceWorker = async () => {
       if ('serviceWorker' in navigator) {
         try {
@@ -10,12 +23,14 @@ export function useServiceWorker() {
             scope: '/',
           });
 
+          if (cancelled) return;
+
           log.debug('[ServiceWorker] Registration successful:', registration.scope);
 
           // Check for updates periodically
-          setInterval(() => {
+          updateInterval = setInterval(() => {
             registration.update();
-          }, 60000); // Check every minute
+          }, 60000);
 
           // Handle service worker updates
           registration.addEventListener('updatefound', () => {
@@ -31,15 +46,7 @@ export function useServiceWorker() {
           });
 
           // Listen for messages from service worker
-          navigator.serviceWorker.addEventListener('message', (event) => {
-            log.debug('[ServiceWorker] Message received:', event.data);
-            
-            if (event.data.type === 'NOTIFICATION_CLICK') {
-              document.dispatchEvent(new CustomEvent('notification-click', { 
-                detail: event.data.data 
-              }));
-            }
-          });
+          navigator.serviceWorker.addEventListener('message', messageHandler);
 
         } catch (error) {
           log.error('[ServiceWorker] Registration failed:', error);
@@ -48,5 +55,13 @@ export function useServiceWorker() {
     };
 
     registerServiceWorker();
+
+    return () => {
+      cancelled = true;
+      if (updateInterval) clearInterval(updateInterval);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', messageHandler);
+      }
+    };
   }, []);
 }
