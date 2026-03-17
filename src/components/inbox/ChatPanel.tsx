@@ -10,6 +10,7 @@ import { useQuickReplies } from '@/hooks/useQuickReplies';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
+import { useScheduledMessages } from '@/hooks/useScheduledMessages';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
@@ -88,6 +89,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     onVoiceChange: handleVoiceChange,
     onSpeedChange: handleSpeedChange,
   });
+
+  const { scheduleMessage } = useScheduledMessages(conversation.contact.id);
 
   // ── Resolve WhatsApp instance name from contact ──
   const [instanceName, setInstanceName] = useState<string>('');
@@ -237,8 +240,36 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     });
   };
 
-  const handleScheduleMessage = (message: string, scheduledAt: Date, attachment?: File) => {
-    log.debug('Scheduled message:', { message, scheduledAt, attachment });
+  const handleScheduleMessage = async (message: string, scheduledAt: Date, attachment?: File) => {
+    try {
+      let mediaUrl: string | undefined;
+      let messageType = 'text';
+
+      if (attachment) {
+        const fileName = `scheduled_${Date.now()}_${attachment.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('whatsapp-media')
+          .upload(fileName, attachment);
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(fileName);
+          mediaUrl = urlData.publicUrl;
+          messageType = attachment.type.startsWith('audio') ? 'audio' : 
+                        attachment.type.startsWith('image') ? 'image' : 
+                        attachment.type.startsWith('video') ? 'video' : 'document';
+        }
+      }
+
+      await scheduleMessage({
+        contactId: conversation.contact.id,
+        content: message,
+        scheduledAt,
+        messageType,
+        mediaUrl,
+      });
+      setShowScheduleDialog(false);
+    } catch (err) {
+      log.error('Failed to schedule message:', err);
+    }
   };
 
   const handleAudioSend = (audioBlob: Blob) => {
