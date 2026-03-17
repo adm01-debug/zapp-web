@@ -51,19 +51,19 @@ const ROLE_CONFIG = {
   admin: { 
     label: 'Administrador', 
     icon: Crown,
-    color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    color: 'bg-destructive/10 text-destructive dark:bg-destructive/20/30 dark:text-destructive',
     description: 'Acesso total ao sistema'
   },
   supervisor: { 
     label: 'Supervisor', 
     icon: Eye,
-    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'bg-info/10 text-info dark:bg-info/20/30 dark:text-info',
     description: 'Gerencia equipes e relatórios'
   },
   agent: { 
     label: 'Agente', 
     icon: Headphones,
-    color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-success/10 text-success dark:bg-success/20/30 dark:text-success',
     description: 'Atendimento ao cliente'
   }
 };

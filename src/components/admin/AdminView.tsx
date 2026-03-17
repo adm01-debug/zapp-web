@@ -81,8 +81,8 @@ interface AuditLog {
 }
 
 const roleConfig: Record<AppRole, { label: string; icon: typeof Crown; color: string }> = {
-  admin: { label: 'Administrador', icon: Crown, color: 'text-yellow-500' },
-  supervisor: { label: 'Supervisor', icon: UserCog, color: 'text-blue-500' },
+  admin: { label: 'Administrador', icon: Crown, color: 'text-warning' },
+  supervisor: { label: 'Supervisor', icon: UserCog, color: 'text-info' },
   agent: { label: 'Atendente', icon: User, color: 'text-muted-foreground' },
 };
 
@@ -517,12 +517,12 @@ export function AdminView() {
                       </TableCell>
                       <TableCell>
                         {user.is_active !== false ? (
-                          <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                          <Badge className="bg-success/10 text-success border-green-500/20">
                             <UserCheck className="w-3 h-3 mr-1" />
                             Ativo
                           </Badge>
                         ) : (
-                          <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20">
+                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-red-500/20">
                             <UserX className="w-3 h-3 mr-1" />
                             Inativo
                           </Badge>

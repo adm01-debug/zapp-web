@@ -160,7 +160,7 @@ export function QuickRepliesManager({ onSelect, compact = false }: QuickRepliesM
                   <Star
                     className={cn(
                       "w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity",
-                      isFavorite(template.id) && "opacity-100 fill-yellow-400 text-yellow-400"
+                      isFavorite(template.id) && "opacity-100 fill-yellow-400 text-warning"
                     )}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -284,7 +284,7 @@ export function QuickRepliesManager({ onSelect, compact = false }: QuickRepliesM
                             exit={{ opacity: 0, y: -10 }}
                             className={cn(
                               "p-3 rounded-xl border border-border/50 bg-card hover:border-primary/30 transition-all group cursor-pointer",
-                              isFavorite(template.id) && "border-yellow-400/30 bg-yellow-400/5"
+                              isFavorite(template.id) && "border-yellow-400/30 bg-warning/5"
                             )}
                             onClick={() => handleSelect(template)}
                           >
@@ -325,7 +325,7 @@ export function QuickRepliesManager({ onSelect, compact = false }: QuickRepliesM
                                 >
                                   <Star className={cn(
                                     "w-4 h-4",
-                                    isFavorite(template.id) && "fill-yellow-400 text-yellow-400"
+                                    isFavorite(template.id) && "fill-yellow-400 text-warning"
                                   )} />
                                 </Button>
                                 <Button

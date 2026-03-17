@@ -57,7 +57,7 @@ export function CarouselMessage({ cards, sender, onButtonClick }: CarouselMessag
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{cards[currentIndex].description}</p>
               )}
               {cards[currentIndex]?.price != null && (
-                <p className="text-sm font-bold text-green-400 mt-1">
+                <p className="text-sm font-bold text-success mt-1">
                   {(cards[currentIndex].currency || 'BRL') === 'BRL' ? 'R$' : '$'}{' '}
                   {cards[currentIndex].price!.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>

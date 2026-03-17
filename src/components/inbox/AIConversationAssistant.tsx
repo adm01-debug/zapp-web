@@ -65,22 +65,22 @@ interface AIConversationAssistantProps {
 }
 
 const statusConfig = {
-  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  pendente: { label: 'Pendente', icon: Clock, className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-success/20 text-success border-green-500/30' },
+  pendente: { label: 'Pendente', icon: Clock, className: 'bg-warning/20 text-warning border-yellow-500/30' },
+  aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-warning/20 text-warning border-orange-500/30' },
+  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-info/20 text-info border-blue-500/30' },
 };
 
 const sentimentConfig = {
-  positivo: { label: 'Positivo', icon: ThumbsUp, color: 'text-green-400', bg: 'bg-green-500' },
+  positivo: { label: 'Positivo', icon: ThumbsUp, color: 'text-success', bg: 'bg-success' },
   neutro: { label: 'Neutro', icon: Minus, color: 'text-muted-foreground', bg: 'bg-muted' },
-  negativo: { label: 'Negativo', icon: ThumbsDown, color: 'text-red-400', bg: 'bg-red-500' },
+  negativo: { label: 'Negativo', icon: ThumbsDown, color: 'text-destructive', bg: 'bg-destructive' },
 };
 
 const urgencyConfig = {
-  baixa: { label: 'Baixa', className: 'bg-green-500/20 text-green-400' },
-  media: { label: 'Média', className: 'bg-yellow-500/20 text-yellow-400' },
-  alta: { label: 'Alta', className: 'bg-red-500/20 text-red-400' },
+  baixa: { label: 'Baixa', className: 'bg-success/20 text-success' },
+  media: { label: 'Média', className: 'bg-warning/20 text-warning' },
+  alta: { label: 'Alta', className: 'bg-destructive/20 text-destructive' },
 };
 
 export function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
@@ -279,8 +279,8 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
             {/* Sentiment Trend Indicator */}
             {sentimentTrend && (
               <div className={`flex items-center gap-2 p-2 rounded-lg text-xs ${
-                sentimentTrend === 'improving' ? 'bg-green-500/10 text-green-400' :
-                sentimentTrend === 'declining' ? 'bg-red-500/10 text-red-400' :
+                sentimentTrend === 'improving' ? 'bg-success/10 text-success' :
+                sentimentTrend === 'declining' ? 'bg-destructive/10 text-destructive' :
                 'bg-muted/50 text-muted-foreground'
               }`}>
                 {sentimentTrend === 'improving' && <TrendingUp className="h-4 w-4" />}

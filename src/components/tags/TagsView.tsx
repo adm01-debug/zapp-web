@@ -159,7 +159,7 @@ export function TagsView() {
         actions={
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
+              <Button className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground">
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Etiqueta
               </Button>

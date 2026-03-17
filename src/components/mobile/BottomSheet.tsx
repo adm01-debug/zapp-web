@@ -87,7 +87,7 @@ export function BottomSheet({
             exit={{ opacity: 0 }}
             onClick={preventClose ? undefined : onClose}
             className={cn(
-              'fixed inset-0 bg-black/50 z-50 backdrop-blur-sm',
+              'fixed inset-0 bg-background/50 z-50 backdrop-blur-sm',
               overlayClassName
             )}
           />
@@ -167,7 +167,7 @@ interface FABProps {
 const fabVariants = {
   primary: 'bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)]',
   secondary: 'bg-secondary text-secondary-foreground hover:shadow-[0_0_30px_hsl(var(--secondary)/0.5)]',
-  whatsapp: 'bg-whatsapp text-white hover:shadow-[0_0_30px_hsl(var(--whatsapp)/0.5)]',
+  whatsapp: 'bg-whatsapp text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--whatsapp)/0.5)]',
 };
 
 const fabSizes = {
@@ -320,7 +320,7 @@ export function SpeedDialFAB({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/20 -z-10"
+            className="fixed inset-0 bg-background/20 -z-10"
           />
         )}
       </AnimatePresence>

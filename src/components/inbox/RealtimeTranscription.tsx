@@ -106,7 +106,7 @@ export function RealtimeTranscription({
           disabled={isConnecting}
           className={cn(
             "gap-2 transition-all",
-            isConnected && "bg-red-500 hover:bg-red-600 text-white"
+            isConnected && "bg-destructive hover:bg-destructive text-primary-foreground"
           )}
         >
           {isConnecting ? (
@@ -142,10 +142,10 @@ export function RealtimeTranscription({
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ repeat: Infinity, duration: 1.5 }}
-                className="w-2 h-2 rounded-full bg-red-500"
+                className="w-2 h-2 rounded-full bg-destructive"
               />
               <span>Ouvindo...</span>
-              <Radio className="w-3 h-3 text-red-500" />
+              <Radio className="w-3 h-3 text-destructive" />
             </div>
 
             {/* Partial transcript display */}

@@ -108,14 +108,14 @@ export function AnimatedMetricCard({
       value: 'text-foreground',
     },
     success: {
-      container: 'bg-green-500/5 border-green-500/20 hover:border-green-500/40',
-      icon: 'bg-green-500/10 text-green-500',
-      value: 'text-green-500',
+      container: 'bg-success/5 border-green-500/20 hover:border-green-500/40',
+      icon: 'bg-success/10 text-success',
+      value: 'text-success',
     },
     warning: {
-      container: 'bg-yellow-500/5 border-yellow-500/20 hover:border-yellow-500/40',
-      icon: 'bg-yellow-500/10 text-yellow-500',
-      value: 'text-yellow-500',
+      container: 'bg-warning/5 border-yellow-500/20 hover:border-yellow-500/40',
+      icon: 'bg-warning/10 text-warning',
+      value: 'text-warning',
     },
     danger: {
       container: 'bg-destructive/5 border-destructive/20 hover:border-destructive/40',
@@ -123,9 +123,9 @@ export function AnimatedMetricCard({
       value: 'text-destructive',
     },
     info: {
-      container: 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40',
-      icon: 'bg-blue-500/10 text-blue-500',
-      value: 'text-blue-500',
+      container: 'bg-info/5 border-blue-500/20 hover:border-blue-500/40',
+      icon: 'bg-info/10 text-info',
+      value: 'text-info',
     },
   };
 
@@ -260,8 +260,8 @@ export function TrendIndicator({
   const configs = {
     up: {
       icon: TrendingUp,
-      color: 'text-green-500',
-      bg: 'bg-green-500/10',
+      color: 'text-success',
+      bg: 'bg-success/10',
     },
     down: {
       icon: TrendingDown,
@@ -516,9 +516,9 @@ export function GoalProgressRing({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"
+              className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-success flex items-center justify-center"
             >
-              <Award className="w-3.5 h-3.5 text-white" />
+              <Award className="w-3.5 h-3.5 text-primary-foreground" />
             </motion.div>
           )}
         </AnimatePresence>

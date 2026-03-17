@@ -292,8 +292,8 @@ export default function QueueDetails() {
             <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-success" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Resolvidos Hoje</p>
@@ -362,7 +362,7 @@ export default function QueueDetails() {
                         </div>
                         <Badge
                           variant="secondary"
-                          className={member.profile?.is_active ? 'bg-green-500/10 text-green-500' : 'bg-muted/30'}
+                          className={member.profile?.is_active ? 'bg-success/10 text-success' : 'bg-muted/30'}
                         >
                           {member.profile?.is_active ? 'Online' : 'Offline'}
                         </Badge>
@@ -451,7 +451,7 @@ export default function QueueDetails() {
                             <Badge
                               variant="secondary"
                               className={contact.assigned_to 
-                                ? 'bg-green-500/10 text-green-500' 
+                                ? 'bg-success/10 text-success' 
                                 : 'bg-amber-500/10 text-amber-500'}
                             >
                               {contact.assigned_to ? 'Em atendimento' : 'Na fila'}

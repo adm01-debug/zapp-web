@@ -447,7 +447,7 @@ export function ConnectionsView() {
         actions={
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
+              <Button className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground">
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Conexão
               </Button>
@@ -536,7 +536,7 @@ export function ConnectionsView() {
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="w-64 h-64 mx-auto bg-white rounded-xl p-2 flex items-center justify-center"
+                className="w-64 h-64 mx-auto bg-background rounded-xl p-2 flex items-center justify-center"
               >
                 <img 
                   src={qrCodeDialog.qrCode.startsWith('data:') 
@@ -706,19 +706,19 @@ export function ConnectionsView() {
                               {connection.battery_level != null && (
                                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                   {connection.is_plugged ? (
-                                    <BatteryCharging className="w-3.5 h-3.5 text-green-500" />
+                                    <BatteryCharging className="w-3.5 h-3.5 text-success" />
                                   ) : connection.battery_level <= 20 ? (
                                     <BatteryLow className="w-3.5 h-3.5 text-destructive" />
                                   ) : connection.battery_level <= 50 ? (
-                                    <BatteryMedium className="w-3.5 h-3.5 text-yellow-500" />
+                                    <BatteryMedium className="w-3.5 h-3.5 text-warning" />
                                   ) : (
-                                    <BatteryFull className="w-3.5 h-3.5 text-green-500" />
+                                    <BatteryFull className="w-3.5 h-3.5 text-success" />
                                   )}
                                   {connection.battery_level}%
                                 </span>
                               )}
                               {(connection.retry_count ?? 0) > 0 && (
-                                <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-yellow-500">
+                                <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-warning">
                                   Retry {connection.retry_count}/{connection.max_retries || 5}
                                 </Badge>
                               )}
@@ -749,7 +749,7 @@ export function ConnectionsView() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleShowQrCode(connection)}
-                                className="border-whatsapp text-whatsapp hover:bg-whatsapp hover:text-white"
+                                className="border-whatsapp text-whatsapp hover:bg-whatsapp hover:text-primary-foreground"
                               >
                                 <QrCode className="w-4 h-4 mr-2" />
                                 Conectar

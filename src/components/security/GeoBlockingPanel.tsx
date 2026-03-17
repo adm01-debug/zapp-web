@@ -284,7 +284,7 @@ export function GeoBlockingPanel() {
   const getModeIcon = () => {
     switch (settings?.mode) {
       case 'whitelist':
-        return <ShieldCheck className="w-5 h-5 text-green-500" />;
+        return <ShieldCheck className="w-5 h-5 text-success" />;
       case 'blacklist':
         return <Shield className="w-5 h-5 text-destructive" />;
       default:
@@ -366,11 +366,11 @@ export function GeoBlockingPanel() {
           </div>
 
           {settings?.mode === 'whitelist' && (
-            <div className="mt-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+            <div className="mt-4 p-3 rounded-lg bg-success/10 border border-green-500/20">
               <div className="flex items-start gap-2">
-                <ShieldCheck className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                <ShieldCheck className="w-5 h-5 text-success shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                  <p className="text-sm font-medium text-success dark:text-success">
                     Modo Whitelist Ativo
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -524,8 +524,8 @@ export function GeoBlockingPanel() {
                         className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${activeTab === 'whitelist' ? 'bg-green-500/10' : 'bg-destructive/10'}`}>
-                            <MapPin className={`w-4 h-4 ${activeTab === 'whitelist' ? 'text-green-500' : 'text-destructive'}`} />
+                          <div className={`p-2 rounded-lg ${activeTab === 'whitelist' ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                            <MapPin className={`w-4 h-4 ${activeTab === 'whitelist' ? 'text-success' : 'text-destructive'}`} />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">

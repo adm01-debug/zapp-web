@@ -110,7 +110,7 @@ function MediaCard({
         className={cn(
           'absolute top-2 left-2 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-all',
           isSelected 
-            ? 'bg-primary border-primary text-white' 
+            ? 'bg-primary border-primary text-primary-foreground' 
             : 'bg-background/80 border-muted-foreground/50 opacity-0 group-hover:opacity-100'
         )}
         onClick={(e) => {
@@ -150,10 +150,10 @@ function MediaCard({
         )}
         
         {item.type === 'video' && (
-          <div className="w-full h-full flex items-center justify-center bg-black/80">
+          <div className="w-full h-full flex items-center justify-center bg-background/80">
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                <Play className="w-6 h-6 text-white" fill="white" />
+              <div className="w-12 h-12 rounded-full bg-background/20 backdrop-blur flex items-center justify-center">
+                <Play className="w-6 h-6 text-primary-foreground" fill="white" />
               </div>
             </div>
             <FileVideo className="w-8 h-8 text-muted-foreground absolute bottom-2 right-2" />
@@ -171,7 +171,7 @@ function MediaCard({
         
         {item.type === 'document' && (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
-            <File className="w-10 h-10 text-blue-500" />
+            <File className="w-10 h-10 text-info" />
             <span className="text-xs text-muted-foreground text-center truncate w-full">
               {item.filename}
             </span>
@@ -180,8 +180,8 @@ function MediaCard({
       </div>
 
       {/* Date overlay */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <p className="text-xs text-white">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <p className="text-xs text-primary-foreground">
           {format(new Date(item.created_at), 'dd/MM/yy HH:mm', { locale: ptBR })}
         </p>
       </div>
@@ -229,7 +229,7 @@ function MediaPreviewDialog({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex items-center justify-center p-4 bg-black/90 min-h-[400px]">
+        <div className="flex items-center justify-center p-4 bg-background/90 min-h-[400px]">
           {item.type === 'image' && (
             <img
               src={item.url}
@@ -255,7 +255,7 @@ function MediaPreviewDialog({
           {item.type === 'document' && (
             <div className="text-center p-8">
               <File className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-white mb-4">{item.filename}</p>
+              <p className="text-primary-foreground mb-4">{item.filename}</p>
               <Button asChild>
                 <a href={item.url} download={item.filename}>
                   <Download className="w-4 h-4 mr-2" />
@@ -513,7 +513,7 @@ export function MediaGallery({ contactId, open, onOpenChange }: MediaGalleryProp
                       className={cn(
                         'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0',
                         selectedItems.has(item.id) 
-                          ? 'bg-primary border-primary text-white' 
+                          ? 'bg-primary border-primary text-primary-foreground' 
                           : 'border-muted-foreground/50'
                       )}
                       onClick={(e) => {

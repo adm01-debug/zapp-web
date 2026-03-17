@@ -120,7 +120,7 @@ export function LGPDComplianceView() {
               { title: 'Eliminação', desc: 'Solicitar a exclusão dos seus dados pessoais' },
             ].map((right) => (
               <div key={right.title} className="flex items-start gap-2 p-3 rounded-lg bg-muted/30">
-                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-foreground">{right.title}</p>
                   <p className="text-xs text-muted-foreground">{right.desc}</p>
@@ -148,7 +148,7 @@ export function LGPDComplianceView() {
             {isExporting ? 'Exportando...' : 'Exportar Meus Dados'}
           </Button>
           {exportedData && (
-            <Badge variant="outline" className="text-green-500">
+            <Badge variant="outline" className="text-success">
               <CheckCircle2 className="w-3 h-3 mr-1" /> Exportação concluída
             </Badge>
           )}

@@ -25,11 +25,11 @@ import { ptBR } from 'date-fns/locale';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Rascunho', color: 'bg-muted text-muted-foreground', icon: Edit2 },
-  scheduled: { label: 'Agendada', color: 'bg-blue-500/20 text-blue-400', icon: Clock },
-  sending: { label: 'Enviando', color: 'bg-yellow-500/20 text-yellow-400', icon: Send },
-  completed: { label: 'Concluída', color: 'bg-green-500/20 text-green-400', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelada', color: 'bg-red-500/20 text-red-400', icon: XCircle },
-  paused: { label: 'Pausada', color: 'bg-orange-500/20 text-orange-400', icon: Pause },
+  scheduled: { label: 'Agendada', color: 'bg-info/20 text-info', icon: Clock },
+  sending: { label: 'Enviando', color: 'bg-warning/20 text-warning', icon: Send },
+  completed: { label: 'Concluída', color: 'bg-success/20 text-success', icon: CheckCircle2 },
+  cancelled: { label: 'Cancelada', color: 'bg-destructive/20 text-destructive', icon: XCircle },
+  paused: { label: 'Pausada', color: 'bg-warning/20 text-warning', icon: Pause },
 };
 
 export function CampaignsView() {
@@ -95,9 +95,9 @@ export function CampaignsView() {
       <div className="grid grid-cols-4 gap-4">
         {[
           { label: 'Total', value: stats.total, icon: Megaphone, color: 'text-primary' },
-          { label: 'Ativas', value: stats.active, icon: Play, color: 'text-yellow-400' },
-          { label: 'Concluídas', value: stats.completed, icon: CheckCircle2, color: 'text-green-400' },
-          { label: 'Mensagens Enviadas', value: stats.totalSent, icon: Send, color: 'text-blue-400' },
+          { label: 'Ativas', value: stats.active, icon: Play, color: 'text-warning' },
+          { label: 'Concluídas', value: stats.completed, icon: CheckCircle2, color: 'text-success' },
+          { label: 'Mensagens Enviadas', value: stats.totalSent, icon: Send, color: 'text-info' },
         ].map(stat => (
           <Card key={stat.label} className="border-secondary/30">
             <CardContent className="p-4 flex items-center gap-3">
@@ -205,13 +205,13 @@ export function CampaignsView() {
 
                           <div className="flex items-center gap-1 ml-4" onClick={e => e.stopPropagation()}>
                             {campaign.status === 'draft' && (
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-green-400 hover:text-green-300"
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-success"
                                 onClick={() => updateCampaign.mutate({ id: campaign.id, status: 'sending' })}>
                                 <Play className="w-4 h-4" />
                               </Button>
                             )}
                             {campaign.status === 'sending' && (
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-yellow-400 hover:text-yellow-300"
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-warning"
                                 onClick={() => updateCampaign.mutate({ id: campaign.id, status: 'paused' })}>
                                 <Pause className="w-4 h-4" />
                               </Button>

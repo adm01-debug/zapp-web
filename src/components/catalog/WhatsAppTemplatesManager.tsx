@@ -70,9 +70,9 @@ interface WhatsAppTemplate {
 }
 
 const TEMPLATE_CATEGORIES = [
-  { value: 'marketing', label: 'Marketing', color: 'bg-blue-500/20 text-blue-400' },
-  { value: 'utility', label: 'Utilidade', color: 'bg-green-500/20 text-green-400' },
-  { value: 'authentication', label: 'Autenticação', color: 'bg-purple-500/20 text-purple-400' },
+  { value: 'marketing', label: 'Marketing', color: 'bg-info/20 text-info' },
+  { value: 'utility', label: 'Utilidade', color: 'bg-success/20 text-success' },
+  { value: 'authentication', label: 'Autenticação', color: 'bg-primary/20 text-primary' },
 ];
 
 const TEMPLATE_LANGUAGES = [
@@ -82,9 +82,9 @@ const TEMPLATE_LANGUAGES = [
 ];
 
 const STATUS_BADGES: Record<string, { label: string; className: string; icon: React.ElementType }> = {
-  approved: { label: 'Aprovado', className: 'bg-green-500/20 text-green-400', icon: CheckCircle2 },
-  pending: { label: 'Pendente', className: 'bg-yellow-500/20 text-yellow-400', icon: Clock },
-  rejected: { label: 'Rejeitado', className: 'bg-red-500/20 text-red-400', icon: XCircle },
+  approved: { label: 'Aprovado', className: 'bg-success/20 text-success', icon: CheckCircle2 },
+  pending: { label: 'Pendente', className: 'bg-warning/20 text-warning', icon: Clock },
+  rejected: { label: 'Rejeitado', className: 'bg-destructive/20 text-destructive', icon: XCircle },
   draft: { label: 'Rascunho', className: 'bg-muted text-muted-foreground', icon: FileText },
 };
 
@@ -583,19 +583,19 @@ export function WhatsAppTemplatesManager() {
               <div className="bg-[#0b141a] rounded-xl p-4">
                 <div className="bg-[#005c4b] rounded-lg p-3 max-w-[280px] ml-auto">
                   {previewTemplate.header_text && (
-                    <p className="text-white font-bold text-sm mb-1">
+                    <p className="text-primary-foreground font-bold text-sm mb-1">
                       {renderPreviewContent(previewTemplate.header_text, previewVariables)}
                     </p>
                   )}
-                  <p className="text-white text-sm whitespace-pre-wrap">
+                  <p className="text-primary-foreground text-sm whitespace-pre-wrap">
                     {renderPreviewContent(previewTemplate.content, previewVariables)}
                   </p>
                   {previewTemplate.footer_text && (
-                    <p className="text-white/60 text-xs mt-2">
+                    <p className="text-primary-foreground/60 text-xs mt-2">
                       {renderPreviewContent(previewTemplate.footer_text, previewVariables)}
                     </p>
                   )}
-                  <p className="text-white/40 text-[10px] text-right mt-1">
+                  <p className="text-primary-foreground/40 text-[10px] text-right mt-1">
                     {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>

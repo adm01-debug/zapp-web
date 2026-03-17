@@ -43,11 +43,11 @@ interface LeaderboardAgent {
 
 const achievementIcons: Record<string, { icon: typeof Trophy; color: string; label: string }> = {
   'fast_response': { icon: Zap, color: 'text-primary', label: 'Resposta Rápida' },
-  'streak': { icon: Flame, color: 'text-orange-500', label: 'Streak Master' },
+  'streak': { icon: Flame, color: 'text-warning', label: 'Streak Master' },
   'resolution': { icon: Target, color: 'text-success', label: 'Resolvedor' },
-  'perfect_rating': { icon: Star, color: 'text-yellow-500', label: 'Avaliação Perfeita' },
+  'perfect_rating': { icon: Star, color: 'text-warning', label: 'Avaliação Perfeita' },
   'level_up': { icon: TrendingUp, color: 'text-info', label: 'Level Up' },
-  'daily_goal': { icon: Award, color: 'text-purple-500', label: 'Meta Diária' },
+  'daily_goal': { icon: Award, color: 'text-primary', label: 'Meta Diária' },
   'speed-demon': { icon: Zap, color: 'text-primary', label: 'Speed Demon' },
   'customer-hero': { icon: Award, color: 'text-info', label: 'Customer Hero' },
   'streak-master': { icon: Flame, color: 'text-primary', label: 'Streak Master' },
@@ -76,7 +76,7 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
           bg: 'bg-gradient-to-br from-slate-400 to-slate-500',
           shadow: '',
           icon: Medal,
-          iconColor: 'text-slate-100',
+          iconColor: 'text-muted-foreground',
         };
       case 3:
         return {
@@ -221,7 +221,7 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
         agent.rank === 1
           ? 'border-primary/30 bg-primary/5'
           : agent.rank === 2
-          ? 'border-slate-400/20 bg-slate-400/5'
+          ? 'border-border/20 bg-muted/5'
           : agent.rank === 3
           ? 'border-amber-600/20 bg-amber-600/5'
           : 'border-border/20 bg-muted/10 hover:border-primary/20 hover:bg-muted/20'
@@ -251,7 +251,7 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
             <div className="flex items-center gap-2">
               <h4 className="font-medium text-sm text-foreground truncate">{agent.name}</h4>
               {agent.streak >= 5 && (
-                <div className="flex items-center gap-0.5 text-orange-500">
+                <div className="flex items-center gap-0.5 text-warning">
                   <Flame className="w-3.5 h-3.5" />
                   <span className="text-xs font-medium">{agent.streak}</span>
                 </div>

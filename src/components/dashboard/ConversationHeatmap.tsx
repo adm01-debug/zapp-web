@@ -163,7 +163,7 @@ export default function ConversationHeatmap({
           <span className="text-xs text-muted-foreground">Períodos mais movimentados:</span>
           {hotspots.slice(0, 3).map((spot, i) => (
             <Badge key={i} variant="secondary" className="text-xs gap-1">
-              <Flame className="w-3 h-3 text-orange-500" />
+              <Flame className="w-3 h-3 text-warning" />
               {DAYS[spot.day]} {formatHour(spot.hour)}
             </Badge>
           ))}
@@ -218,7 +218,7 @@ export default function ConversationHeatmap({
                             onMouseLeave={() => setHoveredCell(null)}
                           >
                             {isHotspot && (
-                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full" />
+                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-warning rounded-full" />
                             )}
                           </motion.div>
                         </TooltipTrigger>

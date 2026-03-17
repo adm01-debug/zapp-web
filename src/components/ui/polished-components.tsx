@@ -29,7 +29,7 @@ export const GradientText = memo(function GradientText({
 }: GradientTextProps) {
   const gradients = {
     primary: 'from-primary via-primary/80 to-primary/60',
-    rainbow: 'from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500',
+    rainbow: 'from-red-500 via-yellow-500 via-green-500 via-blue-500 to-primary',
     gold: 'from-amber-300 via-yellow-500 to-amber-600',
     emerald: 'from-emerald-400 via-teal-500 to-cyan-600',
     custom: customGradient || '',
@@ -103,12 +103,12 @@ export const PremiumBadge = memo(function PremiumBadge({
   animate = true,
 }: PremiumBadgeProps) {
   const configs = {
-    pro: { icon: Crown, label: 'PRO', className: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white' },
-    premium: { icon: Star, label: 'Premium', className: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' },
-    gold: { icon: Sparkles, label: 'Gold', className: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-black' },
-    new: { icon: Zap, label: 'Novo', className: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' },
-    beta: { icon: Sparkles, label: 'Beta', className: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white' },
-    hot: { icon: Zap, label: 'Hot', className: 'bg-gradient-to-r from-red-500 to-orange-500 text-white' },
+    pro: { icon: Crown, label: 'PRO', className: 'bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground' },
+    premium: { icon: Star, label: 'Premium', className: 'bg-gradient-to-r from-primary to-pink-500 text-primary-foreground' },
+    gold: { icon: Sparkles, label: 'Gold', className: 'bg-gradient-to-r from-warning to-amber-500 text-foreground' },
+    new: { icon: Zap, label: 'Novo', className: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-primary-foreground' },
+    beta: { icon: Sparkles, label: 'Beta', className: 'bg-gradient-to-r from-info to-cyan-500 text-primary-foreground' },
+    hot: { icon: Zap, label: 'Hot', className: 'bg-gradient-to-r from-red-500 to-orange-500 text-primary-foreground' },
   };
 
   const config = configs[type];
@@ -399,7 +399,7 @@ export const Tag = memo(function Tag({ children, color, onRemove, size = 'sm' }:
       {onRemove && (
         <button
           onClick={onRemove}
-          className="ml-0.5 hover:bg-black/10 rounded-full p-0.5 transition-colors"
+          className="ml-0.5 hover:bg-background/10 rounded-full p-0.5 transition-colors"
         >
           ×
         </button>

@@ -95,8 +95,8 @@ export function MessageImage({ src, alt = 'Image' }: MessageImageProps) {
           animate={{ opacity: isLoaded ? 1 : 0 }}
           className="max-w-[280px] max-h-[200px] object-cover rounded-lg"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
-          <span className="text-white text-xs font-medium">Clique para expandir</span>
+        <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
+          <span className="text-primary-foreground text-xs font-medium">Clique para expandir</span>
         </div>
       </motion.div>
 

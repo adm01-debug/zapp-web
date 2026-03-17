@@ -100,26 +100,26 @@ export function SecurityOverview() {
   const score = calculateScore();
 
   const getScoreColor = (total: number) => {
-    if (total >= 80) return 'text-green-500';
-    if (total >= 60) return 'text-yellow-500';
-    return 'text-red-500';
+    if (total >= 80) return 'text-success';
+    if (total >= 60) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getScoreBg = (total: number) => {
-    if (total >= 80) return 'bg-green-500';
-    if (total >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (total >= 80) return 'bg-success';
+    if (total >= 60) return 'bg-warning';
+    return 'bg-destructive';
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high':
       case 'critical':
-        return 'bg-red-500/10 text-red-500 border-red-500/20';
+        return 'bg-destructive/10 text-destructive border-red-500/20';
       case 'medium':
-        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+        return 'bg-warning/10 text-warning border-yellow-500/20';
       default:
-        return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        return 'bg-info/10 text-info border-blue-500/20';
     }
   };
 
@@ -205,8 +205,8 @@ export function SecurityOverview() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/10">
-                  <Smartphone className="w-5 h-5 text-blue-500" />
+                <div className="p-2 rounded-lg bg-info/10">
+                  <Smartphone className="w-5 h-5 text-info" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{devices.length}</div>
@@ -225,8 +225,8 @@ export function SecurityOverview() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <Monitor className="w-5 h-5 text-green-500" />
+                <div className="p-2 rounded-lg bg-success/10">
+                  <Monitor className="w-5 h-5 text-success" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{sessions.length}</div>
@@ -245,8 +245,8 @@ export function SecurityOverview() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${isMFAEnabled ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}>
-                  <Key className={`w-5 h-5 ${isMFAEnabled ? 'text-green-500' : 'text-yellow-500'}`} />
+                <div className={`p-2 rounded-lg ${isMFAEnabled ? 'bg-success/10' : 'bg-warning/10'}`}>
+                  <Key className={`w-5 h-5 ${isMFAEnabled ? 'text-success' : 'text-warning'}`} />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{factors.length}</div>
@@ -265,8 +265,8 @@ export function SecurityOverview() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${securityAlerts.filter(a => !a.is_resolved).length > 0 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
-                  <AlertTriangle className={`w-5 h-5 ${securityAlerts.filter(a => !a.is_resolved).length > 0 ? 'text-red-500' : 'text-green-500'}`} />
+                <div className={`p-2 rounded-lg ${securityAlerts.filter(a => !a.is_resolved).length > 0 ? 'bg-destructive/10' : 'bg-success/10'}`}>
+                  <AlertTriangle className={`w-5 h-5 ${securityAlerts.filter(a => !a.is_resolved).length > 0 ? 'text-destructive' : 'text-success'}`} />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">
@@ -305,8 +305,8 @@ export function SecurityOverview() {
                   className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-lg ${item.enabled ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}>
-                      <Icon className={`w-5 h-5 ${item.enabled ? 'text-green-500' : 'text-yellow-500'}`} />
+                    <div className={`p-2 rounded-lg ${item.enabled ? 'bg-success/10' : 'bg-warning/10'}`}>
+                      <Icon className={`w-5 h-5 ${item.enabled ? 'text-success' : 'text-warning'}`} />
                     </div>
                     <div>
                       <h4 className="font-medium">{item.title}</h4>
@@ -318,9 +318,9 @@ export function SecurityOverview() {
                       <span className="text-sm font-medium">{item.score}/{item.maxScore}</span>
                     </div>
                     {item.enabled ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <CheckCircle2 className="w-5 h-5 text-success" />
                     ) : (
-                      <XCircle className="w-5 h-5 text-yellow-500" />
+                      <XCircle className="w-5 h-5 text-warning" />
                     )}
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export function SecurityOverview() {
               </div>
             ) : securityAlerts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <CheckCircle2 className="w-12 h-12 text-green-500 mb-3" />
+                <CheckCircle2 className="w-12 h-12 text-success mb-3" />
                 <h4 className="font-medium">Nenhum alerta recente</h4>
                 <p className="text-sm text-muted-foreground">
                   Sua conta está segura e sem atividades suspeitas
@@ -376,7 +376,7 @@ export function SecurityOverview() {
                           {alert.severity}
                         </Badge>
                         {alert.is_resolved && (
-                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                          <Badge variant="outline" className="bg-success/10 text-success border-green-500/20">
                             Resolvido
                           </Badge>
                         )}
@@ -451,7 +451,7 @@ export function SecurityOverview() {
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium">{device.device_name || 'Dispositivo'}</h4>
                           {device.is_trusted && (
-                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs">
+                            <Badge variant="outline" className="bg-success/10 text-success border-green-500/20 text-xs">
                               Confiável
                             </Badge>
                           )}

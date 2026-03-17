@@ -61,7 +61,7 @@ const SmartAvatar = React.forwardRef<
       )}
       <AvatarPrimitive.Fallback
         className={cn(
-          "flex h-full w-full items-center justify-center rounded-full text-white font-medium",
+          "flex h-full w-full items-center justify-center rounded-full text-primary-foreground font-medium",
           fallbackClassName
         )}
         style={{ background: gradient }}

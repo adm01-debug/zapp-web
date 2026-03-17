@@ -10,9 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
 const ROLE_LABELS = {
-  admin: { label: 'Administrador', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
-  supervisor: { label: 'Supervisor', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-  agent: { label: 'Agente', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' }
+  admin: { label: 'Administrador', color: 'bg-destructive/10 text-destructive dark:bg-destructive/20/30 dark:text-destructive' },
+  supervisor: { label: 'Supervisor', color: 'bg-info/10 text-info dark:bg-info/20/30 dark:text-info' },
+  agent: { label: 'Agente', color: 'bg-success/10 text-success dark:bg-success/20/30 dark:text-success' }
 };
 
 const CATEGORY_LABELS: Record<string, string> = {

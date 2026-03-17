@@ -145,7 +145,7 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(({ colla
                 transition={{ duration: 0.5 }}
                 className={cn(
                   "absolute inset-0 rounded-xl",
-                  resolvedTheme === 'dark' ? 'bg-blue-500/20' : 'bg-yellow-500/20'
+                  resolvedTheme === 'dark' ? 'bg-info/20' : 'bg-warning/20'
                 )}
               />
             </Button>
@@ -279,8 +279,8 @@ export function ThemeChangeIndicator() {
           <div className={cn(
             "flex items-center gap-2 px-4 py-2 rounded-full shadow-xl backdrop-blur-xl border",
             resolvedTheme === 'dark' 
-              ? 'bg-slate-800/90 border-slate-700 text-white' 
-              : 'bg-white/90 border-slate-200 text-slate-900'
+              ? 'bg-card/90 border-slate-700 text-primary-foreground' 
+              : 'bg-background/90 border-border text-foreground'
           )}>
             <motion.div
               animate={{ rotate: 360 }}

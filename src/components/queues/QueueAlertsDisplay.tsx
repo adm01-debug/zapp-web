@@ -35,7 +35,7 @@ export function QueueAlertsDisplay({ alerts, onDismiss, onNavigate }: QueueAlert
               className={`
                 relative flex items-center gap-3 p-3 rounded-lg border backdrop-blur
                 ${alert.severity === 'critical' 
-                  ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+                  ? 'bg-destructive/10 border-red-500/30 text-destructive' 
                   : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                 }
               `}
@@ -47,7 +47,7 @@ export function QueueAlertsDisplay({ alerts, onDismiss, onNavigate }: QueueAlert
               
               <div className={`
                 w-8 h-8 rounded-lg flex items-center justify-center
-                ${alert.severity === 'critical' ? 'bg-red-500/20' : 'bg-amber-500/20'}
+                ${alert.severity === 'critical' ? 'bg-destructive/20' : 'bg-amber-500/20'}
               `}>
                 <Icon className="w-4 h-4" />
               </div>
@@ -62,7 +62,7 @@ export function QueueAlertsDisplay({ alerts, onDismiss, onNavigate }: QueueAlert
                   </span>
                   <span className={`
                     text-xs px-1.5 py-0.5 rounded
-                    ${alert.severity === 'critical' ? 'bg-red-500/20' : 'bg-amber-500/20'}
+                    ${alert.severity === 'critical' ? 'bg-destructive/20' : 'bg-amber-500/20'}
                   `}>
                     {alert.severity === 'critical' ? 'Crítico' : 'Atenção'}
                   </span>

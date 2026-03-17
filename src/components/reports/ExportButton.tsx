@@ -90,21 +90,21 @@ export const ExportButton = ({
           onClick={() => handleExport('pdf')}
           disabled={exporting !== null}
         >
-          <FileText className="h-4 w-4 mr-2 text-red-500" />
+          <FileText className="h-4 w-4 mr-2 text-destructive" />
           Exportar PDF
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleExport('excel')}
           disabled={exporting !== null}
         >
-          <FileSpreadsheet className="h-4 w-4 mr-2 text-green-500" />
+          <FileSpreadsheet className="h-4 w-4 mr-2 text-success" />
           Exportar Excel
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleExport('csv')}
           disabled={exporting !== null}
         >
-          <File className="h-4 w-4 mr-2 text-blue-500" />
+          <File className="h-4 w-4 mr-2 text-info" />
           Exportar CSV
         </DropdownMenuItem>
       </DropdownMenuContent>

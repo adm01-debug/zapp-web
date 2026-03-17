@@ -28,7 +28,7 @@ interface SwipeableListItemProps {
 
 const DEFAULT_LEFT_ACTION: SwipeAction = {
   icon: Check,
-  color: 'text-white',
+  color: 'text-primary-foreground',
   bgColor: 'bg-success',
   label: 'Lido',
   action: () => {},
@@ -36,7 +36,7 @@ const DEFAULT_LEFT_ACTION: SwipeAction = {
 
 const DEFAULT_RIGHT_ACTION: SwipeAction = {
   icon: Archive,
-  color: 'text-white',
+  color: 'text-primary-foreground',
   bgColor: 'bg-warning',
   label: 'Arquivar',
   action: () => {},
@@ -282,7 +282,7 @@ export function SwipeableListItem({
 export const SWIPE_ACTIONS = {
   markAsRead: (onAction: () => void): SwipeAction => ({
     icon: Check,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-success',
     label: 'Lido',
     action: onAction,
@@ -290,7 +290,7 @@ export const SWIPE_ACTIONS = {
   
   markAsUnread: (onAction: () => void): SwipeAction => ({
     icon: RotateCcw,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-info',
     label: 'Não lido',
     action: onAction,
@@ -298,7 +298,7 @@ export const SWIPE_ACTIONS = {
   
   archive: (onAction: () => void): SwipeAction => ({
     icon: Archive,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-warning',
     label: 'Arquivar',
     action: onAction,
@@ -306,7 +306,7 @@ export const SWIPE_ACTIONS = {
   
   delete: (onAction: () => void): SwipeAction => ({
     icon: Trash2,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-destructive',
     label: 'Excluir',
     action: onAction,
@@ -314,7 +314,7 @@ export const SWIPE_ACTIONS = {
   
   pin: (onAction: () => void): SwipeAction => ({
     icon: Pin,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-primary',
     label: 'Fixar',
     action: onAction,
@@ -322,7 +322,7 @@ export const SWIPE_ACTIONS = {
   
   unpin: (onAction: () => void): SwipeAction => ({
     icon: PinOff,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-muted-foreground',
     label: 'Desafixar',
     action: onAction,
@@ -330,7 +330,7 @@ export const SWIPE_ACTIONS = {
   
   star: (onAction: () => void): SwipeAction => ({
     icon: Star,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-amber-500',
     label: 'Favoritar',
     action: onAction,
@@ -338,15 +338,15 @@ export const SWIPE_ACTIONS = {
   
   mute: (onAction: () => void): SwipeAction => ({
     icon: BellOff,
-    color: 'text-white',
-    bgColor: 'bg-slate-500',
+    color: 'text-primary-foreground',
+    bgColor: 'bg-muted',
     label: 'Silenciar',
     action: onAction,
   }),
   
   unmute: (onAction: () => void): SwipeAction => ({
     icon: Bell,
-    color: 'text-white',
+    color: 'text-primary-foreground',
     bgColor: 'bg-info',
     label: 'Ativar som',
     action: onAction,

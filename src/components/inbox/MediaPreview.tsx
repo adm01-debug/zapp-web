@@ -32,22 +32,22 @@ function getFileIcon(fileName: string, mimeType?: string) {
   
   // Document types
   if (['pdf'].includes(extension)) {
-    return <FileText className="w-8 h-8 text-red-500" />;
+    return <FileText className="w-8 h-8 text-destructive" />;
   }
   if (['doc', 'docx'].includes(extension)) {
-    return <FileText className="w-8 h-8 text-blue-500" />;
+    return <FileText className="w-8 h-8 text-info" />;
   }
   if (['xls', 'xlsx'].includes(extension)) {
-    return <FileSpreadsheet className="w-8 h-8 text-green-500" />;
+    return <FileSpreadsheet className="w-8 h-8 text-success" />;
   }
   if (['ppt', 'pptx'].includes(extension)) {
-    return <FileText className="w-8 h-8 text-orange-500" />;
+    return <FileText className="w-8 h-8 text-warning" />;
   }
   if (['zip', 'rar', '7z'].includes(extension)) {
-    return <FileArchive className="w-8 h-8 text-yellow-500" />;
+    return <FileArchive className="w-8 h-8 text-warning" />;
   }
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
-    return <FileImage className="w-8 h-8 text-purple-500" />;
+    return <FileImage className="w-8 h-8 text-primary" />;
   }
   
   return <File className="w-8 h-8 text-muted-foreground" />;
@@ -211,9 +211,9 @@ export function VideoPreview({ url, caption, isSent }: VideoPreviewProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/30 flex items-center justify-center"
+                className="absolute inset-0 bg-background/30 flex items-center justify-center"
               >
-                <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-full bg-background/90 flex items-center justify-center shadow-lg">
                   <Play className="w-6 h-6 text-primary ml-0.5" />
                 </div>
               </motion.div>
@@ -226,7 +226,7 @@ export function VideoPreview({ url, caption, isSent }: VideoPreviewProps) {
               e.stopPropagation();
               setShowFullscreen(true);
             }}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-background/50 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/70"
           >
             <Maximize className="w-3.5 h-3.5" />
           </button>

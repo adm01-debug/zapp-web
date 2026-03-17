@@ -417,10 +417,10 @@ interface MicroFeedbackProps {
 }
 
 const feedbackColors = {
-  success: 'bg-green-500',
+  success: 'bg-success',
   error: 'bg-destructive',
   loading: 'bg-primary',
-  warning: 'bg-yellow-500',
+  warning: 'bg-warning',
 };
 
 const feedbackSizes = {
@@ -668,7 +668,7 @@ export function FeedbackAnimation({ type, show, size = 48 }: FeedbackAnimationPr
           exit={{ scale: 0 }}
           className={cn(
             'rounded-full flex items-center justify-center',
-            type === 'success' ? 'bg-green-500/20' : 'bg-destructive/20'
+            type === 'success' ? 'bg-success/20' : 'bg-destructive/20'
           )}
           style={{ width: size, height: size }}
         >

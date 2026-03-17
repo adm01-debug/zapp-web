@@ -35,7 +35,7 @@ export function ConfirmationDialog({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/50"
       onClick={() => onOpenChange(false)}
     >
       <motion.div
@@ -198,7 +198,7 @@ export function RealTimeValidation({
           transition={{ delay: i * 0.05 }}
           className={cn(
             "flex items-center gap-2 text-sm",
-            result.passed ? "text-green-500" : 
+            result.passed ? "text-success" : 
             result.type === 'error' ? "text-destructive" : "text-amber-500"
           )}
         >
@@ -242,11 +242,11 @@ export function PasswordStrengthMeter({ password, className }: PasswordStrengthP
     'Muito forte';
   
   const strengthColor =
-    strength <= 0.2 ? 'bg-red-500' :
-    strength <= 0.4 ? 'bg-orange-500' :
-    strength <= 0.6 ? 'bg-yellow-500' :
+    strength <= 0.2 ? 'bg-destructive' :
+    strength <= 0.4 ? 'bg-warning' :
+    strength <= 0.6 ? 'bg-warning' :
     strength <= 0.8 ? 'bg-lime-500' :
-    'bg-green-500';
+    'bg-success';
   
   if (!password) return null;
   
@@ -274,7 +274,7 @@ export function PasswordStrengthMeter({ password, className }: PasswordStrengthP
             transition={{ delay: i * 0.05 }}
             className={cn(
               "flex items-center gap-1.5 text-xs",
-              check.test ? "text-green-500" : "text-muted-foreground"
+              check.test ? "text-success" : "text-muted-foreground"
             )}
           >
             {check.test ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
@@ -427,7 +427,7 @@ export function ConfirmedInput({
             exit={{ opacity: 0, scale: 0.8 }}
             className="absolute right-3 top-1/2 -translate-y-1/2"
           >
-            <Check className="w-4 h-4 text-green-500" />
+            <Check className="w-4 h-4 text-success" />
           </motion.div>
         )}
       </AnimatePresence>

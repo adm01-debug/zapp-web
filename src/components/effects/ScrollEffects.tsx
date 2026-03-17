@@ -259,7 +259,7 @@ export function RippleButton({ children, className, onClick }: RippleButtonProps
     const ripple = document.createElement('span');
     ripple.style.left = `${x}px`;
     ripple.style.top = `${y}px`;
-    ripple.className = 'absolute rounded-full bg-white/30 animate-ripple pointer-events-none';
+    ripple.className = 'absolute rounded-full bg-background/30 animate-ripple pointer-events-none';
     
     button.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);

@@ -208,7 +208,7 @@ export function AutoSaveIndicator({ status, lastSaved, className }: AutoSaveIndi
     },
     saved: { 
       text: lastSaved ? `Salvo às ${lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Salvo', 
-      icon: <Check className="w-3 h-3 text-green-500" />
+      icon: <Check className="w-3 h-3 text-success" />
     },
     error: { text: 'Erro ao salvar', icon: null },
   };

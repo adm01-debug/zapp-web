@@ -391,8 +391,8 @@ export function NotificationSettingsPanel() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center">
-                <TrendingDown className="w-5 h-5 text-orange-400" />
+              <div className="w-10 h-10 rounded-xl bg-warning/15 flex items-center justify-center">
+                <TrendingDown className="w-5 h-5 text-warning" />
               </div>
               <div>
                 <CardTitle className="text-lg">Alertas de Sentimento</CardTitle>
@@ -413,9 +413,9 @@ export function NotificationSettingsPanel() {
                 <Label className="text-sm">Limite de Alerta</Label>
                 <Badge variant="outline" className={cn(
                   "font-mono",
-                  settings.sentimentAlertThreshold < 30 ? "text-red-400 border-red-400/50" :
-                  settings.sentimentAlertThreshold < 50 ? "text-orange-400 border-orange-400/50" :
-                  "text-yellow-400 border-yellow-400/50"
+                  settings.sentimentAlertThreshold < 30 ? "text-destructive border-red-400/50" :
+                  settings.sentimentAlertThreshold < 50 ? "text-warning border-orange-400/50" :
+                  "text-warning border-yellow-400/50"
                 )}>
                   {settings.sentimentAlertThreshold}%
                 </Badge>

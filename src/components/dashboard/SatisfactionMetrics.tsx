@@ -106,21 +106,21 @@ export const SatisfactionMetrics = () => {
   }, [selectedPeriod]);
 
   const getCSATColor = (value: number) => {
-    if (value >= 85) return 'text-green-500';
-    if (value >= 70) return 'text-yellow-500';
-    return 'text-red-500';
+    if (value >= 85) return 'text-success';
+    if (value >= 70) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getNPSColor = (value: number) => {
-    if (value >= 50) return 'text-green-500';
-    if (value >= 0) return 'text-yellow-500';
-    return 'text-red-500';
+    if (value >= 50) return 'text-success';
+    if (value >= 0) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getRatingIcon = (rating: number) => {
-    if (rating >= 4) return <Smile className="h-4 w-4 text-green-500" />;
-    if (rating === 3) return <Meh className="h-4 w-4 text-yellow-500" />;
-    return <Frown className="h-4 w-4 text-red-500" />;
+    if (rating >= 4) return <Smile className="h-4 w-4 text-success" />;
+    if (rating === 3) return <Meh className="h-4 w-4 text-warning" />;
+    return <Frown className="h-4 w-4 text-destructive" />;
   };
 
   const COLORS = ['#22c55e', '#84cc16', '#eab308', '#f97316', '#ef4444'];
@@ -141,7 +141,7 @@ export const SatisfactionMetrics = () => {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
+              <Star className="h-5 w-5 text-warning" />
               <CardTitle className="text-lg">Satisfação do Cliente</CardTitle>
             </div>
             <div className="flex items-center gap-2">
@@ -174,13 +174,13 @@ export const SatisfactionMetrics = () => {
               </div>
               <div className="flex items-center justify-center gap-1 text-xs mt-1">
                 {data.trend === 'up' ? (
-                  <TrendingUp className="h-3 w-3 text-green-500" />
+                  <TrendingUp className="h-3 w-3 text-success" />
                 ) : data.trend === 'down' ? (
-                  <TrendingDown className="h-3 w-3 text-red-500" />
+                  <TrendingDown className="h-3 w-3 text-destructive" />
                 ) : (
-                  <Minus className="h-3 w-3 text-yellow-500" />
+                  <Minus className="h-3 w-3 text-warning" />
                 )}
-                <span className={data.trend === 'up' ? 'text-green-500' : data.trend === 'down' ? 'text-red-500' : ''}>
+                <span className={data.trend === 'up' ? 'text-success' : data.trend === 'down' ? 'text-destructive' : ''}>
                   {data.trendValue}%
                 </span>
               </div>
@@ -223,7 +223,7 @@ export const SatisfactionMetrics = () => {
             >
               <div className="text-sm text-muted-foreground mb-1">Top Agente</div>
               <div className="text-lg font-bold truncate">{data.byAgent[0]?.agentName}</div>
-              <div className="text-xs text-green-500 mt-1">
+              <div className="text-xs text-success mt-1">
                 {data.byAgent[0]?.csat}% CSAT
               </div>
             </motion.div>
@@ -297,7 +297,7 @@ export const SatisfactionMetrics = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-yellow-500" />
+              <Award className="h-5 w-5 text-warning" />
               Ranking de Agentes por CSAT
             </DialogTitle>
           </DialogHeader>

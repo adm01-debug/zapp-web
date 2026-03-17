@@ -96,7 +96,7 @@ export function CSATSurveyDialog({ open, onOpenChange, contactId, agentId, conta
                         className={cn(
                           'w-8 h-8 transition-colors',
                           star <= displayRating
-                            ? 'fill-yellow-400 text-yellow-400'
+                            ? 'fill-yellow-400 text-warning'
                             : 'text-muted-foreground/30'
                         )}
                       />

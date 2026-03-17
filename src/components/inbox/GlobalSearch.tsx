@@ -405,7 +405,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
 
   const getResultStyle = (type: SearchResult['type']) => {
     switch (type) {
-      case 'transcription': return 'bg-orange-500/10 text-orange-500';
+      case 'transcription': return 'bg-warning/10 text-warning';
       case 'message': return 'bg-primary/10 text-primary';
       case 'contact': return 'bg-secondary/10 text-secondary';
       case 'action': return 'bg-accent/10 text-accent';
@@ -525,7 +525,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                     <Toggle pressed={activeTypes.has('message')} onPressedChange={() => toggleType('message')} size="sm" className="gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
                       <FileText className="h-3.5 w-3.5" /> Textos
                     </Toggle>
-                    <Toggle pressed={activeTypes.has('transcription')} onPressedChange={() => toggleType('transcription')} size="sm" className="gap-1.5 data-[state=on]:bg-orange-500 data-[state=on]:text-white">
+                    <Toggle pressed={activeTypes.has('transcription')} onPressedChange={() => toggleType('transcription')} size="sm" className="gap-1.5 data-[state=on]:bg-warning data-[state=on]:text-primary-foreground">
                       <Mic className="h-3.5 w-3.5" /> Transcrições
                     </Toggle>
                     <Toggle pressed={activeTypes.has('contact')} onPressedChange={() => toggleType('contact')} size="sm" className="gap-1.5 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">

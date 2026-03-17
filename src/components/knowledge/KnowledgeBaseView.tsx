@@ -152,8 +152,8 @@ export function KnowledgeBaseView() {
   });
 
   const statusIcon = (status: string) => {
-    if (status === 'completed') return <CheckCircle className="w-3.5 h-3.5 text-green-400" />;
-    if (status === 'processing') return <Clock className="w-3.5 h-3.5 text-yellow-400 animate-spin" />;
+    if (status === 'completed') return <CheckCircle className="w-3.5 h-3.5 text-success" />;
+    if (status === 'processing') return <Clock className="w-3.5 h-3.5 text-warning animate-spin" />;
     return <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" />;
   };
 
@@ -208,8 +208,8 @@ export function KnowledgeBaseView() {
         </Card>
         <Card className="bg-card/50 border-border/30">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-400" />
+            <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-success" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Publicados</p>
@@ -219,8 +219,8 @@ export function KnowledgeBaseView() {
         </Card>
         <Card className="bg-card/50 border-border/30">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Brain className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Indexados</p>
@@ -282,7 +282,7 @@ export function KnowledgeBaseView() {
                           <Badge key={tag} variant="secondary" className="text-[10px] h-4">{tag}</Badge>
                         ))}
                         {!article.is_published && (
-                          <Badge variant="outline" className="text-[10px] h-4 text-yellow-400 border-yellow-400/30">Rascunho</Badge>
+                          <Badge variant="outline" className="text-[10px] h-4 text-warning border-yellow-400/30">Rascunho</Badge>
                         )}
                       </div>
                     </CardContent>

@@ -40,16 +40,16 @@ interface ConversationSummaryProps {
 }
 
 const statusConfig = {
-  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  pendente: { label: 'Pendente', icon: Clock, className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-success/20 text-success border-green-500/30' },
+  pendente: { label: 'Pendente', icon: Clock, className: 'bg-warning/20 text-warning border-yellow-500/30' },
+  aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-warning/20 text-warning border-orange-500/30' },
+  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-info/20 text-info border-blue-500/30' },
 };
 
 const sentimentConfig = {
-  positivo: { label: 'Positivo', icon: ThumbsUp, className: 'text-green-400' },
+  positivo: { label: 'Positivo', icon: ThumbsUp, className: 'text-success' },
   neutro: { label: 'Neutro', icon: Minus, className: 'text-muted-foreground' },
-  negativo: { label: 'Negativo', icon: ThumbsDown, className: 'text-red-400' },
+  negativo: { label: 'Negativo', icon: ThumbsDown, className: 'text-destructive' },
 };
 
 export function ConversationSummary({ messages, contactName }: ConversationSummaryProps) {

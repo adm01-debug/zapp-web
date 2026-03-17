@@ -230,7 +230,7 @@ export function FeatureSpotlight({
       className="fixed inset-0 z-50"
     >
       {/* Overlay with cutout */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-background/60" />
       
       {/* Spotlight */}
       <motion.div
@@ -314,12 +314,12 @@ export function InfoBanner({
   
   const styles = {
     info: {
-      bg: 'bg-blue-500/10 border-blue-500/20',
-      icon: <Info className="w-5 h-5 text-blue-500" />,
+      bg: 'bg-info/10 border-blue-500/20',
+      icon: <Info className="w-5 h-5 text-info" />,
     },
     tip: {
-      bg: 'bg-green-500/10 border-green-500/20',
-      icon: <Lightbulb className="w-5 h-5 text-green-500" />,
+      bg: 'bg-success/10 border-green-500/20',
+      icon: <Lightbulb className="w-5 h-5 text-success" />,
     },
     warning: {
       bg: 'bg-amber-500/10 border-amber-500/20',

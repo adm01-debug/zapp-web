@@ -213,7 +213,7 @@ export function ClientWalletView() {
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
+              <Button className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground">
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Regra
               </Button>

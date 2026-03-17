@@ -41,7 +41,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Transferir conversa para outro agente ou fila',
     icon: ArrowRight,
     category: 'actions',
-    color: 'text-blue-500',
+    color: 'text-info',
     shortcut: 'T',
     subCommands: [
       { id: 'agent', label: 'Para Agente', value: 'agent' },
@@ -65,7 +65,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Inserir um template de mensagem',
     icon: FileText,
     category: 'templates',
-    color: 'text-purple-500',
+    color: 'text-primary',
     shortcut: 'M',
   },
   {
@@ -99,7 +99,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Definir prioridade da conversa',
     icon: AlertTriangle,
     category: 'priority',
-    color: 'text-orange-500',
+    color: 'text-warning',
     shortcut: 'P',
     subCommands: [
       { id: 'high', label: '🔴 Alta', value: 'high' },
@@ -114,7 +114,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Atribuir conversa a um agente',
     icon: Users,
     category: 'actions',
-    color: 'text-indigo-500',
+    color: 'text-primary',
     shortcut: 'A',
   },
   {
@@ -124,7 +124,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Adiar conversa para depois',
     icon: Clock,
     category: 'actions',
-    color: 'text-slate-500',
+    color: 'text-muted-foreground',
     shortcut: 'S',
     subCommands: [
       { id: '1h', label: 'Em 1 hora', value: '1h' },
@@ -140,7 +140,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Marcar conversa como favorita',
     icon: Star,
     category: 'actions',
-    color: 'text-yellow-500',
+    color: 'text-warning',
     shortcut: 'F',
   },
   {
@@ -160,7 +160,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Criar lembrete para esta conversa',
     icon: Bell,
     category: 'actions',
-    color: 'text-pink-500',
+    color: 'text-destructive',
     shortcut: 'L',
   },
   {
@@ -297,11 +297,11 @@ export function SlashCommands({
   if (!isOpen || (filteredCommands.length === 0 && !selectedCommand)) return null;
 
   const categoryColors = {
-    actions: 'bg-blue-500/10 text-blue-500',
-    templates: 'bg-purple-500/10 text-purple-500',
+    actions: 'bg-info/10 text-info',
+    templates: 'bg-primary/10 text-primary',
     notes: 'bg-amber-500/10 text-amber-500',
     tags: 'bg-cyan-500/10 text-cyan-500',
-    priority: 'bg-orange-500/10 text-orange-500',
+    priority: 'bg-warning/10 text-warning',
   };
 
   const categoryLabels = {

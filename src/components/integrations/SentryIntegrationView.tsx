@@ -61,9 +61,9 @@ export function SentryIntegrationView() {
   };
 
   const levelColor = (level: string) => {
-    if (level === 'error') return 'text-red-500';
-    if (level === 'warning') return 'text-yellow-500';
-    return 'text-blue-500';
+    if (level === 'error') return 'text-destructive';
+    if (level === 'warning') return 'text-warning';
+    return 'text-info';
   };
 
   const unresolvedCount = errors.filter(e => !e.isResolved).length;
@@ -74,7 +74,7 @@ export function SentryIntegrationView() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#362D59]">
-            <Bug className="w-5 h-5 text-white" />
+            <Bug className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">Sentry Monitoring</h1>
@@ -131,7 +131,7 @@ export function SentryIntegrationView() {
           <div className="grid grid-cols-3 gap-4">
             <Card className="border-secondary/30">
               <CardContent className="py-4 text-center">
-                <ShieldAlert className="w-6 h-6 mx-auto mb-1 text-red-500" />
+                <ShieldAlert className="w-6 h-6 mx-auto mb-1 text-destructive" />
                 <p className="text-2xl font-bold text-foreground">{unresolvedCount}</p>
                 <p className="text-xs text-muted-foreground">Não resolvidos</p>
               </CardContent>
@@ -145,7 +145,7 @@ export function SentryIntegrationView() {
             </Card>
             <Card className="border-secondary/30">
               <CardContent className="py-4 text-center">
-                <TrendingUp className="w-6 h-6 mx-auto mb-1 text-green-500" />
+                <TrendingUp className="w-6 h-6 mx-auto mb-1 text-success" />
                 <p className="text-2xl font-bold text-foreground">99.2%</p>
                 <p className="text-xs text-muted-foreground">Crash-free</p>
               </CardContent>
@@ -172,7 +172,7 @@ export function SentryIntegrationView() {
                       <CheckCircle2 className="w-3 h-3 mr-1" /> Resolver
                     </Button>
                   ) : (
-                    <Badge variant="outline" className="text-xs text-green-500">Resolvido</Badge>
+                    <Badge variant="outline" className="text-xs text-success">Resolvido</Badge>
                   )}
                 </CardContent>
               </Card>

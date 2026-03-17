@@ -189,9 +189,9 @@ export function SalesPipelineView() {
   const totalWon = wonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
 
   const priorityColors: Record<string, string> = {
-    high: 'bg-red-500/20 text-red-400 border-red-500/30',
-    medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    low: 'bg-green-500/20 text-green-400 border-green-500/30',
+    high: 'bg-destructive/20 text-destructive border-red-500/30',
+    medium: 'bg-warning/20 text-warning border-yellow-500/30',
+    low: 'bg-success/20 text-success border-green-500/30',
   };
 
   const handleDragStart = (dealId: string) => setDraggedDeal(dealId);
@@ -247,9 +247,9 @@ export function SalesPipelineView() {
         <Card className="bg-card/50 border-border/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-              <Trophy className="w-3.5 h-3.5 text-green-400" /> Ganhos
+              <Trophy className="w-3.5 h-3.5 text-success" /> Ganhos
             </div>
-            <p className="text-lg font-bold text-green-400">
+            <p className="text-lg font-bold text-success">
               R$ {totalWon.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </CardContent>
@@ -334,10 +334,10 @@ export function SalesPipelineView() {
                               <DropdownMenuItem onClick={() => openEditDeal(deal)}>
                                 <Edit className="w-3.5 h-3.5 mr-2" /> Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => markAsWon(deal)} className="text-green-400">
+                              <DropdownMenuItem onClick={() => markAsWon(deal)} className="text-success">
                                 <Trophy className="w-3.5 h-3.5 mr-2" /> Marcar como ganho
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => markAsLost(deal)} className="text-red-400">
+                              <DropdownMenuItem onClick={() => markAsLost(deal)} className="text-destructive">
                                 <X className="w-3.5 h-3.5 mr-2" /> Marcar como perdido
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => deleteDeal(deal.id)} className="text-destructive">
@@ -349,8 +349,8 @@ export function SalesPipelineView() {
 
                         {deal.value > 0 && (
                           <div className="flex items-center gap-1 mb-2">
-                            <DollarSign className="w-3.5 h-3.5 text-green-400" />
-                            <span className="text-sm font-semibold text-green-400">
+                            <DollarSign className="w-3.5 h-3.5 text-success" />
+                            <span className="text-sm font-semibold text-success">
                               R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </span>
                           </div>

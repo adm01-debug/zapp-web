@@ -254,7 +254,7 @@ export function OnboardingChecklist({ onNavigate, onDismiss, compact = false }: 
                 transition={{ duration: 2, repeat: Infinity }}
                 className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg"
               >
-                <Sparkles className="w-5 h-5 text-white" />
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
               </motion.div>
               <div>
                 <CardTitle className="text-lg">Configure sua conta</CardTitle>

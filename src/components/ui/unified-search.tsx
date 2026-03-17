@@ -175,9 +175,9 @@ export function UnifiedSearch({
     conversation: 'bg-secondary/10 text-secondary',
     contact: 'bg-primary/10 text-primary',
     message: 'bg-muted text-muted-foreground',
-    tag: 'bg-yellow-500/10 text-yellow-500',
-    action: 'bg-green-500/10 text-green-500',
-    file: 'bg-blue-500/10 text-blue-500',
+    tag: 'bg-warning/10 text-warning',
+    action: 'bg-success/10 text-success',
+    file: 'bg-info/10 text-info',
   };
 
   return (

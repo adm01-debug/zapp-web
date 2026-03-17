@@ -77,10 +77,10 @@ export function EnhancedToast({
   }, [duration, type, isPaused, onClose]);
 
   const icons: Record<ToastType, React.ReactNode> = {
-    success: <Check className="w-4 h-4 text-green-500" />,
+    success: <Check className="w-4 h-4 text-success" />,
     error: <X className="w-4 h-4 text-destructive" />,
-    warning: <AlertCircle className="w-4 h-4 text-yellow-500" />,
-    info: <Info className="w-4 h-4 text-blue-500" />,
+    warning: <AlertCircle className="w-4 h-4 text-warning" />,
+    info: <Info className="w-4 h-4 text-info" />,
     loading: <Loader2 className="w-4 h-4 text-primary animate-spin" />,
     action: <Info className="w-4 h-4 text-primary" />,
   };
@@ -312,10 +312,10 @@ interface InlineFeedbackProps {
 
 export function InlineFeedback({ type, message, className }: InlineFeedbackProps) {
   const configs = {
-    success: { icon: Check, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/30' },
+    success: { icon: Check, color: 'text-success', bg: 'bg-success/10 dark:bg-success/15/30' },
     error: { icon: X, color: 'text-destructive', bg: 'bg-destructive/10' },
-    warning: { icon: AlertCircle, color: 'text-yellow-600', bg: 'bg-yellow-50 dark:bg-yellow-950/30' },
-    info: { icon: Info, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/30' },
+    warning: { icon: AlertCircle, color: 'text-warning', bg: 'bg-warning/10 dark:bg-warning/15/30' },
+    info: { icon: Info, color: 'text-info', bg: 'bg-info/10 dark:bg-info/15/30' },
   };
 
   const config = configs[type];
@@ -366,8 +366,8 @@ export function ConfirmationFeedback({
 }: ConfirmationFeedbackProps) {
   const typeConfigs = {
     danger: { icon: AlertCircle, color: 'text-destructive', buttonVariant: 'destructive' as const },
-    warning: { icon: AlertCircle, color: 'text-yellow-500', buttonVariant: 'default' as const },
-    info: { icon: Info, color: 'text-blue-500', buttonVariant: 'default' as const },
+    warning: { icon: AlertCircle, color: 'text-warning', buttonVariant: 'default' as const },
+    info: { icon: Info, color: 'text-info', buttonVariant: 'default' as const },
   };
 
   const config = typeConfigs[type];
@@ -382,7 +382,7 @@ export function ConfirmationFeedback({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-background/50 backdrop-blur-sm"
             onClick={onCancel}
           />
 
@@ -440,11 +440,11 @@ export function StatusBadge({
   className,
 }: StatusBadgeProps) {
   const statusConfigs = {
-    online: { color: 'bg-green-500', label: 'Online' },
-    offline: { color: 'bg-gray-400', label: 'Offline' },
-    busy: { color: 'bg-red-500', label: 'Ocupado' },
-    away: { color: 'bg-yellow-500', label: 'Ausente' },
-    pending: { color: 'bg-blue-500', label: 'Pendente' },
+    online: { color: 'bg-success', label: 'Online' },
+    offline: { color: 'bg-muted', label: 'Offline' },
+    busy: { color: 'bg-destructive', label: 'Ocupado' },
+    away: { color: 'bg-warning', label: 'Ausente' },
+    pending: { color: 'bg-info', label: 'Pendente' },
   };
 
   const sizeConfigs = {

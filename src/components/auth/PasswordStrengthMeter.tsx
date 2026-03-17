@@ -66,8 +66,8 @@ export function PasswordStrengthMeter({ password, onStrengthChange }: PasswordSt
   const strengthColor = useMemo(() => {
     if (strengthPercent < 40) return { bg: 'bg-destructive', text: 'text-destructive', glow: 'shadow-destructive/50' };
     if (strengthPercent < 60) return { bg: 'bg-amber-500', text: 'text-amber-500', glow: 'shadow-amber-500/50' };
-    if (strengthPercent < 80) return { bg: 'bg-blue-500', text: 'text-blue-500', glow: 'shadow-blue-500/50' };
-    return { bg: 'bg-green-500', text: 'text-green-500', glow: 'shadow-green-500/50' };
+    if (strengthPercent < 80) return { bg: 'bg-info', text: 'text-info', glow: 'shadow-blue-500/50' };
+    return { bg: 'bg-success', text: 'text-success', glow: 'shadow-green-500/50' };
   }, [strengthPercent]);
 
   const isValid = metRequirements.length === requirements.length && isBreached !== true;
@@ -217,10 +217,10 @@ export function PasswordStrengthMeter({ password, onStrengthChange }: PasswordSt
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10 border border-green-500/20"
+            className="flex items-center gap-2 p-2 rounded-lg bg-success/10 border border-green-500/20"
           >
-            <ShieldCheck className="w-4 h-4 text-green-500" />
-            <span className="text-xs text-green-600 dark:text-green-400">
+            <ShieldCheck className="w-4 h-4 text-success" />
+            <span className="text-xs text-success dark:text-success">
               Senha não encontrada em vazamentos conhecidos
             </span>
           </motion.div>
@@ -248,8 +248,8 @@ export function PasswordStrengthMeter({ password, onStrengthChange }: PasswordSt
                 transition={{ duration: 0.3 }}
               >
                 {met ? (
-                  <div className="p-0.5 rounded-full bg-green-500/20">
-                    <Check className="w-3 h-3 text-green-500" />
+                  <div className="p-0.5 rounded-full bg-success/20">
+                    <Check className="w-3 h-3 text-success" />
                   </div>
                 ) : (
                   <div className="p-0.5 rounded-full bg-muted">
@@ -258,7 +258,7 @@ export function PasswordStrengthMeter({ password, onStrengthChange }: PasswordSt
                 )}
               </motion.div>
               <span className={`text-xs transition-colors ${
-                met ? 'text-green-600 dark:text-green-400 font-medium' : 'text-muted-foreground'
+                met ? 'text-success dark:text-success font-medium' : 'text-muted-foreground'
               }`}>
                 {req.label}
               </span>

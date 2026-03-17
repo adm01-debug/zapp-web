@@ -60,18 +60,18 @@ const TrendIndicator = ({
   return (
     <div className="flex items-center gap-1">
       {trend.direction === 'up' && (
-        <TrendingUp className={cn("h-4 w-4", isPositive ? "text-green-500" : "text-red-500")} />
+        <TrendingUp className={cn("h-4 w-4", isPositive ? "text-success" : "text-destructive")} />
       )}
       {trend.direction === 'down' && (
-        <TrendingDown className={cn("h-4 w-4", isPositive ? "text-green-500" : "text-red-500")} />
+        <TrendingDown className={cn("h-4 w-4", isPositive ? "text-success" : "text-destructive")} />
       )}
       {trend.direction === 'stable' && (
         <Minus className="h-4 w-4 text-muted-foreground" />
       )}
       <span className={cn(
         "text-sm font-medium",
-        isPositive && "text-green-500",
-        isNegative && "text-red-500",
+        isPositive && "text-success",
+        isNegative && "text-destructive",
         trend.direction === 'stable' && "text-muted-foreground"
       )}>
         {trend.percentage.toFixed(1)}%
@@ -192,9 +192,9 @@ export const SLAHistoryDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Violações 1ª Resposta</p>
-                  <p className="text-3xl font-bold text-orange-500">{data.totals.firstResponseBreaches}</p>
+                  <p className="text-3xl font-bold text-warning">{data.totals.firstResponseBreaches}</p>
                 </div>
-                <Clock className="h-8 w-8 text-orange-500 opacity-50" />
+                <Clock className="h-8 w-8 text-warning opacity-50" />
               </div>
               <TrendIndicator trend={data.trends.firstResponse} inverse label="vs período anterior" />
             </CardContent>
@@ -207,9 +207,9 @@ export const SLAHistoryDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Violações Resolução</p>
-                  <p className="text-3xl font-bold text-red-500">{data.totals.resolutionBreaches}</p>
+                  <p className="text-3xl font-bold text-destructive">{data.totals.resolutionBreaches}</p>
                 </div>
-                <XCircle className="h-8 w-8 text-red-500 opacity-50" />
+                <XCircle className="h-8 w-8 text-destructive opacity-50" />
               </div>
               <TrendIndicator trend={data.trends.resolution} inverse label="vs período anterior" />
             </CardContent>
@@ -224,7 +224,7 @@ export const SLAHistoryDashboard = () => {
                   <p className="text-sm text-muted-foreground">Total Conversas</p>
                   <p className="text-3xl font-bold">{data.totals.totalConversations}</p>
                 </div>
-                <Calendar className="h-8 w-8 text-blue-500 opacity-50" />
+                <Calendar className="h-8 w-8 text-info opacity-50" />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 {data.totals.totalBreaches} violações totais
@@ -340,7 +340,7 @@ export const SLAHistoryDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-500">
+            <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
               Piores Dias
             </CardTitle>
@@ -356,7 +356,7 @@ export const SLAHistoryDashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex items-center justify-between p-3 rounded-lg bg-red-500/5 border border-red-500/20"
+                    className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-red-500/20"
                   >
                     <div>
                       <p className="font-medium">{day.dateLabel}</p>
@@ -376,7 +376,7 @@ export const SLAHistoryDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-500">
+            <CardTitle className="flex items-center gap-2 text-success">
               <CheckCircle className="h-5 w-5" />
               Melhores Dias
             </CardTitle>
@@ -392,7 +392,7 @@ export const SLAHistoryDashboard = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex items-center justify-between p-3 rounded-lg bg-green-500/5 border border-green-500/20"
+                    className="flex items-center justify-between p-3 rounded-lg bg-success/5 border border-green-500/20"
                   >
                     <div>
                       <p className="font-medium">{day.dateLabel}</p>
@@ -400,7 +400,7 @@ export const SLAHistoryDashboard = () => {
                         {day.totalConversations} conversas atendidas
                       </p>
                     </div>
-                    <Badge className="bg-green-500/20 text-green-600 hover:bg-green-500/30">
+                    <Badge className="bg-success/20 text-success hover:bg-success/30">
                       {day.slaRate.toFixed(0)}% SLA
                     </Badge>
                   </motion.div>

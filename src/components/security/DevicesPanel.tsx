@@ -116,7 +116,7 @@ export function DevicesPanel() {
             {sessions.length > 1 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
                     <LogOut className="w-4 h-4 mr-2" />
                     Encerrar outras
                   </Button>
@@ -131,7 +131,7 @@ export function DevicesPanel() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleEndAllOtherSessions} className="bg-red-500 hover:bg-red-600">
+                    <AlertDialogAction onClick={handleEndAllOtherSessions} className="bg-destructive hover:bg-destructive">
                       Encerrar sessões
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -196,7 +196,7 @@ export function DevicesPanel() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleEndSession(session.id)}
                         disabled={processingSession === session.id}
                       >
@@ -271,7 +271,7 @@ export function DevicesPanel() {
                               <Badge className="bg-primary">Este dispositivo</Badge>
                             )}
                             {device.is_trusted && (
-                              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                              <Badge variant="outline" className="bg-success/10 text-success border-green-500/20">
                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                 Confiável
                               </Badge>
@@ -319,7 +319,7 @@ export function DevicesPanel() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -336,7 +336,7 @@ export function DevicesPanel() {
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction 
                                   onClick={() => handleRemoveDevice(device.id)}
-                                  className="bg-red-500 hover:bg-red-600"
+                                  className="bg-destructive hover:bg-destructive"
                                 >
                                   Remover
                                 </AlertDialogAction>
@@ -355,11 +355,11 @@ export function DevicesPanel() {
       </Card>
 
       {/* Info Card */}
-      <Card className="bg-blue-500/5 border-blue-500/20">
+      <Card className="bg-info/5 border-blue-500/20">
         <CardContent className="flex items-start gap-4 p-4">
-          <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-info mt-0.5" />
           <div>
-            <h4 className="font-medium text-blue-500">Dica de Segurança</h4>
+            <h4 className="font-medium text-info">Dica de Segurança</h4>
             <p className="text-sm text-muted-foreground mt-1">
               Marque seus dispositivos pessoais como "confiáveis" para não receber alertas 
               de segurança a cada login. Remova dispositivos que você não reconhece imediatamente.

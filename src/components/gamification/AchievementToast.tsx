@@ -32,37 +32,37 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
   streak: {
     icon: Flame,
     title: 'Streak de Fogo!',
-    gradient: 'from-orange-500 via-amber-400 to-yellow-400',
+    gradient: 'from-orange-500 via-amber-400 to-warning',
     glowColor: 'hsl(25 95% 55% / 0.5)',
-    particles: 'bg-orange-400',
+    particles: 'bg-warning',
   },
   first_message: {
     icon: MessageSquare,
     title: 'Primeiro Contato!',
-    gradient: 'from-blue-500 via-cyan-400 to-teal-400',
+    gradient: 'from-info via-cyan-400 to-teal-400',
     glowColor: 'hsl(200 80% 50% / 0.5)',
-    particles: 'bg-blue-400',
+    particles: 'bg-info',
   },
   resolution: {
     icon: Target,
     title: 'Problema Resolvido!',
     gradient: 'from-primary via-green-400 to-emerald-400',
     glowColor: 'hsl(142 72% 50% / 0.5)',
-    particles: 'bg-green-400',
+    particles: 'bg-success',
   },
   perfect_rating: {
     icon: Star,
     title: 'Avaliação Perfeita!',
-    gradient: 'from-yellow-400 via-amber-400 to-orange-400',
+    gradient: 'from-warning via-amber-400 to-orange-400',
     glowColor: 'hsl(45 95% 55% / 0.5)',
-    particles: 'bg-yellow-400',
+    particles: 'bg-warning',
   },
   level_up: {
     icon: Crown,
     title: 'Level Up!',
-    gradient: 'from-purple-500 via-violet-400 to-fuchsia-400',
+    gradient: 'from-primary via-violet-400 to-fuchsia-400',
     glowColor: 'hsl(280 85% 60% / 0.5)',
-    particles: 'bg-purple-400',
+    particles: 'bg-primary',
   },
   daily_goal: {
     icon: Trophy,
@@ -74,9 +74,9 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
   speed_demon: {
     icon: Rocket,
     title: 'Speed Demon!',
-    gradient: 'from-red-500 via-orange-400 to-yellow-400',
+    gradient: 'from-red-500 via-orange-400 to-warning',
     glowColor: 'hsl(15 95% 55% / 0.5)',
-    particles: 'bg-red-400',
+    particles: 'bg-destructive',
   },
 };
 
@@ -195,7 +195,7 @@ export function AchievementToast({
                   }}
                   transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
                 >
-                  <Icon className="w-7 h-7 text-white" />
+                  <Icon className="w-7 h-7 text-primary-foreground" />
                 </motion.div>
 
                 {/* Text content */}
@@ -232,12 +232,12 @@ export function AchievementToast({
                       transition={{ delay: 0.4, type: "spring" }}
                     >
                       <motion.div
-                        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-xp to-purple-400"
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-xp to-primary"
                         animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 0.8, repeat: Infinity }}
                       >
-                        <Zap className="w-3 h-3 text-white" />
-                        <span className="text-xs font-bold text-white">+{xpReward} XP</span>
+                        <Zap className="w-3 h-3 text-primary-foreground" />
+                        <span className="text-xs font-bold text-primary-foreground">+{xpReward} XP</span>
                       </motion.div>
                     </motion.div>
                   )}

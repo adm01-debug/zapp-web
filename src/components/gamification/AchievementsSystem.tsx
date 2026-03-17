@@ -65,10 +65,10 @@ const iconMap = {
 };
 
 const rarityConfig = {
-  common: { label: 'Comum', color: 'bg-gray-500', border: 'border-gray-500/30' },
-  rare: { label: 'Raro', color: 'bg-blue-500', border: 'border-blue-500/30' },
-  epic: { label: 'Épico', color: 'bg-purple-500', border: 'border-purple-500/30' },
-  legendary: { label: 'Lendário', color: 'bg-yellow-500', border: 'border-yellow-500/30' },
+  common: { label: 'Comum', color: 'bg-muted', border: 'border-border/30' },
+  rare: { label: 'Raro', color: 'bg-info', border: 'border-blue-500/30' },
+  epic: { label: 'Épico', color: 'bg-primary', border: 'border-purple-500/30' },
+  legendary: { label: 'Lendário', color: 'bg-warning', border: 'border-yellow-500/30' },
 };
 
 const categoryConfig = {
@@ -251,7 +251,7 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+              <Trophy className="h-5 w-5 text-warning" />
               <CardTitle className="text-lg">Conquistas</CardTitle>
             </div>
             <Badge variant="secondary">
@@ -270,7 +270,7 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
                 >
                   <Icon className="h-6 w-6" />
                   {a.isNew && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
                   )}
                 </div>
               );
@@ -299,7 +299,7 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+              <Trophy className="h-5 w-5 text-warning" />
               <CardTitle className="text-lg">Conquistas</CardTitle>
             </div>
             <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
                             }`}
                           >
                             {achievement.isNew && (
-                              <span className="absolute -top-1 -right-1 px-2 py-0.5 text-[10px] bg-red-500 text-white rounded-full">
+                              <span className="absolute -top-1 -right-1 px-2 py-0.5 text-[10px] bg-destructive text-primary-foreground rounded-full">
                                 NOVO
                               </span>
                             )}
@@ -399,7 +399,7 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
                                     {achievement.xpReward} XP
                                   </Badge>
                                   {achievement.isUnlocked && (
-                                    <Check className="h-4 w-4 text-green-500" />
+                                    <Check className="h-4 w-4 text-success" />
                                   )}
                                 </div>
                               </div>

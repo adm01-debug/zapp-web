@@ -252,17 +252,17 @@ export function SentimentAlertsDashboard() {
   }, [analyses, agents, period]);
 
   const getSentimentColor = (score: number) => {
-    if (score < 30) return 'text-red-400';
-    if (score < 50) return 'text-orange-400';
-    if (score < 70) return 'text-yellow-400';
-    return 'text-green-400';
+    if (score < 30) return 'text-destructive';
+    if (score < 50) return 'text-warning';
+    if (score < 70) return 'text-warning';
+    return 'text-success';
   };
 
   const getSentimentBg = (score: number) => {
-    if (score < 30) return 'bg-red-500';
-    if (score < 50) return 'bg-orange-500';
-    if (score < 70) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (score < 30) return 'bg-destructive';
+    if (score < 50) return 'bg-warning';
+    if (score < 70) return 'bg-warning';
+    return 'bg-success';
   };
 
   const getSentimentLabel = (sentiment: string) => {
@@ -404,27 +404,27 @@ export function SentimentAlertsDashboard() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => handleExportAlerts('pdf')} className="gap-2">
-                <FileText className="h-4 w-4 text-red-500" />
+                <FileText className="h-4 w-4 text-destructive" />
                 Alertas (PDF)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExportAlerts('excel')} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                <FileSpreadsheet className="h-4 w-4 text-success" />
                 Alertas (Excel)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExportAnalyses('pdf')} className="gap-2">
-                <FileText className="h-4 w-4 text-red-500" />
+                <FileText className="h-4 w-4 text-destructive" />
                 Análises (PDF)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExportAnalyses('excel')} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                <FileSpreadsheet className="h-4 w-4 text-success" />
                 Análises (Excel)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExportAgents('pdf')} className="gap-2">
-                <FileText className="h-4 w-4 text-red-500" />
+                <FileText className="h-4 w-4 text-destructive" />
                 Por Agente (PDF)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExportAgents('excel')} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                <FileSpreadsheet className="h-4 w-4 text-success" />
                 Por Agente (Excel)
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -457,12 +457,12 @@ export function SentimentAlertsDashboard() {
                   <p className="text-sm text-muted-foreground">Total de Alertas</p>
                   <p className="text-3xl font-bold">{stats.totalAlerts}</p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                  <AlertTriangle className="h-6 w-6 text-red-400" />
+                <div className="h-12 w-12 rounded-full bg-destructive/20 flex items-center justify-center">
+                  <AlertTriangle className="h-6 w-6 text-destructive" />
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="text-red-400">{stats.criticalAlerts} críticos</span>
+                <span className="text-destructive">{stats.criticalAlerts} críticos</span>
                 <span>•</span>
                 <span>{stats.emailsSent} emails enviados</span>
               </div>
@@ -500,12 +500,12 @@ export function SentimentAlertsDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Taxa de Negativos</p>
-                  <p className={`text-3xl font-bold ${stats.negativeRate > 30 ? 'text-red-400' : 'text-green-400'}`}>
+                  <p className={`text-3xl font-bold ${stats.negativeRate > 30 ? 'text-destructive' : 'text-success'}`}>
                     {stats.negativeRate}%
                   </p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center">
-                  <TrendingDown className="h-6 w-6 text-orange-400" />
+                <div className="h-12 w-12 rounded-full bg-warning/20 flex items-center justify-center">
+                  <TrendingDown className="h-6 w-6 text-warning" />
                 </div>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
@@ -523,8 +523,8 @@ export function SentimentAlertsDashboard() {
                   <p className="text-sm text-muted-foreground">Clientes Afetados</p>
                   <p className="text-3xl font-bold">{stats.uniqueContacts}</p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-400" />
+                <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
+                  <Users className="h-6 w-6 text-info" />
                 </div>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
@@ -571,7 +571,7 @@ export function SentimentAlertsDashboard() {
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
                       <div className="w-full flex flex-col gap-[2px]" style={{ height: '160px' }}>
                         <div 
-                          className="w-full bg-green-500/60 rounded-t transition-all"
+                          className="w-full bg-success/60 rounded-t transition-all"
                           style={{ height: `${(day.positive / Math.max(day.positive + day.neutral + day.negative, 1)) * 100}%` }}
                         />
                         <div 
@@ -579,7 +579,7 @@ export function SentimentAlertsDashboard() {
                           style={{ height: `${(day.neutral / Math.max(day.positive + day.neutral + day.negative, 1)) * 100}%` }}
                         />
                         <div 
-                          className="w-full bg-red-500/60 rounded-b transition-all"
+                          className="w-full bg-destructive/60 rounded-b transition-all"
                           style={{ height: `${(day.negative / Math.max(day.positive + day.neutral + day.negative, 1)) * 100}%` }}
                         />
                       </div>
@@ -589,7 +589,7 @@ export function SentimentAlertsDashboard() {
                 </div>
                 <div className="flex items-center justify-center gap-6 mt-4 text-xs">
                   <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded bg-green-500/60" />
+                    <div className="h-3 w-3 rounded bg-success/60" />
                     <span className="text-muted-foreground">Positivo</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -597,7 +597,7 @@ export function SentimentAlertsDashboard() {
                     <span className="text-muted-foreground">Neutro</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded bg-red-500/60" />
+                    <div className="h-3 w-3 rounded bg-destructive/60" />
                     <span className="text-muted-foreground">Negativo</span>
                   </div>
                 </div>
@@ -627,13 +627,13 @@ export function SentimentAlertsDashboard() {
                     <div className="space-y-3">
                       {alerts.slice(0, 5).map((alert) => (
                         <div key={alert.id} className="flex items-start gap-3 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                          <div className="h-8 w-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                            <AlertTriangle className="h-4 w-4 text-red-400" />
+                          <div className="h-8 w-8 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                            <AlertTriangle className="h-4 w-4 text-destructive" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{alert.contact_name || 'Cliente'}</p>
                             <p className="text-xs text-muted-foreground">
-                              Sentimento: <span className="text-red-400">{alert.sentiment_score}%</span>
+                              Sentimento: <span className="text-destructive">{alert.sentiment_score}%</span>
                               {alert.consecutive_low && ` (${alert.consecutive_low}x consecutivas)`}
                             </p>
                           </div>
@@ -698,13 +698,13 @@ export function SentimentAlertsDashboard() {
                               <span className="flex items-center gap-1">
                                 {data.trend > 0 ? (
                                   <>
-                                    <TrendingUp className="h-3 w-3 text-green-400" />
-                                    <span className="text-green-400">+{data.trend}%</span>
+                                    <TrendingUp className="h-3 w-3 text-success" />
+                                    <span className="text-success">+{data.trend}%</span>
                                   </>
                                 ) : data.trend < 0 ? (
                                   <>
-                                    <TrendingDown className="h-3 w-3 text-red-400" />
-                                    <span className="text-red-400">{data.trend}%</span>
+                                    <TrendingDown className="h-3 w-3 text-destructive" />
+                                    <span className="text-destructive">{data.trend}%</span>
                                   </>
                                 ) : (
                                   <span>Estável</span>
@@ -751,7 +751,7 @@ export function SentimentAlertsDashboard() {
                         </div>
                         <div className="h-4 flex rounded-full overflow-hidden bg-muted">
                           <div 
-                            className="bg-green-500 transition-all"
+                            className="bg-success transition-all"
                             style={{ width: `${(data.positive / Math.max(total, 1)) * 100}%` }}
                           />
                           <div 
@@ -759,14 +759,14 @@ export function SentimentAlertsDashboard() {
                             style={{ width: `${(data.neutral / Math.max(total, 1)) * 100}%` }}
                           />
                           <div 
-                            className="bg-red-500 transition-all"
+                            className="bg-destructive transition-all"
                             style={{ width: `${(data.negative / Math.max(total, 1)) * 100}%` }}
                           />
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                          <span className="text-green-400">{data.positive} positivas</span>
+                          <span className="text-success">{data.positive} positivas</span>
                           <span>{data.neutral} neutras</span>
-                          <span className="text-red-400">{data.negative} negativas</span>
+                          <span className="text-destructive">{data.negative} negativas</span>
                         </div>
                       </div>
                     );
@@ -808,10 +808,10 @@ export function SentimentAlertsDashboard() {
                         className="flex items-start gap-4 p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/30 transition-colors"
                       >
                         <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          (alert.sentiment_score || 50) < 20 ? 'bg-red-500/30' : 'bg-orange-500/20'
+                          (alert.sentiment_score || 50) < 20 ? 'bg-destructive/30' : 'bg-warning/20'
                         }`}>
                           <AlertTriangle className={`h-5 w-5 ${
-                            (alert.sentiment_score || 50) < 20 ? 'text-red-400' : 'text-orange-400'
+                            (alert.sentiment_score || 50) < 20 ? 'text-destructive' : 'text-warning'
                           }`} />
                         </div>
                         
@@ -835,7 +835,7 @@ export function SentimentAlertsDashboard() {
                               </span>
                             )}
                             {alert.email_sent && (
-                              <span className="flex items-center gap-1 text-green-400">
+                              <span className="flex items-center gap-1 text-success">
                                 <Mail className="h-3 w-3" />
                                 Email enviado
                               </span>
@@ -873,14 +873,14 @@ export function SentimentAlertsDashboard() {
                   <div>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-green-400" />
+                        <TrendingUp className="h-4 w-4 text-success" />
                         Positivo
                       </span>
                       <span className="font-medium">{stats.positiveAnalyses}</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-green-500 transition-all"
+                        className="h-full bg-success transition-all"
                         style={{ width: `${(stats.positiveAnalyses / Math.max(stats.totalAnalyses, 1)) * 100}%` }}
                       />
                     </div>
@@ -903,14 +903,14 @@ export function SentimentAlertsDashboard() {
                   <div>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="flex items-center gap-2">
-                        <TrendingDown className="h-4 w-4 text-red-400" />
+                        <TrendingDown className="h-4 w-4 text-destructive" />
                         Negativo
                       </span>
                       <span className="font-medium">{stats.negativeAnalyses}</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-red-500 transition-all"
+                        className="h-full bg-destructive transition-all"
                         style={{ width: `${(stats.negativeAnalyses / Math.max(stats.totalAnalyses, 1)) * 100}%` }}
                       />
                     </div>
@@ -934,11 +934,11 @@ export function SentimentAlertsDashboard() {
               <CardContent>
                 {(() => {
                   const ranges = [
-                    { label: '0-20%', min: 0, max: 20, color: 'bg-red-500' },
-                    { label: '21-40%', min: 21, max: 40, color: 'bg-orange-500' },
-                    { label: '41-60%', min: 41, max: 60, color: 'bg-yellow-500' },
+                    { label: '0-20%', min: 0, max: 20, color: 'bg-destructive' },
+                    { label: '21-40%', min: 21, max: 40, color: 'bg-warning' },
+                    { label: '41-60%', min: 41, max: 60, color: 'bg-warning' },
                     { label: '61-80%', min: 61, max: 80, color: 'bg-lime-500' },
-                    { label: '81-100%', min: 81, max: 100, color: 'bg-green-500' },
+                    { label: '81-100%', min: 81, max: 100, color: 'bg-success' },
                   ];
 
                   const maxCount = Math.max(...ranges.map(r => 
@@ -962,7 +962,7 @@ export function SentimentAlertsDashboard() {
                                 style={{ width: `${percentage}%` }}
                               >
                                 {count > 0 && (
-                                  <span className="text-xs font-medium text-white">{count}</span>
+                                  <span className="text-xs font-medium text-primary-foreground">{count}</span>
                                 )}
                               </div>
                             </div>

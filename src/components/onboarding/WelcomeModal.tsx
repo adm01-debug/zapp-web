@@ -56,7 +56,7 @@ export const WelcomeModal = forwardRef<HTMLDivElement, WelcomeModalProps>(
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <Rocket className="w-10 h-10 text-white" />
+                <Rocket className="w-10 h-10 text-primary-foreground" />
               </motion.div>
             </motion.div>
 
