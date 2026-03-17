@@ -162,24 +162,16 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       </div>
 
       {/* Scrollable tools area */}
-      <AnimatePresence>
-        {(showTools || isToolActive) && (
-          <motion.nav
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]"
-            aria-label="Ferramentas"
-          >
-            <div className="flex flex-col items-center gap-0.5 py-0.5">
-              {toolsNav.map((item) => (
-                <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
-              ))}
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      <div className={cn(
+        "flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px] transition-all duration-200",
+        !(showTools || isToolActive) && "hidden"
+      )}>
+        <nav className="flex flex-col items-center gap-0.5 py-0.5" aria-label="Ferramentas">
+          {toolsNav.map((item) => (
+            <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
+          ))}
+        </nav>
+      </div>
 
       {!showTools && !isToolActive && <div className="flex-1" />}
 
