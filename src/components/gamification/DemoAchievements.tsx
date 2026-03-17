@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGamification } from './GamificationProvider';
 import { Zap, Flame, Target, Star, Crown, Trophy, Rocket, TrendingUp, Award, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AchievementsPanel } from './AchievementsPanel';
 import { useState } from 'react';
 
 export function DemoAchievements() {
@@ -75,15 +74,21 @@ export function DemoAchievements() {
   if (showAchievementsPanel) {
     return (
       <div className="space-y-4">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowAchievementsPanel(false)}
           className="mb-2"
         >
           ← Voltar para Gamificação
         </Button>
-        <AchievementsPanel />
+        <div className="p-6 rounded-2xl bg-card border border-border text-center">
+          <Award className="w-12 h-12 mx-auto mb-3 text-primary" />
+          <h3 className="font-bold text-foreground mb-1">Suas Conquistas</h3>
+          <p className="text-sm text-muted-foreground">
+            {stats ? `${stats.achievementsCount} conquistas desbloqueadas` : 'Carregando...'}
+          </p>
+        </div>
       </div>
     );
   }

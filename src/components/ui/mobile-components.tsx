@@ -2,7 +2,7 @@ import * as React from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
-import { IconButton } from './icon-button';
+import { Button } from './button';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -83,14 +83,15 @@ export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
 
             {/* Close button */}
             <div className="absolute top-4 right-4">
-              <IconButton
+              <Button
                 aria-label="Fechar menu"
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
+                className="h-8 w-8 p-0"
               >
                 <X className="w-5 h-5" />
-              </IconButton>
+              </Button>
             </div>
 
             {children}

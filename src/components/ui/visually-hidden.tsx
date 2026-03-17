@@ -29,12 +29,17 @@ export function VisuallyHidden({
  * Hook to announce content to screen readers
  */
 export function useAnnounce() {
-  const [announcement, setAnnouncement] = React.useState('');
+  const [politeAnnouncement, setPoliteAnnouncement] = React.useState('');
+  const [assertiveAnnouncement, setAssertiveAnnouncement] = React.useState('');
 
-  const announce = React.useCallback((message: string, _politeness: 'polite' | 'assertive' = 'polite') => {
-    // Clear first to ensure re-announcement of same message
-    setAnnouncement('');
-    setTimeout(() => setAnnouncement(message), 100);
+  const announce = React.useCallback((message: string, politeness: 'polite' | 'assertive' = 'polite') => {
+    if (politeness === 'assertive') {
+      setAssertiveAnnouncement('');
+      setTimeout(() => setAssertiveAnnouncement(message), 100);
+    } else {
+      setPoliteAnnouncement('');
+      setTimeout(() => setPoliteAnnouncement(message), 100);
+    }
   }, []);
 
   const Announcer = React.useMemo(() => {
@@ -46,17 +51,19 @@ export function useAnnounce() {
             aria-atomic="true"
             className="sr-only"
           >
-            {announcement}
+            {politeAnnouncement}
           </div>
           <div
             aria-live="assertive"
             aria-atomic="true"
             className="sr-only"
-          />
+          >
+            {assertiveAnnouncement}
+          </div>
         </>
       );
     };
-  }, [announcement]);
+  }, [politeAnnouncement, assertiveAnnouncement]);
 
   return { announce, Announcer };
 }

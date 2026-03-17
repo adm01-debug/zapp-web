@@ -20,6 +20,8 @@ import { Sparkles } from "lucide-react";
 import { EasterEggsProvider } from "@/components/effects/EasterEggs";
 import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
 
+const log = getLogger('App');
+
 // Lazy-load ALL page routes for optimal initial bundle
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -170,8 +172,6 @@ function AppWithErrorRecovery() {
     </ErrorBoundary>
   );
 }
-
-const log = getLogger('App');
 
 const App = () => <AppWithErrorRecovery />;
 

@@ -290,6 +290,83 @@ const resources = {
       'status.resolved': 'Resuelto',
       'status.active': 'Activo',
       'status.inactive': 'Inactivo',
+
+      // Dashboard
+      'dashboard.title': 'Panel',
+      'dashboard.totalMessages': 'Total de Mensajes',
+      'dashboard.activeConversations': 'Conversaciones Activas',
+      'dashboard.resolvedToday': 'Resueltas Hoy',
+      'dashboard.avgResponseTime': 'Tiempo Promedio de Respuesta',
+      'dashboard.satisfaction': 'Satisfacción',
+      'dashboard.performance': 'Rendimiento',
+
+      // Inbox
+      'inbox.title': 'Bandeja de Entrada',
+      'inbox.noMessages': 'Sin mensajes',
+      'inbox.newMessage': 'Nuevo mensaje',
+      'inbox.typeMessage': 'Escribe tu mensaje...',
+      'inbox.unread': 'No leídos',
+      'inbox.all': 'Todos',
+      'inbox.assigned': 'Asignados',
+      'inbox.unassigned': 'Sin Asignar',
+
+      // Contacts
+      'contacts.title': 'Contactos',
+      'contacts.addContact': 'Agregar Contacto',
+      'contacts.name': 'Nombre',
+      'contacts.phone': 'Teléfono',
+      'contacts.email': 'Correo',
+      'contacts.company': 'Empresa',
+      'contacts.tags': 'Etiquetas',
+      'contacts.notes': 'Notas',
+
+      // Settings
+      'settings.title': 'Configuración',
+      'settings.general': 'General',
+      'settings.notifications': 'Notificaciones',
+      'settings.appearance': 'Apariencia',
+      'settings.language': 'Idioma',
+      'settings.theme': 'Tema',
+      'settings.sounds': 'Sonidos',
+
+      // Auth
+      'auth.login': 'Iniciar sesión',
+      'auth.logout': 'Cerrar sesión',
+      'auth.register': 'Registrarse',
+      'auth.email': 'Correo',
+      'auth.password': 'Contraseña',
+      'auth.forgotPassword': '¿Olvidaste tu contraseña?',
+      'auth.rememberMe': 'Recordarme',
+
+      // Errors
+      'errors.generic': 'Ocurrió un error',
+      'errors.notFound': 'No encontrado',
+      'errors.unauthorized': 'No autorizado',
+      'errors.serverError': 'Error del servidor',
+      'errors.networkError': 'Error de conexión',
+
+      // Success
+      'success.saved': 'Guardado con éxito',
+      'success.deleted': 'Eliminado con éxito',
+      'success.created': 'Creado con éxito',
+      'success.updated': 'Actualizado con éxito',
+
+      // Time
+      'time.now': 'Ahora',
+      'time.today': 'Hoy',
+      'time.yesterday': 'Ayer',
+      'time.thisWeek': 'Esta semana',
+      'time.thisMonth': 'Este mes',
+      'time.minutes': 'minutos',
+      'time.hours': 'horas',
+      'time.days': 'días',
+
+      // Gamification
+      'gamification.level': 'Nivel',
+      'gamification.xp': 'XP',
+      'gamification.achievements': 'Logros',
+      'gamification.streak': 'Racha',
+      'gamification.leaderboard': 'Clasificación',
     },
   },
 };

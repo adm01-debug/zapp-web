@@ -5,11 +5,6 @@ const isDev = import.meta.env.DEV;
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogContext {
-  module?: string;
-  [key: string]: unknown;
-}
-
 class Logger {
   private module: string;
 
@@ -17,7 +12,7 @@ class Logger {
     this.module = module;
   }
 
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
+  private formatMessage(level: LogLevel, message: string): string {
     const timestamp = new Date().toISOString();
     return `[${timestamp}] [${level.toUpperCase()}] [${this.module}] ${message}`;
   }
