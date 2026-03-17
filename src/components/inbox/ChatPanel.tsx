@@ -1,16 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
-import { ConversationSummary } from './ConversationSummary';
-import { TransferDialog } from './TransferDialog';
-import { ScheduleMessageDialog } from './ScheduleMessageDialog';
-import { CallDialog } from '@/components/calls/CallDialog';
-import { GlobalSearch } from './GlobalSearch';
-import { InteractiveMessageBuilder } from './InteractiveMessageBuilder';
-import { ForwardMessageDialog } from './ForwardMessageDialog';
-import { LocationPicker } from './LocationPicker';
-import { AIConversationAssistant } from './AIConversationAssistant';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
 import { Product } from '@/components/catalog/ProductCard';
@@ -26,6 +17,17 @@ import { ChatMessagesArea, ChatMessagesAreaRef } from './chat/ChatMessagesArea';
 import { ChatInputArea } from './chat/ChatInputArea';
 import { ChatDragOverlay } from './chat/ChatDragOverlay';
 import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
+
+// Lazy-load heavy dialog/modal components (only loaded when opened)
+const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
+const TransferDialog = lazy(() => import('./TransferDialog').then(m => ({ default: m.TransferDialog })));
+const ScheduleMessageDialog = lazy(() => import('./ScheduleMessageDialog').then(m => ({ default: m.ScheduleMessageDialog })));
+const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => ({ default: m.CallDialog })));
+const GlobalSearch = lazy(() => import('./GlobalSearch').then(m => ({ default: m.GlobalSearch })));
+const InteractiveMessageBuilder = lazy(() => import('./InteractiveMessageBuilder').then(m => ({ default: m.InteractiveMessageBuilder })));
+const ForwardMessageDialog = lazy(() => import('./ForwardMessageDialog').then(m => ({ default: m.ForwardMessageDialog })));
+const LocationPicker = lazy(() => import('./LocationPicker').then(m => ({ default: m.LocationPicker })));
+const AIConversationAssistant = lazy(() => import('./AIConversationAssistant').then(m => ({ default: m.AIConversationAssistant })));
 
 interface ChatPanelProps {
   conversation: Conversation;
