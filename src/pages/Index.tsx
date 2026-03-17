@@ -244,6 +244,8 @@ function IndexContent() {
         return <WhatsAppFlowsBuilder />;
       case 'meta-capi':
         return <MetaCAPIView />;
+      case 'diagnostics':
+        return <DiagnosticsView />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
