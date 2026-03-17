@@ -87,6 +87,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   ttsMessageId,
   instanceName,
   contactJid,
+  contactAvatar,
   onSpeak,
   onStop,
   onReply,
