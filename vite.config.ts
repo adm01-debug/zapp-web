@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => ({
     target: "esnext",
     minify: "esbuild",
     cssMinify: true,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -45,6 +46,8 @@ export default defineConfig(({ mode }) => ({
           "vendor-mapbox": ["mapbox-gl"],
           // ElevenLabs
           "vendor-elevenlabs": ["@elevenlabs/react"],
+          // Date utilities - consolidate micro-chunks
+          "vendor-date-fns": ["date-fns"],
         },
       },
     },
