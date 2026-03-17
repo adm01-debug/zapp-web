@@ -59,7 +59,7 @@ export function useServiceWorker() {
     return () => {
       cancelled = true;
       if (updateInterval) clearInterval(updateInterval);
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && navigator.serviceWorker) {
         navigator.serviceWorker.removeEventListener('message', messageHandler);
       }
     };

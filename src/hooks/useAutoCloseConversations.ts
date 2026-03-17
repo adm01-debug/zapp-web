@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 export interface AutoCloseConfig {
   id: string;
@@ -45,7 +46,8 @@ export function useAutoCloseConversations() {
       queryClient.invalidateQueries({ queryKey: ['auto-close-config'] });
       toast({ title: 'Configuração salva', description: 'Auto-fechamento atualizado com sucesso.' });
     },
-    onError: () => {
+    onError: (error) => {
+      log.error('Failed to update auto-close config:', error);
       toast({ title: 'Erro ao salvar', variant: 'destructive' });
     },
   });

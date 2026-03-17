@@ -4,14 +4,14 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { log } from '@/lib/logger';
 
 interface TypingUser {
-  oderId: string;
+  userId: string;
   name: string;
   isTyping: boolean;
   lastTyped: string;
 }
 
 interface PresenceState {
-  oderId?: string;
+  userId?: string;
   name?: string;
   isTyping?: boolean;
   lastTyped?: string;
@@ -39,7 +39,7 @@ export function useTypingPresence({
 
     try {
       await channelRef.current.track({
-        oderId: currentUserId,
+        userId: currentUserId,
         name: currentUserName,
         isTyping,
         lastTyped: new Date().toISOString()
@@ -97,7 +97,7 @@ export function useTypingPresence({
             const p = presence as unknown as PresenceState;
             if (p.isTyping) {
               users.push({
-                oderId: p.oderId || key,
+                userId: p.userId || key,
                 name: p.name || 'Contato',
                 isTyping: p.isTyping,
                 lastTyped: p.lastTyped || new Date().toISOString()

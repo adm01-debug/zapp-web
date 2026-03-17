@@ -59,7 +59,7 @@ export default function Auth() {
   useEffect(() => {
     // Check if passkey authentication is available
     if (isSupported()) {
-      isPlatformAuthenticatorAvailable().then(setPasskeyAvailable);
+      isPlatformAuthenticatorAvailable().then(setPasskeyAvailable).catch(() => setPasskeyAvailable(false));
     }
   }, [isSupported, isPlatformAuthenticatorAvailable]);
 

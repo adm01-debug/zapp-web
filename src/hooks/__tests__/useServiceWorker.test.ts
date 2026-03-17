@@ -22,6 +22,7 @@ describe('useServiceWorker', () => {
         register: vi.fn().mockResolvedValue(mockRegistration),
         controller: null,
         addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
       },
       writable: true,
       configurable: true,
