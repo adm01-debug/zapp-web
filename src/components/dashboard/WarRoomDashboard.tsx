@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useWarRoomAlerts } from '@/hooks/useWarRoomAlerts';
 import { 
   AlertTriangle, Clock, Users, MessageSquare, TrendingUp, TrendingDown,
   Phone, CheckCircle, XCircle, Timer, Zap, Activity, Bell, Volume2,
