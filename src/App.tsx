@@ -20,9 +20,9 @@ import { Sparkles } from "lucide-react";
 import { EasterEggsProvider } from "@/components/effects/EasterEggs";
 import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
 
-// Critical routes - load immediately
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+// Lazy-load ALL page routes for optimal initial bundle
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
 import NotFound from "./pages/NotFound";
 
 // Lazy-loaded routes for better initial load performance
