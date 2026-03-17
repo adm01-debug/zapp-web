@@ -29,6 +29,7 @@ import {
   Package,
   Layers,
 } from 'lucide-react';
+import { AIEnhanceButton } from './AIEnhanceButton';
 import { toast } from '@/hooks/use-toast';
 
 interface QuickReply {
