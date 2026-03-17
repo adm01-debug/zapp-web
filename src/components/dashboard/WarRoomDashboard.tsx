@@ -163,7 +163,15 @@ export function WarRoomDashboard({
   const realData = useWarRoomData();
   const agents = propsAgents || realData.agents;
   const queues = propsQueues || realData.queues;
-  const alerts = propsAlerts || realData.alerts;
+  const { alerts: realtimeAlerts, dismissAlert } = useWarRoomAlerts(true);
+  const alerts = propsAlerts || realtimeAlerts.map(a => ({
+    id: a.id,
+    type: a.alert_type as 'critical' | 'warning' | 'info',
+    title: a.title,
+    message: a.message,
+    timestamp: new Date(a.created_at),
+    isNew: !a.is_read,
+  }));
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
