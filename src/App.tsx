@@ -155,6 +155,7 @@ function AppWithErrorRecovery() {
     >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <ThemeSync />
           <HighContrastProvider>
             <GamificationProvider>
               <EasterEggsProvider>

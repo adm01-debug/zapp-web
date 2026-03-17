@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
@@ -15,120 +15,177 @@ interface UseThemeReturn {
 }
 
 const THEME_STORAGE_KEY = 'theme';
+const MEDIA_QUERY = '(prefers-color-scheme: dark)';
+
+type ThemeSnapshot = {
+  theme: Theme;
+  resolvedTheme: ResolvedTheme;
+};
+
+const getStoredTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'system';
+
+  const stored = localStorage.getItem(THEME_STORAGE_KEY);
+  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+};
+
+const getSystemTheme = (): ResolvedTheme => {
+  if (typeof window === 'undefined') return 'dark';
+  return window.matchMedia(MEDIA_QUERY).matches ? 'dark' : 'light';
+};
+
+const resolveTheme = (theme: Theme): ResolvedTheme => {
+  return theme === 'system' ? getSystemTheme() : theme;
+};
+
+let themeState: ThemeSnapshot = {
+  theme: getStoredTheme(),
+  resolvedTheme: resolveTheme(getStoredTheme()),
+};
+
+const listeners = new Set<(snapshot: ThemeSnapshot) => void>();
+let transitionTimeout: number | null = null;
+let systemListenerAttached = false;
+
+const notify = () => {
+  listeners.forEach((listener) => listener(themeState));
+};
+
+const applyThemeToDocument = (resolvedTheme: ResolvedTheme, animate = true) => {
+  if (typeof window === 'undefined') return;
+
+  const root = window.document.documentElement;
+  const body = window.document.body;
+
+  if (animate) {
+    root.style.setProperty('--theme-transition', '0.3s');
+    body.classList.add('theme-transitioning');
+  }
+
+  root.classList.remove('light', 'dark');
+  root.classList.add(resolvedTheme);
+  root.style.colorScheme = resolvedTheme;
+
+  if (animate) {
+    if (transitionTimeout) {
+      window.clearTimeout(transitionTimeout);
+    }
+
+    transitionTimeout = window.setTimeout(() => {
+      root.style.removeProperty('--theme-transition');
+      body.classList.remove('theme-transitioning');
+      transitionTimeout = null;
+    }, 300);
+  }
+};
+
+const updateThemeState = (nextTheme: Theme, animate = true) => {
+  themeState = {
+    theme: nextTheme,
+    resolvedTheme: resolveTheme(nextTheme),
+  };
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  }
+
+  applyThemeToDocument(themeState.resolvedTheme, animate);
+  notify();
+};
+
+const handleSystemThemeChange = () => {
+  if (themeState.theme !== 'system') return;
+
+  themeState = {
+    theme: 'system',
+    resolvedTheme: getSystemTheme(),
+  };
+
+  applyThemeToDocument(themeState.resolvedTheme, false);
+  notify();
+};
+
+const ensureSystemListener = () => {
+  if (typeof window === 'undefined' || systemListenerAttached) return;
+
+  window.matchMedia(MEDIA_QUERY).addEventListener('change', handleSystemThemeChange);
+  systemListenerAttached = true;
+};
+
+const initializeTheme = () => {
+  if (typeof window === 'undefined') return;
+
+  ensureSystemListener();
+  themeState = {
+    theme: getStoredTheme(),
+    resolvedTheme: resolveTheme(getStoredTheme()),
+  };
+  applyThemeToDocument(themeState.resolvedTheme, false);
+};
+
+export function ThemeSync() {
+  useEffect(() => {
+    initializeTheme();
+  }, []);
+
+  return null;
+}
 
 export function useTheme(): UseThemeReturn {
-  const [theme, setThemeState] = useState<Theme>(() => {
+  const [snapshot, setSnapshot] = useState<ThemeSnapshot>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem(THEME_STORAGE_KEY) as Theme) || 'system';
+      initializeTheme();
+      return themeState;
     }
-    return 'system';
+
+    return {
+      theme: 'system',
+      resolvedTheme: 'dark',
+    };
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'dark';
-  });
-
-  // Apply theme to document with smooth transition
-  const applyTheme = useCallback((newTheme: Theme, animate = true) => {
-    const root = window.document.documentElement;
-    const body = window.document.body;
-
-    // Add transition class for smooth theme change
-    if (animate) {
-      root.style.setProperty('--theme-transition', '0.3s');
-      body.classList.add('theme-transitioning');
-    }
-
-    // Determine actual theme
-    let actualTheme: ResolvedTheme;
-    if (newTheme === 'system') {
-      actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    } else {
-      actualTheme = newTheme;
-    }
-
-    // Remove old theme classes
-    root.classList.remove('light', 'dark');
-    
-    // Add new theme class
-    root.classList.add(actualTheme);
-    
-    // Update resolved theme
-    setResolvedTheme(actualTheme);
-
-    // Store in localStorage
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-
-    // Remove transition class after animation
-    if (animate) {
-      setTimeout(() => {
-        root.style.removeProperty('--theme-transition');
-        body.classList.remove('theme-transitioning');
-      }, 300);
-    }
-  }, []);
-
-  // Set theme
-  const setTheme = useCallback((newTheme: Theme) => {
-    setThemeState(newTheme);
-    applyTheme(newTheme);
-  }, [applyTheme]);
-
-  // Toggle between light and dark only
-  const toggleTheme = useCallback(() => {
-    const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-  }, [resolvedTheme, setTheme]);
-
-  // Cycle through all three themes
-  const cycleTheme = useCallback(() => {
-    setThemeState((current) => {
-      const newTheme = current === 'light' ? 'dark' : current === 'dark' ? 'system' : 'light';
-      applyTheme(newTheme);
-      return newTheme;
-    });
-  }, [applyTheme]);
-
-  // Apply theme on mount
   useEffect(() => {
-    applyTheme(theme, false);
-  }, []);
+    initializeTheme();
 
-  // Listen for system theme changes
-  useEffect(() => {
-    if (theme !== 'system') return;
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      const root = window.document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(e.matches ? 'dark' : 'light');
-      setResolvedTheme(e.matches ? 'dark' : 'light');
+    const listener = (nextSnapshot: ThemeSnapshot) => {
+      setSnapshot(nextSnapshot);
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
+    listeners.add(listener);
+    listener(themeState);
 
-  // Listen for toggle-theme event
-  useEffect(() => {
-    const handleToggle = () => toggleTheme();
-    document.addEventListener('toggle-theme', handleToggle);
-    return () => document.removeEventListener('toggle-theme', handleToggle);
-  }, [toggleTheme]);
+    return () => {
+      listeners.delete(listener);
+    };
+  }, []);
+
+  const setTheme = useCallback((nextTheme: Theme) => {
+    updateThemeState(nextTheme);
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    updateThemeState(themeState.resolvedTheme === 'dark' ? 'light' : 'dark');
+  }, []);
+
+  const cycleTheme = useCallback(() => {
+    const nextTheme =
+      themeState.theme === 'light'
+        ? 'dark'
+        : themeState.theme === 'dark'
+          ? 'system'
+          : 'light';
+
+    updateThemeState(nextTheme);
+  }, []);
 
   return {
-    theme,
-    resolvedTheme,
+    theme: snapshot.theme,
+    resolvedTheme: snapshot.resolvedTheme,
     setTheme,
     toggleTheme,
     cycleTheme,
-    isDark: resolvedTheme === 'dark',
-    isLight: resolvedTheme === 'light',
-    isSystem: theme === 'system',
+    isDark: snapshot.resolvedTheme === 'dark',
+    isLight: snapshot.resolvedTheme === 'light',
+    isSystem: snapshot.theme === 'system',
   };
 }

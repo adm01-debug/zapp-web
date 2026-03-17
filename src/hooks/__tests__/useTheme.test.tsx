@@ -1,36 +1,35 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-
-vi.mock('@/lib/logger', () => ({
-  log: { error: vi.fn(), debug: vi.fn(), info: vi.fn() },
-}));
 
 import { useTheme } from '@/hooks/useTheme';
 
 describe('useTheme', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     localStorage.clear();
     document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.style.colorScheme = '';
   });
 
   it('initializes with default theme', () => {
     const { result } = renderHook(() => useTheme());
-    expect(result.current.theme).toBeDefined();
+
+    expect(result.current.theme).toBe('system');
+    expect(['dark', 'light']).toContain(result.current.resolvedTheme);
   });
 
   it('toggleTheme changes theme state', () => {
     const { result } = renderHook(() => useTheme());
-    const initialTheme = result.current.theme;
 
     act(() => {
+      result.current.setTheme('dark');
       result.current.toggleTheme();
     });
 
-    expect(result.current.theme).not.toBe(initialTheme);
+    expect(result.current.theme).toBe('light');
+    expect(result.current.resolvedTheme).toBe('light');
   });
 
-  it('setTheme updates to specific theme', () => {
+  it('setTheme updates to specific theme and document class', () => {
     const { result } = renderHook(() => useTheme());
 
     act(() => {
@@ -38,6 +37,8 @@ describe('useTheme', () => {
     });
 
     expect(result.current.theme).toBe('dark');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.style.colorScheme).toBe('dark');
   });
 
   it('persists theme to localStorage', () => {
@@ -53,17 +54,21 @@ describe('useTheme', () => {
   it('reads persisted theme from localStorage', () => {
     localStorage.setItem('theme', 'dark');
     const { result } = renderHook(() => useTheme());
+
     expect(result.current.theme).toBe('dark');
+    expect(result.current.resolvedTheme).toBe('dark');
   });
 
-  it('isDark is true when theme is dark', () => {
-    const { result } = renderHook(() => useTheme());
+  it('shares theme state across multiple hook instances', () => {
+    const first = renderHook(() => useTheme());
+    const second = renderHook(() => useTheme());
 
     act(() => {
-      result.current.setTheme('dark');
+      first.result.current.setTheme('dark');
     });
 
-    expect(result.current.isDark).toBe(true);
+    expect(second.result.current.theme).toBe('dark');
+    expect(second.result.current.isDark).toBe(true);
   });
 
   it('isDark is false when theme is light', () => {

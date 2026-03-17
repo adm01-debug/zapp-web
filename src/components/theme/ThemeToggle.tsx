@@ -278,8 +278,8 @@ export function ThemeChangeIndicator() {
         >
           <div className={cn(
             "flex items-center gap-2 px-4 py-2 rounded-full shadow-xl backdrop-blur-xl border",
-            resolvedTheme === 'dark' 
-              ? 'bg-card/90 border-slate-700 text-primary-foreground' 
+            resolvedTheme === 'dark'
+              ? 'bg-card/90 border-border text-primary-foreground'
               : 'bg-background/90 border-border text-foreground'
           )}>
             <motion.div

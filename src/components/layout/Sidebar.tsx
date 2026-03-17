@@ -107,8 +107,8 @@ function NavIcon({ item, currentView, onViewChange }: {
 }
 
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   const [showTools, setShowTools] = useState(true);
 
   // Check if current view is in tools section to keep it open
