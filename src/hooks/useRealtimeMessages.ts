@@ -24,7 +24,7 @@ export interface RealtimeMessage {
   message_type: string;
   media_url: string | null;
   is_read: boolean | null;
-  status: 'sent' | 'delivered' | 'read' | 'failed' | null;
+  status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed' | null;
   status_updated_at: string | null;
   created_at: string;
   updated_at: string;

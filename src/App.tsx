@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { getLogger } from "@/lib/logger";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -25,7 +25,7 @@ const log = getLogger('App');
 // Lazy-load ALL page routes for optimal initial bundle
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
-import NotFound from "./pages/NotFound";
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy-loaded routes for better initial load performance
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -137,21 +137,23 @@ function AppContent() {
   );
 }
 
+const MAX_ERROR_RETRIES = 3;
+
 function AppWithErrorRecovery() {
   const [errorKey, setErrorKey] = useState(0);
-
-  // Auto-recover from stale errors on mount
-  useEffect(() => {
-    setErrorKey(prev => prev + 1);
-  }, []);
+  const retryCountRef = useRef(0);
 
   return (
     <ErrorBoundary
       resetKey={errorKey}
       onError={(error) => {
         log.error('ErrorBoundary caught:', error.message, error.stack);
-        // Auto-retry after 2 seconds
-        setTimeout(() => setErrorKey(prev => prev + 1), 2000);
+        if (retryCountRef.current < MAX_ERROR_RETRIES) {
+          retryCountRef.current += 1;
+          setTimeout(() => setErrorKey(prev => prev + 1), 2000);
+        } else {
+          log.error('Max error retries reached, stopping auto-recovery');
+        }
       }}
     >
       <QueryClientProvider client={queryClient}>

@@ -35,7 +35,7 @@ export async function logAudit({ action, entityType, entityId, details }: AuditL
       action,
       entity_type: entityType || null,
       entity_id: entityId || null,
-      details: JSON.parse(JSON.stringify(details || {})),
+      details: details || {},
       user_agent: navigator.userAgent,
     }]);
 
