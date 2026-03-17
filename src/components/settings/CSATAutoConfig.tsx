@@ -132,7 +132,7 @@ export function CSATAutoConfig() {
               <SelectContent>
                 {connections.map(c => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.instance_name} ({c.status})
+                    {c.name} ({c.status})
                   </SelectItem>
                 ))}
               </SelectContent>
