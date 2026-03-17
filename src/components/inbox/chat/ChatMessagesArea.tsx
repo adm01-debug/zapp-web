@@ -1,6 +1,7 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
 import { MessageContextActions } from '../MessageContextActions';
+import { ChatWatermark } from './ChatWatermark';
 import { cn } from '@/lib/utils';
 import { Message, InteractiveButton } from '@/types/chat';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
@@ -126,7 +127,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin bg-background">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin bg-background relative">
+      {/* Animated vector watermark background */}
+      <ChatWatermark />
       {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
         <div key={dateKey}>
           {/* Date separator — DreamsChat style */}

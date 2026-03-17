@@ -234,160 +234,160 @@
     --chart-sentiment-negative: 0 84% 60%;
   }
 
-  /* ===== DARK MODE - DreamsChat Pixel-Perfect ===== */
+  /* ===== DARK MODE - DreamsChat Vibrant ===== */
   .dark {
-    /* ===== BASE — #131313 ===== */
-    --background: 0 0% 5%;
-    --foreground: 220 30% 88%;
+    /* ===== BASE — deep dark ===== */
+    --background: 240 6% 6%;
+    --foreground: 220 25% 92%;
     
-    /* ===== CARDS — #181818 ===== */
-    --card: 0 0% 9.4%;
-    --card-foreground: 220 30% 88%;
-    --card-elevated: 240 4% 14%;
+    /* ===== CARDS ===== */
+    --card: 240 5% 10%;
+    --card-foreground: 220 25% 92%;
+    --card-elevated: 240 5% 15%;
     
-    /* ===== POPOVER/DIALOG — #222224 ===== */
-    --popover: 240 4% 14%;
-    --popover-foreground: 220 30% 88%;
+    /* ===== POPOVER/DIALOG ===== */
+    --popover: 240 5% 13%;
+    --popover-foreground: 220 25% 92%;
     
-    /* ===== PRIMARY — #6338F6 ===== */
-    --primary: 254 91% 59%;
+    /* ===== PRIMARY — Vibrant Purple ===== */
+    --primary: 254 92% 62%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 252 91% 63%;
+    --primary-glow: 260 95% 68%;
     
-    /* ===== SECONDARY (Indigo Shift) ===== */
-    --secondary: 252 91% 63%;
+    /* ===== SECONDARY (Electric Indigo) ===== */
+    --secondary: 260 90% 67%;
     --secondary-foreground: 0 0% 100%;
     
-    /* ===== MUTED — #222224 surface ===== */
-    --muted: 240 4% 14%;
-    --muted-foreground: 223 4% 47%;
+    /* ===== MUTED ===== */
+    --muted: 240 5% 15%;
+    --muted-foreground: 223 8% 52%;
     
     /* ===== ACCENT ===== */
-    --accent: 254 50% 18%;
-    --accent-foreground: 254 91% 75%;
+    --accent: 254 55% 20%;
+    --accent-foreground: 254 92% 78%;
     
-    /* ===== DESTRUCTIVE (Vibrant Red for badges) ===== */
-    --destructive: 0 84% 55%;
+    /* ===== DESTRUCTIVE ===== */
+    --destructive: 0 88% 58%;
     --destructive-foreground: 0 0% 100%;
     
-    /* ===== BORDAS E INPUTS — #222224 ===== */
-    --border: 240 4% 14%;
-    --input: 240 4% 14%;
-    --ring: 254 91% 59%;
+    /* ===== BORDAS E INPUTS ===== */
+    --border: 240 5% 16%;
+    --input: 240 5% 15%;
+    --ring: 254 92% 62%;
 
-    /* ===== ESTADOS ===== */
-    --success: 142 70% 45%;
+    /* ===== ESTADOS — Vibrant ===== */
+    --success: 155 75% 48%;
     --success-foreground: 0 0% 100%;
-    --warning: 45 93% 55%;
-    --warning-foreground: 0 0% 10%;
-    --info: 210 85% 60%;
+    --warning: 42 95% 58%;
+    --warning-foreground: 0 0% 8%;
+    --info: 210 90% 62%;
     --info-foreground: 0 0% 100%;
 
     /* ===== GAMIFICAÇÃO ===== */
-    --xp: 254 91% 59%;
+    --xp: 254 92% 62%;
     --xp-foreground: 0 0% 100%;
-    --coins: 45 93% 55%;
-    --coins-foreground: 0 0% 10%;
-    --streak: 24 95% 58%;
+    --coins: 42 95% 58%;
+    --coins-foreground: 0 0% 8%;
+    --streak: 20 98% 60%;
     --streak-foreground: 0 0% 100%;
 
     /* ===== RANKS ===== */
-    --rank-gold: 45 93% 55%;
-    --rank-gold-foreground: 45 100% 95%;
-    --rank-silver: 220 15% 75%;
+    --rank-gold: 42 95% 58%;
+    --rank-gold-foreground: 42 100% 95%;
+    --rank-silver: 220 18% 78%;
     --rank-silver-foreground: 220 20% 95%;
-    --rank-bronze: 30 55% 55%;
-    --rank-bronze-foreground: 30 60% 95%;
+    --rank-bronze: 28 60% 58%;
+    --rank-bronze-foreground: 28 60% 95%;
 
     /* ===== WhatsApp ===== */
-    --whatsapp: 142 70% 45%;
-    --whatsapp-dark: 142 70% 35%;
-    --online: 142 70% 45%;
-    --away: 45 90% 50%;
-    --offline: 0 0% 40%;
-    --unread: 0 84% 55%;
+    --whatsapp: 142 72% 48%;
+    --whatsapp-dark: 142 72% 38%;
+    --online: 155 75% 48%;
+    --away: 42 95% 55%;
+    --offline: 0 0% 42%;
+    --unread: 0 88% 58%;
 
-    /* ===== Sidebar — #181818 icon bar ===== */
-    --sidebar-background: 0 0% 9.4%;
-    --sidebar-foreground: 220 30% 88%;
-    --sidebar-primary: 254 91% 59%;
+    /* ===== Sidebar ===== */
+    --sidebar-background: 240 6% 9%;
+    --sidebar-foreground: 220 25% 92%;
+    --sidebar-primary: 254 92% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 254 40% 16%;
-    --sidebar-accent-foreground: 254 91% 75%;
-    --sidebar-border: 240 4% 14%;
-    --sidebar-ring: 254 91% 59%;
+    --sidebar-accent: 254 45% 18%;
+    --sidebar-accent-foreground: 254 92% 78%;
+    --sidebar-border: 240 5% 16%;
+    --sidebar-ring: 254 92% 62%;
 
-    /* ===== Chat — #0D0D0D area ===== */
-    --chat-bubble-sent: 254 91% 59%;
+    /* ===== Chat ===== */
+    --chat-bubble-sent: 254 92% 62%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 240 4% 14%;
-    --chat-bubble-received-foreground: 220 30% 88%;
-    --chat-header: 0 0% 9.4%;
-    --chat-input-bg: 240 4% 14%;
+    --chat-bubble-received: 240 5% 15%;
+    --chat-bubble-received-foreground: 220 25% 92%;
+    --chat-header: 240 5% 10%;
+    --chat-input-bg: 240 5% 13%;
 
-    /* ===== Status ===== */
-    --status-open: 254 91% 59%;
-    --status-pending: 45 90% 50%;
-    --status-resolved: 142 70% 45%;
-    --status-waiting: 210 80% 55%;
+    /* ===== Status — Vibrant ===== */
+    --status-open: 254 92% 62%;
+    --status-pending: 42 95% 55%;
+    --status-resolved: 155 75% 48%;
+    --status-waiting: 210 90% 60%;
 
     /* ===== Priority ===== */
-    --priority-high: 0 84% 55%;
-    --priority-medium: 38 92% 50%;
-    --priority-low: 210 20% 55%;
+    --priority-high: 0 88% 58%;
+    --priority-medium: 38 95% 55%;
+    --priority-low: 210 25% 58%;
 
-    /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(254 91% 59%), hsl(252 91% 63%));
-    --gradient-secondary: linear-gradient(135deg, hsl(252 91% 63%), hsl(254 91% 70%));
-    --gradient-success: linear-gradient(135deg, hsl(142 70% 45%), hsl(142 70% 55%));
-    --gradient-xp: linear-gradient(90deg, hsl(254 91% 59%), hsl(252 91% 63%));
-    --gradient-gold: linear-gradient(135deg, hsl(45 93% 55%), hsl(38 92% 50%));
-    --gradient-surface: linear-gradient(180deg, hsl(0 0% 9.4%), hsl(0 0% 7.5%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(240 4% 18% / 0.5), transparent);
-    --gradient-vibrant: linear-gradient(135deg, hsl(254 91% 59%), hsl(210 85% 60%), hsl(252 91% 63%));
-    --gradient-purple-green: linear-gradient(135deg, hsl(254 91% 59%), hsl(142 70% 45%));
+    /* ===== GRADIENTS — Vibrant ===== */
+    --gradient-primary: linear-gradient(135deg, hsl(254 92% 62%), hsl(280 85% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(260 90% 67%), hsl(290 80% 65%));
+    --gradient-success: linear-gradient(135deg, hsl(155 75% 48%), hsl(165 70% 55%));
+    --gradient-xp: linear-gradient(90deg, hsl(254 92% 62%), hsl(280 85% 60%));
+    --gradient-gold: linear-gradient(135deg, hsl(42 95% 58%), hsl(35 92% 52%));
+    --gradient-surface: linear-gradient(180deg, hsl(240 5% 10%), hsl(240 6% 7%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(254 40% 30% / 0.3), transparent);
+    --gradient-vibrant: linear-gradient(135deg, hsl(254 92% 62%), hsl(210 90% 62%), hsl(280 85% 60%));
+    --gradient-purple-green: linear-gradient(135deg, hsl(254 92% 62%), hsl(155 75% 48%));
 
-    /* ===== SHADOWS ===== */
+    /* ===== SHADOWS — Vibrant glows ===== */
     --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.4);
     --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.5), 0 1px 2px hsl(0 0% 0% / 0.4);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.5), 0 2px 4px -2px hsl(0 0% 0% / 0.4);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5), 0 4px 6px -4px hsl(0 0% 0% / 0.4);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.6), 0 8px 10px -6px hsl(0 0% 0% / 0.5);
-    --shadow-glow-primary: 0 4px 20px hsl(254 91% 59% / 0.3);
-    --shadow-glow-secondary: 0 4px 20px hsl(252 91% 63% / 0.25);
-    --shadow-glow-success: 0 4px 16px hsl(142 70% 45% / 0.25);
-    --shadow-glow-accent: 0 4px 20px hsl(254 91% 70% / 0.3);
-    --shadow-glow-purple: 0 4px 20px hsl(254 91% 59% / 0.35);
+    --shadow-glow-primary: 0 4px 24px hsl(254 92% 62% / 0.35);
+    --shadow-glow-secondary: 0 4px 24px hsl(260 90% 67% / 0.3);
+    --shadow-glow-success: 0 4px 20px hsl(155 75% 48% / 0.3);
+    --shadow-glow-accent: 0 4px 24px hsl(280 85% 60% / 0.3);
+    --shadow-glow-purple: 0 4px 24px hsl(254 92% 62% / 0.4);
     --shadow-header: 0 1px 3px hsl(0 0% 0% / 0.5);
 
     /* ===== GLASS ===== */
-    --glass-bg: 0 0% 9.4% / 0.9;
-    --glass-border: 254 40% 25% / 0.3;
+    --glass-bg: 240 5% 10% / 0.9;
+    --glass-border: 254 45% 28% / 0.35;
 
     /* ===== ELEVAÇÃO ===== */
-    --elevated: 240 4% 14%;
-    --elevated-hover: 240 4% 18%;
+    --elevated: 240 5% 15%;
+    --elevated-hover: 240 5% 19%;
 
-    /* ===== CHART PALETTE ===== */
-    --chart-1: 254 91% 59%;
-    --chart-2: 210 85% 60%;
-    --chart-3: 142 70% 48%;
-    --chart-4: 45 93% 60%;
-    --chart-5: 340 80% 65%;
-    --chart-6: 175 65% 55%;
-    --chart-7: 24 95% 60%;
-    --chart-8: 0 72% 60%;
-    --chart-9: 252 91% 63%;
-    --chart-10: 190 70% 50%;
+    /* ===== CHART PALETTE — Vibrant ===== */
+    --chart-1: 254 92% 62%;
+    --chart-2: 210 90% 62%;
+    --chart-3: 155 75% 50%;
+    --chart-4: 42 95% 62%;
+    --chart-5: 340 85% 65%;
+    --chart-6: 175 70% 55%;
+    --chart-7: 20 98% 62%;
+    --chart-8: 0 78% 62%;
+    --chart-9: 280 85% 65%;
+    --chart-10: 190 75% 52%;
     
-    --chart-status-resolved: 142 70% 48%;
-    --chart-status-pending: 45 93% 60%;
-    --chart-status-waiting: 210 85% 60%;
-    --chart-status-open: 254 91% 59%;
+    --chart-status-resolved: 155 75% 50%;
+    --chart-status-pending: 42 95% 62%;
+    --chart-status-waiting: 210 90% 62%;
+    --chart-status-open: 254 92% 62%;
     
-    --chart-sentiment-positive: 142 70% 48%;
-    --chart-sentiment-neutral: 220 15% 60%;
-    --chart-sentiment-negative: 0 72% 60%;
+    --chart-sentiment-positive: 155 75% 50%;
+    --chart-sentiment-neutral: 220 18% 62%;
+    --chart-sentiment-negative: 0 78% 62%;
   }
 }
 
