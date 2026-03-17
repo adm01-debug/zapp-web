@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMFA } from '@/hooks/useMFA';
 import { MFAVerify } from '@/components/mfa/MFAVerify';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function TwoFactorAuth() {
   const navigate = useNavigate();
