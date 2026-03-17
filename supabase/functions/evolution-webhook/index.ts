@@ -223,27 +223,35 @@ serve(async (req) => {
           .single();
 
         if (connection && pushName) {
+          // Persist avatar to storage if we have a WhatsApp CDN URL
+          let permanentAvatarUrl: string | null = null;
+          if (profilePicUrl && profilePicUrl.includes('pps.whatsapp.net')) {
+            permanentAvatarUrl = await persistProfilePicture(supabase, phone, profilePicUrl);
+          } else if (profilePicUrl) {
+            permanentAvatarUrl = profilePicUrl;
+          }
+
           // Upsert: update name/avatar if contact exists, create if not
           const { data: existing } = await supabase
             .from('contacts')
-            .select('id')
+            .select('id, avatar_url')
             .eq('phone', phone)
             .eq('whatsapp_connection_id', connection.id)
             .single();
 
           if (existing) {
             const updateData: Record<string, unknown> = { name: pushName, updated_at: new Date().toISOString() };
-            if (profilePicUrl) updateData.avatar_url = profilePicUrl;
+            if (permanentAvatarUrl) updateData.avatar_url = permanentAvatarUrl;
             await supabase.from('contacts').update(updateData).eq('id', existing.id);
           } else {
             await supabase.from('contacts').insert({
               phone,
               name: pushName,
-              avatar_url: profilePicUrl || null,
+              avatar_url: permanentAvatarUrl || null,
               whatsapp_connection_id: connection.id,
             });
           }
-          console.log(`Contact synced: ${phone} (${pushName})`);
+          console.log(`Contact synced: ${phone} (${pushName}) avatar: ${permanentAvatarUrl ? 'saved' : 'none'}`);
         }
       }
     }
