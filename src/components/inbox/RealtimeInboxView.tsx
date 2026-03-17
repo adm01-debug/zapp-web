@@ -479,12 +479,16 @@ export function RealtimeInboxView() {
 
   return (
     <div className="flex h-full relative bg-background overflow-hidden">
-      {/* Global Search Modal */}
-      <GlobalSearch 
-        open={globalSearchOpen} 
-        onOpenChange={setGlobalSearchOpen} 
-        onSelectResult={handleGlobalSearchResult}
-      />
+      {/* Global Search Modal - lazy */}
+      {globalSearchOpen && (
+        <Suspense fallback={null}>
+          <GlobalSearch 
+            open={globalSearchOpen} 
+            onOpenChange={setGlobalSearchOpen} 
+            onSelectResult={handleGlobalSearchResult}
+          />
+        </Suspense>
+      )}
 
       {/* New Message Notification Indicator */}
       <NewMessageIndicator
@@ -496,15 +500,19 @@ export function RealtimeInboxView() {
         onDismiss={dismissNotification}
       />
 
-      {/* New Conversation Modal */}
-      <NewConversationModal
-        open={showNewConversation}
-        onOpenChange={setShowNewConversation}
-        onConversationStarted={(contactId) => {
-          setSelectedContactId(contactId);
-          refetch();
-        }}
-      />
+      {/* New Conversation Modal - lazy */}
+      {showNewConversation && (
+        <Suspense fallback={null}>
+          <NewConversationModal
+            open={showNewConversation}
+            onOpenChange={setShowNewConversation}
+            onConversationStarted={(contactId) => {
+              setSelectedContactId(contactId);
+              refetch();
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Conversation List — DreamsChat: 320px fixed */}
       <div className="w-[320px] min-w-[320px] max-w-[320px] flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col">
