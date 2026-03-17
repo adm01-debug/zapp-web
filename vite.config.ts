@@ -37,6 +37,10 @@ export default defineConfig(({ mode }) => ({
           "vendor-charts": ["recharts"],
           // i18n
           "vendor-i18n": ["i18next", "react-i18next"],
+          // Spreadsheet export (heavy)
+          "vendor-xlsx": ["xlsx"],
+          // PDF
+          "vendor-pdf": ["jspdf", "jspdf-autotable"],
         },
       },
     },
