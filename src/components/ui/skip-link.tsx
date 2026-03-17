@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { ArrowRight, Navigation, Search, MessageSquare, LayoutDashboard } from 'lucide-react';
 
 interface SkipLinkProps {
@@ -10,12 +10,12 @@ interface SkipLinkProps {
   className?: string;
 }
 
-export function SkipLink({ 
+export const SkipLink = forwardRef<HTMLAnchorElement, SkipLinkProps>(function SkipLink({ 
   href, 
   children,
   icon,
   className 
-}: SkipLinkProps) {
+}, ref) {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -29,14 +29,13 @@ export function SkipLink({
 
   return (
     <a
+      ref={ref}
       href={href}
       onClick={handleClick}
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
       className={cn(
-        // Visually hidden but focusable
         'sr-only focus:not-sr-only',
-        // When focused, show as a fixed button at top
         'focus:fixed focus:top-4 focus:left-4 focus:z-[9999]',
         'focus:flex focus:items-center focus:gap-2',
         'focus:px-4 focus:py-3 focus:rounded-xl',
@@ -50,13 +49,14 @@ export function SkipLink({
         className
       )}
       aria-label={typeof children === 'string' ? children : undefined}
+      data-focused={isFocused ? 'true' : 'false'}
     >
       {icon && <span className="text-primary-foreground/80">{icon}</span>}
       <span>{children}</span>
       <ArrowRight className="w-4 h-4 ml-1 animate-pulse" />
     </a>
   );
-}
+});
 
 // Enhanced skip links container with multiple navigation options
 export function SkipLinks() {
