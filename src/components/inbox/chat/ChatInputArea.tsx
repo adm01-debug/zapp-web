@@ -277,7 +277,9 @@ export function ChatInputArea({
             />
           </div>
 
-          {/* Right icons: Emoji, Mic, Attach, Send */}
+          {/* Right icons: Sticker, Emoji, Mic, Attach, Send */}
+          <StickerPicker onSendSticker={onSendSticker} />
+
           <Button
             variant="ghost"
             size="icon"

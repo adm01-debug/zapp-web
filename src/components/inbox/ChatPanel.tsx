@@ -471,6 +471,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onOpenSchedule={() => setShowScheduleDialog(true)}
           onOpenLocationPicker={() => setShowLocationPicker(true)}
           onSendProduct={handleSendProduct}
+          onSendSticker={handleSendSticker}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef}
