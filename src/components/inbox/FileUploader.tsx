@@ -265,15 +265,17 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
     setUploadProgress(0);
     setUploadStage('uploading');
 
+    let progressInterval: ReturnType<typeof setInterval> | undefined;
     try {
       // Step 1: Upload to storage
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => Math.min(prev + 10, 50));
       }, 100);
 
       const mediaUrl = await uploadFileToStorage(filePreview.file);
-      
+
       clearInterval(progressInterval);
+      progressInterval = undefined;
       setUploadProgress(50);
       setUploadStage('sending');
 
@@ -332,6 +334,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       log.error('Error sending file:', error);
       toast.error(error.message || 'Erro ao enviar arquivo');
     } finally {
+      if (progressInterval) clearInterval(progressInterval);
       setUploading(false);
       setUploadProgress(0);
       setUploadStage(null);

@@ -236,7 +236,9 @@ export function useRealtimeMessages() {
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe().then(() => {
+        supabase.removeChannel(channel);
+      });
     };
   }, [fetchConversations, handleNewMessage, handleMessageUpdate]);
 

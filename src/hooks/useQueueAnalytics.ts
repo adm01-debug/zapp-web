@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { log } from '@/lib/logger';
 import { startOfDay, format, startOfHour, eachDayOfInterval, eachHourOfInterval, startOfToday, differenceInDays } from 'date-fns';
@@ -48,18 +48,13 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
   const [agentPerformance, setAgentPerformance] = useState<AgentPerformance[]>([]);
   const [statusData, setStatusData] = useState<StatusData[]>([]);
   const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
 
   // Memoize ISO strings to prevent infinite re-render loop
   const fromISO = useMemo(() => dateRange.from?.toISOString(), [dateRange.from?.getTime()]);
   const toISO = useMemo(() => dateRange.to?.toISOString(), [dateRange.to?.getTime()]);
 
-  useEffect(() => {
-    if (queueId && fromISO && toISO) {
-      fetchAnalytics();
-    }
-  }, [queueId, fromISO, toISO]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -74,6 +69,7 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
       const contactIds = contacts?.map(c => c.id) || [];
 
       if (contactIds.length === 0) {
+        if (!mountedRef.current) return;
         setDailyData(generateEmptyDailyData(dateRange));
         setHourlyData(generateEmptyHourlyData());
         setAgentPerformance([]);
@@ -99,26 +95,36 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
 
       // Process daily data
       const dailyAggregation = processDailyData(messages || [], contacts || [], dateRange);
-      setDailyData(dailyAggregation);
-
       // Process hourly data (today only)
       const hourlyAggregation = processHourlyData(messages || []);
-      setHourlyData(hourlyAggregation);
-
       // Process agent performance
       const agentAggregation = await processAgentPerformance(messages || []);
-      setAgentPerformance(agentAggregation);
-
       // Process status distribution
       const statusAggregation = processStatusData(contacts || []);
+
+      if (!mountedRef.current) return;
+      setDailyData(dailyAggregation);
+      setHourlyData(hourlyAggregation);
+      setAgentPerformance(agentAggregation);
       setStatusData(statusAggregation);
 
     } catch (error) {
       log.error('Error fetching queue analytics:', error);
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queueId, fromISO, toISO]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    if (queueId && fromISO && toISO) {
+      fetchAnalytics();
+    }
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [fetchAnalytics]);
 
   const generateEmptyDailyData = (range: DateRange): DailyData[] => {
     const days = eachDayOfInterval({

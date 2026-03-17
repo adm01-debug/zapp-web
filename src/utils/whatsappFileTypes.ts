@@ -104,7 +104,8 @@ export interface FileValidationResult {
 
 export const validateFile = (file: File): FileValidationResult => {
   const mimeType = file.type.toLowerCase();
-  const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+  const parts = file.name.split('.');
+  const extension = parts.length > 1 ? '.' + parts.pop()!.toLowerCase() : '';
   const fileSizeMB = file.size / (1024 * 1024);
 
   // Find matching file type config

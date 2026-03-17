@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { log } from '@/lib/logger';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useActionFeedback } from '@/hooks/useActionFeedback';
@@ -126,7 +126,7 @@ export function ConnectionsView() {
     connectionName: string;
   }>({ open: false, instanceName: '', connectionName: '' });
   const [isCreating, setIsCreating] = useState(false);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { 
     isLoading: evolutionLoading, 
@@ -180,7 +180,7 @@ export function ConnectionsView() {
 
     return () => {
       supabase.removeChannel(channel);
-      if (pollingInterval) clearInterval(pollingInterval);
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
     };
   }, []);
 
@@ -299,16 +299,18 @@ export function ConnectionsView() {
     }
   };
 
-  const startStatusPolling = useCallback((instanceName: string, connectionId: string) => {
-    if (pollingInterval) clearInterval(pollingInterval);
+  const startStatusPolling = useCallback((instanceName: string, _connectionId: string) => {
+    if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
 
     const interval = setInterval(async () => {
       try {
         const result = await getInstanceStatus(instanceName);
-        
+
         if (result?.state === 'open' || result?.status === 'connected') {
-          clearInterval(interval);
-          setPollingInterval(null);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
           setQrCodeDialog((prev) => ({
             ...prev,
             status: 'connected',
@@ -324,8 +326,8 @@ export function ConnectionsView() {
       }
     }, 3000);
 
-    setPollingInterval(interval);
-  }, [getInstanceStatus, pollingInterval]);
+    pollingIntervalRef.current = interval;
+  }, [getInstanceStatus]);
 
   const handleRefreshQrCode = async () => {
     const connection = connections.find((c) => c.id === qrCodeDialog.connectionId);
@@ -424,9 +426,9 @@ export function ConnectionsView() {
   };
 
   const closeQrDialog = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
     }
     setQrCodeDialog({ open: false, connectionId: '', connectionName: '', qrCode: null, status: 'loading' });
   };

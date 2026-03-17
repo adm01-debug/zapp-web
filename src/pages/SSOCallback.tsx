@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
@@ -13,11 +13,21 @@ export default function SSOCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<CallbackStatus>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const statusRef = useRef<CallbackStatus>('loading');
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let redirectTimeoutId: ReturnType<typeof setTimeout> | undefined;
+    let unsubscribe: (() => void) | undefined;
+
+    const updateStatus = (newStatus: CallbackStatus, message?: string) => {
+      statusRef.current = newStatus;
+      setStatus(newStatus);
+      if (message) setErrorMessage(message);
+    };
+
     const handleCallback = async () => {
       try {
-        // Get the session from URL hash (for OAuth callbacks)
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -25,54 +35,52 @@ export default function SSOCallback() {
         }
 
         if (data.session) {
-          setStatus('success');
+          updateStatus('success');
           toast.success('Login realizado com sucesso!');
-          
-          // Redirect after a brief delay
-          setTimeout(() => {
-            navigate('/');
-          }, 1500);
+          redirectTimeoutId = setTimeout(() => navigate('/'), 1500);
         } else {
-          // Check for error in URL params
+          // Check for error in URL params - sanitize to prevent injection
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           const errorParam = hashParams.get('error_description') || hashParams.get('error');
-          
+
           if (errorParam) {
-            throw new Error(errorParam);
+            // Sanitize: only allow alphanumeric, spaces, and basic punctuation
+            const sanitized = errorParam.replace(/[<>&"']/g, '').slice(0, 200);
+            throw new Error(sanitized || 'Erro de autenticação');
           }
-          
+
           // Wait for auth state change
           const { data: authData } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN' && session) {
-              setStatus('success');
+              updateStatus('success');
               toast.success('Login realizado com sucesso!');
-              setTimeout(() => navigate('/'), 1500);
+              redirectTimeoutId = setTimeout(() => navigate('/'), 1500);
             } else if (event === 'SIGNED_OUT') {
-              setStatus('error');
-              setErrorMessage('Sessão não encontrada');
+              updateStatus('error', 'Sessão não encontrada');
             }
           });
+          unsubscribe = () => authData.subscription.unsubscribe();
 
-          // Timeout fallback
-          setTimeout(() => {
-            if (status === 'loading') {
-              setStatus('error');
-              setErrorMessage('Tempo esgotado. Tente novamente.');
+          // Timeout fallback - use ref to avoid stale closure
+          timeoutId = setTimeout(() => {
+            if (statusRef.current === 'loading') {
+              updateStatus('error', 'Tempo esgotado. Tente novamente.');
             }
           }, 10000);
-
-          return () => {
-            authData.subscription.unsubscribe();
-          };
         }
       } catch (err: unknown) {
-        setStatus('error');
-        setErrorMessage(err instanceof Error ? err.message : 'Erro durante autenticação');
+        updateStatus('error', err instanceof Error ? err.message : 'Erro durante autenticação');
         toast.error('Erro no login SSO');
       }
     };
 
     handleCallback();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (redirectTimeoutId) clearTimeout(redirectTimeoutId);
+      unsubscribe?.();
+    };
   }, [navigate]);
 
   return (
