@@ -10,6 +10,7 @@ import { useQuickReplies } from '@/hooks/useQuickReplies';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
+import { useScheduledMessages } from '@/hooks/useScheduledMessages';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
