@@ -82,6 +82,7 @@ serve(async (req) => {
       .select('id, phone, name, avatar_url, whatsapp_connection_id')
       .not('whatsapp_connection_id', 'is', null)
       .or('avatar_url.is.null,avatar_url.like.%pps.whatsapp.net%')
+      .order('created_at', { ascending: false })
       .limit(200);
 
     if (contactsError) throw contactsError;
