@@ -19,6 +19,7 @@ import { useSecurityPushNotifications } from '@/hooks/useSecurityPushNotificatio
 export function SecurityView() {
   const { hasRole } = useUserRole();
   const isAdmin = hasRole('admin');
+  const [activeTab, setActiveTab] = useState('overview');
   
   // Initialize security push notifications
   useSecurityPushNotifications();
@@ -47,7 +48,7 @@ export function SecurityView() {
         {isAdmin && <RateLimitRealtimeAlerts />}
 
         {/* Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 md:grid-cols-8">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
