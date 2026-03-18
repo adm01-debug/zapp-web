@@ -26,6 +26,7 @@ import {
   Trash2,
   Send,
 } from 'lucide-react';
+import { log } from '@/lib/logger';
 
 interface AdvancedMessageMenuProps {
   instanceName: string;
@@ -67,7 +68,8 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedM
       toast.success('Figurinha enviada!');
       setStickerUrl('');
       setStickerDialog(false);
-    } catch {
+    } catch (err) {
+      log.error('Error sending sticker:', err);
       toast.error('Erro ao enviar figurinha');
     }
   };
@@ -90,7 +92,8 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedM
       setPollName('');
       setPollOptions(['', '']);
       setPollDialog(false);
-    } catch {
+    } catch (err) {
+      log.error('Error sending poll:', err);
       toast.error('Erro ao enviar enquete');
     }
   };
@@ -111,7 +114,8 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedM
       toast.success('Cartão de contato enviado!');
       setContactCard({ fullName: '', phoneNumber: '', organization: '', email: '' });
       setContactDialog(false);
-    } catch {
+    } catch (err) {
+      log.error('Error sending contact card:', err);
       toast.error('Erro ao enviar contato');
     }
   };
@@ -123,7 +127,8 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedM
       toast.success('Status publicado!');
       setStatusText('');
       setStatusDialog(false);
-    } catch {
+    } catch (err) {
+      log.error('Error publishing status:', err);
       toast.error('Erro ao publicar status');
     }
   };

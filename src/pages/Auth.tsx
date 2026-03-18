@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { log } from '@/lib/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebAuthn } from '@/hooks/useWebAuthn';
 import { Button } from '@/components/ui/button';
@@ -566,7 +567,8 @@ export default function Auth() {
                                 variant: 'destructive',
                               });
                             }
-                          } catch {
+                          } catch (err) {
+                            log.error('Social login error:', err);
                             toast({
                               title: 'Login social indisponível',
                               description: 'Tente novamente mais tarde.',

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 interface ForceLogoutButtonProps {
   userId: string;
@@ -24,7 +25,8 @@ export function ForceLogoutButton({ userId, userName }: ForceLogoutButtonProps) 
 
       if (error) throw error;
       toast.success(`Sessão de ${userName} invalidada`);
-    } catch {
+    } catch (err) {
+      log.error('Error force-logging out user:', err);
       toast.error('Erro ao invalidar sessão');
     } finally {
       setLoading(false);

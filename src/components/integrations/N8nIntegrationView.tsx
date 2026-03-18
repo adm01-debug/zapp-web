@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { log } from '@/lib/logger';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,8 @@ export function N8nIntegrationView() {
       await new Promise(r => setTimeout(r, 1500));
       setWorkflows(prev => prev.map(w => w.id === workflow.id ? { ...w, lastTriggered: new Date().toISOString() } : w));
       toast.success(`Webhook "${workflow.name}" testado com sucesso!`);
-    } catch {
+    } catch (err) {
+      log.error('Error testing webhook:', err);
       toast.error('Falha ao testar webhook');
     }
   };

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { log } from '@/lib/logger';
 import { useConnectionQueues } from '@/hooks/useConnectionQueues';
 import { useQueues } from '@/hooks/useQueues';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -37,7 +38,8 @@ export function ConnectionQueuesDialog({
         await addQueue(queueId);
         toast.success('Fila vinculada');
       }
-    } catch {
+    } catch (err) {
+      log.error('Error updating queue binding:', err);
       toast.error('Erro ao atualizar vínculo');
     } finally {
       setSaving(null);

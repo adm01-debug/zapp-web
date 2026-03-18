@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { Message } from '@/types/chat';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +58,8 @@ export function MessageContextActions({
       await deleteMessage(instanceName, externalId, contactJid, isSent);
       toast.success('Mensagem deletada para todos');
       onMessageDeleted?.(message.id);
-    } catch {
+    } catch (err) {
+      log.error('Error deleting message:', err);
       toast.error('Erro ao deletar mensagem');
     }
   }, [instanceName, externalId, contactJid, isSent, deleteMessage, message.id, onMessageDeleted]);
@@ -71,7 +73,8 @@ export function MessageContextActions({
         id: externalId,
       });
       toast.success('Marcada como lida');
-    } catch {
+    } catch (err) {
+      log.error('Error marking message as read:', err);
       toast.error('Erro ao marcar como lida');
     }
   }, [instanceName, externalId, contactJid, isSent, markMessageAsRead]);
@@ -85,7 +88,8 @@ export function MessageContextActions({
         id: externalId,
       });
       toast.success('Marcada como não lida');
-    } catch {
+    } catch (err) {
+      log.error('Error marking message as unread:', err);
       toast.error('Erro ao marcar como não lida');
     }
   }, [instanceName, externalId, contactJid, isSent, markMessageAsUnread]);
@@ -94,7 +98,8 @@ export function MessageContextActions({
     try {
       await archiveChat(instanceName, {}, contactJid, true);
       toast.success('Chat arquivado');
-    } catch {
+    } catch (err) {
+      log.error('Error archiving chat:', err);
       toast.error('Erro ao arquivar');
     }
   }, [instanceName, contactJid, archiveChat]);
@@ -102,7 +107,8 @@ export function MessageContextActions({
   const handleBlock = useCallback(async () => {
     try {
       await updateBlockStatus(instanceName, contactJid, 'block');
-    } catch {
+    } catch (err) {
+      log.error('Error blocking contact:', err);
       toast.error('Erro ao bloquear contato');
     }
   }, [instanceName, contactJid, updateBlockStatus]);
@@ -110,7 +116,8 @@ export function MessageContextActions({
   const handleUnblock = useCallback(async () => {
     try {
       await updateBlockStatus(instanceName, contactJid, 'unblock');
-    } catch {
+    } catch (err) {
+      log.error('Error unblocking contact:', err);
       toast.error('Erro ao desbloquear contato');
     }
   }, [instanceName, contactJid, updateBlockStatus]);
