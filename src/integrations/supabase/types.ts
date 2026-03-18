@@ -1035,6 +1035,8 @@ export type Database = {
       }
       contacts: {
         Row: {
+          ai_priority: string | null
+          ai_sentiment: string | null
           assigned_to: string | null
           avatar_url: string | null
           company: string | null
@@ -1054,6 +1056,8 @@ export type Database = {
           whatsapp_connection_id: string | null
         }
         Insert: {
+          ai_priority?: string | null
+          ai_sentiment?: string | null
           assigned_to?: string | null
           avatar_url?: string | null
           company?: string | null
@@ -1073,6 +1077,8 @@ export type Database = {
           whatsapp_connection_id?: string | null
         }
         Update: {
+          ai_priority?: string | null
+          ai_sentiment?: string | null
           assigned_to?: string | null
           avatar_url?: string | null
           company?: string | null
@@ -1733,6 +1739,7 @@ export type Database = {
           embedding_status: string | null
           id: string
           is_published: boolean | null
+          search_vector: unknown
           tags: string[] | null
           title: string
           updated_at: string | null
@@ -1745,6 +1752,7 @@ export type Database = {
           embedding_status?: string | null
           id?: string
           is_published?: boolean | null
+          search_vector?: unknown
           tags?: string[] | null
           title: string
           updated_at?: string | null
@@ -1757,6 +1765,7 @@ export type Database = {
           embedding_status?: string | null
           id?: string
           is_published?: boolean | null
+          search_vector?: unknown
           tags?: string[] | null
           title?: string
           updated_at?: string | null
@@ -4019,6 +4028,17 @@ export type Database = {
           attempts: number
           is_locked: boolean
           locked_until: string
+        }[]
+      }
+      search_knowledge_base: {
+        Args: { max_results?: number; search_query: string }
+        Returns: {
+          category: string
+          content: string
+          id: string
+          rank: number
+          tags: string[]
+          title: string
         }[]
       }
       skill_based_assign: { Args: { p_queue_id: string }; Returns: string }
