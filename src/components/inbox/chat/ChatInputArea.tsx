@@ -47,6 +47,7 @@ interface QuickReplyItem {
 interface ChatInputAreaProps {
   inputValue: string;
   replyToMessage: Message | null;
+  editingMessage?: Message | null;
   isRecordingAudio: boolean;
   showSlashCommands: boolean;
   contactId: string;
@@ -60,6 +61,7 @@ interface ChatInputAreaProps {
   onBlur: () => void;
   onSend: () => void;
   onCancelReply: () => void;
+  onCancelEdit?: () => void;
   onSlashCommand: (command: SlashCommand, subCommand?: string) => void;
   onCloseSlashCommands: () => void;
   onQuickReply: (reply: QuickReplyItem) => void;
