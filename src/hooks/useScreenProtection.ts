@@ -132,40 +132,8 @@ export function useScreenProtection() {
       }
     };
 
-    // ── 6. Dynamic watermark ──
-    let watermarkEl: HTMLDivElement | null = null;
-    const userLabel = user?.email || user?.id?.slice(0, 8) || '';
-
-    if (userLabel) {
-      watermarkEl = document.createElement('div');
-      watermarkEl.id = 'screen-protection-watermark';
-      watermarkEl.style.cssText = `
-        position: fixed; inset: 0; z-index: 99998;
-        pointer-events: none;
-        overflow: hidden;
-        opacity: 0.03;
-      `;
-
-      const pattern = Array.from({ length: 40 }, (_, i) => {
-        const top = (i % 8) * 12.5;
-        const left = Math.floor(i / 8) * 20;
-        const rotation = -25;
-        return `<div style="
-          position:absolute;
-          top:${top}%;
-          left:${left}%;
-          transform:rotate(${rotation}deg);
-          font-size:14px;
-          font-family:monospace;
-          white-space:nowrap;
-          color:hsl(var(--foreground));
-          user-select:none;
-        ">${userLabel} • ${new Date().toLocaleDateString('pt-BR')}</div>`;
-      }).join('');
-
-      watermarkEl.innerHTML = pattern;
-      document.body.appendChild(watermarkEl);
-    }
+    // ── 6. Dynamic watermark (REMOVIDO) ──
+    const watermarkEl: HTMLDivElement | null = null;
 
     // ── 7. CSS protections ──
     const style = document.createElement('style');
