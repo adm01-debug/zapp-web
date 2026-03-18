@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, X, Pencil, Check, Loader2, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 interface CustomFieldsSectionProps {
   contactId: string;
@@ -27,7 +28,8 @@ export function CustomFieldsSection({ contactId }: CustomFieldsSectionProps) {
       setNewValue('');
       setIsAdding(false);
       toast.success('Campo adicionado');
-    } catch {
+    } catch (err) {
+      log.error('Error adding custom field:', err);
       toast.error('Erro ao adicionar campo');
     } finally {
       setSaving(false);
@@ -38,7 +40,8 @@ export function CustomFieldsSection({ contactId }: CustomFieldsSectionProps) {
     try {
       await removeField(fieldId);
       toast.success('Campo removido');
-    } catch {
+    } catch (err) {
+      log.error('Error removing custom field:', err);
       toast.error('Erro ao remover campo');
     }
   };

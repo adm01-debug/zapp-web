@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Globe, Users, MessageCircle, RotateCcw, Key } from 'lucide-react';
 import { toast } from 'sonner';
+import { log } from '@/lib/logger';
 
 export function GlobalSettingsSection() {
   const { settings, isLoading, getSetting, updateSetting } = useGlobalSettings();
@@ -15,7 +16,8 @@ export function GlobalSettingsSection() {
     try {
       await updateSetting(key, newValue);
       toast.success('Configuração atualizada');
-    } catch {
+    } catch (err) {
+      log.error('Error updating global setting:', err);
       toast.error('Erro ao atualizar');
     }
   };
@@ -24,7 +26,8 @@ export function GlobalSettingsSection() {
     try {
       await updateSetting(key, value);
       toast.success('Configuração salva');
-    } catch {
+    } catch (err) {
+      log.error('Error saving global setting:', err);
       toast.error('Erro ao salvar');
     }
   };

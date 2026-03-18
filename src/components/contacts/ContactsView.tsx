@@ -674,7 +674,7 @@ export function ContactsView() {
                             <Avatar className="w-10 h-10">
                               <AvatarImage src={contact.avatar_url || undefined} />
                               <AvatarFallback className="bg-primary/10 text-primary">
-                                {contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                                {(contact.name || '?').split(' ').map((n) => n[0]).join('').slice(0, 2)}
                               </AvatarFallback>
                             </Avatar>
                             <div>

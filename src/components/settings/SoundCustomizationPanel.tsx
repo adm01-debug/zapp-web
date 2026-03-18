@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -24,7 +24,6 @@ import {
   Clock,
   Moon,
   Upload,
-  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -100,10 +99,19 @@ const SOUND_CATEGORIES = {
   },
 };
 
+// Reuse a single AudioContext to prevent resource leaks
+let sharedAudioContext: AudioContext | null = null;
+const getSharedAudioContext = () => {
+  if (!sharedAudioContext) {
+    sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  return sharedAudioContext;
+};
+
 // Simulate sound preview (in a real app, these would be actual audio files)
 const playSoundPreview = (soundId: string, category: string) => {
-  // Create oscillator for demo
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  // Reuse shared AudioContext
+  const audioContext = getSharedAudioContext();
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
   
