@@ -94,7 +94,7 @@ export function SecurityView() {
           </TabsContent>
 
           <TabsContent value="account">
-            <SecuritySettingsPanel />
+            <SecuritySettingsPanel onSwitchTab={setActiveTab} />
           </TabsContent>
 
           <TabsContent value="passkeys">
