@@ -268,6 +268,8 @@ function IndexContent() {
         return <AchievementsSystemLazy userId={user?.id} />;
       case 'schedule':
         return <ScheduleCalendarView />;
+      case 'warroom':
+        return <WarRoomDashboard />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
