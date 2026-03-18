@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { log } from '@/lib/logger';
 import {
   Dialog,
   DialogContent,
@@ -96,7 +97,7 @@ export function InstanceSettingsDialog({
           syncFullHistory: data.syncFullHistory ?? false,
         });
       }
-    } catch { /* ignore */ }
+    } catch (err) { log.debug('Failed to load instance data:', err); }
     setLoadingTab('');
   };
 
@@ -110,7 +111,7 @@ export function InstanceSettingsDialog({
           pictureUrl: data.profilePictureUrl ?? '',
         });
       }
-    } catch { /* ignore */ }
+    } catch (err) { log.debug('Failed to load instance data:', err); }
   };
 
   const loadLabels = async () => {
@@ -120,7 +121,7 @@ export function InstanceSettingsDialog({
       if (Array.isArray(data)) {
         setLabels(data);
       }
-    } catch { /* ignore */ }
+    } catch (err) { log.debug('Failed to load instance data:', err); }
     setLoadingTab('');
   };
 
@@ -128,7 +129,8 @@ export function InstanceSettingsDialog({
     try {
       await setSettings({ instanceName, ...settingsData });
       toast.success('Configurações salvas!');
-    } catch {
+    } catch (err) {
+      log.error('Error saving settings:', err);
       toast.error('Erro ao salvar configurações');
     }
   };
@@ -138,7 +140,8 @@ export function InstanceSettingsDialog({
       if (profile.name) await updateProfileName(instanceName, profile.name);
       if (profile.status) await updateProfileStatus(instanceName, profile.status);
       toast.success('Perfil atualizado!');
-    } catch {
+    } catch (err) {
+      log.error('Error updating profile:', err);
       toast.error('Erro ao atualizar perfil');
     }
   };
@@ -147,7 +150,8 @@ export function InstanceSettingsDialog({
     try {
       await updatePrivacySettings({ instanceName, ...privacy });
       toast.success('Privacidade atualizada!');
-    } catch {
+    } catch (err) {
+      log.error('Error updating privacy:', err);
       toast.error('Erro ao atualizar privacidade');
     }
   };
@@ -261,7 +265,7 @@ export function InstanceSettingsDialog({
                         await updateProfilePicture(instanceName, profile.pictureUrl);
                         toast.success('Foto atualizada!');
                       }
-                    } catch { toast.error('Erro ao atualizar foto'); }
+                    } catch (err) { log.error('Error updating photo:', err); toast.error('Erro ao atualizar foto'); }
                   }}
                 >
                   Aplicar
@@ -274,7 +278,7 @@ export function InstanceSettingsDialog({
                       await removeProfilePicture(instanceName);
                       setProfile(p => ({ ...p, pictureUrl: '' }));
                       toast.success('Foto removida');
-                    } catch { toast.error('Erro ao remover foto'); }
+                    } catch (err) { log.error('Error removing photo:', err); toast.error('Erro ao remover foto'); }
                   }}
                 >
                   Remover
