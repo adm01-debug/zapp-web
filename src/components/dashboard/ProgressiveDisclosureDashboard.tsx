@@ -2,10 +2,8 @@ import * as React from 'react';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronDown, 
-  ChevronUp, 
-  Eye, 
-  EyeOff, 
+  ChevronDown,
+  Eye,
   Sparkles, 
   Gamepad2,
   TrendingUp,
