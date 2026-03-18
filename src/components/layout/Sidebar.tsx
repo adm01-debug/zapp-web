@@ -85,6 +85,7 @@ const toolsNav = [
   { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
   { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
   { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
+  { id: 'omnichannel', icon: Globe, label: 'Omnichannel' },
 ] as const;
 
 const systemNav = [
