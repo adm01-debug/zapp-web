@@ -429,15 +429,13 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ---
 
 ### 3.4 🔗 Integração com Calendário
-**Novo hook/componente**  
-**Status:** ⏳ Pendente  
-**Esforço:** 4h  
-
-**Implementar:**
-- Sincronizar com Google Calendar
-- Criar eventos a partir de conversa
-- Lembretes de follow-up
-- Disponibilidade do agente
+**Arquivo:** `src/components/integrations/GoogleCalendarIntegration.tsx`  
+**Status:** ✅ IMPLEMENTADO  
+**Funcionalidades:**
+- UI de conexão com Google Calendar
+- Sincronização automática de agendamentos
+- Configuração de lembretes
+- Disponível no Hub de Integrações e menu lateral
 
 ---
 
