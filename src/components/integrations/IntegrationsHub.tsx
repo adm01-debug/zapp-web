@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, FileSpreadsheet, Bug, CreditCard, ArrowRight, Calendar } from 'lucide-react';
+import { Zap, FileSpreadsheet, Bug, ArrowRight, Calendar } from 'lucide-react';
 import { N8nIntegrationView } from './N8nIntegrationView';
 import { GoogleSheetsIntegrationView } from './GoogleSheetsIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
@@ -43,14 +43,6 @@ const integrations = [
     icon: Calendar,
     color: 'bg-[#4285F4]',
     status: 'available' as const,
-  },
-  {
-    id: 'stripe' as const,
-    name: 'Stripe',
-    description: 'Pagamentos, assinaturas e faturamento. Requer chave API.',
-    icon: CreditCard,
-    color: 'bg-[#635BFF]',
-    status: 'coming-soon' as const,
   },
 ];
 
