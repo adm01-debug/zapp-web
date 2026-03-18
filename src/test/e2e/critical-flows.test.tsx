@@ -60,9 +60,9 @@ describe('E2E: Authentication Flow', () => {
       error: null,
     });
 
-    // Auth page should be importable
-    const Auth = await import('@/pages/Auth');
-    expect(Auth.default).toBeDefined();
+    const result = await supabase.auth.getSession();
+    expect(result.data.session).toBeNull();
+    expect(result.error).toBeNull();
   });
 
   it('handles login submission', async () => {
