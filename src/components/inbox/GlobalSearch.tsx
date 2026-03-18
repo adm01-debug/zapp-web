@@ -377,7 +377,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
 
   const handleHistorySelect = (query: string) => {
     setSearch(query);
-    performSearch(query, activeTypes, dateFilter, selectedTags);
+    performSearch(query, activeTypes, dateFilter, selectedTags, mediaTypeFilter);
   };
 
   const handleTagSelect = (tag: TagSuggestion) => {
