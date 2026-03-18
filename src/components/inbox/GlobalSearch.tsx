@@ -446,7 +446,15 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     }
   };
 
-  const getResultLabel = (type: SearchResult['type']) => {
+  const getResultLabel = (type: SearchResult['type'], messageType?: string) => {
+    if (type === 'message' && messageType) {
+      switch (messageType) {
+        case 'image': return 'Imagem';
+        case 'video': return 'Vídeo';
+        case 'audio': return 'Áudio';
+        case 'document': return 'Documento';
+      }
+    }
     switch (type) {
       case 'transcription': return 'Transcrição';
       case 'message': return 'Texto';
