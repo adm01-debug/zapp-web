@@ -303,14 +303,16 @@ export function RealtimeInboxView() {
     
     setBulkLoading(true);
     const contactIds = Array.from(selectedIds);
-    
-    // Store original assignments for undo
-    const { data: originalContacts } = await supabase
-      .from('contacts')
-      .select('id, assigned_to')
-      .in('id', contactIds);
-    
+
     try {
+      // Store original assignments for undo
+      const { data: originalContacts, error: fetchError } = await supabase
+        .from('contacts')
+        .select('id, assigned_to')
+        .in('id', contactIds);
+
+      if (fetchError) throw fetchError;
+
       await executeUndoable({
         successMessage: `${contactIds.length} contato(s) arquivado(s)`,
         undoMessage: 'Arquivamento desfeito',
@@ -319,19 +321,19 @@ export function RealtimeInboxView() {
             .from('contacts')
             .update({ assigned_to: null })
             .in('id', contactIds);
-          
+
           if (error) throw error;
           clearSelection();
           refetch();
         },
         undoAction: async () => {
-          // Restore original assignments
           if (originalContacts) {
             for (const contact of originalContacts) {
-              await supabase
+              const { error: restoreError } = await supabase
                 .from('contacts')
                 .update({ assigned_to: contact.assigned_to })
                 .eq('id', contact.id);
+              if (restoreError) log.error('Error restoring contact:', restoreError);
             }
           }
           refetch();

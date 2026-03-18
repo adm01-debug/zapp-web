@@ -110,8 +110,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
             setInstanceName(conn.instance_id);
           }
         }
-      } catch {
-        // Silently fail — instanceName stays empty
+      } catch (err) {
+        log.debug('Failed to resolve WhatsApp instance:', err);
       }
     };
     resolveInstance();

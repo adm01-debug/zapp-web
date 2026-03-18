@@ -105,10 +105,11 @@ export function useCampaigns() {
       if (error) throw error;
 
       // Update total
-      await (supabase as any)
+      const { error: updateError } = await (supabase as any)
         .from('campaigns')
         .update({ total_contacts: contactIds.length })
         .eq('id', campaignId);
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
