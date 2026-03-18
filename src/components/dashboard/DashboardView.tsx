@@ -32,6 +32,9 @@ import { AIQuickAccess } from './AIQuickAccess';
 import { CSATDashboard } from '@/components/csat/CSATDashboard';
 import { AIStatsWidget } from './AIStatsWidget';
 import { GoalsDashboard } from './GoalsDashboard';
+import { DemandPrediction } from './DemandPrediction';
+import { ActivityHeatmap } from './ActivityHeatmap';
+import ConversationHeatmap from './ConversationHeatmap';
 import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
@@ -496,10 +499,14 @@ export function DashboardView() {
 
       {/* Tabs for Dashboard Views */}
       <Tabs defaultValue="overview" className="relative z-10">
-        <TabsList className="mb-4 bg-muted/50 border border-border/30">
+        <TabsList className="mb-4 bg-muted/50 border border-border/30 flex-wrap">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
             Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
           </TabsTrigger>
           <TabsTrigger value="goals" className="flex items-center gap-2">
             <Target className="w-4 h-4" />
@@ -510,7 +517,7 @@ export function DashboardView() {
             Inteligência Artificial
           </TabsTrigger>
           <TabsTrigger value="sla" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
+            <Clock className="w-4 h-4" />
             Métricas SLA
           </TabsTrigger>
         </TabsList>
@@ -526,6 +533,14 @@ export function DashboardView() {
             level3Widgets={level3Widgets}
             renderWidget={renderWidget}
           />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <DemandPrediction />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ConversationHeatmap />
+            <ActivityHeatmap />
+          </div>
         </TabsContent>
 
         <TabsContent value="goals" className="space-y-6">

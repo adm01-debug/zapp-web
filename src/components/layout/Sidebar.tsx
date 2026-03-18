@@ -41,6 +41,7 @@ import {
   UserCog,
   ClipboardList,
   AlertTriangle,
+  FileText,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -83,6 +84,7 @@ const toolsNav = [
   { id: 'voip', icon: PhoneCall, label: 'VoIP' },
   { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
   { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
+  { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
 ] as const;
 
 const systemNav = [
