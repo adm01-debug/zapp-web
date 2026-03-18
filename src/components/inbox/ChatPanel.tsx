@@ -336,7 +336,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       
       const dbPromise = supabase.from('messages').insert({
         contact_id: conversation.contact.id,
-        whatsapp_connection_id: conversation.contact.whatsappConnectionId || null,
+        whatsapp_connection_id: null,
         content: '[Sticker]',
         message_type: 'sticker',
         media_url: stickerUrl,
