@@ -87,9 +87,13 @@ export function PaymentLinksView() {
     fetchData();
   };
 
-  const copyLink = (url: string) => {
-    navigator.clipboard.writeText(url);
-    toast({ title: 'Link copiado!' });
+  const copyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Link copiado!' });
+    } catch {
+      toast({ title: 'Erro ao copiar' });
+    }
   };
 
   const deleteLink = async (id: string) => {

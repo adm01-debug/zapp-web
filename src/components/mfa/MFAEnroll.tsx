@@ -29,12 +29,16 @@ export function MFAEnroll({ onSuccess, onCancel }: MFAEnrollProps) {
     }
   };
 
-  const handleCopySecret = () => {
+  const handleCopySecret = async () => {
     if (enrollmentData?.totp.secret) {
-      navigator.clipboard.writeText(enrollmentData.totp.secret);
-      setCopied(true);
-      toast.success('Código copiado!');
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(enrollmentData.totp.secret);
+        setCopied(true);
+        toast.success('Código copiado!');
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toast.error('Não foi possível copiar');
+      }
     }
   };
 

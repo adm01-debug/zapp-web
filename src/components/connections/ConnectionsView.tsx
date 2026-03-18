@@ -354,12 +354,16 @@ export function ConnectionsView() {
     }
   };
 
-  const handleCopyId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    toast({
-      title: 'ID copiado!',
-      description: 'O ID da conexão foi copiado para a área de transferência.',
-    });
+  const handleCopyId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      toast({
+        title: 'ID copiado!',
+        description: 'O ID da conexão foi copiado para a área de transferência.',
+      });
+    } catch {
+      toast({ title: 'Erro ao copiar', description: 'Não foi possível copiar o ID.' });
+    }
   };
 
   const handleReconnect = async (connection: WhatsAppConnection) => {
