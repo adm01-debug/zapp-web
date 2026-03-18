@@ -116,7 +116,10 @@ interface ToastItemProps {
   onRemove: (id: string) => void;
 }
 
-function ToastItem({ toast, onRemove }: ToastItemProps) {
+const ToastItem = React.forwardRef<HTMLDivElement, ToastItemProps>(function ToastItem(
+  { toast, onRemove },
+  ref
+) {
   const [progress, setProgress] = React.useState(100);
   const duration = toast.type === 'loading' ? 0 : toast.duration || 5000;
 
@@ -139,6 +142,7 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
 
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -181,7 +185,6 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
         )}
       </div>
 
-      {/* Progress bar */}
       {duration > 0 && (
         <motion.div
           className="absolute bottom-0 left-0 h-1 bg-current opacity-20"
@@ -192,4 +195,4 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
       )}
     </motion.div>
   );
-}
+});
