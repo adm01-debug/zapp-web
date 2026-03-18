@@ -30,6 +30,7 @@ import {
   GraduationCap,
   Keyboard,
   Volume2,
+  ArrowRight,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
 import { AutoCloseSettings } from '@/components/settings/AutoCloseSettings';
