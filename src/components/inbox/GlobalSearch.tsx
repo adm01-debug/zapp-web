@@ -4,7 +4,8 @@ import { log } from '@/lib/logger';
 import { 
   Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText, 
   Filter, Clock, History, Tag, Trash2, Command, Plus, UserPlus, 
-  Send, Settings, LayoutDashboard, Inbox, Zap, ArrowRight
+  Send, Settings, LayoutDashboard, Inbox, Zap, ArrowRight,
+  Image, Video, FileDown, Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
