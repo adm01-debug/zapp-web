@@ -534,6 +534,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onCopy={handleCopyMessage}
           onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onInteractiveButtonClick={handleInteractiveButtonClick}
+          onEditStart={handleEditStart}
         />
 
         <ChatQuickRepliesPopover
