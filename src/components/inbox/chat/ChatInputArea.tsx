@@ -395,14 +395,19 @@ export function ChatInputArea({
             }}
           />
 
-          {/* Send button — circular purple */}
+          {/* Send/Confirm button */}
           <Button
             onClick={onSend}
             disabled={!inputValue.trim()}
             size="icon"
-            className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 disabled:opacity-40"
+            className={cn(
+              "w-10 h-10 rounded-full shrink-0 disabled:opacity-40",
+              editingMessage
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground"
+            )}
           >
-            <Send className="w-[18px] h-[18px]" />
+            {editingMessage ? <Check className="w-[18px] h-[18px]" /> : <Send className="w-[18px] h-[18px]" />}
           </Button>
         </div>
       </div>
