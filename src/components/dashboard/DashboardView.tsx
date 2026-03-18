@@ -34,7 +34,7 @@ import { AIStatsWidget } from './AIStatsWidget';
 import { GoalsDashboard } from './GoalsDashboard';
 import { DemandPrediction } from './DemandPrediction';
 import { ActivityHeatmap } from './ActivityHeatmap';
-import { ConversationHeatmap } from './ConversationHeatmap';
+import ConversationHeatmap from './ConversationHeatmap';
 import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
