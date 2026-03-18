@@ -157,11 +157,16 @@ async function getContactByPhone(
   phone: string,
   connectionId: string
 ): Promise<{ id: string; avatar_url: string | null } | null> {
+  // Try exact match first, then with/without '+' prefix
+  const phonesVariants = [phone, `+${phone}`, phone.replace(/^\+/, '')];
+  const uniquePhones = [...new Set(phonesVariants)];
+  
   const { data } = await supabase
     .from('contacts')
     .select('id, avatar_url')
-    .eq('phone', phone)
+    .in('phone', uniquePhones)
     .eq('whatsapp_connection_id', connectionId)
+    .limit(1)
     .maybeSingle();
   return data;
 }
