@@ -55,7 +55,10 @@ const VoIPPanel = lazy(() => import('@/components/calls/VoIPPanel').then(m => ({
 const AutoExportManager = lazy(() => import('@/components/reports/AutoExportManager').then(m => ({ default: m.AutoExportManager })));
 const GoogleCalendarIntegration = lazy(() => import('@/components/integrations/GoogleCalendarIntegration').then(m => ({ default: m.GoogleCalendarIntegration })));
 const ThemeCustomizer = lazy(() => import('@/components/settings/ThemeCustomizer').then(m => ({ default: m.ThemeCustomizer })));
-const AchievementsSystemLazy = lazy(() => import('@/components/gamification/AchievementsSystem').then(m => ({ default: m.AchievementsSystem as any })));
+const AchievementsSystemLazy = lazy(async () => {
+  const m = await import('@/components/gamification/AchievementsSystem');
+  return { default: m.AchievementsSystem };
+}) as React.LazyExoticComponent<React.ComponentType<{ userId?: string; showCompact?: boolean }>>;
 
 function ViewLoadingFallback() {
   return (
