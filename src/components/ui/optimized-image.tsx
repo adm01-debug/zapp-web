@@ -140,6 +140,9 @@ export const AvatarImageOptimized = memo(function AvatarImageOptimized({
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Skip expired WhatsApp CDN URLs to avoid 403 errors
+  const isExpiredCdn = src?.includes('pps.whatsapp.net') || src?.includes('mmg.whatsapp.net');
+
   const initials = fallbackText
     ? fallbackText
         .split(' ')
@@ -149,7 +152,7 @@ export const AvatarImageOptimized = memo(function AvatarImageOptimized({
         .toUpperCase()
     : alt.slice(0, 2).toUpperCase();
 
-  if (!src || hasError) {
+  if (!src || hasError || isExpiredCdn) {
     return (
       <div
         className={cn(
