@@ -1,15 +1,12 @@
-import { useState } from 'react';
-import { log } from '@/lib/logger';
+/**
+ * ExportButton - BLOQUEADO por política de segurança.
+ */
+
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Download, FileSpreadsheet, FileText, File, Loader2 } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { exportToPDF, exportToExcel, exportToCSV, ReportData } from '@/utils/exportReport';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ReportData } from '@/utils/exportReport';
 
 interface ExportButtonProps {
   getData: () => Promise<ReportData> | ReportData;
@@ -19,95 +16,24 @@ interface ExportButtonProps {
   className?: string;
 }
 
-export const ExportButton = ({ 
-  getData, 
-  disabled = false,
-  variant = 'outline',
-  size = 'default',
-  className 
-}: ExportButtonProps) => {
-  const [exporting, setExporting] = useState<'pdf' | 'excel' | 'csv' | null>(null);
-
-  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
-    setExporting(format);
-    try {
-      const data = await getData();
-      
-      switch (format) {
-        case 'pdf':
-          exportToPDF(data);
-          toast({
-            title: 'PDF Exportado',
-            description: 'O relatório foi exportado com sucesso.',
-          });
-          break;
-        case 'excel':
-          exportToExcel(data);
-          toast({
-            title: 'Excel Exportado',
-            description: 'O relatório foi exportado com sucesso.',
-          });
-          break;
-        case 'csv':
-          exportToCSV(data);
-          toast({
-            title: 'CSV Exportado',
-            description: 'O relatório foi exportado com sucesso.',
-          });
-          break;
-      }
-    } catch (error) {
-      log.error('Export error:', error);
-      toast({
-        title: 'Erro na Exportação',
-        description: 'Não foi possível exportar o relatório.',
-        variant: 'destructive',
-      });
-    } finally {
-      setExporting(null);
-    }
-  };
-
+export const ExportButton = ({ className }: ExportButtonProps) => {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant={variant} 
-          size={size} 
-          disabled={disabled || exporting !== null}
-          className={className}
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="default"
+          disabled
+          className={`opacity-50 cursor-not-allowed ${className || ''}`}
+          onClick={() => toast({ title: '🔒 Exportação Bloqueada', description: 'Proteção de dados ativa', variant: 'destructive' })}
         >
-          {exporting ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Download className="h-4 w-4 mr-2" />
-          )}
-          Exportar
+          <ShieldAlert className="h-4 w-4 mr-2 text-destructive" />
+          Exportação Bloqueada
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem 
-          onClick={() => handleExport('pdf')}
-          disabled={exporting !== null}
-        >
-          <FileText className="h-4 w-4 mr-2 text-destructive" />
-          Exportar PDF
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => handleExport('excel')}
-          disabled={exporting !== null}
-        >
-          <FileSpreadsheet className="h-4 w-4 mr-2 text-success" />
-          Exportar Excel
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => handleExport('csv')}
-          disabled={exporting !== null}
-        >
-          <File className="h-4 w-4 mr-2 text-info" />
-          Exportar CSV
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Exportação desabilitada para proteção de dados de clientes</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
