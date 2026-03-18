@@ -33,6 +33,9 @@ import {
   Layers,
   Settings,
   Paperclip,
+  Pencil,
+  X,
+  Check,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
