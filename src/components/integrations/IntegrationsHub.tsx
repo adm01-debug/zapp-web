@@ -43,6 +43,7 @@ const integrations = [
     icon: Calendar,
     color: 'bg-[#4285F4]',
     status: 'available' as const,
+  },
 ];
 
 export function IntegrationsHub() {
