@@ -69,6 +69,9 @@ const queryClient = new QueryClient({
 function AppContent() {
   // Register service worker for push notifications
   useServiceWorker();
+  
+  // Anti-screenshot protection
+  useScreenProtection();
 
   // Global unhandled rejection handler
   useEffect(() => {
