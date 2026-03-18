@@ -96,32 +96,7 @@ export async function compressImage(
     };
   }
 
-  // Skip if already under size limit
   const maxSizeBytes = (opts.maxSizeMB || 2) * 1024 * 1024;
-  if (originalSize <= maxSizeBytes) {
-    // Still resize if needed
-    const img = await loadImage(file);
-    const dims = calculateDimensions(
-      img.naturalWidth,
-      img.naturalHeight,
-      opts.maxWidth || 1920,
-      opts.maxHeight || 1920
-    );
-
-    if (dims.width === img.naturalWidth && dims.height === img.naturalHeight) {
-      URL.revokeObjectURL(img.src);
-      return {
-        file,
-        originalSize,
-        compressedSize: originalSize,
-        compressionRatio: 1,
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-        wasCompressed: false,
-      };
-    }
-  }
-
   const img = await loadImage(file);
   const { width, height } = calculateDimensions(
     img.naturalWidth,
@@ -129,6 +104,20 @@ export async function compressImage(
     opts.maxWidth || 1920,
     opts.maxHeight || 1920
   );
+
+  // Skip if already under size limit and no resize needed
+  if (originalSize <= maxSizeBytes && width === img.naturalWidth && height === img.naturalHeight) {
+    URL.revokeObjectURL(img.src);
+    return {
+      file,
+      originalSize,
+      compressedSize: originalSize,
+      compressionRatio: 1,
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      wasCompressed: false,
+    };
+  }
 
   // Draw to canvas
   const canvas = document.createElement('canvas');

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Loader2 } from 'lucide-react';
 import { useMFA } from '@/hooks/useMFA';
@@ -29,9 +29,9 @@ export function MFAVerify({
     fetchFactors();
   }, [fetchFactors]);
 
-  const handleVerify = async () => {
-    if (code.length !== 6) return;
-    
+  const handleVerify = useCallback(async () => {
+    if (code.length !== 6 || verifying) return;
+
     const verifiedFactor = factors.find(f => f.status === 'verified');
     if (!verifiedFactor) {
       setError('Nenhum fator MFA encontrado');
@@ -40,7 +40,7 @@ export function MFAVerify({
 
     setVerifying(true);
     setError('');
-    
+
     try {
       await verifyTOTP(verifiedFactor.id, code);
       onSuccess?.();
@@ -50,13 +50,13 @@ export function MFAVerify({
     } finally {
       setVerifying(false);
     }
-  };
+  }, [code, verifying, factors, verifyTOTP, onSuccess]);
 
   useEffect(() => {
     if (code.length === 6 && !verifying) {
       handleVerify();
     }
-  }, [code]);
+  }, [code, verifying, handleVerify]);
 
   return (
     <Card className="w-full max-w-md mx-auto">

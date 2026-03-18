@@ -13,6 +13,10 @@ export interface ReportData {
   summary?: { label: string; value: string | number }[];
 }
 
+function generateFileName(data: ReportData, ext: string): string {
+  return `${data.title.toLowerCase().replace(/\s+/g, '-')}-${format(data.generatedAt, 'yyyy-MM-dd')}.${ext}`;
+}
+
 export const exportToPDF = (data: ReportData): void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -110,8 +114,7 @@ export const exportToPDF = (data: ReportData): void => {
   }
 
   // Download
-  const fileName = `${data.title.toLowerCase().replace(/\s+/g, '-')}-${format(data.generatedAt, 'yyyy-MM-dd')}.pdf`;
-  doc.save(fileName);
+  doc.save(generateFileName(data, 'pdf'));
 };
 
 export const exportToExcel = (data: ReportData): void => {
@@ -151,8 +154,7 @@ export const exportToExcel = (data: ReportData): void => {
   XLSX.utils.book_append_sheet(wb, ws, 'Dados');
 
   // Download
-  const fileName = `${data.title.toLowerCase().replace(/\s+/g, '-')}-${format(data.generatedAt, 'yyyy-MM-dd')}.xlsx`;
-  XLSX.writeFile(wb, fileName);
+  XLSX.writeFile(wb, generateFileName(data, 'xlsx'));
 };
 
 export const exportToCSV = (data: ReportData): void => {
@@ -178,7 +180,7 @@ export const exportToCSV = (data: ReportData): void => {
   const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `${data.title.toLowerCase().replace(/\s+/g, '-')}-${format(data.generatedAt, 'yyyy-MM-dd')}.csv`;
+  link.download = generateFileName(data, 'csv');
   link.click();
   URL.revokeObjectURL(link.href);
 };
