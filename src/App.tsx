@@ -39,6 +39,7 @@ const SLADashboard = lazy(() => import("./pages/SLADashboard"));
 const SLAHistory = lazy(() => import("./pages/SLAHistory"));
 const RolesPage = lazy(() => import("./pages/admin/RolesPage"));
 const RateLimitDashboard = lazy(() => import("./pages/admin/RateLimitDashboard"));
+const Install = lazy(() => import("./pages/Install"));
 
 // Route loading fallback component
 function RouteLoadingFallback() {
