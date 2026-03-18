@@ -112,6 +112,7 @@ function AppContent() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/auth/callback" element={<SSOCallback />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />
+            <Route path="/install" element={<Install />} />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />

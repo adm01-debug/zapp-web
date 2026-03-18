@@ -57,7 +57,7 @@ const Install = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-20 h-20 bg-gradient-to-br from-[hsl(var(--whatsapp))] to-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/70 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
             <Smartphone className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">Instalar App</h1>
