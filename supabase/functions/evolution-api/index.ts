@@ -237,21 +237,24 @@ serve(async (req) => {
 
     // POST /webhook/set/{instance}
     if (action === 'set-webhook') {
-      return await proxy(`/webhook/set/${instance}`, 'POST', {
-        enabled: body.enabled ?? true,
-        url: body.url,
-        webhookByEvents: body.webhookByEvents ?? true,
-        webhookBase64: body.webhookBase64 ?? false,
-        events: body.events || [
-          'APPLICATION_STARTUP', 'QRCODE_UPDATED', 'CONNECTION_UPDATE',
-          'MESSAGES_SET', 'MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'MESSAGES_DELETE',
-          'SEND_MESSAGE', 'CONTACTS_SET', 'CONTACTS_UPSERT', 'CONTACTS_UPDATE',
-          'PRESENCE_UPDATE', 'CHATS_SET', 'CHATS_UPSERT', 'CHATS_UPDATE', 'CHATS_DELETE',
-          'GROUPS_UPSERT', 'GROUP_UPDATE', 'GROUP_PARTICIPANTS_UPDATE',
-          'NEW_JWT_TOKEN', 'TYPEBOT_START', 'TYPEBOT_CHANGE_STATUS',
-          'LABELS_EDIT', 'LABELS_ASSOCIATION', 'CALL',
-        ],
-      });
+      const webhookPayload = {
+        webhook: {
+          enabled: body.enabled ?? true,
+          url: body.url,
+          webhookByEvents: body.webhookByEvents ?? true,
+          webhookBase64: body.webhookBase64 ?? false,
+          events: body.events || [
+            'APPLICATION_STARTUP', 'QRCODE_UPDATED', 'CONNECTION_UPDATE',
+            'MESSAGES_SET', 'MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'MESSAGES_DELETE',
+            'SEND_MESSAGE', 'CONTACTS_SET', 'CONTACTS_UPSERT', 'CONTACTS_UPDATE',
+            'PRESENCE_UPDATE', 'CHATS_SET', 'CHATS_UPSERT', 'CHATS_UPDATE', 'CHATS_DELETE',
+            'GROUPS_UPSERT', 'GROUP_UPDATE', 'GROUP_PARTICIPANTS_UPDATE',
+            'NEW_JWT_TOKEN', 'TYPEBOT_START', 'TYPEBOT_CHANGE_STATUS',
+            'LABELS_EDIT', 'LABELS_ASSOCIATION', 'CALL',
+          ],
+        },
+      };
+      return await proxy(`/webhook/set/${instance}`, 'POST', webhookPayload);
     }
 
     // GET /webhook/find/{instance}
