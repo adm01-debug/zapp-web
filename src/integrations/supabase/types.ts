@@ -3966,6 +3966,23 @@ export type Database = {
       calculate_level: { Args: { xp_amount: number }; Returns: number }
       cleanup_expired_challenges: { Args: never; Returns: undefined }
       clear_login_attempts: { Args: { p_email: string }; Returns: undefined }
+      get_team_profiles: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          department: string
+          email: string
+          id: string
+          is_active: boolean
+          job_title: string
+          max_chats: number
+          name: string
+          phone: string
+          role: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
