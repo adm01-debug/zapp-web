@@ -83,6 +83,7 @@ interface ChatInputAreaProps {
 export function ChatInputArea({
   inputValue,
   replyToMessage,
+  editingMessage,
   isRecordingAudio,
   showSlashCommands,
   contactId,
