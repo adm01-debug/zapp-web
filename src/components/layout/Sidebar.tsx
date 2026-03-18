@@ -76,8 +76,12 @@ const toolsNav = [
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
   { id: 'automations', icon: Zap, label: 'Automações' },
+  { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
+  { id: 'integrations', icon: Plug, label: 'Integrações' },
+  { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
   { id: 'voip', icon: PhoneCall, label: 'VoIP' },
   { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
+  { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
 ] as const;
 
 const systemNav = [
