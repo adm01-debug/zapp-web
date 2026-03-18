@@ -21,10 +21,15 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
         signal: AbortSignal.timeout(5000),
       }
     );
-    if (!resp.ok) return null;
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      console.error(`fetchProfilePic failed for ${phone} on ${instance}: ${resp.status} ${text}`);
+      return null;
+    }
     const result = await resp.json();
     return result?.profilePictureUrl || result?.picture || result?.url || null;
-  } catch {
+  } catch (err) {
+    console.error(`fetchProfilePic error for ${phone}:`, err);
     return null;
   }
 }
@@ -77,10 +82,12 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get all contacts without avatar or with expired WhatsApp CDN URLs
+    // Exclude @lid contacts (internal WhatsApp IDs, not real phone numbers)
     const { data: contacts, error: contactsError } = await supabase
       .from('contacts')
       .select('id, phone, name, avatar_url, whatsapp_connection_id')
       .not('whatsapp_connection_id', 'is', null)
+      .not('phone', 'like', '%@lid')
       .or('avatar_url.is.null,avatar_url.like.%pps.whatsapp.net%')
       .order('created_at', { ascending: false })
       .limit(200);
@@ -92,13 +99,17 @@ serve(async (req) => {
       });
     }
 
-    // Get unique connection IDs and their instance names
+    console.log(`Found ${contacts.length} contacts needing avatars`);
+
+    // Get unique connection IDs and their instance IDs
     const connectionIds = [...new Set(contacts.map(c => c.whatsapp_connection_id).filter(Boolean))];
     const { data: connections } = await supabase
       .from('whatsapp_connections')
-      .select('id, instance_name')
+      .select('id, instance_id')
       .in('id', connectionIds)
       .eq('status', 'connected');
+
+    console.log(`Found ${connections?.length || 0} active connections:`, JSON.stringify(connections));
 
     if (!connections?.length) {
       return new Response(JSON.stringify({ success: false, message: 'Nenhuma conexão WhatsApp ativa encontrada.' }), {
@@ -106,10 +117,12 @@ serve(async (req) => {
       });
     }
 
-    const connectionMap = new Map(connections.map(c => [c.id, c.instance_name]));
+    // Map connection ID -> instance_id
+    const connectionMap = new Map(connections.map(c => [c.id, c.instance_id]));
 
     let updated = 0;
     let failed = 0;
+    let skipped = 0;
     const processed = contacts.length;
 
     // Process in batches of 5 to avoid rate limits
@@ -117,11 +130,15 @@ serve(async (req) => {
       const batch = contacts.slice(i, i + 5);
 
       await Promise.allSettled(batch.map(async (contact) => {
-        const instanceName = connectionMap.get(contact.whatsapp_connection_id);
-        if (!instanceName) { failed++; return; }
+        const instanceId = connectionMap.get(contact.whatsapp_connection_id);
+        if (!instanceId) { 
+          skipped++; 
+          console.log(`Skipped ${contact.phone}: no instance_id for connection ${contact.whatsapp_connection_id}`);
+          return; 
+        }
 
         try {
-          const picUrl = await fetchProfilePicFromApi(instanceName, contact.phone);
+          const picUrl = await fetchProfilePicFromApi(instanceId, contact.phone);
           if (!picUrl) { failed++; return; }
 
           const permanentUrl = await persistProfilePicture(supabase, contact.phone, picUrl);
@@ -133,6 +150,7 @@ serve(async (req) => {
             .eq('id', contact.id);
 
           updated++;
+          console.log(`Updated avatar for ${contact.name} (${contact.phone})`);
         } catch (err) {
           console.error(`Error processing ${contact.phone}:`, err);
           failed++;
@@ -150,6 +168,7 @@ serve(async (req) => {
       processed,
       updated,
       failed,
+      skipped,
       message: `${updated} avatares atualizados de ${processed} contatos processados.`,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
