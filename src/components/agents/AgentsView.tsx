@@ -37,7 +37,8 @@ import { cn } from '@/lib/utils';
 export function AgentsView() {
   const { agents, stats, isLoading, refetch } = useAgents();
   const [search, setSearch] = useState('');
-
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
   const filteredAgents = agents.filter((agent) =>
     agent.name.toLowerCase().includes(search.toLowerCase()) ||
     (agent.email?.toLowerCase().includes(search.toLowerCase()) ?? false)
