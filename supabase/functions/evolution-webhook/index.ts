@@ -49,7 +49,6 @@ function normalizePhone(rawJid?: string): string | null {
   return rawJid.replace('@s.whatsapp.net', '').replace('@g.us', '');
 }
 
-// Helper: Download WhatsApp profile picture and upload to Supabase storage
 async function persistProfilePicture(
   supabase: ReturnType<typeof createClient>,
   phone: string,
@@ -58,22 +57,21 @@ async function persistProfilePicture(
   try {
     const response = await fetch(profilePicUrl, { signal: AbortSignal.timeout(5000) });
     if (!response.ok) return null;
-    
+
     const blob = await response.arrayBuffer();
     const bytes = new Uint8Array(blob);
-    if (bytes.length < 100) return null; // too small, probably invalid
-    
+    if (bytes.length < 100) return null;
+
     const fileName = `${phone}_${Date.now()}.jpg`;
     const storagePath = `avatars/${fileName}`;
-    
-    // Delete old avatars for this phone
+
     const { data: oldFiles } = await supabase.storage
       .from('avatars')
       .list('avatars', { search: phone });
     if (oldFiles?.length) {
       await supabase.storage.from('avatars').remove(oldFiles.map(f => `avatars/${f.name}`));
     }
-    
+
     const { error } = await supabase.storage
       .from('avatars')
       .upload(storagePath, bytes, {
@@ -81,12 +79,12 @@ async function persistProfilePicture(
         cacheControl: '604800',
         upsert: true,
       });
-    
+
     if (error) {
       console.error('Avatar upload error:', error);
       return null;
     }
-    
+
     const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(storagePath);
     return urlData.publicUrl;
   } catch (err) {
@@ -95,13 +93,12 @@ async function persistProfilePicture(
   }
 }
 
-// Helper: Fetch profile picture URL from Evolution API
 async function fetchProfilePicFromApi(instance: string, phone: string): Promise<string | null> {
   try {
     const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
     const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
     if (!evolutionUrl || !evolutionKey) return null;
-    
+
     const resp = await fetch(
       `${evolutionUrl}/chat/fetchProfilePictureUrl/${instance}`,
       {
@@ -140,13 +137,10 @@ serve(async (req) => {
     const baseData = isRecord(data) ? data : {};
     console.log('Evolution webhook received:', payload.event, '->', event, instance);
 
-    // =============================================
-    // CONNECTION_UPDATE
-    // =============================================
     if (event === 'connection.update') {
-      const status = (baseData.status as string) === 'open' ? 'connected' : 
-                     (baseData.status as string) === 'close' ? 'disconnected' : 'pending';
-      
+      const status = (baseData.status as string) === 'open' ? 'connected' :
+        (baseData.status as string) === 'close' ? 'disconnected' : 'pending';
+
       await supabase
         .from('whatsapp_connections')
         .update({ status, qr_code: null, updated_at: new Date().toISOString() })
@@ -155,9 +149,6 @@ serve(async (req) => {
       console.log(`Connection ${instance} status: ${status}`);
     }
 
-    // =============================================
-    // QRCODE_UPDATED
-    // =============================================
     if (event === 'qrcode.updated') {
       const qrCode = (baseData.qrcode as Record<string, string>)?.base64;
       if (qrCode) {
@@ -169,9 +160,6 @@ serve(async (req) => {
       }
     }
 
-    // =============================================
-    // MESSAGES_UPSERT — Incoming messages
-    // =============================================
     if (event === 'messages.upsert') {
       for (const entry of toEventRecords(data, ['messages'])) {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
@@ -189,9 +177,6 @@ serve(async (req) => {
       }
     }
 
-    // =============================================
-    // SEND_MESSAGE — Outgoing message confirmation
-    // =============================================
     if (event === 'send.message') {
       for (const entry of toEventRecords(data, ['messages'])) {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
@@ -259,9 +244,6 @@ serve(async (req) => {
       }
     }
 
-    // =============================================
-    // MESSAGES_UPDATE — Status updates (delivered, read)
-    // =============================================
     if (event === 'messages.update') {
       const statusMap: Record<string, string> = {
         'DELIVERY_ACK': 'delivered',
@@ -271,26 +253,63 @@ serve(async (req) => {
         'ERROR': 'failed',
       };
 
+      const { data: connection } = await supabase
+        .from('whatsapp_connections')
+        .select('id')
+        .eq('instance_id', instance)
+        .maybeSingle();
+
       for (const entry of toEventRecords(data, ['messages', 'updates', 'statuses'])) {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
         const key = keySource as { id?: string } | null;
         const rawStatus = (entry.status as string) || (baseData.status as string) || '';
         const status = statusMap[rawStatus] || rawStatus.toLowerCase();
-        
+
         if (status && key?.id) {
-          await supabase
+          const now = new Date().toISOString();
+          const { data: updatedMessages, error: updateError } = await supabase
             .from('messages')
-            .update({ status, status_updated_at: new Date().toISOString() })
-            .eq('external_id', key.id);
+            .update({ status, status_updated_at: now })
+            .eq('external_id', key.id)
+            .select('id');
+
+          if (updateError) {
+            console.error(`Error updating message status ${key.id}:`, updateError);
+            continue;
+          }
+
+          if (!updatedMessages?.length) {
+            const { error: insertError } = await supabase
+              .from('messages')
+              .insert({
+                content: '[Mensagem recebida]',
+                message_type: 'text',
+                sender: 'contact',
+                external_id: key.id,
+                status,
+                status_updated_at: now,
+                created_at: now,
+                whatsapp_connection_id: connection?.id ?? null,
+              });
+
+            if (insertError) {
+              console.error(`Error creating placeholder for message status ${key.id}:`, insertError);
+              continue;
+            }
+          }
+
           console.log(`Message ${key.id} status: ${status}`);
         }
       }
     }
 
-    // =============================================
-    // MESSAGES_DELETE — Message deleted by contact
-    // =============================================
     if (event === 'messages.delete') {
+      const { data: connection } = await supabase
+        .from('whatsapp_connections')
+        .select('id')
+        .eq('instance_id', instance)
+        .maybeSingle();
+
       for (const entry of toEventRecords(data, ['messages', 'keys'])) {
         const keySource = isRecord(entry.key)
           ? entry.key
@@ -298,30 +317,54 @@ serve(async (req) => {
         const key = keySource as { id?: string } | null;
 
         if (key?.id) {
-          await supabase
+          const now = new Date().toISOString();
+          const { data: updatedMessages, error: updateError } = await supabase
             .from('messages')
-            .update({ content: '[Mensagem apagada]', status: 'deleted', status_updated_at: new Date().toISOString() })
-            .eq('external_id', key.id);
+            .update({ content: '[Mensagem apagada]', status: 'deleted', status_updated_at: now })
+            .eq('external_id', key.id)
+            .select('id');
+
+          if (updateError) {
+            console.error(`Error deleting message ${key.id}:`, updateError);
+            continue;
+          }
+
+          if (!updatedMessages?.length) {
+            const { error: insertError } = await supabase
+              .from('messages')
+              .insert({
+                content: '[Mensagem apagada]',
+                message_type: 'text',
+                sender: 'contact',
+                external_id: key.id,
+                status: 'deleted',
+                status_updated_at: now,
+                created_at: now,
+                whatsapp_connection_id: connection?.id ?? null,
+              });
+
+            if (insertError) {
+              console.error(`Error creating placeholder for deleted message ${key.id}:`, insertError);
+              continue;
+            }
+          }
+
           console.log(`Message deleted: ${key.id}`);
         }
       }
     }
 
-    // =============================================
-    // CONTACTS_UPSERT / CONTACTS_UPDATE — Contact sync
-    // =============================================
     if (event === 'contacts.upsert' || event === 'contacts.update') {
       const contacts = Array.isArray(data) ? data : [data];
       for (const contact of contacts) {
         const contactData = contact as Record<string, unknown>;
         const jid = (contactData.id || contactData.remoteJid) as string;
         if (!jid) continue;
-        
+
         const phone = jid.replace('@s.whatsapp.net', '').replace('@g.us', '');
         const pushName = contactData.pushName as string || contactData.name as string;
         const profilePicUrl = contactData.profilePictureUrl as string || contactData.imgUrl as string;
 
-        // Find the connection for this instance
         const { data: connection } = await supabase
           .from('whatsapp_connections')
           .select('id')
@@ -329,7 +372,6 @@ serve(async (req) => {
           .single();
 
         if (connection && pushName) {
-          // Persist avatar to storage if we have a WhatsApp CDN URL
           let permanentAvatarUrl: string | null = null;
           if (profilePicUrl && profilePicUrl.includes('pps.whatsapp.net')) {
             permanentAvatarUrl = await persistProfilePicture(supabase, phone, profilePicUrl);
@@ -337,7 +379,6 @@ serve(async (req) => {
             permanentAvatarUrl = profilePicUrl;
           }
 
-          // Upsert: update name/avatar if contact exists, create if not
           const { data: existing } = await supabase
             .from('contacts')
             .select('id, avatar_url')
@@ -362,34 +403,24 @@ serve(async (req) => {
       }
     }
 
-    // =============================================
-    // PRESENCE_UPDATE — Online/typing status
-    // =============================================
     if (event === 'presence.update') {
-      // Presence is transient; log it for real-time UI but don't persist
       const jid = data.id as string;
       const presences = data.presences as Record<string, unknown>;
       if (jid && presences) {
         console.log(`Presence update: ${jid}`, JSON.stringify(presences));
-        // This can be consumed by real-time subscriptions in the frontend
-        // via a separate presence channel if needed
       }
     }
 
-    // =============================================
-    // CHATS_UPSERT / CHATS_UPDATE — Chat sync
-    // =============================================
     if (event === 'chats.upsert' || event === 'chats.update') {
-      // Chat events represent conversation metadata changes
       const chats = Array.isArray(data) ? data : [data];
       for (const chat of chats) {
         const chatData = chat as Record<string, unknown>;
         const jid = chatData.id as string;
-        if (!jid || jid.endsWith('@g.us')) continue; // Skip group chats
+        if (!jid || jid.endsWith('@g.us')) continue;
 
         const phone = jid.replace('@s.whatsapp.net', '');
         const unreadCount = chatData.unreadCount as number;
-        
+
         if (unreadCount !== undefined) {
           const { data: connection } = await supabase
             .from('whatsapp_connections')
@@ -398,7 +429,6 @@ serve(async (req) => {
             .single();
 
           if (connection) {
-            // Update unread status on messages
             const { data: contact } = await supabase
               .from('contacts')
               .select('id')
@@ -420,34 +450,24 @@ serve(async (req) => {
       }
     }
 
-    // =============================================
-    // GROUPS_UPSERT / GROUP_UPDATE
-    // =============================================
     if (event === 'groups.upsert' || event === 'group.update') {
       const groupData = data as Record<string, unknown>;
       const groupJid = groupData.id as string;
       const subject = groupData.subject as string;
       if (groupJid && subject) {
         console.log(`Group update: ${groupJid} — ${subject}`);
-        // Group data can be synced to a groups table if needed
       }
     }
 
-    // =============================================
-    // GROUP_PARTICIPANTS_UPDATE
-    // =============================================
     if (event === 'group-participants.update') {
       const groupJid = data.id as string;
       const participants = data.participants as string[];
-      const action = data.action as string; // add, remove, promote, demote
+      const action = data.action as string;
       if (groupJid) {
         console.log(`Group ${groupJid} participants ${action}: ${participants?.join(', ')}`);
       }
     }
 
-    // =============================================
-    // LABELS_EDIT — Label created/edited/deleted
-    // =============================================
     if (event === 'labels.edit') {
       const labelData = data as Record<string, unknown>;
       const labelId = labelData.id as string;
@@ -464,14 +484,12 @@ serve(async (req) => {
 
         if (connection) {
           if (deleted) {
-            // Delete tag
             await supabase
               .from('tags')
               .delete()
               .eq('name', `wa:${labelId}:${labelName}`);
             console.log(`Label deleted: ${labelName}`);
           } else {
-            // Upsert tag - use whatsapp label id in name for matching
             const tagName = labelName || `Label ${labelId}`;
             const { data: existingTag } = await supabase
               .from('tags')
@@ -495,13 +513,10 @@ serve(async (req) => {
       }
     }
 
-    // =============================================
-    // LABELS_ASSOCIATION — Label applied to chat
-    // =============================================
     if (event === 'labels.association') {
       const labelId = data.labelId as string || (data.label as Record<string, unknown>)?.id as string;
       const chatId = data.chatId as string;
-      const type = data.type as string; // add or remove
+      const type = data.type as string;
 
       if (labelId && chatId) {
         const phone = chatId.replace('@s.whatsapp.net', '').replace('@g.us', '');
@@ -535,7 +550,6 @@ serve(async (req) => {
                 .eq('tag_id', tag.id);
               console.log(`Label removed from ${phone}`);
             } else {
-              // Add (upsert)
               const { data: existing } = await supabase
                 .from('contact_tags')
                 .select('id')
@@ -555,9 +569,6 @@ serve(async (req) => {
       }
     }
 
-    // =============================================
-    // CALL — Incoming call
-    // =============================================
     if (event === 'call') {
       const callData = data as Record<string, unknown>;
       const from = callData.from as string;
@@ -574,7 +585,6 @@ serve(async (req) => {
           .single();
 
         if (connection) {
-          // Find or create contact
           let { data: contact } = await supabase
             .from('contacts')
             .select('id')
@@ -592,7 +602,6 @@ serve(async (req) => {
           }
 
           if (contact) {
-            // Log call in calls table
             await supabase.from('calls').insert({
               contact_id: contact.id,
               whatsapp_connection_id: connection.id,
@@ -611,7 +620,6 @@ serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (error: unknown) {
     console.error('Evolution webhook error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -622,9 +630,6 @@ serve(async (req) => {
   }
 });
 
-// =============================================
-// HELPER: Handle incoming message
-// =============================================
 async function handleIncomingMessage(
   supabase: ReturnType<typeof createClient>,
   instance: string,
@@ -635,7 +640,7 @@ async function handleIncomingMessage(
 ) {
   const remoteJid = key.remoteJid;
   const phone = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '');
-  
+
   const message = data.message as Record<string, unknown> | undefined;
   let content = '';
   let messageType = 'text';
@@ -674,10 +679,7 @@ async function handleIncomingMessage(
   } else if (message?.stickerMessage || (data.messageType as string) === 'stickerMessage') {
     messageType = 'sticker';
     content = '[Sticker]';
-    
-    console.log(`[STICKER] Received. messageType=${data.messageType}. Keys in data: ${Object.keys(data).join(',')}. Keys in message: ${message ? Object.keys(message).join(',') : 'null'}`);
 
-    // Helper to upload base64 sticker to storage
     const uploadBase64Sticker = async (base64Data: string): Promise<string | null> => {
       try {
         const cleanB64 = base64Data.replace(/^data:[^;]+;base64,/, '');
@@ -686,10 +688,7 @@ async function handleIncomingMessage(
         for (let i = 0; i < binaryStr.length; i++) {
           bytes[i] = binaryStr.charCodeAt(i);
         }
-        if (bytes.length < 50) {
-          console.error('[STICKER] base64 decoded to too few bytes:', bytes.length);
-          return null;
-        }
+        if (bytes.length < 50) return null;
         const fileName = `sticker_${Date.now()}_${key.id.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
         const { error: uploadErr } = await supabase.storage
           .from('whatsapp-media')
@@ -699,31 +698,24 @@ async function handleIncomingMessage(
           });
         if (!uploadErr) {
           const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
-          console.log('[STICKER] Uploaded successfully:', urlData.publicUrl);
           return urlData.publicUrl;
         }
-        console.error('[STICKER] Upload error:', uploadErr);
         return null;
-      } catch (err) {
-        console.error('[STICKER] base64 decode error:', err);
+      } catch {
         return null;
       }
     };
 
-    // 1) Check if base64 is already in the webhook payload (some Evolution configs send it)
-    const b64Direct = (data.base64 as string) 
+    const b64Direct = (data.base64 as string)
       || ((message?.stickerMessage as Record<string, unknown>)?.base64 as string);
     if (b64Direct) {
-      console.log('[STICKER] Found base64 directly in payload, uploading...');
       mediaUrl = await uploadBase64Sticker(b64Direct);
     }
 
-    // 2) Check for mediaUrl at data level (Evolution v2 sometimes provides it)
     if (!mediaUrl) {
-      const directMediaUrl = (data.mediaUrl as string) 
+      const directMediaUrl = (data.mediaUrl as string)
         || ((message?.stickerMessage as Record<string, unknown>)?.mediaUrl as string);
       if (directMediaUrl && directMediaUrl.startsWith('http')) {
-        console.log('[STICKER] Found mediaUrl, trying download:', directMediaUrl.substring(0, 80));
         try {
           const resp = await fetch(directMediaUrl, { signal: AbortSignal.timeout(10000) });
           if (resp.ok) {
@@ -740,11 +732,8 @@ async function handleIncomingMessage(
               if (!uploadErr) {
                 const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
                 mediaUrl = urlData.publicUrl;
-                console.log('[STICKER] Downloaded and uploaded from mediaUrl');
               }
             }
-          } else {
-            console.log('[STICKER] mediaUrl download failed:', resp.status);
           }
         } catch (dlErr) {
           console.error('[STICKER] mediaUrl download error:', dlErr);
@@ -752,16 +741,11 @@ async function handleIncomingMessage(
       }
     }
 
-    // 3) Fallback: fetch via Evolution API getBase64FromMediaMessage
-    //    Pass the ORIGINAL full message object, not a reconstructed one
     if (!mediaUrl) {
       try {
         const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
         const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
         if (evolutionUrl && evolutionKey) {
-          console.log('[STICKER] Trying Evolution API getBase64FromMediaMessage...');
-          
-          // Pass the full original data structure back to the API
           const apiBody = {
             message: {
               key: data.key,
@@ -769,10 +753,8 @@ async function handleIncomingMessage(
             },
             convertToMp4: false,
           };
-          
+
           const apiUrl = `${evolutionUrl.replace(/\/+$/, '')}/chat/getBase64FromMediaMessage/${instance}`;
-          console.log('[STICKER] API URL:', apiUrl);
-          
           const resp = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -782,38 +764,24 @@ async function handleIncomingMessage(
             body: JSON.stringify(apiBody),
             signal: AbortSignal.timeout(15000),
           });
-          
-          console.log(`[STICKER] Evolution API response: ${resp.status}`);
-          
+
           if (resp.ok) {
             const result = await resp.json();
-            console.log('[STICKER] API result keys:', Object.keys(result).join(','));
-            
-            // Evolution v2 returns { base64: "data:image/webp;base64,..." }
             const b64 = (result.base64 as string) || (result.data as string) || (result.media as string);
             if (b64) {
               mediaUrl = await uploadBase64Sticker(b64);
-            } else {
-              console.log('[STICKER] API returned no base64:', JSON.stringify(result).substring(0, 300));
             }
           } else {
-            const errText = await resp.text();
-            console.error(`[STICKER] API error (${resp.status}):`, errText.substring(0, 300));
+            console.error(`[STICKER] API error (${resp.status}):`, (await resp.text()).substring(0, 300));
           }
-        } else {
-          console.error('[STICKER] Missing EVOLUTION_API_URL or EVOLUTION_API_KEY');
         }
       } catch (apiErr) {
         console.error('[STICKER] API fetch error:', apiErr);
       }
     }
 
-    console.log(`[STICKER] Final result: mediaUrl=${mediaUrl ? 'OK' : 'null'}`);
-
-    // Auto-save received sticker to stickers library (for reuse)
     if (mediaUrl) {
       try {
-        // Check if this sticker URL already exists to avoid duplicates
         const { data: existing } = await supabase
           .from('stickers')
           .select('id')
@@ -828,7 +796,6 @@ async function handleIncomingMessage(
             is_favorite: false,
             use_count: 0,
           });
-          console.log('[STICKER] Auto-saved to stickers library');
         }
       } catch (saveErr) {
         console.error('[STICKER] Failed to auto-save to library:', saveErr);
@@ -853,7 +820,6 @@ async function handleIncomingMessage(
 
   if (!connection) return;
 
-  // Find or create contact
   let { data: contact } = await supabase
     .from('contacts')
     .select('id, avatar_url')
@@ -862,7 +828,6 @@ async function handleIncomingMessage(
     .single();
 
   if (!contact) {
-    // Try to fetch profile picture for new contact
     let avatarUrl: string | null = null;
     const picUrl = await fetchProfilePicFromApi(instance, phone);
     if (picUrl) {
@@ -877,11 +842,10 @@ async function handleIncomingMessage(
         avatar_url: avatarUrl,
         whatsapp_connection_id: connection.id,
       })
-      .select('id')
+      .select('id, avatar_url')
       .single();
     contact = newContact;
   } else if (!contact.avatar_url || contact.avatar_url.includes('pps.whatsapp.net')) {
-    // Existing contact without avatar or with expired WhatsApp URL - try to fetch
     const picUrl = await fetchProfilePicFromApi(instance, phone);
     if (picUrl) {
       const avatarUrl = await persistProfilePicture(supabase, phone, picUrl);
@@ -893,7 +857,51 @@ async function handleIncomingMessage(
 
   if (!contact) return;
 
-  // Insert message
+  const messageCreatedAt = (data.messageTimestamp as number)
+    ? new Date((data.messageTimestamp as number) * 1000).toISOString()
+    : new Date().toISOString();
+
+  const { data: existingMessage } = await supabase
+    .from('messages')
+    .select('id, status, content')
+    .eq('external_id', key.id)
+    .maybeSingle();
+
+  if (existingMessage?.id) {
+    const preservedStatus = existingMessage.status && existingMessage.status !== 'received'
+      ? existingMessage.status
+      : 'received';
+    const preservedContent = existingMessage.status === 'deleted'
+      ? (existingMessage.content || '[Mensagem apagada]')
+      : content;
+
+    const { error: updateExistingError } = await supabase
+      .from('messages')
+      .update({
+        contact_id: contact.id,
+        whatsapp_connection_id: connection.id,
+        content: preservedContent,
+        message_type: messageType,
+        media_url: mediaUrl,
+        sender: 'contact',
+        created_at: messageCreatedAt,
+        status: preservedStatus,
+      })
+      .eq('id', existingMessage.id);
+
+    if (updateExistingError) {
+      console.error('Error reconciling existing message:', updateExistingError);
+      return;
+    }
+
+    console.log(`Message reconciled from ${phone} (${messageType})`);
+
+    if (messageType === 'audio' && mediaUrl) {
+      await handleAudioTranscription(supabase, contact.id, existingMessage.id, mediaUrl, supabaseUrl, supabaseServiceKey);
+    }
+    return;
+  }
+
   const { data: insertedMessage, error: msgError } = await supabase
     .from('messages')
     .insert({
@@ -905,9 +913,7 @@ async function handleIncomingMessage(
       sender: 'contact',
       external_id: key.id,
       status: 'received',
-      created_at: (data.messageTimestamp as number)
-        ? new Date((data.messageTimestamp as number) * 1000).toISOString()
-        : new Date().toISOString(),
+      created_at: messageCreatedAt,
     })
     .select('id')
     .single();
@@ -919,15 +925,11 @@ async function handleIncomingMessage(
 
   console.log(`Message saved from ${phone} (${messageType})`);
 
-  // Auto-transcribe audio if enabled
   if (messageType === 'audio' && mediaUrl && insertedMessage) {
     await handleAudioTranscription(supabase, contact.id, insertedMessage.id, mediaUrl, supabaseUrl, supabaseServiceKey);
   }
 }
 
-// =============================================
-// HELPER: Audio transcription
-// =============================================
 async function handleAudioTranscription(
   supabase: ReturnType<typeof createClient>,
   contactId: string,
