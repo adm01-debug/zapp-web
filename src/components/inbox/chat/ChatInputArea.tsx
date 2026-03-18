@@ -311,6 +311,11 @@ export function ChatInputArea({
 
           <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
 
+          <TextToAudioButton
+            inputValue={inputValue}
+            onAudioReady={onAudioSend}
+          />
+
           <StickerPicker onSendSticker={onSendSticker} />
 
           <Button
