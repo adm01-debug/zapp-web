@@ -260,7 +260,7 @@ function IndexContent() {
       case 'themes':
         return <ThemeCustomizer />;
       case 'achievements':
-        return <AchievementsSystem />;
+        return <AchievementsSystemLazy userId={user?.id} />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
