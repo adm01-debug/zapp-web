@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, FileSpreadsheet, Bug, CreditCard, ArrowRight } from 'lucide-react';
+import { Zap, FileSpreadsheet, Bug, CreditCard, ArrowRight, Calendar } from 'lucide-react';
 import { N8nIntegrationView } from './N8nIntegrationView';
 import { GoogleSheetsIntegrationView } from './GoogleSheetsIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
+import { GoogleCalendarIntegration } from './GoogleCalendarIntegration';
 
-type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry';
+type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry' | 'google-calendar';
 
 const integrations = [
   {
@@ -33,6 +34,14 @@ const integrations = [
     description: 'Monitoramento de erros, performance e session replays em tempo real.',
     icon: Bug,
     color: 'bg-[#362D59]',
+    status: 'available' as const,
+  },
+  {
+    id: 'google-calendar' as const,
+    name: 'Google Calendar',
+    description: 'Sincronize agendamentos e follow-ups com o Google Calendar.',
+    icon: Calendar,
+    color: 'bg-[#4285F4]',
     status: 'available' as const,
   },
   {
@@ -72,6 +81,15 @@ export function IntegrationsHub() {
         <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
       </div>
       <SentryIntegrationView />
+    </div>
+  );
+
+  if (currentView === 'google-calendar') return (
+    <div>
+      <div className="p-4 pb-0">
+        <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
+      </div>
+      <GoogleCalendarIntegration />
     </div>
   );
 

@@ -393,15 +393,13 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ## 🟡 FASE 3: MÉDIA PRIORIDADE (P2)
 
 ### 3.1 📝 Editor de Mensagem Rico
-**Arquivo:** `src/components/inbox/ChatPanel.tsx`  
-**Status:** ⏳ Pendente  
-**Esforço:** 4h  
-
+**Arquivo:** `src/components/inbox/chat/RichTextToolbar.tsx`  
+**Status:** ✅ IMPLEMENTADO  
 **Funcionalidades:**
-- Toolbar de formatação
-- Inserir tabelas
-- Listas ordenadas/não-ordenadas
-- Code blocks
+- Toolbar de formatação WhatsApp (negrito, itálico, tachado, código, listas)
+- Toggle integrado na barra de input
+- Atalhos visuais com tooltips
+- Formatação compatível com WhatsApp
 
 ---
 
@@ -431,15 +429,13 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ---
 
 ### 3.4 🔗 Integração com Calendário
-**Novo hook/componente**  
-**Status:** ⏳ Pendente  
-**Esforço:** 4h  
-
-**Implementar:**
-- Sincronizar com Google Calendar
-- Criar eventos a partir de conversa
-- Lembretes de follow-up
-- Disponibilidade do agente
+**Arquivo:** `src/components/integrations/GoogleCalendarIntegration.tsx`  
+**Status:** ✅ IMPLEMENTADO  
+**Funcionalidades:**
+- UI de conexão com Google Calendar
+- Sincronização automática de agendamentos
+- Configuração de lembretes
+- Disponível no Hub de Integrações e menu lateral
 
 ---
 
@@ -496,28 +492,26 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ---
 
 ### 3.9 🎨 Temas Personalizados
-**Arquivo:** `src/index.css`  
-**Status:** ⏳ Pendente  
-**Esforço:** 2h  
-
-**Implementar:**
-- Cores primárias customizáveis
-- Preset de temas (corporate, fun, minimal)
+**Arquivo:** `src/components/settings/ThemeCustomizer.tsx`  
+**Status:** ✅ IMPLEMENTADO  
+**Funcionalidades:**
+- 6 presets de tema (Padrão, Corporativo, Esmeralda, Pôr do Sol, Rosé, Minimal)
+- Ajuste de border-radius
 - Preview em tempo real
-- Import/export de tema
+- Import/export de tema JSON
+- Acessível via menu lateral (Temas)
 
 ---
 
 ### 3.10 📞 Integração VoIP
-**Novo sistema**  
-**Status:** ⏳ Pendente  
-**Esforço:** 8h  
-
+**Arquivo:** `src/components/calls/VoIPPanel.tsx`  
+**Status:** ✅ IMPLEMENTADO  
 **Funcionalidades:**
-- Click-to-call
-- Histórico de chamadas
-- Gravação de chamadas
-- Transcrição de chamadas
+- Histórico de chamadas com filtros
+- Estatísticas (total, recebidas, realizadas, perdidas, duração média)
+- Configuração de servidor SIP
+- Gravação automática de chamadas
+- Acessível via menu lateral (VoIP)
 
 ---
 
@@ -612,15 +606,15 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ---
 
 ### 3.18 📊 Export Automático
-**Novo sistema**  
-**Status:** ⏳ Pendente  
-**Esforço:** 3h  
-
-**Implementar:**
-- Agendamento de exports
+**Arquivo:** `src/components/reports/AutoExportManager.tsx`  
+**Status:** ✅ IMPLEMENTADO  
+**Funcionalidades:**
+- Agendamento de exports (diário/semanal/quinzenal/mensal)
+- 6 tipos de relatório (conversas, contatos, agentes, filas, CSAT, SLA)
+- 3 formatos (CSV, Excel, PDF)
 - Envio por email
-- Formatos múltiplos
-- Histórico de exports
+- Ativação/desativação individual
+- Acessível via menu lateral (Export Auto)
 
 ---
 

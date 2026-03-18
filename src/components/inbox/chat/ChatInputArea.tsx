@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { StickerPicker } from '../StickerPicker';
 import { cn } from '@/lib/utils';
@@ -6,6 +6,7 @@ import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AnimatePresence } from 'framer-motion';
+import { RichTextToolbar, RichTextToggle } from './RichTextToolbar';
 import { ReplyPreview } from '../ReplyQuote';
 import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
@@ -107,8 +108,25 @@ export function ChatInputArea({
   fileUploaderRef,
   inputRef,
 }: ChatInputAreaProps) {
+  const [showRichToolbar, setShowRichToolbar] = useState(false);
+
   return (
     <>
+      {/* Rich Text Toolbar */}
+      <RichTextToolbar
+        inputRef={inputRef}
+        inputValue={inputValue}
+        onInputChange={(val) => {
+          // Simulate input change event
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+          if (inputRef.current && nativeInputValueSetter) {
+            nativeInputValueSetter.call(inputRef.current, val);
+            inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }}
+        visible={showRichToolbar}
+        onToggle={() => setShowRichToolbar(!showRichToolbar)}
+      />
       {/* Reply Preview */}
       <AnimatePresence>
         {replyToMessage && (
@@ -277,7 +295,9 @@ export function ChatInputArea({
             />
           </div>
 
-          {/* Right icons: Sticker, Emoji, Mic, Attach, Send */}
+          {/* Right icons: RichText, Sticker, Emoji, Mic, Attach, Send */}
+          <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
+
           <StickerPicker onSendSticker={onSendSticker} />
 
           <Button

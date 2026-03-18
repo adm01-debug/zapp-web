@@ -28,6 +28,10 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
+  PhoneCall,
+  Calendar,
+  CalendarClock,
+  Palette,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -64,12 +68,16 @@ const toolsNav = [
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
   { id: 'automations', icon: Zap, label: 'Automações' },
+  { id: 'voip', icon: PhoneCall, label: 'VoIP' },
+  { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
 ] as const;
 
 const systemNav = [
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
+  { id: 'auto-export', icon: CalendarClock, label: 'Export Auto' },
   { id: 'diagnostics', icon: Globe, label: 'Diagnóstico' },
   { id: 'security', icon: Shield, label: 'Segurança' },
+  { id: 'themes', icon: Palette, label: 'Temas' },
   { id: 'docs', icon: BookOpen, label: 'Documentação' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
 ] as const;
