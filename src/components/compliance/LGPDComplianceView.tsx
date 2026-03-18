@@ -16,50 +16,9 @@ export function LGPDComplianceView() {
   const [exportedData, setExportedData] = useState<string | null>(null);
 
   const handleExportData = async () => {
-    if (!user) return;
-    setIsExporting(true);
-    try {
-      // Collect all personal data
-      const [profileRes, settingsRes, notificationsRes, devicesRes, sessionsRes, auditRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('user_id', user.id),
-        supabase.from('user_settings').select('*').eq('user_id', user.id),
-        supabase.from('notifications').select('*').eq('user_id', user.id).limit(500),
-        supabase.from('user_devices').select('*').eq('user_id', user.id),
-        supabase.from('user_sessions').select('*').eq('user_id', user.id),
-        supabase.from('audit_logs').select('*').eq('user_id', user.id).limit(500),
-      ]);
-
-      const exportPayload = {
-        export_date: new Date().toISOString(),
-        user_id: user.id,
-        email: user.email,
-        profile: profileRes.data,
-        settings: settingsRes.data,
-        notifications: notificationsRes.data,
-        devices: devicesRes.data,
-        sessions: sessionsRes.data,
-        audit_logs: auditRes.data,
-      };
-
-      const json = JSON.stringify(exportPayload, null, 2);
-      setExportedData(json);
-
-      // Download as file
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `meus-dados-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      toast.success('Dados exportados com sucesso!');
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Erro ao exportar dados');
-    } finally {
-      setIsExporting(false);
-    }
+    toast.error('🔒 Exportação bloqueada por política de segurança', {
+      description: 'A exportação de dados está desabilitada para proteção dos dados de clientes e fornecedores.',
+    });
   };
 
   const handleDeleteRequest = async () => {
