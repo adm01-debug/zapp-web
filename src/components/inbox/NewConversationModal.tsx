@@ -102,11 +102,17 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
         }
         const { data: newContact, error } = await supabase
           .from('contacts')
-          .insert({ name: newName.trim() || newPhone.trim(), phone: newPhone.trim() })
+          .insert({
+            name: newName.trim() || newPhone.trim(),
+            phone: newPhone.trim(),
+            whatsapp_connection_id: selectedConnection || null,
+          })
           .select('id')
           .single();
         if (error) throw error;
         contactId = newContact.id;
+
+        await supabase.functions.invoke('batch-fetch-avatars');
       }
 
       if (!contactId) {
