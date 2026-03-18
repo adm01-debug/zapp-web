@@ -565,18 +565,11 @@ async function handleIncomingMessage(
       latitude: loc.degreesLatitude,
       longitude: loc.degreesLongitude,
     });
-  } else if (message?.stickerMessage) {
+  } else if (message?.stickerMessage || (data.messageType as string) === 'stickerMessage') {
     messageType = 'sticker';
     content = '[Sticker]';
-    const stickerMsg = message.stickerMessage as Record<string, unknown>;
     
-    // Evolution API v2 may provide URL/mediaUrl at different levels
-    mediaUrl = (stickerMsg.url as string) 
-      || (stickerMsg.mediaUrl as string) 
-      || (data.mediaUrl as string) 
-      || null;
-
-    console.log(`Sticker received. Direct URL: ${mediaUrl || 'none'}. Has base64 in data: ${!!(data.base64)}. Has base64 in sticker: ${!!(stickerMsg.base64)}. Has mediaUrl in data: ${!!(data.mediaUrl)}`);
+    console.log(`[STICKER] Received. messageType=${data.messageType}. Keys in data: ${Object.keys(data).join(',')}. Keys in message: ${message ? Object.keys(message).join(',') : 'null'}`);
 
     // Helper to upload base64 sticker to storage
     const uploadBase64Sticker = async (base64Data: string): Promise<string | null> => {
@@ -587,6 +580,10 @@ async function handleIncomingMessage(
         for (let i = 0; i < binaryStr.length; i++) {
           bytes[i] = binaryStr.charCodeAt(i);
         }
+        if (bytes.length < 50) {
+          console.error('[STICKER] base64 decoded to too few bytes:', bytes.length);
+          return null;
+        }
         const fileName = `sticker_${Date.now()}_${key.id.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
         const { error: uploadErr } = await supabase.storage
           .from('whatsapp-media')
@@ -596,32 +593,33 @@ async function handleIncomingMessage(
           });
         if (!uploadErr) {
           const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
+          console.log('[STICKER] Uploaded successfully:', urlData.publicUrl);
           return urlData.publicUrl;
         }
-        console.error('Sticker upload error:', uploadErr);
+        console.error('[STICKER] Upload error:', uploadErr);
         return null;
       } catch (err) {
-        console.error('Sticker base64 decode error:', err);
+        console.error('[STICKER] base64 decode error:', err);
         return null;
       }
     };
 
-    // Try base64 from webhook data (Evolution v2 often puts it here)
-    if (!mediaUrl) {
-      const b64 = (data.base64 as string) || (stickerMsg.base64 as string);
-      if (b64) {
-        console.log('Trying base64 from webhook data...');
-        mediaUrl = await uploadBase64Sticker(b64);
-      }
+    // 1) Check if base64 is already in the webhook payload (some Evolution configs send it)
+    const b64Direct = (data.base64 as string) 
+      || ((message?.stickerMessage as Record<string, unknown>)?.base64 as string);
+    if (b64Direct) {
+      console.log('[STICKER] Found base64 directly in payload, uploading...');
+      mediaUrl = await uploadBase64Sticker(b64Direct);
     }
 
-    // Try downloading from direct URL if it's a WhatsApp CDN URL
-    if (!mediaUrl && (stickerMsg.directPath || stickerMsg.url)) {
-      const directUrl = (stickerMsg.directPath as string) || (stickerMsg.url as string);
-      if (directUrl && directUrl.startsWith('http')) {
+    // 2) Check for mediaUrl at data level (Evolution v2 sometimes provides it)
+    if (!mediaUrl) {
+      const directMediaUrl = (data.mediaUrl as string) 
+        || ((message?.stickerMessage as Record<string, unknown>)?.mediaUrl as string);
+      if (directMediaUrl && directMediaUrl.startsWith('http')) {
+        console.log('[STICKER] Found mediaUrl, trying download:', directMediaUrl.substring(0, 80));
         try {
-          console.log('Trying direct download from URL...');
-          const resp = await fetch(directUrl, { signal: AbortSignal.timeout(10000) });
+          const resp = await fetch(directMediaUrl, { signal: AbortSignal.timeout(10000) });
           if (resp.ok) {
             const arrayBuf = await resp.arrayBuffer();
             const bytes = new Uint8Array(arrayBuf);
@@ -636,57 +634,75 @@ async function handleIncomingMessage(
               if (!uploadErr) {
                 const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
                 mediaUrl = urlData.publicUrl;
+                console.log('[STICKER] Downloaded and uploaded from mediaUrl');
               }
             }
+          } else {
+            console.log('[STICKER] mediaUrl download failed:', resp.status);
           }
         } catch (dlErr) {
-          console.error('Sticker direct download error:', dlErr);
+          console.error('[STICKER] mediaUrl download error:', dlErr);
         }
       }
     }
 
-    // Fallback: fetch via Evolution API getBase64FromMediaMessage
+    // 3) Fallback: fetch via Evolution API getBase64FromMediaMessage
+    //    Pass the ORIGINAL full message object, not a reconstructed one
     if (!mediaUrl) {
       try {
         const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
         const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
         if (evolutionUrl && evolutionKey) {
-          console.log('Trying Evolution API getBase64FromMediaMessage...');
+          console.log('[STICKER] Trying Evolution API getBase64FromMediaMessage...');
           
-          // Evolution API v2 format
-          const resp = await fetch(`${evolutionUrl}/chat/getBase64FromMediaMessage/${instance}`, {
+          // Pass the full original data structure back to the API
+          const apiBody = {
+            message: {
+              key: data.key,
+              message: data.message,
+            },
+            convertToMp4: false,
+          };
+          
+          const apiUrl = `${evolutionUrl.replace(/\/+$/, '')}/chat/getBase64FromMediaMessage/${instance}`;
+          console.log('[STICKER] API URL:', apiUrl);
+          
+          const resp = await fetch(apiUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'apikey': evolutionKey,
             },
-            body: JSON.stringify({
-              message: { key, message: { stickerMessage: message.stickerMessage } },
-              convertToMp4: false,
-            }),
+            body: JSON.stringify(apiBody),
+            signal: AbortSignal.timeout(15000),
           });
           
-          console.log(`Evolution API response status: ${resp.status}`);
+          console.log(`[STICKER] Evolution API response: ${resp.status}`);
           
           if (resp.ok) {
             const result = await resp.json();
-            const b64 = (result.base64 as string) || (result.data as string);
+            console.log('[STICKER] API result keys:', Object.keys(result).join(','));
+            
+            // Evolution v2 returns { base64: "data:image/webp;base64,..." }
+            const b64 = (result.base64 as string) || (result.data as string) || (result.media as string);
             if (b64) {
               mediaUrl = await uploadBase64Sticker(b64);
             } else {
-              console.log('Evolution API returned no base64 data:', JSON.stringify(result).substring(0, 200));
+              console.log('[STICKER] API returned no base64:', JSON.stringify(result).substring(0, 300));
             }
           } else {
             const errText = await resp.text();
-            console.error(`Evolution API error (${resp.status}):`, errText.substring(0, 200));
+            console.error(`[STICKER] API error (${resp.status}):`, errText.substring(0, 300));
           }
+        } else {
+          console.error('[STICKER] Missing EVOLUTION_API_URL or EVOLUTION_API_KEY');
         }
       } catch (apiErr) {
-        console.error('Sticker API fetch error:', apiErr);
+        console.error('[STICKER] API fetch error:', apiErr);
       }
     }
 
-    console.log(`Sticker final result: mediaUrl=${mediaUrl || 'null'}`);
+    console.log(`[STICKER] Final result: mediaUrl=${mediaUrl ? 'OK' : 'null'}`);
   } else if (message?.reactionMessage) {
     messageType = 'reaction';
     content = (message.reactionMessage as Record<string, unknown>).text as string || '';
