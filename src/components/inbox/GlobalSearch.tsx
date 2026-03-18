@@ -353,7 +353,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   }, [addToHistory, allTags]);
 
   const debouncedSearch = useDebounce((query: string) => {
-    performSearch(query, activeTypes, dateFilter, selectedTags);
+    performSearch(query, activeTypes, dateFilter, selectedTags, mediaTypeFilter);
   }, 300);
 
   const handleSearch = (query: string) => {
@@ -363,10 +363,10 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   };
 
   useEffect(() => {
-    if (search.length >= 2 || selectedTags.length > 0) {
-      performSearch(search, activeTypes, dateFilter, selectedTags);
+    if (search.length >= 2 || selectedTags.length > 0 || mediaTypeFilter !== 'all') {
+      performSearch(search, activeTypes, dateFilter, selectedTags, mediaTypeFilter);
     }
-  }, [activeTypes, dateFilter, selectedTags]);
+  }, [activeTypes, dateFilter, selectedTags, mediaTypeFilter]);
 
   const handleSelect = (result: SearchResult) => {
     onSelectResult(result);
