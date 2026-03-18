@@ -51,6 +51,10 @@ const PaymentLinksView = lazy(() => import('@/components/payments/PaymentLinksVi
 const WhatsAppFlowsBuilder = lazy(() => import('@/components/whatsapp-flows/WhatsAppFlowsBuilder').then(m => ({ default: m.WhatsAppFlowsBuilder })));
 const MetaCAPIView = lazy(() => import('@/components/meta-capi/MetaCAPIView').then(m => ({ default: m.MetaCAPIView })));
 const DiagnosticsView = lazy(() => import('@/components/diagnostics/DiagnosticsView').then(m => ({ default: m.DiagnosticsView })));
+const VoIPPanel = lazy(() => import('@/components/calls/VoIPPanel').then(m => ({ default: m.VoIPPanel })));
+const AutoExportManager = lazy(() => import('@/components/reports/AutoExportManager').then(m => ({ default: m.AutoExportManager })));
+const GoogleCalendarIntegration = lazy(() => import('@/components/integrations/GoogleCalendarIntegration').then(m => ({ default: m.GoogleCalendarIntegration })));
+const ThemeCustomizer = lazy(() => import('@/components/settings/ThemeCustomizer').then(m => ({ default: m.ThemeCustomizer })));
 
 function ViewLoadingFallback() {
   return (
