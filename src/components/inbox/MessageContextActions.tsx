@@ -127,7 +127,11 @@ export function MessageContextActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={isSent ? 'end' : 'start'} className="w-48">
-        {isSent && message.type === 'text' && onEditStart && (
+        {isSent && message.type === 'text' && onEditStart && (() => {
+          const ts = message.timestamp instanceof Date ? message.timestamp : new Date((message as any).created_at || message.timestamp);
+          const minutesAgo = (Date.now() - ts.getTime()) / 60000;
+          return minutesAgo <= 15;
+        })() && (
           <DropdownMenuItem onClick={() => onEditStart(message)}>
             <Pencil className="w-4 h-4 mr-2" />
             Editar mensagem

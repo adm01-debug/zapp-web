@@ -58,6 +58,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
   // ── Refs ──
   const inputRef = useRef<HTMLInputElement>(null);
@@ -130,20 +131,77 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   }, [messages, isContactTyping]);
 
   // ── Handlers ──
-  const handleSend = () => {
-    if (inputValue.trim()) {
-      if (replyToMessage) {
-        log.debug('Sending reply to:', replyToMessage.id);
-        toast({
-          title: 'Resposta enviada',
-          description: `Respondendo a: "${replyToMessage.content.slice(0, 30)}..."`,
-        });
-      }
-      onSendMessage(inputValue.trim());
-      setInputValue('');
-      setReplyToMessage(null);
-      handleTypingStop();
+  const { editMessage } = useEvolutionApi();
+
+  const EDIT_WINDOW_MINUTES = 15;
+
+  const handleEditStart = (message: Message) => {
+    const minutesAgo = (Date.now() - message.timestamp.getTime()) / 60000;
+    if (minutesAgo > EDIT_WINDOW_MINUTES) {
+      toast({
+        title: 'Tempo expirado',
+        description: `Você só pode editar mensagens nos primeiros ${EDIT_WINDOW_MINUTES} minutos.`,
+        variant: 'destructive',
+      });
+      return;
     }
+    setEditingMessage(message);
+    setInputValue(message.content);
+    inputRef.current?.focus();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setInputValue('');
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim()) return;
+
+    // If editing a message
+    if (editingMessage) {
+      const externalId = (editingMessage as any).external_id;
+      const contactJid = conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : '';
+      
+      try {
+        // Update via Evolution API
+        if (instanceName && externalId && contactJid) {
+          await editMessage(instanceName, {
+            number: contactJid,
+            messageId: externalId,
+            text: inputValue.trim(),
+          });
+        }
+
+        // Update in database
+        await supabase
+          .from('messages')
+          .update({ content: inputValue.trim(), updated_at: new Date().toISOString() })
+          .eq('id', editingMessage.id);
+
+        toast({ title: '✏️ Mensagem editada', description: 'A mensagem foi atualizada com sucesso.' });
+      } catch (err) {
+        log.error('Failed to edit message:', err);
+        toast({ title: 'Erro ao editar', description: 'Não foi possível editar a mensagem.', variant: 'destructive' });
+      }
+
+      setEditingMessage(null);
+      setInputValue('');
+      return;
+    }
+
+    // Normal send
+    if (replyToMessage) {
+      log.debug('Sending reply to:', replyToMessage.id);
+      toast({
+        title: 'Resposta enviada',
+        description: `Respondendo a: "${replyToMessage.content.slice(0, 30)}..."`,
+      });
+    }
+    onSendMessage(inputValue.trim());
+    setInputValue('');
+    setReplyToMessage(null);
+    handleTypingStop();
   };
 
   const handleReplyToMessage = (message: Message) => {
@@ -476,6 +534,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onCopy={handleCopyMessage}
           onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onInteractiveButtonClick={handleInteractiveButtonClick}
+          onEditStart={handleEditStart}
         />
 
         <ChatQuickRepliesPopover
@@ -488,6 +547,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         <ChatInputArea
           inputValue={inputValue}
           replyToMessage={replyToMessage}
+          editingMessage={editingMessage}
           isRecordingAudio={isRecordingAudio}
           showSlashCommands={showSlashCommands}
           contactId={conversation.contact.id}
@@ -501,6 +561,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onBlur={handleTypingStop}
           onSend={handleSend}
           onCancelReply={() => setReplyToMessage(null)}
+          onCancelEdit={handleCancelEdit}
           onSlashCommand={handleSlashCommand}
           onCloseSlashCommands={() => setShowSlashCommands(false)}
           onQuickReply={handleQuickReply}

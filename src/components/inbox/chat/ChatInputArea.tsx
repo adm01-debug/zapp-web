@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { RichTextToolbar, RichTextToggle } from './RichTextToolbar';
 import { AIRewriteButton } from './AIRewriteButton';
 import { TextToAudioButton } from '../TextToAudioButton';
@@ -33,6 +33,9 @@ import {
   Layers,
   Settings,
   Paperclip,
+  Pencil,
+  X,
+  Check,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -47,6 +50,7 @@ interface QuickReplyItem {
 interface ChatInputAreaProps {
   inputValue: string;
   replyToMessage: Message | null;
+  editingMessage?: Message | null;
   isRecordingAudio: boolean;
   showSlashCommands: boolean;
   contactId: string;
@@ -60,6 +64,7 @@ interface ChatInputAreaProps {
   onBlur: () => void;
   onSend: () => void;
   onCancelReply: () => void;
+  onCancelEdit?: () => void;
   onSlashCommand: (command: SlashCommand, subCommand?: string) => void;
   onCloseSlashCommands: () => void;
   onQuickReply: (reply: QuickReplyItem) => void;
@@ -81,6 +86,7 @@ interface ChatInputAreaProps {
 export function ChatInputArea({
   inputValue,
   replyToMessage,
+  editingMessage,
   isRecordingAudio,
   showSlashCommands,
   contactId,
@@ -94,6 +100,7 @@ export function ChatInputArea({
   onBlur,
   onSend,
   onCancelReply,
+  onCancelEdit,
   onSlashCommand,
   onCloseSlashCommands,
   onQuickReply,
@@ -131,11 +138,39 @@ export function ChatInputArea({
       />
       {/* Reply Preview */}
       <AnimatePresence>
-        {replyToMessage && (
+        {replyToMessage && !editingMessage && (
           <ReplyPreview
             message={replyToMessage}
             onCancel={onCancelReply}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Edit Preview Bar */}
+      <AnimatePresence>
+        {editingMessage && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mx-4 mt-2"
+          >
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+              <Pencil className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-medium text-primary">Editando mensagem</span>
+                <p className="text-xs text-muted-foreground truncate">{editingMessage.content}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-6 h-6 text-muted-foreground hover:text-destructive shrink-0"
+                onClick={onCancelEdit}
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -292,7 +327,7 @@ export function ChatInputArea({
               onChange={onInputChange}
               onKeyDown={onKeyDown}
               onBlur={onBlur}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Type Your Message"}
+              placeholder={editingMessage ? "Editar mensagem..." : replyToMessage ? "Digite sua resposta..." : "Type Your Message"}
               className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground h-10 px-2"
             />
           </div>
@@ -360,14 +395,19 @@ export function ChatInputArea({
             }}
           />
 
-          {/* Send button — circular purple */}
+          {/* Send/Confirm button */}
           <Button
             onClick={onSend}
             disabled={!inputValue.trim()}
             size="icon"
-            className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 disabled:opacity-40"
+            className={cn(
+              "w-10 h-10 rounded-full shrink-0 disabled:opacity-40",
+              editingMessage
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground"
+            )}
           >
-            <Send className="w-[18px] h-[18px]" />
+            {editingMessage ? <Check className="w-[18px] h-[18px]" /> : <Send className="w-[18px] h-[18px]" />}
           </Button>
         </div>
       </div>

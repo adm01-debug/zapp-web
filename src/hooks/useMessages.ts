@@ -53,7 +53,11 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
 
       if (fetchError) throw fetchError;
 
-      setMessages((data || []) as Message[]);
+      const mappedMessages = (data || []).map((m: any) => ({
+        ...m,
+        isEdited: m.updated_at && m.created_at && new Date(m.updated_at).getTime() - new Date(m.created_at).getTime() > 1000,
+      }));
+      setMessages(mappedMessages as Message[]);
     } catch (err) {
       log.error('Error fetching messages:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch messages');

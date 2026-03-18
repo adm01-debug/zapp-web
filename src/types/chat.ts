@@ -99,6 +99,8 @@ export interface Message {
   // Audio transcription
   transcription?: string | null;
   transcriptionStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
+  // Edit tracking
+  isEdited?: boolean;
 }
 
 export interface Conversation {

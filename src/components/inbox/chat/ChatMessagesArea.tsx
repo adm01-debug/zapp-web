@@ -70,6 +70,7 @@ interface ChatMessagesAreaProps {
   onCopy: (content: string) => void;
   onScrollToMessage: (messageId: string) => void;
   onInteractiveButtonClick: (button: InteractiveButton) => void;
+  onEditStart?: (message: Message) => void;
 }
 
 export interface ChatMessagesAreaRef {
@@ -95,6 +96,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   onCopy,
   onScrollToMessage,
   onInteractiveButtonClick,
+  onEditStart,
 }, ref) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -173,6 +175,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                           <>
                             <MessageStatusIcon status={message.status} />
                             <span>{formatMessageTime(message.timestamp)}</span>
+                            {message.isEdited && (
+                              <span className="text-[10px] italic text-muted-foreground">editada</span>
+                            )}
                             <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
                             <span className="font-medium text-foreground">You</span>
                           </>
@@ -181,6 +186,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             <span className="font-medium text-foreground">{senderName}</span>
                             <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
                             <span>{formatMessageTime(message.timestamp)}</span>
+                            {message.isEdited && (
+                              <span className="text-[10px] italic text-muted-foreground">editada</span>
+                            )}
                             <MessageStatusIcon status={message.status} />
                           </>
                         )}
@@ -229,6 +237,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             message={message}
                             instanceName={instanceName}
                             contactJid={contactJid}
+                            onEditStart={onEditStart}
                           />
                         )}
                       </div>
