@@ -88,6 +88,7 @@ const toolsNav = [
 const systemNav = [
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
   { id: 'auto-export', icon: ClipboardList, label: 'Export Auto' },
+  { id: 'warroom', icon: AlertTriangle, label: 'War Room' },
   { id: 'sentiment', icon: Gauge, label: 'Sentimento' },
   { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
   { id: 'achievements', icon: Trophy, label: 'Conquistas' },
