@@ -1,0 +1,138 @@
+/**
+ * Web Vitals monitoring utility
+ * Tracks Core Web Vitals (LCP, FID, CLS, INP, TTFB) and reports to console/analytics
+ */
+
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('WebVitals');
+
+interface WebVitalMetric {
+  name: string;
+  value: number;
+  rating: 'good' | 'needs-improvement' | 'poor';
+  delta: number;
+  id: string;
+}
+
+type MetricCallback = (metric: WebVitalMetric) => void;
+
+const thresholds = {
+  LCP: { good: 2500, poor: 4000 },
+  FID: { good: 100, poor: 300 },
+  CLS: { good: 0.1, poor: 0.25 },
+  INP: { good: 200, poor: 500 },
+  TTFB: { good: 800, poor: 1800 },
+};
+
+function getRating(name: string, value: number): 'good' | 'needs-improvement' | 'poor' {
+  const t = thresholds[name as keyof typeof thresholds];
+  if (!t) return 'good';
+  if (value <= t.good) return 'good';
+  if (value <= t.poor) return 'needs-improvement';
+  return 'poor';
+}
+
+const metricsBuffer: WebVitalMetric[] = [];
+
+function onMetric(metric: WebVitalMetric) {
+  metricsBuffer.push(metric);
+  
+  const emoji = metric.rating === 'good' ? '🟢' : metric.rating === 'needs-improvement' ? '🟡' : '🔴';
+  log.info(`${emoji} ${metric.name}: ${metric.value.toFixed(metric.name === 'CLS' ? 3 : 0)}ms (${metric.rating})`);
+}
+
+export function initWebVitals() {
+  if (typeof window === 'undefined') return;
+
+  // LCP - Largest Contentful Paint
+  try {
+    const lcpObserver = new PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      const lastEntry = entries[entries.length - 1] as any;
+      if (lastEntry) {
+        onMetric({
+          name: 'LCP',
+          value: lastEntry.startTime,
+          rating: getRating('LCP', lastEntry.startTime),
+          delta: lastEntry.startTime,
+          id: `lcp-${Date.now()}`,
+        });
+      }
+    });
+    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+  } catch (e) { /* not supported */ }
+
+  // FID - First Input Delay
+  try {
+    const fidObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        const fid = (entry as any).processingStart - entry.startTime;
+        onMetric({
+          name: 'FID',
+          value: fid,
+          rating: getRating('FID', fid),
+          delta: fid,
+          id: `fid-${Date.now()}`,
+        });
+      }
+    });
+    fidObserver.observe({ type: 'first-input', buffered: true });
+  } catch (e) { /* not supported */ }
+
+  // CLS - Cumulative Layout Shift
+  try {
+    let clsValue = 0;
+    const clsObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (!(entry as any).hadRecentInput) {
+          clsValue += (entry as any).value;
+        }
+      }
+      onMetric({
+        name: 'CLS',
+        value: clsValue,
+        rating: getRating('CLS', clsValue),
+        delta: clsValue,
+        id: `cls-${Date.now()}`,
+      });
+    });
+    clsObserver.observe({ type: 'layout-shift', buffered: true });
+  } catch (e) { /* not supported */ }
+
+  // INP - Interaction to Next Paint
+  try {
+    const inpObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        const duration = entry.duration;
+        onMetric({
+          name: 'INP',
+          value: duration,
+          rating: getRating('INP', duration),
+          delta: duration,
+          id: `inp-${Date.now()}`,
+        });
+      }
+    });
+    inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 } as any);
+  } catch (e) { /* not supported */ }
+
+  // TTFB - Time to First Byte
+  try {
+    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    if (navEntry) {
+      const ttfb = navEntry.responseStart - navEntry.requestStart;
+      onMetric({
+        name: 'TTFB',
+        value: ttfb,
+        rating: getRating('TTFB', ttfb),
+        delta: ttfb,
+        id: `ttfb-${Date.now()}`,
+      });
+    }
+  } catch (e) { /* not supported */ }
+}
+
+export function getWebVitalsReport(): WebVitalMetric[] {
+  return [...metricsBuffer];
+}
