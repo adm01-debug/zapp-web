@@ -53,6 +53,7 @@ interface QuickAction {
 
 type ResultType = 'message' | 'contact' | 'transcription' | 'action';
 type DateFilter = 'all' | 'today' | '7days' | '30days' | '90days';
+type MediaTypeFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
 
 interface TagSuggestion {
   id: string;
