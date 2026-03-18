@@ -12,8 +12,9 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
     const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
     if (!evolutionUrl || !evolutionKey) return null;
 
+    const baseUrl = evolutionUrl.replace(/\/+$/, '');
     const resp = await fetch(
-      `${evolutionUrl}/chat/fetchProfilePictureUrl/${instance}`,
+      `${baseUrl}/chat/fetchProfilePictureUrl/${instance}`,
       {
         method: 'POST',
         headers: { 'apikey': evolutionKey, 'Content-Type': 'application/json' },
