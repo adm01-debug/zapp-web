@@ -57,6 +57,7 @@ const GoogleCalendarIntegration = lazy(() => import('@/components/integrations/G
 const ThemeCustomizer = lazy(() => import('@/components/settings/ThemeCustomizer').then(m => ({ default: m.ThemeCustomizer })));
 const ScheduleCalendarView = lazy(() => import('@/components/schedule/ScheduleCalendarView').then(m => ({ default: m.ScheduleCalendarView })));
 const WarRoomDashboard = lazy(() => import('@/components/dashboard/WarRoomDashboard').then(m => ({ default: m.WarRoomDashboard })));
+const WhatsAppTemplatesManager = lazy(() => import('@/components/catalog/WhatsAppTemplatesManager').then(m => ({ default: m.WhatsAppTemplatesManager })));
 const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');
   return { default: m.AchievementsSystem };
