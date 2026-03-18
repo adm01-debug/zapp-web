@@ -2,17 +2,20 @@ import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 /**
- * Anti-screenshot protection system.
+ * Anti-screenshot & data exfiltration protection system.
  * - Blocks PrintScreen / Cmd+Shift+3/4/5 keys
+ * - Blocks Ctrl+C / Ctrl+A on non-input elements
+ * - Blocks drag-and-drop data exfiltration
+ * - Blocks Ctrl+S (save page)
  * - Applies CSS user-select:none and print media hiding
- * - Shows blur overlay when window loses focus (screenshot tools cause blur)
+ * - Shows blur overlay when window loses focus
  * - Renders dynamic watermark with authenticated user ID/email
  */
 export function useScreenProtection() {
   const { user } = useAuth();
 
   useEffect(() => {
-    // ── 1. Block screenshot keyboard shortcuts ──
+    // ── 1. Block screenshot & data exfiltration shortcuts ──
     const handleKeyDown = (e: KeyboardEvent) => {
       // PrintScreen
       if (e.key === 'PrintScreen') {
@@ -27,28 +30,78 @@ export function useScreenProtection() {
         showWarning();
         return;
       }
-      // Ctrl+Shift+S (various screenshot tools)
+      // Ctrl+Shift+S (screenshot tools)
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
         showWarning();
         return;
       }
-      // Ctrl+P (print)
+      // Ctrl+P / Cmd+P (print)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
         showWarning();
+        return;
+      }
+      // Ctrl+S / Cmd+S (save page)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        showWarning();
+        return;
+      }
+
+      const target = e.target as HTMLElement;
+      const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+      // Block Ctrl+C (copy) outside input fields
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && !isInputElement) {
+        e.preventDefault();
+        navigator.clipboard?.writeText?.('').catch(() => {});
+        showWarning();
+        return;
+      }
+      // Block Ctrl+A (select all) outside input fields
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !isInputElement) {
+        e.preventDefault();
+        return;
+      }
+      // Block Ctrl+Shift+I (devtools) in production
+      if (!import.meta.env.DEV && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') {
+        e.preventDefault();
+        return;
+      }
+      // Block F12 (devtools) in production
+      if (!import.meta.env.DEV && e.key === 'F12') {
+        e.preventDefault();
         return;
       }
     };
 
     // ── 2. Context menu block ──
     const handleContextMenu = (e: MouseEvent) => {
-      // Allow in dev mode
       if (import.meta.env.DEV) return;
       e.preventDefault();
     };
 
-    // ── 3. Blur overlay on focus loss ──
+    // ── 3. Block copy event on document ──
+    const handleCopy = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      if (!isInputElement) {
+        e.preventDefault();
+        e.clipboardData?.setData('text/plain', '');
+      }
+    };
+
+    // ── 4. Block drag start (prevent dragging data out) ──
+    const handleDragStart = (e: DragEvent) => {
+      const target = e.target as HTMLElement;
+      const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      if (!isInputElement) {
+        e.preventDefault();
+      }
+    };
+
+    // ── 5. Blur overlay on focus loss ──
     let overlay: HTMLDivElement | null = null;
 
     const handleBlur = () => {
@@ -79,7 +132,7 @@ export function useScreenProtection() {
       }
     };
 
-    // ── 4. Dynamic watermark ──
+    // ── 6. Dynamic watermark ──
     let watermarkEl: HTMLDivElement | null = null;
     const userLabel = user?.email || user?.id?.slice(0, 8) || '';
 
@@ -93,7 +146,6 @@ export function useScreenProtection() {
         opacity: 0.03;
       `;
 
-      // Create repeating watermark pattern
       const pattern = Array.from({ length: 40 }, (_, i) => {
         const top = (i % 8) * 12.5;
         const left = Math.floor(i / 8) * 20;
@@ -115,7 +167,7 @@ export function useScreenProtection() {
       document.body.appendChild(watermarkEl);
     }
 
-    // ── 5. CSS protections ──
+    // ── 7. CSS protections ──
     const style = document.createElement('style');
     style.id = 'screen-protection-css';
     style.textContent = `
@@ -126,10 +178,15 @@ export function useScreenProtection() {
         -webkit-user-select: none !important;
         user-select: none !important;
       }
-      /* Allow text selection in inputs/textareas */
       input, textarea, [contenteditable="true"], pre, code {
         -webkit-user-select: text !important;
         user-select: text !important;
+      }
+      /* Block image dragging */
+      img {
+        -webkit-user-drag: none !important;
+        user-drag: none !important;
+        pointer-events: auto;
       }
     `;
     document.head.appendChild(style);
@@ -137,12 +194,16 @@ export function useScreenProtection() {
     // ── Attach listeners ──
     document.addEventListener('keydown', handleKeyDown, true);
     document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('copy', handleCopy, true);
+    document.addEventListener('dragstart', handleDragStart, true);
     window.addEventListener('blur', handleBlur);
     window.addEventListener('focus', handleFocus);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
       document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('copy', handleCopy, true);
+      document.removeEventListener('dragstart', handleDragStart, true);
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
       overlay?.remove();
@@ -153,7 +214,6 @@ export function useScreenProtection() {
 }
 
 function showWarning() {
-  // Brief visual flash to indicate blocked action
   const flash = document.createElement('div');
   flash.style.cssText = `
     position: fixed; inset: 0; z-index: 99999;
