@@ -202,7 +202,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     }
   };
 
-  const performSearch = useCallback(async (query: string, types: Set<ResultType>, dateRange: DateFilter, tags: string[]) => {
+  const performSearch = useCallback(async (query: string, types: Set<ResultType>, dateRange: DateFilter, tags: string[], mediaType: MediaTypeFilter = 'all') => {
     // Remove tag syntax from query
     const cleanQuery = query.replace(/#\w*/g, '').trim();
     
