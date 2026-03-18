@@ -20,6 +20,8 @@ import { Conversation, Message } from '@/types/chat';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getLogger } from '@/lib/logger';
+import { useAuth } from '@/hooks/useAuth';
+import { getLogger } from '@/lib/logger';
 
 // Lazy-load heavy sub-components (only loaded when needed)
 const ChatPanel = lazy(() => import('./ChatPanel').then(m => ({ default: m.ChatPanel })));
