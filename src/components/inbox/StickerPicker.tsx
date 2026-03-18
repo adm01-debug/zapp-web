@@ -85,10 +85,12 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
 
         const { data: urlData } = supabase.storage.from('stickers').getPublicUrl(fileName);
 
+        const { data: { user } } = await supabase.auth.getUser();
         await supabase.from('stickers').insert({
           name: file.name.replace(/\.[^.]+$/, ''),
           image_url: urlData.publicUrl,
           category: 'enviadas',
+          uploaded_by: user?.id || null,
         });
       }
 
