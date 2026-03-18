@@ -393,15 +393,13 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ## 🟡 FASE 3: MÉDIA PRIORIDADE (P2)
 
 ### 3.1 📝 Editor de Mensagem Rico
-**Arquivo:** `src/components/inbox/ChatPanel.tsx`  
-**Status:** ⏳ Pendente  
-**Esforço:** 4h  
-
+**Arquivo:** `src/components/inbox/chat/RichTextToolbar.tsx`  
+**Status:** ✅ IMPLEMENTADO  
 **Funcionalidades:**
-- Toolbar de formatação
-- Inserir tabelas
-- Listas ordenadas/não-ordenadas
-- Code blocks
+- Toolbar de formatação WhatsApp (negrito, itálico, tachado, código, listas)
+- Toggle integrado na barra de input
+- Atalhos visuais com tooltips
+- Formatação compatível com WhatsApp
 
 ---
 
