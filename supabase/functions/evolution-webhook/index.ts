@@ -139,6 +139,141 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
   }
 }
 
+// Persist media (image/video/audio/document) to Supabase Storage
+async function persistMediaToStorage(
+  supabase: ReturnType<typeof createClient>,
+  cdnUrl: string,
+  messageType: string,
+  messageId: string,
+): Promise<string | null> {
+  try {
+    const resp = await fetch(cdnUrl, { signal: AbortSignal.timeout(15000) });
+    if (!resp.ok) {
+      console.error(`[MEDIA] Download failed (${resp.status}) for ${messageType}`);
+      return null;
+    }
+
+    const arrayBuf = await resp.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuf);
+    if (bytes.length < 100) {
+      console.error(`[MEDIA] File too small (${bytes.length} bytes)`);
+      return null;
+    }
+
+    const extMap: Record<string, string> = {
+      image: 'jpg', video: 'mp4', audio: 'ogg', document: 'bin',
+    };
+    const contentTypeMap: Record<string, string> = {
+      image: 'image/jpeg', video: 'video/mp4', audio: 'audio/ogg', document: 'application/octet-stream',
+    };
+
+    // Try to detect content type from response
+    const respContentType = resp.headers.get('content-type') || contentTypeMap[messageType] || 'application/octet-stream';
+    let ext = extMap[messageType] || 'bin';
+    if (respContentType.includes('png')) ext = 'png';
+    else if (respContentType.includes('webp')) ext = 'webp';
+    else if (respContentType.includes('mp4')) ext = 'mp4';
+    else if (respContentType.includes('mpeg')) ext = 'mp3';
+    else if (respContentType.includes('pdf')) ext = 'pdf';
+    else if (respContentType.includes('opus')) ext = 'opus';
+
+    const safeId = messageId.replace(/[^a-zA-Z0-9]/g, '');
+    const fileName = `${messageType}/${safeId}_${Date.now()}.${ext}`;
+
+    const bucket = messageType === 'audio' ? 'audio-messages' : 'whatsapp-media';
+
+    const { error: uploadErr } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, bytes, {
+        contentType: respContentType,
+        cacheControl: '31536000',
+        upsert: true,
+      });
+
+    if (uploadErr) {
+      console.error(`[MEDIA] Upload error for ${messageType}:`, uploadErr);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    console.log(`[MEDIA] Persisted ${messageType} (${(bytes.length / 1024).toFixed(1)}KB) → ${urlData.publicUrl}`);
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error(`[MEDIA] persistMediaToStorage error:`, err);
+    return null;
+  }
+}
+
+// Persist media via Evolution API getBase64 fallback
+async function persistMediaViaApi(
+  supabase: ReturnType<typeof createClient>,
+  instance: string,
+  data: Record<string, unknown>,
+  messageType: string,
+  messageId: string,
+): Promise<string | null> {
+  try {
+    const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
+    const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
+    if (!evolutionUrl || !evolutionKey) return null;
+
+    const baseUrl = evolutionUrl.replace(/\/+$/, '');
+    const resp = await fetch(`${baseUrl}/chat/getBase64FromMediaMessage/${instance}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': evolutionKey },
+      body: JSON.stringify({ message: { key: data.key, message: data.message }, convertToMp4: false }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!resp.ok) {
+      console.error(`[MEDIA] getBase64 API error (${resp.status})`);
+      return null;
+    }
+
+    const result = await resp.json();
+    const b64 = (result.base64 as string) || (result.data as string) || (result.media as string);
+    if (!b64) return null;
+
+    // Remove data:... prefix if present
+    const raw = b64.includes(',') ? b64.split(',')[1] : b64;
+    const binaryStr = atob(raw);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+
+    if (bytes.length < 100) return null;
+
+    const mimeType = (result.mimetype as string) || 'application/octet-stream';
+    let ext = 'bin';
+    if (mimeType.includes('jpeg') || mimeType.includes('jpg')) ext = 'jpg';
+    else if (mimeType.includes('png')) ext = 'png';
+    else if (mimeType.includes('webp')) ext = 'webp';
+    else if (mimeType.includes('mp4')) ext = 'mp4';
+    else if (mimeType.includes('ogg') || mimeType.includes('opus')) ext = 'ogg';
+    else if (mimeType.includes('mpeg')) ext = 'mp3';
+    else if (mimeType.includes('pdf')) ext = 'pdf';
+
+    const safeId = messageId.replace(/[^a-zA-Z0-9]/g, '');
+    const fileName = `${messageType}/${safeId}_${Date.now()}.${ext}`;
+    const bucket = messageType === 'audio' ? 'audio-messages' : 'whatsapp-media';
+
+    const { error: uploadErr } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, bytes, { contentType: mimeType, cacheControl: '31536000', upsert: true });
+
+    if (uploadErr) {
+      console.error(`[MEDIA] base64 upload error:`, uploadErr);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    console.log(`[MEDIA] Persisted ${messageType} via API (${(bytes.length / 1024).toFixed(1)}KB)`);
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error(`[MEDIA] persistMediaViaApi error:`, err);
+    return null;
+  }
+}
+
 // Helper to safely get connection by instance_id
 async function getConnectionByInstance(
   supabase: ReturnType<typeof createClient>,
