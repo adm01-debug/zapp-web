@@ -296,7 +296,18 @@ export function ChatInputArea({
             />
           </div>
 
-          {/* Right icons: RichText, Sticker, Emoji, Mic, Attach, Send */}
+          {/* Right icons: AI Rewrite, RichText, Sticker, Emoji, Mic, Attach, Send */}
+          <AIRewriteButton
+            inputValue={inputValue}
+            onRewrite={(newText) => {
+              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+              if (inputRef.current && nativeInputValueSetter) {
+                nativeInputValueSetter.call(inputRef.current, newText);
+                inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+            }}
+          />
+
           <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
 
           <StickerPicker onSendSticker={onSendSticker} />
