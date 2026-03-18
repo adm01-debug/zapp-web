@@ -250,6 +250,14 @@ function IndexContent() {
         return <MetaCAPIView />;
       case 'diagnostics':
         return <DiagnosticsView />;
+      case 'voip':
+        return <VoIPPanel />;
+      case 'auto-export':
+        return <AutoExportManager />;
+      case 'google-calendar':
+        return <GoogleCalendarIntegration />;
+      case 'themes':
+        return <ThemeCustomizer />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
