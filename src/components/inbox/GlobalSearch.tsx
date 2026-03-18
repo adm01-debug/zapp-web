@@ -420,7 +420,15 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, results, tagSuggestions, selectedIndex]);
 
-  const getResultIcon = (type: SearchResult['type']) => {
+  const getResultIcon = (type: SearchResult['type'], messageType?: string) => {
+    if (type === 'message' && messageType) {
+      switch (messageType) {
+        case 'image': return <Image className="h-4 w-4" />;
+        case 'video': return <Video className="h-4 w-4" />;
+        case 'audio': return <Mic className="h-4 w-4" />;
+        case 'document': return <FileDown className="h-4 w-4" />;
+      }
+    }
     switch (type) {
       case 'transcription': return <Mic className="h-4 w-4" />;
       case 'message': return <MessageSquare className="h-4 w-4" />;
