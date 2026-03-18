@@ -242,6 +242,8 @@ function MediaPreviewDialog({
             <video
               src={item.url}
               controls
+              controlsList="nodownload"
+              onContextMenu={(e) => e.preventDefault()}
               className="max-w-full max-h-[70vh]"
             />
           )}

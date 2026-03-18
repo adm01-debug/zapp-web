@@ -302,8 +302,10 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
       <video
         src={url}
         controls
+        controlsList="nodownload"
         autoPlay
         muted={isMuted}
+        onContextMenu={(e) => e.preventDefault()}
         onClick={(e) => e.stopPropagation()}
         className="max-w-[90vw] max-h-[85vh] rounded-lg shadow-2xl"
       />
