@@ -70,6 +70,7 @@ interface ChatMessagesAreaProps {
   onCopy: (content: string) => void;
   onScrollToMessage: (messageId: string) => void;
   onInteractiveButtonClick: (button: InteractiveButton) => void;
+  onEditStart?: (message: Message) => void;
 }
 
 export interface ChatMessagesAreaRef {
