@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { AchievementToast, AchievementType } from './AchievementToast';
 import { useAgentGamification, ACHIEVEMENT_TYPES, calculateLevel } from '@/hooks/useAgentGamification';
 import { log } from '@/lib/logger';
@@ -61,6 +61,14 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     achievementsCount: dbStats.achievements_count,
   } : null;
 
+  const queueTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => {
+      if (queueTimerRef.current) clearTimeout(queueTimerRef.current);
+    };
+  }, []);
+
   const processQueue = useCallback(() => {
     if (queue.length > 0 && !currentAchievement) {
       const [next, ...rest] = queue;
@@ -81,7 +89,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
 
   const handleClose = useCallback(() => {
     setCurrentAchievement(null);
-    setTimeout(processQueue, 300);
+    queueTimerRef.current = setTimeout(processQueue, 300);
   }, [processQueue]);
 
   // Real gamification methods that save to database

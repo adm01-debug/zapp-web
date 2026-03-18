@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Confetti, useCelebration } from './Confetti';
 import { toast } from '@/hooks/use-toast';
@@ -32,6 +32,15 @@ export function EasterEggsProvider({ children }: EasterEggsProviderProps) {
   const [matrixMode, setMatrixMode] = useState(false);
   const [shakeCount, setShakeCount] = useState(0);
   const { celebrate, celebrating } = useCelebration();
+  const easterEggTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Cleanup all easter egg timers on unmount
+  useEffect(() => {
+    return () => {
+      easterEggTimersRef.current.forEach(clearTimeout);
+      document.body.classList.remove('disco-mode');
+    };
+  }, []);
 
   // Konami Code Detection
   useEffect(() => {
@@ -155,27 +164,27 @@ export function EasterEggsProvider({ children }: EasterEggsProviderProps) {
           subtitle: 'Vamos celebrar!',
           emoji: '🥳',
         });
-        setTimeout(() => setPartyMode(false), 10000);
+        easterEggTimersRef.current.push(setTimeout(() => setPartyMode(false), 10000));
         break;
-      
+
       case 'matrix':
         setMatrixMode(true);
         toast({
           title: '💊 Matrix Mode',
           description: 'Você escolheu a pílula vermelha...',
         });
-        setTimeout(() => setMatrixMode(false), 8000);
+        easterEggTimersRef.current.push(setTimeout(() => setMatrixMode(false), 8000));
         break;
-      
+
       case 'disco':
         document.body.classList.add('disco-mode');
         toast({
           title: '🪩 Disco Mode!',
           description: 'Brilhe como nos anos 70!',
         });
-        setTimeout(() => {
+        easterEggTimersRef.current.push(setTimeout(() => {
           document.body.classList.remove('disco-mode');
-        }, 8000);
+        }, 8000));
         break;
       
       case 'lovable':
