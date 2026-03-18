@@ -753,7 +753,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm truncate">{result.title}</span>
-                      <Badge variant="secondary" className="text-[10px]">{getResultLabel(result.type)}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{getResultLabel(result.type, result.messageType)}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">{result.preview}</p>
                     <span className="text-[10px] text-muted-foreground">
