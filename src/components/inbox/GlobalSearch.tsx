@@ -447,7 +447,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     }
   };
 
-  const activeFiltersCount = (activeTypes.size < 4 ? 1 : 0) + (dateFilter !== 'all' ? 1 : 0) + (selectedTags.length > 0 ? 1 : 0);
+  const activeFiltersCount = (activeTypes.size < 4 ? 1 : 0) + (dateFilter !== 'all' ? 1 : 0) + (selectedTags.length > 0 ? 1 : 0) + (mediaTypeFilter !== 'all' ? 1 : 0);
   const showHistory = search.length === 0 && history.length > 0 && tagSuggestions.length === 0;
   const showActions = activeTypes.has('action') && filteredActions.length > 0 && (search.length === 0 || search.length >= 1);
 
