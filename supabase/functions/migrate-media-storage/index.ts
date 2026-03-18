@@ -67,13 +67,19 @@ serve(async (req) => {
         
         // Method 2: Evolution API getBase64 fallback
         if (!permanentUrl && evolutionUrl && evolutionKey && msg.external_id) {
-          const instance = (msg as any).contacts?.whatsapp_connections?.instance_id;
-          if (instance) {
-            console.log(`[MIGRATE] Trying getBase64 API for ${msg.id} on instance ${instance}`);
+          const connId = msg.whatsapp_connection_id;
+          const instance = connId ? instanceMap.get(connId) : null;
+          
+          // If no direct connection, try all instances
+          const instancesToTry = instance ? [instance] : Array.from(instanceMap.values());
+          
+          for (const inst of instancesToTry) {
+            console.log(`[MIGRATE] Trying getBase64 API for ${msg.id} on instance ${inst}`);
             permanentUrl = await getBase64Fallback(
-              supabase, evolutionUrl, evolutionKey, instance, 
+              supabase, evolutionUrl, evolutionKey, inst,
               msg.external_id, msg.message_type, msg.id
             );
+            if (permanentUrl) break;
           }
         }
 
