@@ -33,6 +33,13 @@ import {
   CalendarClock,
   Palette,
   Trophy,
+  Plug,
+  ShieldCheck,
+  Workflow,
+  Activity,
+  Gauge,
+  UserCog,
+  ClipboardList,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -69,16 +76,24 @@ const toolsNav = [
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
   { id: 'automations', icon: Zap, label: 'Automações' },
+  { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
+  { id: 'integrations', icon: Plug, label: 'Integrações' },
+  { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
   { id: 'voip', icon: PhoneCall, label: 'VoIP' },
   { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
+  { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
 ] as const;
 
 const systemNav = [
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-  { id: 'auto-export', icon: CalendarClock, label: 'Export Auto' },
+  { id: 'auto-export', icon: ClipboardList, label: 'Export Auto' },
+  { id: 'sentiment', icon: Gauge, label: 'Sentimento' },
+  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
   { id: 'achievements', icon: Trophy, label: 'Conquistas' },
   { id: 'diagnostics', icon: Globe, label: 'Diagnóstico' },
+  { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
   { id: 'security', icon: Shield, label: 'Segurança' },
+  { id: 'admin', icon: UserCog, label: 'Admin' },
   { id: 'themes', icon: Palette, label: 'Temas' },
   { id: 'docs', icon: BookOpen, label: 'Documentação' },
   { id: 'settings', icon: Settings, label: 'Configurações' },
