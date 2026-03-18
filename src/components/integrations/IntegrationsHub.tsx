@@ -43,15 +43,6 @@ const integrations = [
     icon: Calendar,
     color: 'bg-[#4285F4]',
     status: 'available' as const,
-  },
-  {
-    id: 'stripe' as const,
-    name: 'Stripe',
-    description: 'Pagamentos, assinaturas e faturamento. Requer chave API.',
-    icon: CreditCard,
-    color: 'bg-[#635BFF]',
-    status: 'coming-soon' as const,
-  },
 ];
 
 export function IntegrationsHub() {
