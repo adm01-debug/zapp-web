@@ -39,6 +39,7 @@ const SLADashboard = lazy(() => import("./pages/SLADashboard"));
 const SLAHistory = lazy(() => import("./pages/SLAHistory"));
 const RolesPage = lazy(() => import("./pages/admin/RolesPage"));
 const RateLimitDashboard = lazy(() => import("./pages/admin/RateLimitDashboard"));
+const Install = lazy(() => import("./pages/Install"));
 
 // Route loading fallback component
 function RouteLoadingFallback() {
@@ -111,6 +112,7 @@ function AppContent() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/auth/callback" element={<SSOCallback />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />
+            <Route path="/install" element={<Install />} />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
