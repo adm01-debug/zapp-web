@@ -64,12 +64,12 @@ export function OmnichannelManager() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      const { error } = await supabase.from('channel_connections').insert({
+      const { error } = await supabase.from('channel_connections').insert([{
         name: channel.name,
-        channel_type: channel.channel_type,
+        channel_type: channel.channel_type as any,
         created_by: profile?.id,
         status: 'pending_setup',
-      });
+      }]);
       if (error) throw error;
     },
     onSuccess: () => {
