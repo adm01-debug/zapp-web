@@ -205,7 +205,6 @@ export default {
         "500": "500ms",
       },
       transitionTimingFunction: {
-        "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
         smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
         spring: "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
       },
