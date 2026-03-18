@@ -23,7 +23,11 @@ import { useReauthentication } from '@/hooks/useReauthentication';
 import { ReauthDialog } from '@/components/auth/ReauthDialog';
 import { toast } from 'sonner';
 
-export function SecuritySettingsPanel() {
+interface SecuritySettingsPanelProps {
+  onSwitchTab?: (tab: string) => void;
+}
+
+export function SecuritySettingsPanel({ onSwitchTab }: SecuritySettingsPanelProps) {
   const { user } = useAuth();
   const { isMFAEnabled, factors } = useMFA();
   const { 
@@ -69,7 +73,9 @@ export function SecuritySettingsPanel() {
       description: 'Gerencie dispositivos conectados à sua conta',
       status: 'info',
       action: () => {
-        toast.info('Gerenciamento de sessões em breve');
+        if (onSwitchTab) {
+          onSwitchTab('devices');
+        }
       },
     },
     {
@@ -78,7 +84,9 @@ export function SecuritySettingsPanel() {
       description: 'Receba notificações sobre atividades suspeitas',
       status: 'enabled',
       action: () => {
-        toast.info('Configurações de alertas em breve');
+        if (onSwitchTab) {
+          onSwitchTab('notifications');
+        }
       },
     },
   ];

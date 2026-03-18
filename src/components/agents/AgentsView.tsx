@@ -151,8 +151,12 @@ export function AgentsView() {
       {/* Agents Grid */}
       {filteredAgents.length === 0 ? (
         <AgentsEmptyState
-          onInviteAgent={() => {}}
-          onConfigurePermissions={() => {}}
+          onInviteAgent={() => {
+            window.location.href = '/admin/roles';
+          }}
+          onConfigurePermissions={() => {
+            window.location.href = '/admin/roles';
+          }}
         />
       ) : (
         <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
