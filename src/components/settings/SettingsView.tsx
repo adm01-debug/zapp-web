@@ -151,6 +151,10 @@ export function SettingsView() {
             <Globe className="w-4 h-4" />
             Global
           </TabsTrigger>
+          <TabsTrigger value="followup" className="gap-2">
+            <ArrowRight className="w-4 h-4" />
+            Follow-up
+          </TabsTrigger>
         </TabsList>
 
         {/* Horário de Atendimento */}
