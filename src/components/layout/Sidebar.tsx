@@ -68,6 +68,8 @@ const toolsNav = [
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
   { id: 'automations', icon: Zap, label: 'Automações' },
+  { id: 'voip', icon: PhoneCall, label: 'VoIP' },
+  { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
 ] as const;
 
 const systemNav = [
