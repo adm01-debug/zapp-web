@@ -265,64 +265,54 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
     setUploadStage('uploading');
 
     try {
-      // Step 1: Upload to storage
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 50));
-      }, 100);
-
+      // Step 1: Upload to storage (main bottleneck)
+      setUploadProgress(10);
       const mediaUrl = await uploadFileToStorage(filePreview.file);
       
-      clearInterval(progressInterval);
-      setUploadProgress(50);
+      setUploadProgress(60);
       setUploadStage('sending');
 
-      // Step 2: Send via Evolution API
+      // Step 2: Send via API + save to DB IN PARALLEL
       const category = filePreview.validation.category;
-      let result;
-      let externalId: string | null = null;
+      const messageContent = category === 'document' 
+        ? filePreview.file.name 
+        : caption || `[${category === 'image' ? 'Imagem' : category === 'video' ? 'Vídeo' : category === 'audio' ? 'Áudio' : 'Arquivo'}]`;
 
-      if (category === 'audio') {
-        result = await sendAudioMessage(instanceName, recipientNumber, mediaUrl);
-        externalId = result?.key?.id || null;
-      } else {
-        result = await sendMediaMessage({
-          instanceName,
-          number: recipientNumber,
-          mediaUrl,
-          mediaType: category as 'image' | 'video' | 'audio' | 'document',
-          caption: caption || undefined,
-        });
-        externalId = result?.key?.id || null;
-      }
+      const apiPromise = category === 'audio'
+        ? sendAudioMessage(instanceName, recipientNumber, mediaUrl)
+        : sendMediaMessage({
+            instanceName,
+            number: recipientNumber,
+            mediaUrl,
+            mediaType: category as 'image' | 'video' | 'audio' | 'document',
+            caption: caption || undefined,
+          });
 
-      // Step 3: Save message to database
-      if (contactId) {
-        const messageContent = category === 'document' 
-          ? filePreview.file.name 
-          : caption || `[${category === 'image' ? 'Imagem' : category === 'video' ? 'Vídeo' : category === 'audio' ? 'Áudio' : 'Arquivo'}]`;
-
-        const { error: dbError } = await supabase
-          .from('messages')
-          .insert({
+      // Fire DB insert immediately (don't wait for API response for externalId - update later)
+      const dbPromise = contactId
+        ? supabase.from('messages').insert({
             contact_id: contactId,
             whatsapp_connection_id: connectionId || null,
             content: messageContent,
             message_type: category || 'document',
             media_url: mediaUrl,
             sender: 'agent',
-            external_id: externalId,
-            status: 'sent',
-          });
+            status: 'sending',
+          }).select('id').single()
+        : Promise.resolve(null);
 
-        if (dbError) {
-          log.error('Error saving message to database:', dbError);
-        } else {
-          log.debug('Media message saved to database');
-        }
+      const [result, dbResult] = await Promise.all([apiPromise, dbPromise]);
+      
+      // Update DB record with external_id from API response
+      const externalId = result?.key?.id || null;
+      if (dbResult?.data?.id && externalId) {
+        supabase.from('messages')
+          .update({ external_id: externalId, status: 'sent' })
+          .eq('id', dbResult.data.id)
+          .then(({ error }) => { if (error) log.error('Failed to update external_id:', error); });
       }
 
       setUploadProgress(100);
-      
       toast.success('Arquivo enviado com sucesso!');
       onFileSent?.({ ...result, mediaUrl, messageType: category });
       handleClose();
