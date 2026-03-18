@@ -55,6 +55,7 @@ const VoIPPanel = lazy(() => import('@/components/calls/VoIPPanel').then(m => ({
 const AutoExportManager = lazy(() => import('@/components/reports/AutoExportManager').then(m => ({ default: m.AutoExportManager })));
 const GoogleCalendarIntegration = lazy(() => import('@/components/integrations/GoogleCalendarIntegration').then(m => ({ default: m.GoogleCalendarIntegration })));
 const ThemeCustomizer = lazy(() => import('@/components/settings/ThemeCustomizer').then(m => ({ default: m.ThemeCustomizer })));
+const ScheduleCalendarView = lazy(() => import('@/components/schedule/ScheduleCalendarView').then(m => ({ default: m.ScheduleCalendarView })));
 const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');
   return { default: m.AchievementsSystem };
