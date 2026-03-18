@@ -608,6 +608,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                   <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => {
                     setActiveTypes(new Set(['message', 'transcription', 'contact', 'action']));
                     setDateFilter('all');
+                    setMediaTypeFilter('all');
                     setSelectedTags([]);
                   }}>
                     <X className="h-3 w-3 mr-1" /> Limpar filtros
