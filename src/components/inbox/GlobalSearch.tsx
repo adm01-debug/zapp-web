@@ -223,13 +223,32 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       const addedMessageIds = new Set<string>();
 
       // Search messages
-      if (types.has('message') && cleanQuery.length >= 2) {
+      if (types.has('message') && (cleanQuery.length >= 2 || mediaType !== 'all')) {
         let textQuery = supabase
           .from('messages')
           .select(`id, content, message_type, created_at, contact_id, contacts:contact_id (id, name, surname)`)
-          .ilike('content', `%${cleanQuery}%`)
           .order('created_at', { ascending: false })
-          .limit(15);
+          .limit(20);
+
+        // Apply text search only if there's a query
+        if (cleanQuery.length >= 2) {
+          if (isLinkSearch) {
+            // Search for URLs in content
+            textQuery = textQuery.or(`content.ilike.%http://%,content.ilike.%https://%,content.ilike.%www.%`);
+            if (cleanQuery.length >= 2) {
+              textQuery = textQuery.ilike('content', `%${cleanQuery}%`);
+            }
+          } else {
+            textQuery = textQuery.ilike('content', `%${cleanQuery}%`);
+          }
+        } else if (isLinkSearch) {
+          textQuery = textQuery.or(`content.ilike.%http://%,content.ilike.%https://%,content.ilike.%www.%`);
+        }
+
+        // Apply media type filter
+        if (mediaType !== 'all' && mediaType !== 'link') {
+          textQuery = textQuery.eq('message_type', mediaType);
+        }
 
         if (dateStart) textQuery = textQuery.gte('created_at', dateStart.toISOString());
 
