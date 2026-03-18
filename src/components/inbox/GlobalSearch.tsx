@@ -740,7 +740,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                   }`}
                 >
                   <div className={`p-2 rounded-full ${getResultStyle(result.type)}`}>
-                    {getResultIcon(result.type)}
+                    {getResultIcon(result.type, result.messageType)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
