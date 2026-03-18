@@ -281,9 +281,11 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
           <Button
             variant="secondary"
             size="icon"
+            disabled
+            className="opacity-50 cursor-not-allowed"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(url, '_blank');
+              import('sonner').then(({ toast }) => toast.error('🔒 Download bloqueado por política de segurança'));
             }}
           >
             <Download className="w-4 h-4" />
