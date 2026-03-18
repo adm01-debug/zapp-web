@@ -606,15 +606,15 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ---
 
 ### 3.18 📊 Export Automático
-**Novo sistema**  
-**Status:** ⏳ Pendente  
-**Esforço:** 3h  
-
-**Implementar:**
-- Agendamento de exports
+**Arquivo:** `src/components/reports/AutoExportManager.tsx`  
+**Status:** ✅ IMPLEMENTADO  
+**Funcionalidades:**
+- Agendamento de exports (diário/semanal/quinzenal/mensal)
+- 6 tipos de relatório (conversas, contatos, agentes, filas, CSAT, SLA)
+- 3 formatos (CSV, Excel, PDF)
 - Envio por email
-- Formatos múltiplos
-- Histórico de exports
+- Ativação/desativação individual
+- Acessível via menu lateral (Export Auto)
 
 ---
 
