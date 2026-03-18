@@ -1,4 +1,5 @@
 import { motion } from '@/components/ui/motion';
+import { FollowUpSequences } from '@/components/settings/FollowUpSequences';
 import { AvatarUpload } from '@/components/settings/AvatarUpload';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -29,6 +30,7 @@ import {
   GraduationCap,
   Keyboard,
   Volume2,
+  ArrowRight,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
 import { AutoCloseSettings } from '@/components/settings/AutoCloseSettings';
@@ -148,6 +150,10 @@ export function SettingsView() {
           <TabsTrigger value="global" className="gap-2">
             <Globe className="w-4 h-4" />
             Global
+          </TabsTrigger>
+          <TabsTrigger value="followup" className="gap-2">
+            <ArrowRight className="w-4 h-4" />
+            Follow-up
           </TabsTrigger>
         </TabsList>
 
@@ -552,6 +558,16 @@ export function SettingsView() {
             animate={{ opacity: 1, y: 0 }}
           >
             <GlobalSettingsSection />
+          </motion.div>
+        </TabsContent>
+
+        {/* Follow-up Sequences */}
+        <TabsContent value="followup">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <FollowUpSequences />
           </motion.div>
         </TabsContent>
       </Tabs>

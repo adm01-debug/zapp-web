@@ -56,6 +56,7 @@ const AutoExportManager = lazy(() => import('@/components/reports/AutoExportMana
 const GoogleCalendarIntegration = lazy(() => import('@/components/integrations/GoogleCalendarIntegration').then(m => ({ default: m.GoogleCalendarIntegration })));
 const ThemeCustomizer = lazy(() => import('@/components/settings/ThemeCustomizer').then(m => ({ default: m.ThemeCustomizer })));
 const ScheduleCalendarView = lazy(() => import('@/components/schedule/ScheduleCalendarView').then(m => ({ default: m.ScheduleCalendarView })));
+const WarRoomDashboard = lazy(() => import('@/components/dashboard/WarRoomDashboard').then(m => ({ default: m.WarRoomDashboard })));
 const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');
   return { default: m.AchievementsSystem };
@@ -267,6 +268,8 @@ function IndexContent() {
         return <AchievementsSystemLazy userId={user?.id} />;
       case 'schedule':
         return <ScheduleCalendarView />;
+      case 'warroom':
+        return <WarRoomDashboard />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
