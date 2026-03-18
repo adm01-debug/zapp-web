@@ -409,12 +409,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         .maybeSingle()
         .then(async ({ data: existing }) => {
           if (!existing) {
+            const { data: { user } } = await supabase.auth.getUser();
             await supabase.from('stickers').insert({
               name: `Enviada ${new Date().toLocaleDateString('pt-BR')}`,
               image_url: stickerUrl,
               category: 'enviadas',
               is_favorite: false,
               use_count: 1,
+              uploaded_by: user?.id || null,
             });
           }
         });
