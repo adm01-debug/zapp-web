@@ -66,29 +66,19 @@ export function DocumentPreview({ url, fileName, fileSize, isSent }: DocumentPre
   const extension = getFileExtension(fileName).toUpperCase();
 
   const handleDownload = async () => {
-    setIsDownloading(true);
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      log.error('Download failed:', error);
-      // Fallback: open in new tab
-      window.open(url, '_blank');
-    } finally {
-      setIsDownloading(false);
-    }
+    // Blocked by security policy
+    log.warn('[SECURITY] File download blocked by data protection policy');
+    const { toast: toastFn } = await import('sonner');
+    toastFn.error('🔒 Download bloqueado por política de segurança', {
+      description: 'O download de arquivos está desabilitado para proteção de dados.',
+    });
   };
 
   const handleOpen = () => {
-    window.open(url, '_blank');
+    // Blocked - opening in new tab allows downloading
+    import('sonner').then(({ toast }) => {
+      toast.error('🔒 Abertura externa bloqueada por política de segurança');
+    });
   };
 
   return (
@@ -291,9 +281,11 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
           <Button
             variant="secondary"
             size="icon"
+            disabled
+            className="opacity-50 cursor-not-allowed"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(url, '_blank');
+              import('sonner').then(({ toast }) => toast.error('🔒 Download bloqueado por política de segurança'));
             }}
           >
             <Download className="w-4 h-4" />
@@ -310,8 +302,10 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
       <video
         src={url}
         controls
+        controlsList="nodownload"
         autoPlay
         muted={isMuted}
+        onContextMenu={(e) => e.preventDefault()}
         onClick={(e) => e.stopPropagation()}
         className="max-w-[90vw] max-h-[85vh] rounded-lg shadow-2xl"
       />

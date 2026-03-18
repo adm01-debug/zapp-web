@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Shield, Download, Trash2, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Shield, ShieldAlert, Download, Trash2, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -16,50 +16,9 @@ export function LGPDComplianceView() {
   const [exportedData, setExportedData] = useState<string | null>(null);
 
   const handleExportData = async () => {
-    if (!user) return;
-    setIsExporting(true);
-    try {
-      // Collect all personal data
-      const [profileRes, settingsRes, notificationsRes, devicesRes, sessionsRes, auditRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('user_id', user.id),
-        supabase.from('user_settings').select('*').eq('user_id', user.id),
-        supabase.from('notifications').select('*').eq('user_id', user.id).limit(500),
-        supabase.from('user_devices').select('*').eq('user_id', user.id),
-        supabase.from('user_sessions').select('*').eq('user_id', user.id),
-        supabase.from('audit_logs').select('*').eq('user_id', user.id).limit(500),
-      ]);
-
-      const exportPayload = {
-        export_date: new Date().toISOString(),
-        user_id: user.id,
-        email: user.email,
-        profile: profileRes.data,
-        settings: settingsRes.data,
-        notifications: notificationsRes.data,
-        devices: devicesRes.data,
-        sessions: sessionsRes.data,
-        audit_logs: auditRes.data,
-      };
-
-      const json = JSON.stringify(exportPayload, null, 2);
-      setExportedData(json);
-
-      // Download as file
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `meus-dados-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      toast.success('Dados exportados com sucesso!');
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Erro ao exportar dados');
-    } finally {
-      setIsExporting(false);
-    }
+    toast.error('🔒 Exportação bloqueada por política de segurança', {
+      description: 'A exportação de dados está desabilitada para proteção dos dados de clientes e fornecedores.',
+    });
   };
 
   const handleDeleteRequest = async () => {
@@ -131,27 +90,22 @@ export function LGPDComplianceView() {
         </CardContent>
       </Card>
 
-      {/* Exportar Dados */}
-      <Card className="border-secondary/30">
+      {/* Exportar Dados - BLOQUEADO */}
+      <Card className="border-destructive/30 bg-destructive/5">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Download className="w-4 h-4" /> Portabilidade de Dados
+            <ShieldAlert className="w-4 h-4 text-destructive" /> Portabilidade de Dados — Bloqueada
           </CardTitle>
-          <CardDescription>Exporte todos os seus dados pessoais em formato JSON</CardDescription>
+          <CardDescription>A exportação de dados está desabilitada por política de segurança</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Inclui: perfil, configurações, notificações, dispositivos, sessões e logs de auditoria.
+            A exportação de dados pessoais foi bloqueada para proteção dos dados de clientes e fornecedores (LGPD).
           </p>
-          <Button onClick={handleExportData} disabled={isExporting}>
-            <Download className="w-4 h-4 mr-2" />
-            {isExporting ? 'Exportando...' : 'Exportar Meus Dados'}
+          <Button disabled className="opacity-50 cursor-not-allowed" onClick={handleExportData}>
+            <ShieldAlert className="w-4 h-4 mr-2 text-destructive" />
+            Exportação Bloqueada
           </Button>
-          {exportedData && (
-            <Badge variant="outline" className="text-success">
-              <CheckCircle2 className="w-3 h-3 mr-1" /> Exportação concluída
-            </Badge>
-          )}
         </CardContent>
       </Card>
 

@@ -161,15 +161,9 @@ export function ThemeCustomizer() {
   };
 
   const exportTheme = () => {
-    const config = { preset: activePreset, borderRadius, theme };
-    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'theme-config.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Tema exportado!');
+    toast.error('🔒 Exportação bloqueada por política de segurança', {
+      description: 'A exportação de configurações está desabilitada para proteção de dados.',
+    });
   };
 
   const importTheme = () => {
