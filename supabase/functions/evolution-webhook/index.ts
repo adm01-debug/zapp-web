@@ -380,7 +380,7 @@ serve(async (req) => {
           const now = new Date().toISOString();
           const { data: updatedMessages, error: updateError } = await supabase
             .from('messages')
-            .update({ content: '[Mensagem apagada]', status: 'deleted', status_updated_at: now })
+            .update({ is_deleted: true, status: 'deleted', status_updated_at: now })
             .eq('external_id', key.id)
             .select('id');
 
@@ -408,6 +408,7 @@ serve(async (req) => {
                 sender: 'contact',
                 external_id: key.id,
                 status: 'deleted',
+                is_deleted: true,
                 status_updated_at: now,
                 created_at: now,
                 contact_id: contactId,
