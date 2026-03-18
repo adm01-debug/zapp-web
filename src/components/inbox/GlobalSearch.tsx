@@ -80,6 +80,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   // Filters
   const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action']));
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>('all');
 
   // History
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
