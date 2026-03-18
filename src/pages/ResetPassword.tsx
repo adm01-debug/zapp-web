@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
@@ -27,6 +27,13 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [hasSession, setHasSession] = useState(false);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     // Check if user came from password reset email
@@ -73,7 +80,7 @@ export default function ResetPassword() {
       setSuccess(true);
       toast.success('Senha alterada com sucesso!');
       
-      setTimeout(() => {
+      redirectTimerRef.current = setTimeout(() => {
         navigate('/auth');
       }, 3000);
     } catch (err: unknown) {

@@ -148,35 +148,45 @@ export default function QueueDetails() {
       // Fetch message counts and last message for each contact
       const contactsWithDetails = await Promise.all(
         (contactsData || []).map(async (contact) => {
-          const { count } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('contact_id', contact.id);
+          try {
+            const { count } = await supabase
+              .from('messages')
+              .select('*', { count: 'exact', head: true })
+              .eq('contact_id', contact.id);
 
-          const { data: lastMessage } = await supabase
-            .from('messages')
-            .select('created_at')
-            .eq('contact_id', contact.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          let assignedAgent = null;
-          if (contact.assigned_to) {
-            const { data: agentData } = await supabase
-              .from('profiles')
-              .select('name, avatar_url')
-              .eq('id', contact.assigned_to)
+            const { data: lastMessage } = await supabase
+              .from('messages')
+              .select('created_at')
+              .eq('contact_id', contact.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
               .maybeSingle();
-            assignedAgent = agentData;
-          }
 
-          return {
-            ...contact,
-            messages_count: count || 0,
-            last_message_at: lastMessage?.created_at || null,
-            assigned_agent: assignedAgent,
-          };
+            let assignedAgent = null;
+            if (contact.assigned_to) {
+              const { data: agentData } = await supabase
+                .from('profiles')
+                .select('name, avatar_url')
+                .eq('id', contact.assigned_to)
+                .maybeSingle();
+              assignedAgent = agentData;
+            }
+
+            return {
+              ...contact,
+              messages_count: count || 0,
+              last_message_at: lastMessage?.created_at || null,
+              assigned_agent: assignedAgent,
+            };
+          } catch (err) {
+            log.error('Error fetching contact details:', err);
+            return {
+              ...contact,
+              messages_count: 0,
+              last_message_at: null,
+              assigned_agent: null,
+            };
+          }
         })
       );
 
@@ -408,7 +418,7 @@ export default function QueueDetails() {
                               <Avatar className="w-8 h-8">
                                 <AvatarImage src={contact.avatar_url || undefined} />
                                 <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                  {contact.name[0]}
+                                  {contact.name?.[0] ?? '?'}
                                 </AvatarFallback>
                               </Avatar>
                               <div>

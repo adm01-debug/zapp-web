@@ -65,19 +65,18 @@ export default function Auth() {
 
   // Countdown timer for lock
   useEffect(() => {
-    if (lockStatus.remainingTime > 0) {
-      const timer = setInterval(() => {
-        setLockStatus(prev => {
-          const newTime = prev.remainingTime - 1;
-          if (newTime <= 0) {
-            return { ...prev, isLocked: false, remainingTime: 0 };
-          }
-          return { ...prev, remainingTime: newTime };
-        });
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [lockStatus.remainingTime]);
+    if (!lockStatus.isLocked || lockStatus.remainingTime <= 0) return;
+    const timer = setInterval(() => {
+      setLockStatus(prev => {
+        const newTime = prev.remainingTime - 1;
+        if (newTime <= 0) {
+          return { ...prev, isLocked: false, remainingTime: 0 };
+        }
+        return { ...prev, remainingTime: newTime };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [lockStatus.isLocked]);
 
   // Check lock status when email changes
   useEffect(() => {

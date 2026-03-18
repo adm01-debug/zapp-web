@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMFA } from '@/hooks/useMFA';
 import { MFAVerify } from '@/components/mfa/MFAVerify';
 import { Button } from '@/components/ui/button';
+import { log } from '@/lib/logger';
 
 export default function TwoFactorAuth() {
   const navigate = useNavigate();
@@ -15,17 +16,20 @@ export default function TwoFactorAuth() {
 
   useEffect(() => {
     const checkMFAStatus = async () => {
-      await fetchFactors();
-      const assurance = await getAssuranceLevel();
-      
-      if (assurance) {
-        // If user has MFA setup but hasn't verified this session
-        if (assurance.currentLevel === 'aal1' && assurance.nextLevel === 'aal2') {
-          setNeedsVerification(true);
-        } else if (assurance.currentLevel === 'aal2') {
-          // Already verified, redirect to home
-          navigate('/');
+      try {
+        await fetchFactors();
+        const assurance = await getAssuranceLevel();
+
+        if (assurance) {
+          if (assurance.currentLevel === 'aal1' && assurance.nextLevel === 'aal2') {
+            setNeedsVerification(true);
+          } else if (assurance.currentLevel === 'aal2') {
+            navigate('/');
+          }
         }
+      } catch (err) {
+        log.error('Failed to check MFA status:', err);
+        navigate('/auth');
       }
     };
 
