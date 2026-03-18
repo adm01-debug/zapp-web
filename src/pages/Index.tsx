@@ -259,6 +259,8 @@ function IndexContent() {
         return <GoogleCalendarIntegration />;
       case 'themes':
         return <ThemeCustomizer />;
+      case 'achievements':
+        return <AchievementsSystem />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
