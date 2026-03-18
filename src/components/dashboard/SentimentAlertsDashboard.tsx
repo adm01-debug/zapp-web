@@ -395,40 +395,10 @@ export function SentimentAlertsDashboard() {
           <p className="text-muted-foreground">Monitore o sentimento dos clientes e alertas automáticos</p>
         </div>
         <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => handleExportAlerts('pdf')} className="gap-2">
-                <FileText className="h-4 w-4 text-destructive" />
-                Alertas (PDF)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportAlerts('excel')} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-success" />
-                Alertas (Excel)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportAnalyses('pdf')} className="gap-2">
-                <FileText className="h-4 w-4 text-destructive" />
-                Análises (PDF)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportAnalyses('excel')} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-success" />
-                Análises (Excel)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportAgents('pdf')} className="gap-2">
-                <FileText className="h-4 w-4 text-destructive" />
-                Por Agente (PDF)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportAgents('excel')} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-success" />
-                Por Agente (Excel)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button variant="outline" className="gap-2 opacity-50 cursor-not-allowed" disabled>
+            <ShieldAlert className="h-4 w-4 text-destructive" />
+            Exportação Bloqueada
+          </Button>
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-40">
               <Calendar className="h-4 w-4 mr-2" />
