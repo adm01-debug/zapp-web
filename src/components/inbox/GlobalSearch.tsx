@@ -577,6 +577,33 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                   </Select>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Tipo de Mídia</label>
+                  <div className="flex flex-wrap gap-2">
+                    <Toggle pressed={mediaTypeFilter === 'all'} onPressedChange={() => setMediaTypeFilter('all')} size="sm" className="gap-1.5 data-[state=on]:bg-muted-foreground/20 data-[state=on]:text-foreground">
+                      <MessageSquare className="h-3.5 w-3.5" /> Todos
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'text'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'text' ? 'all' : 'text')} size="sm" className="gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                      <FileText className="h-3.5 w-3.5" /> Texto
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'image'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'image' ? 'all' : 'image')} size="sm" className="gap-1.5 data-[state=on]:bg-success data-[state=on]:text-primary-foreground">
+                      <Image className="h-3.5 w-3.5" /> Imagens
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'video'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'video' ? 'all' : 'video')} size="sm" className="gap-1.5 data-[state=on]:bg-info data-[state=on]:text-primary-foreground">
+                      <Video className="h-3.5 w-3.5" /> Vídeos
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'audio'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'audio' ? 'all' : 'audio')} size="sm" className="gap-1.5 data-[state=on]:bg-warning data-[state=on]:text-primary-foreground">
+                      <Mic className="h-3.5 w-3.5" /> Áudios
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'document'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'document' ? 'all' : 'document')} size="sm" className="gap-1.5 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
+                      <FileDown className="h-3.5 w-3.5" /> Documentos
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'link'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'link' ? 'all' : 'link')} size="sm" className="gap-1.5 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground">
+                      <Link2 className="h-3.5 w-3.5" /> Links
+                    </Toggle>
+                  </div>
+                </div>
+
                 {activeFiltersCount > 0 && (
                   <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => {
                     setActiveTypes(new Set(['message', 'transcription', 'contact', 'action']));
