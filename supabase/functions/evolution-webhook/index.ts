@@ -983,6 +983,26 @@ async function handleIncomingMessage(
     content = (message.pollCreationMessage as Record<string, unknown>).name as string || '[Enquete]';
   }
 
+  // Persist media files (image, video, audio, document) to permanent Storage
+  if (mediaUrl && ['image', 'video', 'audio', 'document'].includes(messageType)) {
+    const msgId = (key.id as string) || `${Date.now()}`;
+    
+    // Try direct download from CDN URL first
+    const permanentUrl = await persistMediaToStorage(supabase, mediaUrl, messageType, msgId);
+    if (permanentUrl) {
+      mediaUrl = permanentUrl;
+    } else {
+      // Fallback: use Evolution API getBase64FromMediaMessage
+      console.log(`[MEDIA] CDN download failed for ${messageType}, trying getBase64 API...`);
+      const apiUrl = await persistMediaViaApi(supabase, instance, data, messageType, msgId);
+      if (apiUrl) {
+        mediaUrl = apiUrl;
+      } else {
+        console.error(`[MEDIA] Both persistence methods failed for ${messageType} ${msgId} — keeping CDN URL as fallback`);
+      }
+    }
+  }
+
   const connection = await getConnectionByInstance(supabase, instance);
   if (!connection) return;
 
