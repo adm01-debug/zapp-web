@@ -374,9 +374,9 @@ serve(async (req) => {
         }
       }
     }
-...
   const messageCreatedAt = (data.messageTimestamp as number)
     ? new Date((data.messageTimestamp as number) * 1000).toISOString()
+    : new Date().toISOString();
     : new Date().toISOString();
 
   const { data: existingMessage } = await supabase
