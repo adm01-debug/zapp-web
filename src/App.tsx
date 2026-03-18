@@ -40,9 +40,9 @@ const RolesPage = lazy(() => import("./pages/admin/RolesPage"));
 const RateLimitDashboard = lazy(() => import("./pages/admin/RateLimitDashboard"));
 
 // Route loading fallback component
-const RouteLoadingFallback = forwardRef<HTMLDivElement>(function RouteLoadingFallback(_, ref) {
+function RouteLoadingFallback() {
   return (
-    <div ref={ref} className="flex items-center justify-center h-screen bg-background">
+    <div className="flex items-center justify-center h-screen bg-background">
       <div className="text-center space-y-4">
         <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto animate-pulse">
           <Sparkles className="w-8 h-8 text-primary" />
@@ -54,7 +54,7 @@ const RouteLoadingFallback = forwardRef<HTMLDivElement>(function RouteLoadingFal
       </div>
     </div>
   );
-});
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
