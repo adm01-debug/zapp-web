@@ -261,6 +261,10 @@ export function AgentsView() {
           })}
         </StaggeredList>
       )}
+
+      {/* Dialogs */}
+      <InviteAgentDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      <ConfigurePermissionsDialog open={permissionsOpen} onOpenChange={setPermissionsOpen} />
     </div>
   );
 }
