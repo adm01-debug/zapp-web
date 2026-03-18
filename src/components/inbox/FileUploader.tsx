@@ -361,43 +361,42 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
         i === index ? { ...f, status: 'sending', progress: 50 } : f
       ));
 
-      // Send via Evolution API
+      // Send via API + save to DB in parallel
       const category = queuedFile.validation.category;
-      let result;
-      let externalId: string | null = null;
+      const messageContent = category === 'document' 
+        ? queuedFile.file.name 
+        : `[${category === 'image' ? 'Imagem' : category === 'video' ? 'Vídeo' : category === 'audio' ? 'Áudio' : 'Arquivo'}]`;
 
-      if (category === 'audio') {
-        result = await sendAudioMessage(instanceName, recipientNumber, mediaUrl);
-        externalId = result?.key?.id || null;
-      } else {
-        result = await sendMediaMessage({
-          instanceName,
-          number: recipientNumber,
-          mediaUrl,
-          mediaType: category as 'image' | 'video' | 'audio' | 'document',
-          caption: undefined, // No caption for queued files
-        });
-        externalId = result?.key?.id || null;
-      }
+      const apiPromise = category === 'audio'
+        ? sendAudioMessage(instanceName, recipientNumber, mediaUrl)
+        : sendMediaMessage({
+            instanceName,
+            number: recipientNumber,
+            mediaUrl,
+            mediaType: category as 'image' | 'video' | 'audio' | 'document',
+            caption: undefined,
+          });
 
-      // Save to database
-      if (contactId) {
-        const messageContent = category === 'document' 
-          ? queuedFile.file.name 
-          : `[${category === 'image' ? 'Imagem' : category === 'video' ? 'Vídeo' : category === 'audio' ? 'Áudio' : 'Arquivo'}]`;
-
-        await supabase
-          .from('messages')
-          .insert({
+      const dbPromise = contactId
+        ? supabase.from('messages').insert({
             contact_id: contactId,
             whatsapp_connection_id: connectionId || null,
             content: messageContent,
             message_type: category || 'document',
             media_url: mediaUrl,
             sender: 'agent',
-            external_id: externalId,
-            status: 'sent',
-          });
+            status: 'sending',
+          }).select('id').single()
+        : Promise.resolve(null);
+
+      const [result, dbResult] = await Promise.all([apiPromise, dbPromise]);
+      
+      const externalId = result?.key?.id || null;
+      if (dbResult?.data?.id && externalId) {
+        supabase.from('messages')
+          .update({ external_id: externalId, status: 'sent' })
+          .eq('id', dbResult.data.id)
+          .then(() => {});
       }
 
       setFileQueue(prev => prev.map((f, i) => 
