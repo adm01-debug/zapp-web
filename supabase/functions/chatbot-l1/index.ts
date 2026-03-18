@@ -35,16 +35,29 @@ serve(async (req) => {
       });
     }
 
-    // Fetch Knowledge Base for context
-    const { data: articles } = await supabase
-      .from('knowledge_base_articles')
-      .select('title, content, category')
-      .eq('is_published', true)
-      .limit(15);
+    // RAG: Search Knowledge Base with full-text search for relevant articles
+    const { data: relevantArticles } = await supabase
+      .rpc('search_knowledge_base', { search_query: message, max_results: 5 });
 
-    const kbContext = articles && articles.length > 0
-      ? articles.map(a => `[${a.category || 'Geral'}] ${a.title}: ${a.content.substring(0, 600)}`).join('\n---\n')
-      : '';
+    // Fallback: if no results from search, get general articles
+    let kbContext = '';
+    if (relevantArticles && relevantArticles.length > 0) {
+      kbContext = relevantArticles
+        .map((a: any) => `[${a.category || 'Geral'}] ${a.title} (relevância: ${(a.rank * 100).toFixed(0)}%):\n${a.content.substring(0, 800)}`)
+        .join('\n---\n');
+    } else {
+      const { data: fallbackArticles } = await supabase
+        .from('knowledge_base_articles')
+        .select('title, content, category')
+        .eq('is_published', true)
+        .limit(5);
+
+      if (fallbackArticles && fallbackArticles.length > 0) {
+        kbContext = fallbackArticles
+          .map(a => `[${a.category || 'Geral'}] ${a.title}: ${a.content.substring(0, 400)}`)
+          .join('\n---\n');
+      }
+    }
 
     // Fetch conversation history
     const { data: history } = await supabase
@@ -52,25 +65,47 @@ serve(async (req) => {
       .select('content, sender, message_type')
       .eq('contact_id', contactId)
       .order('created_at', { ascending: false })
-      .limit(10);
+      .limit(15);
 
     const conversationHistory = (history || []).reverse().map((m: any) => ({
       role: m.sender === 'agent' ? 'assistant' : 'user',
       content: m.content,
     }));
 
-    const systemPrompt = `Você é um assistente de atendimento automatizado (Nível 1) via WhatsApp.
-Seu objetivo é resolver dúvidas simples usando a Base de Conhecimento da empresa.
+    // Fetch contact context
+    let contactContext = '';
+    if (contactId) {
+      const { data: contact } = await supabase
+        .from('contacts')
+        .select('name, company, tags, ai_priority, ai_sentiment')
+        .eq('id', contactId)
+        .maybeSingle();
 
-BASE DE CONHECIMENTO:
+      if (contact) {
+        contactContext = `\nCONTEXTO DO CLIENTE:
+- Nome: ${contact.name || 'Desconhecido'}
+- Empresa: ${contact.company || 'N/A'}
+- Tags: ${contact.tags?.join(', ') || 'Nenhuma'}
+- Prioridade: ${contact.ai_priority || 'normal'}
+- Sentimento: ${contact.ai_sentiment || 'neutro'}`;
+      }
+    }
+
+    const systemPrompt = `Você é um assistente de atendimento automatizado (Nível 1) via WhatsApp.
+Seu objetivo é resolver dúvidas usando a Base de Conhecimento da empresa com respostas precisas e contextualizadas.
+
+BASE DE CONHECIMENTO (artigos mais relevantes para a pergunta):
 ${kbContext || 'Nenhum artigo disponível.'}
+${contactContext}
 
 REGRAS:
-1. Se a pergunta pode ser respondida com a Base de Conhecimento, responda diretamente.
-2. Se a pergunta é complexa, requer ação humana, ou o cliente está irritado, responda com transfer_to_human = true.
-3. Seja cordial, objetivo e profissional.
-4. Não invente informações que não estão na Base de Conhecimento.
-5. Se não tiver certeza, transfira para humano.
+1. Se a pergunta pode ser respondida com a Base de Conhecimento, responda diretamente com informações ESPECÍFICAS dos artigos.
+2. Cite dados concretos dos artigos (valores, procedimentos, prazos) quando disponíveis.
+3. Se a pergunta é complexa, requer ação humana, ou o cliente está irritado, transfira para humano.
+4. NUNCA invente informações que não estão na Base de Conhecimento.
+5. Se não encontrou artigos relevantes mas é uma saudação/despedida, responda normalmente.
+6. Se não tiver certeza, transfira para humano.
+7. Adapte o tom ao sentimento do cliente (mais cuidadoso com clientes insatisfeitos).
 
 Responda em JSON:
 {
@@ -78,7 +113,9 @@ Responda em JSON:
   "transfer_to_human": false,
   "transfer_reason": null,
   "confidence": 0.95,
-  "matched_article": "título do artigo usado ou null"
+  "matched_article": "título do artigo usado ou null",
+  "detected_intent": "categoria da intenção (suporte, vendas, reclamação, etc)",
+  "detected_sentiment": "positive|neutral|negative|critical"
 }`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -130,6 +167,20 @@ Responda em JSON:
       result.transfer_reason = 'low_confidence';
     }
 
+    // Update contact AI metadata
+    if (contactId && (result.detected_sentiment || result.detected_intent)) {
+      const updateData: Record<string, string> = {};
+      if (result.detected_sentiment) updateData.ai_sentiment = result.detected_sentiment;
+      if (result.detected_sentiment === 'critical' || result.detected_sentiment === 'negative') {
+        updateData.ai_priority = 'high';
+      }
+      
+      await supabase
+        .from('contacts')
+        .update(updateData)
+        .eq('id', contactId);
+    }
+
     return new Response(JSON.stringify({
       handled: !result.transfer_to_human,
       response: result.response,
@@ -137,6 +188,8 @@ Responda em JSON:
       transfer_reason: result.transfer_reason,
       confidence: result.confidence,
       matched_article: result.matched_article,
+      detected_intent: result.detected_intent,
+      detected_sentiment: result.detected_sentiment,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

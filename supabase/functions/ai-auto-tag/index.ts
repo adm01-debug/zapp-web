@@ -33,7 +33,7 @@ serve(async (req) => {
     }
 
     if (!conversationMessages || conversationMessages.length === 0) {
-      return new Response(JSON.stringify({ tags: [] }), {
+      return new Response(JSON.stringify({ tags: [], priority: 'normal', sentiment: 'neutral' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -41,6 +41,16 @@ serve(async (req) => {
     const conversationText = conversationMessages
       .map((m: any) => `${m.sender}: ${m.content}`)
       .join('\n');
+
+    // Fetch available queues for routing suggestion
+    const { data: queues } = await supabase
+      .from('queues')
+      .select('id, name, description')
+      .eq('is_active', true);
+
+    const queueList = queues && queues.length > 0
+      ? queues.map(q => `- "${q.name}" (${q.id}): ${q.description || 'Sem descrição'}`).join('\n')
+      : '';
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -53,18 +63,26 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um classificador de conversas de atendimento ao cliente. Analise a conversa e retorne tags relevantes.
+            content: `Você é um classificador avançado de conversas de atendimento ao cliente. Analise a conversa e retorne classificação completa.
 
 Categorias possíveis: suporte_tecnico, vendas, financeiro, reclamacao, elogio, duvida, urgente, cancelamento, troca, entrega, pagamento, produto, servico, feedback, agendamento, orcamento
+
+${queueList ? `FILAS DISPONÍVEIS:\n${queueList}` : ''}
 
 Responda APENAS em JSON:
 {
   "tags": [
-    {"name": "tag_name", "confidence": 0.95},
-    {"name": "tag_name2", "confidence": 0.8}
+    {"name": "tag_name", "confidence": 0.95}
   ],
   "sentiment": "positive|neutral|negative|critical",
-  "summary": "resumo em 1 linha"
+  "priority": "low|normal|high|urgent",
+  "priority_reason": "motivo da prioridade",
+  "summary": "resumo em 1 linha",
+  "suggested_queue_id": "uuid da fila sugerida ou null",
+  "suggested_queue_reason": "motivo da sugestão",
+  "customer_intent": "o que o cliente quer resolver",
+  "requires_immediate_attention": false,
+  "escalation_reason": null
 }`
           },
           { role: "user", content: conversationText }
@@ -93,17 +111,15 @@ Responda APENAS em JSON:
     let result;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      result = jsonMatch ? JSON.parse(jsonMatch[0]) : { tags: [], sentiment: 'neutral', summary: '' };
+      result = jsonMatch ? JSON.parse(jsonMatch[0]) : { tags: [], sentiment: 'neutral', summary: '', priority: 'normal' };
     } catch {
-      result = { tags: [], sentiment: 'neutral', summary: '' };
+      result = { tags: [], sentiment: 'neutral', summary: '', priority: 'normal' };
     }
 
     // Save tags to database
     if (contactId && result.tags?.length > 0) {
-      // Remove old AI tags for this contact
       await supabase.from('ai_conversation_tags').delete().eq('contact_id', contactId);
       
-      // Insert new ones
       await supabase.from('ai_conversation_tags').insert(
         result.tags.map((t: any) => ({
           contact_id: contactId,
@@ -112,6 +128,43 @@ Responda APENAS em JSON:
           source: 'ai',
         }))
       );
+    }
+
+    // Update contact AI metadata
+    if (contactId) {
+      const updateData: Record<string, string> = {};
+      if (result.sentiment) updateData.ai_sentiment = result.sentiment;
+      if (result.priority) updateData.ai_priority = result.priority;
+      
+      // Auto-route to suggested queue if confidence is high
+      if (result.suggested_queue_id) {
+        updateData.queue_id = result.suggested_queue_id;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await supabase.from('contacts').update(updateData).eq('id', contactId);
+      }
+
+      // Create urgent notification if needed
+      if (result.requires_immediate_attention && result.priority === 'urgent') {
+        const { data: admins } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .in('role', ['admin', 'supervisor'])
+          .limit(5);
+
+        if (admins) {
+          await supabase.from('notifications').insert(
+            admins.map((a: any) => ({
+              user_id: a.user_id,
+              type: 'urgent_conversation',
+              title: '🚨 Conversa Urgente Detectada',
+              message: `${result.summary || 'Conversa requer atenção imediata'}. Motivo: ${result.escalation_reason || result.priority_reason || 'Alta prioridade'}`,
+              metadata: { contact_id: contactId, priority: result.priority, sentiment: result.sentiment },
+            }))
+          );
+        }
+      }
     }
 
     return new Response(JSON.stringify(result), {
