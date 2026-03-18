@@ -48,7 +48,10 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
+        setAudioUrl(prev => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
         onRecordingComplete?.(audioBlob, url);
       };
       
@@ -59,13 +62,19 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
       intervalRef.current = setInterval(() => {
         setDuration((prev) => {
           if (prev >= maxDuration) {
-            stopRecording();
+            // Stop recording directly to avoid stale closure
+            if (mediaRecorderRef.current?.state === 'recording') {
+              mediaRecorderRef.current.stop();
+              streamRef.current?.getTracks().forEach(track => track.stop());
+              if (intervalRef.current) clearInterval(intervalRef.current);
+              setIsRecording(false);
+            }
             return prev;
           }
           return prev + 1;
         });
       }, 1000);
-      
+
     } catch (error) {
       log.error('Error starting recording:', error);
       toast({
@@ -93,15 +102,18 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       streamRef.current?.getTracks().forEach(track => track.stop());
-      
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      
+
       chunksRef.current = [];
       setIsRecording(false);
       setDuration(0);
-      setAudioUrl(null);
+      setAudioUrl(prev => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     }
   }, [isRecording]);
 

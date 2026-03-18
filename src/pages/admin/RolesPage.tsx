@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Users, UserPlus, Trash2, Search, Loader2, Crown, Eye, Headphones } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
+import { log } from '@/lib/logger';
 import { PermissionMatrix } from '@/components/permissions/PermissionMatrix';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,10 +110,15 @@ export default function RolesPage() {
   };
 
   const fetchAvailableUsers = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('user_id, name, email')
       .order('name');
+
+    if (error) {
+      log.error('Error fetching available users:', error);
+      return;
+    }
 
     if (data) {
       // Filter out users who already have roles

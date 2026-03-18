@@ -66,8 +66,11 @@ export function DashboardView() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await refetch();
-    setTimeout(() => setIsRefreshing(false), 500);
+    try {
+      await refetch();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   // Loading skeleton

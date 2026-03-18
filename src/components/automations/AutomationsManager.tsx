@@ -1,6 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,14 +27,12 @@ import {
   Edit2,
   Trash2,
   Play,
-  Pause,
   Clock,
   MessageSquare,
   Tag,
   Users,
   ArrowRight,
   Copy,
-  Settings,
   Loader2,
   AlertCircle,
   CheckCircle2,
