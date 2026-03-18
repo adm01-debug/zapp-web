@@ -97,6 +97,7 @@ export function ChatInputArea({
   onBlur,
   onSend,
   onCancelReply,
+  onCancelEdit,
   onSlashCommand,
   onCloseSlashCommands,
   onQuickReply,
