@@ -635,6 +635,21 @@ export function RealtimeInboxView() {
                   <Button 
                     variant="ghost" 
                     size="icon" 
+                    onClick={handleBatchFetchAvatars}
+                    disabled={fetchingAvatars}
+                    className="w-7 h-7"
+                    aria-label="Buscar avatares"
+                  >
+                    <ImagePlus className={cn('w-3.5 h-3.5', fetchingAvatars && 'animate-pulse text-primary')} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="text-xs">Buscar Avatares</TooltipContent>
+              </Tooltip>
+
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
                     onClick={() => setShowNewConversation(true)}
                     className="w-7 h-7 text-primary hover:bg-primary/10"
                     aria-label="Nova conversa"
