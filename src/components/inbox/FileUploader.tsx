@@ -260,24 +260,22 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       return;
     }
 
-    setUploading(true);
-    setUploadProgress(0);
-    setUploadStage('uploading');
+    const fileToSend = filePreview.file;
+    const category = filePreview.validation.category;
+    const currentCaption = caption;
+    const messageContent = category === 'document' 
+      ? fileToSend.name 
+      : currentCaption || `[${category === 'image' ? 'Imagem' : category === 'video' ? 'Vídeo' : category === 'audio' ? 'Áudio' : 'Arquivo'}]`;
+
+    // Close dialog IMMEDIATELY for optimistic UX
+    handleClose();
+    toast.info('Enviando arquivo...', { id: 'file-upload', duration: 30000 });
 
     try {
-      // Step 1: Upload to storage (main bottleneck)
-      setUploadProgress(10);
-      const mediaUrl = await uploadFileToStorage(filePreview.file);
-      
-      setUploadProgress(60);
-      setUploadStage('sending');
+      // Step 1: Compress + Upload to storage
+      const mediaUrl = await uploadFileToStorage(fileToSend);
 
       // Step 2: Send via API + save to DB IN PARALLEL
-      const category = filePreview.validation.category;
-      const messageContent = category === 'document' 
-        ? filePreview.file.name 
-        : caption || `[${category === 'image' ? 'Imagem' : category === 'video' ? 'Vídeo' : category === 'audio' ? 'Áudio' : 'Arquivo'}]`;
-
       const apiPromise = category === 'audio'
         ? sendAudioMessage(instanceName, recipientNumber, mediaUrl)
         : sendMediaMessage({
@@ -285,10 +283,9 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
             number: recipientNumber,
             mediaUrl,
             mediaType: category as 'image' | 'video' | 'audio' | 'document',
-            caption: caption || undefined,
+            caption: currentCaption || undefined,
           });
 
-      // Fire DB insert immediately (don't wait for API response for externalId - update later)
       const dbPromise = contactId
         ? supabase.from('messages').insert({
             contact_id: contactId,
@@ -303,27 +300,21 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
 
       const [result, dbResult] = await Promise.all([apiPromise, dbPromise]);
       
-      // Update DB record with external_id from API response
+      // Fire-and-forget: update DB with external_id
       const externalId = result?.key?.id || null;
       if (dbResult?.data?.id && externalId) {
         supabase.from('messages')
           .update({ external_id: externalId, status: 'sent' })
           .eq('id', dbResult.data.id)
-          .then(({ error }) => { if (error) log.error('Failed to update external_id:', error); });
+          .then(() => {});
       }
 
-      setUploadProgress(100);
-      toast.success('Arquivo enviado com sucesso!');
+      toast.success('Arquivo enviado!', { id: 'file-upload' });
       onFileSent?.({ ...result, mediaUrl, messageType: category });
-      handleClose();
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown error');
       log.error('Error sending file:', error);
-      toast.error(error.message || 'Erro ao enviar arquivo');
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-      setUploadStage(null);
+      toast.error(error.message || 'Erro ao enviar arquivo', { id: 'file-upload' });
     }
   };
 
