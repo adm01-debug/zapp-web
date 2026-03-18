@@ -90,27 +90,22 @@ export function LGPDComplianceView() {
         </CardContent>
       </Card>
 
-      {/* Exportar Dados */}
-      <Card className="border-secondary/30">
+      {/* Exportar Dados - BLOQUEADO */}
+      <Card className="border-destructive/30 bg-destructive/5">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Download className="w-4 h-4" /> Portabilidade de Dados
+            <ShieldAlert className="w-4 h-4 text-destructive" /> Portabilidade de Dados — Bloqueada
           </CardTitle>
-          <CardDescription>Exporte todos os seus dados pessoais em formato JSON</CardDescription>
+          <CardDescription>A exportação de dados está desabilitada por política de segurança</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Inclui: perfil, configurações, notificações, dispositivos, sessões e logs de auditoria.
+            A exportação de dados pessoais foi bloqueada para proteção dos dados de clientes e fornecedores (LGPD).
           </p>
-          <Button onClick={handleExportData} disabled={isExporting}>
-            <Download className="w-4 h-4 mr-2" />
-            {isExporting ? 'Exportando...' : 'Exportar Meus Dados'}
+          <Button disabled className="opacity-50 cursor-not-allowed" onClick={handleExportData}>
+            <ShieldAlert className="w-4 h-4 mr-2 text-destructive" />
+            Exportação Bloqueada
           </Button>
-          {exportedData && (
-            <Badge variant="outline" className="text-success">
-              <CheckCircle2 className="w-3 h-3 mr-1" /> Exportação concluída
-            </Badge>
-          )}
         </CardContent>
       </Card>
 
