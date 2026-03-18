@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { AnimatePresence } from 'framer-motion';
 import { RichTextToolbar, RichTextToggle } from './RichTextToolbar';
 import { AIRewriteButton } from './AIRewriteButton';
+import { TextToAudioButton } from '../TextToAudioButton';
 import { ReplyPreview } from '../ReplyQuote';
 import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
