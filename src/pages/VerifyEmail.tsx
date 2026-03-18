@@ -68,6 +68,10 @@ export default function VerifyEmail() {
   }, [searchParams]);
 
   const handleResendEmail = async () => {
+    if (!email) {
+      toast.error('Email não encontrado. Faça login novamente.');
+      return;
+    }
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email,

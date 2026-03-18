@@ -26,6 +26,7 @@ export function useGoalNotifications() {
   const { settings, isQuietHours } = useNotificationSettings();
   const achievedGoals = useRef<Set<string>>(new Set());
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isCheckingRef = useRef(false);
 
   const createNotification = useCallback(async (
     title: string,
@@ -70,7 +71,8 @@ export function useGoalNotifications() {
   };
 
   const checkGoalProgress = useCallback(async () => {
-    if (!user) return;
+    if (!user || isCheckingRef.current) return;
+    isCheckingRef.current = true;
 
     try {
       // Get user's profile
@@ -180,6 +182,8 @@ export function useGoalNotifications() {
       }
     } catch (error) {
       log.error('Error checking goal progress:', error);
+    } finally {
+      isCheckingRef.current = false;
     }
   }, [user, settings, isQuietHours, createNotification]);
 

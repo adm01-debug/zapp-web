@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { log } from '@/lib/logger';
 
 export interface ReportData {
   title: string;
@@ -18,6 +19,7 @@ function generateFileName(data: ReportData, ext: string): string {
 }
 
 export const exportToPDF = (data: ReportData): void => {
+  try {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   
@@ -115,9 +117,14 @@ export const exportToPDF = (data: ReportData): void => {
 
   // Download
   doc.save(generateFileName(data, 'pdf'));
+  } catch (error) {
+    log.error('Failed to export PDF:', error);
+    throw error;
+  }
 };
 
 export const exportToExcel = (data: ReportData): void => {
+  try {
   // Create workbook
   const wb = XLSX.utils.book_new();
   
@@ -155,6 +162,10 @@ export const exportToExcel = (data: ReportData): void => {
 
   // Download
   XLSX.writeFile(wb, generateFileName(data, 'xlsx'));
+  } catch (error) {
+    log.error('Failed to export Excel:', error);
+    throw error;
+  }
 };
 
 export const exportToCSV = (data: ReportData): void => {
@@ -179,8 +190,12 @@ export const exportToCSV = (data: ReportData): void => {
 
   const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = generateFileName(data, 'csv');
-  link.click();
-  URL.revokeObjectURL(link.href);
+  const url = URL.createObjectURL(blob);
+  try {
+    link.href = url;
+    link.download = generateFileName(data, 'csv');
+    link.click();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 };

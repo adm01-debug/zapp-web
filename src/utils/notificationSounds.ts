@@ -289,7 +289,7 @@ export const playNotificationSound = (
     
     // Resume context if suspended (required by browsers)
     if (ctx.state === 'suspended') {
-      ctx.resume();
+      ctx.resume().catch(() => { /* browser denied audio resume */ });
     }
 
     const config = SOUND_CONFIGS[soundType][notificationType];
