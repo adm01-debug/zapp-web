@@ -712,7 +712,20 @@ export function RealtimeInboxView() {
             />
           </div>
 
-          {/* Filters */}
+          {/* Whaticket-style Ticket Tabs */}
+          <TicketTabs
+            conversations={conversations}
+            mainTab={mainTab}
+            subTab={subTab}
+            onMainTabChange={setMainTab}
+            onSubTabChange={setSubTab}
+            showAll={showAll}
+            onShowAllChange={setShowAll}
+            selectedQueueId={selectedQueueId}
+            onQueueChange={setSelectedQueueId}
+          />
+
+          {/* Advanced Filters (below tabs) */}
           <InboxFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
