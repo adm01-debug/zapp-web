@@ -12,28 +12,12 @@ export interface CompressionOptions {
 }
 
 const DEFAULT_OPTIONS: CompressionOptions = {
-  maxWidth: 1280,   // WhatsApp recommended max
+  maxWidth: 1280,
   maxHeight: 1280,
-  quality: 0.75,
-  maxSizeMB: 1,     // Faster uploads with 1MB target
-  outputType: 'image/webp', // WebP is ~30% smaller than JPEG
+  quality: 0.7,
+  maxSizeMB: 0.8,     // Aggressive target for faster uploads
+  outputType: 'image/webp',
 };
-
-function loadImage(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    img.src = url;
-  });
-}
 
 function calculateDimensions(
   width: number,
@@ -65,77 +49,83 @@ export async function compressImage(
 }> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const originalSize = file.size;
-  const maxSizeBytes = (opts.maxSizeMB || 1) * 1024 * 1024;
+  const maxSizeBytes = (opts.maxSizeMB || 0.8) * 1024 * 1024;
 
   // Skip non-images and GIFs
   if (!file.type.startsWith('image/') || file.type === 'image/gif') {
     return { file, originalSize, compressedSize: originalSize, compressionRatio: 1, width: 0, height: 0, wasCompressed: false };
   }
 
-  // Use OffscreenCanvas if available (faster, no DOM)
-  const useOffscreen = typeof OffscreenCanvas !== 'undefined';
+  // Use createImageBitmap for faster decoding (no DOM, hardware-accelerated)
+  let imgWidth: number;
+  let imgHeight: number;
+  let source: ImageBitmap | HTMLImageElement;
 
-  const img = await loadImage(file);
+  if (typeof createImageBitmap !== 'undefined') {
+    source = await createImageBitmap(file);
+    imgWidth = source.width;
+    imgHeight = source.height;
+  } else {
+    // Fallback for older browsers
+    source = await loadImageFallback(file);
+    imgWidth = source.naturalWidth;
+    imgHeight = source.naturalHeight;
+  }
+
   const { width, height } = calculateDimensions(
-    img.naturalWidth, img.naturalHeight,
+    imgWidth, imgHeight,
     opts.maxWidth || 1280, opts.maxHeight || 1280
   );
 
   // Skip if already small enough and no resize needed
-  if (originalSize <= maxSizeBytes && width === img.naturalWidth && height === img.naturalHeight) {
+  if (originalSize <= maxSizeBytes && width === imgWidth && height === imgHeight) {
+    if ('close' in source) source.close();
     return { file, originalSize, compressedSize: originalSize, compressionRatio: 1, width, height, wasCompressed: false };
   }
 
-  // Determine output type - use WebP if supported, fallback to JPEG
   let outputType = opts.outputType || 'image/webp';
-
   let blob: Blob;
 
-  if (useOffscreen) {
+  // Prefer OffscreenCanvas (non-blocking, Web Worker compatible)
+  if (typeof OffscreenCanvas !== 'undefined') {
     const offscreen = new OffscreenCanvas(width, height);
-    const ctx = offscreen.getContext('2d');
-    if (!ctx) throw new Error('Canvas context not available');
-    ctx.drawImage(img, 0, 0, width, height);
+    const ctx = offscreen.getContext('2d')!;
+    ctx.drawImage(source, 0, 0, width, height);
 
-    blob = await offscreen.convertToBlob({ type: outputType, quality: opts.quality || 0.75 });
+    // Single compression pass with target quality
+    blob = await offscreen.convertToBlob({ type: outputType, quality: opts.quality || 0.7 });
 
-    // If WebP blob is empty or too large, try reducing quality in bigger steps
+    // One retry at lower quality if too large
     if (blob.size > maxSizeBytes) {
-      let q = (opts.quality || 0.75) - 0.15;
-      while (blob.size > maxSizeBytes && q > 0.2) {
-        blob = await offscreen.convertToBlob({ type: outputType, quality: q });
-        q -= 0.15;
-      }
+      blob = await offscreen.convertToBlob({ type: outputType, quality: 0.5 });
     }
 
-    // If still too large, fall back to JPEG (better compression for photos)
+    // Final fallback to JPEG
     if (blob.size > maxSizeBytes && outputType === 'image/webp') {
       outputType = 'image/jpeg';
-      blob = await offscreen.convertToBlob({ type: outputType, quality: 0.6 });
+      blob = await offscreen.convertToBlob({ type: outputType, quality: 0.5 });
     }
   } else {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas context not available');
-    ctx.drawImage(img, 0, 0, width, height);
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(source, 0, 0, width, height);
 
-    blob = await canvasToBlob(canvas, outputType, opts.quality || 0.75);
+    blob = await canvasToBlob(canvas, outputType, opts.quality || 0.7);
 
     if (blob.size > maxSizeBytes) {
-      let q = (opts.quality || 0.75) - 0.15;
-      while (blob.size > maxSizeBytes && q > 0.2) {
-        blob = await canvasToBlob(canvas, outputType, q);
-        q -= 0.15;
-      }
+      blob = await canvasToBlob(canvas, outputType, 0.5);
     }
 
     if (blob.size > maxSizeBytes && outputType === 'image/webp') {
       outputType = 'image/jpeg';
-      blob = await canvasToBlob(canvas, outputType, 0.6);
+      blob = await canvasToBlob(canvas, outputType, 0.5);
     }
   }
+
+  // Clean up ImageBitmap
+  if ('close' in source) source.close();
 
   const ext = outputType === 'image/webp' ? 'webp' : outputType === 'image/png' ? 'png' : 'jpg';
   const compressedFile = new File(
@@ -153,6 +143,16 @@ export async function compressImage(
     height,
     wasCompressed: true,
   };
+}
+
+function loadImageFallback(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image')); };
+    img.src = url;
+  });
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
