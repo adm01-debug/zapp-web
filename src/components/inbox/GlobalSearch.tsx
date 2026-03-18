@@ -206,10 +206,14 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     // Remove tag syntax from query
     const cleanQuery = query.replace(/#\w*/g, '').trim();
     
-    if (cleanQuery.length < 2 && tags.length === 0) {
+    // Allow search with empty query when media type filter is active
+    if (cleanQuery.length < 2 && tags.length === 0 && mediaType === 'all') {
       setResults([]);
       return;
     }
+
+    // For link searches, look for URLs in message content
+    const isLinkSearch = mediaType === 'link';
 
     setIsLoading(true);
     const dateStart = getDateFilterStart(dateRange);
