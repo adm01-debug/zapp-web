@@ -481,6 +481,21 @@ export function RealtimeInboxView() {
     };
   }, []);
 
+  const handleBatchFetchAvatars = useCallback(async () => {
+    setFetchingAvatars(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('batch-fetch-avatars');
+      if (fnError) throw fnError;
+      toast.success(`${data?.updated || 0} avatares atualizados de ${data?.processed || 0} contatos.`);
+      refetch();
+    } catch (err: any) {
+      log.error('Batch avatar fetch error:', err);
+      toast.error('Erro ao buscar avatares: ' + (err?.message || 'Erro desconhecido'));
+    } finally {
+      setFetchingAvatars(false);
+    }
+  }, [refetch]);
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-full bg-background">
@@ -498,21 +513,6 @@ export function RealtimeInboxView() {
       </div>
     );
   }
-
-  const handleBatchFetchAvatars = useCallback(async () => {
-    setFetchingAvatars(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('batch-fetch-avatars');
-      if (error) throw error;
-      toast.success(`${data?.updated || 0} avatares atualizados de ${data?.processed || 0} contatos.`);
-      refetch();
-    } catch (err: any) {
-      log.error('Batch avatar fetch error:', err);
-      toast.error('Erro ao buscar avatares: ' + (err?.message || 'Erro desconhecido'));
-    } finally {
-      setFetchingAvatars(false);
-    }
-  }, [refetch]);
 
   return (
     <div className="flex h-full relative bg-background overflow-hidden">
