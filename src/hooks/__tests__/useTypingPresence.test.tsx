@@ -39,11 +39,11 @@ describe('useTypingPresence', () => {
     expect(result.current.typingUsers).toEqual([]);
   });
 
-  it('exposes setTyping function', () => {
+  it('exposes handleTypingStop function', () => {
     const { result } = renderHook(() => useTypingPresence({
       conversationId: 'conv-1',
     }));
-    expect(typeof result.current.setTyping).toBe('function');
+    expect(typeof result.current.handleTypingStop).toBe('function');
   });
 
   it('exposes handleTypingStart function', () => {

@@ -58,9 +58,9 @@ describe('useWarRoomAlerts', () => {
     expect(mockFrom).toHaveBeenCalledWith('warroom_alerts');
   });
 
-  it('exposes markAsRead function', () => {
+  it('exposes dismissAlert function', () => {
     const { result } = renderHook(() => useWarRoomAlerts(), { wrapper: createWrapper() });
-    expect(typeof result.current.markAsRead).toBe('function');
+    expect(typeof result.current.dismissAlert).toBe('function');
   });
 
   it('accepts soundEnabled parameter', () => {
@@ -68,8 +68,8 @@ describe('useWarRoomAlerts', () => {
     expect(result.current).toBeDefined();
   });
 
-  it('exposes unreadCount', () => {
+  it('alerts is an array', () => {
     const { result } = renderHook(() => useWarRoomAlerts(), { wrapper: createWrapper() });
-    expect(typeof result.current.unreadCount).toBe('number');
+    expect(Array.isArray(result.current.alerts)).toBe(true);
   });
 });
