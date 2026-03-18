@@ -108,8 +108,25 @@ export function ChatInputArea({
   fileUploaderRef,
   inputRef,
 }: ChatInputAreaProps) {
+  const [showRichToolbar, setShowRichToolbar] = useState(false);
+
   return (
     <>
+      {/* Rich Text Toolbar */}
+      <RichTextToolbar
+        inputRef={inputRef}
+        inputValue={inputValue}
+        onInputChange={(val) => {
+          // Simulate input change event
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+          if (inputRef.current && nativeInputValueSetter) {
+            nativeInputValueSetter.call(inputRef.current, val);
+            inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }}
+        visible={showRichToolbar}
+        onToggle={() => setShowRichToolbar(!showRichToolbar)}
+      />
       {/* Reply Preview */}
       <AnimatePresence>
         {replyToMessage && (
