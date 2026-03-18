@@ -49,6 +49,27 @@ function normalizePhone(rawJid?: string): string | null {
   return rawJid.replace('@s.whatsapp.net', '').replace('@g.us', '');
 }
 
+// Status hierarchy: higher number = more advanced status
+const STATUS_PRIORITY: Record<string, number> = {
+  'sending': 0,
+  'sent': 1,
+  'delivered': 2,
+  'read': 3,
+  'played': 3,
+  'failed': -1,
+  'deleted': 99,
+  'received': 1,
+};
+
+function shouldUpdateStatus(currentStatus: string | null, newStatus: string): boolean {
+  if (!currentStatus) return true;
+  // Always allow 'deleted' and 'failed'
+  if (newStatus === 'deleted' || newStatus === 'failed') return true;
+  const currentPriority = STATUS_PRIORITY[currentStatus] ?? 0;
+  const newPriority = STATUS_PRIORITY[newStatus] ?? 0;
+  return newPriority > currentPriority;
+}
+
 async function persistProfilePicture(
   supabase: ReturnType<typeof createClient>,
   phone: string,
@@ -114,6 +135,34 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
   } catch {
     return null;
   }
+}
+
+// Helper to safely get connection by instance_id
+async function getConnectionByInstance(
+  supabase: ReturnType<typeof createClient>,
+  instance: string
+): Promise<{ id: string } | null> {
+  const { data } = await supabase
+    .from('whatsapp_connections')
+    .select('id')
+    .eq('instance_id', instance)
+    .maybeSingle();
+  return data;
+}
+
+// Helper to safely get contact by phone + connection
+async function getContactByPhone(
+  supabase: ReturnType<typeof createClient>,
+  phone: string,
+  connectionId: string
+): Promise<{ id: string; avatar_url: string | null } | null> {
+  const { data } = await supabase
+    .from('contacts')
+    .select('id, avatar_url')
+    .eq('phone', phone)
+    .eq('whatsapp_connection_id', connectionId)
+    .maybeSingle();
+  return data;
 }
 
 serve(async (req) => {
@@ -190,33 +239,26 @@ serve(async (req) => {
 
         const { data: existingMessage } = await supabase
           .from('messages')
-          .select('id')
+          .select('id, status')
           .eq('external_id', externalId)
           .maybeSingle();
 
         if (existingMessage?.id) {
-          await supabase
-            .from('messages')
-            .update({ status: 'sent', external_id: externalId, status_updated_at: now })
-            .eq('id', existingMessage.id);
+          if (shouldUpdateStatus(existingMessage.status, 'sent')) {
+            await supabase
+              .from('messages')
+              .update({ status: 'sent', external_id: externalId, status_updated_at: now })
+              .eq('id', existingMessage.id);
+          }
           updatedMessageId = existingMessage.id;
         }
 
         if (!updatedMessageId) {
           const phone = normalizePhone(key.remoteJid);
-          const { data: connection } = await supabase
-            .from('whatsapp_connections')
-            .select('id')
-            .eq('instance_id', instance)
-            .maybeSingle();
+          const connection = await getConnectionByInstance(supabase, instance);
 
           if (connection?.id && phone) {
-            const { data: contact } = await supabase
-              .from('contacts')
-              .select('id')
-              .eq('phone', phone)
-              .eq('whatsapp_connection_id', connection.id)
-              .maybeSingle();
+            const contact = await getContactByPhone(supabase, phone, connection.id);
 
             if (contact?.id) {
               const { data: pendingMessage } = await supabase
@@ -253,32 +295,48 @@ serve(async (req) => {
         'ERROR': 'failed',
       };
 
-      const { data: connection } = await supabase
-        .from('whatsapp_connections')
-        .select('id')
-        .eq('instance_id', instance)
-        .maybeSingle();
+      const connection = await getConnectionByInstance(supabase, instance);
 
       for (const entry of toEventRecords(data, ['messages', 'updates', 'statuses'])) {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
         const key = keySource as { id?: string } | null;
         const rawStatus = (entry.status as string) || (baseData.status as string) || '';
-        const status = statusMap[rawStatus] || rawStatus.toLowerCase();
+        const newStatus = statusMap[rawStatus] || rawStatus.toLowerCase();
 
-        if (status && key?.id) {
+        if (newStatus && key?.id) {
           const now = new Date().toISOString();
-          const { data: updatedMessages, error: updateError } = await supabase
+
+          // First check current status to prevent downgrade
+          const { data: currentMessage } = await supabase
             .from('messages')
-            .update({ status, status_updated_at: now })
+            .select('id, status')
             .eq('external_id', key.id)
-            .select('id');
+            .maybeSingle();
 
-          if (updateError) {
-            console.error(`Error updating message status ${key.id}:`, updateError);
-            continue;
-          }
+          if (currentMessage?.id) {
+            if (shouldUpdateStatus(currentMessage.status, newStatus)) {
+              await supabase
+                .from('messages')
+                .update({ status: newStatus, status_updated_at: now })
+                .eq('id', currentMessage.id);
+              console.log(`Message ${key.id} status: ${currentMessage.status} → ${newStatus}`);
+            } else {
+              console.log(`Message ${key.id} status skip: ${currentMessage.status} → ${newStatus} (would downgrade)`);
+            }
+          } else {
+            // Create placeholder with contact_id if possible
+            let contactId: string | null = null;
+            if (connection?.id) {
+              const remoteJid = (entry.remoteJid as string) || ((isRecord(entry.key) ? entry.key.remoteJid : null) as string);
+              if (remoteJid) {
+                const phone = normalizePhone(remoteJid);
+                if (phone) {
+                  const contact = await getContactByPhone(supabase, phone, connection.id);
+                  contactId = contact?.id ?? null;
+                }
+              }
+            }
 
-          if (!updatedMessages?.length) {
             const { error: insertError } = await supabase
               .from('messages')
               .insert({
@@ -286,9 +344,10 @@ serve(async (req) => {
                 message_type: 'text',
                 sender: 'contact',
                 external_id: key.id,
-                status,
+                status: newStatus,
                 status_updated_at: now,
                 created_at: now,
+                contact_id: contactId,
                 whatsapp_connection_id: connection?.id ?? null,
               });
 
@@ -296,25 +355,20 @@ serve(async (req) => {
               console.error(`Error creating placeholder for message status ${key.id}:`, insertError);
               continue;
             }
+            console.log(`Message ${key.id} placeholder created with status: ${newStatus}${contactId ? ` (contact: ${contactId})` : ' (orphan)'}`);
           }
-
-          console.log(`Message ${key.id} status: ${status}`);
         }
       }
     }
 
     if (event === 'messages.delete') {
-      const { data: connection } = await supabase
-        .from('whatsapp_connections')
-        .select('id')
-        .eq('instance_id', instance)
-        .maybeSingle();
+      const connection = await getConnectionByInstance(supabase, instance);
 
       for (const entry of toEventRecords(data, ['messages', 'keys'])) {
         const keySource = isRecord(entry.key)
           ? entry.key
           : (typeof entry.id === 'string' ? entry : null) ?? (isRecord(baseData.key) ? baseData.key : null);
-        const key = keySource as { id?: string } | null;
+        const key = keySource as { id?: string; remoteJid?: string } | null;
 
         if (key?.id) {
           const now = new Date().toISOString();
@@ -330,6 +384,16 @@ serve(async (req) => {
           }
 
           if (!updatedMessages?.length) {
+            // Try to resolve contact_id for placeholder
+            let contactId: string | null = null;
+            if (connection?.id && key.remoteJid) {
+              const phone = normalizePhone(key.remoteJid);
+              if (phone) {
+                const contact = await getContactByPhone(supabase, phone, connection.id);
+                contactId = contact?.id ?? null;
+              }
+            }
+
             const { error: insertError } = await supabase
               .from('messages')
               .insert({
@@ -340,6 +404,7 @@ serve(async (req) => {
                 status: 'deleted',
                 status_updated_at: now,
                 created_at: now,
+                contact_id: contactId,
                 whatsapp_connection_id: connection?.id ?? null,
               });
 
@@ -365,11 +430,7 @@ serve(async (req) => {
         const pushName = contactData.pushName as string || contactData.name as string;
         const profilePicUrl = contactData.profilePictureUrl as string || contactData.imgUrl as string;
 
-        const { data: connection } = await supabase
-          .from('whatsapp_connections')
-          .select('id')
-          .eq('instance_id', instance)
-          .single();
+        const connection = await getConnectionByInstance(supabase, instance);
 
         if (connection && pushName) {
           let permanentAvatarUrl: string | null = null;
@@ -379,12 +440,7 @@ serve(async (req) => {
             permanentAvatarUrl = profilePicUrl;
           }
 
-          const { data: existing } = await supabase
-            .from('contacts')
-            .select('id, avatar_url')
-            .eq('phone', phone)
-            .eq('whatsapp_connection_id', connection.id)
-            .single();
+          const existing = await getContactByPhone(supabase, phone, connection.id);
 
           if (existing) {
             const updateData: Record<string, unknown> = { name: pushName, updated_at: new Date().toISOString() };
@@ -404,8 +460,9 @@ serve(async (req) => {
     }
 
     if (event === 'presence.update') {
-      const jid = data.id as string;
-      const presences = data.presences as Record<string, unknown>;
+      const presenceData = isRecord(data) ? data : {};
+      const jid = presenceData.id as string;
+      const presences = presenceData.presences as Record<string, unknown>;
       if (jid && presences) {
         console.log(`Presence update: ${jid}`, JSON.stringify(presences));
       }
@@ -422,19 +479,10 @@ serve(async (req) => {
         const unreadCount = chatData.unreadCount as number;
 
         if (unreadCount !== undefined) {
-          const { data: connection } = await supabase
-            .from('whatsapp_connections')
-            .select('id')
-            .eq('instance_id', instance)
-            .single();
+          const connection = await getConnectionByInstance(supabase, instance);
 
           if (connection) {
-            const { data: contact } = await supabase
-              .from('contacts')
-              .select('id')
-              .eq('phone', phone)
-              .eq('whatsapp_connection_id', connection.id)
-              .single();
+            const contact = await getContactByPhone(supabase, phone, connection.id);
 
             if (contact && unreadCount === 0) {
               await supabase
@@ -451,7 +499,7 @@ serve(async (req) => {
     }
 
     if (event === 'groups.upsert' || event === 'group.update') {
-      const groupData = data as Record<string, unknown>;
+      const groupData = isRecord(data) ? data : {};
       const groupJid = groupData.id as string;
       const subject = groupData.subject as string;
       if (groupJid && subject) {
@@ -459,28 +507,25 @@ serve(async (req) => {
       }
     }
 
-    if (event === 'group-participants.update') {
-      const groupJid = data.id as string;
-      const participants = data.participants as string[];
-      const action = data.action as string;
+    if (event === 'group.participants.update' || event === 'group-participants.update') {
+      const participantData = isRecord(data) ? data : {};
+      const groupJid = participantData.id as string;
+      const participants = participantData.participants as string[];
+      const action = participantData.action as string;
       if (groupJid) {
         console.log(`Group ${groupJid} participants ${action}: ${participants?.join(', ')}`);
       }
     }
 
     if (event === 'labels.edit') {
-      const labelData = data as Record<string, unknown>;
+      const labelData = isRecord(data) ? data : {};
       const labelId = labelData.id as string;
       const labelName = labelData.name as string;
       const labelColor = labelData.color as string;
       const deleted = labelData.deleted as boolean;
 
       if (labelId) {
-        const { data: connection } = await supabase
-          .from('whatsapp_connections')
-          .select('id')
-          .eq('instance_id', instance)
-          .single();
+        const connection = await getConnectionByInstance(supabase, instance);
 
         if (connection) {
           if (deleted) {
@@ -495,7 +540,7 @@ serve(async (req) => {
               .from('tags')
               .select('id')
               .ilike('name', `wa:${labelId}:%`)
-              .single();
+              .maybeSingle();
 
             if (existingTag) {
               await supabase
@@ -514,32 +559,24 @@ serve(async (req) => {
     }
 
     if (event === 'labels.association') {
-      const labelId = data.labelId as string || (data.label as Record<string, unknown>)?.id as string;
-      const chatId = data.chatId as string;
-      const type = data.type as string;
+      const assocData = isRecord(data) ? data : {};
+      const labelId = assocData.labelId as string || (assocData.label as Record<string, unknown>)?.id as string;
+      const chatId = assocData.chatId as string;
+      const type = assocData.type as string;
 
       if (labelId && chatId) {
         const phone = chatId.replace('@s.whatsapp.net', '').replace('@g.us', '');
 
-        const { data: connection } = await supabase
-          .from('whatsapp_connections')
-          .select('id')
-          .eq('instance_id', instance)
-          .single();
+        const connection = await getConnectionByInstance(supabase, instance);
 
         if (connection) {
-          const { data: contact } = await supabase
-            .from('contacts')
-            .select('id')
-            .eq('phone', phone)
-            .eq('whatsapp_connection_id', connection.id)
-            .single();
+          const contact = await getContactByPhone(supabase, phone, connection.id);
 
           const { data: tag } = await supabase
             .from('tags')
             .select('id')
             .ilike('name', `wa:${labelId}:%`)
-            .single();
+            .maybeSingle();
 
           if (contact && tag) {
             if (type === 'remove') {
@@ -555,7 +592,7 @@ serve(async (req) => {
                 .select('id')
                 .eq('contact_id', contact.id)
                 .eq('tag_id', tag.id)
-                .single();
+                .maybeSingle();
 
               if (!existing) {
                 await supabase
@@ -570,7 +607,7 @@ serve(async (req) => {
     }
 
     if (event === 'call') {
-      const callData = data as Record<string, unknown>;
+      const callData = isRecord(data) ? data : {};
       const from = callData.from as string;
       const isVideo = callData.isVideo as boolean;
       const callStatus = callData.status as string;
@@ -578,25 +615,16 @@ serve(async (req) => {
       if (from) {
         const phone = from.replace('@s.whatsapp.net', '');
 
-        const { data: connection } = await supabase
-          .from('whatsapp_connections')
-          .select('id')
-          .eq('instance_id', instance)
-          .single();
+        const connection = await getConnectionByInstance(supabase, instance);
 
         if (connection) {
-          let { data: contact } = await supabase
-            .from('contacts')
-            .select('id')
-            .eq('phone', phone)
-            .eq('whatsapp_connection_id', connection.id)
-            .single();
+          let contact = await getContactByPhone(supabase, phone, connection.id);
 
           if (!contact) {
             const { data: newContact } = await supabase
               .from('contacts')
               .insert({ phone, name: phone, whatsapp_connection_id: connection.id })
-              .select('id')
+              .select('id, avatar_url')
               .single();
             contact = newContact;
           }
@@ -812,20 +840,10 @@ async function handleIncomingMessage(
     content = (message.pollCreationMessage as Record<string, unknown>).name as string || '[Enquete]';
   }
 
-  const { data: connection } = await supabase
-    .from('whatsapp_connections')
-    .select('id')
-    .eq('instance_id', instance)
-    .single();
-
+  const connection = await getConnectionByInstance(supabase, instance);
   if (!connection) return;
 
-  let { data: contact } = await supabase
-    .from('contacts')
-    .select('id, avatar_url')
-    .eq('phone', phone)
-    .eq('whatsapp_connection_id', connection.id)
-    .single();
+  let contact = await getContactByPhone(supabase, phone, connection.id);
 
   if (!contact) {
     let avatarUrl: string | null = null;
@@ -938,35 +956,14 @@ async function handleAudioTranscription(
   supabaseUrl: string,
   supabaseServiceKey: string
 ) {
-  const { data: contactData } = await supabase
-    .from('contacts')
-    .select('assigned_to')
-    .eq('id', contactId)
-    .single();
+  // Check global setting for auto-transcription
+  const { data: globalSetting } = await supabase
+    .from('global_settings')
+    .select('value')
+    .eq('key', 'auto_transcription_enabled')
+    .maybeSingle();
 
-  let shouldTranscribe = true;
-
-  if (contactData?.assigned_to) {
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .eq('id', contactData.assigned_to)
-      .single();
-
-    if (profileData?.user_id) {
-      const { data: userSettings } = await supabase
-        .from('user_settings')
-        .select('auto_transcription_enabled')
-        .eq('user_id', profileData.user_id)
-        .single();
-
-      if (userSettings && userSettings.auto_transcription_enabled === false) {
-        shouldTranscribe = false;
-      }
-    }
-  }
-
-  if (!shouldTranscribe) return;
+  if (globalSetting?.value === 'false') return;
 
   await supabase.from('messages').update({ transcription_status: 'processing' }).eq('id', messageId);
 
@@ -988,7 +985,8 @@ async function handleAudioTranscription(
       }).eq('id', messageId);
       console.log(`Audio transcribed: ${messageId}`);
     } else {
-      console.error('Transcription failed:', await response.text());
+      const errText = await response.text();
+      console.error('Transcription failed:', errText);
       await supabase.from('messages').update({ transcription_status: 'failed' }).eq('id', messageId);
     }
   } catch (err) {

@@ -65,7 +65,20 @@ serve(async (req) => {
 
     console.log(`[Evolution API] ${method} ${fullUrl}`);
     const response = await fetch(fullUrl, opts);
-    const data = await response.json();
+    
+    // Safely handle non-JSON responses
+    let data: unknown;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { rawResponse: text, status: response.status };
+      }
+    }
 
     return new Response(JSON.stringify(data), {
       status: response.ok ? 200 : response.status,

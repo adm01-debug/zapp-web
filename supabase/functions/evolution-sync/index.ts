@@ -530,8 +530,12 @@ serve(async (req) => {
               webhookByEvents: true,
               webhookBase64: false,
               events: [
-                'MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'CONNECTION_UPDATE',
-                'QRCODE_UPDATED', 'CONTACTS_UPSERT', 'PRESENCE_UPDATE',
+                'APPLICATION_STARTUP', 'QRCODE_UPDATED', 'CONNECTION_UPDATE',
+                'MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'MESSAGES_DELETE',
+                'SEND_MESSAGE', 'CONTACTS_UPSERT', 'CONTACTS_UPDATE',
+                'PRESENCE_UPDATE', 'CHATS_UPSERT', 'CHATS_UPDATE',
+                'GROUPS_UPSERT', 'GROUP_UPDATE', 'GROUP_PARTICIPANTS_UPDATE',
+                'LABELS_EDIT', 'LABELS_ASSOCIATION', 'CALL',
               ],
             }),
           }
