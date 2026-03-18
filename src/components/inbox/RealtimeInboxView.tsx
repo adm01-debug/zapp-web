@@ -9,6 +9,7 @@ import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
 import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus } from 'lucide-react';
+import { TicketTabs, MainTab, SubTab } from './TicketTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,6 +20,7 @@ import { Conversation, Message } from '@/types/chat';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getLogger } from '@/lib/logger';
+import { useAuth } from '@/hooks/useAuth';
 
 // Lazy-load heavy sub-components (only loaded when needed)
 const ChatPanel = lazy(() => import('./ChatPanel').then(m => ({ default: m.ChatPanel })));
@@ -69,6 +71,13 @@ export function RealtimeInboxView() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [fetchingAvatars, setFetchingAvatars] = useState(false);
 
+  // Whaticket-style ticket tabs state
+  const [mainTab, setMainTab] = useState<MainTab>('open');
+  const [subTab, setSubTab] = useState<SubTab>('attending');
+  const [showAll, setShowAll] = useState(false);
+  const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
+  const { user } = useAuth();
+
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
   
@@ -106,10 +115,37 @@ export function RealtimeInboxView() {
     });
   }, [setUrlFilters]);
 
-  // Filter conversations by search and advanced filters
+  // Filter conversations by tabs, search and advanced filters
   const filteredConversations = useMemo(() => {
     // Safety: filter out any conversations with missing contact data
     let result = conversations.filter(c => c && c.contact && c.contact.id);
+
+    // === Tab-based filtering (Whaticket style) ===
+    if (mainTab === 'open') {
+      // Only conversations with messages (active)
+      result = result.filter(c => c.messages.length > 0);
+      
+      // Sub-tab filtering
+      if (subTab === 'attending') {
+        // "Atendendo" = assigned to current user
+        if (!showAll) {
+          result = result.filter(c => c.contact.assigned_to === user?.id);
+        }
+        // If showAll is true, show all assigned conversations
+      } else if (subTab === 'waiting') {
+        // "Aguardando" = not assigned to anyone (waiting in queue)
+        result = result.filter(c => !c.contact.assigned_to);
+      }
+
+      // Queue filter
+      if (selectedQueueId) {
+        result = result.filter(c => c.contact.queue_id === selectedQueueId);
+      }
+    } else if (mainTab === 'resolved') {
+      // Show contacts with no recent messages or no messages at all
+      result = result.filter(c => c.messages.length === 0);
+    }
+    // 'search' tab: show all, filtered by search below
 
     // Search filter
     if (search.trim()) {
@@ -165,7 +201,7 @@ export function RealtimeInboxView() {
     }
 
     return result;
-  }, [conversations, search, filters]);
+  }, [conversations, search, filters, mainTab, subTab, showAll, selectedQueueId, user?.id]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
@@ -676,7 +712,20 @@ export function RealtimeInboxView() {
             />
           </div>
 
-          {/* Filters */}
+          {/* Whaticket-style Ticket Tabs */}
+          <TicketTabs
+            conversations={conversations}
+            mainTab={mainTab}
+            subTab={subTab}
+            onMainTabChange={setMainTab}
+            onSubTabChange={setSubTab}
+            showAll={showAll}
+            onShowAllChange={setShowAll}
+            selectedQueueId={selectedQueueId}
+            onQueueChange={setSelectedQueueId}
+          />
+
+          {/* Advanced Filters (below tabs) */}
           <InboxFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
