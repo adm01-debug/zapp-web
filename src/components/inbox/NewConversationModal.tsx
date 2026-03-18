@@ -142,6 +142,7 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
       });
 
       toast.success('Mensagem enviada!');
+      await supabase.functions.invoke('batch-fetch-avatars');
       onConversationStarted?.(contactId);
       onOpenChange(false);
       resetForm();
