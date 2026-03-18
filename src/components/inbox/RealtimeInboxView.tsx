@@ -139,7 +139,7 @@ export function RealtimeInboxView() {
 
       // Queue filter
       if (selectedQueueId) {
-        result = result.filter(c => (c.contact as any).queue_id === selectedQueueId);
+        result = result.filter(c => c.contact.queue_id === selectedQueueId);
       }
     } else if (mainTab === 'resolved') {
       // Show contacts with no recent messages or no messages at all
