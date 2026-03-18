@@ -274,6 +274,8 @@ function IndexContent() {
         return <WarRoomDashboard />;
       case 'wa-templates':
         return <WhatsAppTemplatesManager />;
+      case 'omnichannel':
+        return <OmnichannelManager />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
