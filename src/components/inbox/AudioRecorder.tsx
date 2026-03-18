@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Mic, Square, X, Send, Pause, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { VoiceChanger } from './VoiceChanger';
 
 interface AudioRecorderProps {
   onSend: (audioBlob: Blob) => void;
@@ -13,6 +14,7 @@ interface AudioRecorderProps {
 export function AudioRecorder({ onSend, onCancel }: AudioRecorderProps) {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [voiceChanged, setVoiceChanged] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const {
@@ -52,6 +54,16 @@ export function AudioRecorder({ onSend, onCancel }: AudioRecorderProps) {
   const handleCancel = () => {
     cancelRecording();
     onCancel();
+  };
+
+  const handleVoiceChanged = (newBlob: Blob) => {
+    setAudioBlob(newBlob);
+    setVoiceChanged(true);
+    // Update audio element for playback
+    if (audioRef.current) {
+      const url = URL.createObjectURL(newBlob);
+      audioRef.current.src = url;
+    }
   };
 
   return (
@@ -121,7 +133,10 @@ export function AudioRecorder({ onSend, onCancel }: AudioRecorderProps) {
               className="hidden"
             />
             <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-whatsapp w-full" />
+              <div className={cn(
+                "h-full w-full",
+                voiceChanged ? "bg-primary" : "bg-whatsapp"
+              )} />
             </div>
             <span className="text-sm font-mono text-muted-foreground w-12">
               {formatDuration(duration)}
@@ -130,7 +145,7 @@ export function AudioRecorder({ onSend, onCancel }: AudioRecorderProps) {
         ) : null}
       </div>
 
-      {/* Stop/Send button */}
+      {/* Voice changer + Stop/Send */}
       {isRecording ? (
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Button
@@ -142,15 +157,25 @@ export function AudioRecorder({ onSend, onCancel }: AudioRecorderProps) {
           </Button>
         </motion.div>
       ) : audioBlob ? (
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button
-            size="icon"
-            className="bg-whatsapp hover:bg-whatsapp-dark"
-            onClick={handleSend}
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </motion.div>
+        <div className="flex items-center gap-1">
+          {/* Voice Changer button */}
+          <VoiceChanger
+            audioBlob={audioBlob}
+            onVoiceChanged={handleVoiceChanged}
+          />
+          
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button
+              size="icon"
+              className={cn(
+                voiceChanged ? "bg-primary hover:bg-primary/90" : "bg-whatsapp hover:bg-whatsapp-dark"
+              )}
+              onClick={handleSend}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </motion.div>
+        </div>
       ) : null}
     </motion.div>
   );
