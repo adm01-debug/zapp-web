@@ -46,6 +46,7 @@ export interface ConversationContact {
   company: string | null;
   job_title: string | null;
   assigned_to: string | null;
+  queue_id: string | null;
   created_at: string;
   updated_at: string;
   whatsapp_connection_id: string | null;
