@@ -115,10 +115,37 @@ export function RealtimeInboxView() {
     });
   }, [setUrlFilters]);
 
-  // Filter conversations by search and advanced filters
+  // Filter conversations by tabs, search and advanced filters
   const filteredConversations = useMemo(() => {
     // Safety: filter out any conversations with missing contact data
     let result = conversations.filter(c => c && c.contact && c.contact.id);
+
+    // === Tab-based filtering (Whaticket style) ===
+    if (mainTab === 'open') {
+      // Only conversations with messages (active)
+      result = result.filter(c => c.messages.length > 0);
+      
+      // Sub-tab filtering
+      if (subTab === 'attending') {
+        // "Atendendo" = assigned to current user
+        if (!showAll) {
+          result = result.filter(c => c.contact.assigned_to === user?.id);
+        }
+        // If showAll is true, show all assigned conversations
+      } else if (subTab === 'waiting') {
+        // "Aguardando" = not assigned to anyone (waiting in queue)
+        result = result.filter(c => !c.contact.assigned_to);
+      }
+
+      // Queue filter
+      if (selectedQueueId) {
+        result = result.filter(c => (c.contact as any).queue_id === selectedQueueId);
+      }
+    } else if (mainTab === 'resolved') {
+      // Show contacts with no recent messages or no messages at all
+      result = result.filter(c => c.messages.length === 0);
+    }
+    // 'search' tab: show all, filtered by search below
 
     // Search filter
     if (search.trim()) {
@@ -174,7 +201,7 @@ export function RealtimeInboxView() {
     }
 
     return result;
-  }, [conversations, search, filters]);
+  }, [conversations, search, filters, mainTab, subTab, showAll, selectedQueueId, user?.id]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
