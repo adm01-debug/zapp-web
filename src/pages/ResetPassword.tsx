@@ -48,7 +48,7 @@ export default function ResetPassword() {
       if (data.session) {
         setHasSession(true);
       }
-    });
+    }).catch(() => { /* session check failed, stay on page */ });
 
     return () => subscription.unsubscribe();
   }, []);

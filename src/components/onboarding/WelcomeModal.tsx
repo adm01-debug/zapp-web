@@ -1,4 +1,3 @@
-import { forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,8 +9,7 @@ interface WelcomeModalProps {
   userName?: string;
 }
 
-export const WelcomeModal = forwardRef<HTMLDivElement, WelcomeModalProps>(
-  function WelcomeModal({ isOpen, onClose, onStartTour, userName }, ref) {
+export function WelcomeModal({ isOpen, onClose, onStartTour, userName }: WelcomeModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -153,4 +151,4 @@ export const WelcomeModal = forwardRef<HTMLDivElement, WelcomeModalProps>(
       </motion.div>
     </AnimatePresence>
   );
-});
+}

@@ -50,8 +50,9 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
       .eq('status', 'connected')
       .then(({ data }) => {
         setConnections(data || []);
-        setLoadingConnections(false);
-      });
+      })
+      .catch(() => { /* connection fetch failed silently */ })
+      .finally(() => setLoadingConnections(false));
   }, [transferType, open]);
 
   const handleTransfer = () => {

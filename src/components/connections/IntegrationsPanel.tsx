@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { log } from '@/lib/logger';
 import {
   Dialog,
   DialogContent,
@@ -224,10 +225,10 @@ export function IntegrationsPanel({
               values={typebot}
               onChange={(k, v) => setTypebot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setTypebot({ instanceName, ...typebot } as any); toast.success('Typebot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setTypebot({ instanceName, ...typebot } as any); toast.success('Typebot configurado!'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               onDelete={async () => {
-                try { await api.deleteTypebot(instanceName); setTypebot({ enabled: false }); toast.success('Typebot removido'); } catch { toast.error('Erro'); }
+                try { await api.deleteTypebot(instanceName); setTypebot({ enabled: false }); toast.success('Typebot removido'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               isLoading={api.isLoading}
             />
@@ -241,10 +242,10 @@ export function IntegrationsPanel({
               values={openai}
               onChange={(k, v) => setOpenai(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setOpenAI({ instanceName, ...openai } as any); toast.success('OpenAI configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setOpenAI({ instanceName, ...openai } as any); toast.success('OpenAI configurado!'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               onDelete={async () => {
-                try { await api.deleteOpenAI(instanceName); setOpenai({ enabled: false }); toast.success('OpenAI removido'); } catch { toast.error('Erro'); }
+                try { await api.deleteOpenAI(instanceName); setOpenai({ enabled: false }); toast.success('OpenAI removido'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               isLoading={api.isLoading}
             />
@@ -258,10 +259,10 @@ export function IntegrationsPanel({
               values={dify}
               onChange={(k, v) => setDify(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setDify({ instanceName, ...dify } as any); toast.success('Dify configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setDify({ instanceName, ...dify } as any); toast.success('Dify configurado!'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               onDelete={async () => {
-                try { await api.deleteDify(instanceName); setDify({ enabled: false }); toast.success('Dify removido'); } catch { toast.error('Erro'); }
+                try { await api.deleteDify(instanceName); setDify({ enabled: false }); toast.success('Dify removido'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               isLoading={api.isLoading}
             />
@@ -275,10 +276,10 @@ export function IntegrationsPanel({
               values={flowise}
               onChange={(k, v) => setFlowise(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setFlowise({ instanceName, ...flowise } as any); toast.success('Flowise configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setFlowise({ instanceName, ...flowise } as any); toast.success('Flowise configurado!'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               onDelete={async () => {
-                try { await api.deleteFlowise(instanceName); setFlowise({ enabled: false }); toast.success('Flowise removido'); } catch { toast.error('Erro'); }
+                try { await api.deleteFlowise(instanceName); setFlowise({ enabled: false }); toast.success('Flowise removido'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               isLoading={api.isLoading}
             />
@@ -292,10 +293,10 @@ export function IntegrationsPanel({
               values={chatwoot}
               onChange={(k, v) => setChatwoot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setChatwoot({ instanceName, ...chatwoot } as any); toast.success('Chatwoot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setChatwoot({ instanceName, ...chatwoot } as any); toast.success('Chatwoot configurado!'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               onDelete={async () => {
-                try { await api.deleteChatwoot(instanceName); setChatwoot({ enabled: false }); toast.success('Chatwoot removido'); } catch { toast.error('Erro'); }
+                try { await api.deleteChatwoot(instanceName); setChatwoot({ enabled: false }); toast.success('Chatwoot removido'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               isLoading={api.isLoading}
             />
@@ -309,10 +310,10 @@ export function IntegrationsPanel({
               values={evolutionBot}
               onChange={(k, v) => setEvolutionBot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setEvolutionBot({ instanceName, ...evolutionBot } as any); toast.success('Evolution Bot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setEvolutionBot({ instanceName, ...evolutionBot } as any); toast.success('Evolution Bot configurado!'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               onDelete={async () => {
-                try { await api.deleteEvolutionBot(instanceName); setEvolutionBot({ enabled: false }); toast.success('Evolution Bot removido'); } catch { toast.error('Erro'); }
+                try { await api.deleteEvolutionBot(instanceName); setEvolutionBot({ enabled: false }); toast.success('Evolution Bot removido'); } catch (err) { log.error('Integration error:', err); toast.error('Erro'); }
               }}
               isLoading={api.isLoading}
             />

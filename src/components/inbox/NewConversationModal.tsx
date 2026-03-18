@@ -61,7 +61,7 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
           setConnections(data);
           setSelectedConnection(data[0].id);
         }
-      });
+      }).catch(() => { /* connection fetch failed */ });
   }, [open]);
 
   // Search contacts

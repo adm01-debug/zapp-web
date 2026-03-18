@@ -54,7 +54,7 @@ export default function VerifyEmail() {
               setStatus('success');
               setEmail(data.session.user.email || '');
             }
-          });
+          }).catch(() => setStatus('expired'));
         }, 2000);
       }
     };

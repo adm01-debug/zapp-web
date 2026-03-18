@@ -62,7 +62,7 @@ export function PasskeysPanel() {
 
   useEffect(() => {
     fetchPasskeys();
-    isPlatformAuthenticatorAvailable().then(setIsPlatformAvailable);
+    isPlatformAuthenticatorAvailable().then(setIsPlatformAvailable).catch(() => setIsPlatformAvailable(false));
   }, [fetchPasskeys, isPlatformAuthenticatorAvailable]);
 
   const handleRegister = async () => {

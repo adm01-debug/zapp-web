@@ -238,6 +238,8 @@ export function useRealtimeMessages() {
     return () => {
       channel.unsubscribe().then(() => {
         supabase.removeChannel(channel);
+      }).catch(() => {
+        supabase.removeChannel(channel);
       });
     };
   }, [fetchConversations, handleNewMessage, handleMessageUpdate]);
