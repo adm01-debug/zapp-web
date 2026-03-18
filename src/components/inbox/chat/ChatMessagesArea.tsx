@@ -247,7 +247,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
 
                       {/* Message bubble */}
                       {(message as any).is_deleted ? (
-                        <DeletedMessagePlaceholder isSent={isSent} />
+                        <DeletedMessagePlaceholder isSent={isSent} content={message.content} />
                       ) : (
                       <motion.div
                         whileHover={{ scale: 1.005 }}
