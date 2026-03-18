@@ -504,15 +504,14 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ---
 
 ### 3.10 📞 Integração VoIP
-**Novo sistema**  
-**Status:** ⏳ Pendente  
-**Esforço:** 8h  
-
+**Arquivo:** `src/components/calls/VoIPPanel.tsx`  
+**Status:** ✅ IMPLEMENTADO  
 **Funcionalidades:**
-- Click-to-call
-- Histórico de chamadas
-- Gravação de chamadas
-- Transcrição de chamadas
+- Histórico de chamadas com filtros
+- Estatísticas (total, recebidas, realizadas, perdidas, duração média)
+- Configuração de servidor SIP
+- Gravação automática de chamadas
+- Acessível via menu lateral (VoIP)
 
 ---
 
