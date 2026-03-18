@@ -271,6 +271,8 @@ function IndexContent() {
         return <ScheduleCalendarView />;
       case 'warroom':
         return <WarRoomDashboard />;
+      case 'wa-templates':
+        return <WhatsAppTemplatesManager />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
