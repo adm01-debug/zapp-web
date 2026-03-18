@@ -18,20 +18,29 @@ serve(async (req) => {
     const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Find all messages with WhatsApp CDN URLs, joining to get instance info
+    // Get all active WhatsApp connections with instance IDs
+    const { data: connections } = await supabase
+      .from('whatsapp_connections')
+      .select('id, instance_id')
+      .eq('status', 'connected')
+      .limit(10);
+
+    const instanceMap = new Map<string, string>();
+    for (const conn of connections || []) {
+      if (conn.instance_id) instanceMap.set(conn.id, conn.instance_id);
+    }
+
+    // Find all messages with WhatsApp CDN URLs
     const { data: messages, error } = await supabase
       .from('messages')
-      .select(`
-        id, media_url, message_type, external_id, contact_id,
-        contacts!inner(whatsapp_connection_id, whatsapp_connections!inner(instance_id))
-      `)
+      .select('id, media_url, message_type, external_id, contact_id, whatsapp_connection_id')
       .not('media_url', 'is', null)
       .or('media_url.like.%mmg.whatsapp.net%,media_url.like.%pps.whatsapp.net%')
       .order('created_at', { ascending: false })
       .limit(50);
 
     if (error) {
-      console.error('Query error, falling back to simple query:', error);
+      console.error('Query error:', error);
       // Fallback: simple query without joins
       return await migrateSimple(supabase, corsHeaders);
     }
