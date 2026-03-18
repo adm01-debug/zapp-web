@@ -32,7 +32,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { exportToPDF, exportToExcel, ReportData } from '@/utils/exportReport';
+// Export functions blocked by security policy
 import { toast } from 'sonner';
 
 interface SentimentAlert {
