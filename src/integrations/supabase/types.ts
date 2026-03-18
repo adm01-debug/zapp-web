@@ -728,6 +728,127 @@ export type Database = {
           },
         ]
       }
+      channel_connections: {
+        Row: {
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          config: Json | null
+          created_at: string
+          created_by: string | null
+          credentials: Json | null
+          external_account_id: string | null
+          external_page_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          status: string
+          updated_at: string
+          webhook_url: string | null
+          whatsapp_connection_id: string | null
+        }
+        Insert: {
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          credentials?: Json | null
+          external_account_id?: string | null
+          external_page_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+          whatsapp_connection_id?: string | null
+        }
+        Update: {
+          channel_type?: Database["public"]["Enums"]["channel_type"]
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          credentials?: Json | null
+          external_account_id?: string | null
+          external_page_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+          whatsapp_connection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_connections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_connections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_connections_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channel_routing_rules: {
+        Row: {
+          channel_connection_id: string | null
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          conditions: Json | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          priority: number | null
+          queue_id: string | null
+        }
+        Insert: {
+          channel_connection_id?: string | null
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          conditions?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          queue_id?: string | null
+        }
+        Update: {
+          channel_connection_id?: string | null
+          channel_type?: Database["public"]["Enums"]["channel_type"]
+          conditions?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          queue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_routing_rules_channel_connection_id_fkey"
+            columns: ["channel_connection_id"]
+            isOneToOne: false
+            referencedRelation: "channel_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_routing_rules_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_executions: {
         Row: {
           completed_at: string | null
@@ -1039,6 +1160,8 @@ export type Database = {
           ai_sentiment: string | null
           assigned_to: string | null
           avatar_url: string | null
+          channel_connection_id: string | null
+          channel_type: string | null
           company: string | null
           contact_type: string | null
           created_at: string
@@ -1060,6 +1183,8 @@ export type Database = {
           ai_sentiment?: string | null
           assigned_to?: string | null
           avatar_url?: string | null
+          channel_connection_id?: string | null
+          channel_type?: string | null
           company?: string | null
           contact_type?: string | null
           created_at?: string
@@ -1081,6 +1206,8 @@ export type Database = {
           ai_sentiment?: string | null
           assigned_to?: string | null
           avatar_url?: string | null
+          channel_connection_id?: string | null
+          channel_type?: string | null
           company?: string | null
           contact_type?: string | null
           created_at?: string
@@ -1110,6 +1237,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_channel_connection_id_fkey"
+            columns: ["channel_connection_id"]
+            isOneToOne: false
+            referencedRelation: "channel_connections"
             referencedColumns: ["id"]
           },
           {
@@ -1965,6 +2099,8 @@ export type Database = {
       messages: {
         Row: {
           agent_id: string | null
+          channel_connection_id: string | null
+          channel_type: string | null
           contact_id: string | null
           content: string
           created_at: string
@@ -1984,6 +2120,8 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          channel_connection_id?: string | null
+          channel_type?: string | null
           contact_id?: string | null
           content: string
           created_at?: string
@@ -2003,6 +2141,8 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          channel_connection_id?: string | null
+          channel_type?: string | null
           contact_id?: string | null
           content?: string
           created_at?: string
@@ -2033,6 +2173,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_channel_connection_id_fkey"
+            columns: ["channel_connection_id"]
+            isOneToOne: false
+            referencedRelation: "channel_connections"
             referencedColumns: ["id"]
           },
           {
@@ -4049,6 +4196,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "supervisor" | "agent"
+      channel_type:
+        | "whatsapp"
+        | "instagram"
+        | "telegram"
+        | "messenger"
+        | "webchat"
+        | "email"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4177,6 +4331,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "supervisor", "agent"],
+      channel_type: [
+        "whatsapp",
+        "instagram",
+        "telegram",
+        "messenger",
+        "webchat",
+        "email",
+      ],
     },
   },
 } as const
