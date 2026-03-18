@@ -8,7 +8,7 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2 } from 'lucide-react';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -67,6 +67,7 @@ export function RealtimeInboxView() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [fetchingAvatars, setFetchingAvatars] = useState(false);
 
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
@@ -480,6 +481,21 @@ export function RealtimeInboxView() {
     };
   }, []);
 
+  const handleBatchFetchAvatars = useCallback(async () => {
+    setFetchingAvatars(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('batch-fetch-avatars');
+      if (fnError) throw fnError;
+      toast.success(`${data?.updated || 0} avatares atualizados de ${data?.processed || 0} contatos.`);
+      refetch();
+    } catch (err: any) {
+      log.error('Batch avatar fetch error:', err);
+      toast.error('Erro ao buscar avatares: ' + (err?.message || 'Erro desconhecido'));
+    } finally {
+      setFetchingAvatars(false);
+    }
+  }, [refetch]);
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-full bg-background">
@@ -612,6 +628,22 @@ export function RealtimeInboxView() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="text-xs">Atualizar</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleBatchFetchAvatars}
+                    disabled={fetchingAvatars}
+                    className="w-7 h-7"
+                    aria-label="Buscar avatares"
+                  >
+                    <ImagePlus className={cn('w-3.5 h-3.5', fetchingAvatars && 'animate-pulse text-primary')} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="text-xs">Buscar Avatares</TooltipContent>
               </Tooltip>
 
               <Tooltip>
