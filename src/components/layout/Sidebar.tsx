@@ -32,6 +32,7 @@ import {
   Calendar,
   CalendarClock,
   Palette,
+  Trophy,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -75,6 +76,7 @@ const toolsNav = [
 const systemNav = [
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
   { id: 'auto-export', icon: CalendarClock, label: 'Export Auto' },
+  { id: 'achievements', icon: Trophy, label: 'Conquistas' },
   { id: 'diagnostics', icon: Globe, label: 'Diagnóstico' },
   { id: 'security', icon: Shield, label: 'Segurança' },
   { id: 'themes', icon: Palette, label: 'Temas' },

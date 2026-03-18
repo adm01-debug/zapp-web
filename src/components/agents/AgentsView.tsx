@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AgentsEmptyState } from '@/components/ui/contextual-empty-states';
+import { InviteAgentDialog } from '@/components/agents/InviteAgentDialog';
+import { ConfigurePermissionsDialog } from '@/components/agents/ConfigurePermissionsDialog';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useAgents } from '@/hooks/useAgents';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
@@ -35,7 +37,8 @@ import { cn } from '@/lib/utils';
 export function AgentsView() {
   const { agents, stats, isLoading, refetch } = useAgents();
   const [search, setSearch] = useState('');
-
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
   const filteredAgents = agents.filter((agent) =>
     agent.name.toLowerCase().includes(search.toLowerCase()) ||
     (agent.email?.toLowerCase().includes(search.toLowerCase()) ?? false)
@@ -88,7 +91,7 @@ export function AgentsView() {
               <RefreshCw className="w-4 h-4 mr-2" />
               Atualizar
             </Button>
-            <Button className="bg-primary hover:bg-primary/90">
+            <Button className="bg-primary hover:bg-primary/90" onClick={() => setInviteOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Atendente
             </Button>
@@ -151,12 +154,8 @@ export function AgentsView() {
       {/* Agents Grid */}
       {filteredAgents.length === 0 ? (
         <AgentsEmptyState
-          onInviteAgent={() => {
-            window.location.href = '/admin/roles';
-          }}
-          onConfigurePermissions={() => {
-            window.location.href = '/admin/roles';
-          }}
+          onInviteAgent={() => setInviteOpen(true)}
+          onConfigurePermissions={() => setPermissionsOpen(true)}
         />
       ) : (
         <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -262,6 +261,10 @@ export function AgentsView() {
           })}
         </StaggeredList>
       )}
+
+      {/* Dialogs */}
+      <InviteAgentDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      <ConfigurePermissionsDialog open={permissionsOpen} onOpenChange={setPermissionsOpen} />
     </div>
   );
 }
