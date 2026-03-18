@@ -340,26 +340,11 @@ export function MediaGallery({ contactId, open, onOpenChange }: MediaGalleryProp
   };
 
   const handleDownloadSelected = async () => {
-    if (selectedItems.size === 0) return;
-    
-    setIsDownloading(true);
-    try {
-      for (const id of selectedItems) {
-        const item = mediaItems.find(i => i.id === id);
-        if (item) {
-          const link = document.createElement('a');
-          link.href = item.url;
-          link.download = item.filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          await new Promise(r => setTimeout(r, 500)); // Delay between downloads
-        }
-      }
-    } finally {
-      setIsDownloading(false);
-      setSelectedItems(new Set());
-    }
+    // Blocked by security policy
+    const { toast } = await import('sonner');
+    toast.error('🔒 Download bloqueado por política de segurança', {
+      description: 'O download de arquivos está desabilitado para proteção de dados.',
+    });
   };
 
   return (

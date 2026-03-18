@@ -126,14 +126,16 @@ export function MessageContextMenu({
           </ContextMenuItem>
         )}
 
-        {/* Media Download */}
+        {/* Media Download - BLOCKED */}
         {hasMedia && (
           <ContextMenuItem
-            onClick={() => onDownload?.(message.mediaUrl!)}
-            className="gap-2 cursor-pointer"
+            onClick={() => {
+              import('sonner').then(({ toast }) => toast.error('🔒 Download bloqueado por política de segurança'));
+            }}
+            className="gap-2 cursor-pointer opacity-50"
           >
             <Download className="w-4 h-4" />
-            Baixar mídia
+            Download Bloqueado 🔒
           </ContextMenuItem>
         )}
 
