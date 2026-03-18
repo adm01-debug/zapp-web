@@ -295,7 +295,9 @@ export function ChatInputArea({
             />
           </div>
 
-          {/* Right icons: Sticker, Emoji, Mic, Attach, Send */}
+          {/* Right icons: RichText, Sticker, Emoji, Mic, Attach, Send */}
+          <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
+
           <StickerPicker onSendSticker={onSendSticker} />
 
           <Button
