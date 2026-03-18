@@ -4,7 +4,8 @@ import { log } from '@/lib/logger';
 import { 
   Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText, 
   Filter, Clock, History, Tag, Trash2, Command, Plus, UserPlus, 
-  Send, Settings, LayoutDashboard, Inbox, Zap, ArrowRight
+  Send, Settings, LayoutDashboard, Inbox, Zap, ArrowRight,
+  Image, Video, FileDown, Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +53,7 @@ interface QuickAction {
 
 type ResultType = 'message' | 'contact' | 'transcription' | 'action';
 type DateFilter = 'all' | 'today' | '7days' | '30days' | '90days';
+type MediaTypeFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
 
 interface TagSuggestion {
   id: string;
@@ -78,6 +80,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   // Filters
   const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action']));
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>('all');
 
   // History
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
@@ -199,14 +202,18 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     }
   };
 
-  const performSearch = useCallback(async (query: string, types: Set<ResultType>, dateRange: DateFilter, tags: string[]) => {
+  const performSearch = useCallback(async (query: string, types: Set<ResultType>, dateRange: DateFilter, tags: string[], mediaType: MediaTypeFilter = 'all') => {
     // Remove tag syntax from query
     const cleanQuery = query.replace(/#\w*/g, '').trim();
     
-    if (cleanQuery.length < 2 && tags.length === 0) {
+    // Allow search with empty query when media type filter is active
+    if (cleanQuery.length < 2 && tags.length === 0 && mediaType === 'all') {
       setResults([]);
       return;
     }
+
+    // For link searches, look for URLs in message content
+    const isLinkSearch = mediaType === 'link';
 
     setIsLoading(true);
     const dateStart = getDateFilterStart(dateRange);
@@ -216,13 +223,32 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       const addedMessageIds = new Set<string>();
 
       // Search messages
-      if (types.has('message') && cleanQuery.length >= 2) {
+      if (types.has('message') && (cleanQuery.length >= 2 || mediaType !== 'all')) {
         let textQuery = supabase
           .from('messages')
           .select(`id, content, message_type, created_at, contact_id, contacts:contact_id (id, name, surname)`)
-          .ilike('content', `%${cleanQuery}%`)
           .order('created_at', { ascending: false })
-          .limit(15);
+          .limit(20);
+
+        // Apply text search only if there's a query
+        if (cleanQuery.length >= 2) {
+          if (isLinkSearch) {
+            // Search for URLs in content
+            textQuery = textQuery.or(`content.ilike.%http://%,content.ilike.%https://%,content.ilike.%www.%`);
+            if (cleanQuery.length >= 2) {
+              textQuery = textQuery.ilike('content', `%${cleanQuery}%`);
+            }
+          } else {
+            textQuery = textQuery.ilike('content', `%${cleanQuery}%`);
+          }
+        } else if (isLinkSearch) {
+          textQuery = textQuery.or(`content.ilike.%http://%,content.ilike.%https://%,content.ilike.%www.%`);
+        }
+
+        // Apply media type filter
+        if (mediaType !== 'all' && mediaType !== 'link') {
+          textQuery = textQuery.eq('message_type', mediaType);
+        }
 
         if (dateStart) textQuery = textQuery.gte('created_at', dateStart.toISOString());
 
@@ -327,7 +353,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   }, [addToHistory, allTags]);
 
   const debouncedSearch = useDebounce((query: string) => {
-    performSearch(query, activeTypes, dateFilter, selectedTags);
+    performSearch(query, activeTypes, dateFilter, selectedTags, mediaTypeFilter);
   }, 300);
 
   const handleSearch = (query: string) => {
@@ -337,10 +363,10 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   };
 
   useEffect(() => {
-    if (search.length >= 2 || selectedTags.length > 0) {
-      performSearch(search, activeTypes, dateFilter, selectedTags);
+    if (search.length >= 2 || selectedTags.length > 0 || mediaTypeFilter !== 'all') {
+      performSearch(search, activeTypes, dateFilter, selectedTags, mediaTypeFilter);
     }
-  }, [activeTypes, dateFilter, selectedTags]);
+  }, [activeTypes, dateFilter, selectedTags, mediaTypeFilter]);
 
   const handleSelect = (result: SearchResult) => {
     onSelectResult(result);
@@ -351,7 +377,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
 
   const handleHistorySelect = (query: string) => {
     setSearch(query);
-    performSearch(query, activeTypes, dateFilter, selectedTags);
+    performSearch(query, activeTypes, dateFilter, selectedTags, mediaTypeFilter);
   };
 
   const handleTagSelect = (tag: TagSuggestion) => {
@@ -394,7 +420,15 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, results, tagSuggestions, selectedIndex]);
 
-  const getResultIcon = (type: SearchResult['type']) => {
+  const getResultIcon = (type: SearchResult['type'], messageType?: string) => {
+    if (type === 'message' && messageType) {
+      switch (messageType) {
+        case 'image': return <Image className="h-4 w-4" />;
+        case 'video': return <Video className="h-4 w-4" />;
+        case 'audio': return <Mic className="h-4 w-4" />;
+        case 'document': return <FileDown className="h-4 w-4" />;
+      }
+    }
     switch (type) {
       case 'transcription': return <Mic className="h-4 w-4" />;
       case 'message': return <MessageSquare className="h-4 w-4" />;
@@ -412,7 +446,15 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     }
   };
 
-  const getResultLabel = (type: SearchResult['type']) => {
+  const getResultLabel = (type: SearchResult['type'], messageType?: string) => {
+    if (type === 'message' && messageType) {
+      switch (messageType) {
+        case 'image': return 'Imagem';
+        case 'video': return 'Vídeo';
+        case 'audio': return 'Áudio';
+        case 'document': return 'Documento';
+      }
+    }
     switch (type) {
       case 'transcription': return 'Transcrição';
       case 'message': return 'Texto';
@@ -421,7 +463,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     }
   };
 
-  const activeFiltersCount = (activeTypes.size < 4 ? 1 : 0) + (dateFilter !== 'all' ? 1 : 0) + (selectedTags.length > 0 ? 1 : 0);
+  const activeFiltersCount = (activeTypes.size < 4 ? 1 : 0) + (dateFilter !== 'all' ? 1 : 0) + (selectedTags.length > 0 ? 1 : 0) + (mediaTypeFilter !== 'all' ? 1 : 0);
   const showHistory = search.length === 0 && history.length > 0 && tagSuggestions.length === 0;
   const showActions = activeTypes.has('action') && filteredActions.length > 0 && (search.length === 0 || search.length >= 1);
 
@@ -452,7 +494,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
             <Input
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar mensagens, contatos... Use # para tags"
+              placeholder="Buscar mensagens, imagens, vídeos, links... Use # para tags"
               className="pl-10 pr-20 h-12 text-lg"
               autoFocus
             />
@@ -551,10 +593,38 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                   </Select>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Tipo de Mídia</label>
+                  <div className="flex flex-wrap gap-2">
+                    <Toggle pressed={mediaTypeFilter === 'all'} onPressedChange={() => setMediaTypeFilter('all')} size="sm" className="gap-1.5 data-[state=on]:bg-muted-foreground/20 data-[state=on]:text-foreground">
+                      <MessageSquare className="h-3.5 w-3.5" /> Todos
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'text'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'text' ? 'all' : 'text')} size="sm" className="gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                      <FileText className="h-3.5 w-3.5" /> Texto
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'image'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'image' ? 'all' : 'image')} size="sm" className="gap-1.5 data-[state=on]:bg-success data-[state=on]:text-primary-foreground">
+                      <Image className="h-3.5 w-3.5" /> Imagens
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'video'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'video' ? 'all' : 'video')} size="sm" className="gap-1.5 data-[state=on]:bg-info data-[state=on]:text-primary-foreground">
+                      <Video className="h-3.5 w-3.5" /> Vídeos
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'audio'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'audio' ? 'all' : 'audio')} size="sm" className="gap-1.5 data-[state=on]:bg-warning data-[state=on]:text-primary-foreground">
+                      <Mic className="h-3.5 w-3.5" /> Áudios
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'document'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'document' ? 'all' : 'document')} size="sm" className="gap-1.5 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
+                      <FileDown className="h-3.5 w-3.5" /> Documentos
+                    </Toggle>
+                    <Toggle pressed={mediaTypeFilter === 'link'} onPressedChange={() => setMediaTypeFilter(mediaTypeFilter === 'link' ? 'all' : 'link')} size="sm" className="gap-1.5 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground">
+                      <Link2 className="h-3.5 w-3.5" /> Links
+                    </Toggle>
+                  </div>
+                </div>
+
                 {activeFiltersCount > 0 && (
                   <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => {
                     setActiveTypes(new Set(['message', 'transcription', 'contact', 'action']));
                     setDateFilter('all');
+                    setMediaTypeFilter('all');
                     setSelectedTags([]);
                   }}>
                     <X className="h-3 w-3 mr-1" /> Limpar filtros
@@ -678,12 +748,12 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                   }`}
                 >
                   <div className={`p-2 rounded-full ${getResultStyle(result.type)}`}>
-                    {getResultIcon(result.type)}
+                    {getResultIcon(result.type, result.messageType)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm truncate">{result.title}</span>
-                      <Badge variant="secondary" className="text-[10px]">{getResultLabel(result.type)}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{getResultLabel(result.type, result.messageType)}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">{result.preview}</p>
                     <span className="text-[10px] text-muted-foreground">
