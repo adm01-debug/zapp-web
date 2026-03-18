@@ -32,6 +32,7 @@ import {
   Calendar,
   CalendarClock,
   Palette,
+  Trophy,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
