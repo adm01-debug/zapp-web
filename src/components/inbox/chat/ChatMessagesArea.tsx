@@ -96,6 +96,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   onCopy,
   onScrollToMessage,
   onInteractiveButtonClick,
+  onEditStart,
 }, ref) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
