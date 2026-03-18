@@ -37,6 +37,12 @@ function getInitials(name?: string | null): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+// Detect expired WhatsApp CDN URLs that will return 403
+function isExpiredCdnUrl(url?: string | null): boolean {
+  if (!url) return true;
+  return url.includes('pps.whatsapp.net') || url.includes('mmg.whatsapp.net');
+}
+
 const SmartAvatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   SmartAvatarProps
@@ -44,7 +50,9 @@ const SmartAvatar = React.forwardRef<
   const initials = getInitials(name);
   const gradientSource = phone || name || 'default';
   const gradient = generateGradient(gradientSource);
-  const hasIdentifier = name || phone;
+  
+  // Skip expired CDN URLs entirely to avoid 403 errors
+  const safeSrc = isExpiredCdnUrl(src) ? null : src;
   
   return (
     <AvatarPrimitive.Root
@@ -52,9 +60,9 @@ const SmartAvatar = React.forwardRef<
       className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className)}
       {...props}
     >
-      {src && (
+      {safeSrc && (
         <AvatarPrimitive.Image
-          src={src}
+          src={safeSrc}
           alt={name || 'Avatar'}
           className="aspect-square h-full w-full object-cover"
         />
