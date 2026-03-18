@@ -46,7 +46,8 @@ function toEventRecords(data: unknown, collectionKeys: string[] = []): Record<st
 
 function normalizePhone(rawJid?: string): string | null {
   if (!rawJid) return null;
-  return rawJid.replace('@s.whatsapp.net', '').replace('@g.us', '');
+  // Remove JID suffix and any leading '+' for consistent storage
+  return rawJid.replace('@s.whatsapp.net', '').replace('@g.us', '').replace(/^\+/, '');
 }
 
 // Status hierarchy: higher number = more advanced status
