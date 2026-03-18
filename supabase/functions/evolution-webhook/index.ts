@@ -703,6 +703,31 @@ async function handleIncomingMessage(
     }
 
     console.log(`[STICKER] Final result: mediaUrl=${mediaUrl ? 'OK' : 'null'}`);
+
+    // Auto-save received sticker to stickers library (for reuse)
+    if (mediaUrl) {
+      try {
+        // Check if this sticker URL already exists to avoid duplicates
+        const { data: existing } = await supabase
+          .from('stickers')
+          .select('id')
+          .eq('image_url', mediaUrl)
+          .maybeSingle();
+
+        if (!existing) {
+          await supabase.from('stickers').insert({
+            name: `Recebida ${new Date().toLocaleDateString('pt-BR')}`,
+            image_url: mediaUrl,
+            category: 'recebidas',
+            is_favorite: false,
+            use_count: 0,
+          });
+          console.log('[STICKER] Auto-saved to stickers library');
+        }
+      } catch (saveErr) {
+        console.error('[STICKER] Failed to auto-save to library:', saveErr);
+      }
+    }
   } else if (message?.reactionMessage) {
     messageType = 'reaction';
     content = (message.reactionMessage as Record<string, unknown>).text as string || '';

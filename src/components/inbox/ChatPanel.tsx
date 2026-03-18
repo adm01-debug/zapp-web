@@ -330,7 +330,47 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
     try {
       const phone = conversation.contact.phone.replace(/\D/g, '');
-      await sendStickerMessage(instanceName, phone, stickerUrl);
+      
+      // Send via Evolution API + save to DB + save to stickers library in parallel
+      const apiPromise = sendStickerMessage(instanceName, phone, stickerUrl);
+      
+      const dbPromise = supabase.from('messages').insert({
+        contact_id: conversation.contact.id,
+        whatsapp_connection_id: null,
+        content: '[Sticker]',
+        message_type: 'sticker',
+        media_url: stickerUrl,
+        sender: 'agent',
+        status: 'sending',
+      }).select('id').single();
+
+      // Auto-save sent sticker to library if not already there
+      const libPromise = supabase.from('stickers')
+        .select('id')
+        .eq('image_url', stickerUrl)
+        .maybeSingle()
+        .then(async ({ data: existing }) => {
+          if (!existing) {
+            await supabase.from('stickers').insert({
+              name: `Enviada ${new Date().toLocaleDateString('pt-BR')}`,
+              image_url: stickerUrl,
+              category: 'enviadas',
+              is_favorite: false,
+              use_count: 1,
+            });
+          }
+        });
+
+      const [result, dbResult] = await Promise.all([apiPromise, dbPromise, libPromise]);
+      
+      const externalId = result?.key?.id || null;
+      if (dbResult?.data?.id && externalId) {
+        supabase.from('messages')
+          .update({ external_id: externalId, status: 'sent' })
+          .eq('id', dbResult.data.id)
+          .then(() => {});
+      }
+      
       toast({ title: 'Figurinha enviada!' });
     } catch {
       toast({ title: 'Erro ao enviar figurinha', variant: 'destructive' });
