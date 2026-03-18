@@ -75,7 +75,10 @@ export function DocumentPreview({ url, fileName, fileSize, isSent }: DocumentPre
   };
 
   const handleOpen = () => {
-    window.open(url, '_blank');
+    // Blocked - opening in new tab allows downloading
+    import('sonner').then(({ toast }) => {
+      toast.error('🔒 Abertura externa bloqueada por política de segurança');
+    });
   };
 
   return (
