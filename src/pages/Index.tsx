@@ -265,6 +265,8 @@ function IndexContent() {
         return <ThemeCustomizer />;
       case 'achievements':
         return <AchievementsSystemLazy userId={user?.id} />;
+      case 'schedule':
+        return <ScheduleCalendarView />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
