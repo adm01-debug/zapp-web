@@ -17,9 +17,7 @@ import {
   Calendar,
   ChevronRight,
   User,
-  Download,
-  FileSpreadsheet,
-  FileText
+  ShieldAlert,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
