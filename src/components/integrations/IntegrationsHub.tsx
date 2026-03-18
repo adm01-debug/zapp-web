@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, FileSpreadsheet, Bug, CreditCard, ArrowRight } from 'lucide-react';
+import { Zap, FileSpreadsheet, Bug, CreditCard, ArrowRight, Calendar } from 'lucide-react';
 import { N8nIntegrationView } from './N8nIntegrationView';
 import { GoogleSheetsIntegrationView } from './GoogleSheetsIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
+import { GoogleCalendarIntegration } from './GoogleCalendarIntegration';
 
-type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry';
+type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry' | 'google-calendar';
 
 const integrations = [
   {
