@@ -1,0 +1,177 @@
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+
+/**
+ * Anti-screenshot protection system.
+ * - Blocks PrintScreen / Cmd+Shift+3/4/5 keys
+ * - Applies CSS user-select:none and print media hiding
+ * - Shows blur overlay when window loses focus (screenshot tools cause blur)
+ * - Renders dynamic watermark with authenticated user ID/email
+ */
+export function useScreenProtection() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // ── 1. Block screenshot keyboard shortcuts ──
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // PrintScreen
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        navigator.clipboard?.writeText?.('').catch(() => {});
+        showWarning();
+        return;
+      }
+      // Cmd+Shift+3/4/5 (macOS screenshots)
+      if (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
+        e.preventDefault();
+        showWarning();
+        return;
+      }
+      // Ctrl+Shift+S (various screenshot tools)
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        showWarning();
+        return;
+      }
+      // Ctrl+P (print)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        showWarning();
+        return;
+      }
+    };
+
+    // ── 2. Context menu block ──
+    const handleContextMenu = (e: MouseEvent) => {
+      // Allow in dev mode
+      if (import.meta.env.DEV) return;
+      e.preventDefault();
+    };
+
+    // ── 3. Blur overlay on focus loss ──
+    let overlay: HTMLDivElement | null = null;
+
+    const handleBlur = () => {
+      if (overlay) return;
+      overlay = document.createElement('div');
+      overlay.id = 'screen-protection-overlay';
+      overlay.style.cssText = `
+        position: fixed; inset: 0; z-index: 99999;
+        background: hsl(var(--background));
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(20px);
+        transition: opacity 0.2s ease;
+      `;
+      overlay.innerHTML = `
+        <div style="text-align:center; color: hsl(var(--foreground)); font-family: system-ui;">
+          <div style="font-size:3rem; margin-bottom:1rem;">🔒</div>
+          <div style="font-size:1.25rem; font-weight:600;">Conteúdo Protegido</div>
+          <div style="font-size:0.875rem; opacity:0.7; margin-top:0.5rem;">Volte à janela para continuar</div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    };
+
+    const handleFocus = () => {
+      if (overlay) {
+        overlay.remove();
+        overlay = null;
+      }
+    };
+
+    // ── 4. Dynamic watermark ──
+    let watermarkEl: HTMLDivElement | null = null;
+    const userLabel = user?.email || user?.id?.slice(0, 8) || '';
+
+    if (userLabel) {
+      watermarkEl = document.createElement('div');
+      watermarkEl.id = 'screen-protection-watermark';
+      watermarkEl.style.cssText = `
+        position: fixed; inset: 0; z-index: 99998;
+        pointer-events: none;
+        overflow: hidden;
+        opacity: 0.03;
+      `;
+
+      // Create repeating watermark pattern
+      const pattern = Array.from({ length: 40 }, (_, i) => {
+        const top = (i % 8) * 12.5;
+        const left = Math.floor(i / 8) * 20;
+        const rotation = -25;
+        return `<div style="
+          position:absolute;
+          top:${top}%;
+          left:${left}%;
+          transform:rotate(${rotation}deg);
+          font-size:14px;
+          font-family:monospace;
+          white-space:nowrap;
+          color:hsl(var(--foreground));
+          user-select:none;
+        ">${userLabel} • ${new Date().toLocaleDateString('pt-BR')}</div>`;
+      }).join('');
+
+      watermarkEl.innerHTML = pattern;
+      document.body.appendChild(watermarkEl);
+    }
+
+    // ── 5. CSS protections ──
+    const style = document.createElement('style');
+    style.id = 'screen-protection-css';
+    style.textContent = `
+      @media print {
+        body { display: none !important; }
+      }
+      body {
+        -webkit-user-select: none !important;
+        user-select: none !important;
+      }
+      /* Allow text selection in inputs/textareas */
+      input, textarea, [contenteditable="true"], pre, code {
+        -webkit-user-select: text !important;
+        user-select: text !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // ── Attach listeners ──
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+      overlay?.remove();
+      watermarkEl?.remove();
+      style.remove();
+    };
+  }, [user]);
+}
+
+function showWarning() {
+  // Brief visual flash to indicate blocked action
+  const flash = document.createElement('div');
+  flash.style.cssText = `
+    position: fixed; inset: 0; z-index: 99999;
+    background: hsl(var(--destructive) / 0.15);
+    pointer-events: none;
+    animation: screenFlash 0.5s ease-out forwards;
+  `;
+  const keyframes = document.createElement('style');
+  keyframes.textContent = `
+    @keyframes screenFlash {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  `;
+  document.head.appendChild(keyframes);
+  document.body.appendChild(flash);
+  setTimeout(() => {
+    flash.remove();
+    keyframes.remove();
+  }, 600);
+}
