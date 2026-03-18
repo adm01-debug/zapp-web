@@ -327,7 +327,7 @@ export function ChatInputArea({
               onChange={onInputChange}
               onKeyDown={onKeyDown}
               onBlur={onBlur}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Type Your Message"}
+              placeholder={editingMessage ? "Editar mensagem..." : replyToMessage ? "Digite sua resposta..." : "Type Your Message"}
               className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground h-10 px-2"
             />
           </div>
