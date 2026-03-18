@@ -37,6 +37,14 @@ const integrations = [
     status: 'available' as const,
   },
   {
+    id: 'google-calendar' as const,
+    name: 'Google Calendar',
+    description: 'Sincronize agendamentos e follow-ups com o Google Calendar.',
+    icon: Calendar,
+    color: 'bg-[#4285F4]',
+    status: 'available' as const,
+  },
+  {
     id: 'stripe' as const,
     name: 'Stripe',
     description: 'Pagamentos, assinaturas e faturamento. Requer chave API.',
