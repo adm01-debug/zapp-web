@@ -71,6 +71,13 @@ export function RealtimeInboxView() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [fetchingAvatars, setFetchingAvatars] = useState(false);
 
+  // Whaticket-style ticket tabs state
+  const [mainTab, setMainTab] = useState<MainTab>('open');
+  const [subTab, setSubTab] = useState<SubTab>('attending');
+  const [showAll, setShowAll] = useState(false);
+  const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
+  const { user } = useAuth();
+
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
   
