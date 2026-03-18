@@ -9,12 +9,44 @@ const corsHeaders = {
 interface WebhookPayload {
   event: string;
   instance: string;
-  data: Record<string, unknown>;
+  data: Record<string, unknown> | Record<string, unknown>[];
   destination?: string;
   date_time?: string;
   sender?: string;
   server_url?: string;
   apikey?: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizeEventName(event?: string): string {
+  return (event || '').trim().toLowerCase().replace(/_/g, '.');
+}
+
+function toEventRecords(data: unknown, collectionKeys: string[] = []): Record<string, unknown>[] {
+  if (Array.isArray(data)) {
+    return data.filter(isRecord);
+  }
+
+  if (!isRecord(data)) {
+    return [];
+  }
+
+  for (const key of collectionKeys) {
+    const collection = data[key];
+    if (Array.isArray(collection)) {
+      return collection.filter(isRecord);
+    }
+  }
+
+  return [data];
+}
+
+function normalizePhone(rawJid?: string): string | null {
+  if (!rawJid) return null;
+  return rawJid.replace('@s.whatsapp.net', '').replace('@g.us', '');
 }
 
 // Helper: Download WhatsApp profile picture and upload to Supabase storage
@@ -102,16 +134,18 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: WebhookPayload = await req.json();
-    console.log('Evolution webhook received:', payload.event, payload.instance);
-
-    const { event, instance, data } = payload;
+    const event = normalizeEventName(payload.event);
+    const instance = payload.instance;
+    const data = payload.data ?? {};
+    const baseData = isRecord(data) ? data : {};
+    console.log('Evolution webhook received:', payload.event, '->', event, instance);
 
     // =============================================
     // CONNECTION_UPDATE
     // =============================================
     if (event === 'connection.update') {
-      const status = (data.status as string) === 'open' ? 'connected' : 
-                     (data.status as string) === 'close' ? 'disconnected' : 'pending';
+      const status = (baseData.status as string) === 'open' ? 'connected' : 
+                     (baseData.status as string) === 'close' ? 'disconnected' : 'pending';
       
       await supabase
         .from('whatsapp_connections')
@@ -125,7 +159,7 @@ serve(async (req) => {
     // QRCODE_UPDATED
     // =============================================
     if (event === 'qrcode.updated') {
-      const qrCode = (data.qrcode as Record<string, string>)?.base64;
+      const qrCode = (baseData.qrcode as Record<string, string>)?.base64;
       if (qrCode) {
         await supabase
           .from('whatsapp_connections')
@@ -139,9 +173,19 @@ serve(async (req) => {
     // MESSAGES_UPSERT — Incoming messages
     // =============================================
     if (event === 'messages.upsert') {
-      const key = data.key as { remoteJid: string; fromMe: boolean; id: string } | undefined;
-      if (key && !key.fromMe) {
-        await handleIncomingMessage(supabase, instance, data, key, supabaseUrl, supabaseServiceKey);
+      for (const entry of toEventRecords(data, ['messages'])) {
+        const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
+        const key = keySource as { remoteJid: string; fromMe: boolean; id: string } | null;
+        if (key && !key.fromMe) {
+          await handleIncomingMessage(
+            supabase,
+            instance,
+            { ...baseData, ...entry },
+            key,
+            supabaseUrl,
+            supabaseServiceKey,
+          );
+        }
       }
     }
 
@@ -149,17 +193,69 @@ serve(async (req) => {
     // SEND_MESSAGE — Outgoing message confirmation
     // =============================================
     if (event === 'send.message') {
-      const key = data.key as { remoteJid: string; fromMe: boolean; id: string } | undefined;
-      if (key) {
-        // Update message with external_id if we sent it via API
-        const externalId = key.id;
-        if (externalId) {
+      for (const entry of toEventRecords(data, ['messages'])) {
+        const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
+        const key = keySource as { remoteJid?: string; fromMe?: boolean; id?: string } | null;
+        const externalId = key?.id;
+
+        if (!externalId) continue;
+
+        let updatedMessageId: string | null = null;
+        const now = new Date().toISOString();
+
+        const { data: existingMessage } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('external_id', externalId)
+          .maybeSingle();
+
+        if (existingMessage?.id) {
           await supabase
             .from('messages')
-            .update({ status: 'sent', external_id: externalId, status_updated_at: new Date().toISOString() })
-            .eq('external_id', externalId);
-          console.log(`Outgoing message confirmed: ${externalId}`);
+            .update({ status: 'sent', external_id: externalId, status_updated_at: now })
+            .eq('id', existingMessage.id);
+          updatedMessageId = existingMessage.id;
         }
+
+        if (!updatedMessageId) {
+          const phone = normalizePhone(key.remoteJid);
+          const { data: connection } = await supabase
+            .from('whatsapp_connections')
+            .select('id')
+            .eq('instance_id', instance)
+            .maybeSingle();
+
+          if (connection?.id && phone) {
+            const { data: contact } = await supabase
+              .from('contacts')
+              .select('id')
+              .eq('phone', phone)
+              .eq('whatsapp_connection_id', connection.id)
+              .maybeSingle();
+
+            if (contact?.id) {
+              const { data: pendingMessage } = await supabase
+                .from('messages')
+                .select('id')
+                .eq('contact_id', contact.id)
+                .eq('sender', 'agent')
+                .is('external_id', null)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (pendingMessage?.id) {
+                await supabase
+                  .from('messages')
+                  .update({ status: 'sent', external_id: externalId, status_updated_at: now })
+                  .eq('id', pendingMessage.id);
+                updatedMessageId = pendingMessage.id;
+              }
+            }
+          }
+        }
+
+        console.log(`Outgoing message confirmed: ${externalId}${updatedMessageId ? ` (message ${updatedMessageId})` : ' (no local match found)'}`);
       }
     }
 
@@ -167,7 +263,6 @@ serve(async (req) => {
     // MESSAGES_UPDATE — Status updates (delivered, read)
     // =============================================
     if (event === 'messages.update') {
-      const key = data.key as { id: string } | undefined;
       const statusMap: Record<string, string> = {
         'DELIVERY_ACK': 'delivered',
         'READ': 'read',
@@ -175,14 +270,20 @@ serve(async (req) => {
         'SERVER_ACK': 'sent',
         'ERROR': 'failed',
       };
-      const status = statusMap[(data.status as string) || ''] || (data.status as string);
-      
-      if (status && key) {
-        await supabase
-          .from('messages')
-          .update({ status, status_updated_at: new Date().toISOString() })
-          .eq('external_id', key.id);
-        console.log(`Message ${key.id} status: ${status}`);
+
+      for (const entry of toEventRecords(data, ['messages', 'updates', 'statuses'])) {
+        const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
+        const key = keySource as { id?: string } | null;
+        const rawStatus = (entry.status as string) || (baseData.status as string) || '';
+        const status = statusMap[rawStatus] || rawStatus.toLowerCase();
+        
+        if (status && key?.id) {
+          await supabase
+            .from('messages')
+            .update({ status, status_updated_at: new Date().toISOString() })
+            .eq('external_id', key.id);
+          console.log(`Message ${key.id} status: ${status}`);
+        }
       }
     }
 
@@ -190,14 +291,19 @@ serve(async (req) => {
     // MESSAGES_DELETE — Message deleted by contact
     // =============================================
     if (event === 'messages.delete') {
-      const key = data.key as { id: string } | undefined;
-      if (key) {
-        // Mark message as deleted instead of actually deleting
-        await supabase
-          .from('messages')
-          .update({ content: '[Mensagem apagada]', status: 'deleted', status_updated_at: new Date().toISOString() })
-          .eq('external_id', key.id);
-        console.log(`Message deleted: ${key.id}`);
+      for (const entry of toEventRecords(data, ['messages', 'keys'])) {
+        const keySource = isRecord(entry.key)
+          ? entry.key
+          : (typeof entry.id === 'string' ? entry : null) ?? (isRecord(baseData.key) ? baseData.key : null);
+        const key = keySource as { id?: string } | null;
+
+        if (key?.id) {
+          await supabase
+            .from('messages')
+            .update({ content: '[Mensagem apagada]', status: 'deleted', status_updated_at: new Date().toISOString() })
+            .eq('external_id', key.id);
+          console.log(`Message deleted: ${key.id}`);
+        }
       }
     }
 
