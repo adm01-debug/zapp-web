@@ -231,6 +231,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             message={message}
                             instanceName={instanceName}
                             contactJid={contactJid}
+                            onEditStart={onEditStart}
                           />
                         )}
                       </div>
