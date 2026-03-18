@@ -492,15 +492,14 @@ const SecurityView = lazy(() => import('@/components/security/SecurityView'));
 ---
 
 ### 3.9 🎨 Temas Personalizados
-**Arquivo:** `src/index.css`  
-**Status:** ⏳ Pendente  
-**Esforço:** 2h  
-
-**Implementar:**
-- Cores primárias customizáveis
-- Preset de temas (corporate, fun, minimal)
+**Arquivo:** `src/components/settings/ThemeCustomizer.tsx`  
+**Status:** ✅ IMPLEMENTADO  
+**Funcionalidades:**
+- 6 presets de tema (Padrão, Corporativo, Esmeralda, Pôr do Sol, Rosé, Minimal)
+- Ajuste de border-radius
 - Preview em tempo real
-- Import/export de tema
+- Import/export de tema JSON
+- Acessível via menu lateral (Temas)
 
 ---
 
