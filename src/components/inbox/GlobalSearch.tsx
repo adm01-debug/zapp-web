@@ -478,7 +478,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
             <Input
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar mensagens, contatos... Use # para tags"
+              placeholder="Buscar mensagens, imagens, vídeos, links... Use # para tags"
               className="pl-10 pr-20 h-12 text-lg"
               autoFocus
             />
