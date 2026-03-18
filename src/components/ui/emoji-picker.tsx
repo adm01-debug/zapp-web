@@ -1,64 +1,26 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Smile, Search, Clock, Heart, ThumbsUp, Laugh, X } from 'lucide-react';
+import { Smile, Search, Clock, Heart, ThumbsUp, Laugh, X, Cat, UtensilsCrossed, Briefcase, Hash, PartyPopper, Plane, Flag, Users, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { emojiDatabase, searchEmojis, type EmojiEntry } from '@/data/emojiDatabase';
 
-// Emoji categories
-const emojiCategories = {
-  recent: {
-    label: 'Recentes',
-    icon: Clock,
-    emojis: ['👍', '❤️', '😂', '😊', '🙏', '👏', '🎉', '🔥'],
-  },
-  smileys: {
-    label: 'Smileys',
-    icon: Smile,
-    emojis: [
-      '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-      '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗',
-      '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😝',
-      '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐',
-      '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌',
-      '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢',
-    ],
-  },
-  gestures: {
-    label: 'Gestos',
-    icon: ThumbsUp,
-    emojis: [
-      '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏',
-      '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆',
-      '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛',
-      '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️',
-    ],
-  },
-  hearts: {
-    label: 'Corações',
-    icon: Heart,
-    emojis: [
-      '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
-      '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '❣️', '💕', '💞', '💓',
-      '💗', '💖', '💘', '💝', '💟', '♥️', '💌', '💋',
-    ],
-  },
-  celebration: {
-    label: 'Celebração',
-    icon: Laugh,
-    emojis: [
-      '🎉', '🎊', '🎈', '🎁', '🎀', '🏆', '🥇', '🥈',
-      '🥉', '🏅', '🎖️', '🎗️', '🎄', '🎃', '🎆', '🎇',
-      '✨', '🎍', '🎋', '🎑', '🎎', '🎏', '🎐', '🎠',
-      '🎡', '🎢', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧',
-    ],
-  },
+const categoryIcons: Record<string, React.ElementType> = {
+  smileys: Smile,
+  gestures: Hand,
+  people: Users,
+  hearts: Heart,
+  animals: Cat,
+  food: UtensilsCrossed,
+  objects: Briefcase,
+  symbols: Hash,
+  celebration: PartyPopper,
+  travel: Plane,
+  flags: Flag,
 };
-
-type EmojiCategory = keyof typeof emojiCategories;
 
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string) => void;
@@ -68,44 +30,49 @@ interface EmojiPickerProps {
   onRecentUpdate?: (emojis: string[]) => void;
 }
 
+const RECENT_KEY = 'emoji-recent';
+
 export function EmojiPicker({
   onEmojiSelect,
   trigger,
   className,
-  recentEmojis = [],
+  recentEmojis: externalRecent,
   onRecentUpdate,
 }: EmojiPickerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [activeCategory, setActiveCategory] = React.useState<EmojiCategory>('smileys');
+  const [activeCategory, setActiveCategory] = React.useState('smileys');
   const [hoveredEmoji, setHoveredEmoji] = React.useState<string | null>(null);
 
-  // Handle emoji selection
+  // Local recent emojis persisted to localStorage
+  const [localRecent, setLocalRecent] = React.useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+    } catch { return []; }
+  });
+
+  const recentEmojis = externalRecent ?? localRecent;
+
   const handleSelect = (emoji: string) => {
     onEmojiSelect(emoji);
-    
-    // Update recent emojis
+    const updated = [emoji, ...recentEmojis.filter(e => e !== emoji)].slice(0, 16);
+
     if (onRecentUpdate) {
-      const updated = [emoji, ...recentEmojis.filter(e => e !== emoji)].slice(0, 8);
       onRecentUpdate(updated);
+    } else {
+      setLocalRecent(updated);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
     }
-    
+
     setIsOpen(false);
   };
 
-  // Filter emojis based on search
-  const filteredEmojis = React.useMemo(() => {
-    if (!searchQuery) return null;
-    
-    const query = searchQuery.toLowerCase();
-    const allEmojis = Object.values(emojiCategories).flatMap(cat => cat.emojis);
-    
-    // Simple filter - in real app would use emoji names/keywords
-    return allEmojis.filter((_, idx) => idx % 3 === 0).slice(0, 24);
+  const searchResults = React.useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    return searchEmojis(searchQuery);
   }, [searchQuery]);
 
-  const currentEmojis = filteredEmojis || emojiCategories[activeCategory].emojis;
-  const displayRecent = recentEmojis.length > 0 ? recentEmojis : emojiCategories.recent.emojis;
+  const currentEntries = searchResults ?? emojiDatabase[activeCategory]?.emojis ?? [];
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -116,49 +83,56 @@ export function EmojiPicker({
           </Button>
         )}
       </PopoverTrigger>
-      <PopoverContent
-        className="w-80 p-0"
-        align="start"
-        sideOffset={8}
-      >
-        <div className="flex flex-col h-[320px]">
+      <PopoverContent className="w-[340px] p-0 bg-popover border-border" align="start" sideOffset={8}>
+        <div className="flex flex-col h-[360px]">
           {/* Search */}
           <div className="p-2 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar emoji..."
-                className="pl-9 h-9"
+                placeholder="Buscar emoji... (ex: coração, feliz, pizza)"
+                className="pl-8 h-8 text-xs bg-muted/50 border-border/50"
               />
               {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                <button
                   onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
                 >
-                  <X className="h-3 w-3" />
-                </Button>
+                  <X className="h-3 w-3 text-muted-foreground" />
+                </button>
               )}
             </div>
           </div>
 
           {/* Category tabs */}
           {!searchQuery && (
-            <div className="flex gap-1 p-2 border-b border-border overflow-x-auto">
-              {Object.entries(emojiCategories).map(([key, category]) => {
-                const Icon = category.icon;
-                const isActive = activeCategory === key;
-                
+            <div className="flex gap-0.5 px-1.5 py-1.5 border-b border-border/50 overflow-x-auto scrollbar-none">
+              {/* Recent tab */}
+              {recentEmojis.length > 0 && (
+                <button
+                  onClick={() => setActiveCategory('recent')}
+                  className={cn(
+                    'flex-shrink-0 p-1.5 rounded-md transition-colors',
+                    activeCategory === 'recent'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                  title="Recentes"
+                >
+                  <Clock className="h-4 w-4" />
+                </button>
+              )}
+              {Object.entries(emojiDatabase).map(([key, category]) => {
+                const Icon = categoryIcons[key] || Smile;
                 return (
                   <button
                     key={key}
-                    onClick={() => setActiveCategory(key as EmojiCategory)}
+                    onClick={() => setActiveCategory(key)}
                     className={cn(
-                      'flex-shrink-0 p-2 rounded-lg transition-colors',
-                      isActive
+                      'flex-shrink-0 p-1.5 rounded-md transition-colors',
+                      activeCategory === key
                         ? 'bg-primary/10 text-primary'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
@@ -175,19 +149,18 @@ export function EmojiPicker({
           <ScrollArea className="flex-1">
             <div className="p-2">
               {/* Recent section */}
-              {!searchQuery && activeCategory !== 'recent' && displayRecent.length > 0 && (
-                <div className="mb-3">
-                  <h4 className="text-xs font-medium text-muted-foreground mb-2 px-1">
+              {!searchQuery && activeCategory === 'recent' && recentEmojis.length > 0 && (
+                <div className="mb-2">
+                  <h4 className="text-[10px] font-medium text-muted-foreground mb-1.5 px-0.5 uppercase tracking-wider">
                     Recentes
                   </h4>
-                  <div className="grid grid-cols-8 gap-1">
-                    {displayRecent.map((emoji, idx) => (
+                  <div className="grid grid-cols-8 gap-0.5">
+                    {recentEmojis.map((emoji, idx) => (
                       <EmojiButton
                         key={`recent-${idx}`}
                         emoji={emoji}
                         onSelect={handleSelect}
-                        isHovered={hoveredEmoji === `recent-${emoji}`}
-                        onHover={() => setHoveredEmoji(`recent-${emoji}`)}
+                        onHover={() => setHoveredEmoji(emoji)}
                         onLeave={() => setHoveredEmoji(null)}
                       />
                     ))}
@@ -195,34 +168,39 @@ export function EmojiPicker({
                 </div>
               )}
 
-              {/* Main grid */}
-              <div>
-                {!searchQuery && (
-                  <h4 className="text-xs font-medium text-muted-foreground mb-2 px-1">
-                    {emojiCategories[activeCategory].label}
-                  </h4>
-                )}
-                <div className="grid grid-cols-8 gap-1">
-                  {currentEmojis.map((emoji, idx) => (
-                    <EmojiButton
-                      key={idx}
-                      emoji={emoji}
-                      onSelect={handleSelect}
-                      isHovered={hoveredEmoji === emoji}
-                      onHover={() => setHoveredEmoji(emoji)}
-                      onLeave={() => setHoveredEmoji(null)}
-                    />
-                  ))}
+              {/* Search results or category */}
+              {activeCategory !== 'recent' || searchQuery ? (
+                <div>
+                  {!searchQuery && (
+                    <h4 className="text-[10px] font-medium text-muted-foreground mb-1.5 px-0.5 uppercase tracking-wider">
+                      {emojiDatabase[activeCategory]?.label || 'Resultados'}
+                    </h4>
+                  )}
+                  {searchQuery && (
+                    <h4 className="text-[10px] font-medium text-muted-foreground mb-1.5 px-0.5 uppercase tracking-wider">
+                      {searchResults?.length || 0} resultados para "{searchQuery}"
+                    </h4>
+                  )}
+                  <div className="grid grid-cols-8 gap-0.5">
+                    {currentEntries.map((entry, idx) => (
+                      <EmojiButton
+                        key={idx}
+                        emoji={typeof entry === 'string' ? entry : entry.emoji}
+                        onSelect={handleSelect}
+                        onHover={() => setHoveredEmoji(typeof entry === 'string' ? entry : entry.emoji)}
+                        onLeave={() => setHoveredEmoji(null)}
+                      />
+                    ))}
+                  </div>
+                  {searchQuery && currentEntries.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                      <Smile className="h-8 w-8 mb-2 opacity-50" />
+                      <p className="text-sm">Nenhum emoji encontrado</p>
+                      <p className="text-xs mt-1">Tente buscar por "feliz", "coração" ou "comida"</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Empty search state */}
-              {searchQuery && filteredEmojis?.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                  <Smile className="h-8 w-8 mb-2 opacity-50" />
-                  <p className="text-sm">Nenhum emoji encontrado</p>
-                </div>
-              )}
+              ) : null}
             </div>
           </ScrollArea>
 
@@ -235,11 +213,9 @@ export function EmojiPicker({
                 exit={{ opacity: 0, height: 0 }}
                 className="border-t border-border overflow-hidden"
               >
-                <div className="flex items-center gap-3 p-2">
-                  <span className="text-2xl">{hoveredEmoji.replace(/^recent-/, '')}</span>
-                  <span className="text-xs text-muted-foreground">
-                    Clique para adicionar
-                  </span>
+                <div className="flex items-center gap-3 px-3 py-1.5">
+                  <span className="text-2xl">{hoveredEmoji}</span>
+                  <span className="text-[10px] text-muted-foreground">Clique para adicionar</span>
                 </div>
               </motion.div>
             )}
@@ -254,12 +230,11 @@ export function EmojiPicker({
 interface EmojiButtonProps {
   emoji: string;
   onSelect: (emoji: string) => void;
-  isHovered: boolean;
   onHover: () => void;
   onLeave: () => void;
 }
 
-function EmojiButton({ emoji, onSelect, isHovered, onHover, onLeave }: EmojiButtonProps) {
+function EmojiButton({ emoji, onSelect, onHover, onLeave }: EmojiButtonProps) {
   return (
     <motion.button
       whileHover={{ scale: 1.2 }}
@@ -267,11 +242,7 @@ function EmojiButton({ emoji, onSelect, isHovered, onHover, onLeave }: EmojiButt
       onClick={() => onSelect(emoji)}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
-      className={cn(
-        'w-8 h-8 flex items-center justify-center rounded-md text-xl',
-        'transition-colors hover:bg-muted',
-        isHovered && 'bg-muted'
-      )}
+      className="w-8 h-8 flex items-center justify-center rounded-md text-xl transition-colors hover:bg-muted"
     >
       {emoji}
     </motion.button>
@@ -285,13 +256,12 @@ interface QuickReactionPickerProps {
   className?: string;
 }
 
-export function QuickReactionPicker({ 
-  onReact, 
+export function QuickReactionPicker({
+  onReact,
   currentReaction,
-  className 
+  className,
 }: QuickReactionPickerProps) {
   const quickEmojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
-  const [showMore, setShowMore] = React.useState(false);
 
   return (
     <motion.div
@@ -318,7 +288,7 @@ export function QuickReactionPicker({
           {emoji}
         </motion.button>
       ))}
-      
+
       <EmojiPicker
         onEmojiSelect={onReact}
         trigger={
@@ -345,7 +315,7 @@ export function FloatingReaction({ emoji, onComplete }: FloatingReactionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.5, y: 0 }}
-      animate={{ 
+      animate={{
         opacity: [0, 1, 1, 0],
         scale: [0.5, 1.5, 1.2, 1],
         y: -100,
