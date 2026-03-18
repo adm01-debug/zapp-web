@@ -50,43 +50,28 @@ describe('exportReport', () => {
     vi.clearAllMocks();
   });
 
-  describe('exportToExcel', () => {
-    it('creates workbook with data', async () => {
+  describe('exportToExcel - blocked by security policy', () => {
+    it('throws security error when called', async () => {
       const { exportToExcel } = await import('@/utils/exportReport');
-      expect(() => exportToExcel(mockData)).not.toThrow();
+      expect(() => exportToExcel(mockData)).toThrow(/bloqueada/i);
     });
 
-    it('handles null values in rows', async () => {
+    it('consistently blocks all attempts', async () => {
       const { exportToExcel } = await import('@/utils/exportReport');
-      expect(() => exportToExcel(mockData)).not.toThrow();
+      expect(() => exportToExcel(mockData)).toThrow();
+      expect(() => exportToExcel({ ...mockData, rows: [] })).toThrow();
     });
   });
 
-  describe('exportToCSV', () => {
-    it('generates CSV and triggers download', async () => {
-      const createObjectURL = vi.fn().mockReturnValue('blob:url');
-      const revokeObjectURL = vi.fn();
-      global.URL.createObjectURL = createObjectURL;
-      global.URL.revokeObjectURL = revokeObjectURL;
-      vi.spyOn(document, 'createElement').mockReturnValue({
-        href: '', download: '', click: vi.fn(),
-      } as any);
-
+  describe('exportToCSV - blocked by security policy', () => {
+    it('throws security error when called', async () => {
       const { exportToCSV } = await import('@/utils/exportReport');
-      expect(() => exportToCSV(mockData)).not.toThrow();
+      expect(() => exportToCSV(mockData)).toThrow(/bloqueada/i);
     });
 
-    it('handles empty rows', async () => {
-      const createObjectURL = vi.fn().mockReturnValue('blob:url');
-      const revokeObjectURL = vi.fn();
-      global.URL.createObjectURL = createObjectURL;
-      global.URL.revokeObjectURL = revokeObjectURL;
-      vi.spyOn(document, 'createElement').mockReturnValue({
-        href: '', download: '', click: vi.fn(),
-      } as any);
-
+    it('blocks even with empty rows', async () => {
       const { exportToCSV } = await import('@/utils/exportReport');
-      expect(() => exportToCSV({ ...mockData, rows: [] })).not.toThrow();
+      expect(() => exportToCSV({ ...mockData, rows: [] })).toThrow();
     });
   });
 
