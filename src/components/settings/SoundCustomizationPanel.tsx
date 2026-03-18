@@ -369,16 +369,46 @@ export function SoundCustomizationPanel() {
         })}
       </div>
 
-      {/* Custom Sound Upload (Future) */}
+      {/* Custom Sound Upload */}
       <Card className="border-dashed border-2">
         <CardContent className="p-6">
           <div className="text-center">
             <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
             <h4 className="font-medium mb-1">Sons Personalizados</h4>
             <p className="text-sm text-muted-foreground mb-4">
-              Em breve: faça upload dos seus próprios sons de notificação
+              Faça upload dos seus próprios sons de notificação (.mp3, .wav, .ogg)
             </p>
-            <Button variant="outline" disabled>
+            <input
+              type="file"
+              accept="audio/mp3,audio/wav,audio/ogg,audio/mpeg"
+              className="hidden"
+              id="custom-sound-upload"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) {
+                  const { toast } = await import('sonner');
+                  toast.error('Arquivo muito grande. Máximo: 2MB');
+                  return;
+                }
+                try {
+                  const { supabase } = await import('@/integrations/supabase/client');
+                  const fileName = `custom-sounds/${Date.now()}-${file.name}`;
+                  const { error } = await supabase.storage.from('audio-messages').upload(fileName, file);
+                  if (error) throw error;
+                  const { toast } = await import('sonner');
+                  toast.success('Som personalizado carregado com sucesso!');
+                } catch (err) {
+                  const { toast } = await import('sonner');
+                  toast.error('Erro ao fazer upload do som');
+                }
+                e.target.value = '';
+              }}
+            />
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById('custom-sound-upload')?.click()}
+            >
               <Upload className="w-4 h-4 mr-2" />
               Fazer Upload
             </Button>
