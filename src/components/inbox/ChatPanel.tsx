@@ -547,6 +547,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         <ChatInputArea
           inputValue={inputValue}
           replyToMessage={replyToMessage}
+          editingMessage={editingMessage}
           isRecordingAudio={isRecordingAudio}
           showSlashCommands={showSlashCommands}
           contactId={conversation.contact.id}
@@ -560,6 +561,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onBlur={handleTypingStop}
           onSend={handleSend}
           onCancelReply={() => setReplyToMessage(null)}
+          onCancelEdit={handleCancelEdit}
           onSlashCommand={handleSlashCommand}
           onCloseSlashCommands={() => setShowSlashCommands(false)}
           onQuickReply={handleQuickReply}
