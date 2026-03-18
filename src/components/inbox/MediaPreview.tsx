@@ -67,22 +67,23 @@ export function DocumentPreview({ url, fileName, fileSize, isSent }: DocumentPre
 
   const handleDownload = async () => {
     setIsDownloading(true);
+    let downloadUrl: string | undefined;
     try {
       const response = await fetch(url);
       const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
+      downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       log.error('Download failed:', error);
       // Fallback: open in new tab
       window.open(url, '_blank');
     } finally {
+      if (downloadUrl) window.URL.revokeObjectURL(downloadUrl);
       setIsDownloading(false);
     }
   };

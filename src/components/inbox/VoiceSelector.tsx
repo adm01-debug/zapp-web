@@ -113,6 +113,10 @@ export function VoiceSelector({ selectedVoiceId, onVoiceChange, className }: Voi
       };
       audio.onerror = () => {
         setPreviewingVoiceId(null);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
         toast.error('Erro ao reproduzir preview');
       };
 

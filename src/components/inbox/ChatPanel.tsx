@@ -144,9 +144,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
     inputRef.current?.focus();
   };
 
-  const handleCopyMessage = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast({ title: 'Copiado!', description: 'Mensagem copiada para a área de transferência.' });
+  const handleCopyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast({ title: 'Copiado!', description: 'Mensagem copiada para a área de transferência.' });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível copiar a mensagem.' });
+    }
   };
 
   const handleForwardMessage = (message: Message) => {
