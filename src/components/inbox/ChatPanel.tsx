@@ -58,6 +58,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
   // ── Refs ──
   const inputRef = useRef<HTMLInputElement>(null);
