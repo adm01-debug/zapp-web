@@ -67,6 +67,7 @@ export function RealtimeInboxView() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [fetchingAvatars, setFetchingAvatars] = useState(false);
 
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
