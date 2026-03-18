@@ -646,6 +646,7 @@ export function RealtimeInboxView() {
                 <TooltipContent className="text-xs">Buscar Avatares</TooltipContent>
               </Tooltip>
 
+              <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
                     variant="ghost" 
