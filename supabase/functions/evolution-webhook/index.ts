@@ -408,6 +408,7 @@ serve(async (req) => {
                 sender: 'contact',
                 external_id: key.id,
                 status: 'deleted',
+                is_deleted: true,
                 status_updated_at: now,
                 created_at: now,
                 contact_id: contactId,
