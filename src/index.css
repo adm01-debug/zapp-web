@@ -396,29 +396,33 @@
     @apply border-border;
   }
 
-  html,
-  body,
-  #root {
-    height: 100%;
-    min-height: 100%;
-    overflow: hidden;
-  }
-
   html {
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
     margin: 0;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     transition: background-color 0.25s ease, color 0.25s ease;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
   }
 
   /* ===== TYPOGRAPHY ===== */
