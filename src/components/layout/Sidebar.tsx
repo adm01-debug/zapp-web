@@ -205,7 +205,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       </nav>
 
       {/* Bottom: Theme toggle + Avatar + Logout */}
-      <div className="flex flex-col items-center gap-1 py-3 border-t border-border shrink-0">
+      <div className="flex flex-col items-center gap-1 pt-1.5 pb-3 shrink-0">
+        <div className="mx-3 mb-1 h-px bg-border/60 self-stretch" />
         {/* Screen protection toggle */}
         <ScreenProtectionToggle className="w-[36px] h-[36px]" />
 
