@@ -50,6 +50,7 @@ export interface ConversationContact {
   created_at: string;
   updated_at: string;
   whatsapp_connection_id: string | null;
+  contact_type: string | null;
 }
 
 export interface ConversationWithMessages {

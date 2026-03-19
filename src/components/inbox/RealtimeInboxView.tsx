@@ -76,6 +76,7 @@ export function RealtimeInboxView() {
   const [subTab, setSubTab] = useState<SubTab>('attending');
   const [showAll, setShowAll] = useState(false);
   const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
+  const [selectedContactType, setSelectedContactType] = useState<string | null>(null);
   const { user } = useAuth();
 
   // URL-persisted filters
