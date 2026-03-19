@@ -365,7 +365,7 @@ function IndexContent() {
           <main 
             id="main-content" 
             className={cn(
-              'flex-1 overflow-hidden relative min-w-0 min-h-0 h-full',
+              'flex flex-1 overflow-hidden relative min-w-0 min-h-0 h-full max-h-full',
               isMobile && 'pt-14 pb-16'
             )}
           >
@@ -378,7 +378,7 @@ function IndexContent() {
             
             <Suspense fallback={<ViewLoadingFallback />}>
               <AnimatePresence mode="wait">
-                <PageTransition key={currentView} className="h-full min-h-0 overflow-hidden">
+                <PageTransition key={currentView} className="flex-1 h-full max-h-full min-h-0 overflow-hidden">
                   {renderView()}
                 </PageTransition>
               </AnimatePresence>
