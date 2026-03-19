@@ -470,7 +470,11 @@ export function DiagnosticsView() {
           </TabsTrigger>
           <TabsTrigger value="health" className="gap-2">
             <Server className="w-4 h-4" />
-            Health Check
+            System Health
+          </TabsTrigger>
+          <TabsTrigger value="connection-health" className="gap-2">
+            <HeartPulse className="w-4 h-4" />
+            Connection Health
           </TabsTrigger>
           <TabsTrigger value="logs" className="gap-2 relative">
             <FileWarning className="w-4 h-4" />
