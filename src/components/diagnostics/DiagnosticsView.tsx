@@ -250,15 +250,13 @@ export function DiagnosticsView() {
     const { count: messagesCount } = await supabase.from('messages').select('*', { count: 'exact', head: true });
     const { count: connectionsCount } = await supabase.from('whatsapp_connections').select('*', { count: 'exact', head: true });
 
-    // Test edge functions
+    // Test edge functions by calling the dedicated health-check function
     let edgeFunctionsStatus: 'healthy' | 'degraded' | 'down' = 'healthy';
     try {
-      const { error } = await supabase.functions.invoke('evolution-api/health-check', {
-        body: {},
-      });
+      const { error } = await supabase.functions.invoke('connection-health-check');
       if (error) edgeFunctionsStatus = 'degraded';
     } catch {
-      edgeFunctionsStatus = 'degraded'; // May not have this endpoint
+      edgeFunctionsStatus = 'degraded';
     }
 
     setHealth({
