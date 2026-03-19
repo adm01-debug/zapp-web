@@ -83,6 +83,14 @@ export function SecurityView() {
                   <Globe className="w-4 h-4" />
                   <span className="hidden sm:inline">Geo</span>
                 </TabsTrigger>
+                <TabsTrigger value="rate-limit" className="gap-2">
+                  <Gauge className="w-4 h-4" />
+                  <span className="hidden sm:inline">Rate Limit</span>
+                </TabsTrigger>
+                <TabsTrigger value="audit" className="gap-2">
+                  <FileText className="w-4 h-4" />
+                  <span className="hidden sm:inline">Auditoria</span>
+                </TabsTrigger>
                 <TabsTrigger value="admin" className="gap-2">
                   <Users className="w-4 h-4" />
                   <span className="hidden sm:inline">Admin</span>
