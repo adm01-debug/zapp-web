@@ -113,11 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log("detect-new-device: Sending email notification to:", userEmail);
 
         try {
-          const emailResponse = await resend.emails.send({
-            from: "Segurança <security@resend.dev>",
-            to: [userEmail],
-            subject: "🔐 Novo dispositivo detectado na sua conta",
-            html: `
+          const emailHtml = `
               <!DOCTYPE html>
               <html>
               <head>
@@ -172,10 +168,24 @@ const handler = async (req: Request): Promise<Response> => {
                 </p>
               </body>
               </html>
-            `,
+          `;
+
+          const emailResponse = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              from: "Segurança <security@resend.dev>",
+              to: [userEmail],
+              subject: "🔐 Novo dispositivo detectado na sua conta",
+              html: emailHtml,
+            }),
           });
 
-          console.log("detect-new-device: Email sent successfully:", emailResponse);
+          const emailResult = await emailResponse.json();
+          console.log("detect-new-device: Email sent successfully:", emailResult);
         } catch (emailError) {
           console.error("detect-new-device: Error sending email:", emailError);
           // Don't fail the request if email fails
