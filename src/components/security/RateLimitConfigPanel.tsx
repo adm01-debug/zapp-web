@@ -48,12 +48,12 @@ export function RateLimitConfigPanel() {
     if (!error && data && data.length > 0) {
       setRules(data.map(r => ({
         id: r.id,
-        name: r.name || r.endpoint,
-        endpoint: r.endpoint,
+        name: r.name || r.endpoint_pattern,
+        endpoint: r.endpoint_pattern,
         max_requests: r.max_requests,
         window_seconds: r.window_seconds,
         is_active: r.is_active ?? true,
-        action: (r as Record<string, unknown>).action as RateLimitRule['action'] || 'block',
+        action: 'block' as RateLimitRule['action'],
       })));
     } else {
       // Initialize with defaults
