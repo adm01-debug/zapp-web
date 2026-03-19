@@ -72,6 +72,12 @@ export function RealtimeInboxView() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+
+  // Pull-to-refresh for mobile
+  const pullToRefresh = usePullToRefresh({
+    onRefresh: async () => { await refetch(); },
+    disabled: !isMobile || !!selectedContactId,
+  });
   const [soundOn, setSoundOn] = useState(true);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [showNewConversation, setShowNewConversation] = useState(false);
