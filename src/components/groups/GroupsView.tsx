@@ -138,8 +138,8 @@ export function GroupsView() {
       if (!conn.instance_id) continue;
 
       try {
-        const { data, error } = await supabase.functions.invoke('evolution-api/list-groups', {
-          body: { instanceName: conn.instance_id, getParticipants: 'false' },
+        const { data, error } = await supabase.functions.invoke('evolution-api', {
+          body: { action: 'list-groups', instanceName: conn.instance_id, getParticipants: 'false' },
         });
 
         if (error) {
