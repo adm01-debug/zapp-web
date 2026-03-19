@@ -42,6 +42,10 @@ import {
   ClipboardList,
   AlertTriangle,
   FileText,
+  TrendingDown,
+  Cpu,
+  Inbox,
+  Tags,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
