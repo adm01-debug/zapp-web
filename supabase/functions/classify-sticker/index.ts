@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const STICKER_CATEGORIES = [
@@ -27,7 +27,7 @@ serve(async (req) => {
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
-      console.error('[CLASSIFY] LOVABLE_API_KEY not set');
+      console.error('[CLASSIFY-STICKER] LOVABLE_API_KEY not set');
       return new Response(JSON.stringify({ category: 'outros' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -59,20 +59,20 @@ Regras:
 - "animado": empolgado, energético, vibrante
 - "outros": nenhuma das anteriores`;
 
-    const response = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${lovableApiKey}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           {
             role: 'user',
             content: [
-              { type: 'text', text: prompt },
               { type: 'image_url', image_url: { url: image_url } },
+              { type: 'text', text: prompt },
             ],
           },
         ],
@@ -84,7 +84,7 @@ Regras:
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error(`[CLASSIFY] API error ${response.status}:`, errText.substring(0, 200));
+      console.error(`[CLASSIFY-STICKER] API error ${response.status}:`, errText.substring(0, 200));
       return new Response(JSON.stringify({ category: 'outros' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -94,17 +94,18 @@ Regras:
     const rawCategory = (result.choices?.[0]?.message?.content || 'outros')
       .trim()
       .toLowerCase()
-      .replace(/[^a-záàãâéêíóôõúç]/g, '');
+      .replace(/[^a-záàãâéêíóôõúç]/g, '')
+      .trim();
 
     const category = STICKER_CATEGORIES.includes(rawCategory) ? rawCategory : 'outros';
 
-    console.log(`[CLASSIFY] ${image_url.substring(0, 60)}... → ${category}`);
+    console.log(`[CLASSIFY-STICKER] ${image_url.substring(0, 60)}... → ${category}`);
 
     return new Response(JSON.stringify({ category }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[CLASSIFY] Error:', err);
+    console.error('[CLASSIFY-STICKER] Error:', err);
     return new Response(JSON.stringify({ category: 'outros' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
