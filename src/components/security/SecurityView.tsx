@@ -52,7 +52,7 @@ export function SecurityView() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 md:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-5 md:grid-cols-10">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Visão Geral</span>
