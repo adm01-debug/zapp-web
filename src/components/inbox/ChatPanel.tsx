@@ -437,6 +437,61 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
   };
 
+  const handleSendCustomEmoji = async (emojiUrl: string) => {
+    if (!instanceName || !conversation.contact.phone) {
+      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível' });
+      return;
+    }
+    try {
+      const phone = conversation.contact.phone.replace(/\D/g, '');
+      
+      // Send as image message via Evolution API
+      const apiPromise = fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-api`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            action: 'sendMedia',
+            instance: instanceName,
+            data: {
+              number: phone,
+              mediatype: 'image',
+              media: emojiUrl,
+            },
+          }),
+        }
+      ).then(r => r.json());
+
+      const dbPromise = supabase.from('messages').insert({
+        contact_id: conversation.contact.id,
+        whatsapp_connection_id: null,
+        content: '[Emoji]',
+        message_type: 'image',
+        media_url: emojiUrl,
+        sender: 'agent',
+        status: 'sending',
+      }).select('id').single();
+
+      const [apiResult, dbResult] = await Promise.all([apiPromise, dbPromise]);
+      
+      const externalId = apiResult?.key?.id || null;
+      if (dbResult?.data?.id && externalId) {
+        supabase.from('messages')
+          .update({ external_id: externalId, status: 'sent' })
+          .eq('id', dbResult.data.id)
+          .then(() => {});
+      }
+
+      toast({ title: 'Emoji enviado!' });
+    } catch {
+      toast({ title: 'Erro ao enviar emoji', variant: 'destructive' });
+    }
+  };
+
   const handleSendAudioMeme = async (audioUrl: string) => {
     if (!instanceName || !conversation.contact.phone) {
       toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível' });
@@ -615,7 +670,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onSendProduct={handleSendProduct}
           onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme}
-          onSendCustomEmoji={handleSendSticker}
+          onSendCustomEmoji={handleSendCustomEmoji}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef}
