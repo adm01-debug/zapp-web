@@ -206,6 +206,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [bulkUploading, setBulkUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [reclassifying, setReclassifying] = useState(false);
   const [showGenDialog, setShowGenDialog] = useState(false);
   const [genPrompt, setGenPrompt] = useState('');
   const [genMode, setGenMode] = useState<'sfx' | 'music'>('sfx');
@@ -297,6 +298,32 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
     }
     setItems(prev => prev.map(i => selected.has(i.id) ? { ...i, category: newCategory } : i));
     toast.success(`${ids.length} itens movidos para "${newCategory}"`);
+  };
+
+  const handleBulkReclassify = async () => {
+    const toReclassify = items.filter(i => selected.has(i.id));
+    setReclassifying(true);
+    let updated = 0;
+    const fnName = type === 'audio_memes' ? 'classify-audio-meme' :
+      type === 'stickers' ? 'classify-sticker' : 'classify-emoji';
+
+    for (const item of toReclassify) {
+      try {
+        const body = type === 'audio_memes'
+          ? { audio_url: item.audio_url || '', file_name: item.name || '' }
+          : { image_url: item.image_url || '' };
+        const { data } = await supabase.functions.invoke(fnName, { body });
+        if (data?.category && data.category !== item.category) {
+          await supabase.from(type).update({ category: data.category }).eq('id', item.id);
+          setItems(prev => prev.map(i => i.id === item.id ? { ...i, category: data.category } : i));
+          updated++;
+        }
+      } catch { /* skip */ }
+    }
+
+    setReclassifying(false);
+    setSelected(new Set());
+    toast.success(`${updated}/${toReclassify.length} itens reclassificados com IA`);
   };
 
   const handleSingleCategoryChange = async (item: MediaItem, newCategory: string) => {
@@ -689,6 +716,17 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
                 ))}
               </SelectContent>
             </Select>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1"
+              onClick={handleBulkReclassify}
+              disabled={reclassifying}
+            >
+              {reclassifying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+              {reclassifying ? 'Classificando...' : 'Reclassificar IA'}
+            </Button>
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
