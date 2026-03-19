@@ -396,7 +396,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           insertData.image_url = urlData.publicUrl;
         }
 
-        const { error: insertError } = await supabase.from(type).insert(insertData);
+        const { error: insertError } = await supabase.from(type).insert(insertData as any);
         if (!insertError) successCount++;
       } catch { /* skip */ }
       setUploadProgress(Math.round(((i + 1) / validFiles.length) * 100));
