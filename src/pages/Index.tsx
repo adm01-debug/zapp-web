@@ -330,10 +330,13 @@ function IndexContent() {
           {isMobile && (
             <MobileHeader
               onMenuOpen={() => setMobileMenuOpen(true)}
+              onSearchOpen={() => setMobileSearchOpen(true)}
+              onNotificationsOpen={() => {/* TODO: open notifications panel */}}
               currentView={currentView}
               agentName={profile?.name || user.email || 'Usuário'}
               agentAvatar={profile?.avatar_url || undefined}
               agentStatus="online"
+              unreadCount={12}
             />
           )}
 
