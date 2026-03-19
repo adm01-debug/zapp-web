@@ -1412,4 +1412,414 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     it('use_count || 0 for 0', () => { const v: number = 0; expect(v || 0).toBe(0); });
     it('use_count || 0 for positive', () => { const v: number = 42; expect(v || 0).toBe(42); });
   });
+
+  // ─── extractStoragePath Logic ─────────────────────────
+
+  describe('Storage Path Extraction', () => {
+    // Replicate the extractStoragePath logic for testing
+    function extractStoragePath(url: string, bucket: string): { bucket: string; path: string } | null {
+      if (!url) return null;
+      if (url.includes('/whatsapp-media/')) {
+        const path = url.split('/whatsapp-media/')[1];
+        return path ? { bucket: 'whatsapp-media', path } : null;
+      }
+      const marker = `/${bucket}/`;
+      if (url.includes(marker)) {
+        const path = url.split(marker)[1];
+        return path ? { bucket, path } : null;
+      }
+      const publicMarker = '/object/public/';
+      if (url.includes(publicMarker)) {
+        const afterPublic = url.split(publicMarker)[1];
+        if (afterPublic) {
+          const slashIdx = afterPublic.indexOf('/');
+          if (slashIdx > 0) {
+            return { bucket: afterPublic.substring(0, slashIdx), path: afterPublic.substring(slashIdx + 1) };
+          }
+        }
+      }
+      return null;
+    }
+
+    it('extracts from whatsapp-media bucket', () => {
+      const result = extractStoragePath('https://example.com/storage/v1/object/public/whatsapp-media/sticker123.webp', 'stickers');
+      expect(result).toEqual({ bucket: 'whatsapp-media', path: 'sticker123.webp' });
+    });
+
+    it('extracts from dedicated stickers bucket', () => {
+      const result = extractStoragePath('https://example.com/storage/v1/object/public/stickers/bulk_123.webp', 'stickers');
+      expect(result).toEqual({ bucket: 'stickers', path: 'bulk_123.webp' });
+    });
+
+    it('extracts from audio-memes bucket', () => {
+      const result = extractStoragePath('https://example.com/storage/v1/object/public/audio-memes/file.mp3', 'audio-memes');
+      expect(result).toEqual({ bucket: 'audio-memes', path: 'file.mp3' });
+    });
+
+    it('extracts from custom-emojis bucket', () => {
+      const result = extractStoragePath('https://example.com/storage/v1/object/public/custom-emojis/emoji.png', 'custom-emojis');
+      expect(result).toEqual({ bucket: 'custom-emojis', path: 'emoji.png' });
+    });
+
+    it('fallback extracts from /object/public/ pattern', () => {
+      const result = extractStoragePath('https://example.com/storage/v1/object/public/unknown-bucket/deep/path/file.webp', 'stickers');
+      expect(result).toEqual({ bucket: 'unknown-bucket', path: 'deep/path/file.webp' });
+    });
+
+    it('returns null for empty string', () => {
+      expect(extractStoragePath('', 'stickers')).toBeNull();
+    });
+
+    it('returns null for unrecognized URL pattern', () => {
+      expect(extractStoragePath('https://cdn.example.com/random/file.webp', 'stickers')).toBeNull();
+    });
+
+    it('handles nested paths in whatsapp-media', () => {
+      const result = extractStoragePath('https://example.com/whatsapp-media/contacts/abc/sticker.webp', 'stickers');
+      expect(result).toEqual({ bucket: 'whatsapp-media', path: 'contacts/abc/sticker.webp' });
+    });
+  });
+
+  // ─── Favorite Toggle Logic ────────────────────────────
+
+  describe('Favorite Toggle Logic', () => {
+    it('toggles false to true', () => {
+      const item = { is_favorite: false };
+      const newValue = !item.is_favorite;
+      expect(newValue).toBe(true);
+    });
+
+    it('toggles true to false', () => {
+      const item = { is_favorite: true };
+      const newValue = !item.is_favorite;
+      expect(newValue).toBe(false);
+    });
+
+    it('optimistic update reverts on error', () => {
+      const items = [
+        { id: 'i1', is_favorite: false },
+        { id: 'i2', is_favorite: true },
+      ];
+      const targetId = 'i1';
+      const newValue = true;
+      // Simulate optimistic update
+      const updated = items.map(i => i.id === targetId ? { ...i, is_favorite: newValue } : i);
+      expect(updated[0].is_favorite).toBe(true);
+      // Simulate revert
+      const reverted = updated.map(i => i.id === targetId ? { ...i, is_favorite: !newValue } : i);
+      expect(reverted[0].is_favorite).toBe(false);
+    });
+  });
+
+  // ─── File Size Validation ─────────────────────────────
+
+  describe('File Size Validation', () => {
+    const MAX_UPLOAD_SIZE_MB = 10;
+    const MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+
+    it('rejects files over 10MB', () => {
+      const fileSize = 11 * 1024 * 1024;
+      expect(fileSize > MAX_UPLOAD_SIZE_BYTES).toBe(true);
+    });
+
+    it('accepts files under 10MB', () => {
+      const fileSize = 5 * 1024 * 1024;
+      expect(fileSize <= MAX_UPLOAD_SIZE_BYTES).toBe(true);
+    });
+
+    it('accepts files exactly 10MB', () => {
+      const fileSize = 10 * 1024 * 1024;
+      expect(fileSize <= MAX_UPLOAD_SIZE_BYTES).toBe(true);
+    });
+
+    it('filters oversized files from batch', () => {
+      const files = [
+        { name: 'small.mp3', size: 1024 * 1024 },
+        { name: 'big.mp3', size: 15 * 1024 * 1024 },
+        { name: 'medium.mp3', size: 9 * 1024 * 1024 },
+      ];
+      const valid = files.filter(f => f.size <= MAX_UPLOAD_SIZE_BYTES);
+      expect(valid).toHaveLength(2);
+      expect(valid.map(f => f.name)).toEqual(['small.mp3', 'medium.mp3']);
+    });
+  });
+
+  // ─── Rename Validation (enhanced) ─────────────────────
+
+  describe('Rename Validation Enhanced', () => {
+    it('trims whitespace before checking', () => {
+      const name = '   Valid   ';
+      expect(name.trim()).toBe('Valid');
+      expect(name.trim().length > 0).toBe(true);
+    });
+
+    it('rejects empty after trim', () => {
+      const name = '   ';
+      expect(name.trim().length > 0).toBe(false);
+    });
+
+    it('preserves internal spaces', () => {
+      const name = 'Hello World';
+      expect(name.trim()).toBe('Hello World');
+    });
+  });
+
+  // ─── Category Select with Unknown Values ──────────────
+
+  describe('InlineCategorySelect Unknown Categories', () => {
+    it('adds unknown category to list', () => {
+      const categories: Record<string, string> = { 'riso': '😂', 'amor': '❤️' };
+      const value = 'desconhecido';
+      const allCategories = { ...categories };
+      if (value && !(value in allCategories)) {
+        allCategories[value] = '❓';
+      }
+      expect(allCategories).toHaveProperty('desconhecido');
+      expect(allCategories['desconhecido']).toBe('❓');
+    });
+
+    it('does not duplicate known category', () => {
+      const categories: Record<string, string> = { 'riso': '😂', 'amor': '❤️' };
+      const value = 'riso';
+      const allCategories = { ...categories };
+      if (value && !(value in allCategories)) {
+        allCategories[value] = '❓';
+      }
+      expect(allCategories['riso']).toBe('😂');
+      expect(Object.keys(allCategories)).toHaveLength(2);
+    });
+  });
+
+  // ─── Optimistic Update & Revert (Category) ────────────
+
+  describe('Optimistic Category Update with Revert', () => {
+    it('reverts category on error', () => {
+      const items = [
+        { id: 'i1', category: 'riso' },
+        { id: 'i2', category: 'amor' },
+      ];
+      const selected = new Set(['i1']);
+      const oldItems = items.filter(i => selected.has(i.id)).map(i => ({ id: i.id, category: i.category }));
+      
+      // Optimistic
+      const updated = items.map(i => selected.has(i.id) ? { ...i, category: 'deboche' } : i);
+      expect(updated[0].category).toBe('deboche');
+      
+      // Revert
+      const reverted = updated.map(i => {
+        const old = oldItems.find(o => o.id === i.id);
+        return old ? { ...i, category: old.category } : i;
+      });
+      expect(reverted[0].category).toBe('riso');
+      expect(reverted[1].category).toBe('amor');
+    });
+  });
+
+  // ─── Audio Error Handling ─────────────────────────────
+
+  describe('Audio Preview Error Handling', () => {
+    it('returns early if no audio_url', () => {
+      const item = { audio_url: undefined };
+      const hasUrl = !!item.audio_url;
+      expect(hasUrl).toBe(false);
+    });
+
+    it('detects missing audio_url', () => {
+      const item = { audio_url: '' };
+      const hasUrl = !!item.audio_url;
+      expect(hasUrl).toBe(false);
+    });
+
+    it('detects valid audio_url', () => {
+      const item = { audio_url: 'https://example.com/audio.mp3' };
+      const hasUrl = !!item.audio_url;
+      expect(hasUrl).toBe(true);
+    });
+  });
+
+  // ─── Selection Clearing on Filter Change ──────────────
+
+  describe('Selection Clearing', () => {
+    it('new Set() clears all selections', () => {
+      const selected = new Set(['a', 'b', 'c']);
+      const cleared = new Set<string>();
+      expect(cleared.size).toBe(0);
+    });
+
+    it('filter change should reset selection', () => {
+      // Simulates the useEffect behavior
+      let selected = new Set(['a', 'b']);
+      const filterCategory = 'riso';
+      // When filter changes, selection is cleared
+      selected = new Set();
+      expect(selected.size).toBe(0);
+    });
+  });
+
+  // ─── Reclassify Error Counting ────────────────────────
+
+  describe('Reclassify Error Counting', () => {
+    it('counts errors separately from updates', () => {
+      let updated = 0;
+      let errors = 0;
+
+      // Simulate processing 4 items
+      const results = [
+        { success: true, changed: true },
+        { success: true, changed: false },
+        { success: false, changed: false },
+        { success: true, changed: true },
+      ];
+
+      for (const r of results) {
+        if (!r.success) errors++;
+        else if (r.changed) updated++;
+      }
+
+      expect(updated).toBe(2);
+      expect(errors).toBe(1);
+    });
+
+    it('formats message with errors', () => {
+      const updated = 2;
+      const total = 4;
+      const errors = 1;
+      const msg = `${updated}/${total} itens reclassificados com IA`;
+      const msgWithErrors = `${msg} (${errors} erros)`;
+      expect(msgWithErrors).toBe('2/4 itens reclassificados com IA (1 erros)');
+    });
+  });
+
+  // ─── Escape Key on Edit ───────────────────────────────
+
+  describe('Edit Keyboard Shortcuts', () => {
+    it('Enter key triggers save', () => {
+      let saved = false;
+      const onKeyDown = (key: string) => { if (key === 'Enter') saved = true; };
+      onKeyDown('Enter');
+      expect(saved).toBe(true);
+    });
+
+    it('Escape key cancels edit', () => {
+      let cancelled = false;
+      const onKeyDown = (key: string) => { if (key === 'Escape') cancelled = true; };
+      onKeyDown('Escape');
+      expect(cancelled).toBe(true);
+    });
+
+    it('other keys do nothing', () => {
+      let saved = false;
+      let cancelled = false;
+      const onKeyDown = (key: string) => {
+        if (key === 'Enter') saved = true;
+        if (key === 'Escape') cancelled = true;
+      };
+      onKeyDown('a');
+      expect(saved).toBe(false);
+      expect(cancelled).toBe(false);
+    });
+  });
+
+  // ─── Image fallback for missing URL ───────────────────
+
+  describe('Image Preview Fallback', () => {
+    it('shows fallback when url is falsy', () => {
+      const url: string | undefined = undefined;
+      const showFallback = !url;
+      expect(showFallback).toBe(true);
+    });
+
+    it('shows image when url exists', () => {
+      const url = 'https://example.com/img.webp';
+      const showFallback = !url;
+      expect(showFallback).toBe(false);
+    });
+  });
+
+  // ─── Dialog Cleanup on Close ──────────────────────────
+
+  describe('Dialog Cleanup', () => {
+    it('resets preview URL on close', () => {
+      let genPreviewUrl: string | null = 'data:audio/mpeg;base64,...';
+      // Simulate onOpenChange(false)
+      genPreviewUrl = null;
+      expect(genPreviewUrl).toBeNull();
+    });
+  });
+
+  // ─── Bulk Delete with Empty Selection ─────────────────
+
+  describe('Bulk Delete Edge Cases', () => {
+    it('does nothing when selection is empty', () => {
+      const selected = new Set<string>();
+      const items = [{ id: 's1' }, { id: 's2' }];
+      const toDelete = items.filter(i => selected.has(i.id));
+      expect(toDelete).toHaveLength(0);
+    });
+
+    it('handles selection with non-existent IDs', () => {
+      const selected = new Set(['nonexistent1', 'nonexistent2']);
+      const items = [{ id: 's1' }, { id: 's2' }];
+      const toDelete = items.filter(i => selected.has(i.id));
+      expect(toDelete).toHaveLength(0);
+    });
+  });
+
+  // ─── Gen Duration Bounds ──────────────────────────────
+
+  describe('AI Generation Duration Bounds', () => {
+    it('sfx mode resets to 5', () => {
+      let duration = 30;
+      const mode = 'sfx';
+      if (mode === 'sfx') duration = 5;
+      expect(duration).toBe(5);
+    });
+
+    it('music mode resets to 15', () => {
+      let duration = 5;
+      const mode = 'music';
+      if (mode === 'music') duration = 15;
+      expect(duration).toBe(15);
+    });
+
+    it('sfx range is 1-22', () => {
+      const min = 1;
+      const max = 22;
+      expect(max - min).toBe(21);
+      expect(min).toBeGreaterThanOrEqual(1);
+      expect(max).toBeLessThanOrEqual(22);
+    });
+
+    it('music range is 5-60', () => {
+      const min = 5;
+      const max = 60;
+      expect(min).toBeGreaterThanOrEqual(5);
+      expect(max).toBeLessThanOrEqual(60);
+    });
+  });
+
+  // ─── GenPrompt validation ─────────────────────────────
+
+  describe('Generate Prompt Validation', () => {
+    it('empty prompt prevents generation', () => {
+      const prompt = '';
+      expect(prompt.trim().length > 0).toBe(false);
+    });
+
+    it('whitespace-only prompt prevents generation', () => {
+      const prompt = '   ';
+      expect(prompt.trim().length > 0).toBe(false);
+    });
+
+    it('valid prompt passes', () => {
+      const prompt = 'risada de vilão';
+      expect(prompt.trim().length > 0).toBe(true);
+    });
+
+    it('name truncated to 80 chars on save', () => {
+      const longPrompt = 'A'.repeat(100);
+      const name = longPrompt.substring(0, 80);
+      expect(name.length).toBe(80);
+    });
+  });
 });

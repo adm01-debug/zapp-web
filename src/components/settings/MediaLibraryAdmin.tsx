@@ -43,6 +43,13 @@ interface MediaItem {
 type MediaType = 'stickers' | 'audio_memes' | 'custom_emojis';
 
 // ═══════════════════════════════════════════════════════════
+// Constants
+// ═══════════════════════════════════════════════════════════
+
+const MAX_UPLOAD_SIZE_MB = 10;
+const MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+
+// ═══════════════════════════════════════════════════════════
 // Category definitions per media type
 // ═══════════════════════════════════════════════════════════
 
@@ -87,6 +94,44 @@ function getBucket(type: MediaType): string {
     case 'audio_memes': return 'audio-memes';
     case 'custom_emojis': return 'custom-emojis';
   }
+}
+
+/**
+ * Extract storage path from a public URL for deletion.
+ * Handles both dedicated buckets and whatsapp-media fallback.
+ */
+function extractStoragePath(url: string, bucket: string): { bucket: string; path: string } | null {
+  if (!url) return null;
+
+  // Check whatsapp-media bucket first
+  if (url.includes('/whatsapp-media/')) {
+    const path = url.split('/whatsapp-media/')[1];
+    return path ? { bucket: 'whatsapp-media', path } : null;
+  }
+
+  // Check dedicated bucket
+  const marker = `/${bucket}/`;
+  if (url.includes(marker)) {
+    const path = url.split(marker)[1];
+    return path ? { bucket, path } : null;
+  }
+
+  // Fallback: try extracting from /object/public/
+  const publicMarker = '/object/public/';
+  if (url.includes(publicMarker)) {
+    const afterPublic = url.split(publicMarker)[1];
+    if (afterPublic) {
+      const slashIdx = afterPublic.indexOf('/');
+      if (slashIdx > 0) {
+        return {
+          bucket: afterPublic.substring(0, slashIdx),
+          path: afterPublic.substring(slashIdx + 1),
+        };
+      }
+    }
+  }
+
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -175,13 +220,19 @@ function InlineCategorySelect({ value, categories, onChange }: {
   categories: Record<string, string>;
   onChange: (cat: string) => void;
 }) {
+  // Merge unknown categories so the Select always shows the current value
+  const allCategories = { ...categories };
+  if (value && !(value in allCategories)) {
+    allCategories[value] = '❓';
+  }
+
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="h-6 text-[10px] w-[130px] border-border/40">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {Object.entries(categories).map(([cat, emoji]) => (
+        {Object.entries(allCategories).map(([cat, emoji]) => (
           <SelectItem key={cat} value={cat} className="text-xs">
             {emoji} {cat}
           </SelectItem>
@@ -222,19 +273,37 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from(type)
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1000);
-    if (!error && data) setItems(data as MediaItem[]);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from(type)
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000);
+      if (error) {
+        console.error(`Error fetching ${type}:`, error);
+        toast.error(`Erro ao carregar ${type === 'stickers' ? 'figurinhas' : type === 'audio_memes' ? 'áudios' : 'emojis'}`);
+      }
+      setItems((data as MediaItem[]) || []);
+    } catch (err) {
+      console.error(`Unexpected error fetching ${type}:`, err);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   }, [type]);
 
   useEffect(() => {
     fetchItems();
-    return () => { audioRef.current?.pause(); };
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
   }, [fetchItems]);
+
+  // Clear selection when filter changes to avoid ghost selections
+  useEffect(() => {
+    setSelected(new Set());
+  }, [filterCategory, search]);
 
   const filtered = items.filter(item => {
     const matchSearch = !search ||
@@ -260,21 +329,34 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
     }
   };
 
+  const handleToggleFavorite = async (item: MediaItem) => {
+    const newValue = !item.is_favorite;
+    // Optimistic update
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_favorite: newValue } : i));
+    const { error } = await supabase.from(type).update({ is_favorite: newValue }).eq('id', item.id);
+    if (error) {
+      // Revert
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_favorite: !newValue } : i));
+      toast.error('Erro ao atualizar favorito');
+    }
+  };
+
+  const deleteStorageFile = async (url: string | undefined) => {
+    if (!url) return;
+    const info = extractStoragePath(url, bucket);
+    if (info) {
+      await supabase.storage.from(info.bucket).remove([info.path]);
+    }
+  };
+
   const handleBulkDelete = async () => {
     const toDelete = items.filter(i => selected.has(i.id));
+    if (toDelete.length === 0) return;
+
     // Delete from storage
     for (const item of toDelete) {
       const url = type === 'audio_memes' ? item.audio_url : item.image_url;
-      if (url) {
-        if (url.includes('/whatsapp-media/')) {
-          const path = url.split('/whatsapp-media/')[1];
-          if (path) await supabase.storage.from('whatsapp-media').remove([path]);
-        } else {
-          const bucketName = bucket;
-          const path = url.split(`/${bucketName}/`)[1] || url.split('/stickers/')[1];
-          if (path) await supabase.storage.from(bucketName).remove([path]);
-        }
-      }
+      await deleteStorageFile(url);
     }
 
     const ids = [...selected];
@@ -291,19 +373,33 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
 
   const handleBulkCategoryChange = async (newCategory: string) => {
     const ids = [...selected];
+    if (ids.length === 0) return;
+
+    const oldItems = items.filter(i => selected.has(i.id)).map(i => ({ id: i.id, category: i.category }));
+
+    // Optimistic update
+    setItems(prev => prev.map(i => selected.has(i.id) ? { ...i, category: newCategory } : i));
+
     const { error } = await supabase.from(type).update({ category: newCategory }).in('id', ids);
     if (error) {
+      // Revert
+      setItems(prev => prev.map(i => {
+        const old = oldItems.find(o => o.id === i.id);
+        return old ? { ...i, category: old.category } : i;
+      }));
       toast.error('Erro ao alterar categorias');
       return;
     }
-    setItems(prev => prev.map(i => selected.has(i.id) ? { ...i, category: newCategory } : i));
     toast.success(`${ids.length} itens movidos para "${newCategory}"`);
   };
 
   const handleBulkReclassify = async () => {
     const toReclassify = items.filter(i => selected.has(i.id));
+    if (toReclassify.length === 0) return;
+
     setReclassifying(true);
     let updated = 0;
+    let errors = 0;
     const fnName = type === 'audio_memes' ? 'classify-audio-meme' :
       type === 'stickers' ? 'classify-sticker' : 'classify-emoji';
 
@@ -314,58 +410,103 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           : { image_url: item.image_url || '' };
         const { data } = await supabase.functions.invoke(fnName, { body });
         if (data?.category && data.category !== item.category) {
-          await supabase.from(type).update({ category: data.category }).eq('id', item.id);
-          setItems(prev => prev.map(i => i.id === item.id ? { ...i, category: data.category } : i));
-          updated++;
+          const { error } = await supabase.from(type).update({ category: data.category }).eq('id', item.id);
+          if (!error) {
+            setItems(prev => prev.map(i => i.id === item.id ? { ...i, category: data.category } : i));
+            updated++;
+          } else {
+            errors++;
+          }
         }
-      } catch { /* skip */ }
+      } catch {
+        errors++;
+      }
     }
 
     setReclassifying(false);
     setSelected(new Set());
-    toast.success(`${updated}/${toReclassify.length} itens reclassificados com IA`);
+    const msg = `${updated}/${toReclassify.length} itens reclassificados com IA`;
+    if (errors > 0) {
+      toast.info(`${msg} (${errors} erros)`);
+    } else {
+      toast.success(msg);
+    }
   };
 
   const handleSingleCategoryChange = async (item: MediaItem, newCategory: string) => {
+    const oldCategory = item.category;
+    // Optimistic update
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, category: newCategory } : i));
-    await supabase.from(type).update({ category: newCategory }).eq('id', item.id);
+    const { error } = await supabase.from(type).update({ category: newCategory }).eq('id', item.id);
+    if (error) {
+      // Revert
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, category: oldCategory } : i));
+      toast.error('Erro ao alterar categoria');
+    }
   };
 
   const handleRename = async (item: MediaItem) => {
-    if (!editName.trim()) return;
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, name: editName } : i));
-    await supabase.from(type).update({ name: editName }).eq('id', item.id);
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      toast.error('O nome não pode ser vazio');
+      return;
+    }
+
+    const oldName = item.name;
+    // Optimistic update
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, name: trimmed } : i));
+    const { error } = await supabase.from(type).update({ name: trimmed }).eq('id', item.id);
+    if (error) {
+      // Revert
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, name: oldName } : i));
+      toast.error('Erro ao renomear');
+      return;
+    }
     setEditingId(null);
     toast.success('Nome atualizado');
   };
 
   const handleDelete = async (item: MediaItem) => {
     const url = type === 'audio_memes' ? item.audio_url : item.image_url;
-    if (url) {
-      if (url.includes('/whatsapp-media/')) {
-        const path = url.split('/whatsapp-media/')[1];
-        if (path) await supabase.storage.from('whatsapp-media').remove([path]);
-      } else {
-        const path = url.split(`/${bucket}/`)[1];
-        if (path) await supabase.storage.from(bucket).remove([path]);
-      }
+    await deleteStorageFile(url);
+
+    const { error } = await supabase.from(type).delete().eq('id', item.id);
+    if (error) {
+      toast.error('Erro ao excluir item');
+      return;
     }
-    await supabase.from(type).delete().eq('id', item.id);
     setItems(prev => prev.filter(i => i.id !== item.id));
     toast.success('Item excluído');
   };
 
   const handlePreview = (item: MediaItem) => {
     if (type !== 'audio_memes') return;
+
     if (playingId === item.id) {
       audioRef.current?.pause();
       setPlayingId(null);
       return;
     }
+
+    // Stop any existing audio
     audioRef.current?.pause();
+    audioRef.current = null;
+
+    if (!item.audio_url) {
+      toast.error('URL do áudio não encontrada');
+      return;
+    }
+
     const audio = new Audio(item.audio_url);
     audio.onended = () => setPlayingId(null);
-    audio.play();
+    audio.onerror = () => {
+      setPlayingId(null);
+      toast.error('Erro ao reproduzir áudio');
+    };
+    audio.play().catch(() => {
+      setPlayingId(null);
+      toast.error('Erro ao reproduzir áudio');
+    });
     audioRef.current = audio;
     setPlayingId(item.id);
   };
@@ -380,11 +521,13 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
         body: { prompt: genPrompt, duration: genDuration, mode: genMode },
       });
       if (error || data?.error) throw new Error(data?.error || 'Generation failed');
+      if (!data?.audioContent) throw new Error('Resposta sem conteúdo de áudio');
+
       const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
       setGenPreviewUrl(audioUrl);
       audioRef.current?.pause();
       const audio = new Audio(audioUrl);
-      audio.play();
+      audio.play().catch(() => {});
       audioRef.current = audio;
     } catch (err: any) {
       toast.error(err.message || 'Erro ao gerar áudio');
@@ -413,7 +556,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
         });
         if (classifyData?.category) aiCategory = classifyData.category;
       } catch { /* fallback */ }
-      await supabase.from('audio_memes').insert({
+      const { error: insertError } = await supabase.from('audio_memes').insert({
         name: genPrompt.substring(0, 80),
         audio_url: urlData.publicUrl,
         category: aiCategory,
@@ -421,13 +564,15 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
         use_count: 0,
         uploaded_by: user?.id || null,
       });
+      if (insertError) throw insertError;
+
       toast.success(`Áudio salvo como "${aiCategory}"`);
       setShowGenDialog(false);
       setGenPrompt('');
       setGenPreviewUrl(null);
       fetchItems();
-    } catch {
-      toast.error('Erro ao salvar áudio');
+    } catch (err: any) {
+      toast.error(err?.message || 'Erro ao salvar áudio');
     } finally {
       setGenerating(false);
     }
@@ -450,13 +595,25 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
       return;
     }
 
+    // File size validation
+    const oversizedFiles = validFiles.filter(f => f.size > MAX_UPLOAD_SIZE_BYTES);
+    if (oversizedFiles.length > 0) {
+      toast.error(`${oversizedFiles.length} arquivo(s) excedem ${MAX_UPLOAD_SIZE_MB}MB e serão ignorados`);
+    }
+    const sizedFiles = validFiles.filter(f => f.size <= MAX_UPLOAD_SIZE_BYTES);
+    if (sizedFiles.length === 0) {
+      toast.error('Nenhum arquivo com tamanho válido');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     setBulkUploading(true);
     setUploadProgress(0);
     const { data: { user } } = await supabase.auth.getUser();
     let successCount = 0;
 
-    for (let i = 0; i < validFiles.length; i++) {
-      const file = validFiles[i];
+    for (let i = 0; i < sizedFiles.length; i++) {
+      const file = sizedFiles[i];
       try {
         const ext = file.name.split('.').pop() || (type === 'audio_memes' ? 'mp3' : 'webp');
         const storagePath = `bulk_${Date.now()}_${crypto.randomUUID()}.${ext}`;
@@ -465,7 +622,10 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           .from(bucket)
           .upload(storagePath, file, { contentType: file.type, cacheControl: '31536000' });
 
-        if (uploadError) continue;
+        if (uploadError) {
+          console.error(`Upload error for ${file.name}:`, uploadError);
+          continue;
+        }
 
         const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
         const name = file.name.replace(/\.[^.]+$/, '');
@@ -497,14 +657,16 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
 
         const { error: insertError } = await supabase.from(type).insert(insertData as any);
         if (!insertError) successCount++;
-      } catch { /* skip */ }
-      setUploadProgress(Math.round(((i + 1) / validFiles.length) * 100));
+      } catch (err) {
+        console.error(`Unexpected error uploading ${file.name}:`, err);
+      }
+      setUploadProgress(Math.round(((i + 1) / sizedFiles.length) * 100));
     }
 
     setBulkUploading(false);
     setUploadProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
-    toast.success(`${successCount}/${validFiles.length} arquivos importados com classificação IA`);
+    toast.success(`${successCount}/${sizedFiles.length} arquivos importados com classificação IA`);
     fetchItems();
   };
 
@@ -589,7 +751,14 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
 
       {/* AI Generate Dialog */}
       {type === 'audio_memes' && (
-        <Dialog open={showGenDialog} onOpenChange={setShowGenDialog}>
+        <Dialog open={showGenDialog} onOpenChange={(open) => {
+          setShowGenDialog(open);
+          if (!open) {
+            // Cleanup on close
+            audioRef.current?.pause();
+            setGenPreviewUrl(null);
+          }
+        }}>
           <DialogContent className="sm:max-w-[480px]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -658,7 +827,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
                     onClick={() => {
                       audioRef.current?.pause();
                       const audio = new Audio(genPreviewUrl);
-                      audio.play();
+                      audio.play().catch(() => {});
                       audioRef.current = audio;
                     }}
                   >
@@ -820,7 +989,13 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
                         </button>
                       ) : (
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted/30 border border-border/30">
-                          <img src={url} alt="" className="w-full h-full object-contain p-0.5" loading="lazy" />
+                          {url ? (
+                            <img src={url} alt={item.name || ''} className="w-full h-full object-contain p-0.5" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon className="w-4 h-4 text-muted-foreground/40" />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -834,7 +1009,10 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
                             onChange={e => setEditName(e.target.value)}
                             className="h-7 text-xs"
                             autoFocus
-                            onKeyDown={e => e.key === 'Enter' && handleRename(item)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') handleRename(item);
+                              if (e.key === 'Escape') setEditingId(null);
+                            }}
                           />
                           <Button size="icon" variant="ghost" className="w-6 h-6" onClick={() => handleRename(item)}>
                             <Check className="w-3 h-3" />
@@ -862,9 +1040,15 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
                       <Badge variant="secondary" className="text-[9px]">{item.use_count || 0}x</Badge>
                     </div>
 
-                    {/* Favorite */}
+                    {/* Favorite - now clickable */}
                     <div className="w-12 text-center">
-                      <Star className={cn('w-3.5 h-3.5 mx-auto', item.is_favorite ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground/30')} />
+                      <button
+                        onClick={() => handleToggleFavorite(item)}
+                        className="p-1 rounded hover:bg-muted/50 transition-colors"
+                        title={item.is_favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                      >
+                        <Star className={cn('w-3.5 h-3.5 mx-auto transition-colors', item.is_favorite ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground/30 hover:text-yellow-400')} />
+                      </button>
                     </div>
 
                     {/* Actions */}
