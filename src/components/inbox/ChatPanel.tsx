@@ -635,6 +635,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onOpenSchedule={() => setShowScheduleDialog(true)}
           onVoiceChange={setVoiceId}
           onSpeedChange={setSpeed}
+          onBack={onBack}
         />
 
         <ChatAssignedBar
