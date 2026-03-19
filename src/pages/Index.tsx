@@ -13,6 +13,7 @@ import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist
 import { BottomNavigation } from '@/components/ui/mobile-components';
 import { MobileHeader } from '@/components/mobile/MobileHeader';
 import { MobileDrawerMenu } from '@/components/mobile/MobileDrawerMenu';
+import { NotificationsPanel, Notification } from '@/components/mobile/NotificationsPanel';
 import { CommandPaletteButton } from '@/components/ui/command-palette-button';
 import { useGlobalKeyboard } from '@/components/keyboard/GlobalKeyboardProvider';
 import { useAuth } from '@/hooks/useAuth';
