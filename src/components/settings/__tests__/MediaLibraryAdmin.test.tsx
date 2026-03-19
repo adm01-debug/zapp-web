@@ -1145,7 +1145,7 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('stickers sends image_url', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const body = type === 'audio_memes'
         ? { audio_url: 'url', file_name: 'name' }
         : { image_url: 'url' };
@@ -1154,7 +1154,7 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('custom_emojis sends image_url', () => {
-      const type = 'custom_emojis';
+      const type: string = 'custom_emojis';
       const body = type === 'audio_memes'
         ? { audio_url: 'url', file_name: 'name' }
         : { image_url: 'url' };
@@ -1181,7 +1181,7 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('stickers insert includes image_url', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const data: Record<string, unknown> = {
         name: 'test',
         category: 'outros',
@@ -1331,13 +1331,13 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('stickers accept type', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const accept = type === 'audio_memes' ? 'audio/*' : 'image/webp,image/png,image/gif,image/jpeg';
       expect(accept).toBe('image/webp,image/png,image/gif,image/jpeg');
     });
 
     it('custom_emojis accept type', () => {
-      const type = 'custom_emojis';
+      const type: string = 'custom_emojis';
       const accept = type === 'audio_memes' ? 'audio/*' : 'image/webp,image/png,image/gif,image/jpeg';
       expect(accept).toBe('image/webp,image/png,image/gif,image/jpeg');
     });
@@ -1373,27 +1373,27 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
 
   describe('Audio Preview Logic', () => {
     it('non audio type skips preview', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const shouldPreview = type === 'audio_memes';
       expect(shouldPreview).toBe(false);
     });
 
     it('audio type enables preview', () => {
-      const type = 'audio_memes';
+      const type: string = 'audio_memes';
       const shouldPreview = type === 'audio_memes';
       expect(shouldPreview).toBe(true);
     });
 
     it('toggle pause when same item playing', () => {
-      const playingId = 'a1';
-      const clickedId = 'a1';
+      const playingId: string = 'a1';
+      const clickedId: string = 'a1';
       const shouldPause = playingId === clickedId;
       expect(shouldPause).toBe(true);
     });
 
     it('switch to new item when different item clicked', () => {
-      const playingId = 'a1';
-      const clickedId = 'a2';
+      const playingId: string = 'a1';
+      const clickedId: string = 'a2';
       const shouldPause = playingId === clickedId;
       expect(shouldPause).toBe(false);
     });
@@ -1402,14 +1402,14 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
   // ─── Null/Undefined Safety ────────────────────────────
 
   describe('Null/Undefined Safety', () => {
-    it('name || "Sem nome" for null', () => expect(null || 'Sem nome').toBe('Sem nome'));
-    it('name || "Sem nome" for undefined', () => expect(undefined || 'Sem nome').toBe('Sem nome'));
-    it('name || "Sem nome" for empty string', () => expect('' || 'Sem nome').toBe('Sem nome'));
-    it('name || "Sem nome" for valid name', () => expect('Test' || 'Sem nome').toBe('Test'));
+    it('name || "Sem nome" for null', () => { const v: string | null = null; expect(v || 'Sem nome').toBe('Sem nome'); });
+    it('name || "Sem nome" for undefined', () => { const v: string | undefined = undefined; expect(v || 'Sem nome').toBe('Sem nome'); });
+    it('name || "Sem nome" for empty string', () => { const v: string = ''; expect(v || 'Sem nome').toBe('Sem nome'); });
+    it('name || "Sem nome" for valid name', () => { const v: string = 'Test'; expect(v || 'Sem nome').toBe('Test'); });
 
-    it('use_count || 0 for null', () => expect(null || 0).toBe(0));
-    it('use_count || 0 for undefined', () => expect(undefined || 0).toBe(0));
-    it('use_count || 0 for 0', () => expect(0 || 0).toBe(0));
-    it('use_count || 0 for positive', () => expect(42 || 0).toBe(42));
+    it('use_count || 0 for null', () => { const v: number | null = null; expect(v || 0).toBe(0); });
+    it('use_count || 0 for undefined', () => { const v: number | undefined = undefined; expect(v || 0).toBe(0); });
+    it('use_count || 0 for 0', () => { const v: number = 0; expect(v || 0).toBe(0); });
+    it('use_count || 0 for positive', () => { const v: number = 42; expect(v || 0).toBe(42); });
   });
 });
