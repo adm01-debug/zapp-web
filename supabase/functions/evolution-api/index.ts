@@ -52,9 +52,6 @@ serve(async (req) => {
     ? String(bodyForAction.action)
     : pathAction;
 
-  const json = async () => {
-    try { return await req.json(); } catch { return {}; }
-  };
 
   // Helper to proxy requests to Evolution API
   const proxy = async (
