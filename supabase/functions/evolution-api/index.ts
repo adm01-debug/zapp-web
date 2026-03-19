@@ -293,9 +293,35 @@ serve(async (req) => {
 
     // POST /message/sendWhatsAppAudio/{instance}
     if (action === 'send-audio') {
+      const audioSource = body.mediaUrl || body.audio;
+      let audioPayload: string = audioSource;
+
+      // If the audio is a URL, fetch it and convert to base64 for reliability
+      if (typeof audioSource === 'string' && audioSource.startsWith('http')) {
+        try {
+          const audioResponse = await fetch(audioSource);
+          if (audioResponse.ok) {
+            const arrayBuffer = await audioResponse.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            const chunkSize = 8192;
+            let binary = '';
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+              const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+              for (let j = 0; j < chunk.length; j++) {
+                binary += String.fromCharCode(chunk[j]);
+              }
+            }
+            const contentType = audioResponse.headers.get('content-type') || 'audio/mpeg';
+            audioPayload = `data:${contentType};base64,${btoa(binary)}`;
+          }
+        } catch (e) {
+          console.error('[send-audio] Failed to fetch audio for base64 conversion, using URL fallback:', e);
+        }
+      }
+
       return await proxy(`/message/sendWhatsAppAudio/${instance}`, 'POST', {
         number: body.number,
-        audio: body.mediaUrl || body.audio,
+        audio: audioPayload,
         encoding: body.encoding ?? true,
         delay: body.delay,
       });
