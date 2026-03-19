@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TypingIndicatorCompact } from '../TypingIndicator';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
 import { SpeedSelector } from '../SpeedSelector';
