@@ -230,15 +230,15 @@ export const VirtualizedMessageList = forwardRef<VirtualizedMessageListRef, Virt
           ) : (
           <div
             className={cn(
-              'relative px-4 py-2.5 rounded-2xl shadow-sm transition-all',
+              'relative rounded-2xl shadow-sm transition-all overflow-hidden',
+              (message.type === 'image' || message.type === 'video') && !message.content
+                ? 'p-0'
+                : 'px-4 py-2.5',
               isSent 
                 ? 'rounded-br-md bg-primary text-primary-foreground' 
                 : 'rounded-bl-md bg-card border border-border/30 text-foreground'
             )}
           >
-            {isSent && (
-              <div className="absolute inset-0 rounded-2xl rounded-br-md bg-primary/30 blur-lg -z-10" />
-            )}
 
             {message.replyTo && (
               <QuotedMessage

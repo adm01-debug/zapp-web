@@ -257,11 +257,15 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         whileHover={{ scale: 1.005 }}
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                         className={cn(
-                          'relative px-3.5 py-2 transition-all',
+                          'relative transition-all overflow-hidden',
+                          // Only add padding for non-media-only messages
+                          (message.type === 'image' || message.type === 'video') && !message.content
+                            ? 'p-0'
+                            : 'px-3.5 py-2',
                           // Bubble shape: rounded corners with tail
                           isSent
                             ? cn(
-                                'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-[var(--shadow-glow-primary)]',
+                                'bg-primary text-primary-foreground shadow-sm',
                                 isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-br-md',
                                 isFirstInGroup && !isLastInGroup && 'rounded-2xl rounded-br-sm',
                                 !isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-tr-sm rounded-br-md',
@@ -300,7 +304,10 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
 
                         {message.type === 'image' && message.mediaUrl && (
-                          <div className="mb-1.5 -mx-1 -mt-0.5 rounded-xl overflow-hidden">
+                          <div className={cn(
+                            "overflow-hidden",
+                            message.content ? "mb-1.5 -mx-1 -mt-0.5 rounded-xl" : "w-full"
+                          )}>
                             <MessageImage src={message.mediaUrl} />
                           </div>
                         )}
@@ -396,7 +403,10 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         <div
                           className={cn(
                             'flex items-center justify-end gap-1 mt-0.5 -mb-0.5',
-                            isSent ? 'text-primary-foreground/60' : 'text-muted-foreground/70'
+                            (message.type === 'image' || message.type === 'video') && !message.content
+                              ? 'absolute bottom-2 right-3 text-white drop-shadow-md'
+                              : isSent ? 'text-primary-foreground/60' : 'text-muted-foreground/70',
+                            (message.type === 'image' || message.type === 'video') && !message.content && 'px-3.5 pb-1'
                           )}
                         >
                           {message.isEdited && (
