@@ -670,7 +670,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onSendProduct={handleSendProduct}
           onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme}
-          onSendCustomEmoji={handleSendSticker}
+          onSendCustomEmoji={handleSendCustomEmoji}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef}

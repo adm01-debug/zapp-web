@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.classify-audio-meme]
 verify_jwt = false
+
+[functions.classify-emoji]
+verify_jwt = false
