@@ -257,11 +257,15 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         whileHover={{ scale: 1.005 }}
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                         className={cn(
-                          'relative px-3.5 py-2 transition-all',
+                          'relative transition-all overflow-hidden',
+                          // Only add padding for non-media-only messages
+                          (message.type === 'image' || message.type === 'video') && !message.content
+                            ? 'p-0'
+                            : 'px-3.5 py-2',
                           // Bubble shape: rounded corners with tail
                           isSent
                             ? cn(
-                                'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-[var(--shadow-glow-primary)]',
+                                'bg-primary text-primary-foreground shadow-sm',
                                 isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-br-md',
                                 isFirstInGroup && !isLastInGroup && 'rounded-2xl rounded-br-sm',
                                 !isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-tr-sm rounded-br-md',
