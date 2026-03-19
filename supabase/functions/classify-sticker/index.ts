@@ -9,7 +9,7 @@ const STICKER_CATEGORIES = [
   'comemoração', 'riso', 'chorando', 'amor', 'raiva',
   'surpresa', 'pensativo', 'cumprimento', 'despedida', 'concordância',
   'negação', 'sono', 'fome', 'medo', 'vergonha',
-  'deboche', 'fofo', 'triste', 'animado', 'outros'
+  'deboche', 'fofo', 'triste', 'animado', 'engraçado', 'outros'
 ];
 
 serve(async (req) => {
@@ -57,6 +57,7 @@ Regras:
 - "fofo": cute, meigo, gracinha, bebê, gatinho
 - "triste": triste sem chorar, desanimado, cabisbaixo
 - "animado": empolgado, energético, vibrante
+- "engraçado": cômico, humor, piada visual, meme engraçado, palhaçada
 - "outros": nenhuma das anteriores`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

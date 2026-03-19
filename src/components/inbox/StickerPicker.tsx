@@ -43,6 +43,7 @@ const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
   'fofo': { emoji: '🥰', label: 'Fofo' },
   'triste': { emoji: '😔', label: 'Triste' },
   'animado': { emoji: '🤩', label: 'Animado' },
+  'engraçado': { emoji: '🤣', label: 'Engraçado' },
   'outros': { emoji: '📦', label: 'Outros' },
   'recebidas': { emoji: '📥', label: 'Recebidas' },
   'enviadas': { emoji: '📤', label: 'Enviadas' },
@@ -185,7 +186,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
       .from('stickers')
       .select('*')
       .order('use_count', { ascending: false })
-      .limit(200);
+      .limit(1000);
 
     if (!error && data) {
       setStickers(data as StickerItem[]);
@@ -310,8 +311,16 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   const handleDelete = async (e: React.MouseEvent, sticker: StickerItem) => {
     e.stopPropagation();
     setStickers(prev => prev.filter(s => s.id !== sticker.id));
-    const path = sticker.image_url.split('/stickers/')[1];
-    if (path) await supabase.storage.from('stickers').remove([path]);
+    
+    // Handle both storage buckets: 'stickers' and 'whatsapp-media'
+    if (sticker.image_url.includes('/whatsapp-media/')) {
+      const path = sticker.image_url.split('/whatsapp-media/')[1];
+      if (path) await supabase.storage.from('whatsapp-media').remove([path]);
+    } else {
+      const path = sticker.image_url.split('/stickers/')[1];
+      if (path) await supabase.storage.from('stickers').remove([path]);
+    }
+    
     await supabase.from('stickers').delete().eq('id', sticker.id);
     toast.success('Figurinha removida');
   };
