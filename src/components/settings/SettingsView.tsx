@@ -157,6 +157,10 @@ export function SettingsView() {
             <ArrowRight className="w-4 h-4" />
             Follow-up
           </TabsTrigger>
+          <TabsTrigger value="media" className="gap-2">
+            <Package className="w-4 h-4" />
+            Mídia
+          </TabsTrigger>
         </TabsList>
 
         {/* Horário de Atendimento */}
