@@ -672,6 +672,11 @@ export function DiagnosticsView() {
             )}
           </TabsContent>
 
+          {/* ── Tab: Connection Health ── */}
+          <TabsContent value="connection-health" className="px-6 py-4">
+            <ConnectionHealthPanel />
+          </TabsContent>
+
           {/* ── Tab: Logs de Erros ── */}
           <TabsContent value="logs" className="px-6 py-4 space-y-3">
             {errorLogs.length === 0 ? (
