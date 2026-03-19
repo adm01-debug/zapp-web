@@ -9,7 +9,7 @@ const STICKER_CATEGORIES = [
   'comemoração', 'riso', 'chorando', 'amor', 'raiva',
   'surpresa', 'pensativo', 'cumprimento', 'despedida', 'concordância',
   'negação', 'sono', 'fome', 'medo', 'vergonha',
-  'deboche', 'fofo', 'triste', 'animado', 'outros'
+  'deboche', 'fofo', 'triste', 'animado', 'engraçado', 'outros'
 ];
 
 serve(async (req) => {
