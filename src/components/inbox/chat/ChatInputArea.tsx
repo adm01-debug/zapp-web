@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { StickerPicker } from '../StickerPicker';
+import { AudioMemePicker } from '../AudioMemePicker';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
