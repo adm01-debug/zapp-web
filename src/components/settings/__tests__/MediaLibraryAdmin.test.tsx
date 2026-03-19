@@ -1934,12 +1934,11 @@ describe('Pure Function Logic', () => {
     });
 
     it('empty search returns all items', () => {
-      const search = '';
+      const search: string = '';
       const result = items.filter(i => {
-        const matchSearch = !search ||
-          (i.name as string | null)?.toLowerCase().includes(search.toLowerCase()) ||
-          (i.category as string | null)?.toLowerCase().includes(search.toLowerCase());
-        return matchSearch;
+        if (!search) return true;
+        return i.name?.toLowerCase().includes(search.toLowerCase()) ||
+          i.category?.toLowerCase().includes(search.toLowerCase());
       });
       expect(result).toHaveLength(4);
     });
