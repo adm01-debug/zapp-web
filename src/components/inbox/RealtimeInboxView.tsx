@@ -201,8 +201,13 @@ export function RealtimeInboxView() {
       });
     }
 
+    // Contact type filter
+    if (selectedContactType) {
+      result = result.filter((c) => (c.contact.contact_type || 'cliente') === selectedContactType);
+    }
+
     return result;
-  }, [conversations, search, filters, mainTab, subTab, showAll, selectedQueueId, user?.id]);
+  }, [conversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, user?.id]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
