@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { log } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -79,7 +79,7 @@ export function SLAMetricsDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('week');
 
-  const fetchSLAMetrics = async () => {
+  const fetchSLAMetrics = useCallback(async () => {
     try {
       const dateRange = getDateRange(periodFilter);
       
@@ -196,11 +196,11 @@ export function SLAMetricsDashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [periodFilter]);
 
   useEffect(() => {
     fetchSLAMetrics();
-  }, [periodFilter]);
+  }, [fetchSLAMetrics]);
 
   const handleRefresh = () => {
     setRefreshing(true);

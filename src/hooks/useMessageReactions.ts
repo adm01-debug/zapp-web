@@ -185,6 +185,7 @@ export function useMessagesReactions(messageIds: string[]) {
     };
 
     fetchReactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messageIds.join(',')]);
 
   return { reactionsMap, isLoading };

@@ -401,6 +401,7 @@ export function AnimatedCounter({ value, duration = 1, className }: AnimatedCoun
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- displayValue would cause infinite loop
   }, [value, duration]);
 
   return (

@@ -33,6 +33,7 @@ export function useCampaigns() {
   const campaignsQuery = useQuery({
     queryKey: ['campaigns'],
     queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
       const { data, error } = await (supabase as any)
         .from('campaigns')
         .select('*')
@@ -44,6 +45,7 @@ export function useCampaigns() {
 
   const createCampaign = useMutation({
     mutationFn: async (campaign: Partial<Campaign>) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
       const { data, error } = await (supabase as any)
         .from('campaigns')
         .insert(campaign)
@@ -61,6 +63,7 @@ export function useCampaigns() {
 
   const updateCampaign = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Campaign> & { id: string }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
       const { data, error } = await (supabase as any)
         .from('campaigns')
         .update(updates)
@@ -79,6 +82,7 @@ export function useCampaigns() {
 
   const deleteCampaign = useMutation({
     mutationFn: async (id: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
       const { error } = await (supabase as any)
         .from('campaigns')
         .delete()
@@ -99,12 +103,14 @@ export function useCampaigns() {
         contact_id: contactId,
         status: 'pending',
       }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
       const { error } = await (supabase as any)
         .from('campaign_contacts')
         .insert(records);
       if (error) throw error;
 
       // Update total
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
       const { error: updateError } = await (supabase as any)
         .from('campaigns')
         .update({ total_contacts: contactIds.length })

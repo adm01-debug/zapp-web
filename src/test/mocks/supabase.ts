@@ -1,9 +1,11 @@
 import { vi } from 'vitest';
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- test mocks require flexible typing */
+
 // Chainable query builder mock
 function createQueryBuilder(resolvedData: any = [], resolvedError: any = null) {
   const result = { data: resolvedData, error: resolvedError };
-  
+
   const builder: any = {
     select: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),

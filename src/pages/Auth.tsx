@@ -77,6 +77,7 @@ export default function Auth() {
       });
     }, 1000);
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lockStatus.isLocked]);
 
   // Check lock status when email changes

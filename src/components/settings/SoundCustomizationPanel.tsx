@@ -103,7 +103,7 @@ const SOUND_CATEGORIES = {
 let sharedAudioContext: AudioContext | null = null;
 const getSharedAudioContext = () => {
   if (!sharedAudioContext) {
-    sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    sharedAudioContext = new (window.AudioContext || (window as unknown as Record<string, typeof AudioContext>).webkitAudioContext)();
   }
   return sharedAudioContext;
 };

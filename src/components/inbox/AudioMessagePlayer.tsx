@@ -45,7 +45,7 @@ export function AudioMessagePlayer({
           filter: `id=eq.${messageId}`,
         },
         (payload) => {
-          const newData = payload.new as any;
+          const newData = payload.new as Record<string, string | null>;
           if (newData.transcription_status) {
             setTranscriptionStatus(newData.transcription_status);
           }
@@ -129,6 +129,7 @@ export function AudioMessagePlayer({
         setTranscriptionStatus('completed');
         
         // Update message in database with transcription
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- columns not in generated types
         await (supabase as any)
           .from('messages')
           .update({ 

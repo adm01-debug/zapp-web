@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { Clock, Sun, Moon } from 'lucide-react';
@@ -22,15 +22,7 @@ export function BusinessHoursIndicator({
   const [todayHours, setTodayHours] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkBusinessHours();
-    
-    // Check every minute
-    const interval = setInterval(checkBusinessHours, 60000);
-    return () => clearInterval(interval);
-  }, [connectionId]);
-
-  const checkBusinessHours = async () => {
+  const checkBusinessHours = useCallback(async () => {
     try {
       // Get current time in Brazil timezone
       const now = new Date();
@@ -38,7 +30,8 @@ export function BusinessHoursIndicator({
       const currentDay = brazilTime.getDay();
       const currentTimeStr = brazilTime.toTimeString().slice(0, 5); // HH:MM
 
-      // Fetch business hours for today - using any to bypass type issues
+      // Fetch business hours for today
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
       const { data, error } = await (supabase as any)
         .from('business_hours')
         .select('*')
@@ -81,7 +74,15 @@ export function BusinessHoursIndicator({
       setIsOpen(null);
       setLoading(false);
     }
-  };
+  }, [connectionId]);
+
+  useEffect(() => {
+    checkBusinessHours();
+
+    // Check every minute
+    const interval = setInterval(checkBusinessHours, 60000);
+    return () => clearInterval(interval);
+  }, [checkBusinessHours]);
 
   if (loading) {
     return null;

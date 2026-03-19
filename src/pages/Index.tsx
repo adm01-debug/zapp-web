@@ -78,7 +78,7 @@ function IndexContent() {
   useEffect(() => {
     registerNavigationHandler(setCurrentView);
     return () => unregisterNavigationHandler();
-  }, [registerNavigationHandler, unregisterNavigationHandler]);
+  }, [registerNavigationHandler, unregisterNavigationHandler, setCurrentView]);
   
   // Enable transcription notifications globally
   useTranscriptionNotifications({ enabled: !!user });

@@ -44,12 +44,12 @@ import { toast } from 'sonner';
 // Automation types
 interface AutomationTrigger {
   type: 'new_message' | 'keyword' | 'time_inactive' | 'tag_added' | 'business_hours';
-  config: Record<string, any>;
+  config: Record<string, string | number | boolean>;
 }
 
 interface AutomationAction {
   type: 'send_message' | 'assign_agent' | 'add_tag' | 'send_notification' | 'close_conversation';
-  config: Record<string, any>;
+  config: Record<string, string | number | boolean>;
 }
 
 interface Automation {
@@ -314,8 +314,8 @@ function AutomationEditorDialog({
       await onSave({
         name,
         description,
-        trigger: { type: triggerType as any, config: {} },
-        actions: [{ type: actionType as any, config: { message: messageContent } }],
+        trigger: { type: triggerType as AutomationTrigger['type'], config: {} },
+        actions: [{ type: actionType as AutomationAction['type'], config: { message: messageContent } }],
       });
       onOpenChange(false);
     } finally {
@@ -511,7 +511,7 @@ export function AutomationsManager() {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+            <Select value={filter} onValueChange={(v) => setFilter(v as 'all' | 'active' | 'inactive')}>
               <SelectTrigger className="w-28">
                 <SelectValue />
               </SelectTrigger>

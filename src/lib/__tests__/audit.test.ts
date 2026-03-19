@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- test mocks */
+
 const mockFrom = vi.fn();
 const mockGetUser = vi.fn();
 

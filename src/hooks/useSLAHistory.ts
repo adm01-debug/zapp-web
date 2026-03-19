@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { log } from '@/lib/logger';
 import { startOfDay, subDays, format, eachDayOfInterval } from 'date-fns';
@@ -43,7 +43,7 @@ export const useSLAHistory = (period: HistoryPeriod = '30d') => {
   const [data, setData] = useState<SLAHistoryData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const getPeriodDays = (): number => {
+  const getPeriodDays = useCallback((): number => {
     switch (period) {
       case '7d': return 7;
       case '14d': return 14;
@@ -51,7 +51,7 @@ export const useSLAHistory = (period: HistoryPeriod = '30d') => {
       case '90d': return 90;
       default: return 30;
     }
-  };
+  }, [period]);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -189,7 +189,7 @@ export const useSLAHistory = (period: HistoryPeriod = '30d') => {
     };
 
     fetchHistory();
-  }, [period]);
+  }, [period, getPeriodDays]);
 
   return { data, loading };
 };

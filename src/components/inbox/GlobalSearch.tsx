@@ -340,6 +340,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     if (search.length >= 2 || selectedTags.length > 0) {
       performSearch(search, activeTypes, dateFilter, selectedTags);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTypes, dateFilter, selectedTags]);
 
   const handleSelect = (result: SearchResult) => {
@@ -392,6 +393,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, results, tagSuggestions, selectedIndex]);
 
   const getResultIcon = (type: SearchResult['type']) => {

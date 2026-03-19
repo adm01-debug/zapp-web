@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -17,20 +17,9 @@ export function useUserRole() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchRoles();
-    } else {
-      setRoles([]);
-      setIsAdmin(false);
-      setIsSupervisor(false);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from('user_roles')
       .select('*')
@@ -43,7 +32,18 @@ export function useUserRole() {
       setIsSupervisor(userRoles.includes('supervisor') || userRoles.includes('admin'));
     }
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRoles();
+    } else {
+      setRoles([]);
+      setIsAdmin(false);
+      setIsSupervisor(false);
+      setLoading(false);
+    }
+  }, [user, fetchRoles]);
 
   const hasRole = (role: AppRole) => roles.includes(role);
 

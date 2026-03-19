@@ -66,7 +66,7 @@ export function KnowledgeBaseView() {
       supabase.from('knowledge_base_articles').select('*').order('updated_at', { ascending: false }),
       supabase.from('knowledge_base_files').select('*').order('created_at', { ascending: false }),
     ]);
-    if (articlesRes.data) setArticles(articlesRes.data.map((a: any) => ({ ...a, tags: a.tags || [] })));
+    if (articlesRes.data) setArticles(articlesRes.data.map((a: Record<string, unknown>) => ({ ...a, tags: (a.tags as string[]) || [] })));
     if (filesRes.data) setFiles(filesRes.data);
     setLoading(false);
   }, []);

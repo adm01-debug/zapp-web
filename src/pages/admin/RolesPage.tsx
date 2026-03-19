@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Users, UserPlus, Trash2, Search, Loader2, Crown, Eye, Headphones } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -77,7 +77,7 @@ export default function RolesPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<'admin' | 'supervisor' | 'agent'>('agent');
-  const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<{ user_id: string; name: string; email: string }[]>([]);
   const [userToRemove, setUserToRemove] = useState<UserWithRole | null>(null);
   const [updating, setUpdating] = useState(false);
 
@@ -109,7 +109,7 @@ export default function RolesPage() {
     setLoading(false);
   };
 
-  const fetchAvailableUsers = async () => {
+  const fetchAvailableUsers = useCallback(async () => {
     const { data, error } = await supabase
       .from('profiles')
       .select('user_id, name, email')
@@ -125,7 +125,7 @@ export default function RolesPage() {
       const usersWithRoles = users.map(u => u.user_id);
       setAvailableUsers(data.filter(u => !usersWithRoles.includes(u.user_id)));
     }
-  };
+  }, [users]);
 
   useEffect(() => {
     fetchUsers();
@@ -135,7 +135,7 @@ export default function RolesPage() {
     if (showAddDialog) {
       fetchAvailableUsers();
     }
-  }, [showAddDialog, users]);
+  }, [showAddDialog, users, fetchAvailableUsers]);
 
   const handleAddRole = async () => {
     if (!selectedUser || !selectedRole) return;
@@ -364,7 +364,7 @@ export default function RolesPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Role</label>
-              <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as any)}>
+              <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'admin' | 'supervisor' | 'agent')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

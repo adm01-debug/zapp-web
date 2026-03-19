@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Smartphone, Copy, Check, Loader2 } from 'lucide-react';
 import { useMFA } from '@/hooks/useMFA';
@@ -42,9 +42,9 @@ export function MFAEnroll({ onSuccess, onCancel }: MFAEnrollProps) {
     }
   };
 
-  const handleVerify = async () => {
+  const handleVerify = useCallback(async () => {
     if (!enrollmentData || code.length !== 6) return;
-    
+
     setVerifying(true);
     try {
       await verifyTOTP(enrollmentData.id, code);
@@ -54,13 +54,13 @@ export function MFAEnroll({ onSuccess, onCancel }: MFAEnrollProps) {
     } finally {
       setVerifying(false);
     }
-  };
+  }, [enrollmentData, code, verifyTOTP, onSuccess]);
 
   useEffect(() => {
     if (code.length === 6) {
       handleVerify();
     }
-  }, [code]);
+  }, [code, handleVerify]);
 
   return (
     <Card className="w-full max-w-md mx-auto">

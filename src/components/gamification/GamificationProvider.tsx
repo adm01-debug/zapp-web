@@ -277,11 +277,12 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     if (dbStats) {
       const currentLevel = dbStats.level;
       const calculatedLevel = calculateLevel(dbStats.xp);
-      
+
       if (calculatedLevel > currentLevel) {
         triggerLevelUp(calculatedLevel);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbStats?.xp]);
 
   return (

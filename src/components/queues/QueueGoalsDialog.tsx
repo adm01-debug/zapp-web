@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,7 @@ export function QueueGoalsDialog({
         setFormData(getDefaultGoal());
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, queueId, goals]);
 
   const handleSave = async () => {

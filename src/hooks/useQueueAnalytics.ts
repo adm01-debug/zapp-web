@@ -51,7 +51,9 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
   const mountedRef = useRef(true);
 
   // Memoize ISO strings to prevent infinite re-render loop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fromISO = useMemo(() => dateRange.from?.toISOString(), [dateRange.from?.getTime()]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const toISO = useMemo(() => dateRange.to?.toISOString(), [dateRange.to?.getTime()]);
 
   const fetchAnalytics = useCallback(async () => {
@@ -124,7 +126,7 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
     return () => {
       mountedRef.current = false;
     };
-  }, [fetchAnalytics]);
+  }, [fetchAnalytics, queueId, fromISO, toISO]);
 
   const generateEmptyDailyData = (range: DateRange): DailyData[] => {
     const days = eachDayOfInterval({

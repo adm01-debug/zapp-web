@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -103,13 +103,7 @@ export function AdminView() {
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (isSupervisor) {
-      fetchData();
-    }
-  }, [isSupervisor, activeTab]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
 
     if (activeTab === 'users') {
@@ -157,7 +151,13 @@ export function AdminView() {
     }
 
     setLoading(false);
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (isSupervisor) {
+      fetchData();
+    }
+  }, [isSupervisor, fetchData]);
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
     if (!isAdmin) {

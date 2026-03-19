@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { log } from '@/lib/logger';
 import {
   Dialog,
@@ -75,14 +75,7 @@ export function InstanceSettingsDialog({
   const [labels, setLabels] = useState<{ id: string; name: string; color: string }[]>([]);
   const [loadingTab, setLoadingTab] = useState('');
 
-  useEffect(() => {
-    if (open && instanceName) {
-      loadSettings();
-      loadProfile();
-    }
-  }, [open, instanceName]);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     setLoadingTab('settings');
     try {
       const data = await getSettings(instanceName);
@@ -99,9 +92,9 @@ export function InstanceSettingsDialog({
       }
     } catch (err) { log.debug('Failed to load instance data:', err); }
     setLoadingTab('');
-  };
+  }, [getSettings, instanceName]);
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const data = await fetchProfile(instanceName);
       if (data) {
@@ -112,7 +105,14 @@ export function InstanceSettingsDialog({
         });
       }
     } catch (err) { log.debug('Failed to load instance data:', err); }
-  };
+  }, [fetchProfile, instanceName]);
+
+  useEffect(() => {
+    if (open && instanceName) {
+      loadSettings();
+      loadProfile();
+    }
+  }, [open, instanceName, loadSettings, loadProfile]);
 
   const loadLabels = async () => {
     setLoadingTab('labels');

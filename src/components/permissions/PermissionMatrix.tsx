@@ -106,7 +106,7 @@ export function PermissionMatrix() {
           />
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'admin' | 'supervisor' | 'agent')}>
           <TabsList className="w-full">
             {Object.entries(ROLE_LABELS).map(([role, { label }]) => (
               <TabsTrigger key={role} value={role} className="flex-1">
@@ -143,7 +143,7 @@ export function PermissionMatrix() {
                           <div className="flex items-center gap-3">
                             <Checkbox
                               checked={checked}
-                              onCheckedChange={() => handleToggle(role as any, perm.id)}
+                              onCheckedChange={() => handleToggle(role as 'admin' | 'supervisor' | 'agent', perm.id)}
                               disabled={isUpdating || role === 'admin'}
                               className="data-[state=checked]:bg-primary"
                             />

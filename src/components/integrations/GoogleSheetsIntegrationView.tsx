@@ -155,7 +155,7 @@ export function GoogleSheetsIntegrationView() {
                   </div>
                   <div>
                     <Label>Direção</Label>
-                    <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={newSync.syncDirection} onChange={e => setNewSync(p => ({ ...p, syncDirection: e.target.value as any }))}>
+                    <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={newSync.syncDirection} onChange={e => setNewSync(p => ({ ...p, syncDirection: e.target.value as SheetSync['syncDirection'] }))}>
                       <option value="export">Exportar</option>
                       <option value="import">Importar</option>
                       <option value="bidirectional">Bidirecional</option>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -93,13 +93,7 @@ export default function QueueDetails() {
     }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    if (id && user) {
-      fetchQueueData();
-    }
-  }, [id, user]);
-
-  const fetchQueueData = async () => {
+  const fetchQueueData = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -210,7 +204,13 @@ export default function QueueDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id && user) {
+      fetchQueueData();
+    }
+  }, [id, user, fetchQueueData]);
 
   if (authLoading || loading) {
     return (

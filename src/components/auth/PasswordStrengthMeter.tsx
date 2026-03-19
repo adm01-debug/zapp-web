@@ -19,7 +19,7 @@ const requirements: PasswordRequirement[] = [
   { label: 'Letra maiúscula (A-Z)', test: (p) => /[A-Z]/.test(p), weight: 1 },
   { label: 'Letra minúscula (a-z)', test: (p) => /[a-z]/.test(p), weight: 1 },
   { label: 'Número (0-9)', test: (p) => /\d/.test(p), weight: 1 },
-  { label: 'Caractere especial (!@#$%)', test: (p) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p), weight: 1 },
+  { label: 'Caractere especial (!@#$%)', test: (p) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(p), weight: 1 },
 ];
 
 // Simple hash function for k-anonymity check

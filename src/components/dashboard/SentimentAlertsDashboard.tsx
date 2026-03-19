@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { log } from '@/lib/logger';
 import {
@@ -85,11 +85,7 @@ export function SentimentAlertsDashboard() {
   const [period, setPeriod] = useState('7');
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    fetchData();
-  }, [period]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     const daysAgo = parseInt(period);
     const startDate = startOfDay(subDays(new Date(), daysAgo)).toISOString();
@@ -138,7 +134,11 @@ export function SentimentAlertsDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Calculate statistics
   const stats = React.useMemo(() => {

@@ -10,7 +10,7 @@ export interface ReportData {
   subtitle?: string;
   generatedAt: Date;
   columns: { header: string; key: string; width?: number }[];
-  rows: Record<string, any>[];
+  rows: Record<string, string | number | boolean | null>[];
   summary?: { label: string; value: string | number }[];
 }
 

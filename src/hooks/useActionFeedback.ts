@@ -189,7 +189,6 @@ export function useActionFeedback() {
       return new Promise((resolve) => {
         const { description, undoDuration = 5000, onUndo, onConfirm } = options;
         let undone = false;
-        let timeoutId: NodeJS.Timeout;
 
         const toastResult = showFeedback('info', {
           description,
@@ -198,7 +197,7 @@ export function useActionFeedback() {
             label: 'Desfazer',
             onClick: () => {
               undone = true;
-              clearTimeout(timeoutId);
+              clearTimeout(delayedTimeoutId);
               toastResult.dismiss();
               onUndo();
               info('Ação desfeita');
@@ -207,7 +206,7 @@ export function useActionFeedback() {
           },
         });
 
-        timeoutId = setTimeout(async () => {
+        const delayedTimeoutId = setTimeout(async () => {
           if (!undone) {
             try {
               const result = await action();

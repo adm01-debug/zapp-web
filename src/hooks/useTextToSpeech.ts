@@ -44,6 +44,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
   const setVoiceId = useCallback((newVoiceId: string) => {
     setVoiceIdState(newVoiceId);
     options.onVoiceChange?.(newVoiceId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.onVoiceChange]);
 
   const setSpeed = useCallback((newSpeed: number) => {
@@ -55,6 +56,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
       audioRef.current.playbackRate = clampedSpeed;
     }
     options.onSpeedChange?.(clampedSpeed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.onSpeedChange]);
 
   const stop = useCallback(() => {

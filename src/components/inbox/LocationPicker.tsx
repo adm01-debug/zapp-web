@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { 
@@ -108,6 +108,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
       map.current = null;
       setIsMapLoaded(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapboxToken, open]);
 
   const updateMarker = (lng: number, lat: number) => {
@@ -132,7 +133,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
     map.current.flyTo({ center: [lng, lat], zoom: 16 });
   };
 
-  const reverseGeocode = async (lng: number, lat: number) => {
+  const reverseGeocode = useCallback(async (lng: number, lat: number) => {
     if (!mapboxToken) return;
 
     try {
@@ -156,7 +157,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
       log.error('Error reverse geocoding:', error);
       setSelectedLocation({ lat, lng });
     }
-  };
+  }, [mapboxToken]);
 
   const getCurrentLocation = () => {
     setIsLoadingLocation(true);

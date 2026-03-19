@@ -40,8 +40,8 @@ export function useTranscriptionNotifications(options: TranscriptionNotification
           table: 'messages',
         },
         async (payload) => {
-          const newData = payload.new as any;
-          const oldData = payload.old as any;
+          const newData = payload.new as Record<string, string | null>;
+          const oldData = payload.old as Record<string, string | null>;
 
           // Check if transcription just completed
           if (

@@ -78,7 +78,7 @@ export function SalesPipelineView() {
 
     if (stagesRes.data) setStages(stagesRes.data);
     if (dealsRes.data) {
-      setDeals(dealsRes.data.map((d: any) => ({
+      setDeals(dealsRes.data.map((d: Record<string, unknown>) => ({
         ...d,
         tags: d.tags || [],
         contact: d.contacts,

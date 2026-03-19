@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { FileText, Plus, Search, Trash2, Edit2, X, Save, Loader2 } from 'lucide-react';
@@ -40,7 +40,7 @@ export function MessageTemplates({ onSelectTemplate }: MessageTemplatesProps) {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
     try {
@@ -56,13 +56,13 @@ export function MessageTemplates({ onSelectTemplate }: MessageTemplatesProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (isOpen && user) {
       fetchTemplates();
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, fetchTemplates]);
 
   const handleSelectTemplate = async (template: Template) => {
     onSelectTemplate(template.content);

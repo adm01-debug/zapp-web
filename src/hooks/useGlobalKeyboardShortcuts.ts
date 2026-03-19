@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCustomShortcuts } from './useCustomShortcuts';
@@ -13,52 +13,54 @@ export function useGlobalKeyboardShortcuts(customActions?: GlobalShortcutAction[
   const location = useLocation();
   const { shortcuts, getActiveBinding } = useCustomShortcuts();
 
-  // Default global actions
-  const defaultActions: Record<string, () => void> = {
-    'global-search': () => {
-      document.dispatchEvent(new CustomEvent('open-global-search'));
-    },
-    'go-to-inbox': () => {
-      navigate('/');
-      toast.info('📥 Inbox', { duration: 1500 });
-    },
-    'go-to-dashboard': () => {
-      navigate('/');
-      toast.info('📊 Dashboard', { duration: 1500 });
-    },
-    'go-to-contacts': () => {
-      navigate('/');
-      toast.info('👥 Contatos', { duration: 1500 });
-    },
-    'go-to-settings': () => {
-      navigate('/');
-      toast.info('⚙️ Configurações', { duration: 1500 });
-    },
-    'toggle-theme': () => {
-      document.dispatchEvent(new CustomEvent('toggle-theme'));
-    },
-    'show-shortcuts-help': () => {
-      document.dispatchEvent(new CustomEvent('show-shortcuts-help'));
-    },
-    'refresh-data': () => {
-      window.location.reload();
-    },
-    'toggle-sidebar': () => {
-      document.dispatchEvent(new CustomEvent('toggle-sidebar'));
-    },
-    'quick-compose': () => {
-      document.dispatchEvent(new CustomEvent('quick-compose'));
-    },
-    'toggle-notifications': () => {
-      document.dispatchEvent(new CustomEvent('toggle-notifications'));
-    },
-  };
+  // Default global actions + merge custom actions
+  const actions = useMemo(() => {
+    const defaultActions: Record<string, () => void> = {
+      'global-search': () => {
+        document.dispatchEvent(new CustomEvent('open-global-search'));
+      },
+      'go-to-inbox': () => {
+        navigate('/');
+        toast.info('📥 Inbox', { duration: 1500 });
+      },
+      'go-to-dashboard': () => {
+        navigate('/');
+        toast.info('📊 Dashboard', { duration: 1500 });
+      },
+      'go-to-contacts': () => {
+        navigate('/');
+        toast.info('👥 Contatos', { duration: 1500 });
+      },
+      'go-to-settings': () => {
+        navigate('/');
+        toast.info('⚙️ Configurações', { duration: 1500 });
+      },
+      'toggle-theme': () => {
+        document.dispatchEvent(new CustomEvent('toggle-theme'));
+      },
+      'show-shortcuts-help': () => {
+        document.dispatchEvent(new CustomEvent('show-shortcuts-help'));
+      },
+      'refresh-data': () => {
+        window.location.reload();
+      },
+      'toggle-sidebar': () => {
+        document.dispatchEvent(new CustomEvent('toggle-sidebar'));
+      },
+      'quick-compose': () => {
+        document.dispatchEvent(new CustomEvent('quick-compose'));
+      },
+      'toggle-notifications': () => {
+        document.dispatchEvent(new CustomEvent('toggle-notifications'));
+      },
+    };
 
-  // Merge custom actions with defaults
-  const actions = { ...defaultActions };
-  customActions?.forEach(({ id, action }) => {
-    actions[id] = action;
-  });
+    const merged = { ...defaultActions };
+    customActions?.forEach(({ id, action }) => {
+      merged[id] = action;
+    });
+    return merged;
+  }, [navigate, customActions]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Don't trigger shortcuts when typing in inputs (except for specific ones)

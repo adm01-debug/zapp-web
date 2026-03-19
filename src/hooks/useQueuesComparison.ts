@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { subDays } from 'date-fns';
 import { log } from '@/lib/logger';
@@ -24,11 +24,7 @@ export function useQueuesComparison(dateRange: DateRange) {
   const [queuesPerformance, setQueuesPerformance] = useState<QueuePerformance[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchComparison();
-  }, [dateRange.from.toISOString(), dateRange.to.toISOString()]);
-
-  const fetchComparison = async () => {
+  const fetchComparison = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -133,7 +129,12 @@ export function useQueuesComparison(dateRange: DateRange) {
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange.from.toISOString(), dateRange.to.toISOString()]);
+
+  useEffect(() => {
+    fetchComparison();
+  }, [fetchComparison]);
 
   return {
     queuesPerformance,

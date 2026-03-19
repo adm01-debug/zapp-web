@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- test mocks */
+
 vi.mock('jspdf', () => {
   const mockDoc = {
     internal: { pageSize: { getWidth: () => 210, getHeight: () => 297 } },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { 
@@ -74,11 +74,7 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
   const [isExpanded, setIsExpanded] = useState(false);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d');
 
-  useEffect(() => {
-    fetchConversationHistory();
-  }, [contactId, contactPhone, periodFilter]);
-
-  const fetchConversationHistory = async () => {
+  const fetchConversationHistory = useCallback(async () => {
     setIsLoading(true);
     try {
       // Get the date filter
@@ -162,7 +158,11 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [contactId, periodFilter]);
+
+  useEffect(() => {
+    fetchConversationHistory();
+  }, [fetchConversationHistory]);
 
   const displayedConversations = isExpanded ? conversations : conversations.slice(0, 3);
   const selectedPeriodLabel = periodOptions.find(p => p.value === periodFilter)?.label || '';

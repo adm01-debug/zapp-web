@@ -47,7 +47,7 @@ export function MessageContextActions({
   } = useEvolutionApi();
 
   const isSent = message.sender === 'agent';
-  const externalId = (message as any).external_id;
+  const externalId = (message as Record<string, unknown>).external_id as string | undefined;
 
   const handleDelete = useCallback(async () => {
     if (!externalId) {

@@ -140,7 +140,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
           <StaggeredList className="space-y-5">
             {dayMessages.map((message) => {
               const isSent = message.sender === 'agent';
-              const senderName = isSent ? 'You' : (message as any).senderName || 'Contato';
+              const senderName = isSent ? 'You' : (message as Record<string, unknown>).senderName as string || 'Contato';
 
               return (
                 <StaggeredItem key={message.id}>
@@ -151,7 +151,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                     {/* Avatar — received messages (left) */}
                     {!isSent && (
                       <Avatar className="w-9 h-9 shrink-0 mt-6">
-                        <AvatarImage src={(message as any).senderAvatar} />
+                        <AvatarImage src={(message as Record<string, unknown>).senderAvatar as string | undefined} />
                         <AvatarFallback className="bg-muted text-muted-foreground text-xs">
                           {senderName.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
@@ -229,7 +229,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       </div>
 
                       {/* Message bubble */}
-                      {(message as any).is_deleted ? (
+                      {(message as Record<string, unknown>).is_deleted ? (
                         <DeletedMessagePlaceholder isSent={isSent} />
                       ) : (
                       <div

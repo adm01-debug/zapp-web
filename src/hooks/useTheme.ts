@@ -95,7 +95,7 @@ export function useTheme(): UseThemeReturn {
   // Apply theme on mount
   useEffect(() => {
     applyTheme(theme, false);
-  }, []);
+  }, [applyTheme, theme]);
 
   // Listen for system theme changes
   useEffect(() => {

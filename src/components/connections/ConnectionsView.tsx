@@ -137,9 +137,22 @@ export function ConnectionsView() {
     deleteInstance,
   } = useEvolutionApi();
 
+  const fetchConnections = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('whatsapp_connections')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setConnections(data);
+    }
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchConnections();
-    
+
     // Subscribe to realtime updates
     const channel = supabase
       .channel('whatsapp-connections-changes')
@@ -161,14 +174,17 @@ export function ConnectionsView() {
               )
             );
             // Update QR dialog if open
-            if (qrCodeDialog.open && qrCodeDialog.connectionId === (payload.new as WhatsAppConnection).id) {
-              const newConn = payload.new as WhatsAppConnection;
-              if (newConn.status === 'connected') {
-                setQrCodeDialog((prev) => ({ ...prev, status: 'connected', qrCode: null }));
-              } else if (newConn.qr_code) {
-                setQrCodeDialog((prev) => ({ ...prev, qrCode: newConn.qr_code, status: 'pending' }));
+            setQrCodeDialog((prev) => {
+              if (prev.open && prev.connectionId === (payload.new as WhatsAppConnection).id) {
+                const newConn = payload.new as WhatsAppConnection;
+                if (newConn.status === 'connected') {
+                  return { ...prev, status: 'connected', qrCode: null };
+                } else if (newConn.qr_code) {
+                  return { ...prev, qrCode: newConn.qr_code, status: 'pending' };
+                }
               }
-            }
+              return prev;
+            });
           } else if (payload.eventType === 'INSERT') {
             setConnections((prev) => [payload.new as WhatsAppConnection, ...prev]);
           } else if (payload.eventType === 'DELETE') {
@@ -182,20 +198,7 @@ export function ConnectionsView() {
       supabase.removeChannel(channel);
       if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
     };
-  }, []);
-
-  const fetchConnections = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('whatsapp_connections')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setConnections(data);
-    }
-    setLoading(false);
-  };
+  }, [fetchConnections]);
 
   const generateInstanceName = (name: string) => {
     return name

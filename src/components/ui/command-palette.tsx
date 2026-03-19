@@ -318,7 +318,7 @@ export function CommandPalette({
   };
 
   // Execute command
-  const executeCommand = (item: CommandItem) => {
+  const executeCommand = React.useCallback((item: CommandItem) => {
     if (item.disabled) return;
 
     if (item.action) {
@@ -332,7 +332,7 @@ export function CommandPalette({
 
     onOpenChange(false);
     setQuery('');
-  };
+  }, [onNavigate, onOpenChange]);
 
   // Keyboard navigation
   React.useEffect(() => {
@@ -353,7 +353,7 @@ export function CommandPalette({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, allItems, selectedIndex]);
+  }, [open, allItems, selectedIndex, executeCommand]);
 
   // Reset on close
   React.useEffect(() => {

@@ -28,6 +28,7 @@ export const mockSession = {
   expires_at: Date.now() + 3600,
 };
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- test mock */
 export const mockAuthContext = {
   user: mockUser as any,
   session: mockSession as any,

@@ -117,7 +117,7 @@ export function useUserSettings() {
             auto_assignment_enabled: data.auto_assignment_enabled ?? DEFAULT_SETTINGS.auto_assignment_enabled,
             auto_assignment_method: data.auto_assignment_method ?? DEFAULT_SETTINGS.auto_assignment_method,
             inactivity_timeout: data.inactivity_timeout ?? DEFAULT_SETTINGS.inactivity_timeout,
-            auto_transcription_enabled: (data as any).auto_transcription_enabled ?? DEFAULT_SETTINGS.auto_transcription_enabled,
+            auto_transcription_enabled: (data as Record<string, unknown>).auto_transcription_enabled as boolean ?? DEFAULT_SETTINGS.auto_transcription_enabled,
             sound_enabled: data.sound_enabled ?? DEFAULT_SETTINGS.sound_enabled,
             browser_notifications_enabled: data.browser_notifications_enabled ?? DEFAULT_SETTINGS.browser_notifications_enabled,
             quiet_hours_enabled: data.quiet_hours_enabled ?? DEFAULT_SETTINGS.quiet_hours_enabled,
@@ -126,8 +126,8 @@ export function useUserSettings() {
             theme: data.theme ?? DEFAULT_SETTINGS.theme,
             language: data.language ?? DEFAULT_SETTINGS.language,
             compact_mode: data.compact_mode ?? DEFAULT_SETTINGS.compact_mode,
-            tts_voice_id: (data as any).tts_voice_id ?? DEFAULT_SETTINGS.tts_voice_id,
-            tts_speed: (data as any).tts_speed ?? DEFAULT_SETTINGS.tts_speed,
+            tts_voice_id: (data as Record<string, unknown>).tts_voice_id as string ?? DEFAULT_SETTINGS.tts_voice_id,
+            tts_speed: (data as Record<string, unknown>).tts_speed as number ?? DEFAULT_SETTINGS.tts_speed,
           });
         }
       } catch (err) {

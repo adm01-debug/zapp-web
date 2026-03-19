@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, subDays, startOfWeek, startOfMonth } from 'date-fns';
 import { log } from '@/lib/logger';
@@ -35,7 +35,7 @@ export const useSLAMetrics = (period: PeriodFilter = 'today') => {
   const [data, setData] = useState<SLADashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const getDateRange = () => {
+  const getDateRange = useCallback(() => {
     const now = new Date();
     switch (period) {
       case 'today':
@@ -49,7 +49,7 @@ export const useSLAMetrics = (period: PeriodFilter = 'today') => {
       default:
         return startOfDay(now);
     }
-  };
+  }, [period]);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -180,7 +180,7 @@ export const useSLAMetrics = (period: PeriodFilter = 'today') => {
     };
 
     fetchMetrics();
-  }, [period]);
+  }, [period, getDateRange]);
 
   return { data, loading };
 };
