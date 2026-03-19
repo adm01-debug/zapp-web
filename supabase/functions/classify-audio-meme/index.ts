@@ -19,6 +19,14 @@ serve(async (req) => {
 
   try {
     const { audio_url, file_name } = await req.json();
+
+    // Input validation — if both are empty/missing, skip AI call
+    if (!audio_url && !file_name) {
+      console.warn('[CLASSIFY-AUDIO] Empty input, defaulting to outros');
+      return new Response(JSON.stringify({ category: 'outros' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
