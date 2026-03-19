@@ -482,6 +482,9 @@ export function NotificationSettingsPanel() {
         )}
       </Card>
 
+      {/* Push Notifications */}
+      <PushNotificationCard />
+
       {/* Quiet Hours */}
       <Card className="border-secondary/20 bg-card">
         <CardHeader>
