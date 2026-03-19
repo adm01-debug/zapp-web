@@ -1373,27 +1373,27 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
 
   describe('Audio Preview Logic', () => {
     it('non audio type skips preview', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const shouldPreview = type === 'audio_memes';
       expect(shouldPreview).toBe(false);
     });
 
     it('audio type enables preview', () => {
-      const type = 'audio_memes';
+      const type: string = 'audio_memes';
       const shouldPreview = type === 'audio_memes';
       expect(shouldPreview).toBe(true);
     });
 
     it('toggle pause when same item playing', () => {
-      const playingId = 'a1';
-      const clickedId = 'a1';
+      const playingId: string = 'a1';
+      const clickedId: string = 'a1';
       const shouldPause = playingId === clickedId;
       expect(shouldPause).toBe(true);
     });
 
     it('switch to new item when different item clicked', () => {
-      const playingId = 'a1';
-      const clickedId = 'a2';
+      const playingId: string = 'a1';
+      const clickedId: string = 'a2';
       const shouldPause = playingId === clickedId;
       expect(shouldPause).toBe(false);
     });
