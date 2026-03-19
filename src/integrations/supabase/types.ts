@@ -1532,6 +1532,42 @@ export type Database = {
           },
         ]
       }
+      custom_emojis: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          image_url: string
+          is_favorite: boolean | null
+          name: string
+          updated_at: string | null
+          uploaded_by: string | null
+          use_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          image_url: string
+          is_favorite?: boolean | null
+          name: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          use_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          is_favorite?: boolean | null
+          name?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          use_count?: number | null
+        }
+        Relationships: []
+      }
       deal_activities: {
         Row: {
           activity_type: string
