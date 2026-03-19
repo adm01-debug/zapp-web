@@ -437,6 +437,46 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
   };
 
+  const handleSendAudioMeme = async (audioUrl: string) => {
+    if (!instanceName || !conversation.contact.phone) {
+      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível' });
+      return;
+    }
+    try {
+      const phone = conversation.contact.phone.replace(/\D/g, '');
+      const { sendAudioMessage } = await import('@/hooks/useEvolutionApi').then(() => ({ sendAudioMessage: (window as any).__sendAudioMessage }));
+      
+      // Send via API + save to DB in parallel
+      const apiPromise = supabase.functions.invoke('evolution-api/send-audio', {
+        body: { instanceName, number: phone, mediaUrl: audioUrl },
+      });
+      
+      const dbPromise = supabase.from('messages').insert({
+        contact_id: conversation.contact.id,
+        whatsapp_connection_id: null,
+        content: '[Áudio Meme]',
+        message_type: 'audio',
+        media_url: audioUrl,
+        sender: 'agent',
+        status: 'sending',
+      }).select('id').single();
+
+      const [apiResult, dbResult] = await Promise.all([apiPromise, dbPromise]);
+      
+      const externalId = apiResult?.data?.key?.id || null;
+      if (dbResult?.data?.id && externalId) {
+        supabase.from('messages')
+          .update({ external_id: externalId, status: 'sent' })
+          .eq('id', dbResult.data.id)
+          .then(() => {});
+      }
+      
+      toast({ title: '🔊 Áudio meme enviado!' });
+    } catch {
+      toast({ title: 'Erro ao enviar áudio meme', variant: 'destructive' });
+    }
+  };
+
   const filteredQuickReplies = dbQuickReplies.filter(
     (reply) => inputValue.startsWith('/') && reply.shortcut.toLowerCase().includes(inputValue.toLowerCase())
   );
