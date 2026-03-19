@@ -186,7 +186,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
       .from('stickers')
       .select('*')
       .order('use_count', { ascending: false })
-      .limit(200);
+      .limit(1000);
 
     if (!error && data) {
       setStickers(data as StickerItem[]);
