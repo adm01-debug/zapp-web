@@ -2257,65 +2257,54 @@ describe('Pure Function Logic', () => {
   });
 
   describe('Classify Function Mapping', () => {
+    const getClassifyFn = (type: string) =>
+      type === 'audio_memes' ? 'classify-audio-meme' :
+      type === 'stickers' ? 'classify-sticker' : 'classify-emoji';
+
     it('maps audio_memes to classify-audio-meme', () => {
-      const type = 'audio_memes';
-      const fn = type === 'audio_memes' ? 'classify-audio-meme' :
-        type === 'stickers' ? 'classify-sticker' : 'classify-emoji';
-      expect(fn).toBe('classify-audio-meme');
+      expect(getClassifyFn('audio_memes')).toBe('classify-audio-meme');
     });
 
     it('maps stickers to classify-sticker', () => {
-      const type = 'stickers';
-      const fn = type === 'audio_memes' ? 'classify-audio-meme' :
-        type === 'stickers' ? 'classify-sticker' : 'classify-emoji';
-      expect(fn).toBe('classify-sticker');
+      expect(getClassifyFn('stickers')).toBe('classify-sticker');
     });
 
     it('maps custom_emojis to classify-emoji', () => {
-      const type = 'custom_emojis';
-      const fn = type === 'audio_memes' ? 'classify-audio-meme' :
-        type === 'stickers' ? 'classify-sticker' : 'classify-emoji';
-      expect(fn).toBe('classify-emoji');
+      expect(getClassifyFn('custom_emojis')).toBe('classify-emoji');
     });
   });
 
   describe('Bucket Mapping', () => {
+    const getBucket = (type: string) =>
+      type === 'stickers' ? 'stickers' : type === 'audio_memes' ? 'audio-memes' : 'custom-emojis';
+
     it('maps stickers to stickers bucket', () => {
-      const type = 'stickers';
-      const bucket = type === 'stickers' ? 'stickers' : type === 'audio_memes' ? 'audio-memes' : 'custom-emojis';
-      expect(bucket).toBe('stickers');
+      expect(getBucket('stickers')).toBe('stickers');
     });
 
     it('maps audio_memes to audio-memes bucket', () => {
-      const type = 'audio_memes';
-      const bucket = type === 'stickers' ? 'stickers' : type === 'audio_memes' ? 'audio-memes' : 'custom-emojis';
-      expect(bucket).toBe('audio-memes');
+      expect(getBucket('audio_memes')).toBe('audio-memes');
     });
 
     it('maps custom_emojis to custom-emojis bucket', () => {
-      const type = 'custom_emojis';
-      const bucket = type === 'stickers' ? 'stickers' : type === 'audio_memes' ? 'audio-memes' : 'custom-emojis';
-      expect(bucket).toBe('custom-emojis');
+      expect(getBucket('custom_emojis')).toBe('custom-emojis');
     });
   });
 
   describe('URL Field Mapping', () => {
+    const getUrlField = (type: string) => type === 'audio_memes' ? 'audio_url' : 'image_url';
+
     it('audio_memes uses audio_url', () => {
-      const type = 'audio_memes';
-      const field = type === 'audio_memes' ? 'audio_url' : 'image_url';
-      expect(field).toBe('audio_url');
+      expect(getUrlField('audio_memes')).toBe('audio_url');
     });
 
     it('stickers uses image_url', () => {
-      const type = 'stickers';
-      const field = type === 'audio_memes' ? 'audio_url' : 'image_url';
-      expect(field).toBe('image_url');
+      expect(getUrlField('stickers')).toBe('image_url');
     });
 
     it('custom_emojis uses image_url', () => {
-      const type = 'custom_emojis';
-      const field = type === 'audio_memes' ? 'audio_url' : 'image_url';
-      expect(field).toBe('image_url');
+      expect(getUrlField('custom_emojis')).toBe('image_url');
     });
   });
+});
 });
