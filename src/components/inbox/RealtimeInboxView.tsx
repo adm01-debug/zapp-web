@@ -12,6 +12,13 @@ import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare,
 import { TicketTabs, MainTab, SubTab } from './TicketTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
