@@ -44,6 +44,7 @@ const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
   'despedida': { emoji: '👋', label: 'Despedida' },
   'animação': { emoji: '🤩', label: 'Animação' },
   'drama': { emoji: '🎬', label: 'Drama' },
+  'gospel': { emoji: '⛪', label: 'Gospel' },
   'outros': { emoji: '📦', label: 'Outros' },
 };
 
