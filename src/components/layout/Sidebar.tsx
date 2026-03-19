@@ -42,6 +42,10 @@ import {
   ClipboardList,
   AlertTriangle,
   FileText,
+  TrendingDown,
+  Cpu,
+  Inbox,
+  Tags,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -86,6 +90,7 @@ const toolsNav = [
   { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
   { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
   { id: 'omnichannel', icon: Globe, label: 'Omnichannel' },
+  { id: 'omni-inbox', icon: Inbox, label: 'Inbox Omni' },
 ] as const;
 
 const systemNav = [
@@ -96,6 +101,10 @@ const systemNav = [
   { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
   { id: 'achievements', icon: Trophy, label: 'Conquistas' },
   { id: 'diagnostics', icon: Globe, label: 'Diagnóstico' },
+  { id: 'churn', icon: TrendingDown, label: 'Previsão Churn' },
+  { id: 'ticket-classifier', icon: Tags, label: 'Classificador IA' },
+  { id: 'performance', icon: Cpu, label: 'Performance' },
+  { id: 'audit-logs', icon: FileBarChart, label: 'Auditoria' },
   { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
   { id: 'security', icon: Shield, label: 'Segurança' },
   { id: 'admin', icon: UserCog, label: 'Admin' },
