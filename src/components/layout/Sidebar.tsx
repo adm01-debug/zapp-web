@@ -186,10 +186,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       <div className="mx-4 my-2 h-px bg-border" />
 
       {/* Scrollable tools area */}
-      <div className={cn(
-        "flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px] transition-all duration-200",
-        !(showTools || isToolActive) && "hidden"
-      )}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]">
         <nav className="flex flex-col items-center gap-0.5 py-0.5" aria-label="Ferramentas">
           {toolsNav.map((item) => (
             <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
