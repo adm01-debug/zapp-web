@@ -293,41 +293,15 @@ serve(async (req) => {
 
     // POST /message/sendWhatsAppAudio/{instance}
     if (action === 'send-audio') {
-      const rawAudioSource = body.mediaUrl || body.audio;
+      const rawAudioSource = body.audio || body.mediaUrl;
       const audioSource = typeof rawAudioSource === 'string'
         ? rawAudioSource.trim().replace(/^"+|"+$/g, '').replace(/\.supabase\.co"\//, '.supabase.co/')
         : rawAudioSource;
-      let audioPayload: string = audioSource;
-
-      if (typeof audioSource === 'string' && audioSource.startsWith('http')) {
-        try {
-          const audioResponse = await fetch(audioSource);
-          if (!audioResponse.ok) {
-            throw new Error(`Failed to fetch audio: ${audioResponse.status}`);
-          }
-
-          const arrayBuffer = await audioResponse.arrayBuffer();
-          const bytes = new Uint8Array(arrayBuffer);
-          const chunkSize = 8192;
-          let binary = '';
-
-          for (let i = 0; i < bytes.length; i += chunkSize) {
-            const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
-            for (let j = 0; j < chunk.length; j++) {
-              binary += String.fromCharCode(chunk[j]);
-            }
-          }
-
-          audioPayload = btoa(binary);
-        } catch (e) {
-          console.error('[send-audio] Failed to prepare audio payload:', e);
-        }
-      }
 
       return await proxy(`/message/sendWhatsAppAudio/${instance}`, 'POST', {
         number: body.number,
-        audio: audioPayload,
-        encoding: body.encoding ?? true,
+        audio: audioSource,
+        encoding: body.encoding ?? !String(audioSource || '').startsWith('http'),
         delay: body.delay,
       });
     }

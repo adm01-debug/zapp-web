@@ -246,7 +246,8 @@ export function useRealtimeMessages() {
     contactId: string,
     content: string,
     messageType: string = 'text',
-    mediaUrl?: string
+    mediaUrl?: string,
+    mediaPayload?: string
   ) => {
     const { data: profile } = await supabase
       .from('profiles')
@@ -254,7 +255,6 @@ export function useRealtimeMessages() {
       .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
       .single();
 
-    // 1. Insert message into DB (optimistic)
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -275,7 +275,6 @@ export function useRealtimeMessages() {
       throw error;
     }
 
-    // 2. Get contact phone + connection instance for Evolution API
     try {
       const { data: contact } = await supabase
         .from('contacts')
@@ -299,7 +298,6 @@ export function useRealtimeMessages() {
             text: content,
           };
 
-          // Handle different message types
           if (messageType === 'image' && mediaUrl) {
             evolutionAction = 'send-media';
             evolutionBody = {
@@ -309,12 +307,13 @@ export function useRealtimeMessages() {
               media: mediaUrl,
               caption: content !== '[Imagem]' ? content : undefined,
             };
-          } else if (messageType === 'audio' && mediaUrl) {
+          } else if (messageType === 'audio' && (mediaPayload || mediaUrl)) {
             evolutionAction = 'send-audio';
             evolutionBody = {
               instanceName: connection.instance_id,
               number: phone,
-              mediaUrl,
+              audio: mediaPayload || mediaUrl,
+              encoding: Boolean(mediaPayload),
             };
           } else if (messageType === 'video' && mediaUrl) {
             evolutionAction = 'send-media';
@@ -351,7 +350,6 @@ export function useRealtimeMessages() {
             }
           }
 
-          // Call Evolution API via edge function
           const { data: apiResult, error: apiError } = await supabase.functions.invoke(
             `evolution-api/${evolutionAction}`,
             { body: evolutionBody }
@@ -359,13 +357,11 @@ export function useRealtimeMessages() {
 
           if (apiError) {
             log.error('Evolution API send error:', apiError);
-            // Update message status to failed
             await supabase
               .from('messages')
               .update({ status: 'failed' })
               .eq('id', data.id);
           } else {
-            // Update message with external_id and status
             const externalId = apiResult?.key?.id || apiResult?.messageId || null;
             await supabase
               .from('messages')
@@ -377,14 +373,12 @@ export function useRealtimeMessages() {
           }
         } else {
           log.warn('WhatsApp connection not active, message saved locally only');
-          // Mark as sent (local only, no WhatsApp delivery)
           await supabase
             .from('messages')
             .update({ status: 'sent' })
             .eq('id', data.id);
         }
       } else {
-        // No connection - mark as sent locally
         await supabase
           .from('messages')
           .update({ status: 'sent' })
@@ -392,7 +386,6 @@ export function useRealtimeMessages() {
       }
     } catch (evolutionError) {
       log.error('Error sending via Evolution API:', evolutionError);
-      // Don't throw - message is already saved in DB
       await supabase
         .from('messages')
         .update({ status: 'failed' })
