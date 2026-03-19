@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { StickerPicker } from '../StickerPicker';
 import { AudioMemePicker } from '../AudioMemePicker';
+import { CustomEmojiPicker } from '../CustomEmojiPicker';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/popover';
 import {
   Send,
-  Smile,
   Zap,
   Mic,
   Clock,
@@ -78,6 +78,7 @@ interface ChatInputAreaProps {
   onSendProduct: (product: Product) => void;
   onSendSticker: (stickerUrl: string) => void;
   onSendAudioMeme: (audioUrl: string) => void;
+  onSendCustomEmoji: (emojiUrl: string) => void;
   onSelectSuggestion: (text: string) => void;
   onSelectTemplate: (text: string) => void;
   onExternalFiles?: (files: File[]) => void;
@@ -115,6 +116,7 @@ export function ChatInputArea({
   onSendProduct,
   onSendSticker,
   onSendAudioMeme,
+  onSendCustomEmoji,
   onSelectSuggestion,
   onSelectTemplate,
   fileUploaderRef,
@@ -358,14 +360,7 @@ export function ChatInputArea({
 
           <AudioMemePicker onSendAudio={onSendAudioMeme} />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-            title="Emoji"
-          >
-            <Smile className="w-[18px] h-[18px]" />
-          </Button>
+          <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
 
           <Button 
             variant="ghost" 
