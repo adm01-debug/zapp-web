@@ -54,6 +54,7 @@ interface SearchResult {
 }
 
 export function RealtimeInboxView() {
+  const isMobile = useIsMobile();
   const { 
     conversations, 
     loading, 
