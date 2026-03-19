@@ -1,17 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-
-const mockTrack = vi.fn();
-const mockUntrack = vi.fn();
-const mockSubscribe = vi.fn().mockReturnValue({ unsubscribe: vi.fn() });
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook } from '@testing-library/react';
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     channel: vi.fn().mockReturnValue({
       on: vi.fn().mockReturnThis(),
-      subscribe: mockSubscribe,
-      track: mockTrack,
-      untrack: mockUntrack,
+      subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
+      track: vi.fn(),
+      untrack: vi.fn(),
     }),
     removeChannel: vi.fn(),
   },
