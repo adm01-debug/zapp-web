@@ -361,14 +361,7 @@ export function ChatInputArea({
 
           <AudioMemePicker onSendAudio={onSendAudioMeme} />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-            title="Emoji"
-          >
-            <Smile className="w-[18px] h-[18px]" />
-          </Button>
+          <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
 
           <Button 
             variant="ghost" 
