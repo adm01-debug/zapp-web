@@ -300,6 +300,32 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
     toast.success(`${ids.length} itens movidos para "${newCategory}"`);
   };
 
+  const handleBulkReclassify = async () => {
+    const toReclassify = items.filter(i => selected.has(i.id));
+    setReclassifying(true);
+    let updated = 0;
+    const fnName = type === 'audio_memes' ? 'classify-audio-meme' :
+      type === 'stickers' ? 'classify-sticker' : 'classify-emoji';
+
+    for (const item of toReclassify) {
+      try {
+        const body = type === 'audio_memes'
+          ? { audio_url: item.audio_url || '', file_name: item.name || '' }
+          : { image_url: item.image_url || '' };
+        const { data } = await supabase.functions.invoke(fnName, { body });
+        if (data?.category && data.category !== item.category) {
+          await supabase.from(type).update({ category: data.category }).eq('id', item.id);
+          setItems(prev => prev.map(i => i.id === item.id ? { ...i, category: data.category } : i));
+          updated++;
+        }
+      } catch { /* skip */ }
+    }
+
+    setReclassifying(false);
+    setSelected(new Set());
+    toast.success(`${updated}/${toReclassify.length} itens reclassificados com IA`);
+  };
+
   const handleSingleCategoryChange = async (item: MediaItem, newCategory: string) => {
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, category: newCategory } : i));
     await supabase.from(type).update({ category: newCategory }).eq('id', item.id);
