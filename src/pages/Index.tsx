@@ -93,7 +93,42 @@ function IndexContent() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Sample notifications — in production, fetch from DB
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: '1',
+      type: 'message',
+      title: 'Nova mensagem',
+      description: 'Você recebeu uma nova mensagem de um contato',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      read: false,
+    },
+    {
+      id: '2',
+      type: 'sla_warning',
+      title: 'SLA em risco',
+      description: 'Conversa sem resposta há mais de 30 minutos',
+      timestamp: new Date(Date.now() - 35 * 60 * 1000),
+      read: false,
+    },
+    {
+      id: '3',
+      type: 'assignment',
+      title: 'Nova atribuição',
+      description: 'Uma conversa foi atribuída a você',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      read: true,
+    },
+  ]);
+
+  const handleMarkAllNotificationsRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, []);
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
   
   // Import and use global keyboard context for Command Palette navigation
   const { registerNavigationHandler, unregisterNavigationHandler } = useGlobalKeyboard();
