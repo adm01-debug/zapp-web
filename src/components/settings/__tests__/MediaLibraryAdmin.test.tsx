@@ -1937,8 +1937,8 @@ describe('Pure Function Logic', () => {
       const search = '';
       const result = items.filter(i => {
         const matchSearch = !search ||
-          i.name?.toLowerCase().includes(search.toLowerCase()) ||
-          i.category?.toLowerCase().includes(search.toLowerCase());
+          (i.name as string | null)?.toLowerCase().includes(search.toLowerCase()) ||
+          (i.category as string | null)?.toLowerCase().includes(search.toLowerCase());
         return matchSearch;
       });
       expect(result).toHaveLength(4);
