@@ -576,6 +576,15 @@ export function SettingsView() {
             <FollowUpSequences />
           </motion.div>
         </TabsContent>
+
+        <TabsContent value="media">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <MediaLibraryAdmin />
+          </motion.div>
+        </TabsContent>
       </Tabs>
     </div>
   );
