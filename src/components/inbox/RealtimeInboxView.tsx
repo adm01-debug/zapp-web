@@ -737,6 +737,51 @@ export function RealtimeInboxView() {
             />
           </div>
 
+          {/* Contact Type Filter */}
+          <Select
+            value={selectedContactType || 'all'}
+            onValueChange={(value) => setSelectedContactType(value === 'all' ? null : value)}
+          >
+            <SelectTrigger className="h-8 text-xs bg-muted/50 border-0 rounded-full focus:ring-1 focus:ring-primary/30">
+              <div className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                <SelectValue placeholder="Todos os tipos" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <span className="flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5" />
+                  Todos os tipos
+                </span>
+              </SelectItem>
+              <SelectItem value="cliente">
+                <span className="flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  Clientes
+                </span>
+              </SelectItem>
+              <SelectItem value="fornecedor">
+                <span className="flex items-center gap-2">
+                  <Truck className="w-3.5 h-3.5 text-purple-500" />
+                  Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="prestador">
+                <span className="flex items-center gap-2">
+                  <Wrench className="w-3.5 h-3.5 text-orange-500" />
+                  Prestadores de Serviço
+                </span>
+              </SelectItem>
+              <SelectItem value="colaborador">
+                <span className="flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5 text-green-500" />
+                  Colaboradores
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
           {/* Whaticket-style Ticket Tabs */}
           <TicketTabs
             conversations={conversations}
