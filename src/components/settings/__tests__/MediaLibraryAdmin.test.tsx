@@ -1402,14 +1402,14 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
   // ─── Null/Undefined Safety ────────────────────────────
 
   describe('Null/Undefined Safety', () => {
-    it('name || "Sem nome" for null', () => expect(null || 'Sem nome').toBe('Sem nome'));
-    it('name || "Sem nome" for undefined', () => expect(undefined || 'Sem nome').toBe('Sem nome'));
-    it('name || "Sem nome" for empty string', () => expect('' || 'Sem nome').toBe('Sem nome'));
-    it('name || "Sem nome" for valid name', () => expect('Test' || 'Sem nome').toBe('Test'));
+    it('name || "Sem nome" for null', () => { const v: string | null = null; expect(v || 'Sem nome').toBe('Sem nome'); });
+    it('name || "Sem nome" for undefined', () => { const v: string | undefined = undefined; expect(v || 'Sem nome').toBe('Sem nome'); });
+    it('name || "Sem nome" for empty string', () => { const v: string = ''; expect(v || 'Sem nome').toBe('Sem nome'); });
+    it('name || "Sem nome" for valid name', () => { const v: string = 'Test'; expect(v || 'Sem nome').toBe('Test'); });
 
-    it('use_count || 0 for null', () => expect(null || 0).toBe(0));
-    it('use_count || 0 for undefined', () => expect(undefined || 0).toBe(0));
-    it('use_count || 0 for 0', () => expect(0 || 0).toBe(0));
-    it('use_count || 0 for positive', () => expect(42 || 0).toBe(42));
+    it('use_count || 0 for null', () => { const v: number | null = null; expect(v || 0).toBe(0); });
+    it('use_count || 0 for undefined', () => { const v: number | undefined = undefined; expect(v || 0).toBe(0); });
+    it('use_count || 0 for 0', () => { const v: number = 0; expect(v || 0).toBe(0); });
+    it('use_count || 0 for positive', () => { const v: number = 42; expect(v || 0).toBe(42); });
   });
 });
