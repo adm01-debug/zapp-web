@@ -615,6 +615,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onOpenLocationPicker={() => setShowLocationPicker(true)}
           onSendProduct={handleSendProduct}
           onSendSticker={handleSendSticker}
+          onSendAudioMeme={handleSendAudioMeme}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef}
