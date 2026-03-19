@@ -767,7 +767,7 @@ export function RealtimeInboxView() {
                   Fornecedores
                 </span>
               </SelectItem>
-              <SelectItem value="prestador">
+              <SelectItem value="prestador_servico">
                 <span className="flex items-center gap-2">
                   <Wrench className="w-3.5 h-3.5 text-orange-500" />
                   Prestadores de Serviço
