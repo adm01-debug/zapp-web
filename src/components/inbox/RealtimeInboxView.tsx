@@ -600,7 +600,7 @@ export function RealtimeInboxView() {
       )}
 
       {/* Conversation List — DreamsChat: 320px fixed */}
-      <div className="w-[320px] min-w-[320px] max-w-[320px] flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col">
+      <div className="w-[320px] min-w-[320px] max-w-[320px] h-full min-h-0 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col overflow-hidden">
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
@@ -612,7 +612,7 @@ export function RealtimeInboxView() {
         />
 
         {/* Header — Compact DreamsChat style */}
-        <div className="px-4 pt-4 pb-3 border-b border-border space-y-3">
+        <div className="px-4 pt-4 pb-3 border-b border-border space-y-3 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold text-foreground">Conversas</h2>
@@ -742,7 +742,7 @@ export function RealtimeInboxView() {
         </div>
 
         {/* Conversation List */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           {loading ? (
             <div className="p-3 space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -788,11 +788,11 @@ export function RealtimeInboxView() {
       </div>
 
       {/* Chat Panel — flexible remaining space */}
-      <div className="flex-1 flex min-w-0 relative z-10 bg-background h-full overflow-hidden">
+      <div className="flex-1 flex min-w-0 min-h-0 relative z-10 bg-background h-full overflow-hidden">
         {legacyConversation ? (
           <Suspense fallback={<ChatFallback />}>
             <>
-              <div className="flex-1 min-w-0 relative h-full overflow-hidden">
+              <div className="flex-1 min-w-0 min-h-0 relative h-full overflow-hidden">
                 <ChatPanel
                   conversation={legacyConversation}
                   messages={legacyMessages}
@@ -803,15 +803,17 @@ export function RealtimeInboxView() {
                 />
               </div>
               {showDetails && (
-                <ContactDetails
-                  conversation={legacyConversation}
-                  onClose={() => setShowDetails(false)}
-                />
+                <div className="h-full shrink-0 overflow-hidden">
+                  <ContactDetails
+                    conversation={legacyConversation}
+                    onClose={() => setShowDetails(false)}
+                  />
+                </div>
               )}
             </>
           </Suspense>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-background">
+          <div className="flex-1 flex items-center justify-center bg-background min-h-0 overflow-hidden">
             <div className="text-center p-8">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="w-7 h-7 text-primary/60" />
