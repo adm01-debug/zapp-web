@@ -863,7 +863,10 @@ export function RealtimeInboxView() {
       </div>
 
       {/* Chat Panel — flexible remaining space */}
-      <div className="flex-1 flex min-w-0 min-h-0 relative z-10 bg-background h-full overflow-hidden">
+      <div className={cn(
+        'flex-1 flex min-w-0 min-h-0 relative z-10 bg-background h-full overflow-hidden',
+        isMobile && !selectedContactId && 'hidden'
+      )}>
         {legacyConversation ? (
           <Suspense fallback={<ChatFallback />}>
             <>
@@ -874,8 +877,10 @@ export function RealtimeInboxView() {
                   messages={legacyMessages}
                   onSendMessage={handleSendMessage}
                   onSendAudio={handleSendAudio}
-                  showDetails={showDetails}
+                  showDetails={isMobile ? false : showDetails}
                   onToggleDetails={() => setShowDetails(!showDetails)}
+                  onBack={isMobile ? () => setSelectedContactId(null) : undefined}
+                />
                 />
               </div>
               {showDetails && (
