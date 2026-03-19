@@ -104,6 +104,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
     scrollToBottom: () => {
