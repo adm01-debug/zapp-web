@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -114,11 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log("detect-new-device: Sending email notification to:", userEmail);
 
         try {
-          const emailResponse = await resend.emails.send({
-            from: "Segurança <security@resend.dev>",
-            to: [userEmail],
-            subject: "🔐 Novo dispositivo detectado na sua conta",
-            html: `
+          const emailHtml = `
               <!DOCTYPE html>
               <html>
               <head>
@@ -173,10 +168,24 @@ const handler = async (req: Request): Promise<Response> => {
                 </p>
               </body>
               </html>
-            `,
+          `;
+
+          const emailResponse = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              from: "Segurança <security@resend.dev>",
+              to: [userEmail],
+              subject: "🔐 Novo dispositivo detectado na sua conta",
+              html: emailHtml,
+            }),
           });
 
-          console.log("detect-new-device: Email sent successfully:", emailResponse);
+          const emailResult = await emailResponse.json();
+          console.log("detect-new-device: Email sent successfully:", emailResult);
         } catch (emailError) {
           console.error("detect-new-device: Error sending email:", emailError);
           // Don't fail the request if email fails
