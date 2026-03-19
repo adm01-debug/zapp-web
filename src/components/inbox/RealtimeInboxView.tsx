@@ -625,7 +625,12 @@ export function RealtimeInboxView() {
       )}
 
       {/* Conversation List — DreamsChat: 320px fixed */}
-      <div className="w-[320px] min-w-[320px] max-w-[320px] h-full min-h-0 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col overflow-hidden">
+      <div className={cn(
+        'h-full min-h-0 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col overflow-hidden',
+        isMobile
+          ? selectedContactId ? 'hidden' : 'w-full'
+          : 'w-[320px] min-w-[320px] max-w-[320px]'
+      )}>
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
