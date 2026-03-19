@@ -537,7 +537,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         whatsapp_connection_id: whatsappConnectionId,
         content: '[Áudio Meme]',
         message_type: 'audio',
-        media_url: audioUrl,
+        media_url: normalizedAudioUrl,
         sender: 'agent',
         status: 'sending',
       }).select('id').single();
