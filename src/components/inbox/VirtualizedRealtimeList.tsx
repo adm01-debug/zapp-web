@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Pin } from 'lucide-react';
+import { Pin, Gift } from 'lucide-react';
 
 interface VirtualizedRealtimeListProps {
   conversations: ConversationWithMessages[];
