@@ -267,7 +267,19 @@ export function RealtimeInboxView() {
       .from('audio-messages')
       .getPublicUrl(fileName);
 
-    await sendMessage(selectedContactId, '[Áudio]', 'audio', urlData.publicUrl);
+    const arrayBuffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 8192;
+    let binary = '';
+
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+      for (let j = 0; j < chunk.length; j++) {
+        binary += String.fromCharCode(chunk[j]);
+      }
+    }
+
+    await sendMessage(selectedContactId, '[Áudio]', 'audio', urlData.publicUrl, btoa(binary));
   };
 
   // Toggle selection mode
