@@ -43,6 +43,7 @@ const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
   'fofo': { emoji: '🥰', label: 'Fofo' },
   'triste': { emoji: '😔', label: 'Triste' },
   'animado': { emoji: '🤩', label: 'Animado' },
+  'engraçado': { emoji: '🤣', label: 'Engraçado' },
   'outros': { emoji: '📦', label: 'Outros' },
   'recebidas': { emoji: '📥', label: 'Recebidas' },
   'enviadas': { emoji: '📤', label: 'Enviadas' },
