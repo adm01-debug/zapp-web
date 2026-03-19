@@ -81,12 +81,9 @@ describe('RateLimitConfigPanel', () => {
 
     it('renders 5 default rules', async () => {
       render(<RateLimitConfigPanel />);
-      await waitFor(() => {
-        const deleteButtons = screen.getAllByRole('button').filter(btn =>
-          btn.querySelector('.lucide-trash-2')
-        );
-        expect(deleteButtons.length).toBe(5);
-      });
+      await waitFor(() => screen.getByDisplayValue('Login'));
+      const switches = screen.getAllByRole('switch');
+      expect(switches.length).toBe(5);
     });
   });
 
