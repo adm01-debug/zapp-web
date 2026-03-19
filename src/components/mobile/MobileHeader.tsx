@@ -80,8 +80,8 @@ export function MobileHeader({
             <span
               className={cn(
                 'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card',
-                agentStatus === 'online' && 'bg-emerald-500',
-                agentStatus === 'away' && 'bg-amber-500',
+                agentStatus === 'online' && 'bg-[hsl(var(--online,142_71%_45%))]',
+                agentStatus === 'away' && 'bg-[hsl(var(--away,38_92%_50%))]',
                 agentStatus === 'offline' && 'bg-muted-foreground/50'
               )}
             />
