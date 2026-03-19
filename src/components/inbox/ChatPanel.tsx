@@ -509,7 +509,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       
       const dbPromise = supabase.from('messages').insert({
         contact_id: conversation.contact.id,
-        whatsapp_connection_id: null,
+        whatsapp_connection_id: whatsappConnectionId,
         content: '[Áudio Meme]',
         message_type: 'audio',
         media_url: audioUrl,
@@ -519,11 +519,24 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       const [apiResult, dbResult] = await Promise.all([apiPromise, dbPromise]);
       
-      const externalId = apiResult?.data?.key?.id || null;
-      if (dbResult?.data?.id && externalId) {
+      const messageId = dbResult?.data?.id;
+      
+      if (apiResult?.error || !apiResult?.data?.key?.id) {
+        // API failed — mark message as failed
+        if (messageId) {
+          await supabase.from('messages')
+            .update({ status: 'failed' })
+            .eq('id', messageId);
+        }
+        toast({ title: 'Erro ao enviar áudio meme', description: 'Falha na API', variant: 'destructive' });
+        return;
+      }
+      
+      const externalId = apiResult.data.key.id;
+      if (messageId) {
         supabase.from('messages')
           .update({ external_id: externalId, status: 'sent' })
-          .eq('id', dbResult.data.id)
+          .eq('id', messageId)
           .then(() => {});
       }
       
