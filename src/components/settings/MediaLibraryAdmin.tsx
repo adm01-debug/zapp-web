@@ -343,6 +343,69 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
     setPlayingId(item.id);
   };
 
+  // ── AI Generate (audio only) ──
+  const handleGenerate = async () => {
+    if (!genPrompt.trim()) return;
+    setGenerating(true);
+    setGenPreviewUrl(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('elevenlabs-sfx', {
+        body: { prompt: genPrompt, duration: genDuration, mode: genMode },
+      });
+      if (error || data?.error) throw new Error(data?.error || 'Generation failed');
+      const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+      setGenPreviewUrl(audioUrl);
+      audioRef.current?.pause();
+      const audio = new Audio(audioUrl);
+      audio.play();
+      audioRef.current = audio;
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao gerar áudio');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSaveGenerated = async () => {
+    if (!genPreviewUrl) return;
+    setGenerating(true);
+    try {
+      const resp = await fetch(genPreviewUrl);
+      const blob = await resp.blob();
+      const storagePath = `ai_gen_${Date.now()}_${crypto.randomUUID()}.mp3`;
+      const { error: uploadError } = await supabase.storage
+        .from('audio-memes')
+        .upload(storagePath, blob, { contentType: 'audio/mpeg', cacheControl: '31536000' });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('audio-memes').getPublicUrl(storagePath);
+      const { data: { user } } = await supabase.auth.getUser();
+      let aiCategory = 'outros';
+      try {
+        const { data: classifyData } = await supabase.functions.invoke('classify-audio-meme', {
+          body: { audio_url: urlData.publicUrl, file_name: genPrompt },
+        });
+        if (classifyData?.category) aiCategory = classifyData.category;
+      } catch { /* fallback */ }
+      await supabase.from('audio_memes').insert({
+        name: genPrompt.substring(0, 80),
+        audio_url: urlData.publicUrl,
+        category: aiCategory,
+        is_favorite: false,
+        use_count: 0,
+        uploaded_by: user?.id || null,
+      });
+      toast.success(`Áudio salvo como "${aiCategory}"`);
+      setShowGenDialog(false);
+      setGenPrompt('');
+      setGenPreviewUrl(null);
+      fetchItems();
+    } catch {
+      toast.error('Erro ao salvar áudio');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   // ── Bulk Upload ──
   const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
