@@ -177,7 +177,9 @@ export function VirtualizedRealtimeList({
                     </div>
                   </div>
                   <p className="text-[13px] text-muted-foreground truncate">
-                    {conversation.lastMessage?.content || 'Sem mensagens'}
+                    {conversation.contact.contact_type === 'sicoob_gifts' && conversation.contact.company
+                      ? `${conversation.contact.company} · ${conversation.lastMessage?.content || 'Sem mensagens'}`
+                      : conversation.lastMessage?.content || 'Sem mensagens'}
                   </p>
                   {conversation.contact.tags && conversation.contact.tags.length > 0 && (
                     <div className="flex gap-1 mt-1.5">
