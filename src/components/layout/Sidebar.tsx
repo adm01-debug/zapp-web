@@ -185,28 +185,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       {/* Separator */}
       <div className="mx-4 my-2 h-px bg-border" />
 
-      {/* Tools section — collapsible */}
-      <div className="flex flex-col items-center px-[11px]">
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setShowTools(!showTools)}
-              className="w-[40px] h-[24px] rounded flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors mb-0.5"
-            >
-              {showTools ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8} className="text-xs">
-            {showTools ? 'Recolher ferramentas' : 'Expandir ferramentas'}
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
       {/* Scrollable tools area */}
-      <div className={cn(
-        "flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px] transition-all duration-200",
-        !(showTools || isToolActive) && "hidden"
-      )}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]">
         <nav className="flex flex-col items-center gap-0.5 py-0.5" aria-label="Ferramentas">
           {toolsNav.map((item) => (
             <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
@@ -214,7 +194,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
         </nav>
       </div>
 
-      {!showTools && !isToolActive && <div className="flex-1" />}
+      
 
       {/* Separator */}
       <div className="mx-4 my-1 h-px bg-border" />
