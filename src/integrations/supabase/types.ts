@@ -3429,6 +3429,58 @@ export type Database = {
         }
         Relationships: []
       }
+      sicoob_contact_mapping: {
+        Row: {
+          contact_id: string
+          created_at: string | null
+          id: string
+          sicoob_singular_id: string
+          sicoob_user_id: string
+          sicoob_vendedor_id: string
+          zappweb_agent_id: string | null
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string | null
+          id?: string
+          sicoob_singular_id: string
+          sicoob_user_id: string
+          sicoob_vendedor_id: string
+          zappweb_agent_id?: string | null
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string | null
+          id?: string
+          sicoob_singular_id?: string
+          sicoob_user_id?: string
+          sicoob_vendedor_id?: string
+          zappweb_agent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sicoob_contact_mapping_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sicoob_contact_mapping_zappweb_agent_id_fkey"
+            columns: ["zappweb_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sicoob_contact_mapping_zappweb_agent_id_fkey"
+            columns: ["zappweb_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sla_configurations: {
         Row: {
           created_at: string

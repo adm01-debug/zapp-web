@@ -193,6 +193,7 @@ export const CONTACT_TYPES = [
   { value: 'prestador_servico', label: 'Prestador de Serviço', color: 'bg-orange-500' },
   { value: 'lead', label: 'Lead', color: 'bg-yellow-500' },
   { value: 'parceiro', label: 'Parceiro', color: 'bg-pink-500' },
+  { value: 'sicoob_gifts', label: 'Sicoob Gifts', color: 'bg-teal-700' },
   { value: 'outros', label: 'Outros', color: 'bg-gray-500' },
 ] as const;
 
