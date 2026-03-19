@@ -1,4 +1,6 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
 import { MessageContextActions } from '../MessageContextActions';
 import { ChatWatermark } from './ChatWatermark';
