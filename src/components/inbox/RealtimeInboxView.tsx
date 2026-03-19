@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
@@ -53,6 +54,7 @@ interface SearchResult {
 }
 
 export function RealtimeInboxView() {
+  const isMobile = useIsMobile();
   const { 
     conversations, 
     loading, 
@@ -623,7 +625,12 @@ export function RealtimeInboxView() {
       )}
 
       {/* Conversation List — DreamsChat: 320px fixed */}
-      <div className="w-[320px] min-w-[320px] max-w-[320px] h-full min-h-0 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col overflow-hidden">
+      <div className={cn(
+        'h-full min-h-0 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col overflow-hidden',
+        isMobile
+          ? selectedContactId ? 'hidden' : 'w-full'
+          : 'w-[320px] min-w-[320px] max-w-[320px]'
+      )}>
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
@@ -856,7 +863,10 @@ export function RealtimeInboxView() {
       </div>
 
       {/* Chat Panel — flexible remaining space */}
-      <div className="flex-1 flex min-w-0 min-h-0 relative z-10 bg-background h-full overflow-hidden">
+      <div className={cn(
+        'flex-1 flex min-w-0 min-h-0 relative z-10 bg-background h-full overflow-hidden',
+        isMobile && !selectedContactId && 'hidden'
+      )}>
         {legacyConversation ? (
           <Suspense fallback={<ChatFallback />}>
             <>
@@ -867,11 +877,12 @@ export function RealtimeInboxView() {
                   messages={legacyMessages}
                   onSendMessage={handleSendMessage}
                   onSendAudio={handleSendAudio}
-                  showDetails={showDetails}
+                  showDetails={isMobile ? false : showDetails}
                   onToggleDetails={() => setShowDetails(!showDetails)}
+                  onBack={isMobile ? () => setSelectedContactId(null) : undefined}
                 />
               </div>
-              {showDetails && (
+              {showDetails && !isMobile && (
                 <div className="h-full shrink-0 overflow-hidden">
                   <ContactDetails
                     key={`details-${legacyConversation.id}`}

@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TypingIndicatorCompact } from '../TypingIndicator';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
 import { SpeedSelector } from '../SpeedSelector';
@@ -22,6 +23,7 @@ import {
   CheckCircle,
   Clock,
   ArrowRight,
+  ArrowLeft,
   PhoneCall,
   Search,
   Brain,
@@ -43,6 +45,7 @@ interface ChatPanelHeaderProps {
   onOpenSchedule: () => void;
   onVoiceChange: (voiceId: string) => void;
   onSpeedChange: (speed: number) => void;
+  onBack?: () => void;
 }
 
 export function ChatPanelHeader({
@@ -60,12 +63,27 @@ export function ChatPanelHeader({
   onOpenSchedule,
   onVoiceChange,
   onSpeedChange,
+  onBack,
 }: ChatPanelHeaderProps) {
+  const isMobile = useIsMobile();
+  
   return (
-    <div className="flex items-center justify-between px-5 h-[65px] border-b border-border bg-card shrink-0">
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          <Avatar className="w-10 h-10">
+    <div className="flex items-center justify-between px-3 md:px-5 h-[56px] md:h-[65px] border-b border-border bg-card shrink-0">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0">
+        {/* Back button on mobile */}
+        {isMobile && onBack && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-8 h-8 rounded-xl shrink-0 touch-manipulation"
+            onClick={onBack}
+            aria-label="Voltar"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        )}
+        <div className="relative shrink-0">
+          <Avatar className="w-9 h-9 md:w-10 md:h-10">
             <AvatarImage src={conversation.contact.avatar} />
             <AvatarFallback className="bg-primary/15 text-primary font-semibold text-sm">
               {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}

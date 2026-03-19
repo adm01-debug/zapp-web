@@ -39,9 +39,10 @@ interface ChatPanelProps {
   onSendAudio?: (blob: Blob) => Promise<void>;
   showDetails?: boolean;
   onToggleDetails?: () => void;
+  onBack?: () => void;
 }
 
-export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails }: ChatPanelProps) {
+export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack }: ChatPanelProps) {
   // ── State ──
   const [inputValue, setInputValue] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(false);
@@ -634,6 +635,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onOpenSchedule={() => setShowScheduleDialog(true)}
           onVoiceChange={setVoiceId}
           onSpeedChange={setSpeed}
+          onBack={onBack}
         />
 
         <ChatAssignedBar
