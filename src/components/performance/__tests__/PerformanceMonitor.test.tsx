@@ -212,12 +212,14 @@ describe('PerformanceMonitor', () => {
     });
 
     it('4g network is good', () => {
-      const status = '4g' === '4g' ? 'good' : '4g' === '3g' ? 'warning' : 'critical';
+      const net = '4g' as string;
+      const status = net === '4g' ? 'good' : net === '3g' ? 'warning' : 'critical';
       expect(status).toBe('good');
     });
 
     it('3g network is warning', () => {
-      const status = '3g' === '4g' ? 'good' : '3g' === '3g' ? 'warning' : 'critical';
+      const net = '3g' as string;
+      const status = net === '4g' ? 'good' : net === '3g' ? 'warning' : 'critical';
       expect(status).toBe('warning');
     });
   });
