@@ -258,7 +258,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
 
   const handleConfirmUpload = async (pending: PendingUpload) => {
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('stickers').insert({
+    const { error: insertError } = await supabase.from('stickers').insert({
       name: pending.name,
       image_url: pending.imageUrl,
       category: pending.selectedCategory,
@@ -266,6 +266,12 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
       use_count: 0,
       uploaded_by: user?.id || null,
     });
+
+    if (insertError) {
+      console.error('[StickerPicker] Insert error:', insertError);
+      toast.error('Erro ao salvar figurinha no banco de dados');
+      return;
+    }
 
     toast.success(`Figurinha salva como "${CATEGORY_LABELS[pending.selectedCategory]?.label || pending.selectedCategory}"!`);
     setPendingUpload(null);

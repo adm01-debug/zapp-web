@@ -391,10 +391,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     try {
       const phone = conversation.contact.phone.replace(/\D/g, '');
       
-      // Send via Evolution API + save to DB + save to stickers library in parallel
-      const apiPromise = sendStickerMessage(instanceName, phone, stickerUrl);
-      
-      const dbPromise = supabase.from('messages').insert({
+      // Insert message into DB first
+      const { data: dbData } = await supabase.from('messages').insert({
         contact_id: conversation.contact.id,
         whatsapp_connection_id: whatsappConnectionId,
         content: '[Sticker]',
@@ -404,8 +402,44 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         status: 'sending',
       }).select('id').single();
 
-      // Auto-save sent sticker to library if not already there
-      const libPromise = supabase.from('stickers')
+      const messageId = dbData?.id;
+
+      // Send via Evolution API (may throw)
+      let externalId: string | null = null;
+      try {
+        const result = await sendStickerMessage(instanceName, phone, stickerUrl);
+        externalId = result?.key?.id || null;
+      } catch {
+        // API failed — mark message as failed
+        if (messageId) {
+          await supabase.from('messages')
+            .update({ status: 'failed' })
+            .eq('id', messageId);
+        }
+        toast({ title: 'Erro ao enviar figurinha', description: 'Falha na API', variant: 'destructive' });
+        return;
+      }
+      
+      if (!externalId) {
+        if (messageId) {
+          await supabase.from('messages')
+            .update({ status: 'failed' })
+            .eq('id', messageId);
+        }
+        toast({ title: 'Erro ao enviar figurinha', description: 'Falha na API', variant: 'destructive' });
+        return;
+      }
+
+      // Update message with external ID
+      if (messageId) {
+        supabase.from('messages')
+          .update({ external_id: externalId, status: 'sent' })
+          .eq('id', messageId)
+          .then(() => {});
+      }
+
+      // Auto-save sent sticker to library (fire and forget)
+      supabase.from('stickers')
         .select('id')
         .eq('image_url', stickerUrl)
         .maybeSingle()
@@ -422,28 +456,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             });
           }
         });
-
-      const [result, dbResult] = await Promise.all([apiPromise, dbPromise, libPromise]);
-      
-      const messageId = dbResult?.data?.id;
-      const externalId = result?.key?.id || null;
-      
-      if (!externalId) {
-        if (messageId) {
-          await supabase.from('messages')
-            .update({ status: 'failed' })
-            .eq('id', messageId);
-        }
-        toast({ title: 'Erro ao enviar figurinha', description: 'Falha na API', variant: 'destructive' });
-        return;
-      }
-      
-      if (messageId) {
-        supabase.from('messages')
-          .update({ external_id: externalId, status: 'sent' })
-          .eq('id', messageId)
-          .then(() => {});
-      }
       
       toast({ title: 'Figurinha enviada!' });
     } catch {
