@@ -66,7 +66,7 @@ Regras:
         'Authorization': `Bearer ${lovableApiKey}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'user',
@@ -94,7 +94,7 @@ Regras:
     const rawCategory = (result.choices?.[0]?.message?.content || 'outros')
       .trim()
       .toLowerCase()
-      .replace(/[^a-záàãâéêíóôõúç]/g, '')
+      .replace(/[^a-záàãâéêíóôõúç ]/g, '')
       .trim();
 
     const category = STICKER_CATEGORIES.includes(rawCategory) ? rawCategory : 'outros';

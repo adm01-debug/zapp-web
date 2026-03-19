@@ -425,11 +425,23 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       const [result, dbResult] = await Promise.all([apiPromise, dbPromise, libPromise]);
       
+      const messageId = dbResult?.data?.id;
       const externalId = result?.key?.id || null;
-      if (dbResult?.data?.id && externalId) {
+      
+      if (!externalId) {
+        if (messageId) {
+          await supabase.from('messages')
+            .update({ status: 'failed' })
+            .eq('id', messageId);
+        }
+        toast({ title: 'Erro ao enviar figurinha', description: 'Falha na API', variant: 'destructive' });
+        return;
+      }
+      
+      if (messageId) {
         supabase.from('messages')
           .update({ external_id: externalId, status: 'sent' })
-          .eq('id', dbResult.data.id)
+          .eq('id', messageId)
           .then(() => {});
       }
       
