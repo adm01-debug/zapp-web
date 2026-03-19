@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sticker, Search, Plus, Star, Trash2, Loader2, Upload, X } from 'lucide-react';
+import { Sticker, Search, Plus, Star, Trash2, Loader2, Upload, X, Tag, Check, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface StickerItem {
@@ -48,6 +48,126 @@ const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
   'enviadas': { emoji: '📤', label: 'Enviadas' },
 };
 
+const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
+
+// ── Category Selector (inline dropdown) ──
+function CategorySelector({ value, onChange, size = 'sm' }: { value: string; onChange: (cat: string) => void; size?: 'sm' | 'xs' }) {
+  const [open, setOpen] = useState(false);
+  const info = CATEGORY_LABELS[value] || { emoji: '📦', label: value };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            'flex items-center gap-1 rounded-md border border-border/50 transition-colors hover:bg-muted/60',
+            size === 'xs' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span>{info.emoji}</span>
+          <span className="text-muted-foreground">{info.label}</span>
+          <ChevronDown className={cn(size === 'xs' ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-muted-foreground/60')} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[200px] p-1.5 max-h-[240px] overflow-y-auto"
+        align="start"
+        side="bottom"
+        sideOffset={4}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-0.5">
+          {ALL_CATEGORIES.map(cat => {
+            const catInfo = CATEGORY_LABELS[cat];
+            const isActive = cat === value;
+            return (
+              <button
+                key={cat}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange(cat);
+                  setOpen(false);
+                }}
+                className={cn(
+                  'w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors text-left',
+                  isActive ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                )}
+              >
+                <span>{catInfo.emoji}</span>
+                <span className="flex-1">{catInfo.label}</span>
+                {isActive && <Check className="w-3 h-3 text-primary" />}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ── Upload Preview (shows sticker with AI suggestion + manual override before saving) ──
+interface PendingUpload {
+  file: File;
+  imageUrl: string;
+  storagePath: string;
+  aiCategory: string;
+  selectedCategory: string;
+  name: string;
+}
+
+function UploadPreview({ pending, onConfirm, onCancel }: {
+  pending: PendingUpload;
+  onConfirm: (p: PendingUpload) => void;
+  onCancel: () => void;
+}) {
+  const [category, setCategory] = useState(pending.selectedCategory);
+  const [name, setName] = useState(pending.name);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-3 border border-border rounded-lg bg-card space-y-2.5"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted/30 shrink-0 flex items-center justify-center border border-border/30">
+          <img src={pending.imageUrl} alt="Preview" className="w-full h-full object-contain p-0.5" />
+        </div>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="h-7 text-xs flex-1"
+          placeholder="Nome da figurinha"
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Tag className="w-3 h-3 text-muted-foreground shrink-0" />
+        <span className="text-[10px] text-muted-foreground shrink-0">Categoria:</span>
+        <CategorySelector value={category} onChange={setCategory} size="sm" />
+        {pending.aiCategory !== 'outros' && pending.aiCategory !== 'enviadas' && category !== pending.aiCategory && (
+          <button
+            onClick={() => setCategory(pending.aiCategory)}
+            className="text-[9px] text-primary hover:underline shrink-0"
+          >
+            IA sugere: {CATEGORY_LABELS[pending.aiCategory]?.label}
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 justify-end">
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onCancel}>
+          <X className="w-3 h-3 mr-1" /> Cancelar
+        </Button>
+        <Button size="sm" className="h-7 text-xs" onClick={() => onConfirm({ ...pending, selectedCategory: category, name })}>
+          <Check className="w-3 h-3 mr-1" /> Salvar
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
+
 export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   const [open, setOpen] = useState(false);
   const [stickers, setStickers] = useState<StickerItem[]>([]);
@@ -56,6 +176,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   const [uploading, setUploading] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchStickers = useCallback(async () => {
@@ -76,66 +197,86 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
     if (open) fetchStickers();
   }, [open, fetchStickers]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files?.length) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Arquivo não é uma imagem válida');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    if (file.size > 500 * 1024) {
+      toast.error('Arquivo excede 500KB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     setUploading(true);
     try {
-      for (const file of Array.from(files)) {
-        if (!file.type.startsWith('image/')) {
-          toast.error(`${file.name} não é uma imagem válida`);
-          continue;
-        }
-        if (file.size > 500 * 1024) {
-          toast.error(`${file.name} excede 500KB`);
-          continue;
-        }
+      const ext = file.name.split('.').pop() || 'webp';
+      const storagePath = `sticker_${Date.now()}_${crypto.randomUUID()}.${ext}`;
 
-        const ext = file.name.split('.').pop() || 'webp';
-        const fileName = `sticker_${Date.now()}_${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('stickers')
+        .upload(storagePath, file, { contentType: file.type, cacheControl: '31536000' });
 
-        const { error: uploadError } = await supabase.storage
-          .from('stickers')
-          .upload(fileName, file, { contentType: file.type, cacheControl: '31536000' });
-
-        if (uploadError) {
-          toast.error(`Erro ao enviar ${file.name}`);
-          continue;
-        }
-
-        const { data: urlData } = supabase.storage.from('stickers').getPublicUrl(fileName);
-
-        // Classify with AI
-        let category = 'enviadas';
-        try {
-          toast.info('🔍 Classificando figurinha...');
-          const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-sticker', {
-            body: { image_url: urlData.publicUrl },
-          });
-          if (!classifyErr && classifyData?.category) {
-            category = classifyData.category;
-          }
-        } catch { /* fallback */ }
-
-        const { data: { user } } = await supabase.auth.getUser();
-        await supabase.from('stickers').insert({
-          name: file.name.replace(/\.[^.]+$/, ''),
-          image_url: urlData.publicUrl,
-          category,
-          uploaded_by: user?.id || null,
-        });
-
-        toast.success(`Figurinha salva como "${CATEGORY_LABELS[category]?.label || category}"!`);
+      if (uploadError) {
+        toast.error('Erro ao enviar arquivo');
+        return;
       }
 
-      fetchStickers();
+      const { data: urlData } = supabase.storage.from('stickers').getPublicUrl(storagePath);
+
+      // Classify with AI
+      let aiCategory = 'enviadas';
+      try {
+        toast.info('🔍 Classificando figurinha com IA...');
+        const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-sticker', {
+          body: { image_url: urlData.publicUrl },
+        });
+        if (!classifyErr && classifyData?.category) {
+          aiCategory = classifyData.category;
+        }
+      } catch { /* fallback */ }
+
+      setPendingUpload({
+        file,
+        imageUrl: urlData.publicUrl,
+        storagePath,
+        aiCategory,
+        selectedCategory: aiCategory,
+        name: file.name.replace(/\.[^.]+$/, ''),
+      });
     } catch {
       toast.error('Erro ao processar figurinha');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleConfirmUpload = async (pending: PendingUpload) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.from('stickers').insert({
+      name: pending.name,
+      image_url: pending.imageUrl,
+      category: pending.selectedCategory,
+      is_favorite: false,
+      use_count: 0,
+      uploaded_by: user?.id || null,
+    });
+
+    toast.success(`Figurinha salva como "${CATEGORY_LABELS[pending.selectedCategory]?.label || pending.selectedCategory}"!`);
+    setPendingUpload(null);
+    fetchStickers();
+  };
+
+  const handleCancelUpload = async () => {
+    if (pendingUpload) {
+      await supabase.storage.from('stickers').remove([pendingUpload.storagePath]);
+    }
+    setPendingUpload(null);
   };
 
   const handleSend = async (sticker: StickerItem) => {
@@ -152,6 +293,12 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
     const newVal = !sticker.is_favorite;
     setStickers(prev => prev.map(s => s.id === sticker.id ? { ...s, is_favorite: newVal } : s));
     await supabase.from('stickers').update({ is_favorite: newVal }).eq('id', sticker.id);
+  };
+
+  const handleCategoryChange = async (sticker: StickerItem, newCategory: string) => {
+    setStickers(prev => prev.map(s => s.id === sticker.id ? { ...s, category: newCategory } : s));
+    await supabase.from('stickers').update({ category: newCategory }).eq('id', sticker.id);
+    toast.success(`Categoria alterada para "${CATEGORY_LABELS[newCategory]?.label || newCategory}"`);
   };
 
   const handleDelete = async (e: React.MouseEvent, sticker: StickerItem) => {
@@ -174,7 +321,10 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   });
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(v) => {
+      setOpen(v);
+      if (!v) setPendingUpload(null);
+    }}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -203,22 +353,34 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
               ref={fileInputRef}
               type="file"
               accept="image/webp,image/png,image/gif,image/jpeg"
-              multiple
               className="hidden"
-              onChange={handleUpload}
+              onChange={handleFileSelect}
             />
             <Button
               variant="ghost"
               size="icon"
               className="w-7 h-7 text-muted-foreground hover:text-primary"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
+              disabled={uploading || !!pendingUpload}
               title="Adicionar figurinha"
             >
               {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
             </Button>
           </div>
         </div>
+
+        {/* Upload preview */}
+        <AnimatePresence>
+          {pendingUpload && (
+            <div className="px-3 py-2 border-b border-border/50">
+              <UploadPreview
+                pending={pendingUpload}
+                onConfirm={handleConfirmUpload}
+                onCancel={handleCancelUpload}
+              />
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Search */}
         <div className="px-3 py-2 border-b border-border/50">
@@ -334,16 +496,26 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
                         {CATEGORY_LABELS[sticker.category]?.emoji || '📦'}
                       </span>
                       {/* Overlay actions */}
-                      <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-between p-1">
-                        <button onClick={(e) => toggleFavorite(e, sticker)} className="p-0.5">
-                          <Star className={cn(
-                            'w-3.5 h-3.5 transition-colors',
-                            sticker.is_favorite ? 'fill-primary text-primary' : 'text-muted-foreground'
-                          )} />
-                        </button>
-                        <button onClick={(e) => handleDelete(e, sticker)} className="p-0.5">
-                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                        </button>
+                      <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-between p-1">
+                        <div className="flex items-center justify-between w-full">
+                          <button onClick={(e) => toggleFavorite(e, sticker)} className="p-0.5">
+                            <Star className={cn(
+                              'w-3.5 h-3.5 transition-colors',
+                              sticker.is_favorite ? 'fill-primary text-primary' : 'text-muted-foreground'
+                            )} />
+                          </button>
+                          <button onClick={(e) => handleDelete(e, sticker)} className="p-0.5">
+                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                          </button>
+                        </div>
+                        {/* Inline category edit */}
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <CategorySelector
+                            value={sticker.category}
+                            onChange={(cat) => handleCategoryChange(sticker, cat)}
+                            size="xs"
+                          />
+                        </div>
                       </div>
                     </motion.button>
                   ))}
@@ -356,13 +528,14 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
         {/* Footer */}
         <div className="px-3 py-2 border-t border-border/30 flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground">
-            {filtered.length}/{stickers.length} figurinhas · IA classifica por tema
+            {filtered.length}/{stickers.length} figurinhas · IA + edição manual
           </span>
           <Button
             variant="ghost"
             size="sm"
             className="h-6 text-[10px] text-muted-foreground hover:text-primary gap-1"
             onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || !!pendingUpload}
           >
             <Upload className="w-3 h-3" />
             Upload
