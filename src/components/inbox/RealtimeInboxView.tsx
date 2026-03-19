@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
 import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
@@ -70,6 +72,12 @@ export function RealtimeInboxView() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+
+  // Pull-to-refresh for mobile
+  const pullToRefresh = usePullToRefresh({
+    onRefresh: async () => { await refetch(); },
+    disabled: !isMobile || !!selectedContactId,
+  });
   const [soundOn, setSoundOn] = useState(true);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [showNewConversation, setShowNewConversation] = useState(false);
@@ -816,8 +824,21 @@ export function RealtimeInboxView() {
           <InboxFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
+        {/* Pull to refresh indicator (mobile only) */}
+        {isMobile && (
+          <MobilePullToRefreshIndicator
+            isRefreshing={pullToRefresh.isRefreshing}
+            pullProgress={pullToRefresh.pullProgress}
+            pullDistance={pullToRefresh.pullDistance}
+          />
+        )}
+
         {/* Conversation List */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div
+          ref={pullToRefresh.containerRef}
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+          {...(isMobile ? pullToRefresh.handlers : {})}
+        >
           {loading ? (
             <div className="p-3 space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (

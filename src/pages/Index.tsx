@@ -13,6 +13,7 @@ import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist
 import { BottomNavigation } from '@/components/ui/mobile-components';
 import { MobileHeader } from '@/components/mobile/MobileHeader';
 import { MobileDrawerMenu } from '@/components/mobile/MobileDrawerMenu';
+import { NotificationsPanel, Notification } from '@/components/mobile/NotificationsPanel';
 import { CommandPaletteButton } from '@/components/ui/command-palette-button';
 import { useGlobalKeyboard } from '@/components/keyboard/GlobalKeyboardProvider';
 import { useAuth } from '@/hooks/useAuth';
@@ -92,7 +93,42 @@ function IndexContent() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Sample notifications — in production, fetch from DB
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: '1',
+      type: 'message',
+      title: 'Nova mensagem',
+      description: 'Você recebeu uma nova mensagem de um contato',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      read: false,
+    },
+    {
+      id: '2',
+      type: 'sla_warning',
+      title: 'SLA em risco',
+      description: 'Conversa sem resposta há mais de 30 minutos',
+      timestamp: new Date(Date.now() - 35 * 60 * 1000),
+      read: false,
+    },
+    {
+      id: '3',
+      type: 'assignment',
+      title: 'Nova atribuição',
+      description: 'Uma conversa foi atribuída a você',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      read: true,
+    },
+  ]);
+
+  const handleMarkAllNotificationsRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, []);
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
   
   // Import and use global keyboard context for Command Palette navigation
   const { registerNavigationHandler, unregisterNavigationHandler } = useGlobalKeyboard();
@@ -331,14 +367,28 @@ function IndexContent() {
             <MobileHeader
               onMenuOpen={() => setMobileMenuOpen(true)}
               onSearchOpen={() => setMobileSearchOpen(true)}
-              onNotificationsOpen={() => {/* TODO: open notifications panel */}}
+              onNotificationsOpen={() => setNotificationsOpen(true)}
               currentView={currentView}
               agentName={profile?.name || user.email || 'Usuário'}
               agentAvatar={profile?.avatar_url || undefined}
               agentStatus="online"
-              unreadCount={12}
+              unreadCount={unreadNotifications}
             />
           )}
+
+          {/* Notifications Panel */}
+          <NotificationsPanel
+            isOpen={notificationsOpen}
+            onClose={() => setNotificationsOpen(false)}
+            notifications={notifications}
+            onMarkAllRead={handleMarkAllNotificationsRead}
+            onNotificationClick={(n) => {
+              setNotificationsOpen(false);
+              if (n.type === 'message' || n.type === 'assignment') {
+                setCurrentView('inbox');
+              }
+            }}
+          />
 
           {/* Mobile Drawer */}
           <MobileDrawerMenu
