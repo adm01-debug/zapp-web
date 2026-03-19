@@ -126,9 +126,9 @@ describe('MFABackupCodes', () => {
     it('creates blob with text/plain type', () => {
       render(<MFABackupCodes />);
       fireEvent.click(screen.getByText('Baixar'));
-      const calls = mockCreateObjectURL.mock.calls;
+      const calls = (mockCreateObjectURL as ReturnType<typeof vi.fn>).mock.calls as unknown[][];
       expect(calls.length).toBeGreaterThan(0);
-      const blobArg = calls[calls.length - 1][0] as Blob;
+      const blobArg = calls[calls.length - 1]![0] as Blob;
       expect(blobArg).toBeInstanceOf(Blob);
       expect(blobArg.type).toBe('text/plain');
     });
