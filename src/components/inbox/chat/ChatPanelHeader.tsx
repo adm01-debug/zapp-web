@@ -45,6 +45,7 @@ interface ChatPanelHeaderProps {
   onOpenSchedule: () => void;
   onVoiceChange: (voiceId: string) => void;
   onSpeedChange: (speed: number) => void;
+  onBack?: () => void;
 }
 
 export function ChatPanelHeader({
