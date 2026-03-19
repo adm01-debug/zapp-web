@@ -1331,13 +1331,13 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('stickers accept type', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const accept = type === 'audio_memes' ? 'audio/*' : 'image/webp,image/png,image/gif,image/jpeg';
       expect(accept).toBe('image/webp,image/png,image/gif,image/jpeg');
     });
 
     it('custom_emojis accept type', () => {
-      const type = 'custom_emojis';
+      const type: string = 'custom_emojis';
       const accept = type === 'audio_memes' ? 'audio/*' : 'image/webp,image/png,image/gif,image/jpeg';
       expect(accept).toBe('image/webp,image/png,image/gif,image/jpeg');
     });
