@@ -284,6 +284,16 @@ function IndexContent() {
         return <WhatsAppTemplatesManager />;
       case 'omnichannel':
         return <OmnichannelManager />;
+      case 'churn':
+        return <ChurnPredictionDashboard />;
+      case 'ticket-classifier':
+        return <AutoTicketClassifier />;
+      case 'performance':
+        return <PerformanceMonitor />;
+      case 'omni-inbox':
+        return <OmnichannelInbox />;
+      case 'audit-logs':
+        return <AuditLogDashboard />;
       default:
         return (
           <div className="flex items-center justify-center h-full">
