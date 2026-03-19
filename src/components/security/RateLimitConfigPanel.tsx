@@ -91,7 +91,7 @@ export function RateLimitConfigPanel() {
       // Insert updated rules
       const toInsert = rules.map(r => ({
         name: r.name,
-        endpoint: r.endpoint,
+        endpoint_pattern: r.endpoint,
         max_requests: r.max_requests,
         window_seconds: r.window_seconds,
         is_active: r.is_active,
