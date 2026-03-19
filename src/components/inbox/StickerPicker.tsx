@@ -338,7 +338,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
                         <button onClick={(e) => toggleFavorite(e, sticker)} className="p-0.5">
                           <Star className={cn(
                             'w-3.5 h-3.5 transition-colors',
-                            sticker.is_favorite ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground'
+                            sticker.is_favorite ? 'fill-primary text-primary' : 'text-muted-foreground'
                           )} />
                         </button>
                         <button onClick={(e) => handleDelete(e, sticker)} className="p-0.5">
