@@ -50,10 +50,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 100, opacity: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="w-80 h-full bg-card border-l border-border flex flex-col overflow-hidden"
+      className="w-80 h-full min-h-0 shrink-0 bg-card border-l border-border flex flex-col overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-card">
+      <div className="flex items-center justify-between p-4 border-b border-border bg-card shrink-0">
         <h3 className="font-semibold text-foreground">
           Detalhes do Contato
         </h3>
@@ -67,7 +67,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin">
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
         {/* Contact Info */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}

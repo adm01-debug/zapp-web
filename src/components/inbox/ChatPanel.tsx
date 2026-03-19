@@ -610,7 +610,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   // ── Render ──
   return (
     <div 
-      className="flex h-full bg-background relative"
+      className="flex h-full min-h-0 min-w-0 overflow-hidden bg-background relative"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -618,7 +618,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     >
       <ChatDragOverlay isDraggingOver={isDraggingOver} />
 
-      <div className="flex flex-col flex-1 h-full min-h-0 overflow-hidden">
+      <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         <ChatPanelHeader
           conversation={conversation}
           isContactTyping={isContactTyping}
