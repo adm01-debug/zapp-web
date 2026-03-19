@@ -1,48 +1,65 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+
+const STORAGE_KEY = 'screen-protection-enabled';
+
+function getStoredState(): boolean {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY);
+    return v === null ? true : v === 'true';
+  } catch { return true; }
+}
 
 /**
  * Anti-screenshot & data exfiltration protection system.
- * - Blocks PrintScreen / Cmd+Shift+3/4/5 keys
- * - Blocks Ctrl+C / Ctrl+A on non-input elements
- * - Blocks drag-and-drop data exfiltration
- * - Blocks Ctrl+S (save page)
- * - Applies CSS user-select:none and print media hiding
- * - Shows blur overlay when window loses focus
- * - Renders dynamic watermark with authenticated user ID/email
+ * Can be toggled on/off; state persists in localStorage.
  */
 export function useScreenProtection() {
   const { user } = useAuth();
+  const [enabled, setEnabled] = useState(getStoredState);
+
+  const toggle = useCallback(() => {
+    setEnabled(prev => {
+      const next = !prev;
+      localStorage.setItem(STORAGE_KEY, String(next));
+      window.dispatchEvent(new Event('screen-protection-change'));
+      return next;
+    });
+  }, []);
+
+  // Listen for changes from other components
+  useEffect(() => {
+    const handler = () => setEnabled(getStoredState());
+    window.addEventListener('screen-protection-change', handler);
+    return () => window.removeEventListener('screen-protection-change', handler);
+  }, []);
 
   useEffect(() => {
+    if (!enabled) return;
+
     // ── 1. Block screenshot & data exfiltration shortcuts ──
     const handleKeyDown = (e: KeyboardEvent) => {
-      // PrintScreen
       if (e.key === 'PrintScreen') {
         e.preventDefault();
         navigator.clipboard?.writeText?.('').catch(() => {});
         showWarning();
         return;
       }
-      // Cmd+Shift+3/4/5 (macOS screenshots)
       if (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
         e.preventDefault();
         showWarning();
         return;
       }
-      // Ctrl+Shift+S (screenshot tools)
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
         showWarning();
         return;
       }
-      // Ctrl+P / Cmd+P (print)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
         showWarning();
         return;
       }
-      // Ctrl+S / Cmd+S (save page)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         showWarning();
@@ -52,37 +69,31 @@ export function useScreenProtection() {
       const target = e.target as HTMLElement;
       const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
-      // Block Ctrl+C (copy) outside input fields
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && !isInputElement) {
         e.preventDefault();
         navigator.clipboard?.writeText?.('').catch(() => {});
         showWarning();
         return;
       }
-      // Block Ctrl+A (select all) outside input fields
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !isInputElement) {
         e.preventDefault();
         return;
       }
-      // Block Ctrl+Shift+I (devtools) in production
       if (!import.meta.env.DEV && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') {
         e.preventDefault();
         return;
       }
-      // Block F12 (devtools) in production
       if (!import.meta.env.DEV && e.key === 'F12') {
         e.preventDefault();
         return;
       }
     };
 
-    // ── 2. Context menu block ──
     const handleContextMenu = (e: MouseEvent) => {
       if (import.meta.env.DEV) return;
       e.preventDefault();
     };
 
-    // ── 3. Block copy event on document ──
     const handleCopy = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement;
       const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
@@ -92,7 +103,6 @@ export function useScreenProtection() {
       }
     };
 
-    // ── 4. Block drag start (prevent dragging data out) ──
     const handleDragStart = (e: DragEvent) => {
       const target = e.target as HTMLElement;
       const isInputElement = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
@@ -101,7 +111,6 @@ export function useScreenProtection() {
       }
     };
 
-    // ── 5. Blur overlay on focus loss ──
     let overlay: HTMLDivElement | null = null;
 
     const handleBlur = () => {
@@ -132,34 +141,16 @@ export function useScreenProtection() {
       }
     };
 
-    // ── 6. Dynamic watermark (REMOVIDO) ──
-    const watermarkEl: HTMLDivElement | null = null;
-
-    // ── 7. CSS protections ──
     const style = document.createElement('style');
     style.id = 'screen-protection-css';
     style.textContent = `
-      @media print {
-        body { display: none !important; }
-      }
-      body {
-        -webkit-user-select: none !important;
-        user-select: none !important;
-      }
-      input, textarea, [contenteditable="true"], pre, code {
-        -webkit-user-select: text !important;
-        user-select: text !important;
-      }
-      /* Block image dragging */
-      img {
-        -webkit-user-drag: none !important;
-        user-drag: none !important;
-        pointer-events: auto;
-      }
+      @media print { body { display: none !important; } }
+      body { -webkit-user-select: none !important; user-select: none !important; }
+      input, textarea, [contenteditable="true"], pre, code { -webkit-user-select: text !important; user-select: text !important; }
+      img { -webkit-user-drag: none !important; user-drag: none !important; pointer-events: auto; }
     `;
     document.head.appendChild(style);
 
-    // ── Attach listeners ──
     document.addEventListener('keydown', handleKeyDown, true);
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('copy', handleCopy, true);
@@ -175,10 +166,11 @@ export function useScreenProtection() {
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
       overlay?.remove();
-      watermarkEl?.remove();
       style.remove();
     };
-  }, [user]);
+  }, [user, enabled]);
+
+  return { enabled, toggle };
 }
 
 function showWarning() {

@@ -51,6 +51,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
+import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
 
 interface SidebarProps {
   currentView: string;
@@ -227,6 +228,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
       {/* Bottom: Theme toggle + Avatar + Logout */}
       <div className="flex flex-col items-center gap-1.5 py-3 border-t border-border shrink-0">
+        {/* Screen protection toggle */}
+        <ScreenProtectionToggle className="w-[36px] h-[36px]" />
+
         {/* Push notification toggle */}
         <PushNotificationToggle className="w-[36px] h-[36px]" />
 
