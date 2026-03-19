@@ -35,7 +35,22 @@ serve(async (req) => {
   const url = new URL(req.url);
   const pathParts = url.pathname.split('/').filter(Boolean);
   // action is the last segment: e.g. "create-instance", "send-text", etc.
-  const action = pathParts[pathParts.length - 1];
+  // Fallback: if the last segment is the function name itself, read action from body
+  const pathAction = pathParts[pathParts.length - 1];
+  
+  // We need to peek at the body to get action if path-based routing fails
+  let _bodyCache: Record<string, unknown> | null = null;
+  const json = async () => {
+    if (_bodyCache !== null) return _bodyCache;
+    try { _bodyCache = await req.json(); } catch { _bodyCache = {}; }
+    return _bodyCache!;
+  };
+  
+  // Determine action: prefer path segment, but if it's just the function name, use body.action
+  const bodyForAction = await json();
+  const action = (pathAction === 'evolution-api' && bodyForAction.action)
+    ? String(bodyForAction.action)
+    : pathAction;
 
   const json = async () => {
     try { return await req.json(); } catch { return {}; }
