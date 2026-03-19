@@ -8,10 +8,17 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus } from 'lucide-react';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus, Users, Truck, Wrench, UserCheck } from 'lucide-react';
 import { TicketTabs, MainTab, SubTab } from './TicketTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -76,6 +83,7 @@ export function RealtimeInboxView() {
   const [subTab, setSubTab] = useState<SubTab>('attending');
   const [showAll, setShowAll] = useState(false);
   const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
+  const [selectedContactType, setSelectedContactType] = useState<string | null>(null);
   const { user } = useAuth();
 
   // URL-persisted filters
@@ -200,8 +208,13 @@ export function RealtimeInboxView() {
       });
     }
 
+    // Contact type filter
+    if (selectedContactType) {
+      result = result.filter((c) => (c.contact.contact_type || 'cliente') === selectedContactType);
+    }
+
     return result;
-  }, [conversations, search, filters, mainTab, subTab, showAll, selectedQueueId, user?.id]);
+  }, [conversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, user?.id]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
@@ -723,6 +736,51 @@ export function RealtimeInboxView() {
               readOnly
             />
           </div>
+
+          {/* Contact Type Filter */}
+          <Select
+            value={selectedContactType || 'all'}
+            onValueChange={(value) => setSelectedContactType(value === 'all' ? null : value)}
+          >
+            <SelectTrigger className="h-8 text-xs bg-muted/50 border-0 rounded-full focus:ring-1 focus:ring-primary/30">
+              <div className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                <SelectValue placeholder="Todos os tipos" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <span className="flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5" />
+                  Todos os tipos
+                </span>
+              </SelectItem>
+              <SelectItem value="cliente">
+                <span className="flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  Clientes
+                </span>
+              </SelectItem>
+              <SelectItem value="fornecedor">
+                <span className="flex items-center gap-2">
+                  <Truck className="w-3.5 h-3.5 text-purple-500" />
+                  Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="prestador_servico">
+                <span className="flex items-center gap-2">
+                  <Wrench className="w-3.5 h-3.5 text-orange-500" />
+                  Prestadores de Serviço
+                </span>
+              </SelectItem>
+              <SelectItem value="colaborador">
+                <span className="flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5 text-green-500" />
+                  Colaboradores
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
           {/* Whaticket-style Ticket Tabs */}
           <TicketTabs
