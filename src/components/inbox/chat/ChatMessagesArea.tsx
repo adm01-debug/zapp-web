@@ -104,18 +104,29 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
     scrollToBottom: () => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      const container = scrollContainerRef.current;
+      if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      }
     },
     registerMessageRef: (messageId: string, el: HTMLDivElement | null) => {
       messageRefs.current[messageId] = el;
     },
     scrollToMessage: (messageId: string) => {
       const element = messageRefs.current[messageId];
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const container = scrollContainerRef.current;
+      if (element && container) {
+        const elementTop = element.offsetTop - container.offsetTop;
+        const containerHeight = container.clientHeight;
+        const elementHeight = element.clientHeight;
+        container.scrollTo({
+          top: elementTop - (containerHeight / 2) + (elementHeight / 2),
+          behavior: 'smooth',
+        });
         element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
         setTimeout(() => {
           element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
@@ -135,7 +146,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 min-h-0 min-w-0 overflow-y-auto px-4 py-6 md:px-8 space-y-4 scrollbar-thin bg-background/50 relative">
+    <div ref={scrollContainerRef} className="flex-1 min-h-0 min-w-0 overflow-y-auto px-4 py-6 md:px-8 space-y-4 scrollbar-thin bg-background/50 relative">
       {/* Animated vector watermark background */}
       <ChatWatermark />
 
