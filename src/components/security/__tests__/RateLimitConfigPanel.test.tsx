@@ -137,9 +137,12 @@ describe('RateLimitConfigPanel', () => {
 
     it('allows editing max requests', async () => {
       render(<RateLimitConfigPanel />);
-      await waitFor(() => screen.getByDisplayValue('5'));
-      const inputs = screen.getAllByDisplayValue('5');
-      fireEvent.change(inputs[0], { target: { value: '10' } });
+      await waitFor(() => screen.getByDisplayValue('Login'));
+      // Find the first number input with value 5
+      const inputs = screen.getAllByRole('spinbutton');
+      const fiveInput = inputs.find(i => (i as HTMLInputElement).value === '5');
+      expect(fiveInput).toBeDefined();
+      fireEvent.change(fiveInput!, { target: { value: '10' } });
       expect(screen.getByDisplayValue('10')).toBeInTheDocument();
     });
 
