@@ -1181,7 +1181,7 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('stickers insert includes image_url', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const data: Record<string, unknown> = {
         name: 'test',
         category: 'outros',
