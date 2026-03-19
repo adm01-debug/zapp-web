@@ -195,7 +195,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       </div>
 
       {/* Separator */}
-      <div className="mx-4 my-2 h-px bg-border" />
+      <div className="mx-3 my-1.5 h-px bg-border/60" />
 
       {/* System nav */}
       <nav className="flex flex-col items-center gap-1 px-[11px] py-1" aria-label="Sistema">
