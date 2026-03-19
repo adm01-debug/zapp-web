@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { ConnectionHealthPanel } from '@/components/diagnostics/ConnectionHealthPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +12,7 @@ import {
   Wifi, WifiOff, RefreshCw, AlertTriangle, CheckCircle2, XCircle,
   Clock, MessageSquare, ArrowUpDown, Activity, Server, Database,
   HardDrive, Zap, Bug, ChevronRight, BarChart3, Send, FileWarning,
-  Loader2, Shield,
+  Loader2, Shield, HeartPulse,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -469,7 +470,11 @@ export function DiagnosticsView() {
           </TabsTrigger>
           <TabsTrigger value="health" className="gap-2">
             <Server className="w-4 h-4" />
-            Health Check
+            System Health
+          </TabsTrigger>
+          <TabsTrigger value="connection-health" className="gap-2">
+            <HeartPulse className="w-4 h-4" />
+            Connection Health
           </TabsTrigger>
           <TabsTrigger value="logs" className="gap-2 relative">
             <FileWarning className="w-4 h-4" />
@@ -665,6 +670,11 @@ export function DiagnosticsView() {
                 </Card>
               </>
             )}
+          </TabsContent>
+
+          {/* ── Tab: Connection Health ── */}
+          <TabsContent value="connection-health" className="px-6 py-4">
+            <ConnectionHealthPanel />
           </TabsContent>
 
           {/* ── Tab: Logs de Erros ── */}

@@ -1067,6 +1067,44 @@ export type Database = {
           },
         ]
       }
+      connection_health_logs: {
+        Row: {
+          checked_at: string
+          connection_id: string
+          error_message: string | null
+          id: string
+          instance_id: string
+          response_time_ms: number | null
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          connection_id: string
+          error_message?: string | null
+          id?: string
+          instance_id: string
+          response_time_ms?: number | null
+          status?: string
+        }
+        Update: {
+          checked_at?: string
+          connection_id?: string
+          error_message?: string | null
+          id?: string
+          instance_id?: string
+          response_time_ms?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connection_health_logs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_custom_fields: {
         Row: {
           contact_id: string
@@ -3810,6 +3848,33 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_rate_limits: {
+        Row: {
+          created_at: string
+          event_count: number
+          event_type: string
+          id: string
+          instance_id: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          event_count?: number
+          event_type: string
+          id?: string
+          instance_id: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          event_count?: number
+          event_type?: string
+          id?: string
+          instance_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       whatsapp_connection_queues: {
         Row: {
           created_at: string
@@ -3853,10 +3918,13 @@ export type Database = {
           created_by: string | null
           farewell_enabled: boolean | null
           farewell_message: string | null
+          health_response_ms: number | null
+          health_status: string | null
           id: string
           instance_id: string | null
           is_default: boolean | null
           is_plugged: boolean | null
+          last_health_check: string | null
           max_retries: number | null
           name: string
           phone_number: string
@@ -3871,10 +3939,13 @@ export type Database = {
           created_by?: string | null
           farewell_enabled?: boolean | null
           farewell_message?: string | null
+          health_response_ms?: number | null
+          health_status?: string | null
           id?: string
           instance_id?: string | null
           is_default?: boolean | null
           is_plugged?: boolean | null
+          last_health_check?: string | null
           max_retries?: number | null
           name: string
           phone_number: string
@@ -3889,10 +3960,13 @@ export type Database = {
           created_by?: string | null
           farewell_enabled?: boolean | null
           farewell_message?: string | null
+          health_response_ms?: number | null
+          health_status?: string | null
           id?: string
           instance_id?: string | null
           is_default?: boolean | null
           is_plugged?: boolean | null
+          last_health_check?: string | null
           max_retries?: number | null
           name?: string
           phone_number?: string

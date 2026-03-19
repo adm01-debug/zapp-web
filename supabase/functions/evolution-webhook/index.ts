@@ -307,6 +307,36 @@ async function getContactByPhone(
   return data;
 }
 
+// ─── In-Memory Rate Limiter ───
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute window
+const RATE_LIMIT_MAX_EVENTS = 300;   // max events per instance per window
+const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
+
+function isRateLimited(instance: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(instance);
+
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(instance, { count: 1, windowStart: now });
+    return false;
+  }
+
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX_EVENTS) {
+    console.warn(`[RATE_LIMIT] Instance ${instance} exceeded ${RATE_LIMIT_MAX_EVENTS} events/min (${entry.count})`);
+    return true;
+  }
+  return false;
+}
+
+// Cleanup stale entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of rateLimitMap) {
+    if (now - val.windowStart > RATE_LIMIT_WINDOW_MS * 2) rateLimitMap.delete(key);
+  }
+}, 120_000);
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -326,6 +356,14 @@ serve(async (req) => {
     const instance = payload.instance;
     const data = payload.data ?? {};
     const baseData = isRecord(data) ? data : {};
+
+    // Rate limit check per instance
+    if (isRateLimited(instance)) {
+      return new Response(JSON.stringify({ error: 'Rate limited', instance }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log('Evolution webhook received:', payload.event, '->', event, instance);
 
     if (event === 'connection.update') {
