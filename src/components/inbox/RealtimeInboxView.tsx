@@ -881,9 +881,8 @@ export function RealtimeInboxView() {
                   onToggleDetails={() => setShowDetails(!showDetails)}
                   onBack={isMobile ? () => setSelectedContactId(null) : undefined}
                 />
-                />
               </div>
-              {showDetails && (
+              {showDetails && !isMobile && (
                 <div className="h-full shrink-0 overflow-hidden">
                   <ContactDetails
                     key={`details-${legacyConversation.id}`}
