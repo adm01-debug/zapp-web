@@ -330,13 +330,45 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
 
                         {message.type === 'sticker' && message.mediaUrl && (
-                          <div className="mb-1">
+                          <div className="mb-1 group/sticker relative">
                             <img
                               src={message.mediaUrl}
                               alt="Sticker"
                               className="max-w-[160px] max-h-[160px] object-contain drop-shadow-lg"
                               loading="lazy"
                             />
+                            {!isSent && (
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const { data: existing } = await supabase
+                                      .from('stickers')
+                                      .select('id')
+                                      .eq('image_url', message.mediaUrl!)
+                                      .maybeSingle();
+                                    if (existing) {
+                                      toast({ title: 'Figurinha já está na biblioteca!' });
+                                      return;
+                                    }
+                                    await supabase.from('stickers').insert({
+                                      name: `Recebida ${new Date().toLocaleDateString('pt-BR')}`,
+                                      image_url: message.mediaUrl!,
+                                      category: 'recebidas',
+                                      is_favorite: false,
+                                      use_count: 0,
+                                    });
+                                    toast({ title: '✅ Figurinha salva na biblioteca!' });
+                                  } catch {
+                                    toast({ title: 'Erro ao salvar figurinha', variant: 'destructive' });
+                                  }
+                                }}
+                                className="absolute bottom-1 right-1 opacity-0 group-hover/sticker:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-md hover:bg-background border border-border/50"
+                                title="Salvar na biblioteca"
+                              >
+                                <Download className="w-3.5 h-3.5 text-foreground" />
+                              </button>
+                            )}
                           </div>
                         )}
 
