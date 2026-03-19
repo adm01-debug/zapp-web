@@ -717,6 +717,17 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
               </SelectContent>
             </Select>
 
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1"
+              onClick={handleBulkReclassify}
+              disabled={reclassifying}
+            >
+              {reclassifying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+              {reclassifying ? 'Classificando...' : 'Reclassificar IA'}
+            </Button>
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" className="h-7 text-xs gap-1">
