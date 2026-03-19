@@ -31,8 +31,10 @@ import {
   Keyboard,
   Volume2,
   ArrowRight,
+  Package,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
+import { MediaLibraryAdmin } from '@/components/settings/MediaLibraryAdmin';
 import { AutoCloseSettings } from '@/components/settings/AutoCloseSettings';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
