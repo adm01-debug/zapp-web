@@ -114,6 +114,7 @@ export function ChatInputArea({
   onOpenLocationPicker,
   onSendProduct,
   onSendSticker,
+  onSendAudioMeme,
   onSelectSuggestion,
   onSelectTemplate,
   fileUploaderRef,
