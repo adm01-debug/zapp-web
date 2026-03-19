@@ -280,6 +280,7 @@ export function CampaignsView() {
                     <SelectItem value="all">Todos os contatos</SelectItem>
                     <SelectItem value="tag">Por etiqueta</SelectItem>
                     <SelectItem value="queue">Por fila</SelectItem>
+                    <SelectItem value="groups">Grupos WhatsApp</SelectItem>
                     <SelectItem value="custom">Seleção manual</SelectItem>
                   </SelectContent>
                 </Select>

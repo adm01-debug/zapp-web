@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
@@ -42,9 +42,12 @@ import {
   RefreshCw,
   Shield,
   Link as LinkIcon,
+  Loader2,
+  Send,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
 
 interface WhatsAppGroup {
   id: string;
@@ -62,6 +65,7 @@ interface WhatsAppConnection {
   id: string;
   name: string;
   phone_number: string;
+  instance_id: string;
 }
 
 export function GroupsView() {
@@ -70,7 +74,12 @@ export function GroupsView() {
   const [connections, setConnections] = useState<WhatsAppConnection[]>([]);
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [newGroup, setNewGroup] = useState({
     name: '',
     group_id: '',
@@ -102,7 +111,7 @@ export function GroupsView() {
   const fetchConnections = async () => {
     const { data, error } = await supabase
       .from('whatsapp_connections')
-      .select('id, name, phone_number')
+      .select('id, name, phone_number, instance_id')
       .order('name', { ascending: true });
 
     if (error) {
@@ -111,6 +120,83 @@ export function GroupsView() {
       setConnections(data || []);
     }
   };
+
+  // =============================================
+  // AUTO-SYNC: Fetch groups from all active connections via Evolution API
+  // =============================================
+  const handleAutoSync = useCallback(async () => {
+    if (connections.length === 0) {
+      toast.error('Nenhuma conexão WhatsApp configurada');
+      return;
+    }
+
+    setIsSyncing(true);
+    let totalSynced = 0;
+    let totalErrors = 0;
+
+    for (const conn of connections) {
+      if (!conn.instance_id) continue;
+
+      try {
+        const { data, error } = await supabase.functions.invoke('evolution-api/list-groups', {
+          body: { instanceName: conn.instance_id, getParticipants: 'false' },
+        });
+
+        if (error) {
+          log.error(`Error syncing groups for ${conn.name}:`, error);
+          totalErrors++;
+          continue;
+        }
+
+        // Evolution API returns array of groups
+        const apiGroups = Array.isArray(data) ? data : (data?.data || data?.groups || []);
+
+        for (const g of apiGroups) {
+          const groupJid = g.id || g.jid || g.groupJid;
+          const groupName = g.subject || g.name || 'Grupo sem nome';
+          const participantCount = g.size || g.participants?.length || 0;
+          const groupDesc = g.desc || g.description || null;
+          const isAdmin = g.announce === true || g.iAmAdmin === true;
+
+          if (!groupJid) continue;
+
+          // Upsert: update if exists, insert if not
+          const { error: upsertError } = await supabase
+            .from('whatsapp_groups')
+            .upsert(
+              {
+                group_id: groupJid,
+                name: groupName,
+                description: groupDesc,
+                participant_count: participantCount,
+                is_admin: isAdmin,
+                whatsapp_connection_id: conn.id,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: 'group_id' }
+            );
+
+          if (upsertError) {
+            log.error(`Error upserting group ${groupJid}:`, upsertError);
+          } else {
+            totalSynced++;
+          }
+        }
+      } catch (err) {
+        log.error(`Sync error for connection ${conn.name}:`, err);
+        totalErrors++;
+      }
+    }
+
+    setIsSyncing(false);
+    await fetchGroups();
+
+    if (totalErrors > 0) {
+      toast.warning(`Sincronização parcial: ${totalSynced} grupos sincronizados, ${totalErrors} conexão(ões) com erro`);
+    } else {
+      toast.success(`${totalSynced} grupo(s) sincronizados com sucesso!`);
+    }
+  }, [connections]);
 
   const handleAddGroup = async () => {
     if (!newGroup.name || !newGroup.group_id) {
@@ -156,6 +242,85 @@ export function GroupsView() {
     );
   };
 
+  // =============================================
+  // BROADCAST: Send message to selected groups
+  // =============================================
+  const toggleGroupSelection = (groupId: string) => {
+    setSelectedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
+
+  const selectAllGroups = () => {
+    if (selectedGroups.size === filteredGroups.length) {
+      setSelectedGroups(new Set());
+    } else {
+      setSelectedGroups(new Set(filteredGroups.map(g => g.id)));
+    }
+  };
+
+  const handleBroadcast = async () => {
+    if (!broadcastMessage.trim()) {
+      toast.error('Digite uma mensagem');
+      return;
+    }
+
+    const groupsToSend = groups.filter(g => selectedGroups.has(g.id));
+    if (groupsToSend.length === 0) {
+      toast.error('Selecione pelo menos um grupo');
+      return;
+    }
+
+    setIsSending(true);
+    let sent = 0;
+    let failed = 0;
+
+    for (const group of groupsToSend) {
+      const conn = connections.find(c => c.id === group.whatsapp_connection_id);
+      if (!conn?.instance_id) {
+        failed++;
+        continue;
+      }
+
+      try {
+        const { error } = await supabase.functions.invoke('evolution-api/send-text', {
+          body: {
+            instanceName: conn.instance_id,
+            number: group.group_id,
+            text: broadcastMessage,
+          },
+        });
+
+        if (error) {
+          failed++;
+        } else {
+          sent++;
+        }
+
+        // Rate limiting: wait between sends
+        if (groupsToSend.indexOf(group) < groupsToSend.length - 1) {
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      } catch {
+        failed++;
+      }
+    }
+
+    setIsSending(false);
+    setIsBroadcastOpen(false);
+    setBroadcastMessage('');
+    setSelectedGroups(new Set());
+
+    if (failed > 0) {
+      toast.warning(`Enviado para ${sent} grupo(s), ${failed} falha(s)`);
+    } else {
+      toast.success(`Mensagem enviada para ${sent} grupo(s)!`);
+    }
+  };
+
   const filteredGroups = groups.filter(
     (group) =>
       group.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -172,7 +337,6 @@ export function GroupsView() {
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
-      {/* Header with Breadcrumbs */}
       <PageHeader
         title="Grupos WhatsApp"
         subtitle={`Gerencie seus grupos (${groups.length} grupos)`}
@@ -182,9 +346,19 @@ export function GroupsView() {
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchGroups} disabled={isLoading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Sincronizar
+            {selectedGroups.size > 0 && (
+              <Button
+                variant="default"
+                onClick={() => setIsBroadcastOpen(true)}
+                className="gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Enviar para {selectedGroups.size} grupo(s)
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleAutoSync} disabled={isSyncing}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
             </Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
@@ -193,74 +367,74 @@ export function GroupsView() {
                   Adicionar Grupo
                 </Button>
               </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Grupo</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="group_name">Nome do Grupo *</Label>
-                  <Input
-                    id="group_name"
-                    placeholder="Nome do grupo"
-                    value={newGroup.name}
-                    onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
-                  />
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Adicionar Grupo</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="group_name">Nome do Grupo *</Label>
+                    <Input
+                      id="group_name"
+                      placeholder="Nome do grupo"
+                      value={newGroup.name}
+                      onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="group_id">ID do Grupo *</Label>
+                    <Input
+                      id="group_id"
+                      placeholder="Ex: 5511999999999-1234567890@g.us"
+                      value={newGroup.group_id}
+                      onChange={(e) => setNewGroup({ ...newGroup, group_id: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descrição</Label>
+                    <Input
+                      id="description"
+                      placeholder="Descrição do grupo"
+                      value={newGroup.description}
+                      onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="connection">Conexão WhatsApp</Label>
+                    <Select
+                      value={newGroup.whatsapp_connection_id}
+                      onValueChange={(value) =>
+                        setNewGroup({ ...newGroup, whatsapp_connection_id: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma conexão" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {connections.map((conn) => (
+                          <SelectItem key={conn.id} value={conn.id}>
+                            {conn.name} ({conn.phone_number})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleAddGroup} className="bg-whatsapp hover:bg-whatsapp-dark">
+                      Adicionar
+                    </Button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="group_id">ID do Grupo *</Label>
-                  <Input
-                    id="group_id"
-                    placeholder="Ex: 5511999999999-1234567890@g.us"
-                    value={newGroup.group_id}
-                    onChange={(e) => setNewGroup({ ...newGroup, group_id: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Input
-                    id="description"
-                    placeholder="Descrição do grupo"
-                    value={newGroup.description}
-                    onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="connection">Conexão WhatsApp</Label>
-                  <Select
-                    value={newGroup.whatsapp_connection_id}
-                    onValueChange={(value) =>
-                      setNewGroup({ ...newGroup, whatsapp_connection_id: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma conexão" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {connections.map((conn) => (
-                        <SelectItem key={conn.id} value={conn.id}>
-                          {conn.name} ({conn.phone_number})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleAddGroup} className="bg-whatsapp hover:bg-whatsapp-dark">
-                    Adicionar
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         }
       />
 
-      {/* Search */}
+      {/* Search + Select All */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -276,6 +450,11 @@ export function GroupsView() {
             className="pl-9"
           />
         </div>
+        {filteredGroups.length > 0 && (
+          <Button variant="outline" size="sm" onClick={selectAllGroups}>
+            {selectedGroups.size === filteredGroups.length ? 'Desselecionar todos' : 'Selecionar todos'}
+          </Button>
+        )}
       </motion.div>
 
       {/* Groups Grid */}
@@ -292,93 +471,173 @@ export function GroupsView() {
               description={
                 search
                   ? 'Tente ajustar o termo de busca'
-                  : 'Adicione grupos do WhatsApp para gerenciá-los aqui'
+                  : 'Clique em "Sincronizar" para importar grupos automaticamente ou adicione manualmente'
               }
               illustration="contacts"
-              actionLabel={!search ? 'Adicionar Grupo' : undefined}
-              onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
+              actionLabel={!search ? 'Sincronizar Grupos' : undefined}
+              onAction={!search ? handleAutoSync : undefined}
               secondaryActionLabel={search ? 'Limpar busca' : undefined}
               onSecondaryAction={search ? () => setSearch('') : undefined}
             />
           </div>
         ) : (
-          filteredGroups.map((group, index) => (
-            <motion.div
-              key={group.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className="border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={group.avatar_url || undefined} />
-                        <AvatarFallback className="bg-whatsapp/10 text-whatsapp">
-                          <Users className="w-6 h-6" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-base line-clamp-1">{group.name}</CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {group.participant_count} participantes
-                        </p>
+          filteredGroups.map((group, index) => {
+            const isSelected = selectedGroups.has(group.id);
+            return (
+              <motion.div
+                key={group.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card
+                  className={`border transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-primary bg-primary/5 shadow-[0_0_20px_hsl(var(--primary)/0.2)]'
+                      : 'border-secondary/20 bg-card hover:border-secondary/40 hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]'
+                  }`}
+                  onClick={() => toggleGroupSelection(group.id)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={group.avatar_url || undefined} />
+                          <AvatarFallback className="bg-whatsapp/10 text-whatsapp">
+                            <Users className="w-6 h-6" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <CardTitle className="text-base line-clamp-1">{group.name}</CardTitle>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {group.participant_count} participantes
+                          </p>
+                        </div>
                       </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-8 h-8"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedGroups(new Set([group.id]));
+                            setIsBroadcastOpen(true);
+                          }}>
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            Enviar mensagem
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(group.group_id);
+                            toast.success('ID copiado!');
+                          }}>
+                            <LinkIcon className="w-4 h-4 mr-2" />
+                            Copiar ID
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteGroup(group.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="w-8 h-8">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Enviar mensagem
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <LinkIcon className="w-4 h-4 mr-2" />
-                          Copiar link
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDeleteGroup(group.id)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {group.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {group.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="text-xs">
-                      <LinkIcon className="w-3 h-3 mr-1" />
-                      {getConnectionName(group.whatsapp_connection_id)}
-                    </Badge>
-                    {group.is_admin && (
-                      <Badge className="bg-whatsapp/10 text-whatsapp border-whatsapp/20 text-xs">
-                        <Shield className="w-3 h-3 mr-1" />
-                        Admin
-                      </Badge>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {group.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {group.description}
+                      </p>
                     )}
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate" title={group.group_id}>
-                    ID: {group.group_id}
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="text-xs">
+                        <LinkIcon className="w-3 h-3 mr-1" />
+                        {getConnectionName(group.whatsapp_connection_id)}
+                      </Badge>
+                      {group.is_admin && (
+                        <Badge className="bg-whatsapp/10 text-whatsapp border-whatsapp/20 text-xs">
+                          <Shield className="w-3 h-3 mr-1" />
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate" title={group.group_id}>
+                      ID: {group.group_id}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })
         )}
       </div>
+
+      {/* Broadcast Dialog */}
+      <Dialog open={isBroadcastOpen} onOpenChange={setIsBroadcastOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Enviar Mensagem em Massa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="p-3 rounded-lg bg-muted/50 text-sm">
+              <strong>{selectedGroups.size}</strong> grupo(s) selecionado(s)
+              <div className="mt-1 text-xs text-muted-foreground">
+                {groups
+                  .filter(g => selectedGroups.has(g.id))
+                  .map(g => g.name)
+                  .slice(0, 5)
+                  .join(', ')}
+                {selectedGroups.size > 5 && ` e mais ${selectedGroups.size - 5}...`}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Mensagem</Label>
+              <Textarea
+                placeholder="Digite a mensagem para enviar a todos os grupos selecionados..."
+                value={broadcastMessage}
+                onChange={(e) => setBroadcastMessage(e.target.value)}
+                rows={5}
+              />
+            </div>
+            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 text-sm text-warning">
+              ⚠️ Intervalo de 2 segundos entre envios para evitar bloqueios.
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsBroadcastOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleBroadcast}
+                disabled={isSending || !broadcastMessage.trim()}
+                className="bg-whatsapp hover:bg-whatsapp-dark gap-2"
+              >
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                {isSending ? 'Enviando...' : 'Enviar'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
