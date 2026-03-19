@@ -818,8 +818,21 @@ export function RealtimeInboxView() {
           <InboxFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
+        {/* Pull to refresh indicator (mobile only) */}
+        {isMobile && (
+          <MobilePullToRefreshIndicator
+            isRefreshing={pullToRefresh.isRefreshing}
+            pullProgress={pullToRefresh.pullProgress}
+            pullDistance={pullToRefresh.pullDistance}
+          />
+        )}
+
         {/* Conversation List */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div
+          ref={pullToRefresh.containerRef}
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+          {...(isMobile ? pullToRefresh.handlers : {})}
+        >
           {loading ? (
             <div className="p-3 space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
