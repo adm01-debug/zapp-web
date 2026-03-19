@@ -113,16 +113,14 @@ describe('RateLimitConfigPanel', () => {
     it('removes a rule when delete clicked', async () => {
       render(<RateLimitConfigPanel />);
       await waitFor(() => screen.getByDisplayValue('Login'));
-      const deleteButtons = screen.getAllByRole('button').filter(btn =>
-        btn.querySelector('.lucide-trash-2')
-      );
-      const initialCount = deleteButtons.length;
-      fireEvent.click(deleteButtons[0]);
+      const initialSwitches = screen.getAllByRole('switch').length;
+      // Find trash buttons by looking at all icon buttons
+      const allButtons = screen.getAllByRole('button');
+      const trashBtn = allButtons.find(btn => btn.querySelector('.lucide-trash-2'));
+      expect(trashBtn).toBeDefined();
+      fireEvent.click(trashBtn!);
       await waitFor(() => {
-        const remaining = screen.getAllByRole('button').filter(btn =>
-          btn.querySelector('.lucide-trash-2')
-        );
-        expect(remaining.length).toBe(initialCount - 1);
+        expect(screen.getAllByRole('switch').length).toBe(initialSwitches - 1);
       });
     });
   });
