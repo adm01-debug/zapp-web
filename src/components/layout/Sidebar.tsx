@@ -90,6 +90,7 @@ const toolsNav = [
   { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
   { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
   { id: 'omnichannel', icon: Globe, label: 'Omnichannel' },
+  { id: 'omni-inbox', icon: Inbox, label: 'Inbox Omni' },
 ] as const;
 
 const systemNav = [
