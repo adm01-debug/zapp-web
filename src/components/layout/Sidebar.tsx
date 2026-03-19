@@ -194,7 +194,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
         </nav>
       </div>
 
-      {!showTools && !isToolActive && <div className="flex-1" />}
+      
 
       {/* Separator */}
       <div className="mx-4 my-1 h-px bg-border" />
