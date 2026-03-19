@@ -1145,7 +1145,7 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('stickers sends image_url', () => {
-      const type = 'stickers';
+      const type: string = 'stickers';
       const body = type === 'audio_memes'
         ? { audio_url: 'url', file_name: 'name' }
         : { image_url: 'url' };
@@ -1154,7 +1154,7 @@ describe('MediaLibraryAdmin - Pure Logic', () => {
     });
 
     it('custom_emojis sends image_url', () => {
-      const type = 'custom_emojis';
+      const type: string = 'custom_emojis';
       const body = type === 'audio_memes'
         ? { audio_url: 'url', file_name: 'name' }
         : { image_url: 'url' };
