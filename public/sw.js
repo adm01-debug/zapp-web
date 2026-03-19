@@ -1,5 +1,5 @@
 // Service Worker for Push Notifications
-const CACHE_NAME = 'whatsapp-crm-v1';
+const CACHE_NAME = 'whatsapp-crm-v2';
 const OFFLINE_URL = '/offline.html';
 
 // Install event - cache essential assets
