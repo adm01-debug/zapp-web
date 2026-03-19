@@ -206,6 +206,12 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [bulkUploading, setBulkUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showGenDialog, setShowGenDialog] = useState(false);
+  const [genPrompt, setGenPrompt] = useState('');
+  const [genMode, setGenMode] = useState<'sfx' | 'music'>('sfx');
+  const [genDuration, setGenDuration] = useState(5);
+  const [generating, setGenerating] = useState(false);
+  const [genPreviewUrl, setGenPreviewUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
