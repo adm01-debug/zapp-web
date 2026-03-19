@@ -26,6 +26,7 @@ import {
   Forward,
   Copy,
   MoreVertical,
+  Download,
 } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
