@@ -776,11 +776,11 @@ export function RealtimeInboxView() {
       </div>
 
       {/* Chat Panel — flexible remaining space */}
-      <div className="flex-1 flex min-w-0 relative z-10 bg-background">
+      <div className="flex-1 flex min-w-0 relative z-10 bg-background h-full overflow-hidden">
         {legacyConversation ? (
           <Suspense fallback={<ChatFallback />}>
             <>
-              <div className="flex-1 min-w-0 relative">
+              <div className="flex-1 min-w-0 relative h-full overflow-hidden">
                 <ChatPanel
                   conversation={legacyConversation}
                   messages={legacyMessages}
