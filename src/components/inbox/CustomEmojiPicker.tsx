@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SmilePlus, Search, Plus, Star, Trash2, Loader2, X, Tag, Check, ChevronDown } from 'lucide-react';
+import { SmilePlus, Search, Plus, Star, Trash2, Loader2, X, Tag, Check, ChevronDown, Smile } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CustomEmoji {
@@ -52,6 +52,156 @@ const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
 };
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
+
+// ── Traditional WhatsApp-style Unicode Emojis ──
+const NATIVE_EMOJI_CATEGORIES: { id: string; icon: string; label: string; emojis: string[] }[] = [
+  {
+    id: 'smileys',
+    icon: '😀',
+    label: 'Carinhas',
+    emojis: [
+      '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩',
+      '😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🫡',
+      '🤐','🤨','😐','😑','😶','🫠','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴',
+      '😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐',
+      '😕','🫤','😟','🙁','😮','😯','😲','😳','🥺','🥹','😦','😧','😨','😰','😥','😢',
+      '😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀',
+      '☠️','💩','🤡','👹','👺','👻','👽','👾','🤖',
+    ],
+  },
+  {
+    id: 'gestures',
+    icon: '👋',
+    label: 'Mãos e Gestos',
+    emojis: [
+      '👋','🤚','🖐️','✋','🖖','🫱','🫲','🫳','🫴','👌','🤌','🤏','✌️','🤞','🫰',
+      '🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜',
+      '👏','🙌','🫶','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶',
+      '👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁️','👅','👄',
+    ],
+  },
+  {
+    id: 'people',
+    icon: '👤',
+    label: 'Pessoas',
+    emojis: [
+      '👶','🧒','👦','👧','🧑','👱','👨','🧔','👩','🧓','👴','👵','🙍','🙎','🙅',
+      '🙆','💁','🙋','🧏','🙇','🤦','🤷','👮','🕵️','💂','🥷','👷','🫅','🤴','👸',
+      '👳','👲','🧕','🤵','👰','🤰','🫃','🫄','🤱','👼','🎅','🤶','🦸','🦹','🧙',
+      '🧚','🧛','🧜','🧝','🧞','🧟','💆','💇','🚶','🧍','🧎','🏃','💃','🕺','👯',
+    ],
+  },
+  {
+    id: 'hearts',
+    icon: '❤️',
+    label: 'Corações e Amor',
+    emojis: [
+      '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕',
+      '💞','💓','💗','💖','💘','💝','💟','♥️','😍','🥰','😘','😻','💑','👩‍❤️‍👨',
+      '👨‍❤️‍👨','👩‍❤️‍👩','💏','💋','🫂',
+    ],
+  },
+  {
+    id: 'animals',
+    icon: '🐶',
+    label: 'Animais',
+    emojis: [
+      '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐮','🐷',
+      '🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉',
+      '🦇','🐺','🐗','🐴','🦄','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪲','🪳','🦟',
+      '🦗','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠',
+      '🐟','🐬','🐳','🐋','🦈','🦭','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏',
+      '🐪','🐫','🦒','🦘','🦬','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌',
+      '🐕','🐩','🦮','🐕‍🦺','🐈','🐈‍⬛','🪶','🐓','🦃','🦤','🦚','🦜','🦢','🦩',
+      '🐇','🦝','🦨','🦡','🦫','🦦','🦥','🐁','🐀','🐿️','🦔',
+    ],
+  },
+  {
+    id: 'food',
+    icon: '🍔',
+    label: 'Comida e Bebida',
+    emojis: [
+      '🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍',
+      '🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅',
+      '🥔','🍠','🫘','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓',
+      '🥩','🍗','🍖','🦴','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔',
+      '🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚',
+      '🍘','🍥','🥠','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭',
+      '🍬','🍫','🍿','🍩','🍪','🌰','🥜','🫖','☕','🍵','🧃','🥤','🧋','🍶','🍺',
+      '🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🫗','🍼','🥛',
+    ],
+  },
+  {
+    id: 'activities',
+    icon: '⚽',
+    label: 'Atividades',
+    emojis: [
+      '⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑',
+      '🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷',
+      '⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘',
+      '🏄','🏊','🤽','🚣','🧗','🚵','🚴','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️',
+      '🎫','🎟️','🎪','🎭','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🪗',
+      '🎸','🪕','🎻','🎲','♟️','🎯','🎳','🎮','🕹️','🧩',
+    ],
+  },
+  {
+    id: 'travel',
+    icon: '🚗',
+    label: 'Viagem e Lugares',
+    emojis: [
+      '🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️',
+      '🛵','🚲','🛴','🛺','🚨','🚔','🚍','🚘','🚖','✈️','🛫','🛬','🛩️','💺','🚀',
+      '🛸','🚁','🛶','⛵','🚤','🛥️','🛳️','⛴️','🚢','🗼','🏰','🏯','🏟️','🎡','🎢',
+      '🎠','⛲','⛱️','🏖️','🏝️','🏜️','🌋','⛰️','🏔️','🗻','🏕️','🏗️','🏘️','🏚️','🏠',
+      '🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🗽','⛪',
+      '🕌','🛕','🕍','⛩️','🕋',
+    ],
+  },
+  {
+    id: 'objects',
+    icon: '💡',
+    label: 'Objetos',
+    emojis: [
+      '⌚','📱','📲','💻','⌨️','🖥️','🖨️','🖱️','🖲️','🕹️','🗜️','💽','💾','💿','📀',
+      '📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️',
+      '🎛️','🧭','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🪫','🔌','💡','🔦','🕯️',
+      '🧯','🛢️','💸','💵','💴','💶','💷','🪙','💰','💳','💎','⚖️','🪜','🧰','🪛',
+      '🔧','🔨','⚒️','🛠️','⛏️','🪚','🔩','⚙️','🪤','🧲','🔫','💣','🧨','🪓','🔪',
+      '🗡️','⚔️','🛡️','🚬','⚰️','🪦','⚱️','🏺','🔮','📿','🧿','🪬','💈','⚗️','🔭',
+      '🔬','🕳️','🩹','🩺','🩻','🩼','💊','💉','🩸','🧬','🦠','🧫','🧪',
+    ],
+  },
+  {
+    id: 'symbols',
+    icon: '🔣',
+    label: 'Símbolos',
+    emojis: [
+      '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕',
+      '💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎',
+      '☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓',
+      '🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚',
+      '💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘',
+      '❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵',
+      '🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰',
+      '♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿',
+      '🅿️','🛗','🈳','🈂️','🛂','🛃','🛄','🛅',
+    ],
+  },
+  {
+    id: 'flags',
+    icon: '🏳️',
+    label: 'Bandeiras',
+    emojis: [
+      '🏳️','🏴','🏁','🚩','🏳️‍🌈','🏳️‍⚧️','🇧🇷','🇺🇸','🇵🇹','🇪🇸','🇫🇷','🇩🇪',
+      '🇮🇹','🇬🇧','🇯🇵','🇨🇳','🇰🇷','🇮🇳','🇲🇽','🇦🇷','🇨🇴','🇨🇱','🇵🇪','🇻🇪',
+      '🇺🇾','🇵🇾','🇧🇴','🇪🇨','🇨🇺','🇨🇷','🇵🇦','🇩🇴','🇬🇹','🇭🇳','🇸🇻',
+      '🇳🇮','🇦🇺','🇨🇦','🇷🇺','🇹🇷','🇸🇦','🇦🇪','🇮🇱','🇪🇬','🇿🇦','🇳🇬',
+      '🇰🇪','🇲🇦','🇹🇭','🇻🇳','🇮🇩','🇵🇭','🇲🇾','🇸🇬','🇳🇿','🇸🇪','🇳🇴',
+      '🇩🇰','🇫🇮','🇮🇪','🇨🇭','🇦🇹','🇧🇪','🇳🇱','🇵🇱','🇨🇿','🇬🇷','🇷🇴',
+      '🇭🇺','🇺🇦',
+    ],
+  },
+];
 
 // ── Category Selector ──
 function CategorySelector({ value, onChange, size = 'sm' }: { value: string; onChange: (cat: string) => void; size?: 'sm' | 'xs' }) {
@@ -180,6 +330,8 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
+  const [activeTab, setActiveTab] = useState<'native' | 'custom'>('native');
+  const [nativeCategoryId, setNativeCategoryId] = useState<string>('smileys');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchEmojis = useCallback(async () => {
@@ -231,7 +383,6 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
 
       const { data: urlData } = supabase.storage.from('custom-emojis').getPublicUrl(storagePath);
 
-      // Classify with AI
       let aiCategory = 'outros';
       try {
         toast.info('🔍 Classificando emoji com IA...');
@@ -296,6 +447,11 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
       .eq('id', emoji.id);
   };
 
+  const handleSendNativeEmoji = (emoji: string) => {
+    onSendEmoji(emoji);
+    setOpen(false);
+  };
+
   const toggleFavorite = async (e: React.MouseEvent, emoji: CustomEmoji) => {
     e.stopPropagation();
     const newVal = !emoji.is_favorite;
@@ -327,6 +483,10 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
     return matchSearch;
   });
 
+  // Filter native emojis by search
+  const activeNativeCategory = NATIVE_EMOJI_CATEGORIES.find(c => c.id === nativeCategoryId);
+  const filteredNativeEmojis = activeNativeCategory?.emojis || [];
+
   return (
     <Popover open={open} onOpenChange={(v) => {
       setOpen(v);
@@ -337,7 +497,7 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
           variant="ghost"
           size="icon"
           className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-          title="Emojis Customizados"
+          title="Emojis"
           disabled={disabled}
         >
           <SmilePlus className="w-[18px] h-[18px]" />
@@ -349,190 +509,276 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
         side="top"
         sideOffset={8}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2.5 border-b border-border">
-          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <SmilePlus className="w-4 h-4 text-primary" />
-            Emojis Customizados
-          </h4>
-          <div className="flex items-center gap-1">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/webp,image/gif,image/jpeg,image/svg+xml"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-7 h-7 text-muted-foreground hover:text-primary"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading || !!pendingUpload}
-              title="Adicionar emoji"
+        {/* Header with tab toggle */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+            <button
+              onClick={() => setActiveTab('native')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                activeTab === 'native'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
             >
-              {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-            </Button>
+              <Smile className="w-3.5 h-3.5" />
+              Tradicionais
+            </button>
+            <button
+              onClick={() => setActiveTab('custom')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                activeTab === 'custom'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <SmilePlus className="w-3.5 h-3.5" />
+              Customizados
+            </button>
           </div>
-        </div>
-
-        {/* Upload preview */}
-        <AnimatePresence>
-          {pendingUpload && (
-            <div className="px-3 py-2 border-b border-border/50">
-              <UploadPreview
-                pending={pendingUpload}
-                onConfirm={handleConfirmUpload}
-                onCancel={handleCancelUpload}
+          {activeTab === 'custom' && (
+            <div className="flex items-center gap-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/webp,image/gif,image/jpeg,image/svg+xml"
+                className="hidden"
+                onChange={handleFileSelect}
               />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-7 h-7 text-muted-foreground hover:text-primary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || !!pendingUpload}
+                title="Adicionar emoji"
+              >
+                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              </Button>
             </div>
           )}
-        </AnimatePresence>
-
-        {/* Search */}
-        <div className="px-3 py-2 border-b border-border/50">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar emojis..."
-              className="h-8 pl-8 text-xs bg-muted/50 border-border/50"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2">
-                <X className="w-3 h-3 text-muted-foreground" />
-              </button>
-            )}
-          </div>
         </div>
 
-        {/* Category chips */}
-        <div className="px-2 py-2 border-b border-border/30">
-          <ScrollArea className="w-full">
-            <div className="flex gap-1.5 flex-wrap">
-              <button
-                onClick={() => { setActiveCategory(null); setShowFavorites(false); }}
-                className={cn(
-                  'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap',
-                  !activeCategory && !showFavorites
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+        {activeTab === 'native' ? (
+          <>
+            {/* Native emoji category bar */}
+            <div className="px-1.5 py-1.5 border-b border-border/30">
+              <ScrollArea className="w-full">
+                <div className="flex gap-0.5">
+                  {NATIVE_EMOJI_CATEGORIES.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setNativeCategoryId(cat.id)}
+                      className={cn(
+                        'flex items-center justify-center w-8 h-8 rounded-md text-lg transition-all shrink-0',
+                        nativeCategoryId === cat.id
+                          ? 'bg-primary/15 scale-110'
+                          : 'hover:bg-muted/60'
+                      )}
+                      title={cat.label}
+                    >
+                      {cat.icon}
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Category label */}
+            <div className="px-3 py-1.5 border-b border-border/20">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                {activeNativeCategory?.label}
+              </span>
+            </div>
+
+            {/* Native emojis grid */}
+            <ScrollArea className="h-[280px]">
+              <div className="p-2">
+                <div className="grid grid-cols-8 gap-0.5">
+                  {filteredNativeEmojis.map((emoji, i) => (
+                    <motion.button
+                      key={`${nativeCategoryId}-${i}`}
+                      whileHover={{ scale: 1.3 }}
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => handleSendNativeEmoji(emoji)}
+                      className="flex items-center justify-center w-full aspect-square rounded-md hover:bg-muted/50 transition-colors text-2xl cursor-pointer"
+                    >
+                      {emoji}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </ScrollArea>
+
+            {/* Footer */}
+            <div className="px-3 py-1.5 border-t border-border/30">
+              <span className="text-[10px] text-muted-foreground">
+                {filteredNativeEmojis.length} emojis · {activeNativeCategory?.label}
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Upload preview */}
+            <AnimatePresence>
+              {pendingUpload && (
+                <div className="px-3 py-2 border-b border-border/50">
+                  <UploadPreview
+                    pending={pendingUpload}
+                    onConfirm={handleConfirmUpload}
+                    onCancel={handleCancelUpload}
+                  />
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* Search */}
+            <div className="px-3 py-2 border-b border-border/50">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Buscar emojis..."
+                  className="h-8 pl-8 text-xs bg-muted/50 border-border/50"
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <X className="w-3 h-3 text-muted-foreground" />
+                  </button>
                 )}
-              >
-                Todos ({emojis.length})
-              </button>
-              <button
-                onClick={() => { setShowFavorites(!showFavorites); setActiveCategory(null); }}
-                className={cn(
-                  'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap flex items-center gap-1',
-                  showFavorites
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                )}
-              >
-                <Star className="w-3 h-3" /> Favoritos
-              </button>
-              {categories.map(cat => {
-                const info = CATEGORY_LABELS[cat];
-                const count = emojis.filter(em => em.category === cat).length;
-                return (
+              </div>
+            </div>
+
+            {/* Category chips */}
+            <div className="px-2 py-2 border-b border-border/30">
+              <ScrollArea className="w-full">
+                <div className="flex gap-1.5 flex-wrap">
                   <button
-                    key={cat}
-                    onClick={() => { setActiveCategory(activeCategory === cat ? null : cat); setShowFavorites(false); }}
+                    onClick={() => { setActiveCategory(null); setShowFavorites(false); }}
                     className={cn(
                       'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap',
-                      activeCategory === cat
+                      !activeCategory && !showFavorites
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     )}
                   >
-                    {info?.emoji || '📦'} {info?.label || cat} ({count})
+                    Todos ({emojis.length})
                   </button>
-                );
-              })}
+                  <button
+                    onClick={() => { setShowFavorites(!showFavorites); setActiveCategory(null); }}
+                    className={cn(
+                      'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap flex items-center gap-1',
+                      showFavorites
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    )}
+                  >
+                    <Star className="w-3 h-3" /> Favoritos
+                  </button>
+                  {categories.map(cat => {
+                    const info = CATEGORY_LABELS[cat];
+                    const count = emojis.filter(em => em.category === cat).length;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => { setActiveCategory(activeCategory === cat ? null : cat); setShowFavorites(false); }}
+                        className={cn(
+                          'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap',
+                          activeCategory === cat
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        )}
+                      >
+                        {info?.emoji || '📦'} {info?.label || cat} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
             </div>
-          </ScrollArea>
-        </div>
 
-        {/* Emojis grid */}
-        <ScrollArea className="h-[260px]">
-          <div className="p-2">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
-              </div>
-            ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <SmilePlus className="w-10 h-10 text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground font-medium">
-                  {search ? 'Nenhum emoji encontrado' : 'Nenhum emoji customizado'}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Clique em <Plus className="w-3 h-3 inline" /> para adicionar
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-5 gap-1.5">
-                <AnimatePresence>
-                  {filtered.map((emoji) => (
-                    <motion.button
-                      key={emoji.id}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      whileHover={{ scale: 1.15 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleSend(emoji)}
-                      className={cn(
-                        'relative aspect-square rounded-lg overflow-hidden group',
-                        'bg-muted/20 hover:bg-muted/50 transition-colors',
-                        'border border-transparent hover:border-primary/30',
-                        'cursor-pointer'
-                      )}
-                      title={`${emoji.name} • ${CATEGORY_LABELS[emoji.category]?.label || emoji.category}`}
-                    >
-                      <img
-                        src={emoji.image_url}
-                        alt={emoji.name}
-                        className="w-full h-full object-contain p-1"
-                        loading="lazy"
-                      />
-                      {/* Overlay actions */}
-                      <div className="absolute inset-0 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-between p-0.5">
-                        <div className="flex items-center justify-between w-full">
-                          <button onClick={(e) => toggleFavorite(e, emoji)} className="p-0.5">
-                            <Star className={cn(
-                              'w-3 h-3 transition-colors',
-                              emoji.is_favorite ? 'fill-primary text-primary' : 'text-muted-foreground'
-                            )} />
-                          </button>
-                          <button onClick={(e) => handleDelete(e, emoji)} className="p-0.5">
-                            <Trash2 className="w-3 h-3 text-destructive" />
-                          </button>
-                        </div>
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <CategorySelector
-                            value={emoji.category}
-                            onChange={(cat) => handleCategoryChange(emoji, cat)}
-                            size="xs"
+            {/* Emojis grid */}
+            <ScrollArea className="h-[260px]">
+              <div className="p-2">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <SmilePlus className="w-10 h-10 text-muted-foreground/40 mb-3" />
+                    <p className="text-sm text-muted-foreground font-medium">
+                      {search ? 'Nenhum emoji encontrado' : 'Nenhum emoji customizado'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Clique em <Plus className="w-3 h-3 inline" /> para adicionar
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-5 gap-1.5">
+                    <AnimatePresence>
+                      {filtered.map((emoji) => (
+                        <motion.button
+                          key={emoji.id}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleSend(emoji)}
+                          className={cn(
+                            'relative aspect-square rounded-lg overflow-hidden group',
+                            'bg-muted/20 hover:bg-muted/50 transition-colors',
+                            'border border-transparent hover:border-primary/30',
+                            'cursor-pointer'
+                          )}
+                          title={`${emoji.name} • ${CATEGORY_LABELS[emoji.category]?.label || emoji.category}`}
+                        >
+                          <img
+                            src={emoji.image_url}
+                            alt={emoji.name}
+                            className="w-full h-full object-contain p-1"
+                            loading="lazy"
                           />
-                        </div>
-                      </div>
-                    </motion.button>
-                  ))}
-                </AnimatePresence>
+                          {/* Overlay actions */}
+                          <div className="absolute inset-0 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-between p-0.5">
+                            <div className="flex items-center justify-between w-full">
+                              <button onClick={(e) => toggleFavorite(e, emoji)} className="p-0.5">
+                                <Star className={cn(
+                                  'w-3 h-3 transition-colors',
+                                  emoji.is_favorite ? 'fill-primary text-primary' : 'text-muted-foreground'
+                                )} />
+                              </button>
+                              <button onClick={(e) => handleDelete(e, emoji)} className="p-0.5">
+                                <Trash2 className="w-3 h-3 text-destructive" />
+                              </button>
+                            </div>
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <CategorySelector
+                                value={emoji.category}
+                                onChange={(cat) => handleCategoryChange(emoji, cat)}
+                                size="xs"
+                              />
+                            </div>
+                          </div>
+                        </motion.button>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </ScrollArea>
+            </ScrollArea>
 
-        {/* Footer */}
-        <div className="px-3 py-2 border-t border-border/30 flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground">
-            {filtered.length}/{emojis.length} emojis · IA + edição manual
-          </span>
-        </div>
+            {/* Footer */}
+            <div className="px-3 py-2 border-t border-border/30 flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground">
+                {filtered.length}/{emojis.length} emojis · IA + edição manual
+              </span>
+            </div>
+          </>
+        )}
       </PopoverContent>
     </Popover>
   );
