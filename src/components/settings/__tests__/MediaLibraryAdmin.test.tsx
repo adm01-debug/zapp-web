@@ -2307,4 +2307,3 @@ describe('Pure Function Logic', () => {
     });
   });
 });
-});
