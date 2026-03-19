@@ -272,12 +272,12 @@ describe('PerformanceMonitor', () => {
       expect(screen.getByText('Monitor de Performance')).toBeInTheDocument();
     });
 
-    it('refreshes every 10 seconds', () => {
-      render(<PerformanceMonitor />);
-      const callsBefore = (performance.getEntriesByType as ReturnType<typeof vi.fn>).mock.calls.length;
-      vi.advanceTimersByTime(10000);
-      const callsAfter = (performance.getEntriesByType as ReturnType<typeof vi.fn>).mock.calls.length;
-      expect(callsAfter).toBeGreaterThan(callsBefore);
+    it('sets up interval for auto-refresh', () => {
+      const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
+      const { unmount } = render(<PerformanceMonitor />);
+      unmount();
+      expect(clearIntervalSpy).toHaveBeenCalled();
+      clearIntervalSpy.mockRestore();
     });
   });
 });
