@@ -794,6 +794,7 @@ export function RealtimeInboxView() {
             <>
               <div className="flex-1 min-w-0 min-h-0 relative h-full overflow-hidden">
                 <ChatPanel
+                  key={legacyConversation.id}
                   conversation={legacyConversation}
                   messages={legacyMessages}
                   onSendMessage={handleSendMessage}
@@ -805,6 +806,7 @@ export function RealtimeInboxView() {
               {showDetails && (
                 <div className="h-full shrink-0 overflow-hidden">
                   <ContactDetails
+                    key={`details-${legacyConversation.id}`}
                     conversation={legacyConversation}
                     onClose={() => setShowDetails(false)}
                   />
