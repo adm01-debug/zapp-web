@@ -61,6 +61,12 @@ const ScheduleCalendarView = lazy(() => import('@/components/schedule/ScheduleCa
 const WarRoomDashboard = lazy(() => import('@/components/dashboard/WarRoomDashboard').then(m => ({ default: m.WarRoomDashboard })));
 const WhatsAppTemplatesManager = lazy(() => import('@/components/catalog/WhatsAppTemplatesManager').then(m => ({ default: m.WhatsAppTemplatesManager })));
 const OmnichannelManager = lazy(() => import('@/components/omnichannel/OmnichannelManager').then(m => ({ default: m.OmnichannelManager })));
+const ChurnPredictionDashboard = lazy(() => import('@/components/ai/ChurnPredictionDashboard').then(m => ({ default: m.ChurnPredictionDashboard })));
+const AutoTicketClassifier = lazy(() => import('@/components/ai/AutoTicketClassifier').then(m => ({ default: m.AutoTicketClassifier })));
+const PerformanceMonitor = lazy(() => import('@/components/performance/PerformanceMonitor').then(m => ({ default: m.PerformanceMonitor })));
+const OmnichannelInbox = lazy(() => import('@/components/omnichannel/OmnichannelInbox').then(m => ({ default: m.OmnichannelInbox })));
+const AuditLogDashboard = lazy(() => import('@/components/security/AuditLogDashboard').then(m => ({ default: m.AuditLogDashboard })));
+
 const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');
   return { default: m.AchievementsSystem };
