@@ -367,14 +367,28 @@ function IndexContent() {
             <MobileHeader
               onMenuOpen={() => setMobileMenuOpen(true)}
               onSearchOpen={() => setMobileSearchOpen(true)}
-              onNotificationsOpen={() => {/* TODO: open notifications panel */}}
+              onNotificationsOpen={() => setNotificationsOpen(true)}
               currentView={currentView}
               agentName={profile?.name || user.email || 'Usuário'}
               agentAvatar={profile?.avatar_url || undefined}
               agentStatus="online"
-              unreadCount={12}
+              unreadCount={unreadNotifications}
             />
           )}
+
+          {/* Notifications Panel */}
+          <NotificationsPanel
+            isOpen={notificationsOpen}
+            onClose={() => setNotificationsOpen(false)}
+            notifications={notifications}
+            onMarkAllRead={handleMarkAllNotificationsRead}
+            onNotificationClick={(n) => {
+              setNotificationsOpen(false);
+              if (n.type === 'message' || n.type === 'assignment') {
+                setCurrentView('inbox');
+              }
+            }}
+          />
 
           {/* Mobile Drawer */}
           <MobileDrawerMenu
