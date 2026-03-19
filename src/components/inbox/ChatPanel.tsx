@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
+import { normalizeMediaUrl } from '@/utils/normalizeMediaUrl';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
 import { Product } from '@/components/catalog/ProductCard';
@@ -525,10 +526,11 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
     try {
       const phone = conversation.contact.phone.replace(/\D/g, '');
+      const normalizedAudioUrl = normalizeMediaUrl(audioUrl);
       
       // Send via API + save to DB in parallel
       const apiPromise = supabase.functions.invoke('evolution-api/send-audio', {
-        body: { instanceName, number: phone, mediaUrl: audioUrl },
+        body: { instanceName, number: phone, mediaUrl: normalizedAudioUrl },
       });
       
       const dbPromise = supabase.from('messages').insert({
@@ -536,7 +538,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         whatsapp_connection_id: whatsappConnectionId,
         content: '[Áudio Meme]',
         message_type: 'audio',
-        media_url: audioUrl,
+        media_url: normalizedAudioUrl,
         sender: 'agent',
         status: 'sending',
       }).select('id').single();
