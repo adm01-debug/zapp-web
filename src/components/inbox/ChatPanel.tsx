@@ -470,7 +470,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       const dbPromise = supabase.from('messages').insert({
         contact_id: conversation.contact.id,
-        whatsapp_connection_id: null,
+        whatsapp_connection_id: whatsappConnectionId,
         content: '[Emoji]',
         message_type: 'image',
         media_url: emojiUrl,
