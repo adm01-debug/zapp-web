@@ -444,7 +444,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
     try {
       const phone = conversation.contact.phone.replace(/\D/g, '');
-      const { sendAudioMessage } = await import('@/hooks/useEvolutionApi').then(() => ({ sendAudioMessage: (window as any).__sendAudioMessage }));
       
       // Send via API + save to DB in parallel
       const apiPromise = supabase.functions.invoke('evolution-api/send-audio', {
