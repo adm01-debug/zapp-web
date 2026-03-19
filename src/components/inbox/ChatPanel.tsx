@@ -525,10 +525,11 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
     try {
       const phone = conversation.contact.phone.replace(/\D/g, '');
+      const normalizedAudioUrl = normalizeMediaUrl(audioUrl);
       
       // Send via API + save to DB in parallel
       const apiPromise = supabase.functions.invoke('evolution-api/send-audio', {
-        body: { instanceName, number: phone, mediaUrl: audioUrl },
+        body: { instanceName, number: phone, mediaUrl: normalizedAudioUrl },
       });
       
       const dbPromise = supabase.from('messages').insert({
