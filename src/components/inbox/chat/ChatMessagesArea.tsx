@@ -101,6 +101,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   onInteractiveButtonClick,
   onEditStart,
 }, ref) => {
+  const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
