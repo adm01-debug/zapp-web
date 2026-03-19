@@ -183,7 +183,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       </nav>
 
       {/* Separator */}
-      <div className="mx-3 my-1.5 h-px bg-border/60" />
+      <div className="mx-3 my-1 h-px bg-border/60" />
 
       {/* Scrollable tools area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]">
