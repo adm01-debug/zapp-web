@@ -206,6 +206,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [bulkUploading, setBulkUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [reclassifying, setReclassifying] = useState(false);
   const [showGenDialog, setShowGenDialog] = useState(false);
   const [genPrompt, setGenPrompt] = useState('');
   const [genMode, setGenMode] = useState<'sfx' | 'music'>('sfx');
