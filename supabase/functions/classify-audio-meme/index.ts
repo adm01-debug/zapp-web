@@ -42,28 +42,32 @@ Responda APENAS com o nome da categoria, sem explicação.
 
 Categorias: ${AUDIO_CATEGORIES.join(', ')}
 
-Regras:
-- "risada": gargalhada, LOL, KKKK, riso
-- "aplausos": palmas, ovação, torcida
-- "suspense": tensão, mistério, thriller
-- "vitória": sucesso, ganhou, champion, win
-- "falha": fail, erro, buzina de erro, wah wah
-- "surpresa": wow, choque, plot twist
-- "triste": choro, melancolia, violino triste
-- "raiva": irritação, grito de raiva
-- "romântico": amor, beijo, música romântica
-- "medo": susto, grito de terror, jump scare
-- "deboche": ironia, sarcasmo, "ain"
-- "narração": narrador, Galvão, Cid Moreira
-- "bordão": frase famosa, meme falado, catchphrase
-- "efeito sonoro": boing, piu, explosion, coin
-- "viral": TikTok, trend, meme viral atual
-- "cumprimento": bom dia, oi, salve
-- "despedida": tchau, bye, até logo
-- "animação": empolgação, hype, let's go
-- "drama": novela, exagero dramático
-- "gospel": religioso, evangélico, Deus, oração, louvor, igreja, pastor, glória
-- "outros": nenhuma das anteriores`;
+REGRA IMPORTANTE: A categoria "viral" deve ser usada SOMENTE para sons que são tendências ATUAIS de TikTok/Reels (ex: "oh no", "emotional damage"). Memes brasileiros conhecidos, bordões de TV, frases famosas de celebridades devem ser classificados como "bordão". Sons cômicos e engraçados devem ser "risada" ou "deboche".
+
+Regras de classificação (em ordem de prioridade):
+1. "risada": gargalhada, LOL, KKKK, riso, laugh
+2. "aplausos": palmas, ovação, torcida
+3. "suspense": tensão, mistério, thriller
+4. "vitória": sucesso, ganhou, champion, win, parabéns
+5. "falha": fail, erro, buzina de erro, wah wah
+6. "surpresa": wow, choque, plot twist
+7. "triste": choro, melancolia, violino triste
+8. "raiva": irritação, grito de raiva, xingamento
+9. "romântico": amor, beijo, música romântica
+10. "medo": susto, grito de terror, jump scare
+11. "deboche": ironia, sarcasmo, "ain", zoeira, piada, humor, engraçado
+12. "narração": narrador, Galvão, Cid Moreira, Datena
+13. "bordão": frase famosa, meme falado, catchphrase, bordão de TV, celebridade brasileira, frase de novela, Chaves, Alborghetti, Silvio Santos, Faustão
+14. "efeito sonoro": boing, piu, explosion, coin, beep, toque
+15. "viral": APENAS tendências atuais de TikTok/Reels com hashtags virais recentes
+16. "cumprimento": bom dia, oi, salve
+17. "despedida": tchau, bye, até logo
+18. "animação": empolgação, hype, let's go
+19. "drama": novela, exagero dramático
+20. "gospel": religioso, evangélico, Deus, oração, louvor, igreja, pastor, glória
+21. "outros": nenhuma das anteriores
+
+Se o nome do arquivo contém uma frase ou bordão brasileiro conhecido, classifique como "bordão" ou "deboche", NÃO como "viral".`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
