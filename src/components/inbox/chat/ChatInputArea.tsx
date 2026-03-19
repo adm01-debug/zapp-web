@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/popover';
 import {
   Send,
-  Smile,
   Zap,
   Mic,
   Clock,
