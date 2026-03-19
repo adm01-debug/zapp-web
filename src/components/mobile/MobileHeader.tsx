@@ -1,0 +1,120 @@
+import { motion } from 'framer-motion';
+import { Menu, Search, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+
+interface MobileHeaderProps {
+  onMenuOpen: () => void;
+  onSearchOpen?: () => void;
+  currentView: string;
+  agentName?: string;
+  agentAvatar?: string;
+  agentStatus?: 'online' | 'away' | 'offline';
+}
+
+const viewLabels: Record<string, string> = {
+  inbox: 'Conversas',
+  dashboard: 'Dashboard',
+  contacts: 'Contatos',
+  agents: 'Equipe',
+  groups: 'Grupos',
+  queues: 'Filas',
+  connections: 'Conexões',
+  campaigns: 'Campanhas',
+  chatbot: 'Chatbot',
+  pipeline: 'Pipeline',
+  wallet: 'Carteira',
+  catalog: 'Catálogo',
+  payments: 'Pagamentos',
+  tags: 'Etiquetas',
+  knowledge: 'Base de Conhecimento',
+  automations: 'Automações',
+  reports: 'Relatórios',
+  settings: 'Configurações',
+  security: 'Segurança',
+  admin: 'Admin',
+};
+
+export function MobileHeader({
+  onMenuOpen,
+  onSearchOpen,
+  currentView,
+  agentName,
+  agentAvatar,
+  agentStatus = 'online',
+}: MobileHeaderProps) {
+  const initials = agentName
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2) || 'U';
+
+  return (
+    <motion.header
+      initial={{ y: -48 }}
+      animate={{ y: 0 }}
+      className="fixed top-0 left-0 right-0 z-50 safe-area-top"
+    >
+      <div className="flex items-center justify-between px-3 h-14 bg-card/90 backdrop-blur-xl border-b border-border/50">
+        {/* Left: Avatar + Menu */}
+        <div className="flex items-center gap-2.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-9 h-9 rounded-xl touch-manipulation"
+            onClick={onMenuOpen}
+            aria-label="Abrir menu"
+          >
+            <Menu className="w-5 h-5 text-foreground" />
+          </Button>
+
+          {/* Avatar with status */}
+          <div className="relative">
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={agentAvatar} alt={agentName} />
+              <AvatarFallback className="bg-primary/15 text-primary text-[10px] font-bold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <span
+              className={cn(
+                'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card',
+                agentStatus === 'online' && 'bg-[hsl(var(--online,142_71%_45%))]',
+                agentStatus === 'away' && 'bg-[hsl(var(--away,38_92%_50%))]',
+                agentStatus === 'offline' && 'bg-muted-foreground/50'
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Center: View title */}
+        <div className="flex items-center gap-2">
+          <motion.h1
+            key={currentView}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-display font-semibold text-sm text-foreground"
+          >
+            {viewLabels[currentView] || currentView.charAt(0).toUpperCase() + currentView.slice(1)}
+          </motion.h1>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1">
+          {onSearchOpen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-9 h-9 rounded-xl touch-manipulation"
+              onClick={onSearchOpen}
+              aria-label="Buscar"
+            >
+              <Search className="w-4.5 h-4.5 text-muted-foreground" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </motion.header>
+  );
+}

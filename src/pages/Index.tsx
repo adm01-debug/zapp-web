@@ -10,7 +10,9 @@ import { PageTransition } from '@/components/ui/motion';
 import { TourProvider, DEFAULT_ONBOARDING_STEPS, useTour } from '@/components/onboarding/OnboardingTour';
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
-import { BottomNavigation, MobileDrawer } from '@/components/ui/mobile-components';
+import { BottomNavigation } from '@/components/ui/mobile-components';
+import { MobileHeader } from '@/components/mobile/MobileHeader';
+import { MobileDrawerMenu } from '@/components/mobile/MobileDrawerMenu';
 import { CommandPaletteButton } from '@/components/ui/command-palette-button';
 import { useGlobalKeyboard } from '@/components/keyboard/GlobalKeyboardProvider';
 import { useAuth } from '@/hooks/useAuth';
@@ -309,49 +311,27 @@ function IndexContent() {
           
           {/* Mobile Header */}
           {isMobile && (
-            <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-12 bg-card/95 backdrop-blur-lg border-b border-border safe-area-top">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="w-8 h-8"
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Abrir menu"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground text-[10px] font-bold">Z</span>
-                </div>
-                <span className="font-display font-bold text-sm">ZAPP</span>
-              </div>
-              <div className="w-8" />
-            </div>
+            <MobileHeader
+              onMenuOpen={() => setMobileMenuOpen(true)}
+              currentView={currentView}
+              agentName={profile?.name || user.email || 'Usuário'}
+              agentAvatar={profile?.avatar_url || undefined}
+              agentStatus="online"
+            />
           )}
 
           {/* Mobile Drawer */}
-          <MobileDrawer 
-            isOpen={mobileMenuOpen} 
+          <MobileDrawerMenu
+            isOpen={mobileMenuOpen}
             onClose={() => setMobileMenuOpen(false)}
-            side="left"
-          >
-            <div className="pt-14 px-2">
-              <Sidebar
-                currentView={currentView}
-                onViewChange={(view) => {
-                  setCurrentView(view);
-                  setMobileMenuOpen(false);
-                }}
-                currentAgent={{
-                  name: profile?.name || user.email || 'Usuário',
-                  avatar: profile?.avatar_url || undefined,
-                  status: 'online',
-                }}
-                onLogout={signOut}
-              />
-            </div>
-          </MobileDrawer>
-          
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            agentName={profile?.name || user.email || 'Usuário'}
+            agentAvatar={profile?.avatar_url || undefined}
+            agentStatus="online"
+            onLogout={signOut}
+          />
+
           {/* Desktop Sidebar */}
           {!isMobile && (
             <Sidebar
@@ -370,7 +350,7 @@ function IndexContent() {
             id="main-content" 
             className={cn(
               'flex-1 overflow-hidden relative min-w-0',
-              isMobile && 'pt-12 pb-14'
+              isMobile && 'pt-14 pb-16'
             )}
           >
             {/* Onboarding Checklist */}
