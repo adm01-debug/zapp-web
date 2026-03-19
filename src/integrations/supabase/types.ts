@@ -223,6 +223,42 @@ export type Database = {
         }
         Relationships: []
       }
+      audio_memes: {
+        Row: {
+          audio_url: string
+          category: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_favorite: boolean
+          name: string
+          uploaded_by: string | null
+          use_count: number
+        }
+        Insert: {
+          audio_url: string
+          category?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_favorite?: boolean
+          name: string
+          uploaded_by?: string | null
+          use_count?: number
+        }
+        Update: {
+          audio_url?: string
+          category?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_favorite?: boolean
+          name?: string
+          uploaded_by?: string | null
+          use_count?: number
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
