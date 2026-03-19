@@ -185,23 +185,6 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       {/* Separator */}
       <div className="mx-4 my-2 h-px bg-border" />
 
-      {/* Tools section — collapsible */}
-      <div className="flex flex-col items-center px-[11px]">
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setShowTools(!showTools)}
-              className="w-[40px] h-[24px] rounded flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors mb-0.5"
-            >
-              {showTools ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8} className="text-xs">
-            {showTools ? 'Recolher ferramentas' : 'Expandir ferramentas'}
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
       {/* Scrollable tools area */}
       <div className={cn(
         "flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px] transition-all duration-200",
