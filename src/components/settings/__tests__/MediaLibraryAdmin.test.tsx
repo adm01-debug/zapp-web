@@ -1902,7 +1902,7 @@ describe('Pure Function Logic', () => {
   });
 
   describe('Filter Logic', () => {
-    const items = [
+    const items: Array<{name: string | null; category: string | null}> = [
       { name: 'Alpha', category: 'riso' },
       { name: 'Beta', category: 'amor' },
       { name: null, category: 'riso' },
