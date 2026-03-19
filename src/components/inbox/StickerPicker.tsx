@@ -311,8 +311,16 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   const handleDelete = async (e: React.MouseEvent, sticker: StickerItem) => {
     e.stopPropagation();
     setStickers(prev => prev.filter(s => s.id !== sticker.id));
-    const path = sticker.image_url.split('/stickers/')[1];
-    if (path) await supabase.storage.from('stickers').remove([path]);
+    
+    // Handle both storage buckets: 'stickers' and 'whatsapp-media'
+    if (sticker.image_url.includes('/whatsapp-media/')) {
+      const path = sticker.image_url.split('/whatsapp-media/')[1];
+      if (path) await supabase.storage.from('whatsapp-media').remove([path]);
+    } else {
+      const path = sticker.image_url.split('/stickers/')[1];
+      if (path) await supabase.storage.from('stickers').remove([path]);
+    }
+    
     await supabase.from('stickers').delete().eq('id', sticker.id);
     toast.success('Figurinha removida');
   };
