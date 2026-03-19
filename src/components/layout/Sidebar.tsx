@@ -198,7 +198,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       <div className="mx-3 my-1.5 h-px bg-border/60" />
 
       {/* System nav */}
-      <nav className="flex flex-col items-center gap-1 px-[11px] py-1" aria-label="Sistema">
+      <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Sistema">
         {systemNav.map((item) => (
           <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
         ))}
