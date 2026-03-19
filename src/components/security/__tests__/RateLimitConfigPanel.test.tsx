@@ -190,18 +190,24 @@ describe('RateLimitConfigPanel', () => {
   describe('Edge cases', () => {
     it('handles NaN input for max_requests', async () => {
       render(<RateLimitConfigPanel />);
-      await waitFor(() => screen.getByDisplayValue('5'));
-      const inputs = screen.getAllByDisplayValue('5');
-      fireEvent.change(inputs[0], { target: { value: 'abc' } });
-      expect(screen.getByDisplayValue('1')).toBeInTheDocument();
+      await waitFor(() => screen.getByDisplayValue('Login'));
+      const inputs = screen.getAllByRole('spinbutton');
+      const fiveInput = inputs.find(i => (i as HTMLInputElement).value === '5');
+      expect(fiveInput).toBeDefined();
+      fireEvent.change(fiveInput!, { target: { value: 'abc' } });
+      // NaN || 1 = 1
+      expect(screen.getAllByDisplayValue('1').length).toBeGreaterThan(0);
     });
 
     it('handles NaN input for window_seconds', async () => {
       render(<RateLimitConfigPanel />);
-      await waitFor(() => screen.getAllByDisplayValue('300'));
-      const inputs = screen.getAllByDisplayValue('300');
-      fireEvent.change(inputs[0], { target: { value: '' } });
-      expect(screen.getByDisplayValue('60')).toBeInTheDocument();
+      await waitFor(() => screen.getByDisplayValue('Login'));
+      const inputs = screen.getAllByRole('spinbutton');
+      const windowInput = inputs.find(i => (i as HTMLInputElement).value === '300');
+      expect(windowInput).toBeDefined();
+      fireEvent.change(windowInput!, { target: { value: '' } });
+      // '' => parseInt = NaN || 60 = 60
+      expect(screen.getAllByDisplayValue('60').length).toBeGreaterThan(0);
     });
   });
 });

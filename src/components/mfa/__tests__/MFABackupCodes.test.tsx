@@ -98,13 +98,14 @@ describe('MFABackupCodes', () => {
 
     it('reverts copy icon after timeout', async () => {
       vi.useFakeTimers();
-      render(<MFABackupCodes />);
+      const { unmount } = render(<MFABackupCodes />);
+      await vi.runAllTimersAsync();
       fireEvent.click(screen.getByText('Copiar'));
-      vi.advanceTimersByTime(2500);
-      await waitFor(() => {
-        const btn = screen.getByText('Copiar').closest('button');
-        expect(btn?.querySelector('.lucide-copy')).toBeInTheDocument();
-      });
+      await vi.advanceTimersByTimeAsync(2500);
+      // After timeout, icon should revert
+      const btn = screen.getByText('Copiar').closest('button');
+      expect(btn?.querySelector('.lucide-copy')).toBeInTheDocument();
+      unmount();
       vi.useRealTimers();
     });
   });

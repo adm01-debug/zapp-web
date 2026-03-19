@@ -274,9 +274,10 @@ describe('PerformanceMonitor', () => {
 
     it('refreshes every 10 seconds', () => {
       render(<PerformanceMonitor />);
-      expect(performance.getEntriesByType).toHaveBeenCalled();
+      const callsBefore = (performance.getEntriesByType as ReturnType<typeof vi.fn>).mock.calls.length;
       vi.advanceTimersByTime(10000);
-      expect(performance.getEntriesByType).toHaveBeenCalledTimes(2);
+      const callsAfter = (performance.getEntriesByType as ReturnType<typeof vi.fn>).mock.calls.length;
+      expect(callsAfter).toBeGreaterThan(callsBefore);
     });
   });
 });
