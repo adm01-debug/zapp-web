@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Search, Plus, Star, Trash2, Loader2, Upload, X, Play, Pause, Volume2 } from 'lucide-react';
+import { Music, Search, Plus, Star, Trash2, Loader2, Upload, X, Play, Pause, Volume2, Tag, Check, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AudioMemeItem {
@@ -47,6 +47,127 @@ const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
   'outros': { emoji: '📦', label: 'Outros' },
 };
 
+const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
+
+// ── Category Selector (inline dropdown) ──
+function CategorySelector({ value, onChange, size = 'sm' }: { value: string; onChange: (cat: string) => void; size?: 'sm' | 'xs' }) {
+  const [open, setOpen] = useState(false);
+  const info = CATEGORY_LABELS[value] || { emoji: '📦', label: value };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            'flex items-center gap-1 rounded-md border border-border/50 transition-colors hover:bg-muted/60',
+            size === 'xs' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span>{info.emoji}</span>
+          <span className="text-muted-foreground">{info.label}</span>
+          <ChevronDown className={cn(size === 'xs' ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-muted-foreground/60')} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[200px] p-1.5 max-h-[240px] overflow-y-auto"
+        align="start"
+        side="bottom"
+        sideOffset={4}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-0.5">
+          {ALL_CATEGORIES.map(cat => {
+            const catInfo = CATEGORY_LABELS[cat];
+            const isActive = cat === value;
+            return (
+              <button
+                key={cat}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange(cat);
+                  setOpen(false);
+                }}
+                className={cn(
+                  'w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors text-left',
+                  isActive ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                )}
+              >
+                <span>{catInfo.emoji}</span>
+                <span className="flex-1">{catInfo.label}</span>
+                {isActive && <Check className="w-3 h-3 text-primary" />}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ── Upload Preview (shows file with AI suggestion + manual override before saving) ──
+interface PendingUpload {
+  file: File;
+  audioUrl: string;
+  storagePath: string;
+  duration: number | null;
+  aiCategory: string;
+  selectedCategory: string;
+  name: string;
+}
+
+function UploadPreview({ pending, onConfirm, onCancel }: {
+  pending: PendingUpload;
+  onConfirm: (p: PendingUpload) => void;
+  onCancel: () => void;
+}) {
+  const [category, setCategory] = useState(pending.selectedCategory);
+  const [name, setName] = useState(pending.name);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-3 border border-border rounded-lg bg-card space-y-2.5"
+    >
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+          <Music className="w-4 h-4 text-primary" />
+        </div>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="h-7 text-xs flex-1"
+          placeholder="Nome do áudio"
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Tag className="w-3 h-3 text-muted-foreground shrink-0" />
+        <span className="text-[10px] text-muted-foreground shrink-0">Categoria:</span>
+        <CategorySelector value={category} onChange={setCategory} size="sm" />
+        {pending.aiCategory !== 'outros' && category !== pending.aiCategory && (
+          <button
+            onClick={() => setCategory(pending.aiCategory)}
+            className="text-[9px] text-primary hover:underline shrink-0"
+          >
+            IA sugere: {CATEGORY_LABELS[pending.aiCategory]?.label}
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 justify-end">
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onCancel}>
+          <X className="w-3 h-3 mr-1" /> Cancelar
+        </Button>
+        <Button size="sm" className="h-7 text-xs" onClick={() => onConfirm({ ...pending, selectedCategory: category, name })}>
+          <Check className="w-3 h-3 mr-1" /> Salvar
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
+
 export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps) {
   const [open, setOpen] = useState(false);
   const [memes, setMemes] = useState<AudioMemeItem[]>([]);
@@ -56,6 +177,8 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,81 +220,100 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
     setPlayingId(meme.id);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files?.length) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('audio/')) {
+      toast.error('Arquivo não é um áudio válido');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Arquivo excede 5MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     setUploading(true);
     try {
-      for (const file of Array.from(files)) {
-        if (!file.type.startsWith('audio/')) {
-          toast.error(`${file.name} não é um áudio válido`);
-          continue;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name} excede 5MB`);
-          continue;
-        }
+      const ext = file.name.split('.').pop() || 'mp3';
+      const storagePath = `meme_${Date.now()}_${crypto.randomUUID()}.${ext}`;
 
-        const ext = file.name.split('.').pop() || 'mp3';
-        const fileName = `meme_${Date.now()}_${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('audio-memes')
+        .upload(storagePath, file, { contentType: file.type, cacheControl: '31536000' });
 
-        const { error: uploadError } = await supabase.storage
-          .from('audio-memes')
-          .upload(fileName, file, { contentType: file.type, cacheControl: '31536000' });
-
-        if (uploadError) {
-          toast.error(`Erro ao enviar ${file.name}`);
-          continue;
-        }
-
-        const { data: urlData } = supabase.storage.from('audio-memes').getPublicUrl(fileName);
-
-        // Get duration
-        let duration: number | null = null;
-        try {
-          const tempAudio = new Audio(urlData.publicUrl);
-          await new Promise<void>((resolve) => {
-            tempAudio.onloadedmetadata = () => {
-              duration = isFinite(tempAudio.duration) ? Math.round(tempAudio.duration * 100) / 100 : null;
-              resolve();
-            };
-            tempAudio.onerror = () => resolve();
-            setTimeout(resolve, 3000);
-          });
-        } catch { /* ignore */ }
-
-        // Classify with AI
-        let category = 'outros';
-        try {
-          toast.info('🔍 Classificando áudio meme...');
-          const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-audio-meme', {
-            body: { audio_url: urlData.publicUrl, file_name: file.name },
-          });
-          if (!classifyErr && classifyData?.category) {
-            category = classifyData.category;
-          }
-        } catch { /* fallback */ }
-
-        const { data: { user } } = await supabase.auth.getUser();
-        await supabase.from('audio_memes').insert({
-          name: file.name.replace(/\.[^.]+$/, ''),
-          audio_url: urlData.publicUrl,
-          category,
-          duration_seconds: duration,
-          uploaded_by: user?.id || null,
-        });
-
-        toast.success(`Áudio salvo como "${CATEGORY_LABELS[category]?.label || category}"!`);
+      if (uploadError) {
+        toast.error('Erro ao enviar arquivo');
+        return;
       }
 
-      fetchMemes();
+      const { data: urlData } = supabase.storage.from('audio-memes').getPublicUrl(storagePath);
+
+      // Get duration
+      let duration: number | null = null;
+      try {
+        const tempAudio = new Audio(urlData.publicUrl);
+        await new Promise<void>((resolve) => {
+          tempAudio.onloadedmetadata = () => {
+            duration = isFinite(tempAudio.duration) ? Math.round(tempAudio.duration * 100) / 100 : null;
+            resolve();
+          };
+          tempAudio.onerror = () => resolve();
+          setTimeout(resolve, 3000);
+        });
+      } catch { /* ignore */ }
+
+      // Classify with AI in background
+      let aiCategory = 'outros';
+      try {
+        toast.info('🔍 Classificando com IA...');
+        const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-audio-meme', {
+          body: { audio_url: urlData.publicUrl, file_name: file.name },
+        });
+        if (!classifyErr && classifyData?.category) {
+          aiCategory = classifyData.category;
+        }
+      } catch { /* fallback */ }
+
+      setPendingUpload({
+        file,
+        audioUrl: urlData.publicUrl,
+        storagePath,
+        duration,
+        aiCategory,
+        selectedCategory: aiCategory,
+        name: file.name.replace(/\.[^.]+$/, ''),
+      });
     } catch {
       toast.error('Erro ao processar áudio');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleConfirmUpload = async (pending: PendingUpload) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.from('audio_memes').insert({
+      name: pending.name,
+      audio_url: pending.audioUrl,
+      category: pending.selectedCategory,
+      duration_seconds: pending.duration,
+      uploaded_by: user?.id || null,
+    });
+
+    toast.success(`Áudio salvo como "${CATEGORY_LABELS[pending.selectedCategory]?.label || pending.selectedCategory}"!`);
+    setPendingUpload(null);
+    fetchMemes();
+  };
+
+  const handleCancelUpload = async () => {
+    if (pendingUpload) {
+      await supabase.storage.from('audio-memes').remove([pendingUpload.storagePath]);
+    }
+    setPendingUpload(null);
   };
 
   const handleSend = async (meme: AudioMemeItem) => {
@@ -192,6 +334,12 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
     const newVal = !meme.is_favorite;
     setMemes(prev => prev.map(m => m.id === meme.id ? { ...m, is_favorite: newVal } : m));
     await supabase.from('audio_memes').update({ is_favorite: newVal }).eq('id', meme.id);
+  };
+
+  const handleCategoryChange = async (meme: AudioMemeItem, newCategory: string) => {
+    setMemes(prev => prev.map(m => m.id === meme.id ? { ...m, category: newCategory } : m));
+    await supabase.from('audio_memes').update({ category: newCategory }).eq('id', meme.id);
+    toast.success(`Categoria alterada para "${CATEGORY_LABELS[newCategory]?.label || newCategory}"`);
   };
 
   const handleDelete = async (e: React.MouseEvent, meme: AudioMemeItem) => {
@@ -221,9 +369,9 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
   return (
     <Popover open={open} onOpenChange={(v) => {
       setOpen(v);
-      if (!v && audioRef.current) {
-        audioRef.current.pause();
-        setPlayingId(null);
+      if (!v) {
+        if (audioRef.current) { audioRef.current.pause(); setPlayingId(null); }
+        setPendingUpload(null);
       }
     }}>
       <PopoverTrigger asChild>
@@ -254,22 +402,34 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
               ref={fileInputRef}
               type="file"
               accept="audio/*"
-              multiple
               className="hidden"
-              onChange={handleUpload}
+              onChange={handleFileSelect}
             />
             <Button
               variant="ghost"
               size="icon"
               className="w-7 h-7 text-muted-foreground hover:text-primary"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
+              disabled={uploading || !!pendingUpload}
               title="Adicionar áudio meme"
             >
               {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
             </Button>
           </div>
         </div>
+
+        {/* Upload preview */}
+        <AnimatePresence>
+          {pendingUpload && (
+            <div className="px-3 py-2 border-b border-border/50">
+              <UploadPreview
+                pending={pendingUpload}
+                onConfirm={handleConfirmUpload}
+                onCancel={handleCancelUpload}
+              />
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Search */}
         <div className="px-3 py-2 border-b border-border/50">
@@ -391,9 +551,11 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-foreground truncate">{meme.name}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-muted-foreground">
-                            {CATEGORY_LABELS[meme.category]?.emoji || '📦'} {CATEGORY_LABELS[meme.category]?.label || meme.category}
-                          </span>
+                          <CategorySelector
+                            value={meme.category}
+                            onChange={(cat) => handleCategoryChange(meme, cat)}
+                            size="xs"
+                          />
                           <span className="text-[10px] text-muted-foreground/60">
                             {formatDuration(meme.duration_seconds)}
                           </span>
@@ -428,13 +590,14 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
         {/* Footer */}
         <div className="px-3 py-2 border-t border-border/30 flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground">
-            {filtered.length}/{memes.length} áudios · Clique para enviar · ▶ para ouvir
+            {filtered.length}/{memes.length} áudios · Clique para enviar · ▶ ouvir
           </span>
           <Button
             variant="ghost"
             size="sm"
             className="h-6 text-[10px] text-muted-foreground hover:text-primary gap-1"
             onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || !!pendingUpload}
           >
             <Upload className="w-3 h-3" />
             Upload
