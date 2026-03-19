@@ -44,6 +44,7 @@ const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
   'despedida': { emoji: '👋', label: 'Despedida' },
   'animação': { emoji: '🤩', label: 'Animação' },
   'drama': { emoji: '🎬', label: 'Drama' },
+  'gospel': { emoji: '⛪', label: 'Gospel' },
   'outros': { emoji: '📦', label: 'Outros' },
 };
 
@@ -178,7 +179,7 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
   const [showFavorites, setShowFavorites] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

@@ -9,7 +9,7 @@ const AUDIO_CATEGORIES = [
   'risada', 'aplausos', 'suspense', 'vitória', 'falha',
   'surpresa', 'triste', 'raiva', 'romântico', 'medo',
   'deboche', 'narração', 'bordão', 'efeito sonoro', 'viral',
-  'cumprimento', 'despedida', 'animação', 'drama', 'outros'
+  'cumprimento', 'despedida', 'animação', 'drama', 'gospel', 'outros'
 ];
 
 serve(async (req) => {
@@ -62,6 +62,7 @@ Regras:
 - "despedida": tchau, bye, até logo
 - "animação": empolgação, hype, let's go
 - "drama": novela, exagero dramático
+- "gospel": religioso, evangélico, Deus, oração, louvor, igreja, pastor, glória
 - "outros": nenhuma das anteriores`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
