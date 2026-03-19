@@ -3,11 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sticker, Search, Plus, Star, Clock, Trash2, Loader2, Upload, X } from 'lucide-react';
+import { Sticker, Search, Plus, Star, Trash2, Loader2, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface StickerItem {
@@ -24,13 +23,39 @@ interface StickerPickerProps {
   disabled?: boolean;
 }
 
+const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
+  'comemoração': { emoji: '🎉', label: 'Comemoração' },
+  'riso': { emoji: '😂', label: 'Riso' },
+  'chorando': { emoji: '😢', label: 'Chorando' },
+  'amor': { emoji: '❤️', label: 'Amor' },
+  'raiva': { emoji: '😡', label: 'Raiva' },
+  'surpresa': { emoji: '😲', label: 'Surpresa' },
+  'pensativo': { emoji: '🤔', label: 'Pensativo' },
+  'cumprimento': { emoji: '👋', label: 'Cumprimento' },
+  'despedida': { emoji: '👋', label: 'Despedida' },
+  'concordância': { emoji: '👍', label: 'Concordância' },
+  'negação': { emoji: '🙅', label: 'Negação' },
+  'sono': { emoji: '😴', label: 'Sono' },
+  'fome': { emoji: '🍔', label: 'Fome' },
+  'medo': { emoji: '😨', label: 'Medo' },
+  'vergonha': { emoji: '🙈', label: 'Vergonha' },
+  'deboche': { emoji: '😏', label: 'Deboche' },
+  'fofo': { emoji: '🥰', label: 'Fofo' },
+  'triste': { emoji: '😔', label: 'Triste' },
+  'animado': { emoji: '🤩', label: 'Animado' },
+  'outros': { emoji: '📦', label: 'Outros' },
+  'recebidas': { emoji: '📥', label: 'Recebidas' },
+  'enviadas': { emoji: '📤', label: 'Enviadas' },
+};
+
 export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   const [open, setOpen] = useState(false);
   const [stickers, setStickers] = useState<StickerItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showFavorites, setShowFavorites] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchStickers = useCallback(async () => {
@@ -62,7 +87,6 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
           toast.error(`${file.name} não é uma imagem válida`);
           continue;
         }
-
         if (file.size > 500 * 1024) {
           toast.error(`${file.name} excede 500KB`);
           continue;
@@ -73,10 +97,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
 
         const { error: uploadError } = await supabase.storage
           .from('stickers')
-          .upload(fileName, file, {
-            contentType: file.type,
-            cacheControl: '31536000',
-          });
+          .upload(fileName, file, { contentType: file.type, cacheControl: '31536000' });
 
         if (uploadError) {
           toast.error(`Erro ao enviar ${file.name}`);
@@ -85,16 +106,29 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
 
         const { data: urlData } = supabase.storage.from('stickers').getPublicUrl(fileName);
 
+        // Classify with AI
+        let category = 'enviadas';
+        try {
+          toast.info('🔍 Classificando figurinha...');
+          const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-sticker', {
+            body: { image_url: urlData.publicUrl },
+          });
+          if (!classifyErr && classifyData?.category) {
+            category = classifyData.category;
+          }
+        } catch { /* fallback */ }
+
         const { data: { user } } = await supabase.auth.getUser();
         await supabase.from('stickers').insert({
           name: file.name.replace(/\.[^.]+$/, ''),
           image_url: urlData.publicUrl,
-          category: 'enviadas',
+          category,
           uploaded_by: user?.id || null,
         });
+
+        toast.success(`Figurinha salva como "${CATEGORY_LABELS[category]?.label || category}"!`);
       }
 
-      toast.success('Figurinha(s) adicionada(s)!');
       fetchStickers();
     } catch {
       toast.error('Erro ao processar figurinha');
@@ -107,8 +141,6 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   const handleSend = async (sticker: StickerItem) => {
     onSendSticker(sticker.image_url);
     setOpen(false);
-
-    // Increment use count
     await supabase
       .from('stickers')
       .update({ use_count: (sticker.use_count || 0) + 1 })
@@ -125,22 +157,21 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
   const handleDelete = async (e: React.MouseEvent, sticker: StickerItem) => {
     e.stopPropagation();
     setStickers(prev => prev.filter(s => s.id !== sticker.id));
-
-    // Delete from storage
     const path = sticker.image_url.split('/stickers/')[1];
     if (path) await supabase.storage.from('stickers').remove([path]);
     await supabase.from('stickers').delete().eq('id', sticker.id);
     toast.success('Figurinha removida');
   };
 
+  // Get unique categories that have stickers
+  const categories = [...new Set(stickers.map(s => s.category).filter(Boolean))].sort();
+
   const filtered = stickers.filter(s => {
     const matchSearch = !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.category?.toLowerCase().includes(search.toLowerCase());
-    if (activeTab === 'favorites') return matchSearch && s.is_favorite;
-    if (activeTab === 'recent') return matchSearch;
+    if (showFavorites) return matchSearch && s.is_favorite;
+    if (activeCategory) return matchSearch && s.category === activeCategory;
     return matchSearch;
   });
-
-  const categories = [...new Set(stickers.map(s => s.category).filter(Boolean))];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -156,7 +187,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[340px] p-0 bg-popover border-border"
+        className="w-[360px] p-0 bg-popover border-border"
         align="end"
         side="top"
         sideOffset={8}
@@ -207,95 +238,125 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-transparent border-b border-border/30 rounded-none h-9 px-2">
-            <TabsTrigger value="all" className="text-xs gap-1 data-[state=active]:bg-muted h-7">
-              Todas
-            </TabsTrigger>
-            <TabsTrigger value="favorites" className="text-xs gap-1 data-[state=active]:bg-muted h-7">
-              <Star className="w-3 h-3" />
-              Favoritas
-            </TabsTrigger>
-            <TabsTrigger value="recent" className="text-xs gap-1 data-[state=active]:bg-muted h-7">
-              <Clock className="w-3 h-3" />
-              Recentes
-            </TabsTrigger>
-          </TabsList>
-
-          <ScrollArea className="h-[280px]">
-            <TabsContent value={activeTab} className="p-2 m-0">
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <Sticker className="w-10 h-10 text-muted-foreground/40 mb-3" />
-                  <p className="text-sm text-muted-foreground font-medium">
-                    {search ? 'Nenhuma figurinha encontrada' : 'Nenhuma figurinha'}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Clique em <Plus className="w-3 h-3 inline" /> para adicionar
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-1.5">
-                  <AnimatePresence>
-                    {filtered.map((sticker) => (
-                      <motion.button
-                        key={sticker.id}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSend(sticker)}
-                        className={cn(
-                          'relative aspect-square rounded-lg overflow-hidden group',
-                          'bg-muted/30 hover:bg-muted/60 transition-colors',
-                          'border border-transparent hover:border-primary/30',
-                          'cursor-pointer'
-                        )}
-                        title={sticker.name || 'Figurinha'}
-                      >
-                        <img
-                          src={sticker.image_url}
-                          alt={sticker.name || 'Sticker'}
-                          className="w-full h-full object-contain p-1"
-                          loading="lazy"
-                        />
-                        {/* Overlay actions */}
-                        <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-between p-1">
-                          <button
-                            onClick={(e) => toggleFavorite(e, sticker)}
-                            className="p-0.5"
-                          >
-                            <Star className={cn(
-                              'w-3.5 h-3.5 transition-colors',
-                              sticker.is_favorite ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground'
-                            )} />
-                          </button>
-                          <button
-                            onClick={(e) => handleDelete(e, sticker)}
-                            className="p-0.5"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                          </button>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
-            </TabsContent>
+        {/* Category chips */}
+        <div className="px-2 py-2 border-b border-border/30">
+          <ScrollArea className="w-full">
+            <div className="flex gap-1.5 flex-wrap">
+              <button
+                onClick={() => { setActiveCategory(null); setShowFavorites(false); }}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap',
+                  !activeCategory && !showFavorites
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                )}
+              >
+                Todas ({stickers.length})
+              </button>
+              <button
+                onClick={() => { setShowFavorites(!showFavorites); setActiveCategory(null); }}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap flex items-center gap-1',
+                  showFavorites
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                )}
+              >
+                <Star className="w-3 h-3" /> Favoritas
+              </button>
+              {categories.map(cat => {
+                const info = CATEGORY_LABELS[cat];
+                const count = stickers.filter(s => s.category === cat).length;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => { setActiveCategory(activeCategory === cat ? null : cat); setShowFavorites(false); }}
+                    className={cn(
+                      'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap',
+                      activeCategory === cat
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    )}
+                  >
+                    {info?.emoji || '📦'} {info?.label || cat} ({count})
+                  </button>
+                );
+              })}
+            </div>
           </ScrollArea>
-        </Tabs>
+        </div>
+
+        {/* Stickers grid */}
+        <ScrollArea className="h-[260px]">
+          <div className="p-2">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <Sticker className="w-10 h-10 text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground font-medium">
+                  {search ? 'Nenhuma figurinha encontrada' : 'Nenhuma figurinha'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Clique em <Plus className="w-3 h-3 inline" /> para adicionar
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-1.5">
+                <AnimatePresence>
+                  {filtered.map((sticker) => (
+                    <motion.button
+                      key={sticker.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleSend(sticker)}
+                      className={cn(
+                        'relative aspect-square rounded-lg overflow-hidden group',
+                        'bg-muted/30 hover:bg-muted/60 transition-colors',
+                        'border border-transparent hover:border-primary/30',
+                        'cursor-pointer'
+                      )}
+                      title={`${sticker.name || 'Figurinha'} • ${CATEGORY_LABELS[sticker.category]?.label || sticker.category}`}
+                    >
+                      <img
+                        src={sticker.image_url}
+                        alt={sticker.name || 'Sticker'}
+                        className="w-full h-full object-contain p-1"
+                        loading="lazy"
+                      />
+                      {/* Category badge */}
+                      <span className="absolute top-0.5 left-0.5 text-[9px] leading-none">
+                        {CATEGORY_LABELS[sticker.category]?.emoji || '📦'}
+                      </span>
+                      {/* Overlay actions */}
+                      <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-between p-1">
+                        <button onClick={(e) => toggleFavorite(e, sticker)} className="p-0.5">
+                          <Star className={cn(
+                            'w-3.5 h-3.5 transition-colors',
+                            sticker.is_favorite ? 'fill-primary text-primary' : 'text-muted-foreground'
+                          )} />
+                        </button>
+                        <button onClick={(e) => handleDelete(e, sticker)} className="p-0.5">
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </button>
+                      </div>
+                    </motion.button>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
         {/* Footer */}
         <div className="px-3 py-2 border-t border-border/30 flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground">
-            {stickers.length} figurinha(s) · WebP, PNG, GIF (máx 500KB)
+            {filtered.length}/{stickers.length} figurinhas · IA classifica por tema
           </span>
           <Button
             variant="ghost"

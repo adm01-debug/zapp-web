@@ -355,14 +355,26 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                                       toast({ title: 'Figurinha já está na biblioteca!' });
                                       return;
                                     }
+                                    toast({ title: '🔍 Classificando figurinha com IA...' });
+                                    // Classify with AI
+                                    let category = 'recebidas';
+                                    try {
+                                      const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-sticker', {
+                                        body: { image_url: message.mediaUrl },
+                                      });
+                                      if (!classifyErr && classifyData?.category) {
+                                        category = classifyData.category;
+                                      }
+                                    } catch { /* fallback to default */ }
+                                    
                                     await supabase.from('stickers').insert({
                                       name: `Recebida ${new Date().toLocaleDateString('pt-BR')}`,
                                       image_url: message.mediaUrl!,
-                                      category: 'recebidas',
+                                      category,
                                       is_favorite: false,
                                       use_count: 0,
                                     });
-                                    toast({ title: '✅ Figurinha salva na biblioteca!' });
+                                    toast({ title: `✅ Figurinha salva como "${category}"!` });
                                   } catch {
                                     toast({ title: 'Erro ao salvar figurinha', variant: 'destructive' });
                                   }
