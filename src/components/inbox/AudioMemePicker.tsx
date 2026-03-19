@@ -296,13 +296,19 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
 
   const handleConfirmUpload = async (pending: PendingUpload) => {
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('audio_memes').insert({
+    const { error: insertError } = await supabase.from('audio_memes').insert({
       name: pending.name,
       audio_url: pending.audioUrl,
       category: pending.selectedCategory,
       duration_seconds: pending.duration,
       uploaded_by: user?.id || null,
     });
+
+    if (insertError) {
+      console.error('[AudioMeme] Insert error:', insertError);
+      toast.error('Erro ao salvar áudio meme no banco de dados');
+      return;
+    }
 
     toast.success(`Áudio salvo como "${CATEGORY_LABELS[pending.selectedCategory]?.label || pending.selectedCategory}"!`);
     setPendingUpload(null);
