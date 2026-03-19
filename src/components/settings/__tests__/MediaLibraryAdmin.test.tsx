@@ -1945,13 +1945,13 @@ describe('Pure Function Logic', () => {
     });
 
     it('category filter "all" returns everything', () => {
-      const filterCategory = 'all';
+      const filterCategory: string = 'all';
       const result = items.filter(i => filterCategory === 'all' || i.category === filterCategory);
       expect(result).toHaveLength(4);
     });
 
     it('category filter specific returns matching', () => {
-      const filterCategory = 'riso';
+      const filterCategory: string = 'riso';
       const result = items.filter(i => filterCategory === 'all' || i.category === filterCategory);
       expect(result).toHaveLength(2);
     });
