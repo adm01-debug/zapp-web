@@ -77,6 +77,7 @@ interface ChatInputAreaProps {
   onOpenLocationPicker: () => void;
   onSendProduct: (product: Product) => void;
   onSendSticker: (stickerUrl: string) => void;
+  onSendAudioMeme: (audioUrl: string) => void;
   onSelectSuggestion: (text: string) => void;
   onSelectTemplate: (text: string) => void;
   onExternalFiles?: (files: File[]) => void;
