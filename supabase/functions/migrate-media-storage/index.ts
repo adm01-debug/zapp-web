@@ -67,6 +67,7 @@ serve(async (req) => {
         
         // Method 2: Evolution API getBase64 fallback
         if (!permanentUrl && evolutionUrl && evolutionKey && msg.external_id) {
+          console.log(`[MIGRATE] CDN failed, trying API fallback. external_id=${msg.external_id}, connId=${msg.whatsapp_connection_id}`);
           const connId = msg.whatsapp_connection_id;
           const instance = connId ? instanceMap.get(connId) : null;
           
