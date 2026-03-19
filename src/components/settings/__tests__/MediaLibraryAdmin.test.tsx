@@ -1925,8 +1925,9 @@ describe('Pure Function Logic', () => {
     });
 
     it('null name does not crash filter', () => {
+      const search = 'test';
       const result = items.filter(i =>
-        !('test') || i.name?.toLowerCase().includes('test') || i.category?.toLowerCase().includes('test')
+        !search || i.name?.toLowerCase().includes(search) || i.category?.toLowerCase().includes(search)
       );
       // Should not throw
       expect(result).toHaveLength(0);
