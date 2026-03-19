@@ -97,6 +97,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   // ── Resolve WhatsApp instance name from contact ──
   const [instanceName, setInstanceName] = useState<string>('');
+  const [whatsappConnectionId, setWhatsappConnectionId] = useState<string | null>(null);
 
   useEffect(() => {
     const resolveInstance = async () => {
@@ -109,6 +110,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           .maybeSingle();
         
         if (contact?.whatsapp_connection_id) {
+          setWhatsappConnectionId(contact.whatsapp_connection_id);
           const { data: conn } = await (supabase as any)
             .from('whatsapp_connections')
             .select('instance_id')
