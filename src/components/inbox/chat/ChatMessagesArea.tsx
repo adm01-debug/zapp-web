@@ -304,7 +304,10 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
 
                         {message.type === 'image' && message.mediaUrl && (
-                          <div className="mb-1.5 -mx-1 -mt-0.5 rounded-xl overflow-hidden">
+                          <div className={cn(
+                            "overflow-hidden",
+                            message.content ? "mb-1.5 -mx-1 -mt-0.5 rounded-xl" : "w-full"
+                          )}>
                             <MessageImage src={message.mediaUrl} />
                           </div>
                         )}
