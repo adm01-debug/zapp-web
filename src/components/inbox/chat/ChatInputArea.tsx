@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { StickerPicker } from '../StickerPicker';
+import { AudioMemePicker } from '../AudioMemePicker';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
@@ -76,6 +77,7 @@ interface ChatInputAreaProps {
   onOpenLocationPicker: () => void;
   onSendProduct: (product: Product) => void;
   onSendSticker: (stickerUrl: string) => void;
+  onSendAudioMeme: (audioUrl: string) => void;
   onSelectSuggestion: (text: string) => void;
   onSelectTemplate: (text: string) => void;
   onExternalFiles?: (files: File[]) => void;
@@ -112,6 +114,7 @@ export function ChatInputArea({
   onOpenLocationPicker,
   onSendProduct,
   onSendSticker,
+  onSendAudioMeme,
   onSelectSuggestion,
   onSelectTemplate,
   fileUploaderRef,
@@ -352,6 +355,8 @@ export function ChatInputArea({
           />
 
           <StickerPicker onSendSticker={onSendSticker} />
+
+          <AudioMemePicker onSendAudio={onSendAudioMeme} />
 
           <Button
             variant="ghost"

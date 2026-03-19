@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.ai-enhance-message]
 verify_jwt = false
+
+[functions.classify-audio-meme]
+verify_jwt = false
