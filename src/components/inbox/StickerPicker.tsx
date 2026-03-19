@@ -258,7 +258,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
                 className={cn(
                   'px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap flex items-center gap-1',
                   showFavorites
-                    ? 'bg-amber-500 text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 )}
               >
