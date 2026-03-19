@@ -91,6 +91,7 @@ function IndexContent() {
   const { currentView, setCurrentView } = useDeepLinks('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const isMobile = useIsMobile();
   
   // Import and use global keyboard context for Command Palette navigation
@@ -108,7 +109,7 @@ function IndexContent() {
   // Show checklist on dashboard if not complete
   const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
 
-  // Mobile navigation items - 5 items com "More" para acessar todas as seções
+  // Mobile navigation items with dynamic unread count
   const mobileNavItems = [
     { id: 'inbox', icon: <MessageSquare className="w-5 h-5" />, label: 'Inbox', badge: 12 },
     { id: 'dashboard', icon: <BarChart3 className="w-5 h-5" />, label: 'Dashboard' },
