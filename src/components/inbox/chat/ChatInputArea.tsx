@@ -356,6 +356,8 @@ export function ChatInputArea({
 
           <StickerPicker onSendSticker={onSendSticker} />
 
+          <AudioMemePicker onSendAudio={onSendAudioMeme} />
+
           <Button
             variant="ghost"
             size="icon"
