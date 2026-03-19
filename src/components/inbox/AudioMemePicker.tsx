@@ -189,7 +189,7 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
       .from('audio_memes')
       .select('*')
       .order('use_count', { ascending: false })
-      .limit(200);
+      .limit(1000);
 
     if (!error && data) {
       setMemes(data as AudioMemeItem[]);
