@@ -31,8 +31,10 @@ import {
   Keyboard,
   Volume2,
   ArrowRight,
+  Package,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
+import { MediaLibraryAdmin } from '@/components/settings/MediaLibraryAdmin';
 import { AutoCloseSettings } from '@/components/settings/AutoCloseSettings';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
@@ -154,6 +156,10 @@ export function SettingsView() {
           <TabsTrigger value="followup" className="gap-2">
             <ArrowRight className="w-4 h-4" />
             Follow-up
+          </TabsTrigger>
+          <TabsTrigger value="media" className="gap-2">
+            <Package className="w-4 h-4" />
+            Mídia
           </TabsTrigger>
         </TabsList>
 
@@ -568,6 +574,15 @@ export function SettingsView() {
             animate={{ opacity: 1, y: 0 }}
           >
             <FollowUpSequences />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="media">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <MediaLibraryAdmin />
           </motion.div>
         </TabsContent>
       </Tabs>
