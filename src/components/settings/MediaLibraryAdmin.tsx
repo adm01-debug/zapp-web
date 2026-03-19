@@ -18,7 +18,7 @@ import {
   Sticker, Music, SmilePlus, Search, Trash2, Loader2, Upload, X,
   Play, Pause, Star, BarChart3, TrendingUp, Eye, Edit2, Check,
   ChevronDown, Image as ImageIcon, Volume2, FileAudio, Package,
-  Filter, RefreshCw, Download, AlertTriangle
+  Filter, RefreshCw, Download, AlertTriangle, Wand2, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 
