@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
   Bell, 
+  BellOff,
   Volume2, 
   VolumeX, 
   Play, 
@@ -22,7 +23,8 @@ import {
   CheckCircle2,
   TrendingDown,
   Activity,
-  Mic
+  Mic,
+  Smartphone
 } from 'lucide-react';
 import { useNotificationSettings, NotificationSettings, SoundTypeOption } from '@/hooks/useNotificationSettings';
 import { previewSound, requestNotificationPermission, SoundType, playNotificationSound, NotificationType } from '@/utils/notificationSounds';
