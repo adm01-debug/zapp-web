@@ -148,9 +148,17 @@ export function VirtualizedRealtimeList({
                   <div className="flex items-center justify-between gap-2 mb-0.5">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                       {isPinned && <Pin className="w-3 h-3 text-primary flex-shrink-0" />}
+                      {conversation.contact.contact_type === 'sicoob_gifts' && (
+                        <Gift className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
+                      )}
                       <span className="font-medium text-foreground truncate text-sm">
                         {conversation.contact.name || 'Sem nome'}
                       </span>
+                      {conversation.contact.contact_type === 'sicoob_gifts' && (
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 border-teal-600/40 text-teal-600 bg-teal-600/10 flex-shrink-0">
+                          Sicoob Gifts
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {conversation.lastMessage && (
