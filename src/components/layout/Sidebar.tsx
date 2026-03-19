@@ -227,6 +227,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
       {/* Bottom: Theme toggle + Avatar + Logout */}
       <div className="flex flex-col items-center gap-1.5 py-3 border-t border-border shrink-0">
+        {/* Push notification toggle */}
+        <PushNotificationToggle className="w-[36px] h-[36px]" />
+
         {/* Dark mode toggle */}
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
