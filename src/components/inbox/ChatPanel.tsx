@@ -616,7 +616,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     >
       <ChatDragOverlay isDraggingOver={isDraggingOver} />
 
-      <div className="flex flex-col flex-1 h-full">
+      <div className="flex flex-col flex-1 h-full min-h-0 overflow-hidden">
         <ChatPanelHeader
           conversation={conversation}
           isContactTyping={isContactTyping}
