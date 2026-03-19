@@ -132,6 +132,14 @@ export function SecurityView() {
                 <GeoBlockingPanel />
               </TabsContent>
 
+              <TabsContent value="rate-limit">
+                <RateLimitConfigPanel />
+              </TabsContent>
+
+              <TabsContent value="audit">
+                <AuditLogDashboard />
+              </TabsContent>
+
               <TabsContent value="admin">
                 <div className="space-y-6">
                   <PasswordResetRequestsPanel />
