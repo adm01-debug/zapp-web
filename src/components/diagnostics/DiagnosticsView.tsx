@@ -12,7 +12,7 @@ import {
   Wifi, WifiOff, RefreshCw, AlertTriangle, CheckCircle2, XCircle,
   Clock, MessageSquare, ArrowUpDown, Activity, Server, Database,
   HardDrive, Zap, Bug, ChevronRight, BarChart3, Send, FileWarning,
-  Loader2, Shield,
+  Loader2, Shield, HeartPulse,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
