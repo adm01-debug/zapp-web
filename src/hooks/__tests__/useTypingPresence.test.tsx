@@ -5,9 +5,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     channel: vi.fn().mockReturnValue({
       on: vi.fn().mockReturnThis(),
-      subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
+      subscribe: vi.fn().mockReturnThis(),
       track: vi.fn(),
       untrack: vi.fn(),
+      unsubscribe: vi.fn(),
     }),
     removeChannel: vi.fn(),
   },
