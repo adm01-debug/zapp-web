@@ -133,8 +133,9 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
       if (msgError) throw msgError;
 
       // Send via Evolution API
-      await supabase.functions.invoke('evolution-api/send-text', {
+      await supabase.functions.invoke('evolution-api', {
         body: {
+          action: 'send-text',
           instanceName: connections.find(c => c.id === selectedConnection)?.name || 'wpp2',
           number: selectedContact?.phone || newPhone,
           text: messageText.trim(),

@@ -286,8 +286,9 @@ export function GroupsView() {
       }
 
       try {
-        const { error } = await supabase.functions.invoke('evolution-api/send-text', {
+        const { error } = await supabase.functions.invoke('evolution-api', {
           body: {
+            action: 'send-text',
             instanceName: conn.instance_id,
             number: group.group_id,
             text: broadcastMessage,
