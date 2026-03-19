@@ -447,26 +447,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     try {
       const phone = conversation.contact.phone.replace(/\D/g, '');
       
-      // Send as image message via Evolution API
-      const apiPromise = fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-api`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            action: 'sendMedia',
-            instance: instanceName,
-            data: {
-              number: phone,
-              mediatype: 'image',
-              media: emojiUrl,
-            },
-          }),
-        }
-      ).then(r => r.json());
+      // Send as image via Evolution API
+      const apiPromise = supabase.functions.invoke('evolution-api', {
+        body: {
+          action: 'sendMedia',
+          instance: instanceName,
+          data: { number: phone, mediatype: 'image', media: emojiUrl },
+        },
+      });
 
       const dbPromise = supabase.from('messages').insert({
         contact_id: conversation.contact.id,
@@ -480,11 +468,23 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       const [apiResult, dbResult] = await Promise.all([apiPromise, dbPromise]);
       
-      const externalId = apiResult?.key?.id || null;
-      if (dbResult?.data?.id && externalId) {
+      const messageId = dbResult?.data?.id;
+      const externalId = apiResult?.data?.key?.id || null;
+      
+      if (apiResult?.error || !externalId) {
+        if (messageId) {
+          await supabase.from('messages')
+            .update({ status: 'failed' })
+            .eq('id', messageId);
+        }
+        toast({ title: 'Erro ao enviar emoji', description: 'Falha na API', variant: 'destructive' });
+        return;
+      }
+
+      if (messageId) {
         supabase.from('messages')
           .update({ external_id: externalId, status: 'sent' })
-          .eq('id', dbResult.data.id)
+          .eq('id', messageId)
           .then(() => {});
       }
 
