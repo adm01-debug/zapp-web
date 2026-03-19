@@ -323,7 +323,7 @@ function IndexContent() {
   return (
     <SLANotificationProvider>
       <GoalNotificationProvider>
-        <div className="flex h-screen bg-background overflow-hidden">
+        <div className="flex h-screen max-h-screen min-h-screen bg-background overflow-hidden">
           
           {/* Mobile Header */}
           {isMobile && (
@@ -365,7 +365,7 @@ function IndexContent() {
           <main 
             id="main-content" 
             className={cn(
-              'flex-1 overflow-hidden relative min-w-0',
+              'flex-1 overflow-hidden relative min-w-0 min-h-0 h-full',
               isMobile && 'pt-14 pb-16'
             )}
           >
@@ -378,7 +378,7 @@ function IndexContent() {
             
             <Suspense fallback={<ViewLoadingFallback />}>
               <AnimatePresence mode="wait">
-                <PageTransition key={currentView}>
+                <PageTransition key={currentView} className="h-full min-h-0 overflow-hidden">
                   {renderView()}
                 </PageTransition>
               </AnimatePresence>

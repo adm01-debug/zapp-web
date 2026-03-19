@@ -563,7 +563,7 @@ export function RealtimeInboxView() {
   }
 
   return (
-    <div className="flex h-full relative bg-background overflow-hidden">
+    <div className="flex h-full min-h-0 w-full relative bg-background overflow-hidden">
       {/* Global Search Modal - lazy */}
       {globalSearchOpen && (
         <Suspense fallback={null}>
