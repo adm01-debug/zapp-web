@@ -135,7 +135,7 @@ export function BottomNavigation({
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around h-14 px-1">
+      <div className="flex items-center justify-around h-16 px-1">
         {items.map((item) => {
           const isActive = item.id === activeId;
           return (
