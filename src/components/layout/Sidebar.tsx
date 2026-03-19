@@ -176,7 +176,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       </div>
 
       {/* Primary Nav */}
-      <nav className="flex flex-col items-center gap-0.5 px-[11px]" aria-label="Menu principal">
+      <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Menu principal">
         {primaryNav.map((item) => (
           <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
         ))}
@@ -187,27 +187,25 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
       {/* Scrollable tools area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]">
-        <nav className="flex flex-col items-center gap-0.5 py-0.5" aria-label="Ferramentas">
+        <nav className="flex flex-col items-center gap-1" aria-label="Ferramentas">
           {toolsNav.map((item) => (
             <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
           ))}
         </nav>
       </div>
 
-      
-
       {/* Separator */}
-      <div className="mx-4 my-1 h-px bg-border" />
+      <div className="mx-4 my-2 h-px bg-border" />
 
       {/* System nav */}
-      <nav className="flex flex-col items-center gap-0.5 px-[11px] py-1" aria-label="Sistema">
+      <nav className="flex flex-col items-center gap-1 px-[11px] py-1" aria-label="Sistema">
         {systemNav.map((item) => (
           <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
         ))}
       </nav>
 
       {/* Bottom: Theme toggle + Avatar + Logout */}
-      <div className="flex flex-col items-center gap-1.5 py-3 border-t border-border shrink-0">
+      <div className="flex flex-col items-center gap-1 py-3 border-t border-border shrink-0">
         {/* Screen protection toggle */}
         <ScreenProtectionToggle className="w-[36px] h-[36px]" />
 
