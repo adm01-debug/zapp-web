@@ -1,4 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
