@@ -66,7 +66,7 @@ interface SidebarProps {
 
 const primaryNav = [
   { id: 'inbox', icon: MessageSquare, label: 'Chat' },
-  { id: 'contacts', icon: Users, label: 'Contatos' },
+  { id: 'contacts', icon: User, label: 'Contatos' },
   { id: 'groups', icon: UsersRound, label: 'Grupos' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
   { id: 'agents', icon: Phone, label: 'Equipe' },
