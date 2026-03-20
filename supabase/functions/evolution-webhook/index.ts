@@ -628,12 +628,22 @@ serve(async (req) => {
             if (permanentAvatarUrl) updateData.avatar_url = permanentAvatarUrl;
             await supabase.from('contacts').update(updateData).eq('id', existing.id);
           } else {
-            await supabase.from('contacts').insert({
+            const { error: insertErr } = await supabase.from('contacts').insert({
               phone,
               name: pushName,
               avatar_url: permanentAvatarUrl || null,
               whatsapp_connection_id: connection.id,
             });
+            // Handle race condition: another request may have inserted the same phone
+            if (insertErr && insertErr.code === '23505') {
+              console.log(`Duplicate phone detected via webhook, updating instead: ${phone}`);
+              await supabase.from('contacts').update({
+                name: pushName,
+                avatar_url: permanentAvatarUrl || null,
+                whatsapp_connection_id: connection.id,
+                updated_at: new Date().toISOString(),
+              }).eq('phone', phone);
+            }
           }
           console.log(`Contact synced: ${phone} (${pushName}) avatar: ${permanentAvatarUrl ? 'saved' : 'none'}`);
         }
