@@ -1,0 +1,83 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { log } from '@/lib/logger';
+
+export interface IncomingCall {
+  id: string;
+  contact_id: string | null;
+  contact_name: string;
+  contact_phone: string;
+  is_video: boolean;
+  whatsapp_connection_id: string | null;
+  started_at: string;
+}
+
+export function useIncomingCallListener() {
+  const { user, profile } = useAuth();
+  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+
+  const dismissCall = useCallback(() => {
+    setIncomingCall(null);
+  }, []);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel('incoming-calls')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'calls',
+          filter: `agent_id=eq.${profile.id}`,
+        },
+        async (payload) => {
+          const call = payload.new as Record<string, unknown>;
+          
+          if (call.direction !== 'inbound' || call.status === 'ended') return;
+
+          // Fetch contact info
+          let contactName = 'Desconhecido';
+          let contactPhone = '';
+
+          if (call.contact_id) {
+            const { data: contact } = await supabase
+              .from('contacts')
+              .select('name, phone')
+              .eq('id', call.contact_id as string)
+              .single();
+            
+            if (contact) {
+              contactName = contact.name || contact.phone;
+              contactPhone = contact.phone;
+            }
+          }
+
+          const notes = (call.notes as string) || '';
+          const isVideo = notes.toLowerCase().includes('vídeo');
+
+          setIncomingCall({
+            id: call.id as string,
+            contact_id: call.contact_id as string | null,
+            contact_name: contactName,
+            contact_phone: contactPhone,
+            is_video: isVideo,
+            whatsapp_connection_id: call.whatsapp_connection_id as string | null,
+            started_at: call.started_at as string,
+          });
+
+          log.info(`Incoming ${isVideo ? 'video' : 'audio'} call from ${contactName}`);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id]);
+
+  return { incomingCall, dismissCall };
+}
