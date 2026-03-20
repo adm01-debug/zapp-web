@@ -825,21 +825,32 @@ serve(async (req) => {
 
             // Notify assigned agent about incoming call
             if (agentId) {
+              // Look up the auth user_id from profile for notifications
+              const { data: agentProfile } = await supabase
+                .from('profiles')
+                .select('user_id, name')
+                .eq('id', agentId)
+                .single();
+
               const contactName = contact.name || phone;
-              await supabase.from('notifications').insert({
-                user_id: agentId,
-                type: 'incoming_call',
-                title: isVideo ? '📹 Chamada de vídeo recebida' : '📞 Chamada de voz recebida',
-                message: `${contactName} está ligando para você`,
-                metadata: {
-                  contact_id: contact.id,
-                  phone,
-                  is_video: isVideo,
-                  call_status: callStatus,
-                  whatsapp_connection_id: connection.id,
-                },
-              });
-              console.log(`Call routed to agent ${agentId} from ${contactName}`);
+              
+              if (agentProfile?.user_id) {
+                await supabase.from('notifications').insert({
+                  user_id: agentProfile.user_id,
+                  type: 'incoming_call',
+                  title: isVideo ? '📹 Chamada de vídeo recebida' : '📞 Chamada de voz recebida',
+                  message: `${contactName} está ligando para você`,
+                  metadata: {
+                    contact_id: contact.id,
+                    phone,
+                    is_video: isVideo,
+                    call_status: callStatus,
+                    whatsapp_connection_id: connection.id,
+                    agent_profile_id: agentId,
+                  },
+                });
+                console.log(`Call routed to agent ${agentProfile.name || agentId} from ${contactName}`);
+              }
             } else {
               console.log(`Call registered from ${phone} (no assigned agent)`);
             }
