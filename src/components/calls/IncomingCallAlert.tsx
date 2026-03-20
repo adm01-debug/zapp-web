@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CallDialog } from './CallDialog';
 import { useIncomingCallListener, type IncomingCall } from '@/hooks/useIncomingCallListener';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { cn } from '@/lib/utils';
 
 export function IncomingCallAlert() {
