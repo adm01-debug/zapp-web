@@ -811,15 +811,38 @@ serve(async (req) => {
           }
 
           if (contact) {
+            const agentId = contact.assigned_to || null;
+
             await supabase.from('calls').insert({
               contact_id: contact.id,
               whatsapp_connection_id: connection.id,
+              agent_id: agentId,
               direction: 'inbound',
               status: callStatus || 'ringing',
               started_at: new Date().toISOString(),
               notes: isVideo ? 'Chamada de vídeo' : 'Chamada de voz',
             });
-            console.log(`Call registered from ${phone} (${isVideo ? 'video' : 'voice'})`);
+
+            // Notify assigned agent about incoming call
+            if (agentId) {
+              const contactName = contact.name || phone;
+              await supabase.from('notifications').insert({
+                user_id: agentId,
+                type: 'incoming_call',
+                title: isVideo ? '📹 Chamada de vídeo recebida' : '📞 Chamada de voz recebida',
+                message: `${contactName} está ligando para você`,
+                metadata: {
+                  contact_id: contact.id,
+                  phone,
+                  is_video: isVideo,
+                  call_status: callStatus,
+                  whatsapp_connection_id: connection.id,
+                },
+              });
+              console.log(`Call routed to agent ${agentId} from ${contactName}`);
+            } else {
+              console.log(`Call registered from ${phone} (no assigned agent)`);
+            }
           }
         }
       }
