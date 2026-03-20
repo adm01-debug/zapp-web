@@ -48,6 +48,30 @@ html, body, #root {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Mobile-specific optimizations */
+@media (max-width: 767px) {
+  /* Prevent iOS zoom on input focus (16px minimum) */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Smoother scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent pull-to-refresh on Chrome Android */
+  body {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Better tap targets */
+  button, a, [role="button"] {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }

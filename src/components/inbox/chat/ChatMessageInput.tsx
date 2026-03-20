@@ -293,9 +293,12 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={cn("glass-strong border-t border-border/50", isMobile ? "p-2" : "p-4")}
+        className={cn(
+          "glass-strong border-t border-border/50",
+          isMobile ? "p-1.5 safe-area-bottom" : "p-4"
+        )}
       >
-        <div className="flex items-end gap-1.5">
+        <div className="flex items-end gap-1">
           {/* Attachment always visible */}
           <FileUploader
             ref={fileUploaderRef}
@@ -324,7 +327,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="text-muted-foreground hover:text-primary hover:bg-primary/10 flex-shrink-0 w-9 h-9"
+                  className="text-muted-foreground hover:text-primary hover:bg-primary/10 flex-shrink-0 w-9 h-9 touch-manipulation active:scale-95"
                   aria-label="Mais opções"
                 >
                   <Plus className="w-5 h-5" />
@@ -358,7 +361,10 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
               onKeyDown={handleKeyDown}
               onBlur={onTypingStop}
               placeholder={replyToMessage ? "Digite sua resposta..." : isMobile ? "Mensagem..." : "Digite / para comandos... (Shift+Enter para nova linha)"}
-              className="min-h-[40px] max-h-[120px] resize-none pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all py-2.5"
+              className={cn(
+                "min-h-[40px] max-h-[120px] resize-none pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all",
+                isMobile ? "py-2 text-[16px] rounded-2xl" : "py-2.5"
+              )}
               rows={1}
             />
             <div className="absolute right-1 top-1.5 flex items-center gap-0.5">
@@ -385,22 +391,21 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
           </div>
 
           {/* Send button */}
-          <motion.div 
-            whileHover={{ scale: 1.05 }} 
-            whileTap={{ scale: 0.95 }}
-            className="flex-shrink-0"
-          >
+          <div className="flex-shrink-0">
             <Button
               onClick={onSend}
               disabled={!inputValue.trim()}
-              size={isMobile ? "icon" : "default"}
-              className="text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50"
+              size="icon"
+              className={cn(
+                "text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50 touch-manipulation active:scale-95",
+                isMobile ? "w-10 h-10 rounded-full" : "w-9 h-9"
+              )}
               style={{ background: 'var(--gradient-primary)' }}
               aria-label="Enviar mensagem"
             >
               <Send className="w-4 h-4" />
             </Button>
-          </motion.div>
+          </div>
         </div>
 
         {/* Audio Recorder */}
