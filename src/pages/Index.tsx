@@ -420,7 +420,7 @@ function IndexContent() {
             id="main-content" 
             className={cn(
               'flex flex-1 overflow-hidden relative min-w-0 min-h-0 h-full max-h-full',
-              isMobile && 'pt-14 pb-16'
+              isMobile && 'pt-12 pb-[60px]'
             )}
           >
             {/* Onboarding Checklist */}
