@@ -5,30 +5,33 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CallDialog } from './CallDialog';
 import { useIncomingCallListener, type IncomingCall } from '@/hooks/useIncomingCallListener';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { cn } from '@/lib/utils';
 
 export function IncomingCallAlert() {
   const { incomingCall, dismissCall } = useIncomingCallListener();
+  const { settings: notifSettings, isQuietHours } = useNotificationSettings();
   const [showDialog, setShowDialog] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Play ringtone
+  // Play ringtone only if sound is enabled and not in quiet hours
   useEffect(() => {
-    if (incomingCall && !showDialog) {
-      // Use oscillator as ringtone
+    const soundAllowed = notifSettings.soundEnabled && !isQuietHours();
+    if (incomingCall && !showDialog && soundAllowed) {
       try {
         const ctx = new AudioContext();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
         osc.frequency.value = 440;
-        gain.gain.value = 0.15;
+        const vol = (notifSettings.soundVolume ?? 70) / 100 * 0.2;
+        gain.gain.value = vol;
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
 
         const interval = setInterval(() => {
-          gain.gain.value = gain.gain.value > 0 ? 0 : 0.15;
+          gain.gain.value = gain.gain.value > 0 ? 0 : vol;
         }, 500);
 
         return () => {
@@ -40,7 +43,7 @@ export function IncomingCallAlert() {
         // Audio context not available
       }
     }
-  }, [incomingCall, showDialog]);
+  }, [incomingCall, showDialog, notifSettings.soundEnabled, notifSettings.soundVolume, isQuietHours]);
 
   // Auto-dismiss after 30s
   useEffect(() => {
