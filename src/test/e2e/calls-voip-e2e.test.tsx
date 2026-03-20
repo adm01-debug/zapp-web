@@ -1779,7 +1779,7 @@ describe('CallDialog — Logic', () => {
   });
 
   it('ringing status hides mute/speaker controls', () => {
-    const status = 'ringing';
+    const status: string = 'ringing';
     const showControls = status === 'answered';
     expect(showControls).toBe(false);
   });
