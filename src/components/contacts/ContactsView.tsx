@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
