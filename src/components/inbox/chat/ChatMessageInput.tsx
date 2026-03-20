@@ -103,6 +103,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
 }, ref) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileUploaderRef = useRef<FileUploaderRef>(null);
+  const isMobile = useIsMobile();
 
   useImperativeHandle(ref, () => ({
     focus: () => textareaRef.current?.focus(),
@@ -143,6 +144,139 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
     }
   };
 
+  // Extra tools that go into the "+" menu on mobile
+  const extraTools = (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+            onClick={onOpenInteractiveBuilder}
+            aria-label="Mensagem Interativa"
+          >
+            <Layers className="w-5 h-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Mensagem Interativa</TooltipContent>
+      </Tooltip>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+            aria-label="Respostas rápidas"
+          >
+            <Zap className="w-5 h-5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0 glass-strong border-border/50" align="start">
+          <div className="p-3 border-b border-border/50 bg-gradient-to-r from-primary/10 to-transparent">
+            <h4 className="font-medium text-sm">Respostas Rápidas</h4>
+            <p className="text-xs text-muted-foreground">
+              Digite / para usar atalhos
+            </p>
+          </div>
+          <div className="max-h-64 overflow-y-auto p-2 space-y-1">
+            {quickReplies.map((reply) => (
+              <motion.button
+                key={reply.id}
+                whileHover={{ x: 4 }}
+                onClick={() => onQuickReply(reply)}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">{reply.title}</span>
+                  <Badge variant="outline" className="text-[10px] border-primary/30">
+                    {reply.shortcut}
+                  </Badge>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+      
+      <AISuggestions
+        messages={messages.map(m => ({
+          id: m.id,
+          content: m.content,
+          sender: m.sender,
+          timestamp: m.timestamp
+        }))}
+        contactName={contactName}
+        onSelectSuggestion={(text) => onInputChange(text)}
+      />
+      
+      <MessageTemplates onSelectTemplate={(text) => onInputChange(text)} />
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "text-muted-foreground hover:text-primary hover:bg-primary/10",
+              isRecordingAudio && "text-destructive bg-destructive/10"
+            )}
+            onClick={onRecordToggle}
+            aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
+          >
+            <Mic className="w-5 h-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{isRecordingAudio ? "Parar gravação" : "Gravar áudio"}</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+            onClick={onOpenLocationPicker}
+            aria-label="Compartilhar localização"
+          >
+            <MapPin className="w-5 h-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Compartilhar localização</TooltipContent>
+      </Tooltip>
+
+      <ProductCatalog
+        onSendProduct={onSendProduct}
+        trigger={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+            aria-label="Catálogo de produtos"
+          >
+            <Package className="w-5 h-5" />
+          </Button>
+        }
+      />
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+            onClick={onOpenSchedule}
+            aria-label="Agendar mensagem"
+          >
+            <Clock className="w-5 h-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Agendar mensagem</TooltipContent>
+      </Tooltip>
+    </>
+  );
+
   return (
     <>
       {/* Reply Preview */}
@@ -159,102 +293,57 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 glass-strong border-t border-border/50"
+        className={cn("glass-strong border-t border-border/50", isMobile ? "p-2" : "p-4")}
       >
-        <div className="flex items-end gap-2">
-          <div className="flex items-center gap-1">
-            <FileUploader
-              ref={fileUploaderRef}
-              instanceName={contactId}
-              recipientNumber={contactPhone}
-              contactId={contactId}
-              connectionId={undefined}
-              onFileSelect={(file, category) => {
-                toast({
-                  title: 'Arquivo selecionado',
-                  description: `${file.name} (${category}) será enviado.`,
-                });
-              }}
-              onFileSent={(result) => {
-                toast({
-                  title: 'Arquivo enviado!',
-                  description: 'O arquivo foi enviado com sucesso via WhatsApp.',
-                });
-              }}
-            />
-            
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    onClick={onOpenInteractiveBuilder}
-                    aria-label="Mensagem Interativa"
-                  >
-                    <Layers className="w-5 h-5" />
-                  </Button>
-                </motion.div>
-              </TooltipTrigger>
-              <TooltipContent>Mensagem Interativa</TooltipContent>
-            </Tooltip>
+        <div className="flex items-end gap-1.5">
+          {/* Attachment always visible */}
+          <FileUploader
+            ref={fileUploaderRef}
+            instanceName={contactId}
+            recipientNumber={contactPhone}
+            contactId={contactId}
+            connectionId={undefined}
+            onFileSelect={(file, category) => {
+              toast({
+                title: 'Arquivo selecionado',
+                description: `${file.name} (${category}) será enviado.`,
+              });
+            }}
+            onFileSent={(result) => {
+              toast({
+                title: 'Arquivo enviado!',
+                description: 'O arquivo foi enviado com sucesso via WhatsApp.',
+              });
+            }}
+          />
 
+          {/* Mobile: "+" popover for extra tools | Desktop: inline buttons */}
+          {isMobile ? (
             <Popover>
               <PopoverTrigger asChild>
-                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    aria-label="Respostas rápidas"
-                  >
-                    <Zap className="w-5 h-5" />
-                  </Button>
-                </motion.div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-muted-foreground hover:text-primary hover:bg-primary/10 flex-shrink-0 w-9 h-9"
+                  aria-label="Mais opções"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-0 glass-strong border-border/50" align="start">
-                <div className="p-3 border-b border-border/50 bg-gradient-to-r from-primary/10 to-transparent">
-                  <h4 className="font-medium text-sm">Respostas Rápidas</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Digite / para usar atalhos
-                  </p>
-                </div>
-                <div className="max-h-64 overflow-y-auto p-2 space-y-1">
-                  {quickReplies.map((reply) => (
-                    <motion.button
-                      key={reply.id}
-                      whileHover={{ x: 4 }}
-                      onClick={() => onQuickReply(reply)}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{reply.title}</span>
-                        <Badge variant="outline" className="text-[10px] border-primary/30">
-                          {reply.shortcut}
-                        </Badge>
-                      </div>
-                    </motion.button>
-                  ))}
+              <PopoverContent className="w-auto p-2 glass-strong border-border/50" align="start" side="top">
+                <div className="flex flex-wrap gap-1 max-w-[240px]">
+                  {extraTools}
                 </div>
               </PopoverContent>
             </Popover>
-            
-            <AISuggestions
-              messages={messages.map(m => ({
-                id: m.id,
-                content: m.content,
-                sender: m.sender,
-                timestamp: m.timestamp
-              }))}
-              contactName={contactName}
-              onSelectSuggestion={(text) => onInputChange(text)}
-            />
-            
-            <MessageTemplates onSelectTemplate={(text) => onInputChange(text)} />
-          </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              {extraTools}
+            </div>
+          )}
 
-          <div className="flex-1 relative group">
+          {/* Textarea */}
+          <div className="flex-1 relative group min-w-0">
             <SlashCommands
               inputValue={inputValue}
               onSelectCommand={onSlashCommand}
@@ -268,7 +357,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onBlur={onTypingStop}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite / para comandos... (Shift+Enter para nova linha)"}
+              placeholder={replyToMessage ? "Digite sua resposta..." : isMobile ? "Mensagem..." : "Digite / para comandos... (Shift+Enter para nova linha)"}
               className="min-h-[40px] max-h-[120px] resize-none pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all py-2.5"
               rows={1}
             />
@@ -277,99 +366,34 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
                 inputValue={inputValue}
                 onInputChange={onInputChange}
               />
-              <motion.div 
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-primary w-8 h-8"
-                  aria-label="Emojis"
+              {!isMobile && (
+                <motion.div 
+                  whileHover={{ scale: 1.1 }} 
+                  whileTap={{ scale: 0.9 }}
                 >
-                  <Smile className="w-5 h-5" />
-                </Button>
-              </motion.div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-primary w-8 h-8"
+                    aria-label="Emojis"
+                  >
+                    <Smile className="w-5 h-5" />
+                  </Button>
+                </motion.div>
+              )}
             </div>
           </div>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className={cn(
-                    "text-muted-foreground hover:text-primary hover:bg-primary/10",
-                    isRecordingAudio && "text-destructive bg-destructive/10"
-                  )}
-                  onClick={onRecordToggle}
-                  aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
-                >
-                  <Mic className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent>{isRecordingAudio ? "Parar gravação" : "Gravar áudio"}</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                  onClick={onOpenLocationPicker}
-                  aria-label="Compartilhar localização"
-                >
-                  <MapPin className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent>Compartilhar localização</TooltipContent>
-          </Tooltip>
-
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <ProductCatalog
-              onSendProduct={onSendProduct}
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                  aria-label="Catálogo de produtos"
-                >
-                  <Package className="w-5 h-5" />
-                </Button>
-              }
-            />
-          </motion.div>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                  onClick={onOpenSchedule}
-                  aria-label="Agendar mensagem"
-                >
-                  <Clock className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent>Agendar mensagem</TooltipContent>
-          </Tooltip>
-
+          {/* Send button */}
           <motion.div 
             whileHover={{ scale: 1.05 }} 
             whileTap={{ scale: 0.95 }}
+            className="flex-shrink-0"
           >
             <Button
               onClick={onSend}
               disabled={!inputValue.trim()}
+              size={isMobile ? "icon" : "default"}
               className="text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50"
               style={{ background: 'var(--gradient-primary)' }}
               aria-label="Enviar mensagem"
