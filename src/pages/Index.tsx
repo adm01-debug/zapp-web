@@ -149,7 +149,7 @@ function IndexContent() {
 
   // Mobile navigation items with dynamic unread count
   const mobileNavItems = [
-    { id: 'inbox', icon: <MessageSquare className="w-5 h-5" />, label: 'Inbox', badge: 12 },
+    { id: 'inbox', icon: <MessageSquare className="w-5 h-5" />, label: 'Inbox', badge: unreadNotifications || undefined },
     { id: 'dashboard', icon: <BarChart3 className="w-5 h-5" />, label: 'Dashboard' },
     { id: 'contacts', icon: <Users className="w-5 h-5" />, label: 'Contatos' },
     { id: 'agents', icon: <Phone className="w-5 h-5" />, label: 'Equipe' },
