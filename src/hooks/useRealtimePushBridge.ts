@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { usePushNotifications } from './usePushNotifications';
+import { useNotificationSettings } from './useNotificationSettings';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('PushBridge');
@@ -12,6 +13,7 @@ const log = getLogger('PushBridge');
  */
 export function useRealtimePushBridge() {
   const { showNotification, isSubscribed, permission } = usePushNotifications();
+  const { settings: notifSettings, isQuietHours } = useNotificationSettings();
   const activeConversationRef = useRef<string | null>(null);
 
   // Allow external code to set which conversation is currently active
@@ -20,7 +22,8 @@ export function useRealtimePushBridge() {
   };
 
   useEffect(() => {
-    if (permission !== 'granted') return;
+    // Respect app notification settings
+    if (permission !== 'granted' || !notifSettings.browserNotifications || isQuietHours()) return;
 
     const channel = supabase
       .channel('push-bridge')
@@ -85,7 +88,7 @@ export function useRealtimePushBridge() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [permission, showNotification]);
+  }, [permission, showNotification, notifSettings.browserNotifications, isQuietHours]);
 
   return { setActiveConversation };
 }
