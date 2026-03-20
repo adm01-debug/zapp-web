@@ -77,18 +77,28 @@ export function RealtimeInboxView() {
   const [pipContact, setPipContact] = useState<{ name: string; avatar?: string; lastMessage?: string; contactId: string } | null>(null);
 
   // Listen for open-contact-chat events from other views (e.g. Contacts)
+  const [pendingContactId, setPendingContactId] = useState<string | null>(null);
+
   useEffect(() => {
     const handler = (e: Event) => {
       const contactId = (e as CustomEvent).detail?.contactId;
       if (contactId) {
-        setSelectedContactId(contactId);
-        setSelectedContact(contactId);
-        markAsRead(contactId);
+        setPendingContactId(contactId);
       }
     };
     window.addEventListener('open-contact-chat', handler);
     return () => window.removeEventListener('open-contact-chat', handler);
-  }, [setSelectedContact, markAsRead]);
+  }, []);
+
+  // Process pending contact selection once conversations are loaded
+  useEffect(() => {
+    if (pendingContactId && !loading && conversations.length >= 0) {
+      setSelectedContactId(pendingContactId);
+      setSelectedContact(pendingContactId);
+      markAsRead(pendingContactId);
+      setPendingContactId(null);
+    }
+  }, [pendingContactId, loading, conversations, setSelectedContact, markAsRead]);
 
   const { conversations: cachedConversations, isOffline, usingCache } = useOfflineCache(conversations, loading);
 
