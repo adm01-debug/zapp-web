@@ -485,8 +485,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   };
 
   const handleSendCustomEmoji = async (emojiUrl: string) => {
-    if (!instanceName || !conversation.contact.phone) {
-      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível' });
+    const resolvedInstance = instanceName || await resolveInstance();
+    if (!resolvedInstance || !conversation.contact.phone) {
+      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível. Verifique se o contato tem uma conexão ativa.' });
       return;
     }
     try {
@@ -496,7 +497,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       const apiPromise = supabase.functions.invoke('evolution-api', {
         body: {
           action: 'sendMedia',
-          instance: instanceName,
+          instance: resolvedInstance,
           data: { number: phone, mediatype: 'image', media: emojiUrl },
         },
       });
