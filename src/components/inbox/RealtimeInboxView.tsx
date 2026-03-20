@@ -715,20 +715,7 @@ export function RealtimeInboxView() {
                 </TooltipContent>
               </Tooltip>
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleSound}
-                    className={cn('w-7 h-7', soundOn ? 'text-primary' : 'text-muted-foreground')}
-                    aria-label={soundOn ? 'Desativar som' : 'Ativar som'}
-                  >
-                    {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="text-xs">{soundOn ? 'Mudo' : 'Som'}</TooltipContent>
-              </Tooltip>
+              
               
               <Tooltip>
                 <TooltipTrigger asChild>
