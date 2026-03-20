@@ -101,7 +101,7 @@ export function RealtimeInboxView() {
   const [showAll, setShowAll] = useState(false);
   const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
   const [selectedContactType, setSelectedContactType] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
@@ -152,9 +152,9 @@ export function RealtimeInboxView() {
       
       // Sub-tab filtering
       if (subTab === 'attending') {
-        // "Atendendo" = assigned to current user
+        // "Atendendo" = assigned to current user (compare with profile.id, not auth user.id)
         if (!showAll) {
-          result = result.filter(c => c.contact.assigned_to === user?.id);
+          result = result.filter(c => c.contact.assigned_to === profile?.id);
         }
         // If showAll is true, show all assigned conversations
       } else if (subTab === 'waiting') {
@@ -231,7 +231,7 @@ export function RealtimeInboxView() {
     }
 
     return result;
-  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, user?.id]);
+  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id]);
 
   // Get selected conversation
   const selectedConversation = useMemo(

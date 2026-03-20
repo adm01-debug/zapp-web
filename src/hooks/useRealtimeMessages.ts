@@ -78,7 +78,8 @@ export function useRealtimeMessages() {
       const { data: contacts, error: contactsError } = await supabase
         .from('contacts')
         .select('*')
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .limit(500);
 
       if (contactsError) throw contactsError;
 
