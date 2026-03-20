@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 describe('Phone Uniqueness - Database Constraint', () => {
   describe('Constraint Error Detection', () => {
     const isDuplicatePhoneError = (error: { code?: string; message?: string }) =>
-      error.code === '23505' && (error.message?.includes('contacts_phone_unique') || error.message?.includes('phone'));
+      error.code === '23505' && !!(error.message?.includes('contacts_phone_unique') || error.message?.includes('phone'));
 
     it('detects exact constraint violation code 23505', () => {
       expect(isDuplicatePhoneError({ code: '23505', message: 'duplicate key value violates unique constraint "contacts_phone_unique"' })).toBe(true);
