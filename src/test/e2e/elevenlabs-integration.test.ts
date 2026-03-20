@@ -781,9 +781,7 @@ describe('ElevenLabs Integration E2E Tests', () => {
   // =========================================================================
   describe('Model Upgrade Validation', () => {
     it('TTS edge function no longer uses eleven_multilingual_v2 as hardcoded default', async () => {
-      // The upgraded TTS function should use eleven_v3
-      const ttsSource = await import('../../supabase/functions/elevenlabs-tts/index.ts?raw').catch(() => null);
-      // This validates the contract - the function accepts modelId
+      // This validates the contract - the function accepts modelId (eleven_v3)
       mockFetch.mockResolvedValueOnce({ ok: true, blob: () => Promise.resolve(new Blob()) });
       
       await fetch('https://test.supabase.co/functions/v1/elevenlabs-tts', {
