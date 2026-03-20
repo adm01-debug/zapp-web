@@ -30,7 +30,6 @@ export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
     }
   };
 
-  // Prevent body scroll when drawer is open
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -46,7 +45,6 @@ export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -54,8 +52,6 @@ export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
             onClick={onClose}
             className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm"
           />
-
-          {/* Drawer */}
           <motion.div
             initial={{ x: side === 'left' ? '-100%' : '100%' }}
             animate={{ x: 0 }}
@@ -76,12 +72,9 @@ export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
             aria-modal="true"
             aria-label="Menu de navegação"
           >
-            {/* Drag indicator */}
             <div className="absolute top-1/2 -translate-y-1/2 w-1 h-16 bg-muted-foreground/30 rounded-full"
               style={{ [side === 'left' ? 'right' : 'left']: 8 }}
             />
-
-            {/* Close button */}
             <div className="absolute top-4 right-4">
               <IconButton
                 aria-label="Fechar menu"
@@ -92,7 +85,6 @@ export const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
                 <X className="w-5 h-5" />
               </IconButton>
             </div>
-
             {children}
           </motion.div>
         </>
@@ -135,7 +127,7 @@ export function BottomNavigation({
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around h-[60px] px-1">
+      <div className="flex items-center justify-around h-[56px] px-1">
         {items.map((item) => {
           const isActive = item.id === activeId;
           return (
@@ -146,7 +138,7 @@ export function BottomNavigation({
                 onChange(item.id);
               }}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 flex-1 h-full',
+                'flex flex-col items-center justify-center gap-0.5 flex-1 h-full',
                 'transition-colors duration-150 relative touch-manipulation',
                 'active:scale-95 active:transition-transform',
                 isActive ? 'text-primary' : 'text-muted-foreground'
@@ -154,34 +146,29 @@ export function BottomNavigation({
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.label}
             >
-              {/* Active indicator pill */}
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-b-full bg-primary"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[3px] rounded-b-full bg-primary"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
-
-              {/* Icon with badge */}
               <div className="relative">
-                <div className={cn(
-                  'transition-transform duration-150',
-                  isActive && 'scale-110'
-                )}>
+                <motion.div
+                  animate={isActive ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                >
                   {item.icon}
-                </div>
+                </motion.div>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold shadow-sm">
+                  <span className="absolute -top-1 -right-2.5 min-w-[16px] h-[16px] px-0.5 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold shadow-sm">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>
-
-              {/* Label */}
               <span className={cn(
-                'text-[10px] font-medium leading-none',
-                isActive ? 'text-primary font-semibold' : 'text-muted-foreground'
+                'text-[10px] leading-none transition-all',
+                isActive ? 'text-primary font-semibold' : 'text-muted-foreground font-medium'
               )}>
                 {item.label}
               </span>
@@ -223,7 +210,6 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
       onDragEnd={handleDragEnd}
       style={{ y: isPulling ? pullY : 0 }}
     >
-      {/* Refresh indicator */}
       <AnimatePresence>
         {(isPulling || isRefreshing) && (
           <motion.div
@@ -249,7 +235,6 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
           </motion.div>
         )}
       </AnimatePresence>
-
       {children}
     </motion.div>
   );
