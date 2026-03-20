@@ -76,13 +76,15 @@ describe('MiniChatPiP', () => {
   });
 
   it('does not send empty reply', () => {
-    render(<MiniChatPiP {...defaultProps} />);
+    const onQuickReply = vi.fn();
+    render(<MiniChatPiP {...defaultProps} onQuickReply={onQuickReply} />);
     fireEvent.click(screen.getByText('Toque para responder'));
 
     const input = screen.getByPlaceholderText('Resposta rápida...');
+    // Don't type anything, just press enter
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: false });
 
-    expect(defaultProps.onQuickReply).not.toHaveBeenCalled();
+    expect(onQuickReply).not.toHaveBeenCalled();
   });
 
   it('shows "Abrir conversa completa" when expanded', () => {
