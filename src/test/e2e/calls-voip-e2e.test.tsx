@@ -1766,8 +1766,8 @@ describe('CallDialog — Logic', () => {
   });
 
   it('outbound ringing hides answer button', () => {
-    const status = 'ringing';
-    const direction = 'outbound';
+    const status: string = 'ringing';
+    const direction: string = 'outbound';
     const showAnswerButton = status === 'ringing' && direction === 'inbound';
     expect(showAnswerButton).toBe(false);
   });
