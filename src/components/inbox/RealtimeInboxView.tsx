@@ -74,6 +74,11 @@ export function RealtimeInboxView() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  const [pipContact, setPipContact] = useState<{ name: string; avatar?: string; lastMessage?: string; contactId: string } | null>(null);
+
+  // Offline cache
+  const { conversations: cachedConversations, isOffline, usingCache } = useOfflineCache(conversations, loading);
+
 
   // Pull-to-refresh for mobile
   const pullToRefresh = usePullToRefresh({
