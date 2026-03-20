@@ -231,7 +231,7 @@ export function RealtimeInboxView() {
     }
 
     return result;
-  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, user?.id]);
+  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
