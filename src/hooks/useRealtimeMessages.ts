@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { playNotificationSound, showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
 import { getLogger } from '@/lib/logger';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 
 const log = getLogger('RealtimeMessages');
 
