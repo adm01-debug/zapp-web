@@ -126,6 +126,17 @@ export function ChatInputArea({
 }: ChatInputAreaProps) {
   const [showRichToolbar, setShowRichToolbar] = useState(false);
 
+  const handleVoiceDictation = useCallback((text: string) => {
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+    if (inputRef.current && nativeInputValueSetter) {
+      const current = inputRef.current.value;
+      const newValue = current ? `${current} ${text}` : text;
+      nativeInputValueSetter.call(inputRef.current, newValue);
+      inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+      inputRef.current.focus();
+    }
+  }, [inputRef]);
+
   return (
     <>
       {/* Rich Text Toolbar */}
