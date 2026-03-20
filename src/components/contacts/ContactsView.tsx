@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { motion } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -120,6 +121,7 @@ const SORT_OPTIONS = [
 
 export function ContactsView() {
   
+  const { profile } = useAuth();
   const feedback = useActionFeedback();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -282,6 +284,7 @@ export function ContactsView() {
           phone: newContact.phone,
           email: newContact.email || null,
           contact_type: newContact.contact_type,
+          assigned_to: profile?.id || null,
         });
         if (error) throw error;
       },
