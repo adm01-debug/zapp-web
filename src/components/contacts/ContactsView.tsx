@@ -324,7 +324,12 @@ export function ContactsView() {
             contact_type: editingContact.contact_type,
           })
           .eq('id', editingContact.id);
-        if (error) throw error;
+        if (error) {
+          if (error.code === '23505' && error.message?.includes('contacts_phone_unique')) {
+            throw new Error('Já existe outro contato com este número de telefone.');
+          }
+          throw error;
+        }
       },
       {
         loadingMessage: 'Salvando alterações...',
