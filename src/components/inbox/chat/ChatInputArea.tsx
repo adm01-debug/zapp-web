@@ -88,6 +88,7 @@ interface ChatInputAreaProps {
 }
 
 export function ChatInputArea({
+  // Voice dictation handler defined inside component
   inputValue,
   replyToMessage,
   editingMessage,
