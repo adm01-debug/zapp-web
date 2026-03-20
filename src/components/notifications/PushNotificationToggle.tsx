@@ -21,9 +21,10 @@ export function PushNotificationToggle({ className }: { className?: string }) {
     toggleSubscription,
   } = usePushNotifications();
 
-  if (!isSupported) return null;
+  // Show the button even when not supported, but disable it
+  const notSupported = !isSupported;
 
-  const disabled = isLoading || permission === 'denied';
+  const disabled = isLoading || permission === 'denied' || notSupported;
 
   const label = isSubscribed
     ? 'Desativar notificações push'
@@ -57,7 +58,7 @@ export function PushNotificationToggle({ className }: { className?: string }) {
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom">
-        <p>{permission === 'denied' ? 'Permissão bloqueada no navegador' : label}</p>
+        <p>{notSupported ? 'Push não suportado neste navegador' : permission === 'denied' ? 'Permissão bloqueada no navegador' : label}</p>
       </TooltipContent>
     </Tooltip>
   );
