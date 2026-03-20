@@ -161,12 +161,14 @@ export function useRealtimeMessages() {
               playNotificationSound('message');
             }
             
-            // Show browser notification
-            showBrowserNotification(
-              `Nova mensagem de ${conversation.contact.name}`,
-              newMessage.content,
-              conversation.contact.avatar_url || undefined
-            );
+            // Show browser notification only if enabled
+            if (notifSettings.browserNotifications && !isQuietHours()) {
+              showBrowserNotification(
+                `Nova mensagem de ${conversation.contact.name}`,
+                newMessage.content,
+                conversation.contact.avatar_url || undefined
+              );
+            }
             
             // Set in-app notification
             setNewMessageNotification({
