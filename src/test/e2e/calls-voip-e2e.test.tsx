@@ -2076,51 +2076,57 @@ describe('Error Handling & Resilience', () => {
 // ============================================================
 
 describe('Audit & Logging for Calls', () => {
+  let mockLogAudit: ReturnType<typeof vi.fn>;
+  let mockLog: { error: ReturnType<typeof vi.fn> };
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const auditMod = await import('@/lib/audit');
+    mockLogAudit = auditMod.logAudit as unknown as ReturnType<typeof vi.fn>;
+    const loggerMod = await import('@/lib/logger');
+    mockLog = loggerMod.log as unknown as { error: ReturnType<typeof vi.fn> };
+  });
+
   it('logAudit is called with call_started action', () => {
-    const { logAudit } = require('@/lib/audit');
-    logAudit({
+    mockLogAudit({
       action: 'call_started', entityType: 'call', entityId: 'c1',
       details: { direction: 'outbound', contact_phone: '+55' },
     });
-    expect(logAudit).toHaveBeenCalledWith(
+    expect(mockLogAudit).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'call_started' })
     );
   });
 
   it('logAudit is called with call_ended action', () => {
-    const { logAudit } = require('@/lib/audit');
-    logAudit({
+    mockLogAudit({
       action: 'call_ended', entityType: 'call', entityId: 'c1',
       details: { direction: 'outbound', duration: 120 },
     });
-    expect(logAudit).toHaveBeenCalledWith(
+    expect(mockLogAudit).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'call_ended' })
     );
   });
 
   it('audit includes entityType call', () => {
-    const { logAudit } = require('@/lib/audit');
-    logAudit({ action: 'call_started', entityType: 'call', entityId: 'c1', details: {} });
-    expect(logAudit).toHaveBeenCalledWith(
+    mockLogAudit({ action: 'call_started', entityType: 'call', entityId: 'c1', details: {} });
+    expect(mockLogAudit).toHaveBeenCalledWith(
       expect.objectContaining({ entityType: 'call' })
     );
   });
 
   it('audit includes entityId', () => {
-    const { logAudit } = require('@/lib/audit');
-    logAudit({ action: 'call_started', entityType: 'call', entityId: 'specific-id', details: {} });
-    expect(logAudit).toHaveBeenCalledWith(
+    mockLogAudit({ action: 'call_started', entityType: 'call', entityId: 'specific-id', details: {} });
+    expect(mockLogAudit).toHaveBeenCalledWith(
       expect.objectContaining({ entityId: 'specific-id' })
     );
   });
 
   it('audit includes direction in details', () => {
-    const { logAudit } = require('@/lib/audit');
-    logAudit({
+    mockLogAudit({
       action: 'call_started', entityType: 'call', entityId: 'c1',
       details: { direction: 'inbound', contact_phone: '+55' },
     });
-    expect(logAudit).toHaveBeenCalledWith(
+    expect(mockLogAudit).toHaveBeenCalledWith(
       expect.objectContaining({
         details: expect.objectContaining({ direction: 'inbound' }),
       })
@@ -2128,12 +2134,11 @@ describe('Audit & Logging for Calls', () => {
   });
 
   it('audit includes contact_phone in details', () => {
-    const { logAudit } = require('@/lib/audit');
-    logAudit({
+    mockLogAudit({
       action: 'call_started', entityType: 'call', entityId: 'c1',
       details: { direction: 'outbound', contact_phone: '+5511999999999' },
     });
-    expect(logAudit).toHaveBeenCalledWith(
+    expect(mockLogAudit).toHaveBeenCalledWith(
       expect.objectContaining({
         details: expect.objectContaining({ contact_phone: '+5511999999999' }),
       })
@@ -2141,12 +2146,11 @@ describe('Audit & Logging for Calls', () => {
   });
 
   it('audit includes duration in end details', () => {
-    const { logAudit } = require('@/lib/audit');
-    logAudit({
+    mockLogAudit({
       action: 'call_ended', entityType: 'call', entityId: 'c1',
       details: { direction: 'outbound', duration: 300, contact_phone: '+55' },
     });
-    expect(logAudit).toHaveBeenCalledWith(
+    expect(mockLogAudit).toHaveBeenCalledWith(
       expect.objectContaining({
         details: expect.objectContaining({ duration: 300 }),
       })
@@ -2155,61 +2159,55 @@ describe('Audit & Logging for Calls', () => {
 
   it('logger.error is called on startCall failure', async () => {
     setupMocks({ insertError: new Error('DB error') });
-    const { log } = require('@/lib/logger');
     const { result } = renderHook(() => useCalls());
     await act(async () => {
       await result.current.startCall({ contactPhone: '+55', contactName: 'T', direction: 'outbound' });
     });
-    expect(log.error).toHaveBeenCalled();
+    expect(mockLog.error).toHaveBeenCalled();
   });
 
   it('logger.error is called on endCall failure', async () => {
     setupMocks({ updateError: new Error('Update error') });
-    const { log } = require('@/lib/logger');
     const { result } = renderHook(() => useCalls());
     await act(async () => {
       await result.current.endCall('c1', 60);
     });
-    expect(log.error).toHaveBeenCalled();
+    expect(mockLog.error).toHaveBeenCalled();
   });
 
   it('logger.error is called on answerCall failure', async () => {
     setupMocks({ updateError: new Error('Answer error') });
-    const { log } = require('@/lib/logger');
     const { result } = renderHook(() => useCalls());
     await act(async () => {
       await result.current.answerCall('c1');
     });
-    expect(log.error).toHaveBeenCalled();
+    expect(mockLog.error).toHaveBeenCalled();
   });
 
   it('logger.error is called on missCall failure', async () => {
     setupMocks({ updateError: new Error('Miss error') });
-    const { log } = require('@/lib/logger');
     const { result } = renderHook(() => useCalls());
     await act(async () => {
       await result.current.missCall('c1');
     });
-    expect(log.error).toHaveBeenCalled();
+    expect(mockLog.error).toHaveBeenCalled();
   });
 
   it('logger.error is called on addCallNotes failure', async () => {
     setupMocks({ updateError: new Error('Notes error') });
-    const { log } = require('@/lib/logger');
     const { result } = renderHook(() => useCalls());
     await act(async () => {
       await result.current.addCallNotes('c1', 'note');
     });
-    expect(log.error).toHaveBeenCalled();
+    expect(mockLog.error).toHaveBeenCalled();
   });
 
   it('logger.error is called on getContactCalls failure', async () => {
     setupMocks({ selectError: new Error('Select error') });
-    const { log } = require('@/lib/logger');
     const { result } = renderHook(() => useCalls());
     await act(async () => {
       await result.current.getContactCalls('c1');
     });
-    expect(log.error).toHaveBeenCalled();
+    expect(mockLog.error).toHaveBeenCalled();
   });
 });
