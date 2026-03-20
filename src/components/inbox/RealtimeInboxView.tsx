@@ -152,9 +152,9 @@ export function RealtimeInboxView() {
       
       // Sub-tab filtering
       if (subTab === 'attending') {
-        // "Atendendo" = assigned to current user
+        // "Atendendo" = assigned to current user (compare with profile.id, not auth user.id)
         if (!showAll) {
-          result = result.filter(c => c.contact.assigned_to === user?.id);
+          result = result.filter(c => c.contact.assigned_to === profile?.id);
         }
         // If showAll is true, show all assigned conversations
       } else if (subTab === 'waiting') {
