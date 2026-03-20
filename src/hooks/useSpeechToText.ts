@@ -1,0 +1,112 @@
+import { useState, useCallback, useRef, useEffect } from 'react';
+
+interface UseSpeechToTextOptions {
+  language?: string;
+  continuous?: boolean;
+  onResult?: (text: string) => void;
+  onEnd?: () => void;
+}
+
+interface SpeechToTextReturn {
+  isListening: boolean;
+  isSupported: boolean;
+  transcript: string;
+  startListening: () => void;
+  stopListening: () => void;
+  toggleListening: () => void;
+}
+
+export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToTextReturn {
+  const { language = 'pt-BR', continuous = true, onResult, onEnd } = options;
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const recognitionRef = useRef<any>(null);
+
+  const SpeechRecognition = typeof window !== 'undefined'
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
+
+  const isSupported = !!SpeechRecognition;
+
+  const startListening = useCallback(() => {
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = language;
+    recognition.continuous = continuous;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscript += result[0].transcript;
+        } else {
+          interimTranscript += result[0].transcript;
+        }
+      }
+
+      const combined = finalTranscript || interimTranscript;
+      setTranscript(combined);
+
+      if (finalTranscript && onResult) {
+        onResult(finalTranscript);
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      onEnd?.();
+    };
+
+    recognition.onerror = (event: any) => {
+      console.warn('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+    setTranscript('');
+
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(15);
+  }, [SpeechRecognition, language, continuous, onResult, onEnd]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+  }, []);
+
+  const toggleListening = useCallback(() => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }, [isListening, startListening, stopListening]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  return {
+    isListening,
+    isSupported,
+    transcript,
+    startListening,
+    stopListening,
+    toggleListening,
+  };
+}
