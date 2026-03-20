@@ -541,8 +541,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   };
 
   const handleSendAudioMeme = async (audioUrl: string) => {
-    if (!instanceName || !conversation.contact.phone) {
-      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível' });
+    const resolvedInstance = instanceName || await resolveInstance();
+    if (!resolvedInstance || !conversation.contact.phone) {
+      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível. Verifique se o contato tem uma conexão ativa.' });
       return;
     }
     try {
@@ -551,7 +552,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       
       // Send via API + save to DB in parallel
       const apiPromise = supabase.functions.invoke('evolution-api', {
-        body: { action: 'send-audio', instanceName, number: phone, mediaUrl: normalizedAudioUrl },
+        body: { action: 'send-audio', instanceName: resolvedInstance, number: phone, mediaUrl: normalizedAudioUrl },
       });
       
       const dbPromise = supabase.from('messages').insert({
