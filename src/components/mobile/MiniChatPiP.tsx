@@ -28,12 +28,15 @@ export function MiniChatPiP({
   const [isExpanded, setIsExpanded] = useState(false);
   const [replyText, setReplyText] = useState('');
 
-  const initials = (contactName || '??')
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = contactName
+    ? contactName
+        .split(' ')
+        .map(n => n[0])
+        .filter(Boolean)
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() || '??'
+    : '??';
 
   const handleSendReply = useCallback(() => {
     if (replyText.trim() && onQuickReply) {
