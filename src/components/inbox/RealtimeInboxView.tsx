@@ -803,6 +803,12 @@ export function RealtimeInboxView() {
                   Clientes
                 </span>
               </SelectItem>
+              <SelectItem value="colaborador">
+                <span className="flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5 text-green-500" />
+                  Colaboradores
+                </span>
+              </SelectItem>
               <SelectItem value="fornecedor">
                 <span className="flex items-center gap-2">
                   <Truck className="w-3.5 h-3.5 text-purple-500" />
@@ -813,12 +819,6 @@ export function RealtimeInboxView() {
                 <span className="flex items-center gap-2">
                   <Wrench className="w-3.5 h-3.5 text-orange-500" />
                   Prestadores de Serviço
-                </span>
-              </SelectItem>
-              <SelectItem value="colaborador">
-                <span className="flex items-center gap-2">
-                  <UserCheck className="w-3.5 h-3.5 text-green-500" />
-                  Colaboradores
                 </span>
               </SelectItem>
               <SelectItem value="transportadora">
