@@ -284,6 +284,7 @@ export function ContactsView() {
           phone: newContact.phone,
           email: newContact.email || null,
           contact_type: newContact.contact_type,
+          assigned_to: profile?.id || null,
         });
         if (error) throw error;
       },
