@@ -51,6 +51,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useTheme } from '@/hooks/useTheme';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
+import { SoundMuteToggle } from '@/components/notifications/SoundMuteToggle';
 
 interface SidebarProps {
   currentView: string;
@@ -206,6 +207,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
           {/* Push notification toggle */}
           <PushNotificationToggle className="w-[36px] h-[36px]" />
+
+          {/* Sound mute toggle */}
+          <SoundMuteToggle className="w-[36px] h-[36px]" />
 
           {/* Dark mode toggle */}
           <Tooltip delayDuration={0}>
