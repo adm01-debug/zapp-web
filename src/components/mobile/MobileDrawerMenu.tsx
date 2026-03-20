@@ -138,7 +138,15 @@ export function MobileDrawerMenu({
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="fixed top-0 left-0 z-[101] h-full w-[85%] max-w-[320px] bg-card border-r border-border shadow-2xl flex flex-col safe-area-top"
+            drag="x"
+            dragConstraints={{ left: -320, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(_e, info) => {
+              if (info.offset.x < -80 || info.velocity.x < -300) {
+                onClose();
+              }
+            }}
+            className="fixed top-0 left-0 z-[101] h-full w-[82%] max-w-[300px] bg-card border-r border-border/40 shadow-2xl flex flex-col safe-area-top"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
