@@ -21,7 +21,8 @@ export function PushNotificationToggle({ className }: { className?: string }) {
     toggleSubscription,
   } = usePushNotifications();
 
-  if (!isSupported) return null;
+  // Show the button even when not supported, but disable it
+  const notSupported = !isSupported;
 
   const disabled = isLoading || permission === 'denied';
 
