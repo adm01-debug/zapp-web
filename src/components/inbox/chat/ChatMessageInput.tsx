@@ -28,9 +28,11 @@ import {
   MapPin,
   Package,
   Layers,
+  Plus,
 } from 'lucide-react';
 import { AIEnhanceButton } from './AIEnhanceButton';
 import { toast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface QuickReply {
   id: string;
