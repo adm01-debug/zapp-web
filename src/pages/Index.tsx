@@ -443,17 +443,24 @@ function IndexContent() {
 
           {/* Mobile Bottom Navigation */}
           {isMobile && (
-            <BottomNavigation
-              items={mobileNavItems}
-              activeId={currentView}
-              onChange={(id) => {
-                if (id === 'more') {
-                  setMobileMenuOpen(true);
-                } else {
-                  setCurrentView(id);
-                }
-              }}
-            />
+            <>
+              <MobileFAB
+                onNewConversation={() => setCurrentView('inbox')}
+                onNewContact={() => setCurrentView('contacts')}
+                onNewCampaign={() => setCurrentView('campaigns')}
+              />
+              <BottomNavigation
+                items={mobileNavItems}
+                activeId={currentView}
+                onChange={(id) => {
+                  if (id === 'more') {
+                    setMobileMenuOpen(true);
+                  } else {
+                    setCurrentView(id);
+                  }
+                }}
+              />
+            </>
           )}
         </div>
 
