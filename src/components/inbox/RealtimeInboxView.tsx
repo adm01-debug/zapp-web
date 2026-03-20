@@ -821,6 +821,12 @@ export function RealtimeInboxView() {
                   Colaboradores
                 </span>
               </SelectItem>
+              <SelectItem value="transportadora">
+                <span className="flex items-center gap-2">
+                  <Truck className="w-3.5 h-3.5 text-cyan-500" />
+                  Transportadoras
+                </span>
+              </SelectItem>
             </SelectContent>
           </Select>
 
