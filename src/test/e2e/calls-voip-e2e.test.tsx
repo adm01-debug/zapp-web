@@ -2076,15 +2076,15 @@ describe('Error Handling & Resilience', () => {
 // ============================================================
 
 describe('Audit & Logging for Calls', () => {
-  let mockLogAudit: ReturnType<typeof vi.fn>;
-  let mockLog: { error: ReturnType<typeof vi.fn> };
+  let mockLogAudit: (...args: any[]) => any;
+  let mockLog: { error: (...args: any[]) => any };
 
   beforeEach(async () => {
     vi.clearAllMocks();
     const auditMod = await import('@/lib/audit');
-    mockLogAudit = auditMod.logAudit as unknown as ReturnType<typeof vi.fn>;
+    mockLogAudit = auditMod.logAudit as any;
     const loggerMod = await import('@/lib/logger');
-    mockLog = loggerMod.log as unknown as { error: ReturnType<typeof vi.fn> };
+    mockLog = loggerMod.log as any;
   });
 
   it('logAudit is called with call_started action', () => {
