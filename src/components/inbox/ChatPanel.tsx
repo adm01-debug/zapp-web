@@ -428,7 +428,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       // Send via Evolution API (may throw)
       let externalId: string | null = null;
       try {
-        const result = await sendStickerMessage(instanceName, phone, stickerUrl);
+        const result = await sendStickerMessage(resolvedInstance, phone, stickerUrl);
         externalId = result?.key?.id || null;
       } catch {
         // API failed — mark message as failed
