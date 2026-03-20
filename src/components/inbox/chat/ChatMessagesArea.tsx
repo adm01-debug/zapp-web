@@ -1,4 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
@@ -176,6 +177,10 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
 
               return (
                 <StaggeredItem key={message.id}>
+                  <SwipeableMessage
+                    onSwipeRight={() => onReply(message)}
+                    onSwipeLeft={() => onForward(message)}
+                  >
                   <div
                     ref={(el) => { messageRefs.current[message.id] = el; }}
                     className={cn(
@@ -448,6 +453,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       </div>
                     )}
                   </div>
+                  </SwipeableMessage>
                 </StaggeredItem>
               );
             })}
