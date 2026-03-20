@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   MessageSquare,
@@ -151,11 +150,6 @@ function NavIcon({ item, currentView, onViewChange }: {
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
-  const [showTools, setShowTools] = useState(true);
-
-  // Check if current view is in tools section to keep it open
-  const isToolActive = toolsNav.some(t => t.id === currentView);
-  const isSystemActive = systemNav.some(t => t.id === currentView);
 
   return (
     <aside
@@ -185,24 +179,22 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       {/* Separator */}
       <div className="mx-3 my-1 h-px bg-border/60" />
 
-      {/* Scrollable tools area */}
+      {/* Scrollable navigation area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]">
         <nav className="flex flex-col items-center gap-1" aria-label="Ferramentas">
           {toolsNav.map((item) => (
             <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
           ))}
         </nav>
+
+        <div className="mx-1 my-1 h-px bg-border/60" />
+
+        <nav className="flex flex-col items-center gap-1 pb-2" aria-label="Sistema">
+          {systemNav.map((item) => (
+            <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
+          ))}
+        </nav>
       </div>
-
-      {/* Separator */}
-      <div className="mx-3 my-1 h-px bg-border/60" />
-
-      {/* System nav */}
-      <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Sistema">
-        {systemNav.map((item) => (
-          <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
-        ))}
-      </nav>
 
       {/* Bottom: Theme toggle + Avatar + Logout */}
       <div className="flex flex-col items-center gap-1 pt-1.5 pb-3 shrink-0">
