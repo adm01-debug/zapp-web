@@ -12,6 +12,7 @@ import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProv
 import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
+import { IncomingCallAlert } from "@/components/calls/IncomingCallAlert";
 import { useScreenProtection } from "@/hooks/useScreenProtection";
 import { SkipLinks } from "@/components/ui/skip-link";
 import { LiveRegion } from "@/components/ui/visually-hidden";
