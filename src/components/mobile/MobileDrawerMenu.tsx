@@ -95,7 +95,7 @@ const listItemVariants = {
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { delay: i * 0.02, duration: 0.2, ease: 'easeOut' },
+    transition: { delay: i * 0.02, duration: 0.2, ease: 'easeOut' as const },
   }),
 };
 
