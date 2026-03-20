@@ -295,7 +295,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "glass-strong border-t border-border/50",
-          isMobile ? "p-1.5 safe-area-bottom" : "p-4"
+          isMobile ? "p-2 safe-area-bottom" : "p-4"
         )}
       >
         <div className="flex items-end gap-1">
@@ -363,7 +363,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
               placeholder={replyToMessage ? "Digite sua resposta..." : isMobile ? "Mensagem..." : "Digite / para comandos... (Shift+Enter para nova linha)"}
               className={cn(
                 "min-h-[40px] max-h-[120px] resize-none pr-10 glass border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all",
-                isMobile ? "py-2 text-[16px] rounded-2xl" : "py-2.5"
+                isMobile ? "py-2.5 text-[16px] rounded-2xl leading-snug" : "py-2.5"
               )}
               rows={1}
             />
