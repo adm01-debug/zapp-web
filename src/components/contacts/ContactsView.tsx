@@ -121,6 +121,7 @@ const SORT_OPTIONS = [
 
 export function ContactsView() {
   
+  const { profile } = useAuth();
   const feedback = useActionFeedback();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
