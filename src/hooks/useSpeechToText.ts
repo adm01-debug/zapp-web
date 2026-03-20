@@ -58,14 +58,14 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
       const combined = finalTranscript || interimTranscript;
       setTranscript(combined);
 
-      if (finalTranscript && onResult) {
-        onResult(finalTranscript);
+      if (finalTranscript && onResultRef.current) {
+        onResultRef.current(finalTranscript);
       }
     };
 
     recognition.onend = () => {
       setIsListening(false);
-      onEnd?.();
+      onEndRef.current?.();
     };
 
     recognition.onerror = (event: any) => {
