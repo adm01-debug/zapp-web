@@ -907,7 +907,18 @@ export function RealtimeInboxView() {
                   onSendAudio={handleSendAudio}
                   showDetails={isMobile ? false : showDetails}
                   onToggleDetails={() => setShowDetails(!showDetails)}
-                  onBack={isMobile ? () => setSelectedContactId(null) : undefined}
+                  onBack={isMobile ? () => {
+                    // Show PiP when going back on mobile
+                    if (legacyConversation) {
+                      setPipContact({
+                        name: legacyConversation.contact.name,
+                        avatar: legacyConversation.contact.avatar,
+                        lastMessage: legacyConversation.lastMessage?.content,
+                        contactId: legacyConversation.id,
+                      });
+                    }
+                    setSelectedContactId(null);
+                  } : undefined}
                 />
               </div>
               {showDetails && !isMobile && (
