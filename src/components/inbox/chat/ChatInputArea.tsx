@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
+import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
 import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { StickerPicker } from '../StickerPicker';
 import { AudioMemePicker } from '../AudioMemePicker';
@@ -87,6 +88,7 @@ interface ChatInputAreaProps {
 }
 
 export function ChatInputArea({
+  // Voice dictation handler defined inside component
   inputValue,
   replyToMessage,
   editingMessage,
@@ -123,6 +125,17 @@ export function ChatInputArea({
   inputRef,
 }: ChatInputAreaProps) {
   const [showRichToolbar, setShowRichToolbar] = useState(false);
+
+  const handleVoiceDictation = useCallback((text: string) => {
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+    if (inputRef.current && nativeInputValueSetter) {
+      const current = inputRef.current.value;
+      const newValue = current ? `${current} ${text}` : text;
+      nativeInputValueSetter.call(inputRef.current, newValue);
+      inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+      inputRef.current.focus();
+    }
+  }, [inputRef]);
 
   return (
     <>
@@ -361,6 +374,8 @@ export function ChatInputArea({
           <AudioMemePicker onSendAudio={onSendAudioMeme} />
 
           <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
+
+          <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
 
           <Button 
             variant="ghost" 

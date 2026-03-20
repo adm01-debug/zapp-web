@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { useOfflineCache } from '@/hooks/useOfflineCache';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
+import { MiniChatPiP } from '@/components/mobile/MiniChatPiP';
 import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
@@ -72,6 +74,11 @@ export function RealtimeInboxView() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  const [pipContact, setPipContact] = useState<{ name: string; avatar?: string; lastMessage?: string; contactId: string } | null>(null);
+
+  // Offline cache
+  const { conversations: cachedConversations, isOffline, usingCache } = useOfflineCache(conversations, loading);
+
 
   // Pull-to-refresh for mobile
   const pullToRefresh = usePullToRefresh({
@@ -136,7 +143,7 @@ export function RealtimeInboxView() {
   // Filter conversations by tabs, search and advanced filters
   const filteredConversations = useMemo(() => {
     // Safety: filter out any conversations with missing contact data
-    let result = conversations.filter(c => c && c.contact && c.contact.id);
+    let result = cachedConversations.filter(c => c && c.contact && c.contact.id);
 
     // === Tab-based filtering (Whaticket style) ===
     if (mainTab === 'open') {
@@ -900,7 +907,18 @@ export function RealtimeInboxView() {
                   onSendAudio={handleSendAudio}
                   showDetails={isMobile ? false : showDetails}
                   onToggleDetails={() => setShowDetails(!showDetails)}
-                  onBack={isMobile ? () => setSelectedContactId(null) : undefined}
+                  onBack={isMobile ? () => {
+                    // Show PiP when going back on mobile
+                    if (legacyConversation) {
+                      setPipContact({
+                        name: legacyConversation.contact.name,
+                        avatar: legacyConversation.contact.avatar,
+                        lastMessage: legacyConversation.lastMessage?.content,
+                        contactId: legacyConversation.id,
+                      });
+                    }
+                    setSelectedContactId(null);
+                  } : undefined}
                 />
               </div>
               {showDetails && !isMobile && (
@@ -930,6 +948,32 @@ export function RealtimeInboxView() {
           </div>
         )}
       </div>
+
+      {/* Offline banner */}
+      {usingCache && (
+        <div className="absolute top-0 left-0 right-0 z-50 bg-warning/90 text-warning-foreground text-xs text-center py-1.5 font-medium">
+          📡 Modo offline — exibindo dados em cache
+        </div>
+      )}
+
+      {/* Mini Chat PiP for mobile */}
+      {isMobile && pipContact && !selectedContactId && (
+        <MiniChatPiP
+          contactName={pipContact.name}
+          contactAvatar={pipContact.avatar}
+          lastMessage={pipContact.lastMessage}
+          isVisible={true}
+          onExpand={() => {
+            setSelectedContactId(pipContact.contactId);
+            setPipContact(null);
+          }}
+          onDismiss={() => setPipContact(null)}
+          onQuickReply={(text) => {
+            sendMessage(pipContact.contactId, text);
+            setPipContact(null);
+          }}
+        />
+      )}
     </div>
   );
 }
