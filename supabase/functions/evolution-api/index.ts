@@ -92,8 +92,29 @@ serve(async (req) => {
       }
     }
 
+    // If Evolution API returned an error, wrap it in a 200 response
+    // with an error field so the client SDK doesn't throw FunctionsHttpError
+    if (!response.ok) {
+      const errorData = data as Record<string, unknown>;
+      // Check for "number doesn't exist" pattern
+      const responseMsg = errorData?.response?.message;
+      let friendlyMessage = 'Erro na API Evolution';
+      if (Array.isArray(responseMsg) && responseMsg.some((m: any) => m.exists === false)) {
+        friendlyMessage = 'Número não encontrado no WhatsApp. Verifique se o número está correto e registrado.';
+      }
+      return new Response(JSON.stringify({ 
+        error: true,
+        status: response.status,
+        message: friendlyMessage,
+        details: data,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify(data), {
-      status: response.ok ? 200 : response.status,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   };

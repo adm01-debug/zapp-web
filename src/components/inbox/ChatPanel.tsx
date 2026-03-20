@@ -430,14 +430,15 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       try {
         const result = await sendStickerMessage(resolvedInstance, phone, stickerUrl);
         externalId = result?.key?.id || null;
-      } catch {
+      } catch (err: any) {
         // API failed — mark message as failed
         if (messageId) {
           await supabase.from('messages')
             .update({ status: 'failed' })
             .eq('id', messageId);
         }
-        toast({ title: 'Erro ao enviar figurinha', description: 'Falha na API', variant: 'destructive' });
+        const errorMessage = err?.message || 'Falha na API';
+        toast({ title: 'Erro ao enviar figurinha', description: errorMessage, variant: 'destructive' });
         return;
       }
       
