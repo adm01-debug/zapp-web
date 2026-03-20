@@ -754,7 +754,13 @@ export function ContactsView() {
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                              <Button variant="ghost" size="icon" className="w-8 h-8">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-8 h-8"
+                                onClick={() => navigate(`/app/inbox?contact=${contact.id}`)}
+                                title="Iniciar conversa"
+                              >
                                 <MessageSquare className="w-4 h-4" />
                               </Button>
                             </motion.div>
