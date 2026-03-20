@@ -760,9 +760,17 @@ export function ContactsView() {
                                 onClick={() => {
                                   window.history.pushState(null, '', `#inbox`);
                                   window.dispatchEvent(new HashChangeEvent('hashchange'));
-                                  setTimeout(() => {
+                                  // Retry dispatching the event until the inbox component is mounted and listening
+                                  let attempts = 0;
+                                  const tryDispatch = () => {
+                                    attempts++;
                                     window.dispatchEvent(new CustomEvent('open-contact-chat', { detail: { contactId: contact.id } }));
-                                  }, 100);
+                                    // Retry up to 10 times (2 seconds total) to handle lazy-load delay
+                                    if (attempts < 10) {
+                                      setTimeout(tryDispatch, 200);
+                                    }
+                                  };
+                                  setTimeout(tryDispatch, 300);
                                 }}
                                 title="Iniciar conversa"
                               >
