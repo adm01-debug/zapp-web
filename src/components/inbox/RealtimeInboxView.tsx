@@ -948,6 +948,32 @@ export function RealtimeInboxView() {
           </div>
         )}
       </div>
+
+      {/* Offline banner */}
+      {usingCache && (
+        <div className="absolute top-0 left-0 right-0 z-50 bg-warning/90 text-warning-foreground text-xs text-center py-1.5 font-medium">
+          📡 Modo offline — exibindo dados em cache
+        </div>
+      )}
+
+      {/* Mini Chat PiP for mobile */}
+      {isMobile && pipContact && !selectedContactId && (
+        <MiniChatPiP
+          contactName={pipContact.name}
+          contactAvatar={pipContact.avatar}
+          lastMessage={pipContact.lastMessage}
+          isVisible={true}
+          onExpand={() => {
+            setSelectedContactId(pipContact.contactId);
+            setPipContact(null);
+          }}
+          onDismiss={() => setPipContact(null)}
+          onQuickReply={(text) => {
+            sendMessage(pipContact.contactId, text);
+            setPipContact(null);
+          }}
+        />
+      )}
     </div>
   );
 }
