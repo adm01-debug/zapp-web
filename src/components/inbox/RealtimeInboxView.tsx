@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { useOfflineCache } from '@/hooks/useOfflineCache';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
+import { MiniChatPiP } from '@/components/mobile/MiniChatPiP';
 import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
