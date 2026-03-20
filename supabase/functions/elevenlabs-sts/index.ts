@@ -19,29 +19,25 @@ serve(async (req) => {
     const formData = await req.formData();
     const audioFile = formData.get('audio') as File;
     const voiceId = formData.get('voiceId') as string;
+    const modelId = formData.get('modelId') as string;
 
-    if (!audioFile) {
-      throw new Error('Audio file is required');
-    }
+    if (!audioFile) throw new Error('Audio file is required');
+    if (!voiceId) throw new Error('Voice ID is required');
 
-    if (!voiceId) {
-      throw new Error('Voice ID is required');
-    }
+    // Default to multilingual model for Portuguese/multi-language support
+    const selectedModel = modelId || 'eleven_multilingual_sts_v2';
 
-    console.log(`STS: Converting audio (${audioFile.size} bytes) to voice ${voiceId}`);
+    console.log(`STS: Converting audio (${audioFile.size} bytes) to voice ${voiceId} with model ${selectedModel}`);
 
     const apiFormData = new FormData();
     apiFormData.append('audio', audioFile);
-    apiFormData.append('model_id', 'eleven_english_sts_v2');
-    apiFormData.append('output_format', 'mp3_44100_128');
+    apiFormData.append('model_id', selectedModel);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/speech-to-speech/${voiceId}?output_format=mp3_44100_128`,
       {
         method: 'POST',
-        headers: {
-          'xi-api-key': ELEVENLABS_API_KEY,
-        },
+        headers: { 'xi-api-key': ELEVENLABS_API_KEY },
         body: apiFormData,
       }
     );
@@ -49,13 +45,9 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ElevenLabs STS error:', response.status, errorText);
-      
-      if (response.status === 401) {
-        throw new Error('Invalid ElevenLabs API key');
-      }
-      if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Try again in a few seconds.');
-      }
+
+      if (response.status === 401) throw new Error('Invalid ElevenLabs API key');
+      if (response.status === 429) throw new Error('Rate limit exceeded. Try again in a few seconds.');
       throw new Error(`ElevenLabs STS error: ${response.status}`);
     }
 
@@ -63,20 +55,14 @@ serve(async (req) => {
     console.log(`STS: Conversion complete, output size: ${audioBuffer.byteLength} bytes`);
 
     return new Response(audioBuffer, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'audio/mpeg',
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'audio/mpeg' },
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in elevenlabs-sts:', errorMessage);
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
