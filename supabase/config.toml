@@ -56,3 +56,21 @@ verify_jwt = false
 
 [functions.classify-sticker]
 verify_jwt = false
+
+[functions.elevenlabs-tts-stream]
+verify_jwt = false
+
+[functions.elevenlabs-webhook]
+verify_jwt = false
+
+[functions.elevenlabs-dialogue]
+verify_jwt = false
+
+[functions.elevenlabs-voice-design]
+verify_jwt = false
+
+[functions.elevenlabs-sts]
+verify_jwt = false
+
+[functions.elevenlabs-sfx]
+verify_jwt = false

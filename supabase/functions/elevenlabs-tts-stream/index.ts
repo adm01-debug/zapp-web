@@ -15,7 +15,6 @@ serve(async (req) => {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
 
     if (!ELEVENLABS_API_KEY) {
-      console.error('ELEVENLABS_API_KEY is not configured');
       throw new Error('ElevenLabs API key not configured');
     }
 
@@ -24,13 +23,12 @@ serve(async (req) => {
     }
 
     const selectedVoiceId = voiceId || 'EXAVITQu4vr4xnSDxMaL';
-    const selectedModel = modelId || 'eleven_v3'; // Upgraded from eleven_multilingual_v2
+    const selectedModel = modelId || 'eleven_flash_v2_5'; // Flash for streaming (lowest latency)
 
-    console.log(`Generating TTS for text: "${text.substring(0, 50)}..." with voice: ${selectedVoiceId}, model: ${selectedModel}`);
+    console.log(`Streaming TTS: "${text.substring(0, 50)}..." voice: ${selectedVoiceId}, model: ${selectedModel}`);
 
-    // output_format as query parameter (per official docs)
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}?output_format=mp3_44100_128`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}/stream?output_format=mp3_44100_128`,
       {
         method: 'POST',
         headers: {
@@ -54,19 +52,21 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('ElevenLabs API error:', response.status, errorText);
+      console.error('ElevenLabs Streaming API error:', response.status, errorText);
       throw new Error(`ElevenLabs API error: ${response.status}`);
     }
 
-    const audioBuffer = await response.arrayBuffer();
-    console.log(`TTS generated successfully, audio size: ${audioBuffer.byteLength} bytes`);
-
-    return new Response(audioBuffer, {
-      headers: { ...corsHeaders, 'Content-Type': 'audio/mpeg' },
+    // Stream the response directly
+    return new Response(response.body, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'audio/mpeg',
+        'Transfer-Encoding': 'chunked',
+      },
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error in elevenlabs-tts function:', errorMessage);
+    console.error('Error in elevenlabs-tts-stream:', errorMessage);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

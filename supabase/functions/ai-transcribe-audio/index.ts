@@ -6,13 +6,12 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { audioUrl, messageId } = await req.json();
+    const { audioUrl, messageId, languageCode, enableDiarization, tagAudioEvents } = await req.json();
 
     if (!audioUrl) {
       return new Response(
@@ -21,23 +20,19 @@ serve(async (req) => {
       );
     }
 
-    console.log('Starting ElevenLabs transcription for message:', messageId);
-    console.log('Audio URL:', audioUrl);
+    console.log('Starting ElevenLabs transcription (scribe_v2) for message:', messageId);
 
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {
-      console.error('ELEVENLABS_API_KEY is not configured');
       return new Response(
         JSON.stringify({ error: 'ElevenLabs API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Download the audio file from the URL
-    console.log('Downloading audio file...');
+    // Download the audio file
     const audioResponse = await fetch(audioUrl);
     if (!audioResponse.ok) {
-      console.error('Failed to download audio:', audioResponse.status);
       return new Response(
         JSON.stringify({ error: 'Failed to download audio file' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -47,48 +42,39 @@ serve(async (req) => {
     const audioBlob = await audioResponse.blob();
     console.log('Audio downloaded, size:', audioBlob.size, 'type:', audioBlob.type);
 
-    // Prepare form data for ElevenLabs Speech-to-Text API
-    const formData = new FormData();
-    
-    // Determine file extension from content type or URL
+    // Determine file extension
     let fileName = 'audio.mp3';
     const contentType = audioBlob.type || '';
-    if (contentType.includes('ogg') || audioUrl.includes('.ogg')) {
-      fileName = 'audio.ogg';
-    } else if (contentType.includes('webm') || audioUrl.includes('.webm')) {
-      fileName = 'audio.webm';
-    } else if (contentType.includes('wav') || audioUrl.includes('.wav')) {
-      fileName = 'audio.wav';
-    } else if (contentType.includes('m4a') || audioUrl.includes('.m4a')) {
-      fileName = 'audio.m4a';
-    }
-    
-    formData.append('file', audioBlob, fileName);
-    formData.append('model_id', 'scribe_v1');
-    formData.append('language_code', 'por'); // Portuguese (ISO 639-3)
+    if (contentType.includes('ogg') || audioUrl.includes('.ogg')) fileName = 'audio.ogg';
+    else if (contentType.includes('webm') || audioUrl.includes('.webm')) fileName = 'audio.webm';
+    else if (contentType.includes('wav') || audioUrl.includes('.wav')) fileName = 'audio.wav';
+    else if (contentType.includes('m4a') || audioUrl.includes('.m4a')) fileName = 'audio.m4a';
 
-    console.log('Sending to ElevenLabs STT API...');
-    
-    // Call ElevenLabs Speech-to-Text API
+    const formData = new FormData();
+    formData.append('file', audioBlob, fileName);
+    formData.append('model_id', 'scribe_v2'); // Upgraded from scribe_v1
+    formData.append('language_code', languageCode || 'por');
+    formData.append('tag_audio_events', String(tagAudioEvents ?? true));
+    formData.append('diarize', String(enableDiarization ?? false));
+
+    console.log('Sending to ElevenLabs STT API (scribe_v2)...');
+
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
-      headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
-      },
+      headers: { 'xi-api-key': ELEVENLABS_API_KEY },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ElevenLabs STT error:', response.status, errorText);
-      
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
       if (response.status === 401) {
         return new Response(
           JSON.stringify({ error: 'Invalid ElevenLabs API key.' }),
@@ -103,22 +89,19 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log('ElevenLabs response:', JSON.stringify(data));
-    
-    // Extract transcription text from response
     const transcription = data.text || '';
-
     console.log('Transcription result:', transcription);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         transcription,
         messageId,
-        words: data.words || [], // Include word-level timestamps if available
+        words: data.words || [],
+        audio_events: data.audio_events || [],
+        speakers: data.speakers || [],
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Transcription error:', error);
     return new Response(
