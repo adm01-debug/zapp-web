@@ -206,27 +206,27 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
           {/* Push notification toggle */}
           <PushNotificationToggle className="w-[36px] h-[36px]" />
-        </div>
 
-        {/* Dark mode toggle */}
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className={cn(
-                "w-[36px] h-[36px] rounded-lg flex items-center justify-center transition-all duration-200",
-                "text-muted-foreground hover:bg-muted hover:text-foreground",
-                isDark && "text-primary"
-              )}
-              aria-label={isDark ? 'Modo claro' : 'Modo escuro'}
-            >
-              {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8} className="text-xs">
-            {isDark ? 'Modo claro' : 'Modo escuro'}
-          </TooltipContent>
-        </Tooltip>
+          {/* Dark mode toggle */}
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                className={cn(
+                  "w-[36px] h-[36px] rounded-lg flex items-center justify-center transition-all duration-200",
+                  "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  isDark && "text-primary"
+                )}
+                aria-label={isDark ? 'Modo claro' : 'Modo escuro'}
+              >
+                {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-xs">
+              {isDark ? 'Modo claro' : 'Modo escuro'}
+            </TooltipContent>
+          </Tooltip>
+        </div>
 
         {/* User Avatar */}
         {currentAgent && (
