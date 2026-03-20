@@ -758,7 +758,13 @@ export function ContactsView() {
                                 variant="ghost"
                                 size="icon"
                                 className="w-8 h-8"
-                                onClick={() => navigate(`/app/inbox?contact=${contact.id}`)}
+                                onClick={() => {
+                                  window.history.pushState(null, '', `#inbox`);
+                                  window.dispatchEvent(new HashChangeEvent('hashchange'));
+                                  setTimeout(() => {
+                                    window.dispatchEvent(new CustomEvent('open-contact-chat', { detail: { contactId: contact.id } }));
+                                  }, 100);
+                                }}
                                 title="Iniciar conversa"
                               >
                                 <MessageSquare className="w-4 h-4" />
