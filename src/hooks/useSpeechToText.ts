@@ -21,6 +21,12 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
+  const onResultRef = useRef(onResult);
+  const onEndRef = useRef(onEnd);
+
+  // Keep refs in sync to avoid stale closures
+  useEffect(() => { onResultRef.current = onResult; }, [onResult]);
+  useEffect(() => { onEndRef.current = onEnd; }, [onEnd]);
 
   const SpeechRecognition = typeof window !== 'undefined'
     ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
