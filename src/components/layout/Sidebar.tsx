@@ -199,11 +199,14 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       {/* Bottom: Theme toggle + Avatar + Logout */}
       <div className="flex flex-col items-center gap-1 pt-1.5 pb-3 shrink-0">
         <div className="mx-3 mb-1 h-px bg-border/60 self-stretch" />
-        {/* Screen protection toggle */}
-        <ScreenProtectionToggle className="w-[36px] h-[36px]" />
 
-        {/* Push notification toggle */}
-        <PushNotificationToggle className="w-[36px] h-[36px]" />
+        <div className="flex flex-col items-center gap-1 rounded-xl border border-border/70 bg-muted/35 px-1 py-1.5 shadow-sm">
+          {/* Screen protection toggle */}
+          <ScreenProtectionToggle className="w-[36px] h-[36px]" />
+
+          {/* Push notification toggle */}
+          <PushNotificationToggle className="w-[36px] h-[36px]" />
+        </div>
 
         {/* Dark mode toggle */}
         <Tooltip delayDuration={0}>
