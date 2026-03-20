@@ -1824,7 +1824,7 @@ describe('CallDialog — Logic', () => {
 describe('Calls Table Schema Validation', () => {
   it('calls table exists in types', async () => {
     const types = await import('@/integrations/supabase/types');
-    expect(types.default || types).toBeDefined();
+    expect(types).toBeDefined();
   });
 
   it('calls Row has id field', () => {
