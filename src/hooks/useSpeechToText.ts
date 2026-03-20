@@ -21,6 +21,12 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
+  const onResultRef = useRef(onResult);
+  const onEndRef = useRef(onEnd);
+
+  // Keep refs in sync to avoid stale closures
+  useEffect(() => { onResultRef.current = onResult; }, [onResult]);
+  useEffect(() => { onEndRef.current = onEnd; }, [onEnd]);
 
   const SpeechRecognition = typeof window !== 'undefined'
     ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -52,14 +58,14 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
       const combined = finalTranscript || interimTranscript;
       setTranscript(combined);
 
-      if (finalTranscript && onResult) {
-        onResult(finalTranscript);
+      if (finalTranscript && onResultRef.current) {
+        onResultRef.current(finalTranscript);
       }
     };
 
     recognition.onend = () => {
       setIsListening(false);
-      onEnd?.();
+      onEndRef.current?.();
     };
 
     recognition.onerror = (event: any) => {
@@ -74,7 +80,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
 
     // Haptic feedback
     if (navigator.vibrate) navigator.vibrate(15);
-  }, [SpeechRecognition, language, continuous, onResult, onEnd]);
+  }, [SpeechRecognition, language, continuous]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {

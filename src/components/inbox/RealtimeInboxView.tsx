@@ -231,12 +231,12 @@ export function RealtimeInboxView() {
     }
 
     return result;
-  }, [conversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, user?.id]);
+  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, user?.id]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
-    () => conversations.find((c) => c.contact.id === selectedContactId) || null,
-    [conversations, selectedContactId]
+    () => cachedConversations.find((c) => c.contact.id === selectedContactId) || null,
+    [cachedConversations, selectedContactId]
   );
 
   // Handle selecting a conversation
