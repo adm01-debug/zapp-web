@@ -208,6 +208,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           {/* Push notification toggle */}
           <PushNotificationToggle className="w-[36px] h-[36px]" />
 
+          {/* Sound mute toggle */}
+          <SoundMuteToggle className="w-[36px] h-[36px]" />
+
           {/* Dark mode toggle */}
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
