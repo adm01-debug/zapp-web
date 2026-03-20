@@ -177,6 +177,10 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
 
               return (
                 <StaggeredItem key={message.id}>
+                  <SwipeableMessage
+                    onSwipeRight={() => onReply(message)}
+                    onSwipeLeft={() => onForward(message)}
+                  >
                   <div
                     ref={(el) => { messageRefs.current[message.id] = el; }}
                     className={cn(
