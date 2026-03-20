@@ -102,6 +102,7 @@ function AppContent() {
       
       <GlobalKeyboardProvider>
         <RealtimeSentimentAlertProvider />
+        <IncomingCallAlert />
         <Toaster />
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>
