@@ -101,31 +101,49 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [instanceName, setInstanceName] = useState<string>('');
   const [whatsappConnectionId, setWhatsappConnectionId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const resolveInstance = async () => {
-      try {
-        // Look up the contact's whatsapp_connection_id → instance_id
-        const { data: contact } = await supabase
-          .from('contacts')
-          .select('whatsapp_connection_id')
-          .eq('id', conversation.contact.id)
+  const resolveInstance = async (): Promise<string> => {
+    // If already resolved, return cached
+    if (instanceName) return instanceName;
+
+    try {
+      const { data: contact } = await supabase
+        .from('contacts')
+        .select('whatsapp_connection_id')
+        .eq('id', conversation.contact.id)
+        .maybeSingle();
+      
+      if (contact?.whatsapp_connection_id) {
+        setWhatsappConnectionId(contact.whatsapp_connection_id);
+        const { data: conn } = await (supabase as any)
+          .from('whatsapp_connections')
+          .select('instance_id')
+          .eq('id', contact.whatsapp_connection_id)
           .maybeSingle();
-        
-        if (contact?.whatsapp_connection_id) {
-          setWhatsappConnectionId(contact.whatsapp_connection_id);
-          const { data: conn } = await (supabase as any)
-            .from('whatsapp_connections')
-            .select('instance_id')
-            .eq('id', contact.whatsapp_connection_id)
-            .maybeSingle();
-          if (conn?.instance_id) {
-            setInstanceName(conn.instance_id);
-          }
+        if (conn?.instance_id) {
+          setInstanceName(conn.instance_id);
+          return conn.instance_id;
         }
-      } catch {
-        // Silently fail — instanceName stays empty
       }
-    };
+
+      // Fallback: try first active connection
+      const { data: fallbackConn } = await (supabase as any)
+        .from('whatsapp_connections')
+        .select('instance_id')
+        .eq('status', 'connected')
+        .limit(1)
+        .maybeSingle();
+      
+      if (fallbackConn?.instance_id) {
+        setInstanceName(fallbackConn.instance_id);
+        return fallbackConn.instance_id;
+      }
+    } catch (err) {
+      log.error('Failed to resolve WhatsApp instance:', err);
+    }
+    return '';
+  };
+
+  useEffect(() => {
     resolveInstance();
   }, [conversation.contact.id]);
 
