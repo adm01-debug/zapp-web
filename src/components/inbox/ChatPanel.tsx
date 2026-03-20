@@ -404,8 +404,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const { sendStickerMessage } = useEvolutionApi();
 
   const handleSendSticker = async (stickerUrl: string) => {
-    if (!instanceName || !conversation.contact.phone) {
-      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível' });
+    const resolvedInstance = instanceName || await resolveInstance();
+    if (!resolvedInstance || !conversation.contact.phone) {
+      toast({ title: 'Erro', description: 'Conexão WhatsApp não disponível. Verifique se o contato tem uma conexão ativa.' });
       return;
     }
     try {
