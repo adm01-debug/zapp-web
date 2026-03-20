@@ -80,7 +80,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
 
     // Haptic feedback
     if (navigator.vibrate) navigator.vibrate(15);
-  }, [SpeechRecognition, language, continuous, onResult, onEnd]);
+  }, [SpeechRecognition, language, continuous]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
