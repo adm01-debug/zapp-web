@@ -292,14 +292,14 @@ async function getContactByPhone(
   supabase: ReturnType<typeof createClient>,
   phone: string,
   connectionId: string
-): Promise<{ id: string; avatar_url: string | null } | null> {
+): Promise<{ id: string; avatar_url: string | null; assigned_to: string | null; name: string | null } | null> {
   // Try exact match first, then with/without '+' prefix
   const phonesVariants = [phone, `+${phone}`, phone.replace(/^\+/, '')];
   const uniquePhones = [...new Set(phonesVariants)];
   
   const { data } = await supabase
     .from('contacts')
-    .select('id, avatar_url')
+    .select('id, avatar_url, assigned_to, name')
     .in('phone', uniquePhones)
     .eq('whatsapp_connection_id', connectionId)
     .limit(1)
