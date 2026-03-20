@@ -1785,9 +1785,8 @@ describe('CallDialog — Logic', () => {
   });
 
   it('handleEnd sets status to ended when ringing outbound', () => {
-    const status = 'ringing';
-    const direction = 'outbound';
-    // When ringing outbound, it should just end
+    const status: string = 'ringing';
+    const direction: string = 'outbound';
     const shouldMiss = status === 'ringing' && direction === 'inbound';
     expect(shouldMiss).toBe(false);
   });
