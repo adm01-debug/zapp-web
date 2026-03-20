@@ -1808,8 +1808,8 @@ describe('CallDialog — Logic', () => {
   });
 
   it('display text shows "Chamando..." for outbound ringing', () => {
-    const direction = 'outbound';
-    const status = 'ringing';
+    const direction: string = 'outbound';
+    const status: string = 'ringing';
     const text = status === 'ringing'
       ? (direction === 'inbound' ? 'Chamada recebida...' : 'Chamando...')
       : null;
