@@ -76,7 +76,20 @@ export function RealtimeInboxView() {
   const [isOnline, setIsOnline] = useState(true);
   const [pipContact, setPipContact] = useState<{ name: string; avatar?: string; lastMessage?: string; contactId: string } | null>(null);
 
-  // Offline cache
+  // Listen for open-contact-chat events from other views (e.g. Contacts)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const contactId = (e as CustomEvent).detail?.contactId;
+      if (contactId) {
+        setSelectedContactId(contactId);
+        setSelectedContact(contactId);
+        markAsRead(contactId);
+      }
+    };
+    window.addEventListener('open-contact-chat', handler);
+    return () => window.removeEventListener('open-contact-chat', handler);
+  }, [setSelectedContact, markAsRead]);
+
   const { conversations: cachedConversations, isOffline, usingCache } = useOfflineCache(conversations, loading);
 
 
