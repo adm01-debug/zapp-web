@@ -1,0 +1,159 @@
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Phone, PhoneOff, Video } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { CallDialog } from './CallDialog';
+import { useIncomingCallListener, type IncomingCall } from '@/hooks/useIncomingCallListener';
+import { cn } from '@/lib/utils';
+
+export function IncomingCallAlert() {
+  const { incomingCall, dismissCall } = useIncomingCallListener();
+  const [showDialog, setShowDialog] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Play ringtone
+  useEffect(() => {
+    if (incomingCall && !showDialog) {
+      // Use oscillator as ringtone
+      try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 440;
+        gain.gain.value = 0.15;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+
+        const interval = setInterval(() => {
+          gain.gain.value = gain.gain.value > 0 ? 0 : 0.15;
+        }, 500);
+
+        return () => {
+          clearInterval(interval);
+          osc.stop();
+          ctx.close();
+        };
+      } catch {
+        // Audio context not available
+      }
+    }
+  }, [incomingCall, showDialog]);
+
+  // Auto-dismiss after 30s
+  useEffect(() => {
+    if (!incomingCall) return;
+    const timeout = setTimeout(dismissCall, 30000);
+    return () => clearTimeout(timeout);
+  }, [incomingCall, dismissCall]);
+
+  const handleAnswer = () => {
+    setShowDialog(true);
+  };
+
+  const handleDecline = () => {
+    dismissCall();
+  };
+
+  const handleDialogEnd = () => {
+    setShowDialog(false);
+    dismissCall();
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  };
+
+  if (!incomingCall) return null;
+
+  if (showDialog) {
+    return (
+      <CallDialog
+        open={true}
+        onOpenChange={(open) => { if (!open) handleDialogEnd(); }}
+        contact={{
+          id: incomingCall.contact_id || undefined,
+          name: incomingCall.contact_name,
+          phone: incomingCall.contact_phone,
+        }}
+        direction="inbound"
+        whatsappConnectionId={incomingCall.whatsapp_connection_id || undefined}
+        onAnswer={() => {}}
+        onEnd={handleDialogEnd}
+      />
+    );
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ y: -100, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: -100, opacity: 0, scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="fixed top-4 right-4 z-[9999] w-80"
+      >
+        <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+          {/* Pulsing header */}
+          <div className={cn(
+            "px-4 py-3 flex items-center gap-2 text-sm font-medium text-white",
+            incomingCall.is_video
+              ? "bg-blue-600"
+              : "bg-green-600"
+          )}>
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              {incomingCall.is_video ? <Video className="h-4 w-4" /> : <Phone className="h-4 w-4" />}
+            </motion.div>
+            {incomingCall.is_video ? 'Chamada de vídeo' : 'Chamada de voz'}
+          </div>
+
+          {/* Contact info */}
+          <div className="p-4 flex items-center gap-3">
+            <Avatar className="h-12 w-12">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                {getInitials(incomingCall.contact_name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground truncate">
+                {incomingCall.contact_name}
+              </p>
+              <p className="text-sm text-muted-foreground truncate">
+                {incomingCall.contact_phone}
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="px-4 pb-4 flex gap-2">
+            <Button
+              variant="destructive"
+              className="flex-1 gap-2"
+              onClick={handleDecline}
+            >
+              <PhoneOff className="h-4 w-4" />
+              Recusar
+            </Button>
+            <Button
+              className={cn(
+                "flex-1 gap-2 text-white",
+                incomingCall.is_video
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-green-600 hover:bg-green-700"
+              )}
+              onClick={handleAnswer}
+            >
+              <Phone className="h-4 w-4" />
+              Atender
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}

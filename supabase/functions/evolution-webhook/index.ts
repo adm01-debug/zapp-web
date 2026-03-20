@@ -292,14 +292,14 @@ async function getContactByPhone(
   supabase: ReturnType<typeof createClient>,
   phone: string,
   connectionId: string
-): Promise<{ id: string; avatar_url: string | null } | null> {
+): Promise<{ id: string; avatar_url: string | null; assigned_to: string | null; name: string | null } | null> {
   // Try exact match first, then with/without '+' prefix
   const phonesVariants = [phone, `+${phone}`, phone.replace(/^\+/, '')];
   const uniquePhones = [...new Set(phonesVariants)];
   
   const { data } = await supabase
     .from('contacts')
-    .select('id, avatar_url')
+    .select('id, avatar_url, assigned_to, name')
     .in('phone', uniquePhones)
     .eq('whatsapp_connection_id', connectionId)
     .limit(1)
@@ -811,15 +811,49 @@ serve(async (req) => {
           }
 
           if (contact) {
+            const agentId = contact.assigned_to || null;
+
             await supabase.from('calls').insert({
               contact_id: contact.id,
               whatsapp_connection_id: connection.id,
+              agent_id: agentId,
               direction: 'inbound',
               status: callStatus || 'ringing',
               started_at: new Date().toISOString(),
               notes: isVideo ? 'Chamada de vídeo' : 'Chamada de voz',
             });
-            console.log(`Call registered from ${phone} (${isVideo ? 'video' : 'voice'})`);
+
+            // Notify assigned agent about incoming call
+            if (agentId) {
+              // Look up the auth user_id from profile for notifications
+              const { data: agentProfile } = await supabase
+                .from('profiles')
+                .select('user_id, name')
+                .eq('id', agentId)
+                .single();
+
+              const contactName = contact.name || phone;
+              
+              if (agentProfile?.user_id) {
+                await supabase.from('notifications').insert({
+                  user_id: agentProfile.user_id,
+                  type: 'incoming_call',
+                  title: isVideo ? '📹 Chamada de vídeo recebida' : '📞 Chamada de voz recebida',
+                  message: `${contactName} está ligando para você`,
+                  metadata: {
+                    contact_id: contact.id,
+                    phone,
+                    is_video: isVideo,
+                    call_status: callStatus,
+                    whatsapp_connection_id: connection.id,
+                    agent_profile_id: agentId,
+                  },
+                });
+                console.log(`Call routed to agent ${agentProfile.name || agentId} from ${contactName}`);
+              }
+            } else {
+              console.log(`Call registered from ${phone} (no assigned agent)`);
+            }
           }
         }
       }
