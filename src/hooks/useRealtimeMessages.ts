@@ -67,7 +67,13 @@ export function useRealtimeMessages() {
   const [error, setError] = useState<string | null>(null);
   const [newMessageNotification, setNewMessageNotification] = useState<NewMessageNotification | null>(null);
   const selectedContactIdRef = useRef<string | null>(null);
+  const { settings: notifSettings, isQuietHours } = useNotificationSettings();
   const soundEnabledRef = useRef(true);
+
+  // Sync soundEnabledRef with global notification settings
+  useEffect(() => {
+    soundEnabledRef.current = notifSettings.soundEnabled && !isQuietHours();
+  }, [notifSettings.soundEnabled, isQuietHours]);
 
   // Fetch initial data
   const fetchConversations = useCallback(async () => {
