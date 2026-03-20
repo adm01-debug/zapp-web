@@ -286,7 +286,12 @@ export function ContactsView() {
           contact_type: newContact.contact_type,
           assigned_to: profile?.id || null,
         });
-        if (error) throw error;
+        if (error) {
+          if (error.code === '23505' && error.message?.includes('contacts_phone_unique')) {
+            throw new Error('Já existe um contato cadastrado com este número de telefone.');
+          }
+          throw error;
+        }
       },
       {
         loadingMessage: 'Adicionando contato...',

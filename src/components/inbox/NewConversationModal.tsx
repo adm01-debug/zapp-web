@@ -100,6 +100,20 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
           setIsSending(false);
           return;
         }
+
+        // Check if phone already exists
+        const { data: existingContact } = await supabase
+          .from('contacts')
+          .select('id, name')
+          .eq('phone', newPhone.trim())
+          .maybeSingle();
+
+        if (existingContact) {
+          toast.error(`Já existe um contato com este número: ${existingContact.name}`);
+          setIsSending(false);
+          return;
+        }
+
         const { data: newContact, error } = await supabase
           .from('contacts')
           .insert({
@@ -109,7 +123,14 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
           })
           .select('id')
           .single();
-        if (error) throw error;
+        if (error) {
+          if (error.code === '23505') {
+            toast.error('Já existe um contato com este número de telefone.');
+            setIsSending(false);
+            return;
+          }
+          throw error;
+        }
         contactId = newContact.id;
 
         await supabase.functions.invoke('batch-fetch-avatars');
