@@ -116,13 +116,18 @@ interface PageTransitionProps {
 }
 
 export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className }, ref) => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
+      initial={isMobile ? { opacity: 0, x: 24 } : { opacity: 0 }}
+      animate={isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
+      exit={isMobile ? { opacity: 0, x: -16 } : { opacity: 0 }}
+      transition={isMobile
+        ? { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
+        : { duration: 0.2, ease: 'easeOut' }
+      }
       className={cn('h-full min-h-0 overflow-hidden', className)}
     >
       {children}
