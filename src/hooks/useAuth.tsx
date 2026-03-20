@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
+  const mountedRef = useRef(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (fetchingRef.current) return;
@@ -43,28 +44,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (!error && data) {
+      if (error) {
+        console.warn('Profile fetch failed:', error.message);
+      } else if (data) {
+        if (!mountedRef.current) return;
         setProfile(data as Profile);
       }
     } catch (err: unknown) {
       // Profile may not exist yet for new users - log but don't break flow
-      if (err instanceof Error) {
-        log.debug('Profile fetch skipped:', err.message);
-      }
+      console.warn('Profile fetch error:', err instanceof Error ? err.message : err);
     } finally {
       fetchingRef.current = false;
     }
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!mountedRef.current) return;
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            if (mountedRef.current) {
+              fetchProfile(session.user.id);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -73,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mountedRef.current) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -81,7 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mountedRef.current = false;
+      subscription.unsubscribe();
+    };
   }, [fetchProfile]);
 
   const refreshProfile = useCallback(async () => {

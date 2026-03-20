@@ -19,8 +19,10 @@ export default function SSOCallback() {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let redirectTimeoutId: ReturnType<typeof setTimeout> | undefined;
     let unsubscribe: (() => void) | undefined;
+    let unmounted = false;
 
     const updateStatus = (newStatus: CallbackStatus, message?: string) => {
+      if (unmounted) return;
       statusRef.current = newStatus;
       setStatus(newStatus);
       if (message) setErrorMessage(message);
@@ -77,9 +79,13 @@ export default function SSOCallback() {
     handleCallback();
 
     return () => {
+      unmounted = true;
       if (timeoutId) clearTimeout(timeoutId);
       if (redirectTimeoutId) clearTimeout(redirectTimeoutId);
-      unsubscribe?.();
+      if (unsubscribe) {
+        unsubscribe();
+        unsubscribe = undefined;
+      }
     };
   }, [navigate]);
 
