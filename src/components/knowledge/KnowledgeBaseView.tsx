@@ -66,6 +66,14 @@ export function KnowledgeBaseView() {
       supabase.from('knowledge_base_articles').select('*').order('updated_at', { ascending: false }),
       supabase.from('knowledge_base_files').select('*').order('created_at', { ascending: false }),
     ]);
+    const queryError = articlesRes.error || filesRes.error;
+    if (queryError) {
+      console.error('Error fetching knowledge base data:', queryError);
+      toast({ title: 'Erro ao carregar base de conhecimento', description: queryError.message, variant: 'destructive' });
+      setLoading(false);
+      return;
+    }
+
     if (articlesRes.data) setArticles(articlesRes.data.map((a: Record<string, unknown>) => ({ ...a, tags: (a.tags as string[]) || [] })));
     if (filesRes.data) setFiles(filesRes.data);
     setLoading(false);

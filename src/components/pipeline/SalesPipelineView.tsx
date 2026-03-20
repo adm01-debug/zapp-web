@@ -76,6 +76,14 @@ export function SalesPipelineView() {
       supabase.from('profiles').select('id, name').eq('is_active', true),
     ]);
 
+    const queryError = stagesRes.error || dealsRes.error || contactsRes.error || agentsRes.error;
+    if (queryError) {
+      console.error('Error fetching pipeline data:', queryError);
+      toast({ title: 'Erro ao carregar pipeline', description: queryError.message, variant: 'destructive' });
+      setLoading(false);
+      return;
+    }
+
     if (stagesRes.data) setStages(stagesRes.data);
     if (dealsRes.data) {
       setDeals(dealsRes.data.map((d: Record<string, unknown>) => ({

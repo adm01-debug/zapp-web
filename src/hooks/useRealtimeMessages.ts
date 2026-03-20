@@ -233,6 +233,13 @@ export function useRealtimeMessages() {
       )
       .subscribe((status) => {
         log.debug('Subscription status', { status });
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          log.warn('Realtime channel error, attempting reconnect...', { status });
+          setTimeout(() => {
+            supabase.removeChannel(channel);
+            channel.subscribe();
+          }, 5000);
+        }
       });
 
     return () => {
