@@ -95,7 +95,8 @@ describe('MiniChatPiP', () => {
 
   it('handles missing contact name gracefully', () => {
     render(<MiniChatPiP {...defaultProps} contactName="" />);
-    expect(screen.getByText('??')).toBeInTheDocument();
+    // Empty string splits to [''], first char is undefined, so initials = '?'
+    expect(screen.getByText('?')).toBeInTheDocument();
   });
 
   it('works without onQuickReply', () => {
