@@ -84,7 +84,7 @@ describe('GroupsView', () => {
     render(<GroupsView />);
     await waitFor(() => expect(screen.getByText('Sincronizar')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Sincronizar'));
-    await waitFor(() => { expect(mockInvoke).toHaveBeenCalledWith('evolution-api/list-groups', { body: { instanceName: 'inst-1', getParticipants: 'false' } }); });
+    await waitFor(() => { expect(mockInvoke).toHaveBeenCalledWith('evolution-api', { body: { action: 'list-groups', instanceName: 'inst-1', getParticipants: 'false' } }); });
   });
 
   it('shows no-connections error on sync', async () => {
