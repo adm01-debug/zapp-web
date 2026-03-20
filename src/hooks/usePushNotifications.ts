@@ -57,11 +57,18 @@ export function usePushNotifications() {
       
       let isSubscribed = false;
       try {
-        const registration = await navigator.serviceWorker.ready;
+        // Add timeout so we don't hang forever if SW never registers
+        const swReady = Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<null>((_, reject) => 
+            setTimeout(() => reject(new Error('SW ready timeout')), 5000)
+          ),
+        ]);
+        const registration = await swReady as ServiceWorkerRegistration;
         const subscription = await registration.pushManager.getSubscription();
         isSubscribed = !!subscription;
       } catch (error) {
-        log.error('Error checking subscription:', error);
+        log.error('Error checking push subscription (SW may not be registered):', error);
       }
 
       setState({
