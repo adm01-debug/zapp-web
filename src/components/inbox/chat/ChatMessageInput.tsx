@@ -295,7 +295,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "glass-strong border-t border-border/50",
-          isMobile ? "p-1.5 safe-area-bottom" : "p-4"
+          isMobile ? "p-2 safe-area-bottom" : "p-4"
         )}
       >
         <div className="flex items-end gap-1">
