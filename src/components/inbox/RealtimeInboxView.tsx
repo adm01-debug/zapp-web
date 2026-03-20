@@ -143,7 +143,7 @@ export function RealtimeInboxView() {
   // Filter conversations by tabs, search and advanced filters
   const filteredConversations = useMemo(() => {
     // Safety: filter out any conversations with missing contact data
-    let result = conversations.filter(c => c && c.contact && c.contact.id);
+    let result = cachedConversations.filter(c => c && c.contact && c.contact.id);
 
     // === Tab-based filtering (Whaticket style) ===
     if (mainTab === 'open') {
