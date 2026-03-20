@@ -24,7 +24,7 @@ export function PushNotificationToggle({ className }: { className?: string }) {
   // Show the button even when not supported, but disable it
   const notSupported = !isSupported;
 
-  const disabled = isLoading || permission === 'denied';
+  const disabled = isLoading || permission === 'denied' || notSupported;
 
   const label = isSubscribed
     ? 'Desativar notificações push'
