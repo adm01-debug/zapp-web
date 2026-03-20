@@ -375,6 +375,8 @@ export function ChatInputArea({
 
           <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
 
+          <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
+
           <Button 
             variant="ghost" 
             size="icon" 
