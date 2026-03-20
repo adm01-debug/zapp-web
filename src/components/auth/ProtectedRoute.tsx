@@ -26,15 +26,37 @@ export function ProtectedRoute({
 
   useEffect(() => {
     if (!loading && user && requiredPermission) {
+      let cancelled = false;
+      const timeoutId = setTimeout(() => {
+        if (!cancelled && hasPermission === null) {
+          console.error('ProtectedRoute: permission check timed out after 10s');
+          setHasPermission(false);
+        }
+      }, 10000);
+
       // Check permission via database function
       import('@/integrations/supabase/client').then(({ supabase }) => {
-        supabase.rpc('user_has_permission', {
+        return supabase.rpc('user_has_permission', {
           _user_id: user.id,
           _permission_name: requiredPermission
         }).then(({ data }) => {
-          setHasPermission(data === true);
+          if (!cancelled) {
+            setHasPermission(data === true);
+          }
         });
+      }).catch((err) => {
+        console.error('ProtectedRoute: permission check failed:', err);
+        if (!cancelled) {
+          setHasPermission(false);
+        }
+      }).finally(() => {
+        clearTimeout(timeoutId);
       });
+
+      return () => {
+        cancelled = true;
+        clearTimeout(timeoutId);
+      };
     } else if (!requiredPermission) {
       setHasPermission(true);
     }

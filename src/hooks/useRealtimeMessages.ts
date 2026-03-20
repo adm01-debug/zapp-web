@@ -251,11 +251,15 @@ export function useRealtimeMessages() {
     messageType: string = 'text',
     mediaUrl?: string
   ) => {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id')
       .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
       .single();
+
+    if (profileError) {
+      log.error('Error fetching agent profile:', profileError);
+    }
 
     // 1. Insert message into DB (optimistic)
     const { data, error } = await supabase
@@ -280,18 +284,26 @@ export function useRealtimeMessages() {
 
     // 2. Get contact phone + connection instance for Evolution API
     try {
-      const { data: contact } = await supabase
+      const { data: contact, error: contactError } = await supabase
         .from('contacts')
         .select('phone, whatsapp_connection_id')
         .eq('id', contactId)
         .single();
 
+      if (contactError) {
+        log.error('Error fetching contact for message send:', contactError);
+      }
+
       if (contact?.whatsapp_connection_id) {
-        const { data: connection } = await supabase
+        const { data: connection, error: connectionError } = await supabase
           .from('whatsapp_connections')
           .select('instance_id, status')
           .eq('id', contact.whatsapp_connection_id)
           .single();
+
+        if (connectionError) {
+          log.error('Error fetching WhatsApp connection:', connectionError);
+        }
 
         if (connection?.instance_id && connection.status === 'connected') {
           const phone = contact.phone.replace(/\D/g, '');

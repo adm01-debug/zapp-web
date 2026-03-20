@@ -142,6 +142,13 @@ export function useRealtimeDashboard() {
       )
       .subscribe((status) => {
         setState(prev => ({ ...prev, isConnected: status === 'SUBSCRIBED' }));
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          log.warn('Realtime channel error, attempting reconnect...', { status });
+          setTimeout(() => {
+            supabase.removeChannel(channel);
+            channel.subscribe();
+          }, 5000);
+        }
       });
 
     // Collect metrics every minute
