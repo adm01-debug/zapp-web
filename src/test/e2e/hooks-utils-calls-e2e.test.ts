@@ -291,7 +291,7 @@ describe('E2E: Remaining Hooks', () => {
     'useConnectionQueues', 'useCurrentModule', 'useDeepLinks',
     'useDuplicate', 'useExportData', 'useGlobalKeyboardShortcuts',
     'useImportData', 'useIncomingCallListener', 'useLoadingState',
-    'useNotificationSettings', 'useParallax', 'usePerformanceOptimizations',
+    'useNotificationSettings', 'useParallax',
     'usePullToRefresh', 'usePushNotifications', 'useQueueAnalytics',
     'useQueueGoals', 'useQueuesComparison', 'useRateLimitLogs',
     'useRealtimeDashboard', 'useRealtimePushBridge', 'useRealtimeSentimentAlerts',
