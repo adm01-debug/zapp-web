@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useOfflineCache } from '@/hooks/useOfflineCache';
+import { useMessages } from '@/hooks/useMessages';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
 import { MiniChatPiP } from '@/components/mobile/MiniChatPiP';
 import { useRealtimeMessages, ConversationWithMessages, ConversationContact, RealtimeMessage } from '@/hooks/useRealtimeMessages';
@@ -140,6 +141,13 @@ export function RealtimeInboxView() {
   const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
   const [selectedContactType, setSelectedContactType] = useState<string | null>(null);
   const { user, profile } = useAuth();
+  const {
+    messages: selectedMessages,
+    loading: selectedMessagesLoading,
+  } = useMessages({
+    contactId: selectedContactId,
+    enabled: Boolean(selectedContactId),
+  });
 
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
@@ -628,20 +636,25 @@ export function RealtimeInboxView() {
       }
     : null;
 
-  const legacyMessages: Message[] =
-    resolvedSelectedConversation?.messages.map((m) => ({
-      id: m.id,
-      conversationId: resolvedSelectedConversation.contact.id,
-      content: m.content,
-      type: m.message_type as Message['type'],
-      sender: m.sender as Message['sender'],
-      agentId: m.agent_id || undefined,
-      timestamp: new Date(m.created_at),
-      status: m.is_read ? 'read' : 'delivered',
-      mediaUrl: m.media_url || undefined,
-      transcription: m.transcription || null,
-      transcriptionStatus: m.transcription_status as Message['transcriptionStatus'] || null,
-    })) || [];
+  const messageSource = selectedContactId
+    ? selectedMessages
+    : resolvedSelectedConversation?.messages || [];
+
+  const legacyMessages: Message[] = messageSource.map((m) => ({
+    id: m.id,
+    conversationId: resolvedSelectedConversation?.contact.id || selectedContactId || '',
+    content: m.content,
+    type: m.message_type as Message['type'],
+    sender: m.sender as Message['sender'],
+    agentId: m.agent_id || undefined,
+    timestamp: new Date(m.created_at),
+    status:
+      (m.status as Message['status'] | null) ||
+      (m.is_read ? 'read' : 'delivered'),
+    mediaUrl: m.media_url || undefined,
+    transcription: m.transcription || null,
+    transcriptionStatus: m.transcription_status as Message['transcriptionStatus'] || null,
+  }));
 
   // Check online status
   useEffect(() => {
@@ -980,27 +993,31 @@ export function RealtimeInboxView() {
           <Suspense fallback={<ChatFallback />}>
             <>
               <div className="flex-1 min-w-0 min-h-0 relative h-full overflow-hidden">
-                <ChatPanel
-                  key={legacyConversation.id}
-                  conversation={legacyConversation}
-                  messages={legacyMessages}
-                  onSendMessage={handleSendMessage}
-                  onSendAudio={handleSendAudio}
-                  showDetails={isMobile ? false : showDetails}
-                  onToggleDetails={() => setShowDetails(!showDetails)}
-                  onBack={isMobile ? () => {
-                    // Show PiP when going back on mobile
-                    if (legacyConversation) {
-                      setPipContact({
-                        name: legacyConversation.contact.name,
-                        avatar: legacyConversation.contact.avatar,
-                        lastMessage: legacyConversation.lastMessage?.content,
-                        contactId: legacyConversation.id,
-                      });
-                    }
-                    setSelectedContactId(null);
-                  } : undefined}
-                />
+                {selectedContactId && selectedMessagesLoading ? (
+                  <ChatFallback />
+                ) : (
+                  <ChatPanel
+                    key={legacyConversation.id}
+                    conversation={legacyConversation}
+                    messages={legacyMessages}
+                    onSendMessage={handleSendMessage}
+                    onSendAudio={handleSendAudio}
+                    showDetails={isMobile ? false : showDetails}
+                    onToggleDetails={() => setShowDetails(!showDetails)}
+                    onBack={isMobile ? () => {
+                      // Show PiP when going back on mobile
+                      if (legacyConversation) {
+                        setPipContact({
+                          name: legacyConversation.contact.name,
+                          avatar: legacyConversation.contact.avatar,
+                          lastMessage: legacyConversation.lastMessage?.content,
+                          contactId: legacyConversation.id,
+                        });
+                      }
+                      setSelectedContactId(null);
+                    } : undefined}
+                  />
+                )}
               </div>
               {showDetails && !isMobile && (
                 <div className="h-full shrink-0 overflow-hidden">
