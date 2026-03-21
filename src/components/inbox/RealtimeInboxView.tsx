@@ -80,12 +80,21 @@ export function RealtimeInboxView() {
   const [pendingContactId, setPendingContactId] = useState<string | null>(null);
 
   useEffect(() => {
+    const appWindow = window as Window & { __pendingOpenContactId?: string };
+
+    if (appWindow.__pendingOpenContactId) {
+      setPendingContactId(appWindow.__pendingOpenContactId);
+      appWindow.__pendingOpenContactId = undefined;
+    }
+
     const handler = (e: Event) => {
       const contactId = (e as CustomEvent).detail?.contactId;
       if (contactId) {
+        appWindow.__pendingOpenContactId = undefined;
         setPendingContactId(contactId);
       }
     };
+
     window.addEventListener('open-contact-chat', handler);
     return () => window.removeEventListener('open-contact-chat', handler);
   }, []);
