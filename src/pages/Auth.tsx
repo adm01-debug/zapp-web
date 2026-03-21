@@ -126,6 +126,17 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
+      // Handle email not confirmed error specifically
+      if (error.message?.includes('Email not confirmed') || error.message?.includes('email_not_confirmed')) {
+        toast({
+          title: 'Email não confirmado',
+          description: 'Seu email ainda não foi confirmado. Verifique sua caixa de entrada ou peça ao administrador para executar o script de setup (supabase/seed.sql) no Supabase Dashboard.',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
       // Record failed attempt
       const lockResult = await recordFailedLogin(formData.email);
       setLockStatus(lockResult);
@@ -140,7 +151,7 @@ export default function Auth() {
         const remainingAttempts = 5 - lockResult.attempts;
         toast({
           title: 'Erro ao entrar',
-          description: error.message === 'Invalid login credentials' 
+          description: error.message === 'Invalid login credentials'
             ? `Email ou senha incorretos. ${remainingAttempts > 0 ? `${remainingAttempts} tentativa${remainingAttempts > 1 ? 's' : ''} restante${remainingAttempts > 1 ? 's' : ''}.` : ''}`
             : error.message,
           variant: 'destructive',
