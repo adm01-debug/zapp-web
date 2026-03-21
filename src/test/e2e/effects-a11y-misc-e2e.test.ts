@@ -79,11 +79,8 @@ describe('E2E: Accessibility Module', () => {
     const mod = await import('@/components/a11y/MotionPreferences');
     expect(mod.MotionPreferencesProvider).toBeDefined();
   });
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/a11y/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
-  });
+
+
 
   describe('Accessibility logic', () => {
     it('validates WCAG contrast ratio calculation', () => {
