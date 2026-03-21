@@ -1,12 +1,18 @@
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   LogOut,
   Moon,
   Sun,
   Search,
+  Circle,
+  Clock,
+  MinusCircle,
+  Settings,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTheme } from '@/hooks/useTheme';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
@@ -25,11 +31,13 @@ interface SidebarProps {
   };
   onLogout?: () => void;
   inboxBadge?: number;
+  onStatusChange?: (status: 'online' | 'away' | 'offline') => void;
 }
 
-export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inboxBadge }: SidebarProps) {
+export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inboxBadge, onStatusChange }: SidebarProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
+  const [statusOpen, setStatusOpen] = useState(false);
 
   return (
     <aside
@@ -128,9 +136,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         </div>
 
         {currentAgent && (
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <button onClick={() => onViewChange('settings')} className="relative group">
+          <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+            <PopoverTrigger asChild>
+              <button className="relative group" aria-label="Status e perfil">
                 <Avatar className="w-[34px] h-[34px] ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
                   <AvatarImage src={currentAgent.avatar} alt={currentAgent.name} />
                   <AvatarFallback className="bg-primary/15 text-primary text-[11px] font-semibold">
@@ -146,14 +154,43 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
                   )}
                 />
               </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8}>
-              <p className="font-medium text-xs">{currentAgent.name}</p>
-              <p className="text-[10px] text-muted-foreground capitalize">
-                {currentAgent.status === 'online' ? 'Online' : currentAgent.status === 'away' ? 'Ausente' : 'Offline'}
-              </p>
-            </TooltipContent>
-          </Tooltip>
+            </PopoverTrigger>
+            <PopoverContent side="right" sideOffset={12} align="end" className="w-48 p-2">
+              <div className="px-2 py-1.5 mb-1">
+                <p className="text-xs font-semibold text-foreground truncate">{currentAgent.name}</p>
+              </div>
+              <div className="space-y-0.5">
+                {([
+                  { status: 'online' as const, label: 'Online', icon: Circle, color: 'text-[hsl(var(--online))]' },
+                  { status: 'away' as const, label: 'Ausente', icon: Clock, color: 'text-[hsl(var(--away))]' },
+                  { status: 'offline' as const, label: 'Offline', icon: MinusCircle, color: 'text-[hsl(var(--offline))]' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.status}
+                    onClick={() => { onStatusChange?.(opt.status); setStatusOpen(false); }}
+                    className={cn(
+                      'w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors',
+                      currentAgent.status === opt.status
+                        ? 'bg-muted font-medium text-foreground'
+                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                    )}
+                  >
+                    <opt.icon className={cn('w-3.5 h-3.5', opt.color)} />
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-1 pt-1 border-t border-border/50">
+                <button
+                  onClick={() => { onViewChange('settings'); setStatusOpen(false); }}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  Configurações
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         )}
 
         {onLogout && (
