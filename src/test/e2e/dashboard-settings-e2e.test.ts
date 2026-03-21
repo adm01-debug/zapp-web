@@ -83,7 +83,7 @@ describe('E2E: Dashboard Data Computations', () => {
     const times = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200];
     const sorted = [...times].sort((a, b) => a - b);
     const p95Index = Math.ceil(sorted.length * 0.95) - 1;
-    expect(sorted[p95Index]).toBe(200);
+    expect(sorted[p95Index]).toBe(190);
   });
 
   it('computes trend direction', () => {
