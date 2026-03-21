@@ -258,17 +258,17 @@ describe('E2E: Admin Module', () => {
 // COGNITIVE MODULE
 // =============================================
 describe('E2E: Cognitive Module', () => {
-  it('exports ErrorPrevention', async () => {
+  it('exports ConfirmationDialog from ErrorPrevention', async () => {
     const mod = await import('@/components/cognitive/ErrorPrevention');
-    expect(mod.ErrorPrevention).toBeDefined();
+    expect(mod.ConfirmationDialog).toBeDefined();
   });
-  it('exports ProgressiveDisclosure', async () => {
+  it('exports DisclosureProvider from ProgressiveDisclosure', async () => {
     const mod = await import('@/components/cognitive/ProgressiveDisclosure');
-    expect(mod.ProgressiveDisclosure).toBeDefined();
+    expect(mod.DisclosureProvider).toBeDefined();
   });
-  it('exports SmartDefaults', async () => {
+  it('exports useSmartDefaults from SmartDefaults', async () => {
     const mod = await import('@/components/cognitive/SmartDefaults');
-    expect(mod.SmartDefaults).toBeDefined();
+    expect(mod.useSmartDefaults).toBeDefined();
   });
 });
 
