@@ -24,6 +24,7 @@ interface SidebarProps {
     status: 'online' | 'away' | 'offline';
   };
   onLogout?: () => void;
+  inboxBadge?: number;
 }
 
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
