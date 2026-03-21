@@ -295,7 +295,7 @@ describe('E2E: Remaining Hooks', () => {
     'usePullToRefresh', 'usePushNotifications', 'useQueueAnalytics',
     'useQueueGoals', 'useQueuesComparison', 'useRateLimitLogs',
     'useRealtimeDashboard', 'useRealtimePushBridge', 'useRealtimeSentimentAlerts',
-    'useReauthentication', 'useResourcePrefetch', 'useSLAHistory',
+    'useReauthentication', 'useSLAHistory',
     'useSLANotifications', 'useSavedFilters', 'useScreenProtection',
     'useSecurityPushNotifications', 'useSentimentAlerts', 'useServiceWorker',
     'useSpeechToText', 'useTextToSpeech', 'useTranscriptionNotifications',
