@@ -771,19 +771,26 @@ export function ContactsView() {
                                 size="icon"
                                 className="w-8 h-8"
                                 onClick={() => {
-                                  window.history.pushState(null, '', `#inbox`);
-                                  window.dispatchEvent(new HashChangeEvent('hashchange'));
-                                  // Retry dispatching the event until the inbox component is mounted and listening
+                                  const appWindow = window as Window & { __pendingOpenContactId?: string };
+                                  appWindow.__pendingOpenContactId = contact.id;
+
+                                  if (window.location.hash !== '#inbox') {
+                                    window.location.hash = 'inbox';
+                                  } else {
+                                    window.dispatchEvent(new HashChangeEvent('hashchange'));
+                                  }
+
+                                  // Retry dispatching until Inbox mounts and starts listening
                                   let attempts = 0;
                                   const tryDispatch = () => {
                                     attempts++;
                                     window.dispatchEvent(new CustomEvent('open-contact-chat', { detail: { contactId: contact.id } }));
-                                    // Retry up to 10 times (2 seconds total) to handle lazy-load delay
-                                    if (attempts < 10) {
+                                    if (attempts < 15) {
                                       setTimeout(tryDispatch, 200);
                                     }
                                   };
-                                  setTimeout(tryDispatch, 300);
+
+                                  setTimeout(tryDispatch, 150);
                                 }}
                                 title="Iniciar conversa"
                               >
