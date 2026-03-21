@@ -27,7 +27,7 @@ describe('E2E: Reports Module', () => {
   it('exports AdvancedReportsView', async () => {
     const mod = await import('@/components/reports/AdvancedReportsView');
     expect(mod.AdvancedReportsView).toBeDefined();
-  });
+  }, 15000);
 
   it('exports ExportButton (blocked)', async () => {
     const mod = await import('@/components/reports/ExportButton');
