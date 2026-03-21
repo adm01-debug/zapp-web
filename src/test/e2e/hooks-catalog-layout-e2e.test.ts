@@ -170,9 +170,14 @@ describe('E2E: Skeletons Module', () => {
 // THEME MODULE
 // =============================================
 describe('E2E: Theme Module', () => {
-  it('exports ThemeProvider', async () => {
-    const mod = await import('@/components/theme/ThemeProvider');
-    expect(mod.ThemeProvider || mod.default).toBeDefined();
+  it('exports ThemeToggle', async () => {
+    const mod = await import('@/components/theme/ThemeToggle');
+    expect(mod.ThemeToggle || mod.default).toBeDefined();
+  });
+
+  it('exports HighContrastToggle', async () => {
+    const mod = await import('@/components/theme/HighContrastToggle');
+    expect(mod.HighContrastToggle || mod.default).toBeDefined();
   });
 
   describe('Theme logic', () => {
