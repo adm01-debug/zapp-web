@@ -49,6 +49,7 @@ export function useAgents() {
       if (error) throw error;
       return data as AgentProfile[];
     },
+    refetchOnWindowFocus: false,
   });
 
   // Fetch queues and memberships
@@ -68,6 +69,7 @@ export function useAgents() {
         members: membersResult.data,
       };
     },
+    refetchOnWindowFocus: false,
   });
 
   // Fetch active chats count per agent
@@ -91,6 +93,7 @@ export function useAgents() {
 
       return chatCounts;
     },
+    refetchOnWindowFocus: false,
   });
 
   // Combine data into AgentWithStats

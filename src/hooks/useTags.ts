@@ -47,6 +47,7 @@ export function useTags() {
         contact_count: countMap[tag.id] || 0,
       })) as Tag[];
     },
+    refetchOnWindowFocus: false,
   });
 
   // Create tag mutation
@@ -182,6 +183,7 @@ export function useContactTags(contactId: string | undefined) {
       return data?.map(ct => ct.tags).filter(Boolean) as Tag[];
     },
     enabled: !!contactId,
+    refetchOnWindowFocus: false,
   });
 
   const addTagMutation = useMutation({

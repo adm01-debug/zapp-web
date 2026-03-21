@@ -63,6 +63,7 @@ export const useAgentGamification = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchOnWindowFocus: false,
   });
 
   const profileId = profileQuery.data?.id;
@@ -84,6 +85,7 @@ export const useAgentGamification = () => {
     },
     enabled: !!profileId,
     refetchInterval: 30000,
+    refetchOnWindowFocus: false,
   });
 
   // Fetch recent achievements
@@ -103,6 +105,7 @@ export const useAgentGamification = () => {
       return data as Achievement[];
     },
     enabled: !!profileId,
+    refetchOnWindowFocus: false,
   });
 
   // Add XP mutation

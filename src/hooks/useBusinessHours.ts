@@ -58,6 +58,7 @@ export function useBusinessHours(connectionId: string) {
       return data as BusinessHour[];
     },
     enabled: !!connectionId,
+    refetchOnWindowFocus: false,
   });
 
   // Fetch away message
@@ -79,6 +80,7 @@ export function useBusinessHours(connectionId: string) {
       return data as AwayMessage;
     },
     enabled: !!connectionId,
+    refetchOnWindowFocus: false,
   });
 
   // Save mutation

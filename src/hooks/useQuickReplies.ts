@@ -55,6 +55,7 @@ export function useQuickReplies() {
       return data as QuickReplyTemplate[];
     },
     enabled: !!user?.id,
+    refetchOnWindowFocus: false,
   });
 
   // Local favorites storage (synced with localStorage for persistence)

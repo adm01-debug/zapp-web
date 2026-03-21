@@ -121,7 +121,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return contacts || [];
     },
-    refetchInterval: 15000,
+    refetchInterval: 30000,
   });
 
   // Fetch messages for recent activity and stats
@@ -176,7 +176,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return messages || [];
     },
-    refetchInterval: 10000,
+    refetchInterval: 30000,
   });
 
   // Fetch queues
@@ -227,7 +227,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return queueCounts;
     },
-    refetchInterval: 15000,
+    refetchInterval: 30000,
   });
 
   // Fetch SLA data for response times
