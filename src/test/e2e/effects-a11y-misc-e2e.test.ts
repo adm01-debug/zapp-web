@@ -160,7 +160,7 @@ describe('E2E: Permissions Module', () => {
 describe('E2E: Error Boundary Module', () => {
   it('exports ErrorBoundary', async () => {
     const mod = await import('@/components/errors/ErrorBoundary');
-    expect(mod.ErrorBoundary || mod.default).toBeDefined();
+    expect(mod.ErrorBoundary).toBeDefined();
   });
 
   describe('Error handling logic', () => {
