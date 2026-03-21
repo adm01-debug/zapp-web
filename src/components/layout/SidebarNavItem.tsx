@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface NavItemConfig {
@@ -26,13 +27,20 @@ export function SidebarNavItem({ item, currentView, onViewChange }: SidebarNavIt
           aria-label={item.label}
           aria-current={isActive ? 'page' : undefined}
           className={cn(
-            'relative w-[40px] h-[40px] rounded-[10px] flex items-center justify-center transition-all duration-200',
+            'relative w-[40px] h-[40px] rounded-[10px] flex items-center justify-center transition-colors duration-150',
             isActive
-              ? 'bg-primary text-primary-foreground shadow-[var(--shadow-glow-primary)]'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              ? 'text-primary-foreground'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95'
           )}
         >
-          <Icon className="w-[18px] h-[18px]" />
+          {isActive && (
+            <motion.div
+              layoutId="sidebar-active-pill"
+              className="absolute inset-0 rounded-[10px] bg-primary shadow-[var(--shadow-glow-primary)]"
+              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+            />
+          )}
+          <Icon className="w-[18px] h-[18px] relative z-10" />
         </button>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={8} className="bg-popover border-border text-xs font-medium">
