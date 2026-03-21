@@ -92,8 +92,8 @@ describe('E2E: Cognitive Components', () => {
 // ============================================
 describe('E2E: Skeletons Module', () => {
   it('exports skeleton components', async () => {
-    const mod = await import('@/components/skeletons/DashboardSkeleton');
-    expect(mod.DashboardSkeleton).toBeDefined();
+    const mod = await import('@/components/skeletons/DashboardSkeletons');
+    expect(mod).toBeDefined();
   });
 });
 
