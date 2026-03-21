@@ -1,50 +1,8 @@
 import { cn } from '@/lib/utils';
 import {
-  MessageSquare,
-  Users,
-  BarChart3,
-  Settings,
-  Phone,
-  Tag,
-  Zap,
   LogOut,
-  Wallet,
-  UsersRound,
-  Package,
-  Mic,
-  FileBarChart,
-  Globe,
-  Link2,
-  Brain,
-  Megaphone,
-  Bot,
-  Kanban,
-  CreditCard,
   Moon,
   Sun,
-  User,
-  Shield,
-  BookOpen,
-  ChevronDown,
-  ChevronUp,
-  PhoneCall,
-  Calendar,
-  CalendarClock,
-  Palette,
-  Trophy,
-  Plug,
-  ShieldCheck,
-  Workflow,
-  Activity,
-  Gauge,
-  UserCog,
-  ClipboardList,
-  AlertTriangle,
-  FileText,
-  TrendingDown,
-  Cpu,
-  Inbox,
-  Tags,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -52,6 +10,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
 import { SoundMuteToggle } from '@/components/notifications/SoundMuteToggle';
+import { SidebarNavItem } from './SidebarNavItem';
+import { SidebarNavGroup } from './SidebarNavGroup';
+import { primaryNav, sidebarGroups } from './sidebarNavConfig';
 
 interface SidebarProps {
   currentView: string;
@@ -62,90 +23,6 @@ interface SidebarProps {
     status: 'online' | 'away' | 'offline';
   };
   onLogout?: () => void;
-}
-
-const primaryNav = [
-  { id: 'inbox', icon: MessageSquare, label: 'Chat' },
-  { id: 'contacts', icon: User, label: 'Contatos' },
-  { id: 'groups', icon: UsersRound, label: 'Grupos' },
-  { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-  { id: 'agents', icon: Phone, label: 'Equipe' },
-] as const;
-
-const toolsNav = [
-  { id: 'queues', icon: Zap, label: 'Filas' },
-  { id: 'connections', icon: Link2, label: 'Conexões' },
-  { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
-  { id: 'chatbot', icon: Bot, label: 'Chatbot' },
-  { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
-  { id: 'wallet', icon: Wallet, label: 'Carteira' },
-  { id: 'catalog', icon: Package, label: 'Catálogo' },
-  { id: 'payments', icon: CreditCard, label: 'Pagamentos' },
-  { id: 'tags', icon: Tag, label: 'Etiquetas' },
-  { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
-  { id: 'automations', icon: Zap, label: 'Automações' },
-  { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
-  { id: 'integrations', icon: Plug, label: 'Integrações' },
-  { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
-  { id: 'voip', icon: PhoneCall, label: 'VoIP' },
-  { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
-  { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
-  { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
-  { id: 'omnichannel', icon: Globe, label: 'Omnichannel' },
-  { id: 'omni-inbox', icon: Inbox, label: 'Inbox Omni' },
-] as const;
-
-const systemNav = [
-  { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-  { id: 'auto-export', icon: ClipboardList, label: 'Export Auto' },
-  { id: 'warroom', icon: AlertTriangle, label: 'War Room' },
-  { id: 'sentiment', icon: Gauge, label: 'Sentimento' },
-  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
-  { id: 'achievements', icon: Trophy, label: 'Conquistas' },
-  { id: 'diagnostics', icon: Globe, label: 'Diagnóstico' },
-  { id: 'churn', icon: TrendingDown, label: 'Previsão Churn' },
-  { id: 'ticket-classifier', icon: Tags, label: 'Classificador IA' },
-  { id: 'performance', icon: Cpu, label: 'Performance' },
-  { id: 'audit-logs', icon: FileBarChart, label: 'Auditoria' },
-  { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
-  { id: 'security', icon: Shield, label: 'Segurança' },
-  { id: 'admin', icon: UserCog, label: 'Admin' },
-  { id: 'themes', icon: Palette, label: 'Temas' },
-  { id: 'docs', icon: BookOpen, label: 'Documentação' },
-  { id: 'settings', icon: Settings, label: 'Configurações' },
-] as const;
-
-function NavIcon({ item, currentView, onViewChange }: { 
-  item: { id: string; icon: React.ComponentType<{ className?: string }>; label: string };
-  currentView: string; 
-  onViewChange: (v: string) => void;
-}) {
-  const Icon = item.icon;
-  const isActive = currentView === item.id;
-
-  return (
-    <Tooltip delayDuration={0}>
-      <TooltipTrigger asChild>
-        <button
-          data-tour={item.id}
-          onClick={() => onViewChange(item.id)}
-          aria-label={item.label}
-          aria-current={isActive ? 'page' : undefined}
-          className={cn(
-            'relative w-[40px] h-[40px] rounded-[10px] flex items-center justify-center transition-all duration-200',
-            isActive
-              ? 'bg-primary text-primary-foreground shadow-[var(--shadow-glow-primary)]'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          )}
-        >
-          <Icon className="w-[18px] h-[18px]" />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={8} className="bg-popover border-border text-xs font-medium">
-        {item.label}
-      </TooltipContent>
-    </Tooltip>
-  );
 }
 
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
@@ -170,31 +47,29 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
         </button>
       </div>
 
-      {/* Primary Nav */}
+      {/* Primary Nav — always visible */}
       <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Menu principal">
         {primaryNav.map((item) => (
-          <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
+          <SidebarNavItem key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
         ))}
       </nav>
 
-      {/* Separator */}
       <div className="mx-3 my-1 h-px bg-border/60" />
 
-      {/* Scrollable navigation area */}
+      {/* Collapsible groups */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]">
-        <nav className="flex flex-col items-center gap-1" aria-label="Ferramentas">
-          {toolsNav.map((item) => (
-            <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
+        <div className="flex flex-col items-center gap-1">
+          {sidebarGroups.map((group) => (
+            <SidebarNavGroup
+              key={group.label}
+              label={group.label}
+              icon={group.icon}
+              items={group.items}
+              currentView={currentView}
+              onViewChange={onViewChange}
+            />
           ))}
-        </nav>
-
-        <div className="mx-1 my-1 h-px bg-border/60" />
-
-        <nav className="flex flex-col items-center gap-1 pb-2" aria-label="Sistema">
-          {systemNav.map((item) => (
-            <NavIcon key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
-          ))}
-        </nav>
+        </div>
       </div>
 
       {/* Bottom: Theme toggle + Avatar + Logout */}
@@ -202,16 +77,10 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
         <div className="mx-3 mb-1 h-px bg-border/60 self-stretch" />
 
         <div className="flex flex-col items-center gap-1 rounded-xl border border-border/70 bg-muted/35 px-1 py-1.5 shadow-sm">
-          {/* Screen protection toggle */}
           <ScreenProtectionToggle className="w-[36px] h-[36px]" />
-
-          {/* Push notification toggle */}
           <PushNotificationToggle className="w-[36px] h-[36px]" />
-
-          {/* Sound mute toggle */}
           <SoundMuteToggle className="w-[36px] h-[36px]" />
 
-          {/* Dark mode toggle */}
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <button
@@ -232,14 +101,10 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           </Tooltip>
         </div>
 
-        {/* User Avatar */}
         {currentAgent && (
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <button
-                onClick={() => onViewChange('settings')}
-                className="relative group"
-              >
+              <button onClick={() => onViewChange('settings')} className="relative group">
                 <Avatar className="w-[34px] h-[34px] ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
                   <AvatarImage src={currentAgent.avatar} alt={currentAgent.name} />
                   <AvatarFallback className="bg-primary/15 text-primary text-[11px] font-semibold">
@@ -265,7 +130,6 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           </Tooltip>
         )}
 
-        {/* Logout */}
         {onLogout && (
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
