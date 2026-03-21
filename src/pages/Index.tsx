@@ -268,6 +268,10 @@ function IndexContent() {
 
         <CommandPalette onNavigate={setCurrentView} />
 
+        {/* Network status indicators */}
+        <OfflineIndicator />
+        <ConnectionToast />
+
         <WelcomeModal
           isOpen={showWelcome}
           onClose={() => { setShowWelcome(false); completeOnboarding(); }}
