@@ -233,12 +233,12 @@ describe('SidebarNavGroup Component', () => {
         label="Test Group"
         icon={Megaphone}
         items={items}
-        activeView="a"
-        onSelect={() => {}}
+        currentView="a"
+        onViewChange={() => {}}
       />,
     );
 
-    expect(screen.getByText('Test Group')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Test Group/)).toBeInTheDocument();
   });
 });
 
