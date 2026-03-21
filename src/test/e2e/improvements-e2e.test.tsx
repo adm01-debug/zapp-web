@@ -179,39 +179,39 @@ describe('Icon Uniqueness per Group', () => {
 // 5. SIDEBAR NAV ITEM COMPONENT — Rendering
 // ─────────────────────────────────────────────────────────────
 describe('SidebarNavItem Component', () => {
-  it('should render the label and respond to click', async () => {
+  it('should render the tooltip label and respond to click', async () => {
     const { SidebarNavItem } = await import('@/components/layout/SidebarNavItem');
     const { MessageSquare } = await import('lucide-react');
-    const onSelect = vi.fn();
+    const onViewChange = vi.fn();
 
     render(
       <SidebarNavItem
         item={{ id: 'test', icon: MessageSquare, label: 'Test Item' }}
-        isActive={false}
-        onSelect={onSelect}
+        currentView="other"
+        onViewChange={onViewChange}
       />,
     );
 
-    const btn = screen.getByText('Test Item');
+    const btn = screen.getByLabelText('Test Item');
     expect(btn).toBeInTheDocument();
     fireEvent.click(btn);
-    expect(onSelect).toHaveBeenCalledWith('test');
+    expect(onViewChange).toHaveBeenCalledWith('test');
   });
 
-  it('should mark active item with data-active attribute', async () => {
+  it('should mark active item with aria-current', async () => {
     const { SidebarNavItem } = await import('@/components/layout/SidebarNavItem');
     const { MessageSquare } = await import('lucide-react');
 
-    const { container } = render(
+    render(
       <SidebarNavItem
         item={{ id: 'active-test', icon: MessageSquare, label: 'Active' }}
-        isActive={true}
-        onSelect={() => {}}
+        currentView="active-test"
+        onViewChange={() => {}}
       />,
     );
 
-    const activeEl = container.querySelector('[data-active="true"]');
-    expect(activeEl).toBeTruthy();
+    const btn = screen.getByLabelText('Active');
+    expect(btn).toHaveAttribute('aria-current', 'page');
   });
 });
 
