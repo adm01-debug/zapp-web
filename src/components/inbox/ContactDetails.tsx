@@ -257,7 +257,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           transition={{ delay: 0.45 }}
           className="p-4 border-b border-border/30"
         >
-          <CustomFieldsSection contactId={contact.id || contact.phone} />
+          <CustomFieldsSection contactId={contact.id} />
         </motion.div>
 
         {/* Private Notes */}
@@ -267,7 +267,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           transition={{ delay: 0.5 }}
           className="p-4 border-b border-border/30"
         >
-          <PrivateNotes contactId={contact.phone} />
+          <PrivateNotes contactId={contact.id} />
         </motion.div>
 
         {/* Conversation History */}
@@ -278,7 +278,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           className="p-4 border-b border-border/30"
         >
           <ConversationHistory 
-            contactId={contact.id || contact.phone} 
+            contactId={contact.id} 
             contactPhone={contact.phone}
             onSelectConversation={(id) => log.debug('Selected conversation:', id)}
           />
