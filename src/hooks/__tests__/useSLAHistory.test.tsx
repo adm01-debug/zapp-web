@@ -16,16 +16,20 @@ vi.mock('@/lib/logger', () => ({
 
 import { useSLAHistory } from '@/hooks/useSLAHistory';
 
+function makeChain(data: any = [], error: any = null) {
+  return {
+    select: vi.fn().mockReturnValue({
+      gte: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data, error }),
+      }),
+    }),
+  };
+}
+
 describe('useSLAHistory', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        gte: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      }),
-    });
+    mockFrom.mockReturnValue(makeChain([]));
   });
 
   it('initializes with loading state', () => {
@@ -35,6 +39,12 @@ describe('useSLAHistory', () => {
 
   it('fetches data for 7d period', async () => {
     const { result } = renderHook(() => useSLAHistory('7d'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.data).toBeDefined();
+  });
+
+  it('fetches data for 14d period', async () => {
+    const { result } = renderHook(() => useSLAHistory('14d'));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.data).toBeDefined();
   });
@@ -49,34 +59,47 @@ describe('useSLAHistory', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
+  it('defaults to 30d when no period provided', async () => {
+    const { result } = renderHook(() => useSLAHistory());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.data).toBeDefined();
+  });
+
   it('handles empty data gracefully', async () => {
     const { result } = renderHook(() => useSLAHistory('7d'));
     await waitFor(() => expect(result.current.loading).toBe(false));
-
     expect(result.current.data?.totals.totalBreaches).toBe(0);
-    expect(result.current.data?.totals.overallSLARate).toBeDefined();
+    expect(result.current.data?.totals.overallSLARate).toBe(100);
   });
 
-  it('handles SLA records with breaches', async () => {
+  it('handles SLA records with first response breaches', async () => {
     const now = new Date();
-    const mockRecords = [
-      { id: '1', contact_id: 'c1', first_response_breached: true, resolution_breached: false, created_at: now.toISOString(), first_message_at: now.toISOString(), first_response_at: now.toISOString(), resolved_at: null },
-      { id: '2', contact_id: 'c2', first_response_breached: false, resolution_breached: true, created_at: now.toISOString(), first_message_at: now.toISOString(), first_response_at: now.toISOString(), resolved_at: now.toISOString() },
-    ];
-
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        gte: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockRecords, error: null }),
-        }),
-      }),
-    });
-
+    mockFrom.mockReturnValue(makeChain([
+      { id: '1', contact_id: 'c1', first_response_breached: true, resolution_breached: false, created_at: now.toISOString() },
+    ]));
     const { result } = renderHook(() => useSLAHistory('7d'));
     await waitFor(() => expect(result.current.loading).toBe(false));
-
     expect(result.current.data?.totals.firstResponseBreaches).toBe(1);
+  });
+
+  it('handles SLA records with resolution breaches', async () => {
+    const now = new Date();
+    mockFrom.mockReturnValue(makeChain([
+      { id: '2', contact_id: 'c2', first_response_breached: false, resolution_breached: true, created_at: now.toISOString() },
+    ]));
+    const { result } = renderHook(() => useSLAHistory('7d'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.data?.totals.resolutionBreaches).toBe(1);
+  });
+
+  it('handles both breach types', async () => {
+    const now = new Date();
+    mockFrom.mockReturnValue(makeChain([
+      { id: '3', contact_id: 'c3', first_response_breached: true, resolution_breached: true, created_at: now.toISOString() },
+    ]));
+    const { result } = renderHook(() => useSLAHistory('7d'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.data?.totals.totalBreaches).toBe(2);
   });
 
   it('handles fetch error', async () => {
@@ -87,30 +110,72 @@ describe('useSLAHistory', () => {
         }),
       }),
     });
-
     const { result } = renderHook(() => useSLAHistory('7d'));
     await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
-  it('data contains dailyData array', async () => {
+  it('data contains dailyData array with correct length', async () => {
     const { result } = renderHook(() => useSLAHistory('7d'));
     await waitFor(() => expect(result.current.loading).toBe(false));
-
     expect(Array.isArray(result.current.data?.dailyData)).toBe(true);
-    expect(result.current.data!.dailyData.length).toBeGreaterThan(0);
+    // 7 days + today = 8 days
+    expect(result.current.data!.dailyData.length).toBeGreaterThanOrEqual(7);
   });
 
-  it('data contains trends', async () => {
+  it('data contains trends object', async () => {
     const { result } = renderHook(() => useSLAHistory('7d'));
     await waitFor(() => expect(result.current.loading).toBe(false));
-
     expect(result.current.data?.trends).toBeDefined();
+    expect(result.current.data?.trends.firstResponse).toBeDefined();
+    expect(result.current.data?.trends.resolution).toBeDefined();
     expect(result.current.data?.trends.overall).toBeDefined();
   });
 
-  it('defaults to 30d when no period provided', async () => {
-    const { result } = renderHook(() => useSLAHistory());
+  it('trend direction is stable for zero data', async () => {
+    const { result } = renderHook(() => useSLAHistory('7d'));
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.data).toBeDefined();
+    expect(result.current.data?.trends.overall.direction).toBe('stable');
+  });
+
+  it('worstDays and bestDays are arrays', async () => {
+    const { result } = renderHook(() => useSLAHistory('7d'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(Array.isArray(result.current.data?.worstDays)).toBe(true);
+    expect(Array.isArray(result.current.data?.bestDays)).toBe(true);
+  });
+
+  it('handles large dataset (90 days of records)', async () => {
+    const records = Array.from({ length: 200 }, (_, i) => ({
+      id: `s${i}`, contact_id: `c${i % 10}`,
+      first_response_breached: i % 7 === 0, resolution_breached: i % 11 === 0,
+      created_at: new Date(Date.now() - (i % 90) * 86400000).toISOString(),
+    }));
+    mockFrom.mockReturnValue(makeChain(records));
+    const { result } = renderHook(() => useSLAHistory('90d'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.data?.totals.totalConversations).toBe(200);
+  });
+
+  it('SLA rate is 100% when no breaches', async () => {
+    const now = new Date();
+    mockFrom.mockReturnValue(makeChain([
+      { id: '1', contact_id: 'c1', first_response_breached: false, resolution_breached: false, created_at: now.toISOString() },
+    ]));
+    const { result } = renderHook(() => useSLAHistory('7d'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.data?.totals.overallSLARate).toBe(100);
+  });
+
+  it('dailyData entries have all required fields', async () => {
+    const { result } = renderHook(() => useSLAHistory('7d'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const day = result.current.data!.dailyData[0];
+    expect(day).toHaveProperty('date');
+    expect(day).toHaveProperty('dateLabel');
+    expect(day).toHaveProperty('firstResponseBreaches');
+    expect(day).toHaveProperty('resolutionBreaches');
+    expect(day).toHaveProperty('totalBreaches');
+    expect(day).toHaveProperty('totalConversations');
+    expect(day).toHaveProperty('slaRate');
   });
 });

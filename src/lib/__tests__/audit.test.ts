@@ -80,4 +80,75 @@ describe('audit logging', () => {
       }),
     ]));
   });
+
+  it('defaults entityType to null when not provided', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: insertMock });
+
+    await logAudit({ action: 'logout' });
+
+    expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({ entity_type: null }),
+    ]));
+  });
+
+  it('defaults entityId to null when not provided', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: insertMock });
+
+    await logAudit({ action: 'logout' });
+
+    expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({ entity_id: null }),
+    ]));
+  });
+
+  it('defaults details to empty object when not provided', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: insertMock });
+
+    await logAudit({ action: 'login' });
+
+    expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({ details: {} }),
+    ]));
+  });
+
+  it('includes user_agent in audit log', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: insertMock });
+
+    await logAudit({ action: 'login' });
+
+    expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({ user_agent: expect.any(String) }),
+    ]));
+  });
+
+  it('includes user_id in audit log', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: insertMock });
+
+    await logAudit({ action: 'login' });
+
+    expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({ user_id: 'u1' }),
+    ]));
+  });
+
+  it('handles exception in getUser gracefully', async () => {
+    mockGetUser.mockRejectedValue(new Error('Auth error'));
+    await expect(logAudit({ action: 'login' })).resolves.not.toThrow();
+  });
+
+  it('supports message_sent action', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: insertMock });
+
+    await logAudit({ action: 'message_sent', entityType: 'message', entityId: 'm1' });
+
+    expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({ action: 'message_sent' }),
+    ]));
+  });
 });

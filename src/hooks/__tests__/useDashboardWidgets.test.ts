@@ -112,6 +112,17 @@ describe('useDashboardWidgets', () => {
     expect(updated?.row).toBe(Math.max(0, originalRow - 1));
   });
 
+  it('moveWidget moves down', () => {
+    const { result } = renderHook(() => useDashboardWidgets());
+    const firstId = result.current.widgets[0].id;
+    const originalRow = result.current.widgets[0].row ?? 0;
+
+    act(() => { result.current.moveWidget(firstId, 'down'); });
+
+    const updated = result.current.widgets.find(w => w.id === firstId);
+    expect(updated?.row).toBe(originalRow + 1);
+  });
+
   it('moveWidget respects left boundary', () => {
     const { result } = renderHook(() => useDashboardWidgets());
     const firstId = result.current.widgets[0].id;
@@ -212,6 +223,40 @@ describe('useDashboardWidgets', () => {
     const { result } = renderHook(() => useDashboardWidgets());
     result.current.widgets.forEach(w => {
       expect(validSizes).toContain(w.size);
+    });
+  });
+
+  it('widget count matches expected number', () => {
+    const { result } = renderHook(() => useDashboardWidgets());
+    expect(result.current.widgets.length).toBe(8);
+  });
+
+  it('updateWidgetSize sets correct grid dimensions for all sizes', () => {
+    const { result } = renderHook(() => useDashboardWidgets());
+    const id = result.current.widgets[0].id;
+
+    const sizes = [
+      { size: 'small' as const, width: 1, height: 1 },
+      { size: 'medium' as const, width: 2, height: 1 },
+      { size: 'large' as const, width: 3, height: 1 },
+      { size: 'full' as const, width: 4, height: 1 },
+    ];
+
+    sizes.forEach(({ size, width, height }) => {
+      act(() => { result.current.updateWidgetSize(id, size); });
+      const w = result.current.widgets.find(w => w.id === id);
+      expect(w?.width).toBe(width);
+      expect(w?.height).toBe(height);
+    });
+  });
+
+  it('reorderWidgets updates order property', () => {
+    const { result } = renderHook(() => useDashboardWidgets());
+
+    act(() => { result.current.reorderWidgets(0, 2); });
+
+    result.current.widgets.forEach((w, idx) => {
+      expect(w.order).toBe(idx);
     });
   });
 });

@@ -128,5 +128,58 @@ describe('loginAttempts', () => {
       expect(formatLockTime(120)).toBe('2 minutos');
       expect(formatLockTime(90)).toBe('2 minutos');
     });
+
+    it('formats zero seconds', () => {
+      expect(formatLockTime(0)).toBe('0 segundos');
+    });
+
+    it('formats 59 seconds', () => {
+      expect(formatLockTime(59)).toBe('59 segundos');
+    });
+
+    it('rounds up partial minutes', () => {
+      expect(formatLockTime(61)).toBe('2 minutos');
+    });
+
+    it('formats large values', () => {
+      expect(formatLockTime(3600)).toBe('60 minutos');
+    });
+  });
+
+  describe('checkAccountLock remainingTime', () => {
+    it('calculates remaining time for locked account', async () => {
+      const futureDate = new Date(Date.now() + 120000).toISOString();
+      mockRpc.mockResolvedValue({
+        data: [{ is_locked: true, locked_until: futureDate, attempts: 5 }],
+        error: null,
+      });
+
+      const result = await checkAccountLock('locked@test.com');
+      expect(result.remainingTime).toBeGreaterThan(0);
+      expect(result.remainingTime).toBeLessThanOrEqual(120);
+    });
+
+    it('returns 0 remaining time when not locked', async () => {
+      mockRpc.mockResolvedValue({
+        data: [{ is_locked: false, locked_until: null, attempts: 2 }],
+        error: null,
+      });
+
+      const result = await checkAccountLock('test@test.com');
+      expect(result.remainingTime).toBe(0);
+    });
+  });
+
+  describe('recordFailedLogin empty result', () => {
+    it('returns default values for null result data', async () => {
+      mockRpc.mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const result = await recordFailedLogin('test@test.com');
+      expect(result.isLocked).toBe(false);
+      expect(result.attempts).toBe(1);
+    });
   });
 });

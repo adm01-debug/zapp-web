@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- test mocks */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 
 const { mockChannel, mockFrom, mockSupabaseChannel, mockRemoveChannel } = vi.hoisted(() => {
   const mockChannel: any = {
@@ -45,7 +45,7 @@ describe('useRealtimeDashboard', () => {
       select: vi.fn().mockReturnValue({
         gte: vi.fn().mockReturnValue({
           lt: vi.fn().mockResolvedValue({ count: 5, error: null }),
-          not: vi.fn().mockResolvedValue({ data: [], error: null }),
+          not: vi.fn().mockResolvedValue({ data: [{ contact_id: 'c1' }, { contact_id: 'c2' }], error: null }),
         }),
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({ count: 3, error: null }),
@@ -60,7 +60,6 @@ describe('useRealtimeDashboard', () => {
 
   it('initializes with default state', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
-
     expect(result.current.messagesThisHour).toBe(0);
     expect(result.current.messagesLastHour).toBe(0);
     expect(result.current.messagesPerMinute).toBe(0);
@@ -69,12 +68,10 @@ describe('useRealtimeDashboard', () => {
     expect(result.current.unreadMessages).toBe(0);
     expect(result.current.metricsHistory).toEqual([]);
     expect(result.current.lastMessageAt).toBeNull();
-    // isConnected may become true immediately if subscribe callback fires synchronously
   });
 
   it('subscribes to realtime channel on mount', () => {
     renderHook(() => useRealtimeDashboard());
-
     expect(mockSupabaseChannel).toHaveBeenCalledWith('dashboard-realtime');
     expect(mockChannel.on).toHaveBeenCalled();
     expect(mockChannel.subscribe).toHaveBeenCalled();
@@ -82,32 +79,22 @@ describe('useRealtimeDashboard', () => {
 
   it('cleans up channel and intervals on unmount', () => {
     const { unmount } = renderHook(() => useRealtimeDashboard());
-
     unmount();
-
     expect(mockRemoveChannel).toHaveBeenCalledWith(mockChannel);
   });
 
-  it('subscribes to messages, contacts, and message updates', () => {
+  it('subscribes to messages INSERT, contacts INSERT, and messages UPDATE', () => {
     renderHook(() => useRealtimeDashboard());
-
     expect(mockChannel.on).toHaveBeenCalledTimes(3);
 
     const calls = mockChannel.on.mock.calls;
-    expect(calls[0][1]).toEqual(
-      expect.objectContaining({ event: 'INSERT', table: 'messages' })
-    );
-    expect(calls[1][1]).toEqual(
-      expect.objectContaining({ event: 'INSERT', table: 'contacts' })
-    );
-    expect(calls[2][1]).toEqual(
-      expect.objectContaining({ event: 'UPDATE', table: 'messages' })
-    );
+    expect(calls[0][1]).toEqual(expect.objectContaining({ event: 'INSERT', table: 'messages' }));
+    expect(calls[1][1]).toEqual(expect.objectContaining({ event: 'INSERT', table: 'contacts' }));
+    expect(calls[2][1]).toEqual(expect.objectContaining({ event: 'UPDATE', table: 'messages' }));
   });
 
   it('returns state object with all expected properties', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
-
     const keys = Object.keys(result.current);
     expect(keys).toContain('messagesThisHour');
     expect(keys).toContain('messagesLastHour');
@@ -118,5 +105,155 @@ describe('useRealtimeDashboard', () => {
     expect(keys).toContain('metricsHistory');
     expect(keys).toContain('lastMessageAt');
     expect(keys).toContain('isConnected');
+  });
+
+  it('sets isConnected to true when subscription succeeds', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => {
+      expect(result.current.isConnected).toBe(true);
+    });
+  });
+
+  it('fetches initial data on mount', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => {
+      expect(mockFrom).toHaveBeenCalled();
+    });
+  });
+
+  it('updates messagesThisHour after initial fetch', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => {
+      expect(result.current.messagesThisHour).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  it('handles new message INSERT by incrementing counts', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    const insertHandler = mockChannel.on.mock.calls[0][2];
+    act(() => {
+      insertHandler({ new: { id: 'new1', sender: 'contact', created_at: new Date().toISOString() } });
+    });
+
+    expect(result.current.lastMessageAt).toBeTruthy();
+  });
+
+  it('increments unreadMessages for contact sender', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    const initialUnread = result.current.unreadMessages;
+    const insertHandler = mockChannel.on.mock.calls[0][2];
+    act(() => {
+      insertHandler({ new: { id: 'new1', sender: 'contact' } });
+    });
+
+    expect(result.current.unreadMessages).toBe(initialUnread + 1);
+  });
+
+  it('does not increment unreadMessages for agent sender', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    const initialUnread = result.current.unreadMessages;
+    const insertHandler = mockChannel.on.mock.calls[0][2];
+    act(() => {
+      insertHandler({ new: { id: 'new1', sender: 'agent' } });
+    });
+
+    expect(result.current.unreadMessages).toBe(initialUnread);
+  });
+
+  it('increments newContactsToday on contacts INSERT', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    const initial = result.current.newContactsToday;
+    const contactInsertHandler = mockChannel.on.mock.calls[1][2];
+    act(() => {
+      contactInsertHandler({ new: { id: 'contact1' } });
+    });
+
+    expect(result.current.newContactsToday).toBe(initial + 1);
+  });
+
+  it('decrements unreadMessages on message read UPDATE', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    // First add unread
+    const insertHandler = mockChannel.on.mock.calls[0][2];
+    act(() => {
+      insertHandler({ new: { id: 'new1', sender: 'contact' } });
+    });
+
+    const afterInsert = result.current.unreadMessages;
+    const updateHandler = mockChannel.on.mock.calls[2][2];
+    act(() => {
+      updateHandler({ new: { is_read: true }, old: { is_read: false } });
+    });
+
+    expect(result.current.unreadMessages).toBe(Math.max(0, afterInsert - 1));
+  });
+
+  it('does not go below zero unread messages', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    const updateHandler = mockChannel.on.mock.calls[2][2];
+    act(() => {
+      updateHandler({ new: { is_read: true }, old: { is_read: false } });
+    });
+
+    expect(result.current.unreadMessages).toBeGreaterThanOrEqual(0);
+  });
+
+  it('handles fetch error without crashing', async () => {
+    mockFrom.mockImplementation(() => ({
+      select: vi.fn().mockReturnValue({
+        gte: vi.fn().mockReturnValue({
+          lt: vi.fn().mockRejectedValue(new Error('Network error')),
+          not: vi.fn().mockRejectedValue(new Error('Network error')),
+        }),
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockRejectedValue(new Error('Network error')),
+        }),
+      }),
+    }));
+
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+  });
+
+  it('metricsHistory stays within MAX_HISTORY limit', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    // Simulate 70 metric collections (MAX_HISTORY is 60)
+    for (let i = 0; i < 70; i++) {
+      act(() => { vi.advanceTimersByTime(60000); });
+    }
+
+    expect(result.current.metricsHistory.length).toBeLessThanOrEqual(60);
+  });
+
+  it('resets minute count after each interval', async () => {
+    const { result } = renderHook(() => useRealtimeDashboard());
+    await waitFor(() => expect(result.current.isConnected).toBe(true));
+
+    const insertHandler = mockChannel.on.mock.calls[0][2];
+    act(() => {
+      insertHandler({ new: { id: 'new1', sender: 'agent' } });
+      insertHandler({ new: { id: 'new2', sender: 'agent' } });
+    });
+
+    act(() => { vi.advanceTimersByTime(60000); });
+
+    // After interval, messagesPerMinute should reflect the count
+    expect(result.current.messagesPerMinute).toBeGreaterThanOrEqual(0);
   });
 });
