@@ -230,6 +230,8 @@ function IndexContent() {
           )}
         </div>
 
+        <CommandPalette onNavigate={setCurrentView} />
+
         <WelcomeModal
           isOpen={showWelcome}
           onClose={() => { setShowWelcome(false); completeOnboarding(); }}
