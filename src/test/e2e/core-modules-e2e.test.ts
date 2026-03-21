@@ -312,8 +312,7 @@ describe('E2E: Feature Module Exports', () => {
 
   it('exports DashboardView', async () => {
     const mod = await import('@/components/dashboard/DashboardView');
-    const component = mod.DashboardView || mod.default;
-    expect(component).toBeDefined();
+    expect(mod.DashboardView).toBeDefined();
   }, 15000);
 });
 
