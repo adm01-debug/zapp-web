@@ -315,12 +315,18 @@ describe('E2E: Auth Module - Components', () => {
 // EFFECTS MODULE
 // ============================================
 describe('E2E: Effects Module', () => {
-  const effectComponents = ['AuroraBorealis', 'Confetti', 'EasterEggs', 'ParallaxContainer', 'ScrollEffects'];
+  const effectComponents = [
+    { file: 'AuroraBorealis', exportName: 'AuroraBorealis' },
+    { file: 'Confetti', exportName: 'Confetti' },
+    { file: 'EasterEggs', exportName: 'EasterEggsProvider' },
+    { file: 'ParallaxContainer', exportName: 'ParallaxContainer' },
+    { file: 'ScrollEffects', exportName: 'MagneticButton' },
+  ];
 
-  effectComponents.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/effects/${name}`);
-      const component = mod[name] || mod.default;
+  effectComponents.forEach(({ file, exportName }) => {
+    it(`exports ${exportName} from ${file}`, async () => {
+      const mod = await import(`../../components/effects/${file}`);
+      const component = mod[exportName] || mod.default;
       expect(component).toBeDefined();
     });
   });

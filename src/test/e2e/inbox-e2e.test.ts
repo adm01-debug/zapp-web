@@ -78,19 +78,30 @@ describe('E2E: Inbox Module - More Components', () => {
 
 describe('E2E: Inbox Module - Advanced Components', () => {
   const advancedComponents = [
-    'QueuePositionNotifier', 'QuickRepliesManager', 'RealtimeCollaboration',
-    'RealtimeInboxView', 'RealtimeTranscription', 'ReplyQuote',
-    'SLAIndicator', 'ScheduleMessageDialog', 'SentimentIndicator',
-    'SlashCommands', 'SpeedSelector', 'StickerPicker',
-    'TemplatesWithVariables', 'TextToSpeechButton',
-    'TicketTabs', 'TransferDialog', 'TypingIndicator',
-    'WhisperMode',
+    { file: 'QueuePositionNotifier', exportName: 'QueuePositionNotifier' },
+    { file: 'QuickRepliesManager', exportName: 'QuickRepliesManager' },
+    { file: 'RealtimeCollaboration', exportName: 'RealtimeCollaboration' },
+    { file: 'RealtimeInboxView', exportName: 'RealtimeInboxView' },
+    { file: 'RealtimeTranscription', exportName: 'RealtimeTranscription' },
+    { file: 'ReplyQuote', exportName: 'ReplyPreview' },
+    { file: 'SLAIndicator', exportName: 'SLAIndicator' },
+    { file: 'ScheduleMessageDialog', exportName: 'ScheduleMessageDialog' },
+    { file: 'SentimentIndicator', exportName: 'SentimentIndicator' },
+    { file: 'SlashCommands', exportName: 'SlashCommands' },
+    { file: 'SpeedSelector', exportName: 'SpeedSelector' },
+    { file: 'StickerPicker', exportName: 'StickerPicker' },
+    { file: 'TemplatesWithVariables', exportName: 'TemplatesWithVariables' },
+    { file: 'TextToSpeechButton', exportName: 'TextToSpeechButton' },
+    { file: 'TicketTabs', exportName: 'TicketTabs' },
+    { file: 'TransferDialog', exportName: 'TransferDialog' },
+    { file: 'TypingIndicator', exportName: 'TypingIndicator' },
+    { file: 'WhisperMode', exportName: 'WhisperMode' },
   ];
 
-  advancedComponents.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/inbox/${name}`);
-      const component = mod[name] || mod.default;
+  advancedComponents.forEach(({ file, exportName }) => {
+    it(`exports ${exportName}`, async () => {
+      const mod = await import(`../../components/inbox/${file}`);
+      const component = mod[exportName] || mod.default;
       expect(component).toBeDefined();
     });
   });
