@@ -40,7 +40,7 @@ export function ImagePreview({ src, alt = 'Image', onClose }: ImagePreviewProps)
             size="icon"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(src, '_blank');
+              window.open(src, '_blank', 'noopener,noreferrer');
             }}
           >
             <Download className="w-4 h-4" />

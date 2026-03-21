@@ -81,7 +81,7 @@ export function DocumentPreview({ url, fileName, fileSize, isSent }: DocumentPre
     } catch (error) {
       log.error('Download failed:', error);
       // Fallback: open in new tab
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     } finally {
       if (downloadUrl) window.URL.revokeObjectURL(downloadUrl);
       setIsDownloading(false);
@@ -89,7 +89,7 @@ export function DocumentPreview({ url, fileName, fileSize, isSent }: DocumentPre
   };
 
   const handleOpen = () => {
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -294,7 +294,7 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
             size="icon"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(url, '_blank');
+              window.open(url, '_blank', 'noopener,noreferrer');
             }}
           >
             <Download className="w-4 h-4" />
