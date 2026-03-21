@@ -25,17 +25,25 @@ describe('E2E: Dashboard Module - Components', () => {
   beforeEach(() => vi.clearAllMocks());
 
   const dashboardComponents = [
-    'AIQuickAccess', 'AIStatsWidget', 'ActivityHeatmap',
-    'AgentPerformancePanel', 'ConversationHeatmap', 'DashboardFilters',
-    'DemandPrediction', 'FloatingParticles',
-    'GamificationEffects', 'GoalsConfigDialog', 'GoalsDashboard',
-    'MetricComparison', 'MetricComponents',
+    { file: 'AIQuickAccess', exportName: 'AIQuickAccess' },
+    { file: 'AIStatsWidget', exportName: 'AIStatsWidget' },
+    { file: 'ActivityHeatmap', exportName: 'ActivityHeatmap' },
+    { file: 'AgentPerformancePanel', exportName: 'AgentPerformancePanel' },
+    { file: 'ConversationHeatmap', exportName: 'ConversationHeatmap' },
+    { file: 'DashboardFilters', exportName: 'DashboardFilters' },
+    { file: 'DemandPrediction', exportName: 'DemandPrediction' },
+    { file: 'FloatingParticles', exportName: 'FloatingParticles' },
+    { file: 'GamificationEffects', exportName: 'AnimatedBadge' },
+    { file: 'GoalsConfigDialog', exportName: 'GoalsConfigDialog' },
+    { file: 'GoalsDashboard', exportName: 'GoalsDashboard' },
+    { file: 'MetricComparison', exportName: 'MetricComparison' },
+    { file: 'MetricComponents', exportName: 'AnimatedMetricCard' },
   ];
 
-  dashboardComponents.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/dashboard/${name}`);
-      const component = mod[name] || mod.default;
+  dashboardComponents.forEach(({ file, exportName }) => {
+    it(`exports ${exportName} from ${file}`, async () => {
+      const mod = await import(`../../components/dashboard/${file}`);
+      const component = mod[exportName] || mod.default;
       expect(component).toBeDefined();
     });
   });
