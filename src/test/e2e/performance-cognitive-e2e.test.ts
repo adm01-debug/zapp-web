@@ -101,9 +101,9 @@ describe('E2E: Skeletons Module', () => {
 // ADMIN MODULE
 // ============================================
 describe('E2E: Admin Module', () => {
-  it('exports admin components', async () => {
-    const mod = await import('@/components/admin/AdminDashboard');
-    expect(mod.AdminDashboard).toBeDefined();
+  it('exports AdminView', async () => {
+    const mod = await import('@/components/admin/AdminView');
+    expect(mod.AdminView).toBeDefined();
   });
 });
 
