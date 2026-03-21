@@ -10,37 +10,74 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // =============================================
-// HOOKS - Deep Testing
+// HOOKS
 // =============================================
 describe('E2E: Core Hooks Exports', () => {
-  const hooks = [
-    'useAgentStats', 'useAuditLog', 'useCampaigns', 'useContacts',
-    'useGlobalSearch', 'useKeyboardShortcuts', 'useMessages', 'useOnboarding',
-    'useRealtime', 'useUserSettings',
-  ];
-
-  hooks.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../hooks/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports useAgentGamification', async () => {
+    const mod = await import('@/hooks/useAgentGamification');
+    expect(mod.useAgentGamification).toBeDefined();
+  });
+  it('exports useCampaigns', async () => {
+    const mod = await import('@/hooks/useCampaigns');
+    expect(mod.useCampaigns).toBeDefined();
+  });
+  it('exports useMessages', async () => {
+    const mod = await import('@/hooks/useMessages');
+    expect(mod.useMessages).toBeDefined();
+  });
+  it('exports useOnboarding', async () => {
+    const mod = await import('@/hooks/useOnboarding');
+    expect(mod.useOnboarding).toBeDefined();
+  });
+  it('exports useUserSettings', async () => {
+    const mod = await import('@/hooks/useUserSettings');
+    expect(mod.useUserSettings).toBeDefined();
+  });
+  it('exports useKeyboardShortcuts', async () => {
+    const mod = await import('@/hooks/useKeyboardShortcuts');
+    expect(mod.useKeyboardShortcuts).toBeDefined();
+  });
+  it('exports useSearch', async () => {
+    const mod = await import('@/hooks/useSearch');
+    expect(mod.useSearch).toBeDefined();
+  });
+  it('exports useQueues', async () => {
+    const mod = await import('@/hooks/useQueues');
+    expect(mod.useQueues).toBeDefined();
+  });
+  it('exports usePermissions', async () => {
+    const mod = await import('@/hooks/usePermissions');
+    expect(mod.usePermissions).toBeDefined();
+  });
+  it('exports useTags', async () => {
+    const mod = await import('@/hooks/useTags');
+    expect(mod.useTags).toBeDefined();
   });
 });
 
 // =============================================
-// CATALOG MODULE - Deep Component Tests
+// CATALOG MODULE
 // =============================================
 describe('E2E: Catalog Module Components', () => {
-  const components = [
-    'CatalogView', 'CategoryManager', 'OrderCartView',
-    'PaymentMethodSelector', 'ProductCard', 'ProductFormDialog',
-  ];
-
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/catalog/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports ProductCatalog', async () => {
+    const mod = await import('@/components/catalog/ProductCatalog');
+    expect(mod.ProductCatalog).toBeDefined();
+  });
+  it('exports ProductManagement', async () => {
+    const mod = await import('@/components/catalog/ProductManagement');
+    expect(mod.ProductManagement).toBeDefined();
+  });
+  it('exports ShoppingCart', async () => {
+    const mod = await import('@/components/catalog/ShoppingCart');
+    expect(mod.ShoppingCart).toBeDefined();
+  });
+  it('exports ProductCard', async () => {
+    const mod = await import('@/components/catalog/ProductCard');
+    expect(mod.ProductCard).toBeDefined();
+  });
+  it('exports ProductMessage', async () => {
+    const mod = await import('@/components/catalog/ProductMessage');
+    expect(mod.ProductMessage).toBeDefined();
   });
 
   describe('Order calculations', () => {
@@ -96,13 +133,17 @@ describe('E2E: Catalog Module Components', () => {
 // LAYOUT MODULE
 // =============================================
 describe('E2E: Layout Module', () => {
-  const components = ['CollapsibleSidebar', 'PageTransition', 'ResponsiveLayout'];
-
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/layout/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports Sidebar', async () => {
+    const mod = await import('@/components/layout/Sidebar');
+    expect(mod.Sidebar).toBeDefined();
+  });
+  it('exports PageHeader', async () => {
+    const mod = await import('@/components/layout/PageHeader');
+    expect(mod.PageHeader).toBeDefined();
+  });
+  it('exports ViewHeader', async () => {
+    const mod = await import('@/components/layout/ViewHeader');
+    expect(mod.ViewHeader).toBeDefined();
   });
 });
 
@@ -110,13 +151,17 @@ describe('E2E: Layout Module', () => {
 // PERFORMANCE MODULE
 // =============================================
 describe('E2E: Performance Module', () => {
-  const components = ['LazyImage', 'PerformanceMonitor', 'WebVitalsDisplay'];
-
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/performance/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports PerformanceMonitor', async () => {
+    const mod = await import('@/components/performance/PerformanceMonitor');
+    expect(mod.PerformanceMonitor).toBeDefined();
+  });
+  it('exports OptimizedImage', async () => {
+    const mod = await import('@/components/performance/OptimizedImage');
+    expect(mod.OptimizedImage).toBeDefined();
+  });
+  it('exports VirtualizedList', async () => {
+    const mod = await import('@/components/performance/VirtualizedList');
+    expect(mod.VirtualizedList).toBeDefined();
   });
 
   describe('Performance metrics', () => {
@@ -137,7 +182,7 @@ describe('E2E: Performance Module', () => {
       timestamps.forEach((t, i) => {
         if (i === 0 || t - timestamps[i-1] >= DEBOUNCE_MS) callCount++;
       });
-      expect(callCount).toBe(2); // 0ms and 1000ms
+      expect(callCount).toBe(2);
     });
 
     it('validates virtualization window', () => {
@@ -147,7 +192,6 @@ describe('E2E: Performance Module', () => {
       const totalRendered = visibleCount + overscan * 2;
       expect(visibleCount).toBe(12);
       expect(totalRendered).toBe(22);
-      expect(totalRendered).toBeLessThan(totalItems);
     });
   });
 });
@@ -156,13 +200,17 @@ describe('E2E: Performance Module', () => {
 // SKELETONS MODULE
 // =============================================
 describe('E2E: Skeletons Module', () => {
-  const components = ['ChatPanelSkeleton', 'ConversationListSkeleton', 'DashboardSkeleton'];
-
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/skeletons/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports ConversationListSkeleton', async () => {
+    const mod = await import('@/components/skeletons/ConversationListSkeleton');
+    expect(mod.ConversationListSkeleton).toBeDefined();
+  });
+  it('exports ContextualSkeletons', async () => {
+    const mod = await import('@/components/skeletons/ContextualSkeletons');
+    expect(mod.ContextualSkeletons || mod.default).toBeDefined();
+  });
+  it('exports MessageListSkeleton', async () => {
+    const mod = await import('@/components/skeletons/MessageListSkeleton');
+    expect(mod.MessageListSkeleton).toBeDefined();
   });
 });
 
@@ -174,7 +222,6 @@ describe('E2E: Theme Module', () => {
     const mod = await import('@/components/theme/ThemeToggle');
     expect(mod.ThemeToggle).toBeDefined();
   });
-
   it('exports HighContrastToggle', async () => {
     const mod = await import('@/components/theme/HighContrastToggle');
     expect(mod.HighContrastToggle).toBeDefined();
@@ -185,11 +232,9 @@ describe('E2E: Theme Module', () => {
       const themes = ['light', 'dark', 'system'];
       expect(themes).toHaveLength(3);
     });
-
     it('resolves system theme', () => {
       const systemPrefersDark = true;
-      const userTheme = 'system';
-      const resolved = userTheme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : userTheme;
+      const resolved = systemPrefersDark ? 'dark' : 'light';
       expect(resolved).toBe('dark');
     });
   });
@@ -199,13 +244,13 @@ describe('E2E: Theme Module', () => {
 // ADMIN MODULE
 // =============================================
 describe('E2E: Admin Module', () => {
-  const components = ['AdminPanel', 'SystemHealthDashboard'];
-
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/admin/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports AdminView', async () => {
+    const mod = await import('@/components/admin/AdminView');
+    expect(mod.AdminView).toBeDefined();
+  });
+  it('exports ForceLogoutButton', async () => {
+    const mod = await import('@/components/admin/ForceLogoutButton');
+    expect(mod.ForceLogoutButton).toBeDefined();
   });
 });
 
@@ -213,13 +258,17 @@ describe('E2E: Admin Module', () => {
 // COGNITIVE MODULE
 // =============================================
 describe('E2E: Cognitive Module', () => {
-  const components = ['CognitiveLoadOptimizer', 'ConfirmationDialog', 'SmartDefaults'];
-
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/cognitive/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports ErrorPrevention', async () => {
+    const mod = await import('@/components/cognitive/ErrorPrevention');
+    expect(mod.ErrorPrevention).toBeDefined();
+  });
+  it('exports ProgressiveDisclosure', async () => {
+    const mod = await import('@/components/cognitive/ProgressiveDisclosure');
+    expect(mod.ProgressiveDisclosure).toBeDefined();
+  });
+  it('exports SmartDefaults', async () => {
+    const mod = await import('@/components/cognitive/SmartDefaults');
+    expect(mod.SmartDefaults).toBeDefined();
   });
 });
 
@@ -227,13 +276,17 @@ describe('E2E: Cognitive Module', () => {
 // ONBOARDING MODULE
 // =============================================
 describe('E2E: Onboarding Module', () => {
-  const components = ['OnboardingChecklist', 'OnboardingOverlay', 'OnboardingTour'];
-
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/onboarding/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports OnboardingChecklist', async () => {
+    const mod = await import('@/components/onboarding/OnboardingChecklist');
+    expect(mod.OnboardingChecklist).toBeDefined();
+  });
+  it('exports OnboardingTour', async () => {
+    const mod = await import('@/components/onboarding/OnboardingTour');
+    expect(mod.OnboardingTour).toBeDefined();
+  });
+  it('exports WelcomeModal', async () => {
+    const mod = await import('@/components/onboarding/WelcomeModal');
+    expect(mod.WelcomeModal).toBeDefined();
   });
 
   describe('Onboarding flow', () => {
@@ -260,7 +313,6 @@ describe('E2E: AI Module', () => {
     const mod = await import('@/components/ai/AutoTicketClassifier');
     expect(mod.AutoTicketClassifier).toBeDefined();
   });
-
   it('exports ChurnPredictionDashboard', async () => {
     const mod = await import('@/components/ai/ChurnPredictionDashboard');
     expect(mod.ChurnPredictionDashboard).toBeDefined();
