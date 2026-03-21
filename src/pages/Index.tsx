@@ -28,14 +28,41 @@ import { logAudit } from '@/lib/audit';
 import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu, Phone, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ViewRouter } from './ViewRouter';
+import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui/skeleton';
 
 function ViewLoadingFallback() {
   return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center space-y-3">
-        <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
-        <p className="text-sm text-muted-foreground">Carregando módulo...</p>
+    <div className="flex flex-col h-full p-6 gap-6 animate-fade-in">
+      {/* Header skeleton */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-10 h-10 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-24 rounded-lg" />
+          <Skeleton className="h-9 w-9 rounded-lg" />
+        </div>
       </div>
+
+      {/* Stats row skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map((i) => (
+          <SkeletonCard key={i} className="p-4">
+            <Skeleton className="h-3 w-20 mb-3" delay={i * 80} />
+            <Skeleton className="h-7 w-16 mb-1" delay={i * 80 + 40} />
+            <Skeleton className="h-3 w-12" delay={i * 80 + 80} />
+          </SkeletonCard>
+        ))}
+      </div>
+
+      {/* Content skeleton */}
+      <SkeletonCard className="flex-1 p-5">
+        <SkeletonText lines={4} />
+      </SkeletonCard>
     </div>
   );
 }
