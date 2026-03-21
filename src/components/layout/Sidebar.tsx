@@ -1,12 +1,18 @@
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   LogOut,
   Moon,
   Sun,
   Search,
+  Circle,
+  Clock,
+  MinusCircle,
+  Settings,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTheme } from '@/hooks/useTheme';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
