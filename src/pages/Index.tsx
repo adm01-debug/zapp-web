@@ -219,6 +219,7 @@ function IndexContent() {
                 status: 'online',
               }}
               onLogout={signOut}
+              inboxBadge={unreadNotifications || undefined}
             />
           )}
           
