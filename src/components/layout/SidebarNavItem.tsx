@@ -7,6 +7,7 @@ export interface NavItemConfig {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   shortcut?: string;
+  badge?: number;
 }
 
 // Map nav IDs to keyboard shortcut hints
@@ -19,6 +20,7 @@ interface SidebarNavItemProps {
   item: NavItemConfig;
   currentView: string;
   onViewChange: (v: string) => void;
+  badge?: number;
 }
 
 export function SidebarNavItem({ item, currentView, onViewChange }: SidebarNavItemProps) {
