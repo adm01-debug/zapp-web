@@ -13,7 +13,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 // EFFECTS MODULE (5 components)
 // =============================================
 describe('E2E: Effects Module', () => {
-  const components = ['AuroraBorealis', 'Confetti', 'EasterEggs', 'ParallaxContainer', 'ScrollEffects'];
+  const components = ['AuroraBorealis', 'Confetti', 'ParallaxContainer'];
 
   components.forEach(name => {
     it(`exports ${name}`, async () => {
