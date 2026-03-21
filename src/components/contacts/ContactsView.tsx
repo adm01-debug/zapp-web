@@ -643,6 +643,36 @@ export function ContactsView() {
         )}
       </motion.div>
 
+      {/* Results Summary */}
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-between text-sm text-muted-foreground"
+        >
+          <div className="flex items-center gap-2">
+            <span>
+              Exibindo <span className="font-semibold text-foreground">{filteredContacts.length}</span>
+              {filteredContacts.length !== contacts.length && (
+                <> de <span className="font-semibold text-foreground">{contacts.length}</span></>
+              )}
+              {' '}contato{contacts.length !== 1 ? 's' : ''}
+            </span>
+            {activeFiltersCount > 0 && (
+              <Badge variant="outline" className="text-xs gap-1">
+                <Filter className="w-3 h-3" />
+                {activeFiltersCount} filtro{activeFiltersCount !== 1 ? 's' : ''} ativo{activeFiltersCount !== 1 ? 's' : ''}
+              </Badge>
+            )}
+          </div>
+          {search && (
+            <span className="text-xs italic">
+              Buscando por "{search}"
+            </span>
+          )}
+        </motion.div>
+      )}
+
       {/* Contacts Table/Grid */}
       <Card>
         <CardContent className="p-0">
