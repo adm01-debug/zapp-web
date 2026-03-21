@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -16,6 +16,11 @@ interface SidebarNavGroupProps {
 export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, onViewChange, defaultOpen = false }: SidebarNavGroupProps) {
   const hasActiveItem = items.some(item => item.id === currentView);
   const [isOpen, setIsOpen] = useState(defaultOpen || hasActiveItem);
+
+  // Auto-expand when navigating to a child (e.g. via ⌘K or deep link)
+  useEffect(() => {
+    if (hasActiveItem && !isOpen) setIsOpen(true);
+  }, [hasActiveItem]);
 
   return (
     <div className="flex flex-col items-center w-full">

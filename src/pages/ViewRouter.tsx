@@ -1,5 +1,6 @@
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Construction, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useCurrentModule } from '@/hooks/useCurrentModule';
 import * as Views from './lazyViews';
 
 interface ViewRouterProps {
@@ -51,19 +52,50 @@ export function ViewRouter({ currentView, userId }: ViewRouterProps) {
     case 'performance': return <Views.PerformanceMonitor />;
     case 'omni-inbox': return <Views.OmnichannelInbox />;
     case 'audit-logs': return <Views.AuditLogDashboard />;
-    default:
-      return (
-        <div className="flex items-center justify-center h-full">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--gradient-primary)' }}>
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h2 className="font-display text-xl font-semibold text-foreground mb-2">
-              {currentView.charAt(0).toUpperCase() + currentView.slice(1)}
-            </h2>
-            <p className="text-muted-foreground">Esta seção está em desenvolvimento</p>
-          </motion.div>
-        </div>
-      );
+    default: return <FallbackView currentView={currentView} />;
   }
+}
+
+function FallbackView({ currentView }: { currentView: string }) {
+  const mod = useCurrentModule(currentView);
+  const Icon = mod.icon || Construction;
+
+  return (
+    <div className="flex items-center justify-center h-full bg-gradient-to-b from-background to-muted/20">
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+        className="text-center max-w-sm px-6"
+      >
+        <motion.div
+          className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-primary/20"
+          style={{ background: 'var(--gradient-primary)' }}
+          animate={{ rotate: [0, 2, -2, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <Icon className="w-9 h-9 text-primary-foreground" />
+        </motion.div>
+
+        <h2 className="font-display text-2xl font-bold text-foreground mb-2">
+          {mod.label}
+        </h2>
+
+        {mod.group && (
+          <span className="inline-block text-[11px] font-medium text-primary bg-primary/10 px-2.5 py-0.5 rounded-full mb-3">
+            {mod.group}
+          </span>
+        )}
+
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Este módulo está em desenvolvimento e será disponibilizado em breve.
+        </p>
+
+        <div className="flex items-center justify-center gap-1.5 mt-6 text-xs text-muted-foreground/60">
+          <Construction className="w-3.5 h-3.5" />
+          <span>Em construção</span>
+        </div>
+      </motion.div>
+    </div>
+  );
 }
