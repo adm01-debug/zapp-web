@@ -92,14 +92,17 @@ export function RealtimeInboxView() {
 
   // Process pending contact selection once conversations are loaded
   useEffect(() => {
-    if (pendingContactId && !loading && conversations.length >= 0) {
-      // Switch to search tab so the contact is always visible regardless of current filters
-      setMainTab('search');
-      setSelectedContactId(pendingContactId);
-      setSelectedContact(pendingContactId);
-      markAsRead(pendingContactId);
-      setPendingContactId(null);
-    }
+    if (!pendingContactId || loading) return;
+    
+    // Switch to search tab so the contact is visible regardless of current filters
+    setMainTab('search');
+    setSubTab('attending');
+    
+    // Find conversation or still select it (chat panel will handle missing conversation)
+    setSelectedContactId(pendingContactId);
+    setSelectedContact(pendingContactId);
+    markAsRead(pendingContactId);
+    setPendingContactId(null);
   }, [pendingContactId, loading, conversations, setSelectedContact, markAsRead]);
 
   const { conversations: cachedConversations, isOffline, usingCache } = useOfflineCache(conversations, loading);
