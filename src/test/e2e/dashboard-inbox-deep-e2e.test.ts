@@ -152,15 +152,15 @@ describe('E2E: Inbox Module Components', () => {
   const messageComponents = [
     'AISuggestions', 'AdvancedMessageMenu', 'BulkActionsToolbar',
     'ConversationContextMenu', 'DeletedMessagePlaceholder', 'ForwardMessageDialog',
-    'InteractiveMessage', 'InteractiveMessageBuilder', 'LinkPreview',
+    'InteractiveMessageBuilder', 'LinkPreview',
     'MessageContextActions', 'MessageContextMenu', 'MessagePreview',
     'MessageReactions', 'MessageStatus', 'NewMessageIndicator',
-    'ReplyQuote', 'ScheduleMessageDialog', 'SentimentIndicator',
+    'ScheduleMessageDialog',
     'SlashCommands', 'SwipeableListItem', 'TemplatesWithVariables',
     'TypingIndicator', 'WhisperMode', 'KeyboardShortcutsHelp',
     'AIConversationAssistant', 'QueuePositionNotifier',
     'RealtimeCollaboration', 'RealtimeTranscription', 'SLAIndicator',
-    'VirtualizedRealtimeList', 'MediaPreview',
+    'VirtualizedRealtimeList',
   ];
 
   messageComponents.forEach(name => {

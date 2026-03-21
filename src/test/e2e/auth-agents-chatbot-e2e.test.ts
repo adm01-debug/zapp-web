@@ -237,7 +237,7 @@ describe('E2E: Contacts Module', () => {
     });
 
     it('validates phone normalization', () => {
-      const normalize = (phone: string) => phone.replace(/[^+\d]/g, '');
+      const normalize = (phone: string) => phone.replace(/[^\d+]/g, '');
       expect(normalize('(11) 99988-7766')).toBe('1199887766');
       expect(normalize('+55 11 999')).toBe('+5511999');
     });

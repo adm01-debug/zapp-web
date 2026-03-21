@@ -249,7 +249,7 @@ describe('E2E: Accessibility Component', () => {
 // INTEGRATIONS MODULE
 // =============================================
 describe('E2E: Integrations Module', () => {
-  const components = ['EvolutionAPIConfig', 'IntegrationsView', 'N8NIntegration', 'TypebotIntegration', 'WebhookConfig'];
+  const components = ['GoogleCalendarIntegration', 'GoogleSheetsIntegrationView', 'IntegrationsHub', 'N8nIntegrationView', 'SentryIntegrationView'];
 
   components.forEach(name => {
     it(`exports ${name}`, async () => {
