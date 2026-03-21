@@ -378,8 +378,11 @@ export function ContactsView() {
     setEditingContact(prev => prev ? { ...prev, [field]: value } as Contact : null);
   }, []);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+    <div ref={scrollContainerRef} className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <ScrollToTopButton scrollRef={scrollContainerRef} />
       <AuroraBorealis />
       <FloatingParticles />
       {/* Header with Breadcrumbs */}
