@@ -191,7 +191,7 @@ describe('CampaignsView', () => {
     renderView();
     // Find all play buttons (svg with class lucide-play)
     const playButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-play') !== null
+      b => b.querySelector('.lucide-play') !== null
     );
     expect(playButtons.length).toBeGreaterThan(0);
     fireEvent.click(playButtons[0]);
@@ -201,7 +201,7 @@ describe('CampaignsView', () => {
   it('calls updateCampaign with paused when pause is clicked on a sending campaign', async () => {
     renderView();
     const pauseButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-pause') !== null
+      b => b.querySelector('.lucide-pause') !== null
     );
     expect(pauseButtons.length).toBeGreaterThan(0);
     fireEvent.click(pauseButtons[0]);

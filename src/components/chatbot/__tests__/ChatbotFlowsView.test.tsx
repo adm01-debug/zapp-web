@@ -224,7 +224,7 @@ describe('ChatbotFlowsView', () => {
   it('opens flow editor when edit button is clicked', async () => {
     renderView();
     const editButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-edit-2') !== null
+      b => b.querySelector('.lucide-edit-2') !== null
     );
     fireEvent.click(editButtons[0]);
     expect(screen.getByTestId('flow-editor')).toBeInTheDocument();
@@ -234,7 +234,7 @@ describe('ChatbotFlowsView', () => {
   it('returns to list view when editor is closed', async () => {
     renderView();
     const editButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-edit-2') !== null
+      b => b.querySelector('.lucide-edit-2') !== null
     );
     fireEvent.click(editButtons[0]);
     await userEvent.click(screen.getByText('Close Editor'));
@@ -246,7 +246,7 @@ describe('ChatbotFlowsView', () => {
   it('calls createFlow.mutate for duplication with copy suffix', async () => {
     renderView();
     const copyButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-copy') !== null
+      b => b.querySelector('.lucide-copy') !== null
     );
     fireEvent.click(copyButtons[0]);
     expect(mockCreateFlow.mutate).toHaveBeenCalledTimes(1);

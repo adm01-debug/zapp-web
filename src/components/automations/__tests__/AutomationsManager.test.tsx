@@ -134,7 +134,7 @@ describe('AutomationsManager', () => {
     await waitFor(() => expect(screen.getByText('To Delete')).toBeInTheDocument());
 
     const trashBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-trash-2') !== null
+      b => b.querySelector('.lucide-trash-2') !== null
     );
     await userEvent.click(trashBtns[0]);
     expect(toast.success).toHaveBeenCalledWith('Automação removida!');
@@ -152,7 +152,7 @@ describe('AutomationsManager', () => {
     await waitFor(() => expect(screen.getByText('Original')).toBeInTheDocument());
 
     const copyBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-copy') !== null
+      b => b.querySelector('.lucide-copy') !== null
     );
     await userEvent.click(copyBtns[0]);
     expect(toast.success).toHaveBeenCalledWith('Automação duplicada!');
@@ -167,7 +167,7 @@ describe('AutomationsManager', () => {
     await waitFor(() => expect(screen.getByText('Src')).toBeInTheDocument());
 
     const copyBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-copy') !== null
+      b => b.querySelector('.lucide-copy') !== null
     );
     await userEvent.click(copyBtns[0]);
     const badges = screen.getAllByText('Inativo');
