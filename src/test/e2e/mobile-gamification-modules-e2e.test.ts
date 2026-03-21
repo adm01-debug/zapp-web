@@ -20,10 +20,10 @@ describe('E2E: Mobile Module', () => {
     { file: 'MobileDrawerMenu', name: 'MobileDrawerMenu' },
     { file: 'MobileFAB', name: 'MobileFAB' },
     { file: 'MobileHeader', name: 'MobileHeader' },
-    { file: 'MobileNavigation', name: 'MobileNavigation' },
-    { file: 'MobilePullToRefresh', name: 'MobilePullToRefresh' },
+    { file: 'MobileNavigation', name: 'MobileTabBar' },
+    { file: 'MobilePullToRefresh', name: 'MobilePullToRefreshIndicator' },
     { file: 'NotificationsPanel', name: 'NotificationsPanel' },
-    { file: 'SwipeGestures', name: 'SwipeGestures' },
+    { file: 'SwipeGestures', name: 'SwipeableRow' },
     { file: 'SwipeableMessage', name: 'SwipeableMessage' },
     { file: 'VoiceDictationButton', name: 'VoiceDictationButton' },
   ];
