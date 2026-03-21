@@ -29,6 +29,7 @@ import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu, Phone, Loade
 import { Button } from '@/components/ui/button';
 import { ViewRouter } from './ViewRouter';
 import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui/skeleton';
+import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indicator';
 
 function ViewLoadingFallback() {
   return (
@@ -266,6 +267,10 @@ function IndexContent() {
         </div>
 
         <CommandPalette onNavigate={setCurrentView} />
+
+        {/* Network status indicators */}
+        <OfflineIndicator />
+        <ConnectionToast />
 
         <WelcomeModal
           isOpen={showWelcome}
