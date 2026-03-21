@@ -233,7 +233,7 @@ describe('E2E: Inbox Data Integrity', () => {
   describe('Quick replies', () => {
     it('validates quick reply structure', () => {
       const reply = { id: 'qr-1', shortcut: '/ola', content: 'Olá! Como posso ajudar?', category: 'saudação' };
-      expect(reply.shortcut).toStartWith('/');
+      expect(reply.shortcut.startsWith('/')).toBe(true);
     });
 
     it('validates quick reply search', () => {
