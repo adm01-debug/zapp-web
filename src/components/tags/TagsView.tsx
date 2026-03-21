@@ -145,8 +145,11 @@ export function TagsView() {
   const totalContacts = tags.reduce((sum, t) => sum + (t.contact_count || 0), 0);
   const mostUsedTag = [...tags].sort((a, b) => (b.contact_count || 0) - (a.contact_count || 0))[0];
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+    <div ref={scrollRef} className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <ScrollToTopButton scrollRef={scrollRef} />
       <AuroraBorealis />
       <FloatingParticles />
       {/* Header with Breadcrumbs */}
