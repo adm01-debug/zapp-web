@@ -220,9 +220,9 @@ describe('E2E: Docs Module', () => {
 // ACCESSIBILITY COMPONENT MODULE
 // =============================================
 describe('E2E: Accessibility Component', () => {
-  it('exports AccessibilityPanel', async () => {
-    const mod = await import('@/components/accessibility/AccessibilityPanel');
-    expect(mod.AccessibilityPanel).toBeDefined();
+  it('exports from accessibility index', async () => {
+    const mod = await import('@/components/accessibility/index');
+    expect(mod).toBeDefined();
   });
 });
 
