@@ -36,9 +36,9 @@ describe('E2E: Performance Module', () => {
     expect(mod.OptimizedImage).toBeDefined();
   });
 
-  it('exports Prefetcher', async () => {
+  it('exports PrefetchLink', async () => {
     const mod = await import('@/components/performance/Prefetcher');
-    expect(mod.Prefetcher).toBeDefined();
+    expect(mod.PrefetchLink).toBeDefined();
   });
 
   it('exports LazyRoutes', async () => {
