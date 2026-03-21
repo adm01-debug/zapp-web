@@ -333,7 +333,7 @@ describe('E2E: Tags Module', () => {
 describe('E2E: SLA Module', () => {
   it('exports SLAHistoryDashboard', async () => {
     const mod = await import('@/components/sla/SLAHistoryDashboard');
-    expect(mod.SLAHistoryDashboard || mod.default).toBeDefined();
+    expect(mod.SLAHistoryDashboard).toBeDefined();
   });
 
   describe('SLA logic', () => {

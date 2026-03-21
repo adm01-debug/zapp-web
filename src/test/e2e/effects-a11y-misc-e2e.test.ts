@@ -248,8 +248,8 @@ describe('E2E: Omnichannel Module', () => {
     const mod = await import('@/components/omnichannel/OmnichannelInbox');
     expect(mod.OmnichannelInbox).toBeDefined();
   });
-  it('exports OmnichannelView', async () => {
-    const mod = await import('@/components/omnichannel/OmnichannelView');
-    expect(mod.OmnichannelView).toBeDefined();
+  it('exports OmnichannelManager', async () => {
+    const mod = await import('@/components/omnichannel/OmnichannelManager');
+    expect(mod.OmnichannelManager).toBeDefined();
   });
 });
