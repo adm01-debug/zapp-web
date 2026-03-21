@@ -318,6 +318,7 @@ describe('E2E: Remaining Hooks', () => {
     const mod = await import('@/hooks/useResourcePrefetch');
     expect(mod).toBeDefined();
   });
+});
 
 // =============================================
 // UTILS MODULE
