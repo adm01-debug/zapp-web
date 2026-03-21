@@ -67,9 +67,18 @@ describe('E2E: Effects Module', () => {
 // A11Y MODULE (3 components)
 // =============================================
 describe('E2E: Accessibility Module', () => {
-  const components = ['ColorContrast', 'KeyboardNavigation', 'MotionPreferences'];
-
-  components.forEach(name => {
+  it('exports highContrastPalette from ColorContrast', async () => {
+    const mod = await import('@/components/a11y/ColorContrast');
+    expect(mod.highContrastPalette).toBeDefined();
+  });
+  it('exports useRovingTabindex from KeyboardNavigation', async () => {
+    const mod = await import('@/components/a11y/KeyboardNavigation');
+    expect(mod.useRovingTabindex).toBeDefined();
+  });
+  it('exports MotionPreferencesProvider from MotionPreferences', async () => {
+    const mod = await import('@/components/a11y/MotionPreferences');
+    expect(mod.MotionPreferencesProvider).toBeDefined();
+  });
     it(`exports ${name}`, async () => {
       const mod = await import(`../../components/a11y/${name}`);
       expect(mod[name] || mod.default).toBeDefined();
