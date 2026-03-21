@@ -33,7 +33,16 @@ export function InteractiveMessageDisplay({
     if (disabled) return;
     
     if (button.type === 'url' && button.url) {
-      window.open(button.url, '_blank', 'noopener,noreferrer');
+      try {
+        const parsed = new URL(button.url);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          window.open(button.url, '_blank', 'noopener,noreferrer');
+        } else {
+          console.warn('Blocked opening URL with disallowed protocol:', button.url);
+        }
+      } catch {
+        console.warn('Blocked opening invalid URL:', button.url);
+      }
     } else if (button.type === 'phone' && button.phoneNumber) {
       window.open(`tel:${button.phoneNumber}`, '_self');
     } else if (button.type === 'reply') {

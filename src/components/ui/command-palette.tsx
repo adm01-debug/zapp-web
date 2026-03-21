@@ -324,7 +324,21 @@ export function CommandPalette({
     if (item.action) {
       item.action();
     } else if (item.href) {
-      window.location.href = item.href;
+      const href = item.href;
+      if (href.startsWith('/')) {
+        window.location.href = href;
+      } else {
+        try {
+          const url = new URL(href, window.location.origin);
+          if (url.origin === window.location.origin) {
+            window.location.href = href;
+          } else {
+            console.warn('Blocked redirect to untrusted URL:', href);
+          }
+        } catch {
+          console.warn('Blocked redirect to invalid URL:', href);
+        }
+      }
     } else if (item.id.startsWith('nav-')) {
       const view = item.id.replace('nav-', '');
       onNavigate?.(view);
