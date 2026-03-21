@@ -3,6 +3,7 @@ import {
   LogOut,
   Moon,
   Sun,
+  Search,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -53,6 +54,24 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
           <SidebarNavItem key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
         ))}
       </nav>
+
+      {/* ⌘K Search trigger */}
+      <div className="flex justify-center px-[11px] my-1">
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
+              className="w-[40px] h-[30px] rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/50 hover:border-border"
+              aria-label="Buscar módulo (Ctrl+K)"
+            >
+              <Search className="w-[14px] h-[14px]" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right" sideOffset={8} className="text-xs">
+            Buscar <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘K</kbd>
+          </TooltipContent>
+        </Tooltip>
+      </div>
 
       <div className="mx-3 my-1 h-px bg-border/60" />
 
