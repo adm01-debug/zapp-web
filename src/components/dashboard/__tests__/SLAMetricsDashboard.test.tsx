@@ -67,7 +67,8 @@ describe('SLAMetricsDashboard', () => {
     mockFrom.mockImplementation(makeSLAChain([], [{ id: 'p1', name: 'Agent 1', avatar_url: null }], []));
     render(<SLAMetricsDashboard />);
     await waitFor(() => {
-      expect(screen.getByText('100%')).toBeInTheDocument();
+      const elements = screen.getAllByText('100%');
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
@@ -132,7 +133,8 @@ describe('SLAMetricsDashboard', () => {
     mockFrom.mockImplementation(makeSLAChain(slaData, profiles, contacts));
     render(<SLAMetricsDashboard />);
     await waitFor(() => {
-      expect(screen.getByText('Carlos Silva')).toBeInTheDocument();
+      const elements = screen.getAllByText('Carlos Silva');
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 

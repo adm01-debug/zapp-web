@@ -72,25 +72,28 @@ const mockAuditLogs = [
 function setupProfilesMock() {
   mockFrom.mockImplementation((table: string) => {
     if (table === 'profiles') {
-      return {
-        select: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
-          in: vi.fn().mockResolvedValue({
-            data: mockProfiles.map(p => ({ user_id: p.user_id, name: p.name, email: p.email })),
-            error: null,
-          }),
+      const selectResult = {
+        order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
+        in: vi.fn().mockResolvedValue({
+          data: mockProfiles.map(p => ({ user_id: p.user_id, name: p.name, email: p.email })),
+          error: null,
         }),
+      };
+      return {
+        select: vi.fn().mockReturnValue(selectResult),
         update: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({ error: null }),
         }),
       };
     }
     if (table === 'user_roles') {
+      const rolesResult = Promise.resolve({ data: mockRoles, error: null });
+      const selectObj: any = {
+        ...rolesResult,
+        then: rolesResult.then.bind(rolesResult),
+      };
       return {
-        select: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockRoles, error: null }),
-          then: (cb: any) => cb({ data: mockRoles, error: null }),
-        }),
+        select: vi.fn().mockReturnValue(selectObj),
         delete: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({ error: null }),
         }),
@@ -112,37 +115,6 @@ function setupProfilesMock() {
         eq: vi.fn().mockResolvedValue({ data: [], error: null }),
       }),
     };
-  });
-
-  // Make the profiles query also resolve when used as thenable
-  const profilesBuilder = {
-    select: vi.fn().mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
-    }),
-  };
-  const rolesBuilder = {
-    select: vi.fn().mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: mockRoles, error: null }),
-    }),
-    delete: vi.fn().mockReturnValue({
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    }),
-    insert: vi.fn().mockResolvedValue({ error: null }),
-  };
-
-  mockFrom.mockImplementation((table: string) => {
-    if (table === 'profiles') return profilesBuilder;
-    if (table === 'user_roles') return rolesBuilder;
-    if (table === 'audit_logs') {
-      return {
-        select: vi.fn().mockReturnValue({
-          order: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue({ data: mockAuditLogs, error: null }),
-          }),
-        }),
-      };
-    }
-    return { select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: [], error: null }) }) };
   });
 }
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -57,7 +57,6 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Default mock for supabase from
 mockFrom.mockImplementation((table: string) => {
   if (table === 'whatsapp_connections') {
     return {
@@ -66,7 +65,14 @@ mockFrom.mockImplementation((table: string) => {
       }),
       insert: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'new1', name: 'New', phone_number: '123', status: 'disconnected', instance_id: 'new_inst', is_default: false, created_at: new Date().toISOString() }, error: null }),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'new1', name: 'New', phone_number: '123',
+              status: 'disconnected', instance_id: 'new_inst',
+              is_default: false, created_at: new Date().toISOString(),
+            },
+            error: null,
+          }),
         }),
       }),
       update: vi.fn().mockReturnValue({
@@ -168,12 +174,10 @@ function renderView() {
 describe('ConnectionsView', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  // ---- Rendering ----
-
   it('renders the page title', async () => {
     renderView();
     await waitFor(() => {
-      expect(screen.getByText('Conexoes WhatsApp')).toBeDefined();
+      expect(screen.getByText('Conexões WhatsApp')).toBeInTheDocument();
     });
   });
 
@@ -210,7 +214,7 @@ describe('ConnectionsView', () => {
   it('shows default badge on default connection', async () => {
     renderView();
     await waitFor(() => {
-      expect(screen.getByText('Padrao')).toBeDefined();
+      expect(screen.getByText('Padrão')).toBeInTheDocument();
     });
   });
 
@@ -247,9 +251,9 @@ describe('ConnectionsView', () => {
   it('displays stat cards', async () => {
     renderView();
     await waitFor(() => {
-      expect(screen.getByText('Total de Conexoes')).toBeDefined();
-      expect(screen.getByText('Conectadas')).toBeDefined();
-      expect(screen.getByText('Desconectadas')).toBeDefined();
+      expect(screen.getByText('Total de Conexões')).toBeInTheDocument();
+      expect(screen.getByText('Conectadas')).toBeInTheDocument();
+      expect(screen.getByText('Desconectadas')).toBeInTheDocument();
     });
   });
 
@@ -264,15 +268,15 @@ describe('ConnectionsView', () => {
 
   it('opens add connection dialog', async () => {
     renderView();
-    await waitFor(() => expect(screen.getByText('Nova Conexao')).toBeDefined());
-    await userEvent.click(screen.getByText('Nova Conexao'));
-    expect(screen.getByText('Adicionar Nova Conexao')).toBeDefined();
+    await waitFor(() => expect(screen.getByText('Nova Conexão')).toBeInTheDocument());
+    await userEvent.click(screen.getByText('Nova Conexão'));
+    expect(screen.getByText('Adicionar Nova Conexão')).toBeInTheDocument();
   });
 
   it('shows form fields in add dialog', async () => {
     renderView();
-    await waitFor(() => expect(screen.getByText('Nova Conexao')).toBeDefined());
-    await userEvent.click(screen.getByText('Nova Conexao'));
+    await waitFor(() => expect(screen.getByText('Nova Conexão')).toBeInTheDocument());
+    await userEvent.click(screen.getByText('Nova Conexão'));
     expect(screen.getByPlaceholderText(/WhatsApp Vendas/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/\+55/)).toBeInTheDocument();
   });
@@ -305,14 +309,13 @@ describe('ConnectionsView', () => {
   // ---- Loading state ----
 
   it('shows loading spinner initially', () => {
-    // Override mockFrom to delay resolution
     mockFrom.mockImplementation(() => ({
       select: vi.fn().mockReturnValue({
-        order: vi.fn().mockReturnValue(new Promise(() => {})), // never resolves
+        order: vi.fn().mockReturnValue(new Promise(() => {})),
       }),
     }));
     renderView();
-    expect(screen.getByText(/Carregando conexoes/)).toBeInTheDocument();
+    expect(screen.getByText(/Carregando conexões/)).toBeInTheDocument();
   });
 });
 
@@ -331,13 +334,13 @@ describe('ConnectionsView - empty state', () => {
     await waitFor(() => {
       expect(screen.getByTestId('empty-state')).toBeInTheDocument();
     });
-    expect(screen.getByText('Nenhuma conexao configurada')).toBeInTheDocument();
+    expect(screen.getByText('Nenhuma conexão configurada')).toBeInTheDocument();
   });
 
   it('shows add button in empty state', async () => {
     renderView();
     await waitFor(() => {
-      expect(screen.getByText('Adicionar Conexao')).toBeInTheDocument();
+      expect(screen.getByText('Adicionar Conexão')).toBeInTheDocument();
     });
   });
 });

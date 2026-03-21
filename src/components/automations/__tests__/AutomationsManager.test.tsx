@@ -26,13 +26,13 @@ describe('AutomationsManager', () => {
 
   it('renders the title and description', () => {
     renderView();
-    expect(screen.getByText('Automacoes')).toBeDefined();
-    expect(screen.getByText(/respostas e acoes automaticas/i)).toBeDefined();
+    expect(screen.getByText('Automações')).toBeInTheDocument();
+    expect(screen.getByText(/respostas e ações automáticas/i)).toBeInTheDocument();
   });
 
   it('shows empty state when no automations exist', () => {
     renderView();
-    expect(screen.getByText('Nenhuma automacao encontrada')).toBeDefined();
+    expect(screen.getByText('Nenhuma automação encontrada')).toBeInTheDocument();
   });
 
   it('shows Nova button', () => {
@@ -45,15 +45,15 @@ describe('AutomationsManager', () => {
   it('opens editor dialog when Nova is clicked', async () => {
     renderView();
     await userEvent.click(screen.getByText('Nova'));
-    expect(screen.getByText('Nova Automacao')).toBeDefined();
+    expect(screen.getByText('Nova Automação')).toBeInTheDocument();
   });
 
   it('shows all form fields in editor dialog', async () => {
     renderView();
     await userEvent.click(screen.getByText('Nova'));
-    expect(screen.getByText('Nome da Automacao')).toBeDefined();
-    expect(screen.getByText(/Gatilho/)).toBeDefined();
-    expect(screen.getByText(/Acao/)).toBeDefined();
+    expect(screen.getByText('Nome da Automação')).toBeInTheDocument();
+    expect(screen.getByText(/Gatilho/)).toBeInTheDocument();
+    expect(screen.getByText(/Ação/)).toBeInTheDocument();
   });
 
   it('creates a new automation when form is filled and saved', async () => {
@@ -63,7 +63,7 @@ describe('AutomationsManager', () => {
     await userEvent.type(screen.getByPlaceholderText(/Boas-vindas/), 'Test Auto');
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Automacao criada!');
+      expect(toast.success).toHaveBeenCalledWith('Automação criada!');
     });
   });
 
@@ -73,7 +73,7 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByText('Nova'));
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Nome e obrigatorio');
+      expect(toast.error).toHaveBeenCalledWith('Nome é obrigatório');
     });
   });
 
@@ -102,13 +102,11 @@ describe('AutomationsManager', () => {
   it('toggles automation active status', async () => {
     const { toast } = await import('sonner');
     renderView();
-    // Create one first
     await userEvent.click(screen.getByText('Nova'));
     await userEvent.type(screen.getByPlaceholderText(/Boas-vindas/), 'Toggle Test');
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('Toggle Test')).toBeInTheDocument());
 
-    // Toggle the switch
     const switches = screen.getAllByRole('switch');
     await userEvent.click(switches[0]);
     expect(toast.success).toHaveBeenCalledWith('Status atualizado!');
@@ -135,9 +133,11 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('To Delete')).toBeInTheDocument());
 
-    const trashBtns = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-trash-2'));
+    const trashBtns = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-trash-2') !== null
+    );
     await userEvent.click(trashBtns[0]);
-    expect(toast.success).toHaveBeenCalledWith('Automacao removida!');
+    expect(toast.success).toHaveBeenCalledWith('Automação removida!');
     expect(screen.queryByText('To Delete')).not.toBeInTheDocument();
   });
 
@@ -151,10 +151,12 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('Original')).toBeInTheDocument());
 
-    const copyBtns = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-copy'));
+    const copyBtns = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-copy') !== null
+    );
     await userEvent.click(copyBtns[0]);
-    expect(toast.success).toHaveBeenCalledWith('Automacao duplicada!');
-    expect(screen.getByText('Original (copia)')).toBeInTheDocument();
+    expect(toast.success).toHaveBeenCalledWith('Automação duplicada!');
+    expect(screen.getByText('Original (cópia)')).toBeInTheDocument();
   });
 
   it('duplicated automation is inactive', async () => {
@@ -164,7 +166,9 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('Src')).toBeInTheDocument());
 
-    const copyBtns = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-copy'));
+    const copyBtns = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-copy') !== null
+    );
     await userEvent.click(copyBtns[0]);
     const badges = screen.getAllByText('Inativo');
     expect(badges.length).toBeGreaterThanOrEqual(1);
@@ -174,8 +178,7 @@ describe('AutomationsManager', () => {
 
   it('renders filter selector with all/active/inactive options', () => {
     renderView();
-    // Default filter is "all" -> the SelectTrigger shows "Todas"
-    expect(screen.getByText('Todas')).toBeDefined();
+    expect(screen.getByText('Todas')).toBeInTheDocument();
   });
 
   // ---- Action flow display ----
@@ -210,9 +213,11 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('To Edit')).toBeInTheDocument());
 
-    const editBtns = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-edit-2'));
+    const editBtns = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-edit-2') !== null
+    );
     await userEvent.click(editBtns[0]);
-    expect(screen.getByText('Editar Automacao')).toBeDefined();
+    expect(screen.getByText('Editar Automação')).toBeInTheDocument();
   });
 
   // ---- Cancel dialog ----
@@ -220,8 +225,10 @@ describe('AutomationsManager', () => {
   it('closes dialog when Cancelar is clicked', async () => {
     renderView();
     await userEvent.click(screen.getByText('Nova'));
-    expect(screen.getByText('Nova Automacao')).toBeDefined();
+    expect(screen.getByText('Nova Automação')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
-    expect(screen.queryByText('Nova Automacao')).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByText('Nova Automação')).not.toBeInTheDocument();
+    });
   });
 });

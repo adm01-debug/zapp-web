@@ -39,7 +39,9 @@ describe('SystemFeaturesView', () => {
     render(<SystemFeaturesView />);
     expect(screen.getByText(/Autenticação e Segurança/)).toBeInTheDocument();
     expect(screen.getByText(/Inbox.*Chat.*Tempo Real/i)).toBeInTheDocument();
-    expect(screen.getByText(/Edge Functions/)).toBeInTheDocument();
+    // "Edge Functions" appears in section title and stats footer
+    const edgeFnMatches = screen.getAllByText(/Edge Functions/);
+    expect(edgeFnMatches.length).toBeGreaterThanOrEqual(1);
   });
 
   it('has search input', () => {

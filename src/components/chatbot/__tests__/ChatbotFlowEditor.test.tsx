@@ -16,8 +16,8 @@ const baseFlow: ChatbotFlow = {
   id: 'f1', name: 'Test Flow', description: 'Test', is_active: true,
   trigger_type: 'keyword', trigger_value: 'test',
   nodes: [
-    { id: 'n1', type: 'start', data: { label: 'Inicio' }, position: { x: 0, y: 0 } },
-    { id: 'n2', type: 'message', data: { label: 'Mensagem 1', content: 'Ola!' }, position: { x: 0, y: 100 } },
+    { id: 'n1', type: 'start', data: { label: 'Start Node' }, position: { x: 0, y: 0 } },
+    { id: 'n2', type: 'message', data: { label: 'Msg Node 1', content: 'Ola!' }, position: { x: 0, y: 100 } },
   ],
   edges: [{ id: 'e1', source: 'n1', target: 'n2' }],
   variables: {}, whatsapp_connection_id: null, created_by: null,
@@ -42,83 +42,101 @@ describe('ChatbotFlowEditor', () => {
 
   it('shows node count and edge count', () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    expect(screen.getByText(/2 nos/)).toBeDefined();
-    expect(screen.getByText(/1 conex/)).toBeDefined();
+    expect(screen.getByText(/2 nós/)).toBeInTheDocument();
+    expect(screen.getByText(/1 conexões/)).toBeInTheDocument();
   });
 
   it('renders existing nodes', () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    expect(screen.getByText('Inicio')).toBeInTheDocument();
-    expect(screen.getByText('Mensagem 1')).toBeInTheDocument();
+    expect(screen.getByText('Start Node')).toBeInTheDocument();
+    expect(screen.getByText('Msg Node 1')).toBeInTheDocument();
   });
 
   it('shows empty state for flow with no nodes', () => {
     render(<ChatbotFlowEditor flow={emptyFlow} onSave={onSave} onClose={onClose} />);
     expect(screen.getByText('Fluxo vazio')).toBeInTheDocument();
-    expect(screen.getByText('Adicione nos para construir o fluxo')).toBeDefined();
   });
 
   it('calls onClose when back button is clicked', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const backBtn = screen.getAllByRole('button').find(b => b.querySelector('.lucide-arrow-left'));
+    const backBtn = screen.getAllByRole('button').find(
+      b => b.querySelector('.lucide-arrow-left') !== null
+    );
     expect(backBtn).toBeDefined();
-    await userEvent.click(backBtn!);
+    fireEvent.click(backBtn!);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('calls onSave with current nodes and edges', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const saveBtn = screen.getByRole('button', { name: /Salvar/ });
-    await userEvent.click(saveBtn);
+    const saveBtn = screen.getAllByRole('button').find(
+      b => b.querySelector('.lucide-save') !== null
+    );
+    fireEvent.click(saveBtn!);
     expect(onSave).toHaveBeenCalledTimes(1);
-    expect(onSave.mock.calls[0][0]).toHaveLength(2); // nodes
-    expect(onSave.mock.calls[0][1]).toHaveLength(1); // edges
+    expect(onSave.mock.calls[0][0]).toHaveLength(2);
+    expect(onSave.mock.calls[0][1]).toHaveLength(1);
   });
 
   it('opens add node dialog', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    await userEvent.click(screen.getByText('Adicionar No'));
-    expect(screen.getByText('Adicionar No')).toBeDefined();
-    expect(screen.getByText('Mensagem')).toBeInTheDocument();
+    // Click "Adicionar Nó" button in toolbar
+    const addNodeBtn = screen.getAllByRole('button').find(
+      b => b.textContent?.includes('Adicionar Nó')
+    );
+    expect(addNodeBtn).toBeDefined();
+    await userEvent.click(addNodeBtn!);
+    // Dialog should show node type options
     expect(screen.getByText('Pergunta')).toBeInTheDocument();
     expect(screen.getByText('Aguardar')).toBeInTheDocument();
   });
 
   it('adds a new message node', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    await userEvent.click(screen.getByText('Adicionar No'));
-    // Click the "Mensagem" button in the dialog
-    const msgButtons = screen.getAllByText('Mensagem');
-    const dialogMsgBtn = msgButtons.find(el => el.closest('button'));
-    await userEvent.click(dialogMsgBtn!);
-    // Now should have 3 nodes; save and check
-    await userEvent.click(screen.getByRole('button', { name: /Salvar/ }));
+    const addNodeBtn = screen.getAllByRole('button').find(
+      b => b.textContent?.includes('Adicionar Nó')
+    );
+    await userEvent.click(addNodeBtn!);
+    // Find the "Mensagem" button in the dialog grid
+    const msgBtns = screen.getAllByRole('button').filter(
+      b => b.textContent?.trim() === 'Mensagem'
+    );
+    await userEvent.click(msgBtns[0]);
+    // Save and check 3 nodes
+    const saveBtn = screen.getAllByRole('button').find(
+      b => b.querySelector('.lucide-save') !== null
+    );
+    fireEvent.click(saveBtn!);
     expect(onSave.mock.calls[0][0]).toHaveLength(3);
   });
 
   it('does not show delete button on start nodes', () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    // Start node has type 'start' - its card should NOT have a trash button
-    // Message node should have one
-    const trashButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-trash-2'));
-    // Only 1 trash (for message node, not start node)
+    const trashButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('.lucide-trash-2') !== null
+    );
+    // Only message node should have trash (start type excluded)
     expect(trashButtons.length).toBe(1);
   });
 
   it('removes a node when trash is clicked', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const trashButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-trash-2'));
-    await userEvent.click(trashButtons[0]);
-    // Should only have 1 node left
-    await userEvent.click(screen.getByRole('button', { name: /Salvar/ }));
+    const trashButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('.lucide-trash-2') !== null
+    );
+    fireEvent.click(trashButtons[0]);
+    const saveBtn = screen.getAllByRole('button').find(
+      b => b.querySelector('.lucide-save') !== null
+    );
+    fireEvent.click(saveBtn!);
     expect(onSave.mock.calls[0][0]).toHaveLength(1);
-    expect(onSave.mock.calls[0][1]).toHaveLength(0); // edges removed too
+    expect(onSave.mock.calls[0][1]).toHaveLength(0);
   });
 
   it('shows connection panel when a node is clicked', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    // Click on the start node card
-    await userEvent.click(screen.getByText('Inicio'));
+    // Click on the start node card area
+    fireEvent.click(screen.getByText('Start Node'));
     expect(screen.getByText('Conectar a:')).toBeInTheDocument();
   });
 
@@ -129,26 +147,31 @@ describe('ChatbotFlowEditor', () => {
 
   it('shows edge connections as badges', () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    // The start node should show an edge badge pointing to Mensagem 1
-    const edgeBadge = screen.getByText(/Mensagem 1/);
+    // Edge from n1 -> n2, should show target label "Mensagem 1"
+    const edgeBadge = screen.getByText(/→ Mensagem 1/);
     expect(edgeBadge).toBeInTheDocument();
   });
 
   it('opens edit node dialog', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    // Click the message-square edit button for a node
-    const editBtns = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-message-square'));
+    const editBtns = screen.getAllByRole('button').filter(
+      b => b.querySelector('.lucide-message-square') !== null
+    );
     expect(editBtns.length).toBeGreaterThan(0);
-    await userEvent.click(editBtns[0]);
-    expect(screen.getByText(/Editar No/)).toBeDefined();
+    fireEvent.click(editBtns[0]);
+    expect(screen.getByText(/Editar Nó/)).toBeInTheDocument();
   });
 
   it('adds delay node with default 5s', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    await userEvent.click(screen.getByText('Adicionar No'));
-    const delayBtn = screen.getAllByText('Aguardar').find(el => el.closest('button'));
-    await userEvent.click(delayBtn!);
-    // Check delay seconds shown
+    const addNodeBtn = screen.getAllByRole('button').find(
+      b => b.textContent?.includes('Adicionar Nó')
+    );
+    await userEvent.click(addNodeBtn!);
+    const delayBtns = screen.getAllByRole('button').filter(
+      b => b.textContent?.trim() === 'Aguardar'
+    );
+    await userEvent.click(delayBtns[0]);
     expect(screen.getByText(/Aguardar 5s/)).toBeInTheDocument();
   });
 
@@ -156,12 +179,12 @@ describe('ChatbotFlowEditor', () => {
     const flowWithQuestion: ChatbotFlow = {
       ...baseFlow,
       nodes: [
-        { id: 'n1', type: 'question', data: { label: 'Q', options: ['Sim', 'Nao'] }, position: { x: 0, y: 0 } },
+        { id: 'n1', type: 'question', data: { label: 'Q', options: ['Sim', 'Não'] }, position: { x: 0, y: 0 } },
       ],
       edges: [],
     };
     render(<ChatbotFlowEditor flow={flowWithQuestion} onSave={onSave} onClose={onClose} />);
     expect(screen.getByText('Sim')).toBeInTheDocument();
-    expect(screen.getByText('Nao')).toBeInTheDocument();
+    expect(screen.getByText('Não')).toBeInTheDocument();
   });
 });

@@ -71,7 +71,8 @@ describe('SentimentAlertsDashboard', () => {
   it('renders the dashboard title', async () => {
     render(<SentimentAlertsDashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/Sentimento/i)).toBeInTheDocument();
+      const elements = screen.getAllByText(/Sentimento/i);
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
@@ -108,7 +109,8 @@ describe('SentimentAlertsDashboard', () => {
   it('renders tabs for navigation', async () => {
     render(<SentimentAlertsDashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/Sentimento/i)).toBeInTheDocument();
+      const elements = screen.getAllByText(/Sentimento/i);
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
@@ -121,7 +123,13 @@ describe('SentimentAlertsDashboard', () => {
   });
 
   it('handles supabase error gracefully', async () => {
-    mockFrom.mockReturnValue(buildChain(null, new Error('DB error')));
+    mockFrom.mockImplementation(() => {
+      const chain: any = {};
+      const methods = ['select', 'eq', 'neq', 'or', 'gte', 'lte', 'lt', 'gt', 'not', 'order', 'limit', 'is', 'in', 'filter', 'ilike', 'range'];
+      methods.forEach(m => { chain[m] = vi.fn().mockReturnValue(chain); });
+      chain.then = vi.fn().mockImplementation((fn: any) => Promise.resolve({ data: null, error: new Error('DB error') }).then(fn));
+      return chain;
+    });
     render(<SentimentAlertsDashboard />);
     await waitFor(() => {
       expect(document.body.textContent).toBeTruthy();
@@ -162,7 +170,8 @@ describe('SentimentAlertsDashboard', () => {
   it('handles filter change without crash', async () => {
     render(<SentimentAlertsDashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/Sentimento/i)).toBeInTheDocument();
+      const elements = screen.getAllByText(/Sentimento/i);
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 

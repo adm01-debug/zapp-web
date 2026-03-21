@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
@@ -64,7 +64,6 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
-// Mock the ChatbotFlowEditor since it's a complex sub-component
 vi.mock('../ChatbotFlowEditor', () => ({
   ChatbotFlowEditor: ({ flow, onSave, onClose }: any) => (
     <div data-testid="flow-editor">
@@ -107,15 +106,15 @@ describe('ChatbotFlowsView', () => {
     renderView();
     const activeBadges = screen.getAllByText('Ativo');
     const inactiveBadges = screen.getAllByText('Inativo');
-    expect(activeBadges.length).toBe(2); // f1 and f3
-    expect(inactiveBadges.length).toBe(1); // f2
+    expect(activeBadges.length).toBe(2);
+    expect(inactiveBadges.length).toBe(1);
   });
 
   it('shows stat cards with correct totals', () => {
     renderView();
-    expect(screen.getByText('3')).toBeInTheDocument(); // total
-    expect(screen.getByText('2')).toBeInTheDocument(); // active
-    expect(screen.getByText('52')).toBeInTheDocument(); // 42+0+10 executions
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText('52')).toBeInTheDocument();
   });
 
   it('displays trigger type labels', () => {
@@ -132,8 +131,8 @@ describe('ChatbotFlowsView', () => {
 
   it('displays node count per flow', () => {
     renderView();
-    expect(screen.getByText('2 nos')).toBeDefined;
-    expect(screen.getByText('0 nos')).toBeDefined;
+    expect(screen.getByText(/2 nós/)).toBeInTheDocument();
+    expect(screen.getByText(/0 nós/)).toBeInTheDocument();
   });
 
   it('shows execution count per flow', () => {
@@ -151,7 +150,6 @@ describe('ChatbotFlowsView', () => {
 
   it('shows +N for flows with more than 4 nodes', () => {
     renderView();
-    // f3 has 5 nodes, shows first 4 + "+1"
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
@@ -160,7 +158,8 @@ describe('ChatbotFlowsView', () => {
   it('calls toggleFlow when switch is toggled', async () => {
     renderView();
     const switches = screen.getAllByRole('switch');
-    await userEvent.click(switches[0]); // toggle f1
+    // First switch is for f1 (active=true), toggling should pass false
+    fireEvent.click(switches[0]);
     expect(mockToggleFlow.mutate).toHaveBeenCalledWith({ id: 'f1', is_active: false });
   });
 
@@ -168,9 +167,11 @@ describe('ChatbotFlowsView', () => {
 
   it('calls deleteFlow when trash button is clicked', async () => {
     renderView();
-    const trashButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-trash-2'));
+    const trashButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('.lucide-trash-2') !== null
+    );
     expect(trashButtons.length).toBe(3);
-    await userEvent.click(trashButtons[1]); // delete f2
+    fireEvent.click(trashButtons[1]); // f2
     expect(mockDeleteFlow.mutate).toHaveBeenCalledWith('f2');
   });
 
@@ -222,16 +223,20 @@ describe('ChatbotFlowsView', () => {
 
   it('opens flow editor when edit button is clicked', async () => {
     renderView();
-    const editButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-edit-2'));
-    await userEvent.click(editButtons[0]);
+    const editButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-edit-2') !== null
+    );
+    fireEvent.click(editButtons[0]);
     expect(screen.getByTestId('flow-editor')).toBeInTheDocument();
     expect(screen.getByText('Editor: Boas-vindas')).toBeInTheDocument();
   });
 
   it('returns to list view when editor is closed', async () => {
     renderView();
-    const editButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-edit-2'));
-    await userEvent.click(editButtons[0]);
+    const editButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-edit-2') !== null
+    );
+    fireEvent.click(editButtons[0]);
     await userEvent.click(screen.getByText('Close Editor'));
     expect(screen.getByText('Chatbot Flows')).toBeInTheDocument();
   });
@@ -240,9 +245,11 @@ describe('ChatbotFlowsView', () => {
 
   it('calls createFlow.mutate for duplication with copy suffix', async () => {
     renderView();
-    const copyButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-copy'));
-    await userEvent.click(copyButtons[0]);
+    const copyButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-copy') !== null
+    );
+    fireEvent.click(copyButtons[0]);
     expect(mockCreateFlow.mutate).toHaveBeenCalledTimes(1);
-    expect(mockCreateFlow.mutate.mock.calls[0][0].name).toContain('(copia)');
+    expect(mockCreateFlow.mutate.mock.calls[0][0].name).toContain('(cópia)');
   });
 });

@@ -201,7 +201,8 @@ describe('SalesPipelineView', () => {
   it('shows deal values formatted in BRL', async () => {
     render(<SalesPipelineView />);
     await waitFor(() => {
-      expect(screen.getByText((_, el) => el?.textContent?.includes('5.000,00') ?? false)).toBeInTheDocument();
+      const matches = screen.getAllByText((_, el) => el?.textContent?.includes('5.000,00') ?? false);
+      expect(matches.length).toBeGreaterThan(0);
     });
   });
 

@@ -170,8 +170,11 @@ describe('ProductManagement', () => {
     fireEvent.change(screen.getByPlaceholderText('Buscar por nome, SKU ou categoria...'), {
       target: { value: 'Gadget' },
     });
-    expect(screen.queryByText('Widget Pro')).not.toBeInTheDocument();
+    // Gadget Mini should remain, Widget Pro should eventually disappear
     expect(screen.getByText('Gadget Mini')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Widget Pro')).not.toBeInTheDocument();
+    });
   });
 
   it('filters products by SKU', async () => {
@@ -183,7 +186,9 @@ describe('ProductManagement', () => {
       target: { value: 'OOS-003' },
     });
     expect(screen.getByText('Out of Stock Item')).toBeInTheDocument();
-    expect(screen.queryByText('Widget Pro')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Widget Pro')).not.toBeInTheDocument();
+    });
   });
 
   it('filters products by category', async () => {
@@ -195,7 +200,9 @@ describe('ProductManagement', () => {
       target: { value: 'Acessórios' },
     });
     expect(screen.getByText('Gadget Mini')).toBeInTheDocument();
-    expect(screen.queryByText('Widget Pro')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Widget Pro')).not.toBeInTheDocument();
+    });
   });
 
   it('shows empty state when product list is empty', async () => {

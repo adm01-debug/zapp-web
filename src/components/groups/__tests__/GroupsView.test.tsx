@@ -4,7 +4,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const mockFrom = vi.fn();
-const mockSonnerToast = { success: vi.fn(), error: vi.fn() };
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -12,9 +11,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('sonner', () => ({
-  toast: Object.assign(vi.fn(), mockSonnerToast),
-}));
+vi.mock('sonner', () => {
+  const toastFn = Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() });
+  return { toast: toastFn };
+});
 
 vi.mock('@/lib/logger', () => ({
   log: { error: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn() },
@@ -72,6 +72,7 @@ vi.mock('@/components/ui/empty-state', () => ({
   ),
 }));
 
+import { toast } from 'sonner';
 import { GroupsView } from '../GroupsView';
 
 const sampleGroups = [
@@ -245,7 +246,7 @@ describe('GroupsView', () => {
 
     render(<GroupsView />);
     await waitFor(() => {
-      expect(mockSonnerToast.error).toHaveBeenCalledWith('Erro ao carregar grupos');
+      expect(toast.error).toHaveBeenCalledWith('Erro ao carregar grupos');
     });
   });
 });

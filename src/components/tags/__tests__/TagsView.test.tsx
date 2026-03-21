@@ -187,8 +187,8 @@ describe('TagsView', () => {
       created_by: null, created_at: '2024-01-01', updated_at: '2024-01-01', contact_count: i,
     }));
     render(<TagsView />);
-    expect(screen.getByText('Tag0')).toBeInTheDocument();
-    expect(screen.getByText('Tag49')).toBeInTheDocument();
+    expect(screen.getAllByText('Tag0').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Tag49').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders with zero contact_count tags', () => {

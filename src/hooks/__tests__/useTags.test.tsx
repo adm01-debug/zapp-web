@@ -85,7 +85,8 @@ function setupMocks(overrides: any = {}) {
               }),
             };
           }
-          return vi.fn().mockResolvedValue({ data: overrides.contactCounts ?? mockContactTagsData, error: null });
+          // select('tag_id') returns a thenable directly
+          return Promise.resolve({ data: overrides.contactCounts ?? mockContactTagsData, error: null });
         }),
         insert: vi.fn().mockResolvedValue({ error: overrides.addTagError ?? null }),
         delete: vi.fn().mockReturnValue({

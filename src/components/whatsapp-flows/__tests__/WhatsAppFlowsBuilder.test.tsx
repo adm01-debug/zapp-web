@@ -175,7 +175,9 @@ describe('WhatsAppFlowsBuilder', () => {
     await userEvent.click(screen.getByText('Cadastro Lead'));
 
     await waitFor(() => {
-      expect(screen.getByText('Tela 1')).toBeInTheDocument();
+      // "Tela 1" appears in sidebar button and phone status bar
+      const tela1Elements = screen.getAllByText('Tela 1');
+      expect(tela1Elements.length).toBeGreaterThanOrEqual(1);
     });
   });
 

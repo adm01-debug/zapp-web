@@ -5,18 +5,20 @@ import userEvent from '@testing-library/user-event';
 
 const mockFrom = vi.fn();
 const mockToast = vi.fn();
-const mockRemoveChannel = vi.fn();
 
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: (...a: any[]) => mockFrom(...a),
-    channel: () => ({
-      on: vi.fn().mockReturnThis(),
-      subscribe: vi.fn(),
-    }),
-    removeChannel: mockRemoveChannel,
-  },
-}));
+vi.mock('@/integrations/supabase/client', () => {
+  const removeChannel = vi.fn();
+  return {
+    supabase: {
+      from: (...a: any[]) => mockFrom(...a),
+      channel: () => ({
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn(),
+      }),
+      removeChannel,
+    },
+  };
+});
 
 vi.mock('@/hooks/use-toast', () => ({
   toast: (...a: any[]) => mockToast(...a),
@@ -107,8 +109,11 @@ describe('PaymentLinksView', () => {
   it('displays amounts formatted in BRL', async () => {
     render(<PaymentLinksView />);
     await screen.findByText('Plano Mensal');
-    expect(screen.getByText(/99,90/)).toBeInTheDocument();
-    expect(screen.getByText(/250,00/)).toBeInTheDocument();
+    // Amounts appear in both stats and link cards
+    const amounts99 = screen.getAllByText(/99,90/);
+    expect(amounts99.length).toBeGreaterThanOrEqual(1);
+    const amounts250 = screen.getAllByText(/250,00/);
+    expect(amounts250.length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows total links count', async () => {
@@ -215,7 +220,8 @@ describe('PaymentLinksView', () => {
   it('displays received total in green', async () => {
     render(<PaymentLinksView />);
     expect(await screen.findByText('Recebidos')).toBeInTheDocument();
-    expect(screen.getByText(/250,00/)).toBeInTheDocument();
+    const amounts250 = screen.getAllByText(/250,00/);
+    expect(amounts250.length).toBeGreaterThanOrEqual(1);
   });
 
   it('handles API error on create gracefully', async () => {

@@ -4,7 +4,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const mockFrom = vi.fn();
-const mockSonnerToast = { success: vi.fn(), error: vi.fn() };
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -16,9 +15,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('sonner', () => ({
-  toast: Object.assign(vi.fn(), mockSonnerToast),
-}));
+vi.mock('sonner', () => {
+  const toastFn = Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() });
+  return { toast: toastFn };
+});
 
 const mockUser = { id: 'user-123', email: 'test@example.com' };
 vi.mock('@/hooks/useAuth', () => ({
@@ -38,6 +38,7 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
+import { toast } from 'sonner';
 import { LGPDComplianceView } from '../LGPDComplianceView';
 
 function setupMock() {
@@ -110,15 +111,6 @@ describe('LGPDComplianceView', () => {
   });
 
   it('triggers data export on button click', async () => {
-    // Mock document.createElement for download link
-    const mockClick = vi.fn();
-    vi.spyOn(document, 'createElement').mockReturnValue({
-      click: mockClick,
-      href: '',
-      download: '',
-      set setAttribute(_name: string, _val: string) {},
-    } as any);
-
     render(<LGPDComplianceView />);
 
     const exportBtn = screen.getByText('Exportar Meus Dados');
@@ -177,7 +169,7 @@ describe('LGPDComplianceView', () => {
 
     await waitFor(() => {
       expect(mockFrom).toHaveBeenCalledWith('audit_logs');
-      expect(mockSonnerToast.success).toHaveBeenCalledWith(
+      expect(toast.success).toHaveBeenCalledWith(
         expect.stringContaining('Solicitação de exclusão registrada')
       );
     });
@@ -196,7 +188,7 @@ describe('LGPDComplianceView', () => {
     await userEvent.click(screen.getByText('Exportar Meus Dados'));
 
     await waitFor(() => {
-      expect(mockSonnerToast.error).toHaveBeenCalledWith('Erro ao exportar dados');
+      expect(toast.error).toHaveBeenCalledWith('Erro ao exportar dados');
     });
   });
 
@@ -215,7 +207,7 @@ describe('LGPDComplianceView', () => {
     await userEvent.click(screen.getByText('Confirmar Exclusão'));
 
     await waitFor(() => {
-      expect(mockSonnerToast.error).toHaveBeenCalledWith('Erro ao registrar solicitação');
+      expect(toast.error).toHaveBeenCalledWith('Erro ao registrar solicitação');
     });
   });
 

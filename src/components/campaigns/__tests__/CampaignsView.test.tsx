@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
@@ -32,7 +32,7 @@ const mockCampaigns = [
     media_url: null, whatsapp_connection_id: null, created_by: null, target_filter: {},
   },
   {
-    id: 'c4', name: 'Cancelada', description: 'Teste', message_content: 'test',
+    id: 'c4', name: 'Camp Cancelada', description: 'Teste', message_content: 'test',
     message_type: 'text', status: 'cancelled', total_contacts: 50, sent_count: 10,
     delivered_count: 5, read_count: 2, failed_count: 1, target_type: 'queue',
     send_interval_seconds: 5, created_at: '2024-10-01T00:00:00Z', updated_at: '2024-10-01T00:00:00Z',
@@ -40,7 +40,7 @@ const mockCampaigns = [
     whatsapp_connection_id: null, created_by: null, target_filter: {},
   },
   {
-    id: 'c5', name: 'Agendada', description: 'Sched', message_content: 'Soon',
+    id: 'c5', name: 'Agendada Camp', description: 'Sched', message_content: 'Soon',
     message_type: 'text', status: 'scheduled', total_contacts: 150, sent_count: 0,
     delivered_count: 0, read_count: 0, failed_count: 0, target_type: 'custom',
     send_interval_seconds: 5, created_at: '2024-11-01T00:00:00Z', updated_at: '2024-11-01T00:00:00Z',
@@ -108,10 +108,7 @@ describe('CampaignsView', () => {
 
   it('displays stat cards with correct values', () => {
     renderView();
-    // Total campaigns = 5
     expect(screen.getByText('5')).toBeInTheDocument();
-    // Active (sending) = 1
-    // Completed = 1
     // Total sent = 0+120+300+10+0 = 430
     expect(screen.getByText('430')).toBeInTheDocument();
   });
@@ -153,9 +150,9 @@ describe('CampaignsView', () => {
     await userEvent.click(screen.getByText('Nova Campanha'));
     expect(screen.getByText('Nome da campanha')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Black Friday/)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Breve descrição/)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Conteúdo da mensagem/)).toBeInTheDocument();
-    expect(screen.getByText('Intervalo entre envios (segundos)')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Breve descrição/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Conteúdo da mensagem/i)).toBeInTheDocument();
+    expect(screen.getByText(/Intervalo entre envios/)).toBeInTheDocument();
   });
 
   it('disables Criar Campanha button when name is empty', async () => {
@@ -169,7 +166,7 @@ describe('CampaignsView', () => {
     renderView();
     await userEvent.click(screen.getByText('Nova Campanha'));
     await userEvent.type(screen.getByPlaceholderText(/Black Friday/), 'Campanha Teste');
-    await userEvent.type(screen.getByPlaceholderText(/Conteúdo da mensagem/), 'Oi mundo');
+    await userEvent.type(screen.getByPlaceholderText(/Conteúdo da mensagem/i), 'Oi mundo');
     await userEvent.click(screen.getByRole('button', { name: 'Criar Campanha' }));
     expect(mockCreateMutate).toHaveBeenCalledTimes(1);
     expect(mockCreateMutate.mock.calls[0][0]).toMatchObject({
@@ -183,33 +180,40 @@ describe('CampaignsView', () => {
     await userEvent.click(screen.getByText('Nova Campanha'));
     expect(screen.getByText('Configure sua campanha de broadcast')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
-    expect(screen.queryByText('Configure sua campanha de broadcast')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Configure sua campanha de broadcast')).not.toBeInTheDocument();
+    });
   });
 
   // ---- Actions: start, pause, delete ----
 
   it('calls updateCampaign with sending when play is clicked on a draft', async () => {
     renderView();
-    // The draft campaign (Black Friday) has a play button
-    const playButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-play'));
+    // Find all play buttons (svg with class lucide-play)
+    const playButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-play') !== null
+    );
     expect(playButtons.length).toBeGreaterThan(0);
-    await userEvent.click(playButtons[0]);
+    fireEvent.click(playButtons[0]);
     expect(mockUpdateMutate).toHaveBeenCalledWith({ id: 'c1', status: 'sending' });
   });
 
   it('calls updateCampaign with paused when pause is clicked on a sending campaign', async () => {
     renderView();
-    const pauseButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-pause'));
+    const pauseButtons = screen.getAllByRole('button').filter(
+      b => b.querySelector('svg.lucide-pause') !== null
+    );
     expect(pauseButtons.length).toBeGreaterThan(0);
-    await userEvent.click(pauseButtons[0]);
+    fireEvent.click(pauseButtons[0]);
     expect(mockUpdateMutate).toHaveBeenCalledWith({ id: 'c2', status: 'paused' });
   });
 
   it('calls deleteCampaign when trash button is clicked', async () => {
     renderView();
-    const trashButtons = screen.getAllByRole('button').filter(b => b.querySelector('.lucide-trash-2'));
+    // Trash buttons are inside the stopPropagation div
+    const trashButtons = document.querySelectorAll('svg.lucide-trash-2');
     expect(trashButtons.length).toBeGreaterThanOrEqual(5);
-    await userEvent.click(trashButtons[0]);
+    fireEvent.click(trashButtons[0].closest('button')!);
     expect(mockDeleteMutate).toHaveBeenCalledWith('c1');
   });
 
@@ -226,8 +230,11 @@ describe('CampaignsView', () => {
 
   it('opens detail dialog when campaign card is clicked', async () => {
     renderView();
-    await userEvent.click(screen.getByText('Black Friday'));
-    expect(screen.getByText('Sem descrição')).toBeDefined;
+    // Click on the "Ano Novo" campaign (has description: null, so dialog shows "Sem descrição")
+    fireEvent.click(screen.getByText('Ano Novo'));
+    await waitFor(() => {
+      expect(screen.getByText('Sem descrição')).toBeInTheDocument();
+    });
   });
 
   // ---- Empty state ----
@@ -260,7 +267,6 @@ describe('CampaignsView - loading', () => {
         <CampaignsView />
       </QueryClientProvider>,
     );
-    // Loader2 renders with animate-spin class
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
   });
 });

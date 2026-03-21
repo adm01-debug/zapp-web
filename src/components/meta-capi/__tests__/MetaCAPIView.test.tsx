@@ -127,7 +127,9 @@ describe('MetaCAPIView', () => {
   it('displays event type cards', async () => {
     render(<MetaCAPIView />);
     expect(await screen.findByText('Compra')).toBeInTheDocument();
-    expect(screen.getByText('Lead')).toBeInTheDocument();
+    // "Lead" appears in both card and timeline; just check at least one exists
+    const leadElements = screen.getAllByText('Lead');
+    expect(leadElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Checkout')).toBeInTheDocument();
     expect(screen.getByText('Visualização')).toBeInTheDocument();
     expect(screen.getByText('Contato')).toBeInTheDocument();

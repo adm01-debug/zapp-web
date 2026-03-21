@@ -2,12 +2,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 
-const mockFrom = vi.fn();
-const mockChannel = vi.fn().mockReturnValue({
-  on: vi.fn().mockReturnThis(),
-  subscribe: vi.fn().mockReturnThis(),
-});
-const mockRemoveChannel = vi.fn();
+const { mockFrom, mockChannel, mockRemoveChannel } = vi.hoisted(() => ({
+  mockFrom: vi.fn(),
+  mockChannel: vi.fn().mockReturnValue({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn().mockReturnThis(),
+  }),
+  mockRemoveChannel: vi.fn(),
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
