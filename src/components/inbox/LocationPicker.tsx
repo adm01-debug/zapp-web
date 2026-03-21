@@ -77,9 +77,9 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
     }
   }, [open]);
 
-  // Initialize map
+  // Initialize map — must depend on activeTab so it runs when the map tab mounts
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || !open) return;
+    if (!mapContainer.current || !mapboxToken || !open || activeTab !== 'map') return;
 
     mapboxgl.accessToken = mapboxToken;
 
@@ -108,7 +108,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
       map.current = null;
       setIsMapLoaded(false);
     };
-  }, [mapboxToken, open]);
+  }, [mapboxToken, open, activeTab]);
 
   const updateMarker = (lng: number, lat: number) => {
     if (!map.current) return;
