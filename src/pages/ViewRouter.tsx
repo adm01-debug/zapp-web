@@ -1,5 +1,6 @@
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Construction, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useCurrentModule } from '@/hooks/useCurrentModule';
 import * as Views from './lazyViews';
 
 interface ViewRouterProps {
