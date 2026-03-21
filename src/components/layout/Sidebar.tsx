@@ -27,7 +27,7 @@ interface SidebarProps {
   inboxBadge?: number;
 }
 
-export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
+export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inboxBadge }: SidebarProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
@@ -52,7 +52,13 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       {/* Primary Nav — always visible */}
       <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Menu principal">
         {primaryNav.map((item) => (
-          <SidebarNavItem key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
+          <SidebarNavItem
+            key={item.id}
+            item={item}
+            currentView={currentView}
+            onViewChange={onViewChange}
+            badge={item.id === 'inbox' ? inboxBadge : undefined}
+          />
         ))}
       </nav>
 
