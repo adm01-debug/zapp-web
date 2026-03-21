@@ -308,7 +308,16 @@ describe('E2E: Remaining Hooks', () => {
       expect(mod[name] || mod.default).toBeDefined();
     });
   });
-});
+
+  it('exports usePerformanceMetrics from usePerformanceOptimizations', async () => {
+    const mod = await import('@/hooks/usePerformanceOptimizations');
+    expect(mod.usePerformanceMetrics).toBeDefined();
+  });
+
+  it('exports useResourcePrefetch (module exists)', async () => {
+    const mod = await import('@/hooks/useResourcePrefetch');
+    expect(mod).toBeDefined();
+  });
 
 // =============================================
 // UTILS MODULE
