@@ -206,11 +206,13 @@ describe('SidebarNavItem Component', () => {
     const { MessageSquare } = await import('lucide-react');
 
     render(
-      <SidebarNavItem
-        item={{ id: 'active-test', icon: MessageSquare, label: 'Active' }}
-        currentView="active-test"
-        onViewChange={() => {}}
-      />,
+      <TooltipProvider>
+        <SidebarNavItem
+          item={{ id: 'active-test', icon: MessageSquare, label: 'Active' }}
+          currentView="active-test"
+          onViewChange={() => {}}
+        />
+      </TooltipProvider>,
     );
 
     const btn = screen.getByLabelText('Active');
