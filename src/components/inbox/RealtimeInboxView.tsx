@@ -596,7 +596,7 @@ export function RealtimeInboxView() {
   }, [selectAll, bulkArchive, bulkMarkAsRead, clearSelection, selectionMode, selectedIds.size]);
 
   // Convert to legacy format for ChatPanel compatibility
-  const legacyConversation: Conversation | null = selectedConversation
+  const legacyConversation: Conversation | null = resolvedSelectedConversation
     ? {
         id: resolvedSelectedConversation.contact.id,
         contact: {
