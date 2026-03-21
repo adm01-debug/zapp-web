@@ -41,15 +41,13 @@ export function useAgents() {
   const { data: profiles, isLoading: loadingProfiles, error: profilesError, refetch: refetchProfiles } = useQuery({
     queryKey: ['agents-profiles'],
     queryFn: async () => {
-      // Use SECURITY DEFINER function to bypass RLS safely
       const { data, error } = await supabase
-        .rpc('get_team_profiles');
+        .from('profiles')
+        .select('*')
+        .order('name');
 
       if (error) throw error;
-      // Sort by name client-side since RPC doesn't support .order()
-      return ((data || []) as AgentProfile[]).sort((a, b) => 
-        (a.name || '').localeCompare(b.name || '')
-      );
+      return data as AgentProfile[];
     },
   });
 
