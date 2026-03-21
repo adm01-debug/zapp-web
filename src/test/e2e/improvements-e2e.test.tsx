@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import {
   primaryNav,
   communicationNav,
