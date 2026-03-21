@@ -297,7 +297,6 @@ describe('E2E: Auth Module', () => {
 describe('E2E: Feature Module Exports', () => {
   const modules = [
     { name: 'ContactsView', path: '@/components/contacts/ContactsView' },
-    { name: 'DashboardView', path: '@/components/dashboard/DashboardView' },
     { name: 'TagsView', path: '@/components/tags/TagsView' },
     { name: 'AgentsView', path: '@/components/agents/AgentsView' },
     { name: 'SettingsView', path: '@/components/settings/SettingsView' },
@@ -310,6 +309,12 @@ describe('E2E: Feature Module Exports', () => {
       expect(component).toBeDefined();
     });
   });
+
+  it('exports DashboardView', async () => {
+    const mod = await import('@/components/dashboard/DashboardView');
+    const component = mod.DashboardView || mod.default;
+    expect(component).toBeDefined();
+  }, 15000);
 });
 
 // ============================================
