@@ -48,18 +48,29 @@ describe('E2E: Inbox Module - Components', () => {
 
 describe('E2E: Inbox Module - More Components', () => {
   const moreComponents = [
-    'InteractiveMessage', 'InteractiveMessageBuilder',
-    'KeyboardShortcutsHelp', 'LinkPreview', 'LocationMessage',
-    'LocationPicker', 'MediaGallery', 'MediaPreview',
-    'MessageContextActions', 'MessageContextMenu', 'MessagePreview',
-    'MessageReactions', 'MessageStatus', 'MessageTemplates',
-    'NewConversationModal', 'NewMessageIndicator', 'PrivateNotes',
+    { file: 'InteractiveMessage', exportName: 'InteractiveMessageDisplay' },
+    { file: 'InteractiveMessageBuilder', exportName: 'InteractiveMessageBuilder' },
+    { file: 'KeyboardShortcutsHelp', exportName: 'KeyboardShortcutsHelp' },
+    { file: 'LinkPreview', exportName: 'LinkPreview' },
+    { file: 'LocationMessage', exportName: 'LocationMessageDisplay' },
+    { file: 'LocationPicker', exportName: 'LocationPicker' },
+    { file: 'MediaGallery', exportName: 'MediaGallery' },
+    { file: 'MediaPreview', exportName: 'MediaMessage' },
+    { file: 'MessageContextActions', exportName: 'MessageContextActions' },
+    { file: 'MessageContextMenu', exportName: 'MessageContextMenu' },
+    { file: 'MessagePreview', exportName: 'MessagePreview' },
+    { file: 'MessageReactions', exportName: 'MessageReactions' },
+    { file: 'MessageStatus', exportName: 'MessageStatus' },
+    { file: 'MessageTemplates', exportName: 'MessageTemplates' },
+    { file: 'NewConversationModal', exportName: 'NewConversationModal' },
+    { file: 'NewMessageIndicator', exportName: 'NewMessageIndicator' },
+    { file: 'PrivateNotes', exportName: 'PrivateNotes' },
   ];
 
-  moreComponents.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/inbox/${name}`);
-      const component = mod[name] || mod.default;
+  moreComponents.forEach(({ file, exportName }) => {
+    it(`exports ${exportName} from ${file}`, async () => {
+      const mod = await import(`../../components/inbox/${file}`);
+      const component = mod[exportName] || mod.default;
       expect(component).toBeDefined();
     });
   });
