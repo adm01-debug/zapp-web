@@ -56,16 +56,13 @@ function createQueryWrapper() {
 // 1. SearchInput Component
 // ═══════════════════════════════════════════════════════════
 describe('SearchInput — Component E2E', () => {
-  it('renders with placeholder', () => {
+  it('renders with placeholder', async () => {
+    const { SearchInput } = await import('@/components/SearchInput');
     const { container } = render(
-      <React.Fragment>
-        {React.createElement(
-          (await import('@/components/SearchInput')).SearchInput,
-          { onChange: vi.fn(), placeholder: 'Pesquisar contatos...' }
-        )}
-      </React.Fragment>
+      <SearchInput onChange={vi.fn()} placeholder="Pesquisar contatos..." />
     );
-    // Lazy approach: just validate module exports
+    const input = container.querySelector('input');
+    expect(input?.getAttribute('placeholder')).toBe('Pesquisar contatos...');
   });
 });
 
