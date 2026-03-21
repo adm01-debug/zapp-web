@@ -183,10 +183,10 @@ describe('E2E: Keyboard & A11y', () => {
     });
   });
 
-  describe('Skip to content', () => {
-    it('exports SkipToContent', async () => {
-      const mod = await import('@/components/a11y/SkipToContent');
-      expect(mod.SkipToContent).toBeDefined();
+  describe('Skip link', () => {
+    it('exports skip-link component', async () => {
+      const mod = await import('@/components/ui/skip-link');
+      expect(mod).toBeDefined();
     });
   });
 });
