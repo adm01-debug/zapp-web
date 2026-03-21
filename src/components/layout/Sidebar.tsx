@@ -76,8 +76,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
       <div className="mx-3 my-1 h-px bg-border/60" />
 
       {/* Collapsible groups */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px]">
-        <div className="flex flex-col items-center gap-1">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px] scroll-smooth [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/40 hover:[&::-webkit-scrollbar-thumb]:bg-border/70">
+        <div className="flex flex-col items-center gap-0.5 py-1">
           {sidebarGroups.map((group) => (
             <SidebarNavGroup
               key={group.label}
