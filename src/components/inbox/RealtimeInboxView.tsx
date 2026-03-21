@@ -93,6 +93,8 @@ export function RealtimeInboxView() {
   // Process pending contact selection once conversations are loaded
   useEffect(() => {
     if (pendingContactId && !loading && conversations.length >= 0) {
+      // Switch to search tab so the contact is always visible regardless of current filters
+      setMainTab('search');
       setSelectedContactId(pendingContactId);
       setSelectedContact(pendingContactId);
       markAsRead(pendingContactId);
