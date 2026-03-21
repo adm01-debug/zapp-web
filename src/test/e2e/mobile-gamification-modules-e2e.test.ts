@@ -235,12 +235,12 @@ describe('E2E: Connections Module', () => {
 describe('E2E: Diagnostics Module', () => {
   it('exports ConnectionHealthPanel', async () => {
     const mod = await import('@/components/diagnostics/ConnectionHealthPanel');
-    expect(mod.ConnectionHealthPanel || mod.default).toBeDefined();
+    expect(mod.ConnectionHealthPanel).toBeDefined();
   });
 
   it('exports DiagnosticsView', async () => {
     const mod = await import('@/components/diagnostics/DiagnosticsView');
-    expect(mod.DiagnosticsView || mod.default).toBeDefined();
+    expect(mod.DiagnosticsView).toBeDefined();
   });
 
   describe('Health metrics', () => {
@@ -265,32 +265,32 @@ describe('E2E: Diagnostics Module', () => {
 describe('E2E: Single-File Modules', () => {
   it('exports ClientWalletView', async () => {
     const mod = await import('@/components/wallet/ClientWalletView');
-    expect(mod.ClientWalletView || mod.default).toBeDefined();
+    expect(mod.ClientWalletView).toBeDefined();
   });
 
   it('exports GroupsView', async () => {
     const mod = await import('@/components/groups/GroupsView');
-    expect(mod.GroupsView || mod.default).toBeDefined();
+    expect(mod.GroupsView).toBeDefined();
   });
 
   it('exports KnowledgeBaseView', async () => {
     const mod = await import('@/components/knowledge/KnowledgeBaseView');
-    expect(mod.KnowledgeBaseView || mod.default).toBeDefined();
+    expect(mod.KnowledgeBaseView).toBeDefined();
   });
 
   it('exports LGPDComplianceView', async () => {
     const mod = await import('@/components/compliance/LGPDComplianceView');
-    expect(mod.LGPDComplianceView || mod.default).toBeDefined();
+    expect(mod.LGPDComplianceView).toBeDefined();
   });
 
   it('exports ScheduleCalendarView', async () => {
     const mod = await import('@/components/schedule/ScheduleCalendarView');
-    expect(mod.ScheduleCalendarView || mod.default).toBeDefined();
+    expect(mod.ScheduleCalendarView).toBeDefined();
   });
 
   it('exports TranscriptionsHistoryView', async () => {
     const mod = await import('@/components/transcriptions/TranscriptionsHistoryView');
-    expect(mod.TranscriptionsHistoryView || mod.default).toBeDefined();
+    expect(mod.TranscriptionsHistoryView).toBeDefined();
   });
 });
 

@@ -256,9 +256,14 @@ describe('E2E: Onboarding Module', () => {
 // AI MODULE
 // =============================================
 describe('E2E: AI Module', () => {
-  it('exports AIAssistantPanel', async () => {
-    const mod = await import('@/components/ai/AIAssistantPanel');
-    expect(mod.AIAssistantPanel || mod.default).toBeDefined();
+  it('exports AutoTicketClassifier', async () => {
+    const mod = await import('@/components/ai/AutoTicketClassifier');
+    expect(mod.AutoTicketClassifier || mod.default).toBeDefined();
+  });
+
+  it('exports ChurnPredictionDashboard', async () => {
+    const mod = await import('@/components/ai/ChurnPredictionDashboard');
+    expect(mod.ChurnPredictionDashboard || mod.default).toBeDefined();
   });
 
   describe('AI suggestion logic', () => {
