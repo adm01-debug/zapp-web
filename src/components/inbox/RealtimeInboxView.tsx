@@ -4,7 +4,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useOfflineCache } from '@/hooks/useOfflineCache';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
 import { MiniChatPiP } from '@/components/mobile/MiniChatPiP';
-import { useRealtimeMessages, ConversationWithMessages, RealtimeMessage } from '@/hooks/useRealtimeMessages';
+import { useRealtimeMessages, ConversationWithMessages, ConversationContact, RealtimeMessage } from '@/hooks/useRealtimeMessages';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
@@ -72,6 +72,7 @@ export function RealtimeInboxView() {
     setSoundEnabled,
   } = useRealtimeMessages();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [selectedContactFallback, setSelectedContactFallback] = useState<ConversationContact | null>(null);
   const [showDetails, setShowDetails] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
   const [pipContact, setPipContact] = useState<{ name: string; avatar?: string; lastMessage?: string; contactId: string } | null>(null);
@@ -275,6 +276,56 @@ export function RealtimeInboxView() {
     () => cachedConversations.find((c) => c.contact.id === selectedContactId) || null,
     [cachedConversations, selectedContactId]
   );
+
+  useEffect(() => {
+    if (!selectedContactId) {
+      setSelectedContactFallback(null);
+      return;
+    }
+
+    if (selectedConversation) {
+      setSelectedContactFallback(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSelectedContact = async () => {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', selectedContactId)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error) {
+        log.error('Error loading selected fallback contact:', error);
+        setSelectedContactFallback(null);
+        return;
+      }
+
+      setSelectedContactFallback(data || null);
+    };
+
+    loadSelectedContact();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedContactId, selectedConversation]);
+
+  const resolvedSelectedConversation = useMemo<ConversationWithMessages | null>(() => {
+    if (selectedConversation) return selectedConversation;
+    if (!selectedContactFallback) return null;
+
+    return {
+      contact: selectedContactFallback,
+      messages: [],
+      unreadCount: 0,
+      lastMessage: null,
+    };
+  }, [selectedConversation, selectedContactFallback]);
 
   // Handle selecting a conversation
   const handleSelectConversation = (contactId: string) => {
@@ -547,40 +598,40 @@ export function RealtimeInboxView() {
   // Convert to legacy format for ChatPanel compatibility
   const legacyConversation: Conversation | null = selectedConversation
     ? {
-        id: selectedConversation.contact.id,
+        id: resolvedSelectedConversation.contact.id,
         contact: {
-          id: selectedConversation.contact.id,
-          name: selectedConversation.contact.name,
-          phone: selectedConversation.contact.phone,
-          email: selectedConversation.contact.email || undefined,
-          avatar: selectedConversation.contact.avatar_url || undefined,
-          tags: selectedConversation.contact.tags || [],
-          createdAt: new Date(selectedConversation.contact.created_at),
+          id: resolvedSelectedConversation.contact.id,
+          name: resolvedSelectedConversation.contact.name,
+          phone: resolvedSelectedConversation.contact.phone,
+          email: resolvedSelectedConversation.contact.email || undefined,
+          avatar: resolvedSelectedConversation.contact.avatar_url || undefined,
+          tags: resolvedSelectedConversation.contact.tags || [],
+          createdAt: new Date(resolvedSelectedConversation.contact.created_at),
         },
-        lastMessage: selectedConversation.lastMessage
+        lastMessage: resolvedSelectedConversation.lastMessage
           ? {
-              id: selectedConversation.lastMessage.id,
-              conversationId: selectedConversation.contact.id,
-              content: selectedConversation.lastMessage.content,
-              type: selectedConversation.lastMessage.message_type as Message['type'],
-              sender: selectedConversation.lastMessage.sender as Message['sender'],
-              timestamp: new Date(selectedConversation.lastMessage.created_at),
+              id: resolvedSelectedConversation.lastMessage.id,
+              conversationId: resolvedSelectedConversation.contact.id,
+              content: resolvedSelectedConversation.lastMessage.content,
+              type: resolvedSelectedConversation.lastMessage.message_type as Message['type'],
+              sender: resolvedSelectedConversation.lastMessage.sender as Message['sender'],
+              timestamp: new Date(resolvedSelectedConversation.lastMessage.created_at),
               status: 'read' as const,
             }
           : undefined,
-        unreadCount: selectedConversation.unreadCount,
+        unreadCount: resolvedSelectedConversation.unreadCount,
         status: 'open',
         priority: 'medium',
-        tags: selectedConversation.contact.tags || [],
-        createdAt: new Date(selectedConversation.contact.created_at),
-        updatedAt: new Date(selectedConversation.contact.updated_at),
+        tags: resolvedSelectedConversation.contact.tags || [],
+        createdAt: new Date(resolvedSelectedConversation.contact.created_at),
+        updatedAt: new Date(resolvedSelectedConversation.contact.updated_at),
       }
     : null;
 
   const legacyMessages: Message[] =
-    selectedConversation?.messages.map((m) => ({
+    resolvedSelectedConversation?.messages.map((m) => ({
       id: m.id,
-      conversationId: selectedConversation.contact.id,
+      conversationId: resolvedSelectedConversation.contact.id,
       content: m.content,
       type: m.message_type as Message['type'],
       sender: m.sender as Message['sender'],
