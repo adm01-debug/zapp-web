@@ -204,9 +204,9 @@ describe('E2E: Skeletons Module', () => {
     const mod = await import('@/components/skeletons/ConversationListSkeleton');
     expect(mod.ConversationListSkeleton).toBeDefined();
   });
-  it('exports ContextualSkeletons', async () => {
+  it('exports AnimatedSkeleton from ContextualSkeletons', async () => {
     const mod = await import('@/components/skeletons/ContextualSkeletons');
-    expect(mod.ContextualSkeletons || mod.default).toBeDefined();
+    expect(mod.AnimatedSkeleton).toBeDefined();
   });
   it('exports MessageListSkeleton', async () => {
     const mod = await import('@/components/skeletons/MessageListSkeleton');
