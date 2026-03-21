@@ -258,7 +258,7 @@ describe('E2E: Onboarding Module', () => {
 describe('E2E: AI Module', () => {
   it('exports AutoTicketClassifier', async () => {
     const mod = await import('@/components/ai/AutoTicketClassifier');
-    expect(mod.AutoTicketClassifier || mod.default).toBeDefined();
+    expect(mod.AutoTicketClassifier).toBeDefined();
   });
 
   it('exports ChurnPredictionDashboard', async () => {
