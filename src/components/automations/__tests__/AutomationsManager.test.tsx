@@ -133,6 +133,9 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('To Delete')).toBeInTheDocument());
 
+    // Clear mocks after create toast
+    vi.mocked(toast.success).mockClear();
+
     const trashBtns = screen.getAllByRole('button').filter(
       b => b.querySelector('.lucide-trash-2') !== null
     );
@@ -214,7 +217,7 @@ describe('AutomationsManager', () => {
     await waitFor(() => expect(screen.getByText('To Edit')).toBeInTheDocument());
 
     const editBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('svg.lucide-edit-2') !== null
+      b => b.querySelector('.lucide-edit-2') !== null
     );
     await userEvent.click(editBtns[0]);
     expect(screen.getByText('Editar Automação')).toBeInTheDocument();
