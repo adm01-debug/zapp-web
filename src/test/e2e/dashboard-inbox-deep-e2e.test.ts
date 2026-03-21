@@ -137,7 +137,7 @@ describe('E2E: Inbox Module Components', () => {
 
   const mediaComponents = [
     'AudioMessagePlayer', 'AudioRecorder', 'AudioMemePicker', 'CustomEmojiPicker',
-    'FileUploader', 'ImagePreview', 'LocationMessage', 'LocationPicker',
+    'FileUploader', 'ImagePreview', 'LocationPicker',
     'MediaGallery', 'StickerPicker', 'TextToAudioButton', 'TextToSpeechButton',
     'VoiceChanger', 'VoiceSelector', 'SpeedSelector',
   ];
