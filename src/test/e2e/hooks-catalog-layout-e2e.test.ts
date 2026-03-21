@@ -280,9 +280,9 @@ describe('E2E: Onboarding Module', () => {
     const mod = await import('@/components/onboarding/OnboardingChecklist');
     expect(mod.OnboardingChecklist).toBeDefined();
   });
-  it('exports OnboardingTour', async () => {
+  it('exports TourProvider from OnboardingTour', async () => {
     const mod = await import('@/components/onboarding/OnboardingTour');
-    expect(mod.OnboardingTour).toBeDefined();
+    expect(mod.TourProvider).toBeDefined();
   });
   it('exports WelcomeModal', async () => {
     const mod = await import('@/components/onboarding/WelcomeModal');
