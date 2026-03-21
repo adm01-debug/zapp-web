@@ -177,7 +177,7 @@ describe('E2E: Theme Module', () => {
 
   it('exports HighContrastToggle', async () => {
     const mod = await import('@/components/theme/HighContrastToggle');
-    expect(mod.HighContrastToggle || mod.default).toBeDefined();
+    expect(mod.HighContrastToggle).toBeDefined();
   });
 
   describe('Theme logic', () => {
