@@ -263,7 +263,7 @@ describe('E2E: AI Module', () => {
 
   it('exports ChurnPredictionDashboard', async () => {
     const mod = await import('@/components/ai/ChurnPredictionDashboard');
-    expect(mod.ChurnPredictionDashboard || mod.default).toBeDefined();
+    expect(mod.ChurnPredictionDashboard).toBeDefined();
   });
 
   describe('AI suggestion logic', () => {
