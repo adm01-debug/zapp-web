@@ -282,9 +282,9 @@ describe('E2E: Auth Module', () => {
     });
   });
 
-  describe('Login page', () => {
-    it('exports Login page component', async () => {
-      const mod = await import('@/pages/Login');
+  describe('Auth page', () => {
+    it('exports Auth page component', async () => {
+      const mod = await import('@/pages/Auth');
       expect(mod.default).toBeDefined();
     });
   });
