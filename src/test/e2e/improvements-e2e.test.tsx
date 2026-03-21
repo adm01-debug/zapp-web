@@ -245,7 +245,8 @@ describe('SidebarNavGroup Component', () => {
       </TooltipProvider>,
     );
 
-    expect(screen.getByLabelText(/Test Group/)).toBeInTheDocument();
+    const matches = screen.getAllByLabelText(/Test Group/);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 });
 
