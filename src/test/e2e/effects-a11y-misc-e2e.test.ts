@@ -22,6 +22,16 @@ describe('E2E: Effects Module', () => {
     });
   });
 
+  it('exports EasterEggsProvider', async () => {
+    const mod = await import('@/components/effects/EasterEggs');
+    expect(mod.EasterEggsProvider).toBeDefined();
+  });
+
+  it('exports MagneticButton from ScrollEffects', async () => {
+    const mod = await import('@/components/effects/ScrollEffects');
+    expect(mod.MagneticButton).toBeDefined();
+  });
+
   describe('Effects logic', () => {
     it('validates confetti particle generation', () => {
       const generate = (count: number) => Array.from({ length: count }, (_, i) => ({
