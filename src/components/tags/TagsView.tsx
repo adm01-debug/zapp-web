@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
 import { TagsEmptyState } from '@/components/ui/contextual-empty-states';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useActionFeedback } from '@/hooks/useActionFeedback';
