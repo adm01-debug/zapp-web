@@ -234,13 +234,15 @@ describe('SidebarNavGroup Component', () => {
     ];
 
     render(
-      <SidebarNavGroup
-        label="Test Group"
-        icon={Megaphone}
-        items={items}
-        currentView="a"
-        onViewChange={() => {}}
-      />,
+      <TooltipProvider>
+        <SidebarNavGroup
+          label="Test Group"
+          icon={Megaphone}
+          items={items}
+          currentView="a"
+          onViewChange={() => {}}
+        />
+      </TooltipProvider>,
     );
 
     expect(screen.getByLabelText(/Test Group/)).toBeInTheDocument();
