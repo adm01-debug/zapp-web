@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { motion } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
 import { ContactsEmptyState } from '@/components/ui/contextual-empty-states';
 import { ContactForm } from '@/components/contacts/ContactForm';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -377,8 +378,11 @@ export function ContactsView() {
     setEditingContact(prev => prev ? { ...prev, [field]: value } as Contact : null);
   }, []);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+    <div ref={scrollContainerRef} className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <ScrollToTopButton scrollRef={scrollContainerRef} />
       <AuroraBorealis />
       <FloatingParticles />
       {/* Header with Breadcrumbs */}
