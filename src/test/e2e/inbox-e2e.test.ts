@@ -298,7 +298,7 @@ describe('E2E: Inbox Data Integrity', () => {
     it('validates available commands', () => {
       const commands = ['/transfer', '/close', '/note', '/tag', '/assign', '/template', '/schedule', '/priority'];
       expect(commands.length).toBeGreaterThan(5);
-      commands.forEach(c => expect(c).toStartWith('/'));
+      commands.forEach(c => expect(c.startsWith('/')).toBe(true));
     });
   });
 
