@@ -4,6 +4,7 @@ import { useDeepLinks } from '@/hooks/useDeepLinks';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { CommandPalette } from '@/components/CommandPalette';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
 import { PageTransition } from '@/components/ui/motion';
