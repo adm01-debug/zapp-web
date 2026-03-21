@@ -186,11 +186,13 @@ describe('SidebarNavItem Component', () => {
     const onViewChange = vi.fn();
 
     render(
-      <SidebarNavItem
-        item={{ id: 'test', icon: MessageSquare, label: 'Test Item' }}
-        currentView="other"
-        onViewChange={onViewChange}
-      />,
+      <TooltipProvider>
+        <SidebarNavItem
+          item={{ id: 'test', icon: MessageSquare, label: 'Test Item' }}
+          currentView="other"
+          onViewChange={onViewChange}
+        />
+      </TooltipProvider>,
     );
 
     const btn = screen.getByLabelText('Test Item');
