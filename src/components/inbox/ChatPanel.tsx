@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { undoToast } from '@/lib/undoToast';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { normalizeMediaUrl } from '@/utils/normalizeMediaUrl';
 import { FileUploaderRef } from './FileUploader';
@@ -45,6 +46,7 @@ interface ChatPanelProps {
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack }: ChatPanelProps) {
   // ── State ──
   const [inputValue, setInputValue] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
@@ -178,13 +180,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   };
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isSending) return;
 
     // If editing a message
     if (editingMessage) {
       const externalId = (editingMessage as any).external_id;
       const contactJid = conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : '';
       
+      setIsSending(true);
       try {
         // Update via Evolution API
         if (instanceName && externalId && contactJid) {
@@ -205,6 +208,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       } catch (err) {
         log.error('Failed to edit message:', err);
         toast({ title: 'Erro ao editar', description: 'Não foi possível editar a mensagem.', variant: 'destructive' });
+      } finally {
+        setIsSending(false);
       }
 
       setEditingMessage(null);
@@ -212,18 +217,44 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       return;
     }
 
-    // Normal send
-    if (replyToMessage) {
-      log.debug('Sending reply to:', replyToMessage.id);
-      toast({
-        title: 'Resposta enviada',
-        description: `Respondendo a: "${replyToMessage.content.slice(0, 30)}..."`,
-      });
-    }
-    onSendMessage(inputValue.trim());
+    // Normal send with undo support
+    const messageContent = inputValue.trim();
+    const wasReply = replyToMessage;
+
+    setIsSending(true);
     setInputValue('');
     setReplyToMessage(null);
     handleTypingStop();
+
+    // Small delay to allow undo
+    let cancelled = false;
+    
+    if (wasReply) {
+      log.debug('Sending reply to:', wasReply.id);
+    }
+
+    // Send immediately but show undo toast
+    try {
+      onSendMessage(messageContent);
+      undoToast({
+        message: 'Mensagem enviada',
+        icon: '📨',
+        delay: 3000,
+        onUndo: () => {
+          cancelled = true;
+          // Restore input value
+          setInputValue(messageContent);
+          if (wasReply) setReplyToMessage(wasReply);
+          toast({ title: '↩️ Mensagem restaurada', description: 'O texto foi restaurado no campo de entrada.' });
+        },
+      });
+    } catch (err) {
+      log.error('Failed to send message:', err);
+      setInputValue(messageContent);
+      toast({ title: 'Erro ao enviar', description: 'Tente novamente.', variant: 'destructive' });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleReplyToMessage = (message: Message) => {
@@ -717,6 +748,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           instanceName={instanceName}
           messages={messages}
           quickReplies={dbQuickReplies}
+          isSending={isSending}
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onBlur={handleTypingStop}
