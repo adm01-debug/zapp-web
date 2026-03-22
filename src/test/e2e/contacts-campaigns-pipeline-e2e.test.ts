@@ -496,7 +496,7 @@ describe('E2E: Onboarding Module', () => {
 describe('E2E: Compliance (LGPD) Module', () => {
   it('exports LGPDComplianceView', async () => {
     const mod = await import('../../components/compliance/LGPDComplianceView');
-    expect(mod.default || mod.LGPDComplianceView).toBeDefined();
+    expect(mod.LGPDComplianceView).toBeDefined();
   });
 
   it('validates data retention policies', () => {

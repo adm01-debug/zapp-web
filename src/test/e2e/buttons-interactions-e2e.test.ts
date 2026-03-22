@@ -366,19 +366,18 @@ describe('E2E: AI Components', () => {
 });
 
 describe('E2E: Catalog Components', () => {
-  it('exports catalog module', async () => {
-    try {
-      const mod = await import('../../components/catalog/CatalogView');
-      expect(mod.default || mod.CatalogView).toBeDefined();
-    } catch { /* optional */ }
+  const catalogComponents = ['ProductCatalog', 'ProductCard', 'ProductManagement', 'ShoppingCart', 'PaymentMessage', 'ProductMessage'];
+  catalogComponents.forEach(name => {
+    it(`exports ${name}`, async () => {
+      const mod = await import(`../../components/catalog/${name}`);
+      expect(mod[name] || mod.default).toBeDefined();
+    });
   });
 });
 
 describe('E2E: Transcriptions Components', () => {
-  it('exports transcription module', async () => {
-    try {
-      const mod = await import('../../components/transcriptions/TranscriptionHistory');
-      expect(mod.default || mod.TranscriptionHistory).toBeDefined();
-    } catch { /* optional */ }
+  it('exports TranscriptionsHistoryView', async () => {
+    const mod = await import('../../components/transcriptions/TranscriptionsHistoryView');
+    expect(mod.TranscriptionsHistoryView || mod.default).toBeDefined();
   });
 });
