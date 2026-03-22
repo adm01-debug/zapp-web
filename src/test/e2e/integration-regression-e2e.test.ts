@@ -435,14 +435,14 @@ describe('E2E: Error Boundary & Recovery', () => {
   });
 
   it('logs errors with context', () => {
-    const createErrorLog = (error: string, context: Record<string, any>) => ({
+    const createErrorLog = (error: string, context: Record<string, string>) => ({
       message: error,
       timestamp: new Date().toISOString(),
-      ...context,
+      context,
     });
     const log = createErrorLog('Network timeout', { component: 'ChatPanel', userId: 'u1' });
     expect(log.message).toBe('Network timeout');
-    expect(log.component).toBe('ChatPanel');
+    expect(log.context.component).toBe('ChatPanel');
   });
 
   it('provides user-friendly error messages', () => {
