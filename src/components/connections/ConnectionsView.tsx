@@ -67,6 +67,9 @@ interface WhatsAppConnection {
   is_plugged?: boolean | null;
   retry_count?: number | null;
   max_retries?: number | null;
+  health_status?: string | null;
+  health_response_ms?: number | null;
+  last_health_check?: string | null;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Wifi }> = {
