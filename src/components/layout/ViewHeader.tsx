@@ -15,6 +15,27 @@ interface ViewHeaderProps {
   onNavigateTo?: (viewId: string) => void;
 }
 
+function BreadcrumbLink({ viewId, onClick }: { viewId: string; onClick: () => void }) {
+  const mod = useCurrentModule(viewId);
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -8 }}
+      className="flex items-center gap-1 shrink-0"
+    >
+      <button
+        onClick={onClick}
+        className="text-[11px] text-muted-foreground/60 hover:text-muted-foreground font-medium transition-colors truncate max-w-[100px]"
+        aria-label={`Ir para ${mod.label}`}
+      >
+        {mod.label}
+      </button>
+      <ChevronRight className="w-3 h-3 text-muted-foreground/30 shrink-0" />
+    </motion.div>
+  );
+}
+
 /** Compact auto-contextual header with back/forward navigation and breadcrumbs */
 export function ViewHeader({
   viewId,
@@ -27,13 +48,11 @@ export function ViewHeader({
 }: ViewHeaderProps) {
   const mod = useCurrentModule(viewId);
   const Icon = mod.icon;
-
-  // Build breadcrumb items from trail (excluding current)
   const breadcrumbItems = breadcrumbTrail.slice(0, -1);
 
   return (
     <div className="flex items-center gap-1.5 px-4 py-1.5 border-b border-border/50 bg-background/80 backdrop-blur-sm shrink-0 min-h-[40px]">
-      {/* Back / Forward buttons */}
+      {/* Back / Forward */}
       <div className="flex items-center gap-0.5 mr-1">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -85,30 +104,16 @@ export function ViewHeader({
       {/* Breadcrumb trail */}
       <nav aria-label="Navegação" className="flex items-center gap-1 min-w-0 overflow-hidden">
         <AnimatePresence mode="popLayout">
-          {breadcrumbItems.map((trailViewId) => {
-            const trailMod = useCurrentModule(trailViewId);
-            return (
-              <motion.div
-                key={trailViewId}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -8 }}
-                className="flex items-center gap-1 shrink-0"
-              >
-                <button
-                  onClick={() => onNavigateTo?.(trailViewId)}
-                  className="text-[11px] text-muted-foreground/60 hover:text-muted-foreground font-medium transition-colors truncate max-w-[100px]"
-                  aria-label={`Ir para ${trailMod.label}`}
-                >
-                  {trailMod.label}
-                </button>
-                <ChevronRight className="w-3 h-3 text-muted-foreground/30 shrink-0" />
-              </motion.div>
-            );
-          })}
+          {breadcrumbItems.map((trailViewId) => (
+            <BreadcrumbLink
+              key={trailViewId}
+              viewId={trailViewId}
+              onClick={() => onNavigateTo?.(trailViewId)}
+            />
+          ))}
         </AnimatePresence>
 
-        {/* Current module (group + icon + label) */}
+        {/* Group label when no breadcrumb trail */}
         {mod.group && breadcrumbItems.length === 0 && (
           <>
             <span className="text-[11px] text-muted-foreground/60 font-medium shrink-0">{mod.group}</span>
@@ -116,6 +121,7 @@ export function ViewHeader({
           </>
         )}
 
+        {/* Current module */}
         <motion.div
           key={viewId}
           initial={{ opacity: 0, y: 4 }}
@@ -127,7 +133,7 @@ export function ViewHeader({
         </motion.div>
       </nav>
 
-      {/* Search trigger */}
+      {/* Search */}
       <button
         onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
         className="ml-auto flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/40 transition-colors shrink-0"
