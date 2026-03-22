@@ -47,7 +47,7 @@ function WithHeader({ viewId, children, canGoBack, canGoForward, onGoBack, onGoF
   );
 }
 
-export function ViewRouter({ currentView, userId }: ViewRouterProps) {
+export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: ViewRouterProps) {
   const content = (() => {
     switch (currentView) {
       case 'inbox': return <Views.RealtimeInboxView />;
@@ -96,7 +96,19 @@ export function ViewRouter({ currentView, userId }: ViewRouterProps) {
     }
   })();
 
-  return <WithHeader viewId={currentView}>{content}</WithHeader>;
+  return (
+    <WithHeader
+      viewId={currentView}
+      canGoBack={canGoBack}
+      canGoForward={canGoForward}
+      onGoBack={onGoBack}
+      onGoForward={onGoForward}
+      breadcrumbTrail={breadcrumbTrail}
+      onNavigateTo={onNavigateTo}
+    >
+      {content}
+    </WithHeader>
+  );
 }
 
 function FallbackView({ currentView }: { currentView: string }) {
