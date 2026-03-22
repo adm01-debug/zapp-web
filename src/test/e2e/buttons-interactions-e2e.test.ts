@@ -104,7 +104,8 @@ describe('E2E: Modal/Dialog Interactions', () => {
     const confirmText = 'DELETAR';
     const userInput = 'DELETAR';
     expect(userInput === confirmText).toBe(true);
-    expect('deletar' === confirmText).toBe(false);
+    const wrongCase = 'deletar';
+    expect(wrongCase === confirmText).toBe(false);
   });
 
   it('validates modal stack management', () => {
