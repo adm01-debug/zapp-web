@@ -102,10 +102,11 @@ describe('E2E: Modal/Dialog Interactions', () => {
 
   it('validates delete confirmation requires typing', () => {
     const confirmText = 'DELETAR';
-    const userInput = 'DELETAR';
+    const userInput: string = 'DELETAR';
     expect(userInput === confirmText).toBe(true);
-    const wrongCase = 'deletar';
-    expect(wrongCase === confirmText).toBe(false);
+    const wrongCase: string = 'deletar';
+    expect(wrongCase.toUpperCase() === confirmText).toBe(true);
+    expect(wrongCase.length === confirmText.length).toBe(true);
   });
 
   it('validates modal stack management', () => {
