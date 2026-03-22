@@ -1,6 +1,6 @@
 import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { useDeepLinks } from '@/hooks/useDeepLinks';
+import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -73,7 +73,7 @@ function IndexContent() {
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
-  const { currentView, setCurrentView } = useDeepLinks('inbox');
+  const { currentView, navigateTo: setCurrentView, goBack, goForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -98,6 +98,21 @@ function IndexContent() {
     registerNavigationHandler(setCurrentView);
     return () => unregisterNavigationHandler();
   }, [registerNavigationHandler, unregisterNavigationHandler]);
+
+  // Alt+← / Alt+→ for back/forward navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goBack();
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        goForward();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goBack, goForward]);
   
   useTranscriptionNotifications({ enabled: !!user });
 
@@ -240,7 +255,16 @@ function IndexContent() {
             <Suspense fallback={<ViewLoadingFallback />}>
               <AnimatePresence mode="wait">
                 <PageTransition key={currentView} className="flex-1 h-full max-h-full min-h-0 overflow-hidden">
-                  <ViewRouter currentView={currentView} userId={user?.id} />
+                  <ViewRouter
+                    currentView={currentView}
+                    userId={user?.id}
+                    canGoBack={canGoBack}
+                    canGoForward={canGoForward}
+                    onGoBack={goBack}
+                    onGoForward={goForward}
+                    breadcrumbTrail={breadcrumbTrail}
+                    onNavigateTo={setCurrentView}
+                  />
                 </PageTransition>
               </AnimatePresence>
             </Suspense>
