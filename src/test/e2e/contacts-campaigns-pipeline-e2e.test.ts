@@ -443,7 +443,7 @@ describe('E2E: Schedule Module', () => {
 describe('E2E: Groups Module', () => {
   it('exports GroupsView', async () => {
     const mod = await import('../../components/groups/GroupsView');
-    expect(mod.default || mod.GroupsView).toBeDefined();
+    expect(mod.GroupsView).toBeDefined();
   });
 
   it('manages group members', () => {
