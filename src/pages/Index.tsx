@@ -255,7 +255,16 @@ function IndexContent() {
             <Suspense fallback={<ViewLoadingFallback />}>
               <AnimatePresence mode="wait">
                 <PageTransition key={currentView} className="flex-1 h-full max-h-full min-h-0 overflow-hidden">
-                  <ViewRouter currentView={currentView} userId={user?.id} />
+                  <ViewRouter
+                    currentView={currentView}
+                    userId={user?.id}
+                    canGoBack={canGoBack}
+                    canGoForward={canGoForward}
+                    onGoBack={goBack}
+                    onGoForward={goForward}
+                    breadcrumbTrail={breadcrumbTrail}
+                    onNavigateTo={setCurrentView}
+                  />
                 </PageTransition>
               </AnimatePresence>
             </Suspense>
