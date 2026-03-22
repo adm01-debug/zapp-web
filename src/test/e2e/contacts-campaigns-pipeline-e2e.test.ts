@@ -386,7 +386,7 @@ describe('E2E: Knowledge Base - Search', () => {
       a.title.toLowerCase().includes(q) || a.content.toLowerCase().includes(q) || a.tags.some(t => t.includes(q))
     );
     expect(search('senha')).toHaveLength(1);
-    expect(search('config')).toHaveLength(1);
+    expect(search('config')).toHaveLength(2);
   });
 });
 
