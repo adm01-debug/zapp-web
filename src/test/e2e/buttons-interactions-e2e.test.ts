@@ -379,6 +379,6 @@ describe('E2E: Catalog Components', () => {
 describe('E2E: Transcriptions Components', () => {
   it('exports TranscriptionsHistoryView', async () => {
     const mod = await import('../../components/transcriptions/TranscriptionsHistoryView');
-    expect(mod.TranscriptionsHistoryView || mod.default).toBeDefined();
+    expect(mod.TranscriptionsHistoryView).toBeDefined();
   });
 });
