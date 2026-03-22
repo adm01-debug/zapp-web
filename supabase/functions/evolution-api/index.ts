@@ -53,7 +53,15 @@ serve(async (req) => {
     : pathAction;
 
 
-  // Helper to proxy requests to Evolution API
+  // Circuit breaker state (in-memory per invocation context)
+  const TIMEOUT_MS = 15000;
+  const MAX_RETRIES = 2;
+  const RETRY_DELAY_MS = 1000;
+  const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Helper to proxy requests to Evolution API with retry + timeout
   const proxy = async (
     path: string,
     method: string = 'POST',
@@ -75,45 +83,89 @@ serve(async (req) => {
       opts.body = JSON.stringify(body);
     }
 
-    console.log(`[Evolution API] ${method} ${fullUrl}`);
-    const response = await fetch(fullUrl, opts);
-    
-    // Safely handle non-JSON responses
-    let data: unknown;
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
+    let lastError: Error | null = null;
+    const isIdempotent = method === 'GET' || method === 'PUT' || method === 'DELETE';
+    const maxAttempts = isIdempotent ? MAX_RETRIES + 1 : 1;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        data = JSON.parse(text);
-      } catch {
-        data = { rawResponse: text, status: response.status };
+        if (attempt > 0) {
+          const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+          console.log(`[Evolution API] Retry ${attempt}/${MAX_RETRIES} after ${delay}ms for ${method} ${fullUrl}`);
+          await sleep(delay);
+        }
+
+        console.log(`[Evolution API] ${method} ${fullUrl} (attempt ${attempt + 1})`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        const response = await fetch(fullUrl, { ...opts, signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        // Retry on retryable status codes (only for idempotent)
+        if (RETRYABLE_STATUSES.has(response.status) && attempt < maxAttempts - 1) {
+          console.warn(`[Evolution API] Got ${response.status}, will retry...`);
+          lastError = new Error(`HTTP ${response.status}`);
+          continue;
+        }
+
+        // Safely handle non-JSON responses
+        let data: unknown;
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          data = await response.json();
+        } else {
+          const text = await response.text();
+          try {
+            data = JSON.parse(text);
+          } catch {
+            data = { rawResponse: text, status: response.status };
+          }
+        }
+
+        // If Evolution API returned an error, wrap it in a 200 response
+        if (!response.ok) {
+          const errorData = data as Record<string, unknown>;
+          const responseMsg = (errorData?.response as any)?.message;
+          let friendlyMessage = 'Erro na API Evolution';
+          if (Array.isArray(responseMsg) && responseMsg.some((m: any) => m.exists === false)) {
+            friendlyMessage = 'Número não encontrado no WhatsApp. Verifique se o número está correto e registrado.';
+          } else if (response.status === 401) {
+            friendlyMessage = 'Chave de API inválida ou sem permissão.';
+          } else if (response.status === 404) {
+            friendlyMessage = 'Instância não encontrada na API Evolution.';
+          }
+          return new Response(JSON.stringify({ 
+            error: true,
+            status: response.status,
+            message: friendlyMessage,
+            details: data,
+          }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        if (lastError.name === 'AbortError') {
+          lastError = new Error(`Timeout após ${TIMEOUT_MS / 1000}s aguardando a API Evolution`);
+        }
+        if (attempt >= maxAttempts - 1) break;
       }
     }
 
-    // If Evolution API returned an error, wrap it in a 200 response
-    // with an error field so the client SDK doesn't throw FunctionsHttpError
-    if (!response.ok) {
-      const errorData = data as Record<string, unknown>;
-      // Check for "number doesn't exist" pattern
-      const responseMsg = errorData?.response?.message;
-      let friendlyMessage = 'Erro na API Evolution';
-      if (Array.isArray(responseMsg) && responseMsg.some((m: any) => m.exists === false)) {
-        friendlyMessage = 'Número não encontrado no WhatsApp. Verifique se o número está correto e registrado.';
-      }
-      return new Response(JSON.stringify({ 
-        error: true,
-        status: response.status,
-        message: friendlyMessage,
-        details: data,
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new Response(JSON.stringify(data), {
+    // All retries exhausted
+    return new Response(JSON.stringify({
+      error: true,
+      status: 504,
+      message: `Falha ao conectar com a API Evolution: ${lastError?.message || 'Erro desconhecido'}`,
+      retries: maxAttempts - 1,
+    }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
