@@ -470,12 +470,17 @@ describe('E2E: WhatsApp Flows Module', () => {
 // ONBOARDING MODULE
 // =============================================
 describe('E2E: Onboarding Module', () => {
-  const components = ['OnboardingChecklist', 'OnboardingTour', 'WelcomeModal'];
-  components.forEach(name => {
-    it(`exports ${name}`, async () => {
-      const mod = await import(`../../components/onboarding/${name}`);
-      expect(mod[name] || mod.default).toBeDefined();
-    });
+  it('exports OnboardingChecklist', async () => {
+    const mod = await import('../../components/onboarding/OnboardingChecklist');
+    expect(mod.OnboardingChecklist || mod.default).toBeDefined();
+  });
+  it('exports TourProvider from OnboardingTour', async () => {
+    const mod = await import('../../components/onboarding/OnboardingTour');
+    expect(mod.TourProvider).toBeDefined();
+  });
+  it('exports WelcomeModal', async () => {
+    const mod = await import('../../components/onboarding/WelcomeModal');
+    expect(mod.WelcomeModal || mod.default).toBeDefined();
   });
 
   it('validates checklist completion', () => {
