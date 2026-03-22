@@ -335,7 +335,7 @@ export function ContactsView() {
 
   const handleEditContact = async () => {
     if (!editingContact) return;
-
+    setIsSubmitting(true);
     await feedback.withFeedback(
       async () => {
         const { error } = await supabase
@@ -369,6 +369,7 @@ export function ContactsView() {
         },
       }
     );
+    setIsSubmitting(false);
   };
 
   const handleDeleteContact = async (id: string) => {
@@ -381,7 +382,10 @@ export function ContactsView() {
         loadingMessage: 'Excluindo contato...',
         successMessage: 'Contato excluído com sucesso!',
         errorMessage: 'Erro ao excluir contato',
-        onSuccess: () => fetchContacts(),
+        onSuccess: () => {
+          setDeleteTarget(null);
+          fetchContacts();
+        },
       }
     );
   };
