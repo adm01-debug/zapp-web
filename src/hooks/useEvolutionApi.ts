@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { log } from '@/lib/logger';
@@ -214,29 +214,50 @@ interface CreateInstanceParams {
 
 export function useEvolutionApi() {
   const [isLoading, setIsLoading] = useState(false);
+  const mountedRef = useRef(true);
+  const inflightRef = useRef<Map<string, Promise<any>>>(new Map());
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const callApi = useCallback(async (action: string, body?: object, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'POST') => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke(`evolution-api/${action}`, {
-        method,
-        body,
-      });
-      if (error) throw error;
-      // Check for wrapped API errors (edge function returns 200 with error field)
-      if (data && typeof data === 'object' && data.error === true) {
-        const apiError = new Error(data.message || 'Erro na API Evolution');
-        (apiError as any).details = data.details;
-        (apiError as any).apiStatus = data.status;
-        throw apiError;
-      }
-      return data;
-    } catch (error) {
-      log.error(`Evolution API error (${action}):`, error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    // Dedup identical GET requests in-flight
+    const dedupeKey = method === 'GET' ? `${action}:${JSON.stringify(body || {})}` : '';
+    if (dedupeKey && inflightRef.current.has(dedupeKey)) {
+      return inflightRef.current.get(dedupeKey);
     }
+
+    if (mountedRef.current) setIsLoading(true);
+
+    const promise = (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke(`evolution-api/${action}`, {
+          method,
+          body,
+        });
+        if (error) throw error;
+        // Check for wrapped API errors (edge function returns 200 with error field)
+        if (data && typeof data === 'object' && data.error === true) {
+          const apiError = new Error(data.message || 'Erro na API Evolution');
+          (apiError as any).details = data.details;
+          (apiError as any).apiStatus = data.status;
+          (apiError as any).retries = data.retries;
+          throw apiError;
+        }
+        return data;
+      } catch (error) {
+        log.error(`Evolution API error (${action}):`, error);
+        throw error;
+      } finally {
+        if (dedupeKey) inflightRef.current.delete(dedupeKey);
+        if (mountedRef.current) setIsLoading(false);
+      }
+    })();
+
+    if (dedupeKey) inflightRef.current.set(dedupeKey, promise);
+    return promise;
   }, []);
 
   // Helper for toast feedback
