@@ -10,7 +10,7 @@ interface ReplyPreviewProps {
 }
 
 function getMediaInfo(message: Message): { icon: React.ElementType; label: string } | null {
-  const type = message.type || message.message_type;
+  const type = message.type || (message as any).message_type;
   switch (type) {
     case 'audio': return { icon: Music, label: '🎵 Mensagem de áudio' };
     case 'image': return { icon: Image, label: '📷 Imagem' };
