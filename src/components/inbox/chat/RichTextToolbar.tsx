@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface RichTextToolbarProps {
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
   inputValue: string;
   onInputChange: (value: string) => void;
   visible: boolean;
@@ -68,7 +68,7 @@ export function RichTextToolbar({ inputRef, inputValue, onInputChange, visible, 
           transition={{ duration: 0.15 }}
           className="overflow-hidden"
         >
-          <div className="flex items-center gap-0.5 px-4 py-1.5 border-t border-border/50 bg-muted/30">
+          <div className="flex items-center gap-0.5 px-4 py-1.5 border-t border-border/50 bg-muted/30" role="toolbar" aria-label="Formatação de texto">
             {(Object.entries(FORMAT_MAP) as [FormatType, typeof FORMAT_MAP[FormatType]][]).map(([type, { icon: Icon, label, shortcut }]) => (
               <Tooltip key={type}>
                 <TooltipTrigger asChild>
@@ -77,6 +77,7 @@ export function RichTextToolbar({ inputRef, inputValue, onInputChange, visible, 
                     size="icon"
                     className="w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-muted"
                     onClick={() => applyFormat(type)}
+                    aria-label={label}
                   >
                     <Icon className="w-3.5 h-3.5" />
                   </Button>
@@ -86,7 +87,7 @@ export function RichTextToolbar({ inputRef, inputValue, onInputChange, visible, 
                 </TooltipContent>
               </Tooltip>
             ))}
-            <span className="ml-auto text-[10px] text-muted-foreground/60">WhatsApp formatting</span>
+            <span className="ml-auto text-[10px] text-muted-foreground/60">Formatação WhatsApp</span>
           </div>
         </motion.div>
       )}
@@ -107,7 +108,7 @@ export function RichTextToggle({ active, onToggle }: { active: boolean; onToggle
             active ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"
           )}
           onClick={onToggle}
-          title="Formatação"
+          aria-label="Formatação de texto"
         >
           <Type className="w-[18px] h-[18px]" />
         </Button>

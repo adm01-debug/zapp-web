@@ -46,6 +46,7 @@ interface ChatPanelProps {
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack }: ChatPanelProps) {
   // ── State ──
   const [inputValue, setInputValue] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
