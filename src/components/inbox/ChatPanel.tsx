@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { undoToast } from '@/lib/undoToast';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { normalizeMediaUrl } from '@/utils/normalizeMediaUrl';
 import { FileUploaderRef } from './FileUploader';
