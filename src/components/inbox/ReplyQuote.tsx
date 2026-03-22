@@ -57,7 +57,7 @@ export function ReplyPreview({ message, onCancel }: ReplyPreviewProps) {
             </p>
           </div>
           {/* Show thumbnail for images */}
-          {message.mediaUrl && (message.type === 'image' || message.message_type === 'image') && (
+          {message.mediaUrl && (message.type === 'image' || (message as any).message_type === 'image') && (
             <img
               src={message.mediaUrl}
               alt="Preview"

@@ -245,7 +245,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     log.debug('Forwarding to:', { targetIds, targetType, message: forwardMessage });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setInputValue(value);
     if (value.startsWith('/')) {
