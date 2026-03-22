@@ -7,16 +7,41 @@ import * as Views from './lazyViews';
 interface ViewRouterProps {
   currentView: string;
   userId?: string;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
+  onGoBack?: () => void;
+  onGoForward?: () => void;
+  breadcrumbTrail?: string[];
+  onNavigateTo?: (viewId: string) => void;
 }
 
 // Views that manage their own full-screen layout (no header)
 const FULL_SCREEN_VIEWS = new Set(['inbox', 'pipeline', 'omni-inbox']);
 
-function WithHeader({ viewId, children }: { viewId: string; children: React.ReactNode }) {
+interface WithHeaderProps {
+  viewId: string;
+  children: React.ReactNode;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
+  onGoBack?: () => void;
+  onGoForward?: () => void;
+  breadcrumbTrail?: string[];
+  onNavigateTo?: (viewId: string) => void;
+}
+
+function WithHeader({ viewId, children, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: WithHeaderProps) {
   if (FULL_SCREEN_VIEWS.has(viewId)) return <>{children}</>;
   return (
     <div className="flex flex-col h-full">
-      <ViewHeader viewId={viewId} />
+      <ViewHeader
+        viewId={viewId}
+        canGoBack={canGoBack}
+        canGoForward={canGoForward}
+        onGoBack={onGoBack}
+        onGoForward={onGoForward}
+        breadcrumbTrail={breadcrumbTrail}
+        onNavigateTo={onNavigateTo}
+      />
       <div className="flex-1 min-h-0 overflow-auto">{children}</div>
     </div>
   );
