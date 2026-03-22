@@ -259,9 +259,12 @@ export function ContactsView() {
   const filteredContacts = sortContacts(contacts.filter((contact) => {
     const matchesSearch =
       contact.name.toLowerCase().includes(search.toLowerCase()) ||
+      contact.nickname?.toLowerCase().includes(search.toLowerCase()) ||
+      contact.surname?.toLowerCase().includes(search.toLowerCase()) ||
       contact.phone.includes(search) ||
       contact.email?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(search.toLowerCase());
+      contact.company?.toLowerCase().includes(search.toLowerCase()) ||
+      contact.job_title?.toLowerCase().includes(search.toLowerCase());
     
     const matchesTab = activeTab === 'all' || (contact.contact_type || 'cliente') === activeTab;
     const matchesCompany = !filterCompany || contact.company === filterCompany;
