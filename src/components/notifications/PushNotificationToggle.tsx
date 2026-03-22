@@ -57,7 +57,7 @@ export function PushNotificationToggle({ className }: { className?: string }) {
           )}
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom">
+      <TooltipContent side="right" sideOffset={8}>
         <p>{notSupported ? 'Push não suportado neste navegador' : permission === 'denied' ? 'Permissão bloqueada no navegador' : label}</p>
       </TooltipContent>
     </Tooltip>

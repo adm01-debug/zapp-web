@@ -64,7 +64,7 @@ export function ScreenProtectionToggle({ className }: { className?: string }) {
           )}
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom">
+      <TooltipContent side="right" sideOffset={8}>
         <p>{label}</p>
       </TooltipContent>
     </Tooltip>
