@@ -32,7 +32,7 @@ describe('E2E: Contacts - Phone Validation', () => {
   
   it('normalizes Brazilian phone numbers', () => {
     expect(normalizePhone('(11) 99999-8888')).toBe('11999998888');
-    expect(normalizePhone('+55 11 99999-8888')).toBe('+551199999888');
+    expect(normalizePhone('+55 11 99999-8888')).toBe('+5511999998888');
   });
 
   it('handles international formats', () => {
