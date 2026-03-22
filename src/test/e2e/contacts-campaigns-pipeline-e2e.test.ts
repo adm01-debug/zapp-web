@@ -14,12 +14,16 @@ vi.mock('@/integrations/supabase/client', () => ({
 // CONTACTS MODULE - Comprehensive Tests
 // =============================================
 describe('E2E: Contacts Module - Components', () => {
-  const contactComponents = ['ContactsView', 'ContactForm', 'CustomFieldsSection', 'AIAvatarGenerator', 'ContactDetailsSkeleton'];
+  const contactComponents = ['ContactForm', 'CustomFieldsSection', 'AIAvatarGenerator', 'ContactDetailsSkeleton'];
   contactComponents.forEach(name => {
     it(`exports ${name}`, async () => {
       const mod = await import(`../../components/contacts/${name}`);
       expect(mod[name] || mod.default).toBeDefined();
     });
+  });
+  it('exports ContactsView', async () => {
+    const mod = await import('../../components/contacts/ContactsView');
+    expect(mod.ContactsView).toBeDefined();
   });
 });
 
