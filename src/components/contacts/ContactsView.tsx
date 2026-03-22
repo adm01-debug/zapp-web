@@ -948,7 +948,7 @@ export function ContactsView() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   className="text-destructive"
-                                  onClick={() => handleDeleteContact(contact.id)}
+                                  onClick={() => setDeleteTarget(contact)}
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
                                   Excluir
