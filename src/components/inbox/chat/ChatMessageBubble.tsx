@@ -79,15 +79,30 @@ export function ChatMessageBubble({
 }: ChatMessageBubbleProps) {
   const isSent = message.sender === 'agent';
 
+  const isMobile = useIsMobile();
+  
+  // Swipe gestures (mobile): right = reply, left = forward
+  const { swipeState, handlers: swipeHandlers } = useSwipeGesture({
+    onSwipeRight: () => onReply(message),
+    onSwipeLeft: () => onForward(message),
+    enabled: isMobile,
+    threshold: 60,
+  });
+
   return (
     <div 
       ref={(el) => registerRef(message.id, el)}
       className={cn('flex group', isSent ? 'justify-end' : 'justify-start')}
+      {...swipeHandlers}
     >
       <motion.div
         initial={{ opacity: 0, x: isSent ? 20 : -20, scale: 0.95 }}
-        animate={{ opacity: 1, x: 0, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        animate={{ 
+          opacity: 1, 
+          x: swipeState.isSwiping ? swipeState.offsetX : 0, 
+          scale: 1 
+        }}
+        transition={swipeState.isSwiping ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 25 }}
         className="max-w-[70%] space-y-1 relative"
       >
         {/* Message Actions (visible on hover) */}
