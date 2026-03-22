@@ -136,8 +136,12 @@ export function ChatInputArea({
   inputRef,
 }: ChatInputAreaProps) {
   const [showRichToolbar, setShowRichToolbar] = useState(false);
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [sendAnimation, setSendAnimation] = useState(false);
   const isMobile = useIsMobile();
+
+  // Mentions support
+  const { isOpen: mentionOpen, cursorPos: mentionCursorPos, checkForMention, handleSelect: handleMentionSelect, close: closeMention } = useMentions(inputRef);
 
   const hasText = inputValue.trim().length > 0;
   const charCount = inputValue.length;
