@@ -748,6 +748,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           instanceName={instanceName}
           messages={messages}
           quickReplies={dbQuickReplies}
+          isSending={isSending}
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onBlur={handleTypingStop}
