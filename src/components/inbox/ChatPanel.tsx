@@ -63,7 +63,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
   // ── Refs ──
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileUploaderRef = useRef<FileUploaderRef>(null);
   const messagesAreaRef = useRef<ChatMessagesAreaRef>(null);
   const dragCounterRef = useRef(0);
