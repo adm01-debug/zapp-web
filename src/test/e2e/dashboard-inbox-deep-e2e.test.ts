@@ -247,7 +247,7 @@ describe('E2E: Inbox Module Components', () => {
     });
 
     it('validates bulk action selection', () => {
-      let selected = new Set<string>();
+      const selected = new Set<string>();
       selected.add('c1'); selected.add('c2'); selected.add('c3');
       expect(selected.size).toBe(3);
       selected.delete('c2');
@@ -258,7 +258,7 @@ describe('E2E: Inbox Module Components', () => {
     });
 
     it('validates message reaction toggling', () => {
-      let reactions: Record<string, string[]> = { '👍': ['user1', 'user2'], '❤️': ['user1'] };
+      const reactions: Record<string, string[]> = { '👍': ['user1', 'user2'], '❤️': ['user1'] };
       const toggle = (emoji: string, userId: string) => {
         if (!reactions[emoji]) reactions[emoji] = [];
         if (reactions[emoji].includes(userId)) {

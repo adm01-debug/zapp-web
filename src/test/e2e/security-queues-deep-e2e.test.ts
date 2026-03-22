@@ -185,7 +185,7 @@ describe('E2E: Catalog Module - Deep Tests', () => {
     });
 
     it('validates cart operations', () => {
-      let cart: Array<{ id: string; name: string; price: number; quantity: number }> = [];
+      const cart: Array<{ id: string; name: string; price: number; quantity: number }> = [];
       // Add item
       cart.push({ id: 'p1', name: 'Camiseta', price: 49.90, quantity: 1 });
       expect(cart).toHaveLength(1);
