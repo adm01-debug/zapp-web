@@ -481,7 +481,72 @@ export function ContactsView() {
         </DialogContent>
       </Dialog>
 
-      {/* Contact Type Tabs */}
+      {/* Success Confirmation Dialog */}
+      <Dialog open={!!showSuccess} onOpenChange={() => setShowSuccess(null)}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="flex flex-col items-center gap-3">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              >
+                <CheckCircle2 className="w-16 h-16 text-green-500" />
+              </motion.div>
+              Contato Adicionado!
+            </DialogTitle>
+            <DialogDescription className="text-center space-y-3 pt-2">
+              <p><strong>{showSuccess?.name}</strong> foi adicionado com sucesso à sua base de contatos.</p>
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                <p className="text-xs text-muted-foreground">Protocolo de registro</p>
+                <div className="flex items-center justify-center gap-2">
+                  <code className="text-sm font-mono font-semibold text-foreground">{showSuccess?.protocol}</code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-6 h-6"
+                    onClick={() => {
+                      navigator.clipboard.writeText(showSuccess?.protocol || '');
+                      toast.success('Protocolo copiado!');
+                    }}
+                    aria-label="Copiar protocolo"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">Respondemos em até 24h para contatos com email cadastrado.</p>
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowSuccess(null)} className="w-full bg-whatsapp hover:bg-whatsapp-dark">
+            Continuar
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir contato</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteTarget?.name}</strong>? 
+              Esta ação não pode ser desfeita e todas as conversas associadas serão mantidas sem vínculo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && handleDeleteContact(deleteTarget.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
