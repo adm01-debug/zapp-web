@@ -144,7 +144,7 @@ export const ContactForm = React.memo(function ContactForm({
   const renderFieldStatus = (field: string) => {
     const error = errors[field];
     const isTouched = touched[field];
-    const value = (values as Record<string, string | null | undefined>)[field] || '';
+    const value = (values as unknown as Record<string, string | null | undefined>)[field] || '';
     
     if (!isTouched) return null;
     if (error) {
