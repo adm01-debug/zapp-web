@@ -1,6 +1,6 @@
 import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { useDeepLinks } from '@/hooks/useDeepLinks';
+import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
