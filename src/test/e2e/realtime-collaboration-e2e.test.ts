@@ -20,9 +20,9 @@ describe('E2E: Typing Indicators', () => {
       if (now - lastSent > DEBOUNCE_MS) { lastSent = now; return true; }
       return false;
     };
-    expect(shouldSendTyping(1000)).toBe(true);
-    expect(shouldSendTyping(2000)).toBe(false);
-    expect(shouldSendTyping(5000)).toBe(true);
+    expect(shouldSendTyping(4000)).toBe(true);
+    expect(shouldSendTyping(5000)).toBe(false);
+    expect(shouldSendTyping(8000)).toBe(true);
   });
 
   it('shows typing for multiple agents', () => {

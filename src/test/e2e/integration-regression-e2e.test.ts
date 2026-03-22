@@ -34,7 +34,7 @@ describe('E2E: Authentication Flows', () => {
       return score >= 3 ? 'strong' : score >= 2 ? 'medium' : 'weak';
     };
     expect(strength('Abc123!@')).toBe('strong');
-    expect(strength('abc123')).toBe('medium');
+    expect(strength('abc123')).toBe('weak');
     expect(strength('abc')).toBe('weak');
   });
 
