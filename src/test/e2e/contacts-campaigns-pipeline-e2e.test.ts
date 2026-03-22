@@ -396,7 +396,7 @@ describe('E2E: Knowledge Base - Search', () => {
 describe('E2E: Client Wallet Module', () => {
   it('exports ClientWalletView', async () => {
     const mod = await import('../../components/wallet/ClientWalletView');
-    expect(mod.default || mod.ClientWalletView).toBeDefined();
+    expect(mod.ClientWalletView).toBeDefined();
   });
 
   it('validates wallet assignment rules', () => {
