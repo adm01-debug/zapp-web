@@ -98,6 +98,21 @@ function IndexContent() {
     registerNavigationHandler(setCurrentView);
     return () => unregisterNavigationHandler();
   }, [registerNavigationHandler, unregisterNavigationHandler]);
+
+  // Alt+← / Alt+→ for back/forward navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goBack();
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        goForward();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goBack, goForward]);
   
   useTranscriptionNotifications({ enabled: !!user });
 
