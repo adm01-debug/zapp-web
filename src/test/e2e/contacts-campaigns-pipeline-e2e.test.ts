@@ -462,7 +462,7 @@ describe('E2E: Groups Module', () => {
 describe('E2E: WhatsApp Flows Module', () => {
   it('exports WhatsAppFlowsBuilder', async () => {
     const mod = await import('../../components/whatsapp-flows/WhatsAppFlowsBuilder');
-    expect(mod.default || mod.WhatsAppFlowsBuilder).toBeDefined();
+    expect(mod.WhatsAppFlowsBuilder).toBeDefined();
   });
 });
 
