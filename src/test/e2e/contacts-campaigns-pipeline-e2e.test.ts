@@ -176,7 +176,7 @@ describe('E2E: Contacts - Bulk Operations', () => {
 describe('E2E: Campaigns Module', () => {
   it('exports CampaignsView', async () => {
     const mod = await import('../../components/campaigns/CampaignsView');
-    expect(mod.default || mod.CampaignsView).toBeDefined();
+    expect(mod.CampaignsView).toBeDefined();
   });
 });
 
