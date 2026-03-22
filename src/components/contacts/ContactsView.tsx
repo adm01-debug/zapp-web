@@ -285,12 +285,17 @@ export function ContactsView() {
     setSortBy('name_asc');
   };
 
+  const generateProtocol = useCallback(() => {
+    const now = new Date();
+    return `CT-${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
+  }, []);
+
   const handleAddContact = async () => {
     if (!newContact.name || !newContact.phone) {
       feedback.warning('Preencha os campos obrigatórios');
       return;
     }
-
+    setIsSubmitting(true);
     await feedback.withFeedback(
       async () => {
         const { error } = await supabase.from('contacts').insert({
@@ -316,12 +321,16 @@ export function ContactsView() {
         successMessage: 'Contato adicionado com sucesso!',
         errorMessage: 'Erro ao adicionar contato',
         onSuccess: () => {
+          const protocol = generateProtocol();
+          const contactName = newContact.name;
           setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
           setIsAddDialogOpen(false);
+          setShowSuccess({ name: contactName, protocol });
           fetchContacts();
         },
       }
     );
+    setIsSubmitting(false);
   };
 
   const handleEditContact = async () => {
