@@ -114,15 +114,17 @@ describe('ViewRouter Route Coverage', () => {
   });
 
   it('ViewRouter default branch should render fallback UI', async () => {
-    // Dynamic import to avoid heavy lazy-loading in test
     const { ViewRouter } = await import('@/pages/ViewRouter');
-    const { render, screen } = await import('@testing-library/react');
+    const { render } = await import('@testing-library/react');
     const React = await import('react');
+    const { TooltipProvider } = await import('@/components/ui/tooltip');
 
     const { container } = render(
-      <React.Suspense fallback={<div>loading</div>}>
-        <ViewRouter currentView="__nonexistent__" />
-      </React.Suspense>,
+      <TooltipProvider>
+        <React.Suspense fallback={<div>loading</div>}>
+          <ViewRouter currentView="__nonexistent__" />
+        </React.Suspense>
+      </TooltipProvider>,
     );
 
     expect(container.textContent).toContain('em desenvolvimento');
