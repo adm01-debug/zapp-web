@@ -444,21 +444,53 @@ export function ChatInputArea({
             </PopoverContent>
           </Popover>
 
-          {/* Textarea — replaces <input> */}
+          {/* Textarea with mentions and markdown preview */}
           <div className="flex-1 min-w-0 relative">
+            {/* Mention Autocomplete */}
+            <MentionAutocomplete
+              inputValue={inputValue}
+              cursorPosition={mentionCursorPos}
+              onSelect={handleMentionSelect}
+              onClose={closeMention}
+              isOpen={mentionOpen}
+            />
+
+            {/* Markdown Preview (above textarea) */}
+            <AnimatePresence>
+              {showMarkdownPreview && hasText && showRichToolbar && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-1 px-3 py-2 border border-border/50 rounded-lg bg-muted/30 text-sm max-h-[100px] overflow-y-auto"
+                >
+                  <MarkdownPreview text={inputValue} className="text-foreground leading-relaxed" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <textarea
               ref={inputRef}
               value={inputValue}
-              onChange={onInputChange}
+              onChange={(e) => {
+                onInputChange(e);
+                // Check for @mentions
+                checkForMention(e.target.value, e.target.selectionStart ?? 0);
+              }}
               onKeyDown={onKeyDown}
               onBlur={onBlur}
               onPaste={handlePaste}
+              onClick={(e) => {
+                // Update mention position on click
+                const target = e.target as HTMLTextAreaElement;
+                checkForMention(target.value, target.selectionStart ?? 0);
+              }}
               placeholder={
                 editingMessage
                   ? "Editar mensagem..."
                   : replyToMessage
                     ? "Digite sua resposta..."
-                    : "Digite uma mensagem... (/ para comandos)"
+                    : "Digite uma mensagem... (/ para comandos, @ para mencionar)"
               }
               rows={1}
               className={cn(
