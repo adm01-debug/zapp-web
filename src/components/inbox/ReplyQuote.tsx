@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X, Reply, CornerDownRight } from 'lucide-react';
+import { X, Reply, CornerDownRight, Image, Video, FileText, Music, MapPin, Sticker } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
@@ -9,8 +9,23 @@ interface ReplyPreviewProps {
   onCancel: () => void;
 }
 
+function getMediaInfo(message: Message): { icon: React.ElementType; label: string } | null {
+  const type = message.type || (message as any).message_type;
+  switch (type) {
+    case 'audio': return { icon: Music, label: '🎵 Mensagem de áudio' };
+    case 'image': return { icon: Image, label: '📷 Imagem' };
+    case 'video': return { icon: Video, label: '🎥 Vídeo' };
+    case 'document': return { icon: FileText, label: '📄 Documento' };
+    case 'sticker': return { icon: Sticker, label: '🎨 Figurinha' };
+    case 'location': return { icon: MapPin, label: '📍 Localização' };
+    default: return null;
+  }
+}
+
 export function ReplyPreview({ message, onCancel }: ReplyPreviewProps) {
   const isSent = message.sender === 'agent';
+  const mediaInfo = getMediaInfo(message);
+  const MediaIcon = mediaInfo?.icon;
   
   return (
     <motion.div
@@ -33,19 +48,29 @@ export function ReplyPreview({ message, onCancel }: ReplyPreviewProps) {
           )}>
             Respondendo a {isSent ? 'você' : 'contato'}
           </p>
-          <p className="text-sm text-foreground line-clamp-2">
-            {message.type === 'audio' ? '🎵 Mensagem de áudio' : 
-             message.type === 'image' ? '📷 Imagem' :
-             message.type === 'video' ? '🎥 Vídeo' :
-             message.type === 'document' ? '📄 Documento' :
-             message.content}
-          </p>
+          <div className="flex items-center gap-1.5">
+            {MediaIcon && (
+              <MediaIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            )}
+            <p className="text-sm text-foreground line-clamp-2">
+              {mediaInfo ? mediaInfo.label : message.content}
+            </p>
+          </div>
+          {/* Show thumbnail for images */}
+          {message.mediaUrl && (message.type === 'image' || (message as any).message_type === 'image') && (
+            <img
+              src={message.mediaUrl}
+              alt="Preview"
+              className="mt-1.5 w-12 h-12 rounded object-cover"
+            />
+          )}
         </div>
         <Button
           variant="ghost"
           size="icon"
           className="h-6 w-6 flex-shrink-0"
           onClick={onCancel}
+          aria-label="Cancelar resposta"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -59,6 +84,7 @@ interface QuotedMessageProps {
     messageId: string;
     content: string;
     sender: 'contact' | 'agent';
+    type?: string;
   };
   isSent: boolean;
   onClick?: () => void;
@@ -66,6 +92,19 @@ interface QuotedMessageProps {
 
 export function QuotedMessage({ replyTo, isSent, onClick }: QuotedMessageProps) {
   const isQuoteFromAgent = replyTo.sender === 'agent';
+  
+  const typeLabels: Record<string, string> = {
+    audio: '🎵 Áudio',
+    image: '📷 Imagem',
+    video: '🎥 Vídeo',
+    document: '📄 Documento',
+    sticker: '🎨 Figurinha',
+    location: '📍 Localização',
+  };
+  
+  const displayContent = replyTo.type && typeLabels[replyTo.type]
+    ? typeLabels[replyTo.type]
+    : replyTo.content;
   
   return (
     <motion.button
@@ -99,7 +138,7 @@ export function QuotedMessage({ replyTo, isSent, onClick }: QuotedMessageProps) 
             "text-xs line-clamp-2",
             isSent ? "text-primary-foreground/90" : "text-foreground/80"
           )}>
-            {replyTo.content}
+            {displayContent}
           </p>
         </div>
       </div>

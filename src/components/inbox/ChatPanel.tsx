@@ -63,7 +63,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
   // ── Refs ──
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileUploaderRef = useRef<FileUploaderRef>(null);
   const messagesAreaRef = useRef<ChatMessagesAreaRef>(null);
   const dragCounterRef = useRef(0);
@@ -245,7 +245,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     log.debug('Forwarding to:', { targetIds, targetType, message: forwardMessage });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setInputValue(value);
     if (value.startsWith('/')) {
