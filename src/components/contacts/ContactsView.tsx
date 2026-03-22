@@ -147,6 +147,45 @@ export function ContactsView() {
   const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
   const [showSuccess, setShowSuccess] = useState<{ name: string; protocol: string } | null>(null);
 
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearch(value);
+    }, 400);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, []);
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [filterCompany, setFilterCompany] = useState<string>('');
+  const [filterJobTitle, setFilterJobTitle] = useState<string>('');
+  const [filterTag, setFilterTag] = useState<string>('');
+  const [filterDateRange, setFilterDateRange] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('name_asc');
+  
+  const [newContact, setNewContact] = useState({
+    name: '',
+    nickname: '',
+    surname: '',
+    job_title: '',
+    company: '',
+    phone: '',
+    email: '',
+    contact_type: 'cliente',
+  });
+
   // Extract unique values for filters
   const uniqueCompanies = [...new Set(contacts.map(c => c.company).filter(Boolean))] as string[];
   const uniqueJobTitles = [...new Set(contacts.map(c => c.job_title).filter(Boolean))] as string[];
