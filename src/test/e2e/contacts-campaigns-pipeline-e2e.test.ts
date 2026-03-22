@@ -27,7 +27,7 @@ describe('E2E: Contacts - Phone Validation', () => {
   const normalizePhone = (phone: string) => phone.replace(/[^0-9+]/g, '');
   
   it('normalizes Brazilian phone numbers', () => {
-    expect(normalizePhone('(11) 99999-8888')).toBe('1199999888');
+    expect(normalizePhone('(11) 99999-8888')).toBe('11999998888');
     expect(normalizePhone('+55 11 99999-8888')).toBe('+551199999888');
   });
 
