@@ -731,6 +731,32 @@ export function ConnectionsView() {
                                 Instância: <code className="bg-muted px-1 rounded">{connection.instance_id}</code>
                               </p>
                             )}
+                            {connection.health_status && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className={cn(
+                                  'relative flex h-2 w-2',
+                                )}>
+                                  {connection.health_status === 'healthy' && (
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                  )}
+                                  <span className={cn(
+                                    'relative inline-flex rounded-full h-2 w-2',
+                                    connection.health_status === 'healthy' && 'bg-emerald-500',
+                                    connection.health_status === 'degraded' && 'bg-amber-500',
+                                    (connection.health_status === 'error' || connection.health_status === 'timeout' || connection.health_status === 'disconnected') && 'bg-destructive',
+                                  )} />
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {connection.health_status === 'healthy' ? 'Saudável' :
+                                   connection.health_status === 'degraded' ? 'Degradado' :
+                                   connection.health_status === 'timeout' ? 'Timeout' :
+                                   connection.health_status === 'error' ? 'Erro' : 'Desconectado'}
+                                  {connection.health_response_ms != null && (
+                                    <> · {connection.health_response_ms}ms</>
+                                  )}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
