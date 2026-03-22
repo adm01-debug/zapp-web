@@ -417,7 +417,7 @@ describe('E2E: Client Wallet Module', () => {
 describe('E2E: Schedule Module', () => {
   it('exports ScheduleCalendarView', async () => {
     const mod = await import('../../components/schedule/ScheduleCalendarView');
-    expect(mod.default || mod.ScheduleCalendarView).toBeDefined();
+    expect(mod.ScheduleCalendarView).toBeDefined();
   });
 
   it('validates time slot overlap detection', () => {
