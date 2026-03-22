@@ -283,7 +283,7 @@ describe('E2E: Campaigns - Contact Targeting', () => {
 describe('E2E: Sales Pipeline Module', () => {
   it('exports SalesPipelineView', async () => {
     const mod = await import('../../components/pipeline/SalesPipelineView');
-    expect(mod.default || mod.SalesPipelineView).toBeDefined();
+    expect(mod.SalesPipelineView).toBeDefined();
   });
 });
 
