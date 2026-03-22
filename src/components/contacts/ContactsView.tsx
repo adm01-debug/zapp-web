@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { motion } from '@/components/ui/motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
@@ -29,7 +29,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
@@ -65,6 +76,9 @@ import {
   X,
   CalendarDays,
   SortAsc,
+  CheckCircle2,
+  Copy,
+  TrendingUp,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -129,6 +143,9 @@ export function ContactsView() {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
+  const [showSuccess, setShowSuccess] = useState<{ name: string; protocol: string } | null>(null);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchInput(value);
@@ -145,12 +162,12 @@ export function ContactsView() {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
   }, []);
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   
-  // Filter states
   const [activeTab, setActiveTab] = useState<string>('all');
   const [filterCompany, setFilterCompany] = useState<string>('');
   const [filterJobTitle, setFilterJobTitle] = useState<string>('');
@@ -268,12 +285,17 @@ export function ContactsView() {
     setSortBy('name_asc');
   };
 
+  const generateProtocol = useCallback(() => {
+    const now = new Date();
+    return `CT-${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
+  }, []);
+
   const handleAddContact = async () => {
     if (!newContact.name || !newContact.phone) {
       feedback.warning('Preencha os campos obrigatórios');
       return;
     }
-
+    setIsSubmitting(true);
     await feedback.withFeedback(
       async () => {
         const { error } = await supabase.from('contacts').insert({
@@ -299,17 +321,21 @@ export function ContactsView() {
         successMessage: 'Contato adicionado com sucesso!',
         errorMessage: 'Erro ao adicionar contato',
         onSuccess: () => {
+          const protocol = generateProtocol();
+          const contactName = newContact.name;
           setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
           setIsAddDialogOpen(false);
+          setShowSuccess({ name: contactName, protocol });
           fetchContacts();
         },
       }
     );
+    setIsSubmitting(false);
   };
 
   const handleEditContact = async () => {
     if (!editingContact) return;
-
+    setIsSubmitting(true);
     await feedback.withFeedback(
       async () => {
         const { error } = await supabase
@@ -343,6 +369,7 @@ export function ContactsView() {
         },
       }
     );
+    setIsSubmitting(false);
   };
 
   const handleDeleteContact = async (id: string) => {
@@ -355,7 +382,10 @@ export function ContactsView() {
         loadingMessage: 'Excluindo contato...',
         successMessage: 'Contato excluído com sucesso!',
         errorMessage: 'Erro ao excluir contato',
-        onSuccess: () => fetchContacts(),
+        onSuccess: () => {
+          setDeleteTarget(null);
+          fetchContacts();
+        },
       }
     );
   };
@@ -423,7 +453,8 @@ export function ContactsView() {
                   onChange={handleNewContactChange}
                   onSubmit={handleAddContact}
                   onCancel={handleCancelForm}
-                  submitLabel="Adicionar"
+                   submitLabel="Adicionar"
+                   isSubmitting={isSubmitting}
                 />
               </DialogContent>
             </Dialog>
@@ -443,13 +474,79 @@ export function ContactsView() {
               onChange={handleEditContactChange}
               onSubmit={handleEditContact}
               onCancel={handleCancelForm}
-              submitLabel="Salvar"
+               submitLabel="Salvar"
+               isSubmitting={isSubmitting}
             />
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Contact Type Tabs */}
+      {/* Success Confirmation Dialog */}
+      <Dialog open={!!showSuccess} onOpenChange={() => setShowSuccess(null)}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="flex flex-col items-center gap-3">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              >
+                <CheckCircle2 className="w-16 h-16 text-green-500" />
+              </motion.div>
+              Contato Adicionado!
+            </DialogTitle>
+            <DialogDescription className="text-center space-y-3 pt-2">
+              <p><strong>{showSuccess?.name}</strong> foi adicionado com sucesso à sua base de contatos.</p>
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                <p className="text-xs text-muted-foreground">Protocolo de registro</p>
+                <div className="flex items-center justify-center gap-2">
+                  <code className="text-sm font-mono font-semibold text-foreground">{showSuccess?.protocol}</code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-6 h-6"
+                    onClick={() => {
+                      navigator.clipboard.writeText(showSuccess?.protocol || '');
+                      toast.success('Protocolo copiado!');
+                    }}
+                    aria-label="Copiar protocolo"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">Respondemos em até 24h para contatos com email cadastrado.</p>
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowSuccess(null)} className="w-full bg-whatsapp hover:bg-whatsapp-dark">
+            Continuar
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir contato</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteTarget?.name}</strong>? 
+              Esta ação não pode ser desfeita e todas as conversas associadas serão mantidas sem vínculo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && handleDeleteContact(deleteTarget.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -851,7 +948,7 @@ export function ContactsView() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   className="text-destructive"
-                                  onClick={() => handleDeleteContact(contact.id)}
+                                  onClick={() => setDeleteTarget(contact)}
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
                                   Excluir
