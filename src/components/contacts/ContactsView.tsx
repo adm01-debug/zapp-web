@@ -453,7 +453,8 @@ export function ContactsView() {
                   onChange={handleNewContactChange}
                   onSubmit={handleAddContact}
                   onCancel={handleCancelForm}
-                  submitLabel="Adicionar"
+                   submitLabel="Adicionar"
+                   isSubmitting={isSubmitting}
                 />
               </DialogContent>
             </Dialog>
