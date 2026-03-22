@@ -73,7 +73,7 @@ function IndexContent() {
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
-  const { currentView, setCurrentView } = useDeepLinks('inbox');
+  const { currentView, navigateTo: setCurrentView, goBack, goForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
