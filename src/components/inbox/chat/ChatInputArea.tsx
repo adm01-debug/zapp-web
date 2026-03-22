@@ -337,7 +337,7 @@ export function ChatInputArea({
     <>
       {/* Rich Text Toolbar */}
       <RichTextToolbar
-        inputRef={inputRef as unknown as React.RefObject<HTMLInputElement | null>}
+        inputRef={inputRef}
         inputValue={inputValue}
         onInputChange={(val) => {
           const el = inputRef.current;
