@@ -349,7 +349,7 @@ describe('E2E: Pipeline - Stage Management', () => {
 describe('E2E: Knowledge Base Module', () => {
   it('exports KnowledgeBaseView', async () => {
     const mod = await import('../../components/knowledge/KnowledgeBaseView');
-    expect(mod.default || mod.KnowledgeBaseView).toBeDefined();
+    expect(mod.KnowledgeBaseView).toBeDefined();
   });
 });
 
