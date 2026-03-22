@@ -314,7 +314,7 @@ describe('E2E: Mentions @Agent', () => {
       a.email.toLowerCase().includes(query.toLowerCase())
     );
     expect(filter('jo')).toHaveLength(1);
-    expect(filter('a')).toHaveLength(2); // Maria, João
+    expect(filter('a')).toHaveLength(3); // João, Maria, Costa all contain 'a'
     expect(filter('')).toHaveLength(3);
     expect(filter('xyz')).toHaveLength(0);
   });
