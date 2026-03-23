@@ -330,17 +330,28 @@ interface TextWithLinksProps {
   maxPreviews?: number;
 }
 
+/** Escapes HTML entities to prevent XSS when using dangerouslySetInnerHTML */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export function TextWithLinks({ text, className, showPreviews = true, maxPreviews = 3 }: TextWithLinksProps) {
   const links = useMemo(() => extractLinks(text), [text]);
   const displayLinks = links.slice(0, maxPreviews);
 
-  // Replace URLs with styled links
+  // Replace URLs with styled links — escape HTML first to prevent XSS
   const formattedText = useMemo(() => {
-    let result = text;
+    let result = escapeHtml(text);
     links.forEach(link => {
+      const escapedLink = escapeHtml(link);
       result = result.replace(
-        link,
-        `<a href="${link}" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-2 hover:text-primary/80">${link}</a>`
+        escapedLink,
+        `<a href="${encodeURI(link)}" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-2 hover:text-primary/80">${escapedLink}</a>`
       );
     });
     return result;
