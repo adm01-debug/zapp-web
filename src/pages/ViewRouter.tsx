@@ -92,6 +92,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
       case 'performance': return <Views.PerformanceMonitor />;
       case 'omni-inbox': return <Views.OmnichannelInbox />;
       case 'audit-logs': return <Views.AuditLogDashboard />;
+      case 'telemetry': return <Views.AdminTelemetriaPage />;
       default: return <FallbackView currentView={currentView} />;
     }
   })();
