@@ -33,7 +33,7 @@ import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indic
 
 function ViewLoadingFallback() {
   return (
-    <div className="flex flex-col h-full p-6 gap-6 animate-fade-in">
+    <div className="flex flex-col h-full p-6 gap-6 animate-fade-in" role="status" aria-busy="true" aria-label="Carregando módulo">
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -64,6 +64,7 @@ function ViewLoadingFallback() {
       <SkeletonCard className="flex-1 p-5">
         <SkeletonText lines={4} />
       </SkeletonCard>
+      <span className="sr-only">Carregando conteúdo do módulo...</span>
     </div>
   );
 }
@@ -80,11 +81,7 @@ function IndexContent() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { id: '1', type: 'message', title: 'Nova mensagem', description: 'Você recebeu uma nova mensagem de um contato', timestamp: new Date(Date.now() - 5 * 60 * 1000), read: false },
-    { id: '2', type: 'sla_warning', title: 'SLA em risco', description: 'Conversa sem resposta há mais de 30 minutos', timestamp: new Date(Date.now() - 35 * 60 * 1000), read: false },
-    { id: '3', type: 'assignment', title: 'Nova atribuição', description: 'Uma conversa foi atribuída a você', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), read: true },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const handleMarkAllNotificationsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -145,7 +142,12 @@ function IndexContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background relative overflow-hidden">
+      <div 
+        className="flex items-center justify-center h-screen bg-background relative overflow-hidden"
+        role="status"
+        aria-busy="true"
+        aria-label="Carregando aplicação"
+      >
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary-glow/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
@@ -158,17 +160,14 @@ function IndexContent() {
             transition={{ duration: 2, repeat: Infinity }}
           >
             <Sparkles className="w-8 h-8 text-primary-foreground" />
-            <motion.div className="absolute inset-0 rounded-2xl" style={{ background: 'var(--gradient-primary)' }} animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }} />
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <h2 className="font-display text-xl font-semibold text-foreground mb-2">Carregando</h2>
-            <p className="text-muted-foreground text-sm">Preparando sua experiência...</p>
-          </motion.div>
-          <motion.div className="flex gap-1.5 justify-center mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+          <h2 className="font-display text-xl font-semibold text-foreground mb-2">Carregando</h2>
+          <p className="text-muted-foreground text-sm">Preparando sua experiência...</p>
+          <div className="flex gap-1.5 justify-center mt-6" aria-hidden="true">
             {[0, 1, 2].map((i) => (
               <motion.div key={i} className="w-2 h-2 rounded-full bg-primary" animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }} />
             ))}
-          </motion.div>
+          </div>
         </motion.div>
       </div>
     );
@@ -241,8 +240,11 @@ function IndexContent() {
           
           <main 
             id="main-content" 
+            role="main"
+            aria-label="Conteúdo principal"
+            tabIndex={-1}
             className={cn(
-              'flex flex-1 overflow-hidden relative min-w-0 min-h-0 h-full max-h-full',
+              'flex flex-1 overflow-hidden relative min-w-0 min-h-0 h-full max-h-full focus:outline-none',
               isMobile && 'pt-12 pb-[56px]'
             )}
           >
