@@ -630,7 +630,7 @@ describe('emitTelemetry - Edge Cases', () => {
   it('handles negative duration (rounds to 0 or negative)', async () => {
     const mock = createMockSupabase();
     await emitTelemetry(mock, makePayload({ duration_ms: -5.5 }));
-    expect(mock._insertFn).toHaveBeenCalledWith(expect.objectContaining({ duration_ms: -6 }));
+    expect(mock._insertFn).toHaveBeenCalledWith(expect.objectContaining({ duration_ms: -5 }));
   });
 
   it('handles record_count = 0', async () => {
