@@ -31,7 +31,7 @@ function BreadcrumbLink({ viewId, onClick }: { viewId: string; onClick: () => vo
       >
         {mod.label}
       </button>
-      <ChevronRight className="w-3 h-3 text-muted-foreground/30 shrink-0" />
+      <ChevronRight className="w-3 h-3 text-muted-foreground/30 shrink-0" aria-hidden="true" />
     </motion.div>
   );
 }
