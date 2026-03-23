@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
     const severity = classifySeverity(durationMs, !!queryError);
 
     // Emit telemetry (fire-and-forget for non-normal queries)
-    if (severity !== "normal") {
+    if (severity !== "ok") {
       emitTelemetry(supabaseAdmin, {
         operation: action,
         table_name: table || null,
