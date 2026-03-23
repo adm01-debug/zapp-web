@@ -59,9 +59,10 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
 
       {/* Primary Nav — always visible */}
       <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Menu principal">
+        <ul role="list" className="flex flex-col items-center gap-1 w-full list-none p-0 m-0">
         {primaryNav.map((item) => (
+          <li key={item.id}>
           <SidebarNavItem
-            key={item.id}
             item={item}
             currentView={currentView}
             onViewChange={onViewChange}

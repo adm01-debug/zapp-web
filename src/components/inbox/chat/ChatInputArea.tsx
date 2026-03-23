@@ -233,7 +233,7 @@ export function ChatInputArea({
     if (!hasText || isOverLimit) return;
     setSendAnimation(true);
     // Clear draft on send
-    localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`);
+    try { localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* ignore */ }
     // Haptic feedback on mobile
     if (isMobile && navigator.vibrate) {
       navigator.vibrate(50);
