@@ -17,7 +17,8 @@ export function useOnboarding() {
     }
 
     // Check localStorage first for quick response
-    const localCompleted = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`);
+    let localCompleted: string | null = null;
+    try { localCompleted = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* private mode */ }
     if (localCompleted === 'true') {
       setHasCompletedOnboarding(true);
       setLoading(false);
@@ -36,7 +37,7 @@ export function useOnboarding() {
         // If user has settings, they've been here before
         if (data) {
           setHasCompletedOnboarding(true);
-          localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true');
+          try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* ignore */ }
         } else {
           setHasCompletedOnboarding(false);
         }
@@ -53,14 +54,14 @@ export function useOnboarding() {
 
   const completeOnboarding = () => {
     if (user) {
-      localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true');
+      try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* ignore */ }
       setHasCompletedOnboarding(true);
     }
   };
 
   const resetOnboarding = () => {
     if (user) {
-      localStorage.removeItem(`${ONBOARDING_KEY}_${user.id}`);
+      try { localStorage.removeItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* ignore */ }
       setHasCompletedOnboarding(false);
     }
   };

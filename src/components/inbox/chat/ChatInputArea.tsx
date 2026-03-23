@@ -165,11 +165,13 @@ export function ChatInputArea({
   useEffect(() => {
     if (!contactId || editingMessage) return;
     const timer = setTimeout(() => {
-      if (inputValue.trim()) {
-        localStorage.setItem(`${DRAFT_KEY_PREFIX}${contactId}`, inputValue);
-      } else {
-        localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`);
-      }
+      try {
+        if (inputValue.trim()) {
+          localStorage.setItem(`${DRAFT_KEY_PREFIX}${contactId}`, inputValue);
+        } else {
+          localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`);
+        }
+      } catch { /* quota exceeded or private mode */ }
     }, 500);
     return () => clearTimeout(timer);
   }, [inputValue, contactId, editingMessage]);
@@ -177,9 +179,9 @@ export function ChatInputArea({
   // Restore draft on contact change
   useEffect(() => {
     if (!contactId || editingMessage) return;
-    const draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${contactId}`);
+    let draft: string | null = null;
+    try { draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* private mode */ }
     if (draft && !inputValue) {
-      // Simulate textarea change event
       const el = inputRef.current;
       if (el) {
         const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
@@ -231,7 +233,7 @@ export function ChatInputArea({
     if (!hasText || isOverLimit) return;
     setSendAnimation(true);
     // Clear draft on send
-    localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`);
+    try { localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* ignore */ }
     // Haptic feedback on mobile
     if (isMobile && navigator.vibrate) {
       navigator.vibrate(50);

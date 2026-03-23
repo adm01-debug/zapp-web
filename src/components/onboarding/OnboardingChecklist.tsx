@@ -177,17 +177,19 @@ export function OnboardingChecklist({ onNavigate, onDismiss, compact = false }: 
     };
 
     // Check if dismissed in localStorage
-    const dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`);
-    if (dismissed === 'true') {
-      setIsDismissed(true);
-    }
+    try {
+      const dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`);
+      if (dismissed === 'true') {
+        setIsDismissed(true);
+      }
+    } catch { /* private mode */ }
 
     checkAllSteps();
   }, [user]);
 
   const handleDismiss = () => {
     if (user) {
-      localStorage.setItem(`checklist_dismissed_${user.id}`, 'true');
+      try { localStorage.setItem(`checklist_dismissed_${user.id}`, 'true'); } catch { /* ignore */ }
     }
     setIsDismissed(true);
     onDismiss?.();
