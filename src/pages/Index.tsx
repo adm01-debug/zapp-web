@@ -239,8 +239,11 @@ function IndexContent() {
           
           <main 
             id="main-content" 
+            role="main"
+            aria-label="Conteúdo principal"
+            tabIndex={-1}
             className={cn(
-              'flex flex-1 overflow-hidden relative min-w-0 min-h-0 h-full max-h-full',
+              'flex flex-1 overflow-hidden relative min-w-0 min-h-0 h-full max-h-full focus:outline-none',
               isMobile && 'pt-12 pb-[56px]'
             )}
           >
