@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { getLogger } from "@/lib/logger";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -146,10 +146,13 @@ function AppContent() {
 
 function AppWithErrorRecovery() {
   const [errorKey, setErrorKey] = useState(0);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 3;
 
   // Auto-recover from stale errors on mount
   useEffect(() => {
     setErrorKey(prev => prev + 1);
+    retryCountRef.current = 0;
   }, []);
 
   return (
@@ -157,8 +160,14 @@ function AppWithErrorRecovery() {
       resetKey={errorKey}
       onError={(error) => {
         log.error('ErrorBoundary caught:', error.message, error.stack);
-        // Auto-retry after 2 seconds
-        setTimeout(() => setErrorKey(prev => prev + 1), 2000);
+        // Auto-retry with limit to prevent infinite loops
+        if (retryCountRef.current < MAX_RETRIES) {
+          retryCountRef.current += 1;
+          log.warn(`Auto-retry ${retryCountRef.current}/${MAX_RETRIES}`);
+          setTimeout(() => setErrorKey(prev => prev + 1), 2000 * retryCountRef.current);
+        } else {
+          log.error('Max retries reached. Manual intervention required.');
+        }
       }}
     >
       <QueryClientProvider client={queryClient}>
