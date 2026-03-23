@@ -1,5 +1,5 @@
-import { motion, HTMLMotionProps, Variants, AnimatePresence } from 'framer-motion';
-import { forwardRef, ReactNode, useEffect, useState } from 'react';
+import { motion, HTMLMotionProps, Variants, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { forwardRef, ReactNode, useEffect, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 // ============ ANIMATION VARIANTS ============
