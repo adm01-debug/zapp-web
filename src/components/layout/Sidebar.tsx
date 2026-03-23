@@ -60,15 +60,17 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
       {/* Primary Nav — always visible */}
       <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Menu principal">
         <ul role="list" className="flex flex-col items-center gap-1 w-full list-none p-0 m-0">
-        {primaryNav.map((item) => (
-          <li key={item.id}>
-          <SidebarNavItem
-            item={item}
-            currentView={currentView}
-            onViewChange={onViewChange}
-            badge={item.id === 'inbox' ? inboxBadge : undefined}
-          />
-        ))}
+          {primaryNav.map((item) => (
+            <li key={item.id}>
+              <SidebarNavItem
+                item={item}
+                currentView={currentView}
+                onViewChange={onViewChange}
+                badge={item.id === 'inbox' ? inboxBadge : undefined}
+              />
+            </li>
+          ))}
+        </ul>
       </nav>
 
       {/* ⌘K Search trigger */}
