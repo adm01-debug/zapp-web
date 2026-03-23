@@ -179,9 +179,9 @@ export function ChatInputArea({
   // Restore draft on contact change
   useEffect(() => {
     if (!contactId || editingMessage) return;
-    const draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${contactId}`);
+    let draft: string | null = null;
+    try { draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* private mode */ }
     if (draft && !inputValue) {
-      // Simulate textarea change event
       const el = inputRef.current;
       if (el) {
         const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
