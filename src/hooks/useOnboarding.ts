@@ -54,7 +54,7 @@ export function useOnboarding() {
 
   const completeOnboarding = () => {
     if (user) {
-      localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true');
+      try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* ignore */ }
       setHasCompletedOnboarding(true);
     }
   };
