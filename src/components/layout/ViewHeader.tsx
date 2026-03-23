@@ -102,7 +102,7 @@ export function ViewHeader({
       </div>
 
       {/* Breadcrumb trail */}
-      <nav aria-label="Navegação" className="flex items-center gap-1 min-w-0 overflow-hidden">
+      <nav aria-label="Trilha de navegação" className="flex items-center gap-1 min-w-0 overflow-hidden">
         <AnimatePresence mode="popLayout">
           {breadcrumbItems.map((trailViewId) => (
             <BreadcrumbLink
@@ -117,7 +117,7 @@ export function ViewHeader({
         {mod.group && breadcrumbItems.length === 0 && (
           <>
             <span className="text-[11px] text-muted-foreground/60 font-medium shrink-0">{mod.group}</span>
-            <ChevronRight className="w-3 h-3 text-muted-foreground/30 shrink-0" />
+            <ChevronRight className="w-3 h-3 text-muted-foreground/30 shrink-0" aria-hidden="true" />
           </>
         )}
 
@@ -127,8 +127,9 @@ export function ViewHeader({
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-1.5 shrink-0"
+          aria-current="page"
         >
-          {Icon && <Icon className="w-3.5 h-3.5 text-primary" />}
+          {Icon && <Icon className="w-3.5 h-3.5 text-primary" aria-hidden="true" />}
           <span className="text-sm font-semibold text-foreground">{mod.label}</span>
         </motion.div>
       </nav>
