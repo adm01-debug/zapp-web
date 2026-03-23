@@ -37,7 +37,7 @@ export function useOnboarding() {
         // If user has settings, they've been here before
         if (data) {
           setHasCompletedOnboarding(true);
-          localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true');
+          try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* ignore */ }
         } else {
           setHasCompletedOnboarding(false);
         }
