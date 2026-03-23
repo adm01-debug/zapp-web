@@ -389,21 +389,27 @@ interface AnimatedCounterProps {
 
 export function AnimatedCounter({ value, duration = 1, className }: AnimatedCounterProps) {
   const [displayValue, setDisplayValue] = useState(0);
+  const prevValueRef = useRef(0);
 
   useEffect(() => {
     let startTime: number;
     let animationFrame: number;
-    const startValue = displayValue;
+    const startValue = prevValueRef.current;
     const diff = value - startValue;
+
+    if (diff === 0) return;
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
       const easeProgress = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(Math.round(startValue + diff * easeProgress));
+      const current = Math.round(startValue + diff * easeProgress);
+      setDisplayValue(current);
 
       if (progress < 1) {
         animationFrame = requestAnimationFrame(animate);
+      } else {
+        prevValueRef.current = value;
       }
     };
 
