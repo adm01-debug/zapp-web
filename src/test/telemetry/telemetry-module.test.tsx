@@ -436,15 +436,16 @@ describe('Telemetry Logic - Timeline Bucketing', () => {
     expect(bucketRows([], '24h')).toEqual([]);
   });
 
-  it('groups rows into same bucket (1h filter, 5min buckets)', () => {
+  it('groups rows close together into fewer buckets (1h filter)', () => {
     const now = Date.now();
     const rows = Array.from({ length: 10 }, (_, i) =>
       makeRow({ created_at: new Date(now - i * 30_000).toISOString(), duration_ms: 1000 })
     );
     const buckets = bucketRows(rows, '1h');
-    // All within 5 minutes => single bucket
-    expect(buckets.length).toBe(1);
-    expect(buckets[0].count).toBe(10);
+    // 10 rows spanning 4.5 min with 5-min buckets => 1 or 2 buckets
+    expect(buckets.length).toBeLessThanOrEqual(2);
+    const totalCount = buckets.reduce((s, b) => s + b.count, 0);
+    expect(totalCount).toBe(10);
   });
 
   it('creates multiple buckets for spread data', () => {
