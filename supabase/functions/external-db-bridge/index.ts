@@ -21,17 +21,46 @@ interface TelemetryPayload {
   user_id?: string | null;
 }
 
+const SLOW_QUERY_THRESHOLD_MS = 3000;
+const VERY_SLOW_QUERY_THRESHOLD_MS = 8000;
+
 export function classifySeverity(durationMs: number, hasError: boolean): string {
   if (hasError) return "error";
-  if (durationMs >= 8000) return "very_slow";
-  if (durationMs >= 3000) return "slow";
-  return "normal";
+  if (durationMs >= VERY_SLOW_QUERY_THRESHOLD_MS) return "very_slow";
+  if (durationMs >= SLOW_QUERY_THRESHOLD_MS) return "slow";
+  return "ok";
+}
+
+function emitStructuredLog(payload: TelemetryPayload) {
+  const icon = payload.severity === "very_slow" ? "🔴"
+    : payload.severity === "slow" ? "🟡"
+    : payload.severity === "error" ? "❌"
+    : "✅";
+  const target = payload.rpc_name || payload.table_name || "unknown";
+  const line = `${icon} [telemetry] ${payload.operation}:${target} ${Math.round(payload.duration_ms)}ms`
+    + ` | records=${payload.record_count ?? "-"}`
+    + ` limit=${payload.query_limit ?? "-"}`
+    + ` offset=${payload.query_offset ?? "-"}`
+    + ` count=${payload.count_mode ?? "-"}`;
+
+  if (payload.severity === "very_slow") {
+    console.warn(`⚠️ VERY SLOW QUERY: ${line}`);
+  } else if (payload.severity === "slow") {
+    console.warn(`⚠️ SLOW QUERY: ${line}`);
+  } else if (payload.severity === "error") {
+    console.error(`${line} error=${payload.error_message}`);
+  } else {
+    console.info(line);
+  }
 }
 
 export async function emitTelemetry(
   supabaseAdmin: ReturnType<typeof createClient>,
   payload: TelemetryPayload,
 ): Promise<{ success: boolean; error?: string }> {
+  // Always emit structured log
+  emitStructuredLog(payload);
+
   try {
     const { error } = await supabaseAdmin
       .from("query_telemetry")
@@ -181,7 +210,7 @@ Deno.serve(async (req) => {
     const severity = classifySeverity(durationMs, !!queryError);
 
     // Emit telemetry (fire-and-forget for non-normal queries)
-    if (severity !== "normal") {
+    if (severity !== "ok") {
       emitTelemetry(supabaseAdmin, {
         operation: action,
         table_name: table || null,
