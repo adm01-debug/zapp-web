@@ -128,8 +128,7 @@ export default function AdminTelemetriaPage() {
   };
 
   return (
-    <MainLayout>
-      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+    <div className="space-y-6 p-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Activity className="h-7 w-7 text-primary" />
