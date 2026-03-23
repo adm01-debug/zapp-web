@@ -33,7 +33,7 @@ import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indic
 
 function ViewLoadingFallback() {
   return (
-    <div className="flex flex-col h-full p-6 gap-6 animate-fade-in">
+    <div className="flex flex-col h-full p-6 gap-6 animate-fade-in" role="status" aria-busy="true" aria-label="Carregando módulo">
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -64,6 +64,7 @@ function ViewLoadingFallback() {
       <SkeletonCard className="flex-1 p-5">
         <SkeletonText lines={4} />
       </SkeletonCard>
+      <span className="sr-only">Carregando conteúdo do módulo...</span>
     </div>
   );
 }
