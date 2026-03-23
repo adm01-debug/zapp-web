@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lalamove Brasil — Documentação Mestra Exaustiva</title>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1e2530;--bd:#30363d;--tx:#e6edf3;--tx2:#8b949e;--acc:#f97316;--acc2:#ea580c;--gr:#22c55e;--re:#ef4444;--bl:#3b82f6;--ye:#eab308;--pu:#a855f7;--cy:#06b6d4}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;display:flex}
+nav{width:270px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--bd);position:fixed;top:0;left:0;overflow-y:auto;padding:16px 0;z-index:100}
+nav h1{padding:0 16px 16px;font-size:13px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bd);margin-bottom:8px}
+nav a{display:block;padding:5px 16px;font-size:12px;color:var(--tx2);text-decoration:none;border-left:2px solid transparent;transition:all .15s}
+nav a:hover{color:var(--tx);background:var(--bg3);border-left-color:var(--acc)}
+nav .ng{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+main{margin-left:270px;padding:32px;max-width:1100px;width:100%}
+h1.pt{font-size:26px;color:var(--tx);margin-bottom:4px}
+.sub{color:var(--tx2);font-size:13px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--bd)}
+h2{font-size:20px;color:var(--acc);margin:36px 0 16px;padding-bottom:8px;border-bottom:2px solid var(--acc);display:flex;align-items:center;gap:8px}
+h2 .ico{font-size:20px}
+h3{font-size:15px;color:var(--bl);margin:20px 0 10px;font-weight:600}
+h4{font-size:13px;color:var(--cy);margin:14px 0 8px;font-weight:600}
+p{color:var(--tx2);font-size:13px;margin-bottom:8px;line-height:1.7}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}
+th{background:var(--bg3);color:var(--acc);padding:8px 10px;text-align:left;font-weight:600;border:1px solid var(--bd)}
+td{padding:7px 10px;border:1px solid var(--bd);color:var(--tx2);vertical-align:top}
+td:first-child{color:var(--tx);font-family:monospace;font-size:11px}
+tr:hover td{background:var(--bg3)}
+pre,code{font-family:'Fira Code','Cascadia Code','Consolas',monospace}
+pre{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:16px;overflow-x:auto;font-size:12px;line-height:1.7;margin:10px 0;color:var(--tx)}
+pre .k{color:var(--acc)}pre .s{color:var(--gr)}pre .n{color:var(--bl)}pre .c{color:var(--tx2);font-style:italic}pre .kw{color:var(--pu)}pre .num{color:var(--ye)}
+code{background:var(--bg3);border:1px solid var(--bd);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--cy)}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:20px;margin:12px 0}
+.callout{display:flex;gap:10px;padding:12px 16px;border-radius:8px;margin:10px 0;font-size:12px;line-height:1.6}
+.callout.r{background:#ef444414;border-left:3px solid var(--re);color:#fca5a5}
+.callout.g{background:#22c55e14;border-left:3px solid var(--gr);color:#86efac}
+.callout.b{background:#3b82f614;border-left:3px solid var(--bl);color:#93c5fd}
+.callout.y{background:#eab30814;border-left:3px solid var(--ye);color:#fde68a}
+.callout.o{background:#f9731614;border-left:3px solid var(--acc);color:#fed7aa}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:monospace;margin-right:4px}
+.bOK{background:#22c55e20;color:#22c55e;border:1px solid #22c55e40}
+.bER{background:#ef444420;color:#ef4444;border:1px solid #ef444440}
+.bBL{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f640}
+.bAC{background:#f9731620;color:#f97316;border:1px solid #f9731640}
+.bYE{background:#eab30820;color:#eab308;border:1px solid #eab30840}
+.enum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:12px 0}
+.enum-card{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:14px}
+.enum-title{font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;margin-bottom:10px;letter-spacing:.05em}
+.enum-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bg3);font-size:11px}
+.enum-item:last-child{border-bottom:none}
+.ek{color:var(--tx2)}
+.ev{color:var(--ye);font-family:monospace;font-weight:700}
+.errata-item{background:var(--bg2);border:1px solid #ef444440;border-radius:8px;padding:16px;margin:12px 0}
+.errata-title{color:var(--re);font-weight:700;font-size:13px;margin-bottom:8px}
+.errata-old{background:#ef444410;border-left:3px solid var(--re);padding:8px 12px;border-radius:4px;font-size:12px;color:#fca5a5;margin:6px 0;font-family:monospace}
+.errata-new{background:#22c55e10;border-left:3px solid var(--gr);padding:8px 12px;border-radius:4px;font-size:12px;color:#86efac;margin:6px 0;font-family:monospace}
+.collapsible summary{cursor:pointer;list-style:none;padding:10px 14px;background:var(--bg3);border-radius:6px;font-size:12px;color:var(--tx);margin:6px 0;display:flex;align-items:center;gap:8px}
+.collapsible summary:hover{background:var(--bg2)}
+.collapsible[open] summary{color:var(--acc);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.collapsible .cd{padding:12px 14px;background:var(--bg2);border:1px solid var(--bd);border-top:none;border-radius:0 0 6px 6px}
+.sec{margin-bottom:48px}
+.flow{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:16px;margin:10px 0;font-size:12px}
+.flow-step{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--bg3)}
+.flow-step:last-child{border-bottom:none}
+.flow-n{background:var(--acc);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;flex-shrink:0;margin-top:2px}
+.flow-txt{color:var(--tx2);line-height:1.5}
+.flow-txt code{background:var(--bg3);border:1px solid var(--bd);padding:1px 5px;border-radius:3px}
+.production-data{background:linear-gradient(135deg,#1e2530,#161b22);border:1px solid var(--acc);border-radius:10px;padding:20px;margin:12px 0}
+.production-data h4{color:var(--acc);margin-bottom:12px}
+.kv{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--bg3);font-size:12px}
+.kv:last-child{border-bottom:none}
+.kv-k{color:var(--tx2);min-width:200px;flex-shrink:0}
+.kv-v{color:var(--gr);font-family:monospace;word-break:break-all}
+</style>
+</head>
+<body>
+<nav>
+<h1>🚚 Lalamove BR</h1>
+<a href="#visao">1. Visão Geral</a>
+<a href="#infra">2. Infraestrutura</a>
+<a href="#auth">3. Autenticação</a>
+<a href="#restv3">4. REST API v3</a>
+<a href="#uapi">5. UAPI Interna</a>
+<div class="ng">Endpoints UAPI</div>
+<a href="#ep-auth">Auth & Login</a>
+<a href="#ep-city">Cidade & Veículos</a>
+<a href="#ep-price">Cotação</a>
+<a href="#ep-order">Criação de Pedidos</a>
+<a href="#ep-mgmt">Gestão de Pedidos</a>
+<a href="#ep-driver">Motorista</a>
+<a href="#ep-fleet">Frota</a>
+<a href="#ep-pay">Pagamentos</a>
+<a href="#ep-receipt">Comprovantes</a>
+<a href="#ep-coupon">Cupons</a>
+<a href="#ep-map">Mapa</a>
+<a href="#ep-pod">POD</a>
+<a href="#ep-ep">Enterprise</a>
+<a href="#ep-ecom">E-Commerce</a>
+<a href="#ep-bulk">Bulk Order</a>
+<a href="#ep-user">Usuário</a>
+<div class="ng">Dados & Schemas</div>
+<a href="#producao">7. Dados de Produção</a>
+<a href="#schemas">8. Schemas</a>
+<a href="#enums">9. Enums</a>
+<a href="#errors">10. Erros</a>
+<div class="ng">Segurança</div>
+<a href="#waf">11. WAF Argus</a>
+<a href="#playwright">12. Playwright</a>
+<a href="#proxy">13. Proxy</a>
+<div class="ng">Integração</div>
+<a href="#integracao">14. Bitrix24+n8n</a>
+<a href="#errata">15. ERRATA</a>
+<a href="#tech">16. Conhecimentos</a>
+</nav>
+
+<main>
+<h1 class="pt">🚚 Lalamove Brasil — Documentação Mestra Exaustiva</h1>
+<div class="sub">Auditoria Técnica Completa: REST API v3 + UAPI Interna + Infraestrutura + Dados de Produção<br>
+<span>📅 Gerada em: 08/03/2026 &nbsp;|&nbsp; 🌍 Ambiente: Produção Brasil &nbsp;|&nbsp; 🔬 Metodologia: Reverse Engineering + Testes Diretos</span></div>
+
+<div class="callout r"><b>⚠️ CONFIDENCIAL:</b> Este documento contém credenciais de produção, tokens ativos e dados da conta Promo Brindes. Acesso restrito à equipe técnica autorizada.</div>
+
+<!-- SECAO 1 -->
+<div class="sec" id="visao">
+<h2><span class="ico">🌐</span>1. Visão Geral do Ecossistema</h2>
+<p>O Lalamove opera com <b>duas APIs distintas e paralelas</b> no Brasil:</p>
+<table>
+<thead><tr><th>API</th><th>Propósito</th><th>Autenticação</th><th>Acesso</th></tr></thead>
+<tbody>
+<tr><td><b>REST API v3</b><br><code>rest.lalamove.com</code></td><td>Integração de parceiros/desenvolvedores</td><td>HMAC-SHA256</td><td><span class="badge bOK">Público</span> (com credenciais)</td></tr>
+<tr><td><b>UAPI Interna</b><br><code>br-uapi.lalamove.com</code></td><td>App web / mobile</td><td>Session token</td><td><span class="badge bER">Privado</span> (uso interno)</td></tr>
+</tbody></table>
+
+<h3>Serviços Auxiliares</h3>
+<table>
+<thead><tr><th>Serviço</th><th>URL</th><th>Função</th></tr></thead>
+<tbody>
+<tr><td>br-umeta</td><td><code>br-umeta.lalamove.com</code></td><td>Configuração da região Brasil</td></tr>
+<tr><td>region-configuration</td><td><code>region-configuration.lalamove.com</code></td><td>Configuração global de países</td></tr>
+<tr><td>br-sign-api (WAF)</td><td><code>br-sign-api.lalamove.com</code></td><td>Gateway WAF / Argus SDK</td></tr>
+<tr><td>Firebase Realtime DB</td><td><code>lalamoveglobal.firebaseio.com</code></td><td>WebSocket / tempo real</td></tr>
+<tr><td>br-oimg (CDN)</td><td><code>br-oimg.lalamove.com</code></td><td>Imagens (avatares, veículos)</td></tr>
+<tr><td>br-uappweb</td><td><code>br-uappweb.lalamove.com</code></td><td>Mini-app web (membros)</td></tr>
+<tr><td>AWS S3</td><td><code>luna-baxi-public.s3.sa-east-1.amazonaws.com</code></td><td>Documentos / exemplos</td></tr>
+</tbody></table>
+
+<h3>Configuração da Região Brasil</h3>
+<pre>{
+  <span class="k">"countryId"</span>:         <span class="num">20000</span>,
+  <span class="k">"hcountry"</span>:          <span class="num">20000</span>,
+  <span class="k">"datacenter"</span>:        <span class="s">"SAO"</span>,
+  <span class="k">"city_id_sao_paulo"</span>: <span class="num">21001</span>,
+  <span class="k">"uapi_url"</span>:          <span class="s">"https://br-uapi.lalamove.com"</span>,
+  <span class="k">"umeta_url"</span>:         <span class="s">"https://br-umeta.lalamove.com"</span>,
+  <span class="k">"sign_service_url"</span>:  <span class="s">"https://br-sign-api.lalamove.com/index"</span>,
+  <span class="k">"argus_enabled"</span>:     <span class="kw">true</span>,
+  <span class="k">"security_sdk_flag"</span>: <span class="num">1</span>,
+  <span class="k">"hlang"</span>:             <span class="s">"pt_BR"</span>,
+  <span class="k">"timezone"</span>:          <span class="s">"America/Sao_Paulo"</span>
+}</pre>
+</div>
+
+<!-- SECAO 2 -->
+<div class="sec" id="infra">
+<h2><span class="ico">🏗️</span>2. Infraestrutura e Serviços</h2>
+<h3>2.1 Frontend — Tecnologias Identificadas</h3>
+<table>
+<thead><tr><th>Tecnologia</th><th>Detalhes</th></tr></thead>
+<tbody>
+<tr><td>Framework</td><td>React + Redux (Redux Toolkit)</td></tr>
+<tr><td>Build</td><td>Webpack (bundle.js ~5MB minificado)</td></tr>
+<tr><td>Chat</td><td>MQTT5 (<code>mqtt-packet</code> embarcado) + PubNub (fallback)</td></tr>
+<tr><td>Mapas</td><td>Google Maps Platform (Place ID formato <code>ChIJ...</code>)</td></tr>
+<tr><td>Captcha</td><td>hCaptcha (quando <code>enableLoginHCaptcha=true</code>)</td></tr>
+<tr><td>Versão App</td><td><code>5.37.0</code> / revision <code>53700</code></td></tr>
+</tbody></table>
+
+<h3>2.2 Versão e Fórmula de Revisão</h3>
+<pre><span class="c">// Fórmula de revisão (extraída do bundle):</span>
+<span class="kw">function</span> aX(version) {
+  <span class="kw">const</span> [major, minor, patch] = version.split(<span class="s">'.'</span>).map(Number);
+  <span class="kw">return</span> major * <span class="num">10000</span> + minor * <span class="num">100</span> + patch;
+}
+<span class="c">// aX("5.37.0") = 5*10000 + 37*100 + 0 = 53700</span>
+
+version:     <span class="s">"5.37.0"</span>
+revision:    <span class="num">53700</span>
+os:          <span class="s">"web"</span>
+device_type: <span class="s">"web"</span></pre>
+</div>
+
+<!-- SECAO 3 -->
+<div class="sec" id="auth">
+<h2><span class="ico">🔐</span>3. Autenticação e Segurança</h2>
+
+<h3>3.1 REST API v3 — HMAC-SHA256</h3>
+<div class="production-data">
+<h4>🔑 Credenciais de Produção (Promo Brindes)</h4>
+<div class="kv"><span class="kv-k">API_KEY</span><span class="kv-v">pk_prod_d38621223012b9ec71d0634589126e3b</span></div>
+<div class="kv"><span class="kv-k">SECRET_KEY</span><span class="kv-v">sk_prod_v30Ci06vXqPeizCg6e461VZEymmFzMDAXZQwTm3NdYcwyLaS8nxrQEX0JKcp0mAM</span></div>
+<div class="kv"><span class="kv-k">BASE_URL</span><span class="kv-v">https://rest.lalamove.com</span></div>
+<div class="kv"><span class="kv-k">COUNTRY</span><span class="kv-v">BR</span></div>
+</div>
+
+<pre><span class="c"># Algoritmo de assinatura HMAC-SHA256 (Python)</span>
+<span class="kw">import</span> hmac, hashlib, time, base64
+
+<span class="kw">def</span> sign_request(method, path, body, api_key, secret_key):
+    ts = str(int(time.time() * <span class="num">1000</span>))
+    raw = <span class="s">f"{ts}
+{method}
+{path}
+
+{body}"</span>
+    sig = hmac.new(secret_key.encode(), raw.encode(), hashlib.sha256).hexdigest()
+    <span class="kw">return</span> <span class="s">f"hmac {api_key}:{ts}:{sig}"</span>
+
+headers = {
+    <span class="s">"Authorization"</span>: sign_request(...),
+    <span class="s">"X-LLM-COUNTRY"</span>: <span class="s">"BR"</span>,
+    <span class="s">"X-Request-ID"</span>:  <span class="s">"&lt;uuid4&gt;"</span>,
+    <span class="s">"Market"</span>:        <span class="s">"BR"</span>,
+    <span class="s">"Content-Type"</span>:  <span class="s">"application/json"</span>
+}</pre>
+
+<h3>3.2 UAPI Interna — Session Token</h3>
+<div class="production-data">
+<h4>🎫 Token de Sessão Ativo</h4>
+<div class="kv"><span class="kv-k">token</span><span class="kv-v">6f5ad9698d704c66b3026e69a60a0ba4</span></div>
+<div class="kv"><span class="kv-k">user_fid</span><span class="kv-v">qDdE35mo</span></div>
+<div class="kv"><span class="kv-k">city_id</span><span class="kv-v">21001 (São Paulo)</span></div>
+<div class="kv"><span class="kv-k">is_ep</span><span class="kv-v">1 (Enterprise)</span></div>
+<div class="kv"><span class="kv-k">refresh_token</span><span class="kv-v">af8IHffQ-CLYd0Y42i0opmCH800pI-pyV2k_oz-WgC8</span></div>
+<div class="kv"><span class="kv-k">expires_in</span><span class="kv-v">86400 segundos (24 horas)</span></div>
+</div>
+
+<h3>Estrutura da Requisição UAPI</h3>
+<pre>POST https://br-uapi.lalamove.com/index.php
+     ?_m=<span class="k">{method}</span>
+     &hcountry=<span class="num">20000</span>
+     &_su=<span class="k">{su_token}</span>
+     &_t=<span class="k">{unix_timestamp}</span>
+     &device_id=<span class="k">{uuid}</span>
+     &version=<span class="s">5.37.0</span>
+     &revision=<span class="num">53700</span>
+     &os=<span class="s">web</span>
+     &device_type=<span class="s">web</span>
+
+Body (application/x-www-form-urlencoded):
+  token=<span class="k">{TOKEN}</span>
+  &is_ep=<span class="num">1</span>
+  &hcountry=<span class="num">20000</span>
+  &hlang=<span class="s">pt_BR</span>
+  &city_id=<span class="num">21001</span>
+  &args=<span class="k">{JSON_ARGS}</span></pre>
+
+<h4>Geração de Parâmetros</h4>
+<pre><span class="c">// _su (Session URL token)</span>
+<span class="kw">const</span> _su = <span class="s">`${Date.now()}ehll${parseInt(Math.random() * 1e10, 10)}`</span>;
+<span class="c">// Exemplo: "1709924000000ehll7432198560"</span>
+
+<span class="c">// device_id — função k6() no bundle</span>
+<span class="c">// UUID v4 gerado na primeira visita, persistido em localStorage['og0']</span></pre>
+
+<h3>3.3 Criptografia de Senha (RSA-OAEP)</h3>
+<pre><span class="c">// Algoritmo usado pelo app (Web Crypto API)</span>
+<span class="kw">async function</span> encryptPassword(password, publicKeyPem) {
+  <span class="kw">const</span> nonce = generateNonce();
+  <span class="kw">const</span> plaintext = <span class="s">`${nonce}@${password}`</span>;
+  <span class="kw">const</span> publicKey = <span class="kw">await</span> crypto.subtle.importKey(
+    <span class="s">"spki"</span>, pemToDer(publicKeyPem),
+    { name: <span class="s">"RSA-OAEP"</span>, hash: <span class="s">"SHA-256"</span> }, <span class="kw">false</span>, [<span class="s">"encrypt"</span>]
+  );
+  <span class="kw">const</span> ciphertext = <span class="kw">await</span> crypto.subtle.encrypt(
+    { name: <span class="s">"RSA-OAEP"</span> }, publicKey, <span class="kw">new</span> TextEncoder().encode(plaintext)
+  );
+  <span class="kw">return</span> <span class="s">`encrypted:${base64url(ciphertext)}`</span>;
+}
+<span class="c">// Enviado como: password=encrypted:BASE64URL_CIFRADO</span>
+<span class="c">// Em scripts Python via curl: senha em texto plano funciona como fallback</span></pre>
+</div>
+
+<!-- SECAO 4 -->
+<div class="sec" id="restv3">
+<h2><span class="ico">🔌</span>4. REST API v3 (Pública)</h2>
+
+<h3>Endpoints Principais</h3>
+<table>
+<thead><tr><th>Método</th><th>Endpoint</th><th>Descrição</th></tr></thead>
+<tbody>
+<tr><td><span class="badge bBL">GET</span></td><td><code>/v3/cities</code></td><td>Lista cidades Brasil — campo: <code>services</code> (não serviceTypes!)</td></tr>
+<tr><td><span class="badge bBL">GET</span></td><td><code>/v3/cities/{cityId}/serviceTypes</code></td><td>Tipos de serviço por cidade</td></tr>
+<tr><td><span class="badge bAC">POST</span></td><td><code>/v3/quotations</code></td><td>Calcular cotação</td></tr>
+<tr><td><span class="badge bAC">POST</span></td><td><code>/v3/orders</code></td><td>Criar pedido</td></tr>
+<tr><td><span class="badge bBL">GET</span></td><td><code>/v3/orders/{orderId}</code></td><td>Detalhes do pedido</td></tr>
+<tr><td><span class="badge bER">DEL</span></td><td><code>/v3/orders/{orderId}</code></td><td>Cancelar pedido</td></tr>
+<tr><td><span class="badge bBL">GET</span></td><td><code>/v3/orders/{orderId}/drivers/{driverId}</code></td><td>Info do motorista</td></tr>
+<tr><td><span class="badge bAC">POST</span></td><td><code>/v3/orders/{orderId}/priorityFee</code></td><td>Adicionar taxa de prioridade</td></tr>
+<tr><td><span class="badge bAC">POST</span></td><td><code>/v3/webhooks</code></td><td>Registrar webhook</td></tr>
+<tr><td><span class="badge bBL">GET</span></td><td><code>/v3/webhooks</code></td><td>Listar webhooks</td></tr>
+<tr><td><span class="badge bER">DEL</span></td><td><code>/v3/webhooks/{id}</code></td><td>Remover webhook</td></tr>
+</tbody></table>
+
+<h3>Tipos de Serviço Brasil</h3>
+<table>
+<thead><tr><th>serviceType</th><th>Nome UAPI</th><th>Wheel</th><th>vehicle_id real</th></tr></thead>
+<tbody>
+<tr><td>MOTORCYCLE</td><td>Moto</td><td>2</td><td>—</td></tr>
+<tr><td>CAR</td><td>Carro</td><td>4</td><td>120767</td></tr>
+<tr><td>MPV</td><td>Carro Hatch</td><td>4</td><td>121120</td></tr>
+<tr><td>VAN</td><td>Utilitário e Pick-Up</td><td>4</td><td>666</td></tr>
+<tr><td>TRUCK175</td><td>Caminhão 1,75t</td><td>4</td><td>—</td></tr>
+<tr><td>TRUCK330</td><td>Caminhão 3,3t</td><td>4</td><td>—</td></tr>
+</tbody></table>
+
+<h3>Exemplo de Cotação</h3>
+<pre><span class="c">// POST /v3/quotations</span>
+{
+  <span class="k">"serviceType"</span>: <span class="s">"MOTORCYCLE"</span>,
+  <span class="k">"language"</span>: <span class="s">"pt_BR"</span>,
+  <span class="k">"stops"</span>: [
+    { <span class="k">"coordinates"</span>: { <span class="k">"lat"</span>: <span class="s">"-23.5725592"</span>, <span class="k">"lng"</span>: <span class="s">"-46.54058"</span> },
+      <span class="k">"address"</span>: <span class="s">"Avenida Renata, 249 - Vila Formosa, São Paulo - SP"</span> },
+    { <span class="k">"coordinates"</span>: { <span class="k">"lat"</span>: <span class="s">"-23.5154269"</span>, <span class="k">"lng"</span>: <span class="s">"-46.5965197"</span> },
+      <span class="k">"address"</span>: <span class="s">"Rua São Quirino, 1090 - Parque Veloso, São Paulo"</span> }
+  ]
+}
+
+<span class="c">// Response:</span>
+{
+  <span class="k">"quotationId"</span>: <span class="s">"string"</span>,
+  <span class="k">"priceBreakdown"</span>: {
+    <span class="k">"base"</span>: <span class="s">"1500"</span>,
+    <span class="k">"total"</span>: <span class="s">"1500"</span>,
+    <span class="k">"currency"</span>: <span class="s">"BRL"</span>,
+    <span class="k">"priorityFee"</span>: <span class="s">"0"</span>
+  },
+  <span class="k">"distance"</span>: { <span class="k">"value"</span>: <span class="num">8600</span>, <span class="k">"unit"</span>: <span class="s">"m"</span> },
+  <span class="k">"duration"</span>: <span class="num">1200</span>
+}</pre>
+
+<h3>Eventos de Webhook</h3>
+<pre>ORDER_STATUS_CHANGED
+DRIVER_LOCATION_UPDATED
+ORDER_COMPLETED
+ORDER_CANCELLED</pre>
+</div>
+
+<!-- SECAO 5 -->
+<div class="sec" id="uapi">
+<h2><span class="ico">⚙️</span>5. UAPI Interna (br-uapi)</h2>
+<p>API PHP monolítica que expõe todas as funcionalidades do app web/mobile. Roteada por <code>?_m={method}</code> no query string.</p>
+
+<h3>Formato de Resposta Padrão</h3>
+<pre>{
+  <span class="k">"ret"</span>: <span class="num">0</span>,       <span class="c">// 0 = sucesso, >0 = erro</span>
+  <span class="k">"msg"</span>: <span class="s">""</span>,       <span class="c">// mensagem de erro (vazio se ret=0)</span>
+  <span class="k">"data"</span>: { ... }  <span class="c">// payload da resposta</span>
+}</pre>
+
+<h3>Headers Necessários</h3>
+<pre>User-Agent: Mozilla/5.0 AppleWebKit/537.36 Chrome/...
+Content-Type: application/x-www-form-urlencoded; charset=utf-8
+Origin: https://web.lalamove.com
+X-LLM-LOCATION: BR</pre>
+
+<h3>Endpoints com Retry Automático</h3>
+<p>Os seguintes endpoints têm <code>retry=true</code> no bundle — o app refaz automaticamente em caso de falha:</p>
+<pre>get_user_info, get_corporate, ep_config, get_laster_order,
+latest_unrated_order, get_user_place_order_info,
+city_list (skipStartUpLock=true)</pre>
+</div>
+
+<!-- ENDPOINTS UAPI -->
+<div class="sec" id="ep-auth">
+<h2><span class="ico">🔑</span>Auth & Login</h2>
+<div class="callout b">Base URL: <code>POST https://br-uapi.lalamove.com/index.php?_m={endpoint}</code></div>
+<table>
+<thead><tr><th>Endpoint</th><th>M</th><th>Descrição</th><th>Args principais</th></tr></thead>
+<tbody>
+<tr><td>login_by_pwd</td><td><span class="badge bAC">POST</span></td><td>Login telefone + senha (RSA-OAEP)</td><td><code>phone_no, password, device_id, city_id, record_id, human_proof?</code><br><small>+ query param: <code>user_md5=MD5(phone_no)</code></small></td></tr>
+<tr><td>login_by_email_pwd</td><td><span class="badge bAC">POST</span></td><td>Login email + senha</td><td><code>email, password, device_id, city_id, record_id</code></td></tr>
+<tr><td>social_login</td><td><span class="badge bAC">POST</span></td><td>Login OAuth Google/Facebook/Apple</td><td><code>social_source, social_secret, social_secret_type, is_new</code></td></tr>
+<tr><td>send_sms_code</td><td><span class="badge bBL">GET</span></td><td>Envia código SMS</td><td><code>phone_no, is_new, type, scene</code></td></tr>
+<tr><td>verify_sms_code</td><td><span class="badge bBL">GET</span></td><td>Verifica código SMS → verify_token</td><td><code>phone_no, sms_code, type</code></td></tr>
+<tr><td>register</td><td><span class="badge bAC">POST</span></td><td>Cadastro pessoal</td><td><code>first_name, last_name, email, phone_no, password, sms_code, city_id, record_id, reg_ref?, simplify_flow, is_marketing_opt_in</code></td></tr>
+<tr><td>register_business_user</td><td><span class="badge bAC">POST</span></td><td>Cadastro empresarial</td><td>Mesmos + <code>corporate_name, industry, work_email, verification_code</code></td></tr>
+<tr><td>logout</td><td><span class="badge bBL">GET</span></td><td>Encerra sessão</td><td><code>{}</code></td></tr>
+<tr><td>modify_pwd</td><td><span class="badge bBL">GET</span></td><td>Altera senha</td><td><code>phone_no, sms_code, password, record_id, type</code> (1=troca, 2=reset)</td></tr>
+</tbody></table>
+<div class="callout y">⚠️ <b>Crítico:</b> App detecta México (+52) pelo geo-IP. É necessário selecionar Brasil (+55) explicitamente no country picker antes de fazer login.</div>
+</div>
+
+<div class="sec" id="ep-city">
+<h2><span class="ico">🏙️</span>Cidade & Veículos</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Descrição</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>city_list</td><td>Lista cidades ativas (sem token)</td><td><code>{}</code> — filtro: <code>enable_overseas === 2</code></td></tr>
+<tr><td>city_info</td><td>Config completa da cidade + veículos + preços</td><td><code>city_id, fetch_spec_req, fetch_vehicle_std, fetch_vehicle_price, revision</code></td></tr>
+</tbody></table>
+<h4>Feature flags de city_info</h4>
+<pre>enable_proof_of_delivery, enable_new_cs_chat, enable_mywallet,
+enable_insurance, enable_ride, enable_user_driver_chat, enable_pub_nub,
+enable_driver_rating, enable_favourite_driver, enable_daylight_saving,
+enable_wallet_topup, enable_capture_item_info</pre>
+</div>
+
+<div class="sec" id="ep-price">
+<h2><span class="ico">💰</span>Cotação (UAPI)</h2>
+<div class="callout r">⛔ <b>BLOQUEADO POR WAF:</b> <code>price_calculate</code> retorna <code>ret: 10010</code> sem token Argus. Requer Playwright com browser real.</div>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>price_calculate</td><td><code>city_id, order_vehicle_id, plan_type (0=REG|1=PRIO|2=SAVER), addr_info[], type=2, lat_lon, pay_type, quote_type_switch, city_info_revision, is_get_max_discount_coupon="1", std_tag, std_tag_ids, spec_req[], order_time, coupon_id?, edit_order_uuid?, multifactor_price?, same_num?</code></td></tr>
+</tbody></table>
+<h4>Erros específicos</h4>
+<pre>42201 = RATE_LIMIT_EXCEEDED
+22018 = SELECTED_PRICE_OPTION_UNAVAILABLE</pre>
+</div>
+
+<div class="sec" id="ep-order">
+<h2><span class="ico">📦</span>Criação de Pedidos</h2>
+<div class="callout r">⛔ <b>BLOQUEADO POR WAF:</b> <code>order_request</code> retorna <code>ret: 10010</code> sem token Argus.</div>
+
+<details class="collapsible">
+<summary>📋 Ver todos os campos de order_request</summary>
+<div class="cd">
+<table>
+<thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+<tbody>
+<tr><td>send_type</td><td>0|1|2|3</td><td>0=qualquer, 1=prefere favorito, 2=só favorito, 3=fleet</td></tr>
+<tr><td>pay_type</td><td>0|31|4|3|32</td><td>CASH|ONLINE|WALLET|ENT_WALLET|POSTPAID</td></tr>
+<tr><td>order_vehicle_id</td><td>string</td><td>ID do tipo de veículo</td></tr>
+<tr><td>plan_type</td><td>0|1|2</td><td>REGULAR|PRIORITY|SAVER</td></tr>
+<tr><td>user_name</td><td>string</td><td>Nome do solicitante</td></tr>
+<tr><td>user_tel</td><td>string</td><td>Telefone do solicitante</td></tr>
+<tr><td>remark</td><td>string</td><td>Nota para o motorista</td></tr>
+<tr><td>order_time</td><td>timestamp</td><td>Horário desejado</td></tr>
+<tr><td>addr_info</td><td>Array</td><td>Waypoints (ver schema abaixo)</td></tr>
+<tr><td>price_item</td><td>Array</td><td>Itens de preço do price_calculate</td></tr>
+<tr><td>price_id</td><td>string</td><td>ID da cotação</td></tr>
+<tr><td>city_info_revision</td><td>number</td><td>Revisão da cidade</td></tr>
+<tr><td>distance_by</td><td>3</td><td>Sempre 3</td></tr>
+<tr><td>porterage_type</td><td>0</td><td>Sempre 0</td></tr>
+<tr><td>spec_req</td><td>Number[]</td><td>IDs de requisições especiais</td></tr>
+<tr><td>is_proof_of_delivery_required</td><td>0|1</td><td>Exigir POD</td></tr>
+<tr><td>coupon_id</td><td>string?</td><td>ID do cupom</td></tr>
+<tr><td>delivery_start_time</td><td>timestamp?</td><td>Início janela entrega</td></tr>
+<tr><td>delivery_end_time</td><td>timestamp?</td><td>Fim janela entrega</td></tr>
+<tr><td>insurance_code</td><td>string?</td><td>Código de seguro</td></tr>
+</tbody></table>
+</div></details>
+
+<h3>Schema Waypoint (addr_info[])</h3>
+<pre>{
+  <span class="k">"name"</span>: <span class="s">"Nome do local"</span>,
+  <span class="k">"addr"</span>: <span class="s">"Endereço completo"</span>,
+  <span class="k">"place_id"</span>: <span class="s">"ChIJ..."</span>,
+  <span class="k">"city_id"</span>: <span class="num">21001</span>,
+  <span class="k">"contacts_name"</span>: <span class="s">"Nome do contato"</span>,
+  <span class="k">"contacts_phone_no"</span>: <span class="s">"+5511..."</span>,
+  <span class="k">"house_number"</span>: <span class="s">"Instrução/complemento"</span>,
+  <span class="k">"lat_lon"</span>: { <span class="k">"lat"</span>: <span class="num">-23.5</span>, <span class="k">"lon"</span>: <span class="num">-46.6</span> },
+  <span class="k">"node"</span>: <span class="num">0</span>,
+  <span class="k">"is_cash_payment_stop"</span>: <span class="kw">false</span>,
+  <span class="k">"proof_of_delivery"</span>: {
+    <span class="k">"contact_person_name"</span>: <span class="s">"..."</span>,
+    <span class="k">"note"</span>: <span class="s">"..."</span>,
+    <span class="k">"is_signature_required"</span>: <span class="kw">true</span>
+  }
+}</pre>
+</div>
+
+<div class="sec" id="ep-mgmt">
+<h2><span class="ico">📋</span>Gestão de Pedidos</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>M</th><th>Descrição</th><th>Args principais</th></tr></thead>
+<tbody>
+<tr><td>order_list_new</td><td>GET</td><td>Lista com cursor pagination</td><td><code>order_statuses[], last_id, page_size, daylight_zone, start/end_datetime</code></td></tr>
+<tr><td>order_detail</td><td>GET</td><td>Detalhes completos</td><td><code>order_uuid, interest_id:0, daylight_zone</code></td></tr>
+<tr><td>order_status</td><td>GET</td><td>Status em tempo real</td><td><code>order_uuid, find_drivers, send_type</code></td></tr>
+<tr><td>order_time_status</td><td>GET</td><td>Status com ETA</td><td><code>order_uuid, driver_fid</code></td></tr>
+<tr><td>order_cancel</td><td>GET</td><td>Cancela pedido com razão</td><td><code>order_uuid, reason, reason_id, order_status, cancellation_fee_fen</code></td></tr>
+<tr><td>order_cancellation_eligibility</td><td>GET</td><td>Pode cancelar? + taxa</td><td><code>order_uuid</code></td></tr>
+<tr><td>get_cancel_reason_new</td><td>GET</td><td>Razões de cancelamento</td><td><code>is_sort:0, scene:2|3, is_cash_order, order_vehicle_id</code></td></tr>
+<tr><td>order_edit</td><td>POST</td><td>Edita pedido em andamento</td><td><code>order_uuid, addr_info, price_item, addr_op_mode:0-4, price_id</code></td></tr>
+<tr><td>order_edit_eligibility</td><td>GET</td><td>Pode editar?</td><td><code>order_uuid, order_time, pickup_addr_info</code></td></tr>
+<tr><td>order_send_all</td><td>GET</td><td>Reenvia para todos motoristas</td><td><code>order_uuid, find_drivers, phone_no, web_token</code></td></tr>
+<tr><td>order_repeat_list</td><td>GET</td><td>Pedidos para repetir</td><td><code>page_size:20, last_id</code></td></tr>
+<tr><td>order_search</td><td>GET</td><td>Busca avançada</td><td><code>order_statuses, search_order_display_id, start/end_datetime</code></td></tr>
+<tr><td>order_tracking</td><td>GET</td><td>Rastreamento público (sem token)</td><td><code>share_id, sign, type</code></td></tr>
+<tr><td>next_day_order_detail</td><td>GET</td><td>Detalhe agendado</td><td><code>order_uuid, daylight_zone</code></td></tr>
+<tr><td>next_day_order_cancel</td><td>POST</td><td>Cancela agendado</td><td><code>order_uuid, survey_key, token, type</code></td></tr>
+<tr><td>get_laster_order</td><td>GET</td><td>Último pedido</td><td><code>{}</code></td></tr>
+</tbody></table>
+<div class="callout b">ℹ️ <code>scene</code> em <code>get_cancel_reason_new</code>: <code>2=MATCHING</code>, <code>3=ONGOING</code></div>
+<div class="callout b">ℹ️ <code>addr_op_mode</code>: 0=NO_EDIT, 1=UPDATE_DELIVERY_INFO, 2=ADD_POINT, 3=REORDER_POINT, 4=REMOVE_CASH_PAYEE_POINT</div>
+</div>
+
+<div class="sec" id="ep-driver">
+<h2><span class="ico">🏍️</span>Motorista & Avaliação</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args principais</th></tr></thead>
+<tbody>
+<tr><td>user_rating</td><td><code>order_uuid, driver_fid, rating:1-5, comment_ids[], custom_comment, op_to_driver, msg</code></td></tr>
+<tr><td>latest_unrated_order</td><td><code>{}</code> → pedido mais recente sem avaliação</td></tr>
+<tr><td>get_user_nps_info</td><td><code>{}</code> → info NPS pendente</td></tr>
+<tr><td>get_change_driver_reason_web</td><td><code>{}</code> → lista razões de troca</td></tr>
+<tr><td>change_driver_web</td><td><code>order_uuid, reason, reason_id, web_token, web_token_type</code></td></tr>
+<tr><td>add_tips</td><td><code>order_uuid, tips_fen, [payment_method, client_return_url, contract_no, asset_product_code]</code></td></tr>
+</tbody></table>
+<div class="callout b">ℹ️ <code>comment_ids</code> positivos: 1001–1006 (elogios) / negativos: 2001–2006 (críticas)</div>
+<div class="callout b">ℹ️ <code>tips_fen</code> = valor em centavos × currencyRate</div>
+</div>
+
+<div class="sec" id="ep-fleet">
+<h2><span class="ico">⭐</span>Frota (Fleet)</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>fleet_type_code</th><th>Descrição</th></tr></thead>
+<tbody>
+<tr><td>get_fleet</td><td>1=favoritos, 2=bloqueados</td><td><code>fleet_type_code, page_no, page_size, search, start_time, end_time</code></td></tr>
+<tr><td>fleet_add_favorite_web</td><td>—</td><td>Adiciona favorito. Args: <code>driver_fid</code></td></tr>
+<tr><td>fleet_del_favorite_web</td><td>—</td><td>Remove favorito. Args: <code>driver_fid</code></td></tr>
+<tr><td>fleet_add_ban</td><td>—</td><td>Bloqueia motorista. Args: <code>driver_fid</code></td></tr>
+<tr><td>fleet_del_ban</td><td>—</td><td>Desbloqueia motorista. Args: <code>driver_fid</code></td></tr>
+</tbody></table>
+</div>
+
+<div class="sec" id="ep-pay">
+<h2><span class="ico">💳</span>Pagamentos & Carteira</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args / Detalhes</th></tr></thead>
+<tbody>
+<tr><td>wallet_balance</td><td><code>city_id</code> → <code>{balance_fen: number}</code> (centavos)</td></tr>
+<tr><td>wallet_flow_list</td><td><code>start_time, end_time, page_no, page_size, trans_type:1</code></td></tr>
+<tr><td>list_payment_methods</td><td><code>app_key: "global_u_order"|"global_ep_order"</code></td></tr>
+<tr><td>query_pay_status</td><td><code>app_key, biz_no</code> → OJ0 enum</td></tr>
+<tr><td>get_postpaid_wallet</td><td><code>{}</code> → f9e enum</td></tr>
+<tr><td>confirm_bill&amp;_a=index</td><td><code>order_uuid, pay_fee_fen, pay_type:31, order_terminal:3, lat, lon</code></td></tr>
+<tr><td>contract&amp;_a=card_list</td><td><code>terminal:2</code></td></tr>
+<tr><td>contract&amp;_a=query_entry_config</td><td><code>terminal, app_key, order_plan_type, custom_top_up, placed_via</code></td></tr>
+<tr><td>invoice_page</td><td><code>app_key</code> → <code>{url, token, expired_time}</code></td></tr>
+</tbody></table>
+</div>
+
+<div class="sec" id="ep-receipt">
+<h2><span class="ico">🧾</span>Comprovantes & Extratos</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>download_pdf_receipt</td><td><code>order_uuid, type:"order"</code></td></tr>
+<tr><td>download_pdf_e_receipt</td><td><code>tx_id, type:"top-up", bank_code, node</code></td></tr>
+<tr><td>send_email_receipt</td><td><code>order_uuid, is_ep</code></td></tr>
+<tr><td>generate_statement_token</td><td><code>start_time, end_time, type</code></td></tr>
+<tr><td>get_statement_report_by_token</td><td><code>token, start_time, end_time, type</code></td></tr>
+</tbody></table>
+</div>
+
+<div class="sec" id="ep-coupon">
+<h2><span class="ico">🎟️</span>Cupons</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>coupon_list_web</td><td><code>start_time, end_time, page_no, page_size, search:["termo"]</code> (array!)</td></tr>
+<tr><td>coupon_exchange_web</td><td><code>exchange_code: "CODIGO-CUPOM"</code></td></tr>
+</tbody></table>
+<div class="callout y">⚠️ O campo <code>search</code> é um <b>array de strings</b>, não uma string simples. Tipo cupom: <code>ONLINE_ONLY=1</code>, <code>UNLIMITED=3</code>. Desconto: <code>AMOUNT_OFF=1</code>, <code>PERCENTAGE_OFF=2</code>.</div>
+</div>
+
+<div class="sec" id="ep-map">
+<h2><span class="ico">🗺️</span>Mapa & Endereços</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>map_poi_search</td><td><code>kw, city_id, addr_info, place_type, is_ld, order_vehicle_id, plan_type</code></td></tr>
+<tr><td>map_poi_detail</td><td><code>place_id, name, poiid, addr_info, addr_type</code></td></tr>
+<tr><td>map_poi_detail2</td><td><code>place_id, name</code> → <code>{location: {lat, lon}}</code></td></tr>
+<tr><td>map_api&amp;_a=optimize_route</td><td><code>origin, destination, waypoints:"lat,lon|...", city_id, daylight_zone</code></td></tr>
+<tr><td>get_service_area</td><td><code>city_id, coordinates, order_vehicle_id, stops, order_uuid</code></td></tr>
+<tr><td>daylight_zone</td><td><code>origin, destination, waypoints, timestamp</code> → ajuste DST</td></tr>
+<tr><td>search_history_list</td><td><code>addr_type</code></td></tr>
+<tr><td>add_search_history</td><td><code>place_id, poiid, name, addr_info, addr_type</code></td></tr>
+</tbody></table>
+</div>
+
+<div class="sec" id="ep-pod">
+<h2><span class="ico">📷</span>POD (Prova de Entrega)</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>pod_img_feedback_create</td><td><code>order_uuid, node, image_url, feedback_status:0|1|2, remark</code></td></tr>
+<tr><td>pod_img_feedback_update_bottom_sheet_viewed</td><td><code>order_uuid, node, image_url</code></td></tr>
+<tr><td>insurance_form_link</td><td><code>order_uuid, order_uuids, interest_id, is_tapped</code></td></tr>
+</tbody></table>
+<pre>Status POD (array ole): ["PENDING", "SIGNED", "DELIVERED", "FAILED", "NOT_APPLICABLE"]
+Feedback POD: NO_FEEDBACK=0, THUMB_UP=1, THUMB_DOWN=2</pre>
+</div>
+
+<div class="sec" id="ep-ep">
+<h2><span class="ico">🏢</span>Enterprise / Times</h2>
+<div class="callout o">🔑 Todos exigem <code>is_ep=1</code> e token com permissão empresarial.</div>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>get_corporate</td><td><code>{}</code> → company info + kyb_status</td></tr>
+<tr><td>update_corporate</td><td><code>industry, address, fiscal_code, staff_job_title, monthly_delivery_volume, contact_method, frequent_vehicle_type</code></td></tr>
+<tr><td>get_staffs</td><td><code>page_num, page_size, search, role, include_deleted</code></td></tr>
+<tr><td>add_invite_member</td><td><code>invite_email, role</code></td></tr>
+<tr><td>delete_staff</td><td><code>id</code></td></tr>
+<tr><td>update_staff</td><td><code>id, role, permissions...</code></td></tr>
+<tr><td>get_analytics_dashboard</td><td><code>start_date, end_date (YYYY-MM-DD), filters</code></td></tr>
+<tr><td>get_analytics_dashboard_filters</td><td><code>start_date, end_date</code> → <code>{orderVehicles, statuses}</code></td></tr>
+<tr><td>ep_config</td><td>Configurações de notificação (retry automático)</td></tr>
+<tr><td>update_notification_settings</td><td><code>channel, notification_type, is_enabled, phone_no, email</code></td></tr>
+</tbody></table>
+<pre>Staff roles: NONBUSINESS=0, ADMIN=1, STAFF=2, MANAGER=3
+ep_permissions: staff_rw, other_order_rw, corporate_rw, corporate_view_dashboard</pre>
+</div>
+
+<div class="sec" id="ep-ecom">
+<h2><span class="ico">🛒</span>E-Commerce</h2>
+<p>Plataformas: <b>Shopify</b>, <b>WooCommerce</b>, <b>TikTok</b>, <b>Grab</b></p>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>get_e_commerce_store_integrations</td><td><code>platform, store_id</code></td></tr>
+<tr><td>create_e_commerce_store_integration</td><td><code>platform, integration_token, store_id, options, raw_query, lead_source</code></td></tr>
+<tr><td>get_e_commerce_store_orders</td><td><code>platform, store_id, page_info, ascending, location_id</code></td></tr>
+<tr><td>get_e_commerce_pickup_locations</td><td><code>platform, store_id, integration_token</code></td></tr>
+<tr><td>add_e_commerce_pickup_location</td><td><code>platform, store_id, location_id, location: {name, address, lat, lng}</code></td></tr>
+</tbody></table>
+</div>
+
+<div class="sec" id="ep-bulk">
+<h2><span class="ico">📦📦</span>Bulk Order</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>get_same_day_bulk_order_config</td><td><code>{}</code></td></tr>
+<tr><td>create_same_day_bulk_order_request_job</td><td><code>...job_data</code> (userName e cityId adicionados automaticamente)</td></tr>
+<tr><td>trigger_same_day_bulk_order_request_job</td><td><code>job_id</code></td></tr>
+<tr><td>get_same_day_bulk_order_request_job</td><td><code>job_id</code></td></tr>
+<tr><td>get_same_day_bulk_order_csv_links</td><td><code>job_id</code> → <code>{csvLinks}</code></td></tr>
+</tbody></table>
+</div>
+
+<div class="sec" id="ep-user">
+<h2><span class="ico">👤</span>Usuário & Preferências</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Args</th></tr></thead>
+<tbody>
+<tr><td>get_user_info</td><td><code>{}</code> → user_fid, phone_no, email, is_ep, ep_permissions, flags, feature_flags</td></tr>
+<tr><td>update_preferences</td><td><code>is_send_receipt, is_send_statement, contact_email, is_proof_of_delivery_required</code></td></tr>
+<tr><td>update_email</td><td><code>email, email_code, is_check, password, timestamp, daylight_zone</code></td></tr>
+<tr><td>switch_profile</td><td><code>{}</code> — alterna PERSONAL ↔ BUSINESS</td></tr>
+<tr><td>account_delete_warn</td><td><code>{}</code> → avisos antes de deletar</td></tr>
+<tr><td>get_file_upload_token</td><td><code>city_id</code> → <code>token, upload_url</code> (documentos corporativos)</td></tr>
+</tbody></table>
+</div>
+
+<!-- SECAO 7 - PRODUCAO -->
+<div class="sec" id="producao">
+<h2><span class="ico">🏭</span>7. Dados Reais de Produção</h2>
+<div class="callout r">🔐 Dados extraídos diretamente da API de produção via Playwright. Acesso restrito.</div>
+
+<h3>Usuário</h3>
+<div class="production-data">
+<div class="kv"><span class="kv-k">user_fid</span><span class="kv-v">qDdE35mo</span></div>
+<div class="kv"><span class="kv-k">phone_no</span><span class="kv-v">+5511935024030</span></div>
+<div class="kv"><span class="kv-k">email</span><span class="kv-v">logistica02.promobrindes@gmail.com</span></div>
+<div class="kv"><span class="kv-k">nome</span><span class="kv-v">Andressa Galvão</span></div>
+<div class="kv"><span class="kv-k">ep_role</span><span class="kv-v">1 (ADMIN)</span></div>
+<div class="kv"><span class="kv-k">city_id</span><span class="kv-v">21001 (São Paulo)</span></div>
+<div class="kv"><span class="kv-k">is_ep</span><span class="kv-v">1 (Enterprise)</span></div>
+<div class="kv"><span class="kv-k">member_no</span><span class="kv-v">8001</span></div>
+<div class="kv"><span class="kv-k">is_proof_of_delivery_required</span><span class="kv-v">1</span></div>
+<div class="kv"><span class="kv-k">enable_basic_insurance</span><span class="kv-v">1</span></div>
+<div class="kv"><span class="kv-k">agreed_policy_version</span><span class="kv-v">20251202</span></div>
+<div class="kv"><span class="kv-k">statement_emails</span><span class="kv-v">abner.silva@promobrindes.com.br</span></div>
+</div>
+
+<h3>Empresa</h3>
+<div class="production-data">
+<div class="kv"><span class="kv-k">id</span><span class="kv-v">1058937499</span></div>
+<div class="kv"><span class="kv-k">name</span><span class="kv-v">Brasil Marcas Industria e Comercio de Brindes LTD</span></div>
+<div class="kv"><span class="kv-k">CNPJ (tax_id)</span><span class="kv-v">36.385.552/0001-67 → 36385552000167</span></div>
+<div class="kv"><span class="kv-k">address</span><span class="kv-v">Rua Altinópolis</span></div>
+<div class="kv"><span class="kv-k">industry</span><span class="kv-v">RETAIL_AND_WHOLESALE</span></div>
+<div class="kv"><span class="kv-k">verify</span><span class="kv-v">1 (verificada)</span></div>
+<div class="kv"><span class="kv-k">corporate_tier</span><span class="kv-v">enterprise</span></div>
+<div class="kv"><span class="kv-k">is_api_client</span><span class="kv-v">true</span></div>
+<div class="kv"><span class="kv-k">monthly_delivery_volume</span><span class="kv-v">50 entregas/mês</span></div>
+<div class="kv"><span class="kv-k">frequent_vehicle_type</span><span class="kv-v">CAR</span></div>
+</div>
+
+<h3>Saldo da Carteira</h3>
+<div class="production-data">
+<div class="kv"><span class="kv-k">balance_fen</span><span class="kv-v">257480 centavos = R$ 2.574,80</span></div>
+</div>
+
+<h3>Time (Staffs)</h3>
+<table>
+<thead><tr><th>ID Staff</th><th>user_fid</th><th>Nome</th><th>Email</th><th>Role</th><th>API Key</th></tr></thead>
+<tbody>
+<tr><td>wDEKdwM6</td><td>mDyL4xXN</td><td>Andressa Galvão</td><td>abner.silva@promobrindes.com.br</td><td>ADMIN</td><td>❌</td></tr>
+<tr><td>mDyyPdXD</td><td>qDdE35mo</td><td>Andressa Galvão</td><td>logistica02.promobrindes@gmail.com</td><td>ADMIN</td><td>✅</td></tr>
+<tr><td>woRmdY2D</td><td>aozLPmgN</td><td>Danila Fernandes</td><td>—</td><td>ADMIN</td><td>❌</td></tr>
+</tbody></table>
+
+<h3>Pedidos Reais (5 últimos)</h3>
+
+<details class="collapsible">
+<summary>📦 Pedido 1 — Carro (Concluído)</summary>
+<div class="cd">
+<div class="kv"><span class="kv-k">order_hash</span><span class="kv-v">0dc850d71d07180d37a2405b07d9afd4</span></div>
+<div class="kv"><span class="kv-k">order_uuid</span><span class="kv-v">100260307041927130210010084998963</span></div>
+<div class="kv"><span class="kv-k">order_display_id</span><span class="kv-v">3445466978641461549</span></div>
+<div class="kv"><span class="kv-k">order_vehicle_id</span><span class="kv-v">120767 (Carro)</span></div>
+<div class="kv"><span class="kv-k">status</span><span class="kv-v"><span class="badge bOK">2 COMPLETED</span></span></div>
+<div class="kv"><span class="kv-k">pay_type</span><span class="kv-v">3 (ENTERPRISE_WALLET)</span></div>
+<div class="kv"><span class="kv-k">Origem</span><span class="kv-v">Avenida Renata, 249 - Vila Formosa, SP | lat: -23.5725592 lon: -46.54058 | PlaceID: ChIJvxMPVMddzpQRQSn5Nb7Duak</span></div>
+<div class="kv"><span class="kv-k">Destino</span><span class="kv-v">Rua São Quirino, 1090 - Parque Veloso, SP | PlaceID: ChIJWTgpjrVYzpQR5C3xQf3JTv8 | contato: Rodonaves 1146375517</span></div>
+<div class="kv"><span class="kv-k">spec_req</span><span class="kv-v">item_id=137 | LOADING_1DRIVER_MAX030MIN | Ajuda Motorista Porta a Porta • Até 30min | R$ 20,00</span></div>
+</div></details>
+
+<details class="collapsible">
+<summary>📦 Pedido 2 — Utilitário e Pick-Up (Concluído)</summary>
+<div class="cd">
+<div class="kv"><span class="kv-k">order_hash</span><span class="kv-v">572c3de4e9735ad55f46df1e7d82825f</span></div>
+<div class="kv"><span class="kv-k">order_display_id</span><span class="kv-v">3445452340797330205</span></div>
+<div class="kv"><span class="kv-k">order_vehicle_id</span><span class="kv-v">666 (Utilitário e Pick-Up)</span></div>
+<div class="kv"><span class="kv-k">status</span><span class="kv-v"><span class="badge bOK">2 COMPLETED</span></span></div>
+<div class="kv"><span class="kv-k">Destino</span><span class="kv-v">Av. do Estado, 2000 - Luz, SP | contato: Braspress</span></div>
+<div class="kv"><span class="kv-k">spec_req</span><span class="kv-v">item_id=137 | LOADING_1DRIVER_MAX030MIN | R$ 25,00</span></div>
+</div></details>
+
+<details class="collapsible">
+<summary>📦 Pedidos 3/4/5 — Carro Hatch - Transligue/Terminal Fernão Dias</summary>
+<div class="cd">
+<div class="kv"><span class="kv-k">order_hash</span><span class="kv-v">f190b7aba88320d7a5c19cc81b068a8a (mesma rota repetida)</span></div>
+<div class="kv"><span class="kv-k">order_vehicle_id</span><span class="kv-v">121120 (Carro Hatch / MPV)</span></div>
+<div class="kv"><span class="kv-k">status</span><span class="kv-v"><span class="badge bOK">2 COMPLETED</span> e <span class="badge bER">3 CANCELLED</span></span></div>
+<div class="kv"><span class="kv-k">Destino</span><span class="kv-v">Rua Domingos Pachêco, 179 - Jardim Julieta, SP | Transligue | remark: "Box 11 - Terminal de Cargas Fernão Dias"</span></div>
+<div class="kv"><span class="kv-k">spec_req 137</span><span class="kv-v">LOADING_1DRIVER_MAX030MIN | R$ 20,00 (Até 30min)</span></div>
+<div class="kv"><span class="kv-k">spec_req 138</span><span class="kv-v">LOADING_1DRIVER_MAX060MIN | R$ 35,00 (Até 1h)</span></div>
+</div></details>
+
+<h3>Endereço Fixo de Coleta (Promo Brindes)</h3>
+<div class="production-data">
+<div class="kv"><span class="kv-k">Endereço</span><span class="kv-v">Avenida Renata, 249 - Vila Formosa, São Paulo - SP 03377-000</span></div>
+<div class="kv"><span class="kv-k">Latitude</span><span class="kv-v">-23.5725592</span></div>
+<div class="kv"><span class="kv-k">Longitude</span><span class="kv-v">-46.54058</span></div>
+<div class="kv"><span class="kv-k">Google Place ID</span><span class="kv-v">ChIJvxMPVMddzpQRQSn5Nb7Duak</span></div>
+<div class="kv"><span class="kv-k">Contato</span><span class="kv-v">Promo Brindes / 1146375517</span></div>
+<div class="kv"><span class="kv-k">Instrução padrão</span><span class="kv-v">"Boa tarde, favor coletar material"</span></div>
+</div>
+</div>
+
+<!-- SECAO 8 - SCHEMAS -->
+<div class="sec" id="schemas">
+<h2><span class="ico">📐</span>8. Schemas e Estruturas de Dados</h2>
+
+<h3>Schema order_detail (mapper iAe)</h3>
+<pre>{
+  <span class="k">order</span>: {
+    <span class="k">id</span>: order_uuid,
+    <span class="k">refId</span>: order_display_id_str || String(order_display_id),
+    <span class="k">bundled</span>: order_type === <span class="num">101</span>,
+    <span class="k">status</span>: { id: order_status },
+    <span class="k">orderStatus</span>: order_status,
+    <span class="k">driverId</span>: driver_id,  <span class="c">// "" quando não atribuído (NUNCA null!)</span>
+    <span class="k">canShowDriverInfo</span>: !!driver_id,
+    <span class="k">creatorUserId</span>: user_fid,
+    <span class="k">paymentMethodId</span>: MJ0(pay_type, pay_channel_id),
+    <span class="k">shareLink</span>: share_link,
+    <span class="k">shareId</span>: <span class="c">// extraído via regex ?share_id=...</span>
+    <span class="k">profileType</span>: ep_id > <span class="num">0</span> ? <span class="s">"BUSINESS"</span> : <span class="s">"PERSONAL"</span>,
+    <span class="k">podEnabled</span>: is_proof_of_delivery_required === <span class="num">1</span>,
+  },
+  <span class="k">driver</span>: {
+    <span class="k">id</span>: driver_fid, <span class="k">name</span>, <span class="k">licensePlate</span>: license_plate,
+    <span class="k">avgRating</span>: parseFloat(avg_rating),
+    <span class="k">photoUri</span>: photo, <span class="k">favorited</span>: !!is_favorite,
+    <span class="c">// phone: omitido se mascarado (contém "****")</span>
+  },
+  <span class="k">route</span>: {
+    <span class="k">waypoints</span>: addr_info.map(i => ({
+      name: i.name, address: i.addr,
+      placeId: i.place_id,
+      lat: i.lat_lon.lat, lng: i.lat_lon.lon,
+      node: i.node,
+      contacts: [{ name: i.contacts_name, phone: i.contacts_phone_no }],
+      podStatus: ole[i.proof_of_delivery_status]
+    }))
+  },
+  <span class="k">pricing</span>: {
+    <span class="k">totalFee</span>: total_fee_fen, <span class="k">basicFee</span>: basic_fee_fen,
+    <span class="k">priorityFee</span>: priority_fee_fen, <span class="k">couponDiscount</span>: coupon_discount_fen
+  }
+}</pre>
+
+<h3>Paginação por Cursor (order_list_new)</h3>
+<pre><span class="c">// Request:</span>
+{ <span class="k">order_statuses</span>: [<span class="num">0</span>,<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>], <span class="k">last_id</span>: <span class="s">""</span>, <span class="k">page_size</span>: <span class="num">10</span> }
+
+<span class="c">// Response:</span>
+{ <span class="k">order_item</span>: [...], <span class="k">last_id</span>: <span class="s">"cursor"</span>, <span class="k">has_more</span>: <span class="kw">true</span>|<span class="kw">false</span> }</pre>
+</div>
+
+<!-- SECAO 9 - ENUMS -->
+<div class="sec" id="enums">
+<h2><span class="ico">🏷️</span>9. Enums Completos (Bundle JS — Layer 27)</h2>
+<div class="enum-grid">
+<div class="enum-card">
+<div class="enum-title">Payment Types (xn)</div>
+<div class="enum-item"><span class="ek">CASH</span><span class="ev">0</span></div>
+<div class="enum-item"><span class="ek">ENTERPRISE_WALLET</span><span class="ev">3</span></div>
+<div class="enum-item"><span class="ek">WALLET</span><span class="ev">4</span></div>
+<div class="enum-item"><span class="ek">ONLINE</span><span class="ev">31</span></div>
+<div class="enum-item"><span class="ek">POSTPAID_ENT_WALLET</span><span class="ev">32</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Payment Channels (j8)</div>
+<div class="enum-item"><span class="ek">BusinessWallet</span><span class="ev">301</span></div>
+<div class="enum-item"><span class="ek">PersonalWallet</span><span class="ev">302</span></div>
+<div class="enum-item"><span class="ek">BusinessPostpaidWallet</span><span class="ev">2501</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Quote Types (nr)</div>
+<div class="enum-item"><span class="ek">REGULAR</span><span class="ev">100</span></div>
+<div class="enum-item"><span class="ek">SAVER</span><span class="ev">101</span></div>
+<div class="enum-item"><span class="ek">PRICE_NEGOTIATION</span><span class="ev">102</span></div>
+<div class="enum-item"><span class="ek">PRIORITY</span><span class="ev">103</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Order Status (Im0/Pt)</div>
+<div class="enum-item"><span class="ek">MATCHING</span><span class="ev">0</span></div>
+<div class="enum-item"><span class="ek">ONGOING</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">COMPLETED</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">CANCELLED</span><span class="ev">3</span></div>
+<div class="enum-item"><span class="ek">DRIVER_REJECTED</span><span class="ev">4</span></div>
+<div class="enum-item"><span class="ek">ORDER_TIMEOUT</span><span class="ev">5</span></div>
+<div class="enum-item"><span class="ek">ORDER_NOPAY</span><span class="ev">6</span></div>
+<div class="enum-item"><span class="ek">ORDER_LOADED</span><span class="ev">7</span></div>
+<div class="enum-item"><span class="ek">LOADING</span><span class="ev">15</span></div>
+<div class="enum-item"><span class="ek">UNLOADING</span><span class="ev">16</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Profile/Staff Types (ct)</div>
+<div class="enum-item"><span class="ek">BUSINESS</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">PERSONAL</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">Staff NONBUSINESS</span><span class="ev">0</span></div>
+<div class="enum-item"><span class="ek">Staff ADMIN</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">Staff STAFF</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">Staff MANAGER</span><span class="ev">3</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Order Plan Types (hf)</div>
+<div class="enum-item"><span class="ek">DEFAULT</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">REGULAR</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">SAVER</span><span class="ev">3</span></div>
+<div class="enum-item"><span class="ek">PRICE_NEGOTIATION</span><span class="ev">4</span></div>
+<div class="enum-item"><span class="ek">PRIORITY</span><span class="ev">5</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Pay Status (OJ0)</div>
+<div class="enum-item"><span class="ek">NO_PAY</span><span class="ev">0</span></div>
+<div class="enum-item"><span class="ek">PAY_SUCCESS</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">PAY_FAILURE</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">REFUNDING</span><span class="ev">3</span></div>
+<div class="enum-item"><span class="ek">REFUNDED</span><span class="ev">4</span></div>
+<div class="enum-item"><span class="ek">PAY_WAIT</span><span class="ev">5</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Postpaid Wallet (f9e)</div>
+<div class="enum-item"><span class="ek">CREATED</span><span class="ev">0</span></div>
+<div class="enum-item"><span class="ek">DISABLED</span><span class="ev">5</span></div>
+<div class="enum-item"><span class="ek">ENABLED</span><span class="ev">10</span></div>
+<div class="enum-item"><span class="ek">REMOVED</span><span class="ev">15</span></div>
+<div class="enum-item"><span class="ek">NO_POSTPAID_WALLET</span><span class="ev">13001</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Fleet Types (EAe)</div>
+<div class="enum-item"><span class="ek">favorited</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">blocked</span><span class="ev">2</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Addr Op Mode (Ip)</div>
+<div class="enum-item"><span class="ek">NO_EDIT</span><span class="ev">0</span></div>
+<div class="enum-item"><span class="ek">UPDATE_DELIVERY_INFO</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">ADD_POINT</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">REORDER_POINT</span><span class="ev">3</span></div>
+<div class="enum-item"><span class="ek">REMOVE_CASH_PAYEE</span><span class="ev">4</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Terminal (Up)</div>
+<div class="enum-item"><span class="ek">APP</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">PC (web)</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">S4W</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">L4W</span><span class="ev">3</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Vehicle Wheel Type</div>
+<div class="enum-item"><span class="ek">TWO_WHEELS (moto)</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">FOUR_WHEELS (carro)</span><span class="ev">4</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Special Req Price</div>
+<div class="enum-item"><span class="ek">FIXED_PRICE</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">PERCENTAGE</span><span class="ev">2</span></div>
+<div class="enum-item"><span class="ek">DRIVER_NEGOTIABLE</span><span class="ev">3</span></div>
+<div class="enum-item"><span class="ek">FREE</span><span class="ev">4</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">POD Feedback (lJ0)</div>
+<div class="enum-item"><span class="ek">NO_FEEDBACK</span><span class="ev">0</span></div>
+<div class="enum-item"><span class="ek">THUMB_UP</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">THUMB_DOWN</span><span class="ev">2</span></div>
+</div>
+<div class="enum-card">
+<div class="enum-title">Priority Level (YR)</div>
+<div class="enum-item"><span class="ek">LOWEST</span><span class="ev">1</span></div>
+<div class="enum-item"><span class="ek">LOWER</span><span class="ev">4</span></div>
+<div class="enum-item"><span class="ek">DEFAULT</span><span class="ev">5</span></div>
+<div class="enum-item"><span class="ek">HIGHER</span><span class="ev">6</span></div>
+<div class="enum-item"><span class="ek">HIGHEST</span><span class="ev">9</span></div>
+</div>
+</div>
+<pre>POD Status (ole[]): ["PENDING", "SIGNED", "DELIVERED", "FAILED", "NOT_APPLICABLE"]
+// Acesso: ole[proof_of_delivery_status] → string de status</pre>
+</div>
+
+<!-- SECAO 10 - ERROS -->
+<div class="sec" id="errors">
+<h2><span class="ico">❌</span>10. Códigos de Erro</h2>
+<table>
+<thead><tr><th>Código</th><th>Significado</th></tr></thead>
+<tbody>
+<tr><td><span class="badge bOK">0</span></td><td>Sucesso</td></tr>
+<tr><td><span class="badge bER">10002</span></td><td>PARAMS_ERROR — parâmetros inválidos</td></tr>
+<tr><td><span class="badge bER">10004</span></td><td>No matched route — endpoint não existe</td></tr>
+<tr><td><span class="badge bER">10007</span></td><td>Permissão negada / não autenticado</td></tr>
+<tr><td><span class="badge bER">10008</span></td><td>SERVER_ERROR</td></tr>
+<tr><td><span class="badge bER">10010</span></td><td>Gateway signature error (WAF Argus bloqueou)</td></tr>
+<tr><td><span class="badge bER">10012</span></td><td>OPS_CONFIGURATION_ERROR</td></tr>
+<tr><td><span class="badge bER">10102</span></td><td>ORDER_CANCELLATION_PERIOD_EXPIRED</td></tr>
+<tr><td><span class="badge bER">22018</span></td><td>SELECTED_PRICE_OPTION_UNAVAILABLE</td></tr>
+<tr><td><span class="badge bER">42000</span></td><td>order_tracking: link expirado</td></tr>
+<tr><td><span class="badge bER">42201</span></td><td>RATE_LIMIT_EXCEEDED</td></tr>
+<tr><td><span class="badge bER">70004</span></td><td>SYSTEM_ERROR_DOWNSTREAM</td></tr>
+<tr><td><span class="badge bER">13001</span></td><td>NO_POSTPAID_WALLET</td></tr>
+<tr><td><span class="badge bER">27103</span></td><td>Postpaid: DISABLED</td></tr>
+<tr><td><span class="badge bER">27104</span></td><td>Postpaid: REMOVED</td></tr>
+<tr><td><span class="badge bER">27105</span></td><td>Postpaid: INSUFFICIENT</td></tr>
+</tbody></table>
+</div>
+
+<!-- SECAO 11 - WAF -->
+<div class="sec" id="waf">
+<h2><span class="ico">🛡️</span>11. WAF / Gateway de Segurança Argus</h2>
+<p>O Argus SDK é uma biblioteca JavaScript proprietária anti-bot. Ativo no Brasil: <code>security_sdk_flag=1</code>, <code>argus_enabled=true</code>.</p>
+<div class="callout r">⛔ Endpoints bloqueados sem token Argus: <code>order_request</code>, <code>price_calculate</code>, <code>order_detail</code>, <code>order_cancel</code>, <code>order_edit</code></div>
+<pre>Resposta WAF: {"ret": 10010, "msg": "Gateway signature error"}</pre>
+<p>O SDK coleta: canvas fingerprint, WebGL, navigator.plugins, timing, mouse patterns. Impossível de replicar fora de um browser real sem acesso ao SDK proprietário.</p>
+<div class="callout g">✅ <b>Solução:</b> Usar Playwright com browser real (Chrome/Chromium) — o browser executa o Argus SDK nativamente e gera os tokens automaticamente.</div>
+</div>
+
+<!-- SECAO 12 - PLAYWRIGHT -->
+<div class="sec" id="playwright">
+<h2><span class="ico">🎭</span>12. Playwright — Bypass WAF e Automação</h2>
+
+<h3>Configuração do Browser</h3>
+<pre><span class="kw">const</span> proxyUrl = <span class="kw">new</span> URL(process.env.HTTPS_PROXY);
+<span class="kw">const</span> browser = <span class="kw">await</span> chromium.launch({
+  proxy: {
+    server: <span class="s">`${proxyUrl.protocol}//${proxyUrl.hostname}:${proxyUrl.port}`</span>,
+    username: proxyUrl.username,
+    password: proxyUrl.password
+  },
+  args: [<span class="s">'--ignore-certificate-errors'</span>, <span class="s">'--no-sandbox'</span>],
+  headless: <span class="kw">true</span>
+});</pre>
+
+<div class="callout y">⚠️ <b>Crítico:</b> O app detecta México (+52) pelo geo-IP. É obrigatório selecionar Brasil (+55) explicitamente no country picker antes do preenchimento do telefone.</div>
+
+<h3>Sessão Capturada (Token Válido)</h3>
+<div class="production-data">
+<div class="kv"><span class="kv-k">token</span><span class="kv-v">6f5ad9698d704c66b3026e69a60a0ba4</span></div>
+<div class="kv"><span class="kv-k">refresh_token</span><span class="kv-v">af8IHffQ-CLYd0Y42i0opmCH800pI-pyV2k_oz-WgC8</span></div>
+<div class="kv"><span class="kv-k">expires_in</span><span class="kv-v">86400 segundos (24h)</span></div>
+</div>
+</div>
+
+<!-- SECAO 13 - PROXY -->
+<div class="sec" id="proxy">
+<h2><span class="ico">🔀</span>13. Ambiente de Execução e Proxy</h2>
+<div class="callout y">⚠️ O container tem proxy configurado via <code>HTTP_PROXY</code>/<code>HTTPS_PROXY</code>. Ferramentas nativas Python (<code>requests</code>, <code>urllib</code>) não passam corretamente. Use <code>curl</code> via <code>subprocess</code>.</div>
+
+<h3>Workaround — curl via Python</h3>
+<pre><span class="kw">import</span> subprocess, json, time, random
+
+<span class="kw">def</span> uapi_call(method, args=<span class="kw">None</span>, token=<span class="s">""</span>):
+    ts = int(time.time())
+    su = <span class="s">f"{int(time.time()*1000)}ehll{int(random.random()*1e10)}"</span>
+    result = subprocess.run([
+        <span class="s">'curl'</span>, <span class="s">'-s'</span>, <span class="s">'-m'</span>, <span class="s">'15'</span>, <span class="s">'--compressed'</span>, <span class="s">'-X'</span>, <span class="s">'POST'</span>,
+        <span class="s">'-H'</span>, <span class="s">'User-Agent: Mozilla/5.0 AppleWebKit/537.36'</span>,
+        <span class="s">'-H'</span>, <span class="s">'Content-Type: application/x-www-form-urlencoded; charset=utf-8'</span>,
+        <span class="s">'-H'</span>, <span class="s">'Origin: https://web.lalamove.com'</span>,
+        <span class="s">'-H'</span>, <span class="s">'X-LLM-LOCATION: BR'</span>,
+        <span class="s">'--data-urlencode'</span>, <span class="s">f'token={token}'</span>,
+        <span class="s">'--data-urlencode'</span>, <span class="s">'is_ep=1'</span>,
+        <span class="s">'--data-urlencode'</span>, <span class="s">'hcountry=20000'</span>,
+        <span class="s">'--data-urlencode'</span>, <span class="s">'hlang=pt_BR'</span>,
+        <span class="s">'--data-urlencode'</span>, <span class="s">'city_id=21001'</span>,
+        <span class="s">'--data-urlencode'</span>, <span class="s">f'args={json.dumps(args or {})}'</span>,
+        <span class="s">f'https://br-uapi.lalamove.com/index.php?_m={method}&hcountry=20000&_su={su}&_t={ts}&device_id=playwright-001&version=5.37.0&revision=53700&os=web&device_type=web'</span>
+    ], capture_output=<span class="kw">True</span>)
+    <span class="kw">return</span> json.loads(result.stdout.decode(errors=<span class="s">'replace'</span>))</pre>
+</div>
+
+<!-- SECAO 14 - INTEGRACAO -->
+<div class="sec" id="integracao">
+<h2><span class="ico">🔗</span>14. Arquitetura de Integração (Bitrix24 + n8n)</h2>
+
+<h3>Campos Bitrix24 (SPA Entidade 1690)</h3>
+<table>
+<thead><tr><th>Campo Bitrix</th><th>Field ID</th><th>Tipo</th><th>Fonte Lalamove</th></tr></thead>
+<tbody>
+<tr><td>Valor Total</td><td><code>ufCrm276_1758654032</code></td><td>Money</td><td><code>priceBreakdown.total</code></td></tr>
+<tr><td>Quotation ID</td><td><code>ufCrm276_1758655595</code></td><td>String</td><td><code>quotationId</code></td></tr>
+<tr><td>Stop ID Coleta</td><td><code>ufCrm276_1758654848</code></td><td>String</td><td><code>stops[0].stopId</code></td></tr>
+<tr><td>Stop ID Entrega</td><td><code>ufCrm276_1758654830</code></td><td>String</td><td><code>stops[1].stopId</code></td></tr>
+<tr><td>Distância</td><td><code>ufCrm276_1759098131243</code></td><td>String</td><td><code>distance.value</code> (metros)</td></tr>
+<tr><td>Tempo Estimado</td><td><code>ufCrm276_1759098064876</code></td><td>String</td><td><code>duration</code> (segundos)</td></tr>
+<tr><td>Taxas Especiais</td><td><code>ufCrm276_1759402004059</code></td><td>Money</td><td><code>priceBreakdown.priorityFee</code></td></tr>
+</tbody></table>
+
+<h3>URLs de Integração</h3>
+<div class="production-data">
+<div class="kv"><span class="kv-k">Bitrix24</span><span class="kv-v">https://promobrindes.bitrix24.com.br</span></div>
+<div class="kv"><span class="kv-k">n8n webhook</span><span class="kv-v">https://webhook.atomicabr.com.br/webhook/cda41b4a-12c4-4d60-9e1e-5376ad1a1375</span></div>
+<div class="kv"><span class="kv-k">Geocoding API</span><span class="kv-v">https://api.distancematrix.ai/maps/api/geocode/json</span></div>
+<div class="kv"><span class="kv-k">Geocoding Key</span><span class="kv-v">k2sJYgCtHGjGpE460v53qqxFpugpJnnfmotnxvSAH45tK56natXvVbMzVthT1pnz</span></div>
+</div>
+
+<h3>Fluxos de Automação</h3>
+
+<div class="flow">
+<h4 style="color:var(--acc);margin-bottom:12px">Fluxo 1 — Cotação Automática</h4>
+<div class="flow-step"><div class="flow-n">1</div><div class="flow-txt">Webhook Bitrix24 dispara ao mudar status/campo</div></div>
+<div class="flow-step"><div class="flow-n">2</div><div class="flow-txt">n8n recebe endereços de origem e destino</div></div>
+<div class="flow-step"><div class="flow-n">3</div><div class="flow-txt">Geocoding API converte endereços em coordenadas lat/lon</div></div>
+<div class="flow-step"><div class="flow-n">4</div><div class="flow-txt">HMAC-SHA256 assina a requisição com API_KEY + SECRET_KEY</div></div>
+<div class="flow-step"><div class="flow-n">5</div><div class="flow-txt"><code>POST /v3/quotations</code> → retorna quotationId + stopIds + valor + distância</div></div>
+<div class="flow-step"><div class="flow-n">6</div><div class="flow-txt">n8n salva campos no Bitrix24 via API</div></div>
+</div>
+
+<div class="flow">
+<h4 style="color:var(--acc);margin-bottom:12px">Fluxo 2 — Criação de Pedido</h4>
+<div class="flow-step"><div class="flow-n">1</div><div class="flow-txt">Aprovação no Bitrix24 (mudança de stage)</div></div>
+<div class="flow-step"><div class="flow-n">2</div><div class="flow-txt">n8n lê quotationId + stopIds do Bitrix24</div></div>
+<div class="flow-step"><div class="flow-n">3</div><div class="flow-txt"><code>POST /v3/orders</code> → retorna orderId + shareLink</div></div>
+<div class="flow-step"><div class="flow-n">4</div><div class="flow-txt">Salva orderId e shareLink no Bitrix24, muda status</div></div>
+</div>
+
+<div class="flow">
+<h4 style="color:var(--acc);margin-bottom:12px">Fluxo 3 — Rastreamento em Tempo Real</h4>
+<div class="flow-step"><div class="flow-n">1</div><div class="flow-txt">Webhook Lalamove → n8n (ORDER_STATUS_CHANGED, DRIVER_LOCATION...)</div></div>
+<div class="flow-step"><div class="flow-n">2</div><div class="flow-txt">n8n valida assinatura HMAC do payload</div></div>
+<div class="flow-step"><div class="flow-n">3</div><div class="flow-txt">Processa eventType e atualiza status + campos no Bitrix24</div></div>
+</div>
+
+<div class="flow">
+<h4 style="color:var(--acc);margin-bottom:12px">Fluxo 4 — Conclusão e POD</h4>
+<div class="flow-step"><div class="flow-n">1</div><div class="flow-txt">Evento ORDER_COMPLETED chega ao n8n</div></div>
+<div class="flow-step"><div class="flow-n">2</div><div class="flow-txt">Recupera foto POD (se habilitado) e dados de conclusão</div></div>
+<div class="flow-step"><div class="flow-n">3</div><div class="flow-txt">Salva imagem e metadados no Bitrix24</div></div>
+<div class="flow-step"><div class="flow-n">4</div><div class="flow-txt">Muda status para "Entregue" e dispara notificação interna</div></div>
+</div>
+</div>
+
+<!-- SECAO 15 - ERRATA -->
+<div class="sec" id="errata">
+<h2><span class="ico">⚠️</span>15. ERRATA — Correções à Documentação Oficial</h2>
+<div class="callout r">Cada correção abaixo foi comprovada com output direto da API de produção Brasil. A documentação oficial Lalamove contém erros de campo que só surgem em testes reais.</div>
+
+<div class="errata-item">
+<div class="errata-title">CORREÇÃO 1: Campo <code>services</code> (não <code>serviceTypes</code>)</div>
+<p style="font-size:12px;color:var(--tx2);margin-bottom:8px">Documentação oficial afirma que o objeto city usa campo <code>serviceTypes</code></p>
+<div class="errata-old">❌ ERRADO: city.serviceTypes = ["MOTORCYCLE", ...]</div>
+<div class="errata-new">✅ CORRETO: city.services = ["MOTORCYCLE", "CAR", "MPV", "VAN", "TRUCK175", "TRUCK330"]</div>
+<p style="font-size:11px;color:var(--tx2);margin-top:6px">💥 <b>Impacto:</b> Código que acessa <code>city.serviceTypes</code> retorna <code>undefined</code>.</p>
+</div>
+
+<div class="errata-item">
+<div class="errata-title">CORREÇÃO 2: <code>driverId</code> é sempre string, nunca null</div>
+<p style="font-size:12px;color:var(--tx2);margin-bottom:8px">Documentação oficial afirma que <code>driverId</code> pode ser <code>null</code> quando não atribuído</p>
+<div class="errata-old">❌ ERRADO: { "driverId": null }</div>
+<div class="errata-new">✅ CORRETO: { "driverId": "" }  ← string vazia, NUNCA null</div>
+<p style="font-size:11px;color:var(--tx2);margin-top:6px">💥 <b>Impacto:</b> Verificação <code>if (driverId === null)</code> falha. Deve ser <code>if (!driverId)</code>.</p>
+</div>
+
+<div class="errata-item">
+<div class="errata-title">CORREÇÃO 3: <code>cancelParty</code> e <code>cancelledReason</code> não existem no Brasil</div>
+<p style="font-size:12px;color:var(--tx2);margin-bottom:8px">Documentação oficial lista esses campos na resposta de cancelamento</p>
+<div class="errata-old">❌ ERRADO: Response inclui cancelParty e cancelledReason</div>
+<div class="errata-new">✅ CORRETO: Esses campos NÃO estão presentes na API Brasil (confirmado em produção)</div>
+<p style="font-size:11px;color:var(--tx2);margin-top:6px">💥 <b>Impacto:</b> Código que acessa esses campos retorna <code>undefined</code>, causando erros silenciosos.</p>
+</div>
+</div>
+
+<!-- SECAO 16 - TECH -->
+<div class="sec" id="tech">
+<h2><span class="ico">🧠</span>16. Conhecimentos Técnicos Adquiridos</h2>
+
+<h3>Engenharia Reversa do Bundle</h3>
+<p>O bundle JavaScript do app tem ~5MB minificado. Contém todos os endpoints (174 únicos), enums, schemas e lógica de negócio. Funções nomeadas com 2-3 letras (<code>iAe</code>, <code>lAe</code>, <code>MJ0</code>) são mappers de dados. Redux actions seguem padrão <code>{DOMAIN}_{ACTION}_REQUEST|SUCCESS|FAILURE</code>.</p>
+
+<h3>Dados Monetários — Convenção</h3>
+<table>
+<thead><tr><th>Fonte</th><th>Formato</th><th>Exemplo</th><th>Conversão</th></tr></thead>
+<tbody>
+<tr><td>UAPI (campos <code>_fen</code>)</td><td>Integer centavos</td><td><code>balance_fen: 257480</code></td><td>÷ 100 = R$ 2.574,80</td></tr>
+<tr><td>REST API v3</td><td>String centavos</td><td><code>"total": "1500"</code></td><td>÷ 100 = R$ 15,00</td></tr>
+</tbody></table>
+
+<h3>Identificadores — Tipos</h3>
+<table>
+<thead><tr><th>Campo</th><th>Formato</th><th>Exemplo</th></tr></thead>
+<tbody>
+<tr><td>user_fid</td><td>8 chars alfanumérico</td><td>qDdE35mo</td></tr>
+<tr><td>order_uuid</td><td>Long numérico</td><td>100260307041927130210010084998963</td></tr>
+<tr><td>order_display_id</td><td>Long para exibição</td><td>3445466978641461549</td></tr>
+<tr><td>order_hash</td><td>MD5-like 32 chars</td><td>0dc850d71d07180d37a2405b07d9afd4</td></tr>
+<tr><td>place_id</td><td>Google Place ID</td><td>ChIJvxMPVMddzpQRQSn5Nb7Duak</td></tr>
+</tbody></table>
+
+<h3>Comportamento do Proxy no Container</h3>
+<table>
+<thead><tr><th>Ferramenta</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Python requests / urllib</td><td>❌ Falha silenciosa</td></tr>
+<tr><td>Node.js fetch() nativo</td><td>❌ Falha</td></tr>
+<tr><td>curl via subprocess.run()</td><td>✅ Funciona</td></tr>
+<tr><td>Playwright + proxy config</td><td>✅ Funciona</td></tr>
+</tbody></table>
+</div>
+
+<div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--bd);color:var(--tx2);font-size:12px;text-align:center">
+  📚 <i>Documentação gerada por: Pink e Cerébro — Auditoria Técnica Lalamove Brasil</i><br>
+  📅 <i>08/03/2026 | Metodologia: Evidence-First, Production-Tested | 174 endpoints mapeados</i>
+</div>
+
+</main>
+</body>
+</html>

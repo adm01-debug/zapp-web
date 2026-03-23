@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lalamove Suplemento Técnico v2 — POP+POD Update</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f5f5f5;color:#222;display:flex}
+#sidebar{width:260px;min-height:100vh;background:#1a1a2e;position:sticky;top:0;overflow-y:auto;padding:20px 0;flex-shrink:0}
+#sidebar h2{color:#e94560;font-size:13px;text-transform:uppercase;letter-spacing:1px;padding:0 20px 12px;border-bottom:1px solid #333}
+#sidebar ul{list-style:none;padding:8px 0}
+#sidebar li{}
+#sidebar a{color:#aaa;text-decoration:none;font-size:12px;display:block;padding:5px 20px;transition:all .2s}
+#sidebar a:hover{color:#e94560;background:rgba(233,69,96,.1)}
+#main{flex:1;max-width:920px;margin:0 auto;padding:40px 48px}
+h1{font-size:26px;color:#1a1a2e;margin-bottom:8px}
+h2{font-size:20px;color:#1a1a2e;margin:36px 0 12px;padding-bottom:8px;border-bottom:2px solid #e94560}
+h3{font-size:16px;color:#333;margin:24px 0 10px}
+h4{font-size:14px;color:#555;margin:16px 0 8px}
+p{line-height:1.7;margin-bottom:10px;font-size:14px}
+pre{background:#1a1a2e;color:#e2e2e2;border-radius:6px;padding:16px;overflow-x:auto;margin:12px 0;font-size:12px;line-height:1.5}
+code{background:#eef;color:#c0392b;padding:1px 5px;border-radius:3px;font-size:12px;font-family:monospace}
+pre code{background:none;color:inherit;padding:0;font-size:12px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+td,th{border:1px solid #ddd;padding:8px 12px;text-align:left}
+tr:nth-child(even){background:#f9f9f9}
+thead tr{background:#1a1a2e;color:#fff}
+ul{margin:8px 0 12px 24px;font-size:14px;line-height:1.8}
+li{margin-bottom:4px}
+hr{border:none;border-top:1px solid #ddd;margin:32px 0}
+blockquote{border-left:4px solid #e94560;background:#fff8f8;padding:10px 16px;border-radius:0 4px 4px 0;margin:12px 0;font-size:13px;color:#555}
+strong{color:#1a1a2e}
+.badge{display:inline-block;background:#e94560;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:8px}
+.new-badge{background:#27ae60}
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <h2>🚚 Suplemento v2</h2>
+  <ul>
+    <li style="padding-left:16px"><a href="#token-manager--histrico-de-pedidos-paginao-uapi--flows-n8n-f01f04">Token Manager · Histórico de Pedidos (Paginação UAPI) · Flows n8n (F01–F04)</a></li>
+<li ><a href="#ndice">ÍNDICE</a></li>
+<li ><a href="#1-token-manager--automao-de-sesso-uapi">1. Token Manager — Automação de Sessão UAPI</a></li>
+<li style="padding-left:16px"><a href="#11-contexto-e-problema">1.1 Contexto e Problema</a></li>
+<li style="padding-left:16px"><a href="#12-descoberta-crtica-refreshtoken">1.2 Descoberta Crítica: `refresh_token`</a></li>
+<li style="padding-left:16px"><a href="#13-fluxo-de-renovao">1.3 Fluxo de Renovação</a></li>
+<li style="padding-left:16px"><a href="#14-uso-do-token-manager">1.4 Uso do Token Manager</a></li>
+<li style="padding-left:16px"><a href="#15-cron-job-de-renovao-preventiva">1.5 Cron Job de Renovação Preventiva</a></li>
+<li style="padding-left:16px"><a href="#16-formato-do-arquivo-de-sesso">1.6 Formato do Arquivo de Sessão</a></li>
+<li ><a href="#2-histrico-de-pedidos--paginao-uapi">2. Histórico de Pedidos — Paginação UAPI</a></li>
+<li style="padding-left:16px"><a href="#21-problema-orderrepeatlist-bloqueado-pelo-waf">2.1 Problema: `order_repeat_list` Bloqueado pelo WAF</a></li>
+<li style="padding-left:16px"><a href="#22-endpoint-orderlistnew">2.2 Endpoint `order_list_new`</a></li>
+<li style="padding-left:16px"><a href="#23-mecnica-de-paginao-cursorbased">2.3 Mecânica de Paginação (Cursor-Based)</a></li>
+<li style="padding-left:16px"><a href="#24-estrutura-da-resposta">2.4 Estrutura da Resposta</a></li>
+<li style="padding-left:16px"><a href="#25-headers-obrigatrios-antiwaf">2.5 Headers Obrigatórios (Anti-WAF)</a></li>
+<li style="padding-left:16px"><a href="#26-performance-e-limites">2.6 Performance e Limites</a></li>
+<li ><a href="#3-anlise-de-negcio--7740-pedidos">3. Análise de Negócio — 7.740 Pedidos</a></li>
+<li style="padding-left:16px"><a href="#31-volume-e-status">3.1 Volume e Status</a></li>
+<li style="padding-left:16px"><a href="#32-financeiro-pedidos-concludos">3.2 Financeiro (Pedidos Concluídos)</a></li>
+<li style="padding-left:16px"><a href="#33-distribuio-por-veculo">3.3 Distribuição por Veículo</a></li>
+<li style="padding-left:16px"><a href="#34-forma-de-pagamento">3.4 Forma de Pagamento</a></li>
+<li style="padding-left:16px"><a href="#35-picos-mensais-de-volume">3.5 Picos Mensais de Volume</a></li>
+<li ><a href="#4-flows-n8n--arquitetura-e-implementao">4. Flows n8n — Arquitetura e Implementação</a></li>
+<li style="padding-left:16px"><a href="#41-diagrama-do-ciclo-completo">4.1 Diagrama do Ciclo Completo</a></li>
+<li style="padding-left:16px"><a href="#42-f01--cotao">4.2 F01 — Cotação</a></li>
+<li style="padding-left:16px"><a href="#43-f02--pedido">4.3 F02 — Pedido</a></li>
+<li style="padding-left:16px"><a href="#44-f03--rastreamento-webhook-lalamove--bitrix24">4.4 F03 — Rastreamento (Webhook Lalamove → Bitrix24)</a></li>
+<li style="padding-left:16px"><a href="#45-f04--pod-proof-of-delivery">4.5 F04 — POD (Proof of Delivery)</a></li>
+<li style="padding-left:16px"><a href="#46-autenticao-hmac-rest-api-v3">4.6 Autenticação HMAC (REST API v3)</a></li>
+<li style="padding-left:16px"><a href="#47-servio-de-geocodificao">4.7 Serviço de Geocodificação</a></li>
+<li style="padding-left:16px"><a href="#48-mapeamento-vehicle-ids--servicetype">4.8 Mapeamento Vehicle IDs → serviceType</a></li>
+<li ><a href="#5-mapa-de-campos--spa-1690-lalamove">5. Mapa de Campos — SPA 1690 Lalamove</a></li>
+<li style="padding-left:16px"><a href="#51-campos-de-input-vindos-do-spa-antes-do-f01">5.1 Campos de Input (vindos do SPA antes do F01)</a></li>
+<li style="padding-left:16px"><a href="#52-campos-gravados-pelo-f01-cotao">5.2 Campos Gravados pelo F01 (Cotação)</a></li>
+<li style="padding-left:16px"><a href="#53-campos-gravados-pelo-f02-pedido">5.3 Campos Gravados pelo F02 (Pedido)</a></li>
+<li style="padding-left:16px"><a href="#54-campos-gravados-pelo-f04-pod">5.4 Campos Gravados pelo F04 (POD)</a></li>
+<li style="padding-left:16px"><a href="#55-funis-do-spa-1690">5.5 Funis do SPA 1690</a></li>
+<li ><a href="#6-guia-de-deploy-dos-flows">6. Guia de Deploy dos Flows</a></li>
+<li style="padding-left:16px"><a href="#61-prrequisitos">6.1 Pré-Requisitos</a></li>
+<li style="padding-left:16px"><a href="#62-deploy-automtico-via-bootstrap">6.2 Deploy Automático via Bootstrap</a></li>
+<li style="padding-left:16px"><a href="#63-registro-do-webhook-no-lalamove">6.3 Registro do Webhook no Lalamove</a></li>
+<li style="padding-left:16px"><a href="#64-automaes-no-bitrix24-spa-1690">6.4 Automações no Bitrix24 (SPA 1690)</a></li>
+<li style="padding-left:16px"><a href="#65-teste-endtoend">6.5 Teste End-to-End</a></li>
+<li ><a href="#8-f04-v2--pop--pod-09032026">8. F04 v2 — POP + POD (09/03/2026)</a></li>
+<li style="padding-left:16px"><a href="#81-descoberta-campo-pop-na-coleta">8.1 Descoberta: Campo POP na Coleta</a></li>
+<li style="padding-left:16px"><a href="#82-estrutura-real-da-resposta-confirmada-em-produo">8.2 Estrutura Real da Resposta (Confirmada em Produção)</a></li>
+<li style="padding-left:16px"><a href="#83-diferenas-pop-vs-pod">8.3 Diferenças POP vs POD</a></li>
+<li style="padding-left:16px"><a href="#84-f04-v2--lgica-atualizada">8.4 F04 v2 — Lógica Atualizada</a></li>
+<li style="padding-left:16px"><a href="#85-campos-bitrix24-atualizados-pelo-f04-v2">8.5 Campos Bitrix24 Atualizados pelo F04 v2</a></li>
+<li style="padding-left:16px"><a href="#86-arquivos-atualizados">8.6 Arquivos Atualizados</a></li>
+<li ><a href="#7-arquivos-gerados">7. Arquivos Gerados</a></li>
+<li style="padding-left:16px"><a href="#71-token-manager">7.1 Token Manager</a></li>
+<li style="padding-left:16px"><a href="#72-histrico-de-pedidos">7.2 Histórico de Pedidos</a></li>
+<li style="padding-left:16px"><a href="#73-flows-n8n">7.3 Flows n8n</a></li>
+<li style="padding-left:16px"><a href="#74-documentao-anterior-referncia">7.4 Documentação Anterior (Referência)</a></li>
+
+  </ul>
+</nav>
+<main id="main">
+  <h1>Lalamove BR — Suplemento Técnico v2 <span class="badge new-badge">POP+POD</span></h1>
+  <p style="color:#888;font-size:13px;margin-bottom:32px">Token Manager · Histórico 7.740 pedidos · Flows n8n · POP+POD Discovery — 09/03/2026</p>
+  <h1>Lalamove Brasil — Suplemento Técnico v2</h1>
+<h3 id="token-manager--histrico-de-pedidos-paginao-uapi--flows-n8n-f01f04">Token Manager · Histórico de Pedidos (Paginação UAPI) · Flows n8n (F01–F04)</h3>
+<blockquote><strong>Gerado em:</strong> 09/03/2026 | <strong>Complementa:</strong> <code>lalamove_documentacao_completa</code> (08/03/2026)  </blockquote>
+<blockquote><strong>Metodologia:</strong> Evidence-First, Production-Tested | <strong>Autor:</strong> Pink e Cerébro</blockquote>
+
+<hr>
+
+<h2 id="ndice">ÍNDICE</h2>
+
+<p><strong>1.</strong> [Token Manager — Automação de Sessão UAPI](#1-token-manager--automação-de-sessão-uapi)</p>
+<p><strong>2.</strong> [Histórico de Pedidos — Paginação UAPI](#2-histórico-de-pedidos--paginação-uapi)</p>
+<p><strong>3.</strong> [Análise de Negócio — 7.740 Pedidos](#3-análise-de-negócio--7740-pedidos)</p>
+<p><strong>4.</strong> [Flows n8n — Arquitetura e Implementação](#4-flows-n8n--arquitetura-e-implementação)</p>
+<p><strong>5.</strong> [Mapa de Campos — SPA 1690 Lalamove](#5-mapa-de-campos--spa-1690-lalamove)</p>
+<p><strong>6.</strong> [Guia de Deploy dos Flows](#6-guia-de-deploy-dos-flows)</p>
+<p><strong>7.</strong> [Arquivos Gerados](#7-arquivos-gerados)</p>
+
+<hr>
+
+<h2 id="1-token-manager--automao-de-sesso-uapi">1. Token Manager — Automação de Sessão UAPI</h2>
+
+<h3 id="11-contexto-e-problema">1.1 Contexto e Problema</h3>
+
+<p>A UAPI interna (<code>br-uapi.lalamove.com</code>) exige um <strong>session token</strong> obtido via login com telefone + senha. O token tem validade de <strong>24 horas</strong>. Como o endpoint <code>login_by_pwd</code> está bloqueado pelo WAF Argus (<code>ret=10010</code>), era necessário um mecanismo de renovação automática que não dependesse de intervenção humana.</p>
+
+<h3 id="12-descoberta-crtica-refreshtoken">1.2 Descoberta Crítica: `refresh_token`</h3>
+
+<p>O endpoint <code>_m=refresh_token</code> <strong>não está bloqueado</strong> pelo WAF e permite renovar a sessão sem recorrer ao Playwright:</p>
+
+<table><tbody>
+<tr><td>Situação</td><td>Método</td><td>Tempo</td></tr>
+<tr><td>Token < 20h</td><td>Cache local (`/tmp/lalamove_session.json`)</td><td>0ms</td></tr>
+<tr><td>Token entre 20h–24h</td><td>`refresh_token` (UAPI)</td><td>~400ms</td></tr>
+<tr><td>Token > 24h (expirado)</td><td>Playwright re-login headless</td><td>~40s</td></tr>
+</tbody></table>
+
+<p><strong>Comportamento confirmado em produção:</strong></p>
+<ul>
+<li><code>refresh_token</code> é <strong>single-use</strong> — cada chamada retorna um novo refresh token</li>
+<li>Só funciona enquanto o access token ainda está válido (dentro das 24h)</li>
+<li>O campo correto no JSON de sessão é <code>raw.refresh_token</code> (não <code>refresh_token</code> no nível raiz)</li>
+</ul>
+
+<h4>Chamada `refresh_token`</h4>
+
+<pre><code class="lang-text">
+POST https://br-uapi.lalamove.com/index.php?_m=refresh_token&amp;hcountry=20000&amp;...
+Body: token={ACCESS_TOKEN}&amp;is_ep=1&amp;hcountry=20000&amp;hlang=pt_BR&amp;city_id=21001
+      &amp;args={"refresh_token":"{REFRESH_TOKEN_ATUAL}"}
+</code></pre>
+
+<p><strong>Resposta:</strong></p>
+<pre><code class="lang-json">
+{
+  "ret": 0,
+  "data": {
+    "token": "novo_access_token",
+    "raw": {
+      "refresh_token": "novo_refresh_token_single_use"
+    }
+  }
+}
+</code></pre>
+
+<h3 id="13-fluxo-de-renovao">1.3 Fluxo de Renovação</h3>
+
+<pre><code class="lang-text">
+token_manager.py
+   │
+   ├─ [token &lt; 20h] → retorna do cache local
+   │
+   ├─ [token 20h–24h] → POST refresh_token → salva novo par (access+refresh)
+   │
+   └─ [token &gt; 24h ou falha] → Playwright headless → login_by_pwd → salva sessão completa
+</code></pre>
+
+<h3 id="14-uso-do-token-manager">1.4 Uso do Token Manager</h3>
+
+<pre><code class="lang-bash">
+# Retorna token válido no stdout (uso em scripts)
+python3 token_manager.py
+
+# Status detalhado da sessão
+python3 token_manager.py --check
+
+# Forçar renovação (ignora cache)
+python3 token_manager.py --refresh
+
+# Servidor HTTP na porta 8765 (uso em n8n)
+python3 token_manager.py --server
+</code></pre>
+
+<h4>Endpoints HTTP (modo `--server`)</h4>
+
+<table><tbody>
+<tr><td>Endpoint</td><td>Resposta</td></tr>
+<tr><td>`GET /token`</td><td>`{"status":"ok","token":"...","user_fid":"qDdE35mo"}`</td></tr>
+<tr><td>`GET /token?refresh=1`</td><td>Força renovação antes de retornar</td></tr>
+<tr><td>`GET /status`</td><td>Idade da sessão, método de renovação, frescura</td></tr>
+</tbody></table>
+
+<h3 id="15-cron-job-de-renovao-preventiva">1.5 Cron Job de Renovação Preventiva</h3>
+
+<p>Renovar às 00h e 20h evita expiração durante picos de uso (4h de margem antes das 24h):</p>
+
+<pre><code class="lang-cron">
+0 0,20 * * * python3 /opt/lalamove/token_manager.py --refresh &gt;&gt; /var/log/lalamove_token.log 2&gt;&amp;1
+</code></pre>
+
+<h3 id="16-formato-do-arquivo-de-sesso">1.6 Formato do Arquivo de Sessão</h3>
+
+<pre><code class="lang-json">
+{
+  "token": "ACCESS_TOKEN_ATUAL",
+  "raw": {
+    "refresh_token": "REFRESH_TOKEN_SINGLE_USE"
+  },
+  "timestamp": 1741479600,
+  "user_fid": "qDdE35mo",
+  "ep_role": 1
+}
+</code></pre>
+
+<blockquote><strong>Arquivo:</strong> <code>/tmp/lalamove_session.json</code></blockquote>
+
+<hr>
+
+<h2 id="2-histrico-de-pedidos--paginao-uapi">2. Histórico de Pedidos — Paginação UAPI</h2>
+
+<h3 id="21-problema-orderrepeatlist-bloqueado-pelo-waf">2.1 Problema: `order_repeat_list` Bloqueado pelo WAF</h3>
+
+<p>O endpoint esperado para listar pedidos na UAPI é <code>order_repeat_list</code>. Em produção com os headers do ambiente de container, este endpoint retorna HTTP 501 com <code>"Access blocked"</code> — bloqueio ativo pelo WAF Argus.</p>
+
+<p><strong>Alternativa confirmada:</strong> <code>order_list_new</code> — retorna os mesmos dados de pedidos sem ser bloqueado, com paginação cursor-based.</p>
+
+<h3 id="22-endpoint-orderlistnew">2.2 Endpoint `order_list_new`</h3>
+
+<pre><code class="lang-text">
+POST https://br-uapi.lalamove.com/index.php
+     ?_m=order_list_new&amp;hcountry=20000&amp;_su={su}&amp;_t={ts}&amp;device_id={id}
+     &amp;version=5.37.0&amp;revision=53700&amp;os=web&amp;device_type=web
+
+Body: token={TOKEN}&amp;is_ep=1&amp;hcountry=20000&amp;hlang=pt_BR&amp;city_id=21001
+      &amp;args={"limit":20,"last_id":"{CURSOR}"}
+</code></pre>
+
+<p><strong>Atenção WAF:</strong> Enviar <code>args={"limit":20}</code> sem o campo <code>last_id</code> também aciona bloqueio. É obrigatório incluir <code>"last_id":""</code> (string vazia) na primeira página.</p>
+
+<h3 id="23-mecnica-de-paginao-cursorbased">2.3 Mecânica de Paginação (Cursor-Based)</h3>
+
+<h4>Página 1</h4>
+<pre><code class="lang-json">
+{"limit": 20, "last_id": ""}
+</code></pre>
+
+<h4>Páginas Seguintes</h4>
+<pre><code class="lang-json">
+{
+  "limit": 20,
+  "last_id": "{last_id_retornado_pela_página_anterior}"
+}
+</code></pre>
+
+<h4>Formato do cursor `last_id`</h4>
+<pre><code class="lang-json">
+{
+  "app": {
+    "date": "YYYY-MM-DD HH:mm:ss",
+    "_id": "XXXXXXXX",
+    "recursion": 0
+  },
+  "mapp": {
+    "_id": 0,
+    "date": "",
+    "recursion": 0
+  }
+}
+</code></pre>
+
+<h4>Condições de Parada</h4>
+<table><tbody>
+<tr><td>Condição</td><td>Descrição</td></tr>
+<tr><td>`data.is_end == 1`</td><td>Última página explícita</td></tr>
+<tr><td>`data.order_base_info == []`</td><td>Sem mais pedidos</td></tr>
+<tr><td>`data.last_id` idêntico ao anterior</td><td>Cursor não avançou</td></tr>
+</tbody></table>
+
+<h3 id="24-estrutura-da-resposta">2.4 Estrutura da Resposta</h3>
+
+<pre><code class="lang-json">
+{
+  "ret": 0,
+  "data": {
+    "order_base_info": [ /* array de pedidos */ ],
+    "is_end": 0,
+    "last_id": "{cursor_próxima_página}",
+    "order_datetime": { "UUID": "YYYY-MM-DD HH:mm:ss" }
+  }
+}
+</code></pre>
+
+<h4>Campos Principais de Cada Pedido</h4>
+
+<table><tbody>
+<tr><td>Campo</td><td>Tipo</td><td>Descrição</td></tr>
+<tr><td>`order_uuid`</td><td>string</td><td>UUID longo do pedido</td></tr>
+<tr><td>`order_status`</td><td>int</td><td>0=Matching, 1=Em andamento, 2=Concluído, 3=Cancelado</td></tr>
+<tr><td>`order_vehicle_name`</td><td>string</td><td>Nome do veículo (ex: "Carro Hatch")</td></tr>
+<tr><td>`final_price_fen`</td><td>int</td><td>Preço final em centavos</td></tr>
+<tr><td>`price_total_fen`</td><td>int</td><td>Preço total antes de desconto</td></tr>
+<tr><td>`order_create_hts`</td><td>int</td><td>Timestamp de criação em ms</td></tr>
+<tr><td>`order_create_time`</td><td>string</td><td>Data/hora formatada</td></tr>
+<tr><td>`pay_type`</td><td>int</td><td>3=Carteira corporativa, 4=Wallet, 31=Online</td></tr>
+<tr><td>`driver`</td><td>object</td><td>Info do motorista (nome, telefone, placa)</td></tr>
+<tr><td>`order_display_id_str`</td><td>string</td><td>ID de exibição</td></tr>
+</tbody></table>
+
+<h3 id="25-headers-obrigatrios-antiwaf">2.5 Headers Obrigatórios (Anti-WAF)</h3>
+
+<p>Os seguintes headers são necessários para evitar bloqueio:</p>
+
+<pre><code class="lang-text">
+User-Agent: Mozilla/5.0 AppleWebKit/537.36 Chrome/121.0.0.0 Safari/537.36
+Content-Type: application/x-www-form-urlencoded; charset=utf-8
+Origin: https://web.lalamove.com
+Referer: https://web.lalamove.com/
+X-LLM-LOCATION: BR
+Accept: application/json, text/plain, */*
+</code></pre>
+
+<h3 id="26-performance-e-limites">2.6 Performance e Limites</h3>
+
+<ul>
+<li><strong>Sem rate limiting</strong> detectado durante extração de 7.740 pedidos</li>
+<li>~387 requisições para extrair histórico completo (20 pedidos/página)</li>
+<li>Token expirou durante a extração (após ~6.800 pedidos); renovação com <code>--refresh</code> e continuação do cursor sem perda de dados</li>
+</ul>
+
+<hr>
+
+<h2 id="3-anlise-de-negcio--7740-pedidos">3. Análise de Negócio — 7.740 Pedidos</h2>
+
+<p>Extração completa do histórico da conta Promo Brindes. Período: <strong>setembro 2024 → março 2026</strong>.</p>
+
+<h3 id="31-volume-e-status">3.1 Volume e Status</h3>
+
+<table><tbody>
+<tr><td>Status</td><td>Quantidade</td><td>%</td></tr>
+<tr><td>COMPLETED</td><td>6.675</td><td>86,2%</td></tr>
+<tr><td>CANCELLED</td><td>1.049</td><td>13,6%</td></tr>
+<tr><td>DRIVER_REJECTED</td><td>11</td><td>0,1%</td></tr>
+<tr><td>Outros</td><td>5</td><td>0,1%</td></tr>
+<tr><td>**Total**</td><td>**7.740**</td><td>**100%**</td></tr>
+</tbody></table>
+
+<h3 id="32-financeiro-pedidos-concludos">3.2 Financeiro (Pedidos Concluídos)</h3>
+
+<table><tbody>
+<tr><td>Métrica</td><td>Valor</td></tr>
+<tr><td>Receita total</td><td>**R$ 536.358,03**</td></tr>
+<tr><td>Ticket médio</td><td>R$ 80,35</td></tr>
+<tr><td>Ticket mediano</td><td>R$ 71,12</td></tr>
+<tr><td>Mínimo</td><td>R$ 7,56</td></tr>
+<tr><td>Máximo</td><td>R$ 437,37</td></tr>
+</tbody></table>
+
+<h3 id="33-distribuio-por-veculo">3.3 Distribuição por Veículo</h3>
+
+<table><tbody>
+<tr><td>Veículo</td><td>Pedidos</td><td>%</td></tr>
+<tr><td>Carro Hatch (MPV)</td><td>2.554</td><td>33,0%</td></tr>
+<tr><td>Utilitário e Pick-Up</td><td>1.454</td><td>18,8%</td></tr>
+<tr><td>LalaPro</td><td>1.448</td><td>18,7%</td></tr>
+<tr><td>Carro</td><td>874</td><td>11,3%</td></tr>
+<tr><td>LalaGo</td><td>644</td><td>8,3%</td></tr>
+<tr><td>Van</td><td>504</td><td>6,5%</td></tr>
+<tr><td>Carreto</td><td>231</td><td>3,0%</td></tr>
+<tr><td>Outros</td><td>31</td><td>0,4%</td></tr>
+</tbody></table>
+
+<h3 id="34-forma-de-pagamento">3.4 Forma de Pagamento</h3>
+
+<ul>
+<li><strong>ENT_WALLET</strong> (Carteira Corporativa): 99,8% dos pedidos</li>
+<li>Pagamento avulso: 0,2%</li>
+</ul>
+
+<h3 id="35-picos-mensais-de-volume">3.5 Picos Mensais de Volume</h3>
+
+<table><tbody>
+<tr><td>Mês</td><td>Pedidos</td></tr>
+<tr><td>Abril/2025</td><td>632</td></tr>
+<tr><td>Outubro/2025</td><td>612</td></tr>
+<tr><td>Maio/2025</td><td>609</td></tr>
+<tr><td>Setembro/2025</td><td>522</td></tr>
+<tr><td>Março/2025</td><td>487</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="4-flows-n8n--arquitetura-e-implementao">4. Flows n8n — Arquitetura e Implementação</h2>
+
+<p>Os 4 flows representam a <strong>implementação completa</strong> do ciclo de vida de uma entrega Lalamove integrada ao Bitrix24 (SPA 1690).</p>
+
+<h3 id="41-diagrama-do-ciclo-completo">4.1 Diagrama do Ciclo Completo</h3>
+
+<pre><code class="lang-text">
+SPA criado no Bitrix24 (funil 730 — LALAMOVE AUTOMÁTICO)
+   │
+   ├─ stage → PREPARATION
+   │    └─ Automação B24 → POST /webhook/lalamove-cotacao
+   │         └─ F01: Geocode endereços → POST /v3/quotations
+   │              └─ Grava: quotationId + stopIds + preço + distância + tempo
+   │
+   ├─ stage → APPROVAL (aprovação humana)
+   │    └─ Automação B24 → POST /webhook/lalamove-pedido
+   │         └─ F02: Lê SPA → POST /v3/orders
+   │              └─ Grava: orderId → muda stage para IN_PROCESS
+   │
+   ├─ Motorista aceita → Lalamove → POST /webhook/lalamove-eventos
+   │    └─ F03: Valida HMAC → busca SPA por orderId → stage PREPARATION
+   │
+   ├─ Motorista em coleta → Lalamove → POST /webhook/lalamove-eventos
+   │    └─ F03: stage IN_PROCESS
+   │
+   ├─ Entrega realizada → Lalamove → POST /webhook/lalamove-eventos
+   │    └─ F03: stage WON → dispara F04
+   │         └─ F04: GET /v3/orders/{id} → extrai fotos POD → stage WON + flags
+   │
+   └─ Cancelamento → Lalamove → POST /webhook/lalamove-eventos
+        └─ F03: stage LOSE
+</code></pre>
+
+<h3 id="42-f01--cotao">4.2 F01 — Cotação</h3>
+
+<p><strong>Webhook:</strong> <code>POST https://webhook.atomicabr.com.br/webhook/lalamove-cotacao</code></p>
+
+<table><tbody>
+<tr><td>#</td><td>Node</td><td>Tipo</td><td>Função</td></tr>
+<tr><td>1</td><td>🎯 Webhook Cotação</td><td>Webhook</td><td>Recebe spa_id + campos de endereço</td></tr>
+<tr><td>2</td><td>📥 Parse</td><td>Code</td><td>Valida campos obrigatórios, normaliza dados</td></tr>
+<tr><td>3</td><td>🌍 Geo Coleta</td><td>HTTP</td><td>Geocode endereço coleta via DistanceMatrix.ai</td></tr>
+<tr><td>4</td><td>🌍 Geo Entrega</td><td>HTTP</td><td>Geocode endereço entrega via DistanceMatrix.ai</td></tr>
+<tr><td>5</td><td>📐 Build Payload</td><td>Code</td><td>Monta body para `/v3/quotations` com coordenadas</td></tr>
+<tr><td>6</td><td>🔐 HMAC</td><td>Code</td><td>Gera assinatura HMAC-SHA256 com timestamp</td></tr>
+<tr><td>7</td><td>🚀 POST Quotation</td><td>HTTP</td><td>`POST rest.lalamove.com/v3/quotations`</td></tr>
+<tr><td>8</td><td>📊 Parse Quote</td><td>Code</td><td>Extrai quotationId, stopIds, preço, distância, tempo</td></tr>
+<tr><td>9</td><td>🔗 Build B24</td><td>Code</td><td>Monta payload para `crm.item.update`</td></tr>
+<tr><td>10</td><td>💾 Bitrix24 Update</td><td>HTTP</td><td>Atualiza campos do SPA 1690</td></tr>
+<tr><td>11</td><td>✅ Respond 200</td><td>Respond</td><td>Retorna `{"ok":true,"quotationId":"..."}`</td></tr>
+</tbody></table>
+
+<p><strong>Campos gravados no SPA após F01:</strong></p>
+<pre><code class="lang-text">
+ufCrm276_1758655595 → quotationId
+ufCrm276_1758654848 → stopId da coleta
+ufCrm276_1758654830 → stopId da entrega
+ufCrm276_1758654032 → valor total (ex: "46.81|BRL")
+ufCrm276_1759402004059 → taxas especiais
+ufCrm276_1759098131243 → distância (ex: "10.7 km")
+ufCrm276_1759098064876 → tempo estimado (ex: "28 mins")
+</code></pre>
+
+<p><strong>Body de disparo (Automação Bitrix24):</strong></p>
+<pre><code class="lang-json">
+{
+  "spa_id": "{=ID}",
+  "ufCrm276_1758913732": "{=ufCrm276_1758913732}",
+  "ufCrm276_1758913724": "{=ufCrm276_1758913724}",
+  "ufCrm276_1758913712": "{=ufCrm276_1758913712}",
+  "ufCrm276_1758913684": "{=ufCrm276_1758913684}",
+  "ufCrm276_1758913742": "{=ufCrm276_1758913742}",
+  "ufCrm276_1758913748": "{=ufCrm276_1758913748}",
+  "ufCrm276_1764346660": "{=ufCrm276_1764346660}",
+  "categoryId": "{=CATEGORY_ID}"
+}
+</code></pre>
+
+<h3 id="43-f02--pedido">4.3 F02 — Pedido</h3>
+
+<p><strong>Webhook:</strong> <code>POST https://webhook.atomicabr.com.br/webhook/lalamove-pedido</code></p>
+
+<p><strong>Pré-requisito:</strong> F01 deve ter sido executado (quotationId + stopIds gravados no SPA).</p>
+
+<table><tbody>
+<tr><td>#</td><td>Node</td><td>Tipo</td><td>Função</td></tr>
+<tr><td>1</td><td>🎯 Webhook Pedido</td><td>Webhook</td><td>Recebe spa_id</td></tr>
+<tr><td>2</td><td>🔗 Get SPA</td><td>Code</td><td>Monta URL para `crm.item.get`</td></tr>
+<tr><td>3</td><td>📋 GET SPA</td><td>HTTP</td><td>Busca dados completos do SPA no Bitrix24</td></tr>
+<tr><td>4</td><td>📐 Build Order</td><td>Code</td><td>Monta body para `/v3/orders` usando quotationId + stopIds do SPA</td></tr>
+<tr><td>5</td><td>🔐 HMAC</td><td>Code</td><td>Gera assinatura HMAC-SHA256</td></tr>
+<tr><td>6</td><td>🚀 POST Order</td><td>HTTP</td><td>`POST rest.lalamove.com/v3/orders`</td></tr>
+<tr><td>7</td><td>📊 Parse Order</td><td>Code</td><td>Extrai orderId, shareLink, status</td></tr>
+<tr><td>8</td><td>🔗 Build B24</td><td>Code</td><td>Monta payload update com orderId + stage IN_PROCESS</td></tr>
+<tr><td>9</td><td>💾 Bitrix24 Update</td><td>HTTP</td><td>Atualiza SPA: orderId + muda estágio</td></tr>
+<tr><td>10</td><td>✅ Respond 200</td><td>Respond</td><td>Retorna `{"ok":true,"orderId":"..."}`</td></tr>
+</tbody></table>
+
+<p><strong>Body de disparo (Automação Bitrix24):</strong></p>
+<pre><code class="lang-json">
+{
+  "spa_id": "{=ID}",
+  "categoryId": "{=CATEGORY_ID}"
+}
+</code></pre>
+
+<h3 id="44-f03--rastreamento-webhook-lalamove--bitrix24">4.4 F03 — Rastreamento (Webhook Lalamove → Bitrix24)</h3>
+
+<p><strong>Webhook (Lalamove → n8n):</strong> <code>POST https://webhook.atomicabr.com.br/webhook/lalamove-eventos</code></p>
+
+<blockquote>Esta URL deve ser registrada no <strong>Lalamove Dashboard → Configurações → Webhooks</strong>.</blockquote>
+
+<p><strong>Validação de Assinatura HMAC:</strong></p>
+<pre><code class="lang-javascript">
+const raw = `${timestamp}\r\nPOST\r\n/webhook/lalamove-eventos\r\n\r\n${bodyStr}`;
+const expected = crypto.createHmac('sha256', SECRET_KEY).update(raw).digest('hex');
+// Comparar com header: x-llm-signature
+</code></pre>
+
+<p><strong>Mapeamento eventType → estágio Bitrix24:</strong></p>
+
+<table><tbody>
+<tr><td>Evento Lalamove</td><td>Estágio B24</td></tr>
+<tr><td>`ORDER_ACCEPTED`</td><td>`PREPARATION`</td></tr>
+<tr><td>`DRIVER_ARRIVED`</td><td>`IN_PROCESS`</td></tr>
+<tr><td>`ORDER_PICKED_UP`</td><td>`IN_PROCESS`</td></tr>
+<tr><td>`ORDER_COMPLETED`</td><td>`WON`</td></tr>
+<tr><td>`ORDER_DELIVERED`</td><td>`WON`</td></tr>
+<tr><td>`ORDER_CANCELLED`</td><td>`LOSE`</td></tr>
+<tr><td>`DRIVER_REJECTED`</td><td>`LOSE`</td></tr>
+</tbody></table>
+
+<p><strong>Responde imediatamente 200</strong> antes de processar (evita timeout do Lalamove).  </p>
+<p>Para <code>ORDER_DELIVERED</code> / <code>ORDER_COMPLETED</code>, dispara F04 assincronamente.</p>
+
+<h3 id="45-f04--pod-proof-of-delivery">4.5 F04 — POD (Proof of Delivery)</h3>
+
+<p><strong>Webhook (chamado pelo F03):</strong> <code>POST https://webhook.atomicabr.com.br/webhook/lalamove-pod</code></p>
+
+<table><tbody>
+<tr><td>#</td><td>Node</td><td>Tipo</td><td>Função</td></tr>
+<tr><td>1</td><td>🎯 Webhook POD</td><td>Webhook</td><td>Recebe spa_id + orderId</td></tr>
+<tr><td>2</td><td>📥 Parse POD</td><td>Code</td><td>Valida inputs</td></tr>
+<tr><td>3</td><td>🔐 HMAC GET</td><td>Code</td><td>Assinatura HMAC para `GET /v3/orders/{id}`</td></tr>
+<tr><td>4</td><td>📦 GET Order</td><td>HTTP</td><td>`GET rest.lalamove.com/v3/orders/{orderId}`</td></tr>
+<tr><td>5</td><td>📊 Parse POD</td><td>Code</td><td>Extrai podImgUrls, signedByName, deliveredAt</td></tr>
+<tr><td>6</td><td>💾 B24 → WON</td><td>HTTP</td><td>Atualiza SPA: stage WON + flags de entrega</td></tr>
+<tr><td>7</td><td>✅ Respond 200</td><td>Respond</td><td>Retorna `{"ok":true,"pod_images":N}`</td></tr>
+</tbody></table>
+
+<p><strong>Campos gravados no SPA após F04:</strong></p>
+<pre><code class="lang-text">
+stageId              → DT1690_{categoryId}:WON
+ufCrm276_1760014914  → "Y" (flag "entregue")
+ufCrm276_1760015259  → "Y" se tem fotos POD, "N" se não
+</code></pre>
+
+<h3 id="46-autenticao-hmac-rest-api-v3">4.6 Autenticação HMAC (REST API v3)</h3>
+
+<p>Todos os flows que chamam a REST API v3 usam o mesmo padrão de assinatura:</p>
+
+<pre><code class="lang-javascript">
+const ts  = Date.now().toString();
+const raw = `${ts}\r\n${method}\r\n${path}\r\n\r\n${bodyStr}`;
+const sig = crypto.createHmac('sha256', SECRET_KEY).update(raw).digest('hex');
+// Header: Authorization: hmac {API_KEY}:{ts}:{sig}
+</code></pre>
+
+<p><strong>Credenciais de produção:</strong></p>
+<pre><code class="lang-text">
+API_KEY    = pk_prod_d38621223012b9ec71d0634589126e3b
+SECRET_KEY = sk_prod_v30Ci06vXqPeizCg6e461VZEymmFzMDAXZQwTm3NdYcwyLaS8nxrQEX0JKcp0mAM
+BASE_URL   = https://rest.lalamove.com
+MARKET     = BR
+</code></pre>
+
+<h3 id="47-servio-de-geocodificao">4.7 Serviço de Geocodificação</h3>
+
+<p>A geocodificação de endereços usa DistanceMatrix.ai (não Google Maps diretamente):</p>
+
+<pre><code class="lang-text">
+GET https://api.distancematrix.ai/maps/api/geocode/json
+    ?address={ENDERECO_ENCODED}
+    &amp;key=k2sJYgCtHGjGpE460v53qqxFpugpJnnfmotnxvSAH45tK56natXvVbMzVthT1pnz
+</code></pre>
+
+<p>Resposta: <code>results[0].geometry.location.{lat, lng}</code></p>
+
+<h3 id="48-mapeamento-vehicle-ids--servicetype">4.8 Mapeamento Vehicle IDs → serviceType</h3>
+
+<table><tbody>
+<tr><td>vehicle_id (Bitrix24)</td><td>serviceType (REST API v3)</td><td>Nome</td></tr>
+<tr><td>120767</td><td>`MOTORCYCLE`</td><td>Moto</td></tr>
+<tr><td>121120</td><td>`MPV`</td><td>Carro Hatch</td></tr>
+<tr><td>666</td><td>`VAN`</td><td>Utilitário/Pick-Up</td></tr>
+<tr><td>120768</td><td>`TRUCK550`</td><td>Caminhão</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="5-mapa-de-campos--spa-1690-lalamove">5. Mapa de Campos — SPA 1690 Lalamove</h2>
+
+<p>Campos confirmados via item #258 da conta de produção (Promo Brindes):</p>
+
+<h3 id="51-campos-de-input-vindos-do-spa-antes-do-f01">5.1 Campos de Input (vindos do SPA antes do F01)</h3>
+
+<table><tbody>
+<tr><td>Campo UF</td><td>Descrição</td><td>Exemplo</td></tr>
+<tr><td>`ufCrm276_1758913732`</td><td>Endereço de coleta</td><td>"Avenida Renata, 249..."</td></tr>
+<tr><td>`ufCrm276_1758913724`</td><td>Endereço de entrega</td><td>"R. da Independência, 705..."</td></tr>
+<tr><td>`ufCrm276_1758913712`</td><td>Telefone coleta</td><td>"1146375517"</td></tr>
+<tr><td>`ufCrm276_1758913684`</td><td>Telefone destinatário</td><td>"551125651422"</td></tr>
+<tr><td>`ufCrm276_1758913742`</td><td>Nome do destinatário</td><td>"Vinicius"</td></tr>
+<tr><td>`ufCrm276_1758913748`</td><td>Referência / obs</td><td>"Gabriel - Expedição Entradas"</td></tr>
+<tr><td>`ufCrm276_1764346660`</td><td>Tipo de veículo (array)</td><td>`["162"]`</td></tr>
+</tbody></table>
+
+<h3 id="52-campos-gravados-pelo-f01-cotao">5.2 Campos Gravados pelo F01 (Cotação)</h3>
+
+<table><tbody>
+<tr><td>Campo UF</td><td>Descrição</td><td>Exemplo</td></tr>
+<tr><td>`ufCrm276_1758655595`</td><td>quotationId Lalamove</td><td>"3404756229468406604"</td></tr>
+<tr><td>`ufCrm276_1758654848`</td><td>stopId coleta</td><td>"3404756229468406607"</td></tr>
+<tr><td>`ufCrm276_1758654830`</td><td>stopId entrega</td><td>"3404756229468406608"</td></tr>
+<tr><td>`ufCrm276_1758654032`</td><td>Valor total</td><td>"46.81\</td><td>BRL"</td></tr>
+<tr><td>`ufCrm276_1759402004059`</td><td>Taxas especiais</td><td>"22\</td><td>BRL"</td></tr>
+<tr><td>`ufCrm276_1759098131243`</td><td>Distância</td><td>"10.7 km"</td></tr>
+<tr><td>`ufCrm276_1759098064876`</td><td>Tempo estimado</td><td>"28 mins"</td></tr>
+</tbody></table>
+
+<h3 id="53-campos-gravados-pelo-f02-pedido">5.3 Campos Gravados pelo F02 (Pedido)</h3>
+
+<table><tbody>
+<tr><td>Campo UF</td><td>Descrição</td><td>Exemplo</td></tr>
+<tr><td>`ufCrm276_1758817942`</td><td>orderId Lalamove</td><td>"107114"</td></tr>
+</tbody></table>
+
+<h3 id="54-campos-gravados-pelo-f04-pod">5.4 Campos Gravados pelo F04 (POD)</h3>
+
+<table><tbody>
+<tr><td>Campo UF</td><td>Descrição</td><td>Valores</td></tr>
+<tr><td>`ufCrm276_1760014914`</td><td>Flag "entregue"</td><td>"Y" / "N"</td></tr>
+<tr><td>`ufCrm276_1760015259`</td><td>Flag "tem foto POD"</td><td>"Y" / "N"</td></tr>
+</tbody></table>
+
+<h3 id="55-funis-do-spa-1690">5.5 Funis do SPA 1690</h3>
+
+<table><tbody>
+<tr><td>ID</td><td>Nome</td><td>Tipo</td></tr>
+<tr><td>730</td><td>LALAMOVE \</td><td>AUTOMÁTICO</td><td>Automatizado via flows</td></tr>
+<tr><td>1406</td><td>LALAMOVE \</td><td>MANUAL</td><td>Operação manual</td></tr>
+<tr><td>876</td><td>AGENDAMENTOS \</td><td>LALAMOVE</td><td>Entregas agendadas</td></tr>
+<tr><td>878</td><td>⏱ HISTÓRICO</td><td>Pedidos arquivados</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="6-guia-de-deploy-dos-flows">6. Guia de Deploy dos Flows</h2>
+
+<h3 id="61-prrequisitos">6.1 Pré-Requisitos</h3>
+
+<p><strong>Variáveis n8n</strong> (<code>Settings → Variables</code>):</p>
+
+<table><tbody>
+<tr><td>Variável</td><td>Descrição</td><td>Como obter</td></tr>
+<tr><td>`N8N_API_KEY`</td><td>API key do n8n</td><td>Settings → API → Create API Key</td></tr>
+<tr><td>`B24_TOKEN`</td><td>Token webhook Bitrix24</td><td>Bitrix24 → Aplicativos → Webhooks de entrada</td></tr>
+</tbody></table>
+
+<blockquote>O token B24 aparece na URL: <code>https://promobrindes.bitrix24.com.br/rest/1/{TOKEN}/crm.item.update</code></blockquote>
+
+<h3 id="62-deploy-automtico-via-bootstrap">6.2 Deploy Automático via Bootstrap</h3>
+
+<p><strong>1.</strong> Importar `lalamove_bundle_import.json` no n8n (`Workflows → Import from File`)</p>
+<p><strong>2.</strong> Acessar o workflow **⚙️ LLM-BOOTSTRAP** importado</p>
+<p><strong>3.</strong> Clicar **▶️ Execute** — o Bootstrap cria e ativa os 4 flows via API interna do n8n</p>
+<p><strong>4.</strong> Verificar output: todos devem aparecer com `status: "CREATED"`</p>
+
+<h3 id="63-registro-do-webhook-no-lalamove">6.3 Registro do Webhook no Lalamove</h3>
+
+<p>URL a registrar: <code>https://webhook.atomicabr.com.br/webhook/lalamove-eventos</code></p>
+
+<p>Eventos a habilitar:</p>
+<ul>
+<li><code>ORDER_ACCEPTED</code></li>
+<li><code>DRIVER_ARRIVED</code></li>
+<li><code>ORDER_PICKED_UP</code></li>
+<li><code>ORDER_DELIVERED</code></li>
+<li><code>ORDER_COMPLETED</code></li>
+<li><code>ORDER_CANCELLED</code></li>
+<li><code>DRIVER_REJECTED</code></li>
+</ul>
+
+<h3 id="64-automaes-no-bitrix24-spa-1690">6.4 Automações no Bitrix24 (SPA 1690)</h3>
+
+<p><strong>Trigger F01 — Disparar cotação ao entrar em PREPARATION:</strong></p>
+<ul>
+<li>Estágio: <code>PREPARATION</code> (entrada)</li>
+<li>Ação: Chamada HTTP POST para <code>/webhook/lalamove-cotacao</code></li>
+<li>Body: incluir todos os campos de endereço/telefone via macros <code>{=CAMPO}</code></li>
+</ul>
+
+<p><strong>Trigger F02 — Disparar pedido ao entrar em APPROVAL:</strong></p>
+<ul>
+<li>Estágio: <code>APPROVAL</code> (entrada)</li>
+<li>Ação: Chamada HTTP POST para <code>/webhook/lalamove-pedido</code></li>
+<li>Body: <code>{"spa_id":"{=ID}","categoryId":"{=CATEGORY_ID}"}</code></li>
+</ul>
+
+<h3 id="65-teste-endtoend">6.5 Teste End-to-End</h3>
+
+<pre><code class="lang-bash">
+# Testar F01 com dados reais do SPA #258
+curl -X POST https://webhook.atomicabr.com.br/webhook/lalamove-cotacao \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spa_id": "258",
+    "ufCrm276_1758913732": "Avenida Renata, 249 - Vila Formosa, São Paulo",
+    "ufCrm276_1758913724": "Rua da Independência, 705 - Cambuci, São Paulo",
+    "ufCrm276_1758913712": "1146375517",
+    "ufCrm276_1758913684": "11935024030",
+    "ufCrm276_1758913742": "Cliente Teste",
+    "ufCrm276_1758913748": "Ref: OC-TESTE",
+    "ufCrm276_1764346660": ["120767"],
+    "categoryId": 730
+  }'
+
+# Resposta esperada:
+# {"ok":true,"quotationId":"..."}
+</code></pre>
+
+<hr>
+
+
+<hr>
+
+<h2 id="8-f04-v2--pop--pod-09032026">8. F04 v2 — POP + POD (09/03/2026)</h2>
+
+<h3 id="81-descoberta-campo-pop-na-coleta">8.1 Descoberta: Campo POP na Coleta</h3>
+
+<p><strong>Investigação conduzida em:</strong> 09/03/2026 — testes em produção com pedidos reais.</p>
+
+<p>A investigação identificou que o endpoint <code>GET /v3/orders/{orderId}</code> (REST API v3) retorna dois campos distintos para comprovantes fotográficos, um por parada (stop):</p>
+
+<table><tbody>
+<tr><td>Stop</td><td>Campo</td><td>Tipo</td><td>Conteúdo</td></tr>
+<tr><td>`stops[0]` (coleta)</td><td>`POP`</td><td>Objeto</td><td>Proof of Pickup</td></tr>
+<tr><td>`stops[N]` (entrega)</td><td>`POD`</td><td>Objeto</td><td>Proof of Delivery</td></tr>
+</tbody></table>
+
+<blockquote><strong>Nota:</strong> O <code>order_detail</code> da UAPI (<code>br-uapi.lalamove.com</code>) retorna <code>ret=10002</code> (Erro de parâmetro) para todos os formatos de argumento testados. A fonte correta é <strong>exclusivamente o REST API v3</strong>.</blockquote>
+
+<h3 id="82-estrutura-real-da-resposta-confirmada-em-produo">8.2 Estrutura Real da Resposta (Confirmada em Produção)</h3>
+
+<pre><code class="lang-json">
+{
+  "data": {
+    "orderId": "3447430567770145555",
+    "status": "COMPLETED",
+    "stops": [
+      {
+        "address": "Av. Inajar de Souza, 1950 - Limão, SP",
+        "POP": {
+          "imageUrls": [
+            "http://br-oimg.lalamove.com/appdriver/prd/appdriver/2026/03/09/177306...jpeg"
+          ],
+          "pickedUpAt": "2026-03-09T13:54:45.00Z"
+        }
+      },
+      {
+        "address": "Avenida Renata, 249 - Vila Formosa, SP",
+        "POD": {
+          "status": "DELIVERED",
+          "image": "http://br-oimg.lalamove.com/appdriver/prd/appdriver/2026/03/09/177306...jpeg",
+          "deliveredAt": "2026-03-09T14:55:07.00Z"
+        }
+      }
+    ]
+  }
+}
+</code></pre>
+
+<h3 id="83-diferenas-pop-vs-pod">8.3 Diferenças POP vs POD</h3>
+
+<table><tbody>
+<tr><td>Atributo</td><td>POP (Coleta)</td><td>POD (Entrega)</td></tr>
+<tr><td>Campo no objeto stop</td><td>`POP`</td><td>`POD`</td></tr>
+<tr><td>Campo das fotos</td><td>`imageUrls` (array `[]`)</td><td>`image` (string única)</td></tr>
+<tr><td>Pode ter múltiplas fotos?</td><td>**Sim**</td><td>**Não**</td></tr>
+<tr><td>Timestamp</td><td>`pickedUpAt`</td><td>`deliveredAt`</td></tr>
+<tr><td>Campo de status</td><td>ausente</td><td>`status: "DELIVERED"`</td></tr>
+</tbody></table>
+
+<h3 id="84-f04-v2--lgica-atualizada">8.4 F04 v2 — Lógica Atualizada</h3>
+
+<p>O flow F04 foi atualizado para capturar ambos os campos e gerar um comentário de timeline no Bitrix24 com as URLs das fotos.</p>
+
+<p><strong>Nodes (9 no total):</strong></p>
+
+<pre><code class="lang-text">
+🎯 Webhook POD
+  → 📥 Parse Input          (valida spa_id + orderId)
+  → 🔐 HMAC GET             (assina GET /v3/orders/{orderId})
+  → 📦 GET Order            (HTTP GET REST API v3)
+  → 📊 Parse POP+POD        (extrai stops[0].POP + stops[-1].POD)
+  → 💾 B24 → WON            (atualiza stageId + flags)
+  → 📝 Timeline Comment     (POST crm.timeline.comment.add com fotos)
+  → ✅ Respond              (200 OK com contagem de fotos)
+</code></pre>
+
+<p><strong>Código do nó Parse POP+POD:</strong></p>
+
+<pre><code class="lang-javascript">
+const stops = (o.data?.stops || o.stops || []);
+
+// Stop 0 = COLETA → campo POP
+const firstStop  = stops[0] || {};
+const popImages  = firstStop.POP?.imageUrls || [];   // array de URLs
+const pickedUpAt = firstStop.POP?.pickedUpAt || '';
+
+// Stop final = ENTREGA → campo POD
+const lastStop    = stops[stops.length - 1] || {};
+const podImage    = lastStop.POD?.image || '';        // URL única (string)
+const deliveredAt = lastStop.POD?.deliveredAt || '';
+
+const hasPOD = !!podImage;
+const hasPOP = popImages.length &gt; 0;
+</code></pre>
+
+<p><strong>Formato do comentário de timeline gerado (exemplo):</strong></p>
+
+<pre><code class="lang-text">
+📦 Pedido Lalamove concluído — 3447430567770145555
+
+📷 Foto de Coleta (POP):
+  1. http://br-oimg.lalamove.com/appdriver/prd/.../177306....jpeg
+  ⏱ Coletado em: 2026-03-09T13:54:45.00Z
+
+✅ Foto de Entrega (POD):
+  http://br-oimg.lalamove.com/appdriver/prd/.../177306....jpeg
+  ⏱ Entregue em: 2026-03-09T14:55:07.00Z
+</code></pre>
+
+<h3 id="85-campos-bitrix24-atualizados-pelo-f04-v2">8.5 Campos Bitrix24 Atualizados pelo F04 v2</h3>
+
+<table><tbody>
+<tr><td>Campo</td><td>Field ID</td><td>Valor</td></tr>
+<tr><td>Stage</td><td>`stageId`</td><td>`DT1690_{category_id}:WON`</td></tr>
+<tr><td>Flag Entregue</td><td>`ufCrm276_1760014914`</td><td>`'Y'`</td></tr>
+<tr><td>Flag Tem POD</td><td>`ufCrm276_1760015259`</td><td>`'Y'` se `podImage` existe</td></tr>
+<tr><td>Timeline</td><td>`crm.timeline.comment.add`</td><td>Texto com ambas as URLs</td></tr>
+</tbody></table>
+
+<blockquote><strong>Observação:</strong> Não foram criados campos dedicados para POP no Bitrix24. As fotos de coleta são registradas via comentário de timeline, tornando-as visíveis no histórico do item sem necessidade de novos campos.</blockquote>
+
+<h3 id="86-arquivos-atualizados">8.6 Arquivos Atualizados</h3>
+
+<table><tbody>
+<tr><td>Arquivo</td><td>Versão</td><td>Mudanças</td></tr>
+<tr><td>`lalamove_f04_pod.json`</td><td>v2</td><td>POP + POD + timeline comment (9 nodes)</td></tr>
+<tr><td>`lalamove_f00_bootstrap.json`</td><td>v2</td><td>Embarca F04 v2</td></tr>
+<tr><td>`lalamove_bundle_import.json`</td><td>v2</td><td>Bundle completo atualizado</td></tr>
+</tbody></table>
+
+<h2 id="7-arquivos-gerados">7. Arquivos Gerados</h2>
+
+<h3 id="71-token-manager">7.1 Token Manager</h3>
+
+<table><tbody>
+<tr><td>Arquivo</td><td>Tipo</td><td>Descrição</td></tr>
+<tr><td>`lalamove_token_manager.py`</td><td>Python</td><td>Script principal (367 linhas)</td></tr>
+<tr><td>`lalamove_cron_setup.sh`</td><td>Shell</td><td>Instalador do cron job</td></tr>
+<tr><td>`lalamove_n8n_integration.md`</td><td>Markdown</td><td>Guia de integração com n8n</td></tr>
+</tbody></table>
+
+<h3 id="72-histrico-de-pedidos">7.2 Histórico de Pedidos</h3>
+
+<table><tbody>
+<tr><td>Arquivo</td><td>Tipo</td><td>Tamanho</td><td>Descrição</td></tr>
+<tr><td>`lalamove_order_history_full.json`</td><td>JSON</td><td>21MB</td><td>7.740 pedidos brutos</td></tr>
+<tr><td>`lalamove_order_history_full.md`</td><td>Markdown</td><td>—</td><td>Relatório analítico</td></tr>
+</tbody></table>
+
+<h3 id="73-flows-n8n">7.3 Flows n8n</h3>
+
+<table><tbody>
+<tr><td>Arquivo</td><td>Tipo</td><td>Nodes</td><td>Descrição</td></tr>
+<tr><td>`lalamove_bundle_import.json`</td><td>JSON</td><td>—</td><td>Bundle completo (Bootstrap + F01–F04)</td></tr>
+<tr><td>`lalamove_f00_bootstrap.json`</td><td>JSON</td><td>3</td><td>Bootstrap de deploy automático</td></tr>
+<tr><td>`lalamove_f01_cotacao.json`</td><td>JSON</td><td>12</td><td>F01 — Cotação</td></tr>
+<tr><td>`lalamove_f02_pedido.json`</td><td>JSON</td><td>11</td><td>F02 — Pedido</td></tr>
+<tr><td>`lalamove_f03_rastreamento.json`</td><td>JSON</td><td>12</td><td>F03 — Rastreamento</td></tr>
+<tr><td>`lalamove_f04_pod.json`</td><td>JSON</td><td>9</td><td>F04 v2 — POP + POD + Timeline Comment</td></tr>
+<tr><td>`lalamove_setup_guide.html`</td><td>HTML</td><td>—</td><td>Guia visual de setup</td></tr>
+</tbody></table>
+
+<h3 id="74-documentao-anterior-referncia">7.4 Documentação Anterior (Referência)</h3>
+
+<table><tbody>
+<tr><td>Arquivo</td><td>Data</td><td>Conteúdo</td></tr>
+<tr><td>`lalamove_documentacao_completa.*`</td><td>08/03/2026</td><td>Auditoria completa REST API v3 + UAPI</td></tr>
+<tr><td>`lalamove_internal_api_map.*`</td><td>08/03/2026</td><td>Mapa de endpoints UAPI</td></tr>
+<tr><td>`lalamove_deep_audit.*`</td><td>08/03/2026</td><td>Auditoria profunda + errata</td></tr>
+<tr><td>`lalamove_api_docs_v3.*`</td><td>08/03/2026</td><td>Documentação REST API v3</td></tr>
+</tbody></table>
+
+<hr>
+
+<p><em>Documentação gerada por: Pink e Cerébro — Suplemento Técnico v2</em>  </p>
+<p><em>Data: 09/03/2026 | Metodologia: Evidence-First, Production-Tested</em></p>
+
+</main>
+</body>
+</html>

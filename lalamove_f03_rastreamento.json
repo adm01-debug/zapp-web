@@ -1,0 +1,299 @@
+{
+  "id": "llm-f03",
+  "name": "📡 LLM-F03 — Rastreamento Lalamove",
+  "active": true,
+  "nodes": [
+    {
+      "id": "s3",
+      "name": "📋",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -200
+      ],
+      "parameters": {
+        "width": 760,
+        "height": 180,
+        "content": "## 📡 F03 — Rastreamento (Lalamove → Bitrix24)\n**POST** `/webhook/lalamove-eventos`  \nRegistrar esta URL no **Lalamove Dashboard → Webhooks**\n\nEventos: ORDER_ACCEPTED · DRIVER_ARRIVED · ORDER_PICKED_UP · ORDER_DELIVERED · ORDER_CANCELLED",
+        "color": 6
+      }
+    },
+    {
+      "id": "wh",
+      "name": "🎯 Webhook Eventos",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        320
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lalamove-eventos",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "rv",
+      "name": "✅ Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        320
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\":true}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "vl",
+      "name": "🔒 Valida HMAC",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        480
+      ],
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst body  = $input.first().json;\nconst ts    = body.headers?.['x-llm-timestamp'] || body.headers?.['x-request-timestamp'] || '';\nconst sig   = body.headers?.['x-llm-signature']  || body.headers?.['x-request-signature']  || '';\nif (!ts || !sig) return [{ json:{ valid:false, reason:'Missing signature headers', body } }];\nconst payload = JSON.stringify(body.body || body);\nconst raw     = ts + '\\r\\nPOST\\r\\n/webhook/lalamove-eventos\\r\\n\\r\\n' + payload;\nconst expected = crypto.createHmac('sha256','sk_prod_v30Ci06vXqPeizCg6e461VZEymmFzMDAXZQwTm3NdYcwyLaS8nxrQEX0JKcp0mAM').update(raw).digest('hex');\nreturn [{ json:{ valid: sig === expected, body: body.body || body } }];"
+      }
+    },
+    {
+      "id": "if",
+      "name": "❓ Sig OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        700,
+        480
+      ],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "v",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "options": {}
+        }
+      }
+    },
+    {
+      "id": "rj",
+      "name": "⛔ Rejeitar 401",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        920,
+        600
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "mp",
+      "name": "🗺️ Map Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        360
+      ],
+      "parameters": {
+        "jsCode": "const body      = $input.first().json.body || $input.first().json;\nconst eventType = body.eventType || body.event;\nconst orderId   = body.orderId || body.data?.orderId || '';\nconst driver    = body.data?.driver || body.driver || {};\n// Mapeamento evento → estágio B24\nconst STAGE = {\n  'ORDER_ACCEPTED':  'PREPARATION',\n  'DRIVER_ARRIVED':  'IN_PROCESS',\n  'ORDER_PICKED_UP': 'IN_PROCESS',\n  'ORDER_COMPLETED': 'WON',\n  'ORDER_DELIVERED': 'WON',\n  'ORDER_CANCELLED': 'LOSE',\n  'DRIVER_REJECTED': 'LOSE',\n};\nconst stage_key = STAGE[eventType] || null;\nreturn [{ json:{\n  eventType, orderId, driver, stage_key,\n  is_final: ['ORDER_COMPLETED','ORDER_DELIVERED','ORDER_CANCELLED','DRIVER_REJECTED'].includes(eventType),\n  trigger_pod: ['ORDER_COMPLETED','ORDER_DELIVERED'].includes(eventType),\n} }];"
+      }
+    },
+    {
+      "id": "fs",
+      "name": "🔗 Build Search",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        360
+      ],
+      "parameters": {
+        "jsCode": "const d     = $input.first().json;\nconst token = $env.B24_TOKEN;\nreturn [{ json:{\n  ...d,\n  _url: 'https://promobrindes.bitrix24.com.br/rest/1/'+token+'/crm.item.list?entityTypeId=1690&filter[ufCrm276_1758817942]='+d.orderId+'&select[]=id&select[]=stageId&select[]=categoryId'\n} }];"
+      }
+    },
+    {
+      "id": "fi",
+      "name": "🔍 Find SPA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        360
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json._url }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "up",
+      "name": "📝 Build Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        360
+      ],
+      "parameters": {
+        "jsCode": "const evtData = $('🗺️ Map Event').first().json;\nconst items   = $('🔍 Find SPA').first().json?.result?.items || [];\nconst token   = $env.B24_TOKEN;\nif (!items.length) return [{ json:{ skipped:true, reason:'orderId '+evtData.orderId+' não encontrado', _trigger_pod:false } }];\nconst item     = items[0];\nconst stageId  = evtData.stage_key ? 'DT1690_'+item.categoryId+':'+evtData.stage_key : null;\nconst fields   = stageId ? {stageId} : {};\nconst body     = {entityTypeId:1690,id:parseInt(item.id),fields};\nreturn [{ json:{\n  spa_id:       item.id,\n  orderId:      evtData.orderId,\n  eventType:    evtData.eventType,\n  _trigger_pod: evtData.trigger_pod,\n  _url:  'https://promobrindes.bitrix24.com.br/rest/1/'+token+'/crm.item.update',\n  _body: JSON.stringify(body),\n} }];"
+      }
+    },
+    {
+      "id": "b4",
+      "name": "💾 Bitrix24 Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json._url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json._body }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "pt",
+      "name": "🖼️ Trigger POD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2020,
+        360
+      ],
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nif (!d._trigger_pod || d.skipped) return [{ json:{ skipped:true } }];\ntry {\n  await this.helpers.httpRequest({\n    method:'POST', url:'https://webhook.atomicabr.com.br/webhook/lalamove-pod',\n    body:{spa_id:d.spa_id, orderId:d.orderId},\n    headers:{'Content-Type':'application/json'},\n    timeout:5000, ignoreHttpStatusErrors:true,\n  });\n} catch(e) { /* timeout esperado — F04 responde async */ }\nreturn [{ json:{ pod_triggered:true, spa_id:d.spa_id } }];"
+      }
+    }
+  ],
+  "connections": {
+    "🎯 Webhook Eventos": {
+      "main": [
+        [
+          {
+            "node": "✅ Respond 200",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🔒 Valida HMAC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔒 Valida HMAC": {
+      "main": [
+        [
+          {
+            "node": "❓ Sig OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "❓ Sig OK?": {
+      "main": [
+        [
+          {
+            "node": "🗺️ Map Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔ Rejeitar 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🗺️ Map Event": {
+      "main": [
+        [
+          {
+            "node": "🔗 Build Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Build Search": {
+      "main": [
+        [
+          {
+            "node": "🔍 Find SPA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Find SPA": {
+      "main": [
+        [
+          {
+            "node": "📝 Build Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Build Update": {
+      "main": [
+        [
+          {
+            "node": "💾 Bitrix24 Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Bitrix24 Update": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Trigger POD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "meta": {}
+}

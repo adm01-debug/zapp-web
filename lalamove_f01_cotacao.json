@@ -1,0 +1,327 @@
+{
+  "id": "llm-f01",
+  "name": "🚚 LLM-F01 — Cotação Lalamove",
+  "active": true,
+  "nodes": [
+    {
+      "id": "s1",
+      "name": "📋",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -200
+      ],
+      "parameters": {
+        "width": 680,
+        "height": 160,
+        "content": "## 🚚 F01 — Cotação Lalamove\n**POST** `/webhook/lalamove-cotacao`\n\n**Envia:** spa_id + campos endereço → **Recebe:** quotationId + stopIds + preço\n\n> Configurar: `B24_TOKEN` em n8n → Settings → Variables",
+        "color": 4
+      }
+    },
+    {
+      "id": "wh",
+      "name": "🎯 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        320
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lalamove-cotacao",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "p1",
+      "name": "📥 Parse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst spa_id = String(b.spa_id || b.id || '');\nif (!spa_id) throw new Error('spa_id obrigatório');\nreturn [{ json: {\n  spa_id,\n  end_coleta:  b['ufCrm276_1758913732']  || b.end_coleta  || '',\n  end_entrega: b['ufCrm276_1758913724'] || b.end_entrega || '',\n  tel_coleta:  b['ufCrm276_1758913712']  || b.tel_coleta  || '',\n  tel_dest:    b['ufCrm276_1758913684']    || b.tel_dest    || '',\n  nome_dest:   b['ufCrm276_1758913742']   || b.nome_dest   || '',\n  referencia:  b['ufCrm276_1758913748']  || b.referencia  || '',\n  veiculo:     (b['ufCrm276_1764346660'] || ['120767'])[0]   || '120767',\n  category_id: b.categoryId         || 730,\n} }];"
+      }
+    },
+    {
+      "id": "g0",
+      "name": "🌍 Geo Coleta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        240
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.distancematrix.ai/maps/api/geocode/json?address={{encodeURIComponent($json.end_coleta)}}&key=k2sJYgCtHGjGpE460v53qqxFpugpJnnfmotnxvSAH45tK56natXvVbMzVthT1pnz",
+        "options": {}
+      }
+    },
+    {
+      "id": "g1",
+      "name": "🌍 Geo Entrega",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        400
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.distancematrix.ai/maps/api/geocode/json?address={{encodeURIComponent($json.end_entrega)}}&key=k2sJYgCtHGjGpE460v53qqxFpugpJnnfmotnxvSAH45tK56natXvVbMzVthT1pnz",
+        "options": {}
+      }
+    },
+    {
+      "id": "bp",
+      "name": "📐 Build Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const r0 = $('🌍 Geo Coleta').first().json;\nconst r1 = $('🌍 Geo Entrega').first().json;\nconst g0 = r0.results?.[0]?.geometry?.location;\nconst g1 = r1.results?.[0]?.geometry?.location;\nif (!g0) throw new Error('Geocode coleta falhou: ' + JSON.stringify(r0).slice(0,200));\nif (!g1) throw new Error('Geocode entrega falhou: ' + JSON.stringify(r1).slice(0,200));\nconst p = $('📥 Parse').first().json;\n// Mapeamento vehicle_id → serviceType\nconst SVC = {'120767':'MOTORCYCLE','121120':'MPV','666':'VAN','120768':'TRUCK550'};\nconst payload = {\n  serviceType: SVC[p.veiculo] || 'MOTORCYCLE',\n  language: 'pt_BR',\n  stops: [\n    { coordinates:{lat:String(g0.lat),lng:String(g0.lng)}, address:p.end_coleta,\n      phone:{displayNumber:p.tel_coleta,countryCode:'+55'} },\n    { coordinates:{lat:String(g1.lat),lng:String(g1.lng)}, address:p.end_entrega,\n      phone:{displayNumber:p.tel_dest,countryCode:'+55'},\n      ...(p.nome_dest ? {poc:p.nome_dest} : {}) }\n  ],\n  requesterContact:{name:'Promo Brindes',phone:{displayNumber:'1146375517',countryCode:'+55'}},\n  specialRequests:[], isRouteOptimized:false\n};\nreturn [{ json:{\n  spa_id:p.spa_id, category_id:p.category_id,\n  http_method:'POST', http_path:'/v3/quotations',\n  http_body:JSON.stringify(payload)\n}}];"
+      }
+    },
+    {
+      "id": "hm",
+      "name": "🔐 HMAC",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst ts  = Date.now().toString();\nconst method  = $json.http_method || 'POST';\nconst path    = $json.http_path;\nconst bodyStr = $json.http_body || '';\nconst raw = ts + '\\r\\n' + method + '\\r\\n' + path + '\\r\\n\\r\\n' + bodyStr;\nconst sig = crypto.createHmac('sha256', 'sk_prod_v30Ci06vXqPeizCg6e461VZEymmFzMDAXZQwTm3NdYcwyLaS8nxrQEX0JKcp0mAM').update(raw).digest('hex');\nreturn [{ json: { ...$json,\n  _auth: 'hmac pk_prod_d38621223012b9ec71d0634589126e3b:' + ts + ':' + sig,\n  _ts: ts\n}}];"
+      }
+    },
+    {
+      "id": "rq",
+      "name": "🚀 POST Quotation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        320
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://rest.lalamove.com/v3/quotations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json._auth }}"
+            },
+            {
+              "name": "Market",
+              "value": "BR"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.http_body }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "pq",
+      "name": "📊 Parse Quote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const q = $('🚀 POST Quotation').first().json;\nconst d = $('📐 Build Payload').first().json;\nif (!q.quotationId) throw new Error('Sem quotationId: ' + JSON.stringify(q).slice(0,200));\nconst stops = q.stops || [];\nconst total  = parseInt(q.priceBreakdown?.total || '0');\nconst taxas  = parseInt(q.priceBreakdown?.specialRequests || '0');\nconst dist   = q.distance?.value ? ((q.distance.value/1000).toFixed(1)+' km') : '';\nconst tempo  = q.duration?.value ? (Math.round(q.duration.value/60)+' mins') : '';\nreturn [{ json:{\n  spa_id: d.spa_id, category_id: d.category_id,\n  quotation_id: q.quotationId,\n  stop_coleta:  stops[0]?.stopId || '',\n  stop_entrega: stops[1]?.stopId || '',\n  b24_fields: {\n    'ufCrm276_1758655595': q.quotationId,\n    'ufCrm276_1758654848':  stops[0]?.stopId || '',\n    'ufCrm276_1758654830': stops[1]?.stopId || '',\n    'ufCrm276_1758654032':  (total/100).toFixed(2)+'|BRL',\n    'ufCrm276_1759402004059':    (taxas/100).toFixed(2)+'|BRL',\n    'ufCrm276_1759098131243':    dist,\n    'ufCrm276_1759098064876':    tempo,\n  }\n} }];"
+      }
+    },
+    {
+      "id": "bu",
+      "name": "🔗 Build B24",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst token = $env.B24_TOKEN;\nconst url = 'https://promobrindes.bitrix24.com.br/rest/1/'+token+'/crm.item.update';\nconst body = {entityTypeId:1690,id:parseInt(d.spa_id),fields:d.b24_fields};\nreturn [{ json:{ _url:url, _body:JSON.stringify(body) } }];"
+      }
+    },
+    {
+      "id": "b4",
+      "name": "💾 Bitrix24 Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2040,
+        320
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json._url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json._body }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ok",
+      "name": "✅ Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2260,
+        320
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"ok\":true,\"quotationId\":\"{{ $json.quotationId }}\"}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "🎯 Webhook": {
+      "main": [
+        [
+          {
+            "node": "📥 Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📥 Parse": {
+      "main": [
+        [
+          {
+            "node": "🌍 Geo Coleta",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🌍 Geo Entrega",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🌍 Geo Coleta": {
+      "main": [
+        [
+          {
+            "node": "📐 Build Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🌍 Geo Entrega": {
+      "main": [
+        [
+          {
+            "node": "📐 Build Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📐 Build Payload": {
+      "main": [
+        [
+          {
+            "node": "🔐 HMAC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔐 HMAC": {
+      "main": [
+        [
+          {
+            "node": "🚀 POST Quotation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 POST Quotation": {
+      "main": [
+        [
+          {
+            "node": "📊 Parse Quote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Parse Quote": {
+      "main": [
+        [
+          {
+            "node": "🔗 Build B24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Build B24": {
+      "main": [
+        [
+          {
+            "node": "💾 Bitrix24 Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Bitrix24 Update": {
+      "main": [
+        [
+          {
+            "node": "✅ Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "meta": {}
+}

@@ -1,0 +1,141 @@
+{
+  "id": "llm-f04",
+  "name": "🖼️ LLM-F04 — POP+POD Lalamove",
+  "active": true,
+  "nodes": [
+    {
+      "id": "s4",
+      "name": "📋",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-220, -200],
+      "parameters": {
+        "width": 820,
+        "height": 180,
+        "content": "## 🖼️ F04 — POP + POD (Proof of Pickup + Delivery)\n**POST** `/webhook/lalamove-pod`  \nChamado automaticamente pelo F03 em ORDER_DELIVERED/ORDER_COMPLETED\n\n**Fluxo:** spa_id + orderId → GET /v3/orders → extrai POP (coleta) + POD (entrega) → atualiza B24 (flags + stage WON) + adiciona comment de timeline com as fotos\n\n> `stops[0].POP.imageUrls[]` = fotos coleta | `stops[-1].POD.image` = foto entrega",
+        "color": 3
+      }
+    },
+    {
+      "id": "wh",
+      "name": "🎯 Webhook POD",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 320],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lalamove-pod",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "pp",
+      "name": "📥 Parse Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 320],
+      "parameters": {
+        "jsCode": "const b = ($input.first().json.body || $input.first().json);\nif (!b.orderId) throw new Error('orderId ausente');\nif (!b.spa_id)  throw new Error('spa_id ausente');\nreturn [{ json: {\n  spa_id:      String(b.spa_id),\n  orderId:     String(b.orderId),\n  category_id: b.category_id || 730,\n} }];"
+      }
+    },
+    {
+      "id": "hg",
+      "name": "🔐 HMAC GET",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 320],
+      "parameters": {
+        "jsCode": "const crypto  = require('crypto');\nconst orderId = $json.orderId;\nconst path    = '/v3/orders/' + orderId;\nconst ts      = Date.now().toString();\nconst raw     = ts + '\\r\\nGET\\r\\n' + path + '\\r\\n\\r\\n';\nconst sig     = crypto.createHmac('sha256','sk_prod_v30Ci06vXqPeizCg6e461VZEymmFzMDAXZQwTm3NdYcwyLaS8nxrQEX0JKcp0mAM').update(raw).digest('hex');\nreturn [{ json: { ...$json,\n  _auth: 'hmac pk_prod_d38621223012b9ec71d0634589126e3b:' + ts + ':' + sig,\n  _url:  'https://rest.lalamove.com' + path,\n} }];"
+      }
+    },
+    {
+      "id": "go",
+      "name": "📦 GET Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 320],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json._url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ $json._auth }}" },
+            { "name": "Market",        "value": "BR" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "pa",
+      "name": "📊 Parse POP+POD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 320],
+      "parameters": {
+        "jsCode": "const o = $('📦 GET Order').first().json;\nconst d = $('📥 Parse Input').first().json;\n\n// A resposta real é: { data: { stops: [...] } }\nconst stops = (o.data?.stops || o.stops || []);\nif (!stops.length) throw new Error('Nenhum stop retornado para orderId=' + d.orderId);\n\n// ── Stop 0 = COLETA → campo POP\nconst firstStop = stops[0] || {};\nconst popImages  = firstStop.POP?.imageUrls || [];   // array de URLs\nconst pickedUpAt = firstStop.POP?.pickedUpAt || '';  // ISO timestamp\n\n// ── Stop final = ENTREGA → campo POD\nconst lastStop    = stops[stops.length - 1] || {};\nconst podImage    = lastStop.POD?.image || '';         // URL única (string)\nconst deliveredAt = lastStop.POD?.deliveredAt || '';  // ISO timestamp\nconst podStatus   = lastStop.POD?.status || '';       // 'DELIVERED'\n\nconst hasPOD = !!podImage;\nconst hasPOP = popImages.length > 0;\n\nconst token = $env.B24_TOKEN;\nif (!token) throw new Error('B24_TOKEN não configurado em n8n → Settings → Variables');\n\n// ── Montar texto do comentário de timeline\nconst lines = ['📦 Pedido Lalamove concluído — ' + d.orderId];\nif (hasPOP) {\n  lines.push('');\n  lines.push('📷 Foto de Coleta (POP):');\n  popImages.forEach((url, i) => lines.push('  ' + (i+1) + '. ' + url));\n  if (pickedUpAt) lines.push('  ⏱ Coletado em: ' + pickedUpAt);\n}\nif (hasPOD) {\n  lines.push('');\n  lines.push('✅ Foto de Entrega (POD):');\n  lines.push('  ' + podImage);\n  if (deliveredAt) lines.push('  ⏱ Entregue em: ' + deliveredAt);\n}\nif (!hasPOP && !hasPOD) lines.push('⚠️ Sem fotos registradas.');\nconst commentText = lines.join('\\n');\n\nconst B24 = 'https://promobrindes.bitrix24.com.br/rest/1/' + token;\n\nreturn [{ json: {\n  orderId:      d.orderId,\n  spa_id:       d.spa_id,\n  category_id:  d.category_id || 730,\n  // POP\n  popImages, pickedUpAt, hasPOP,\n  // POD\n  podImage, deliveredAt, podStatus, hasPOD,\n  // Texto timeline\n  commentText,\n  // URLs Bitrix24\n  _update_url:   B24 + '/crm.item.update',\n  _update_body:  JSON.stringify({\n    entityTypeId: 1690,\n    id: parseInt(d.spa_id),\n    fields: {\n      stageId:               'DT1690_' + (d.category_id || 730) + ':WON',\n      ufCrm276_1760014914:   'Y',\n      ufCrm276_1760015259:   hasPOD ? 'Y' : 'N',\n    }\n  }),\n  _comment_url:  B24 + '/crm.timeline.comment.add',\n  _comment_body: JSON.stringify({\n    fields: {\n      ENTITY_TYPE: 'dynamic_1690',\n      ENTITY_ID:   parseInt(d.spa_id),\n      COMMENT:     commentText,\n    }\n  }),\n} }];"
+      }
+    },
+    {
+      "id": "b4",
+      "name": "💾 B24 → WON",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 320],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json._update_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json._update_body }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "tc",
+      "name": "📝 Timeline Comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1580, 320],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('📊 Parse POP+POD').first().json._comment_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('📊 Parse POP+POD').first().json._comment_body }}",
+        "options": {
+          "response": { "response": { "neverError": true } }
+        }
+      }
+    },
+    {
+      "id": "ok",
+      "name": "✅ Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1800, 320],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, orderId: $('📊 Parse POP+POD').first().json.orderId, pop_images: $('📊 Parse POP+POD').first().json.popImages.length, pod_image: $('📊 Parse POP+POD').first().json.hasPOD }) }}",
+        "options": { "responseCode": 200 }
+      }
+    }
+  ],
+  "connections": {
+    "🎯 Webhook POD":     { "main": [[{ "node": "📥 Parse Input",    "type": "main", "index": 0 }]] },
+    "📥 Parse Input":     { "main": [[{ "node": "🔐 HMAC GET",       "type": "main", "index": 0 }]] },
+    "🔐 HMAC GET":        { "main": [[{ "node": "📦 GET Order",       "type": "main", "index": 0 }]] },
+    "📦 GET Order":       { "main": [[{ "node": "📊 Parse POP+POD",  "type": "main", "index": 0 }]] },
+    "📊 Parse POP+POD":   { "main": [[{ "node": "💾 B24 → WON",       "type": "main", "index": 0 }]] },
+    "💾 B24 → WON":       { "main": [[{ "node": "📝 Timeline Comment","type": "main", "index": 0 }]] },
+    "📝 Timeline Comment": { "main": [[{ "node": "✅ Respond",        "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "meta": {}
+}

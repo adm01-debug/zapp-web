@@ -1,0 +1,296 @@
+{
+  "id": "llm-f02",
+  "name": "📦 LLM-F02 — Pedido Lalamove",
+  "active": true,
+  "nodes": [
+    {
+      "id": "s2",
+      "name": "📋",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -200
+      ],
+      "parameters": {
+        "width": 700,
+        "height": 160,
+        "content": "## 📦 F02 — Pedido Lalamove\n**POST** `/webhook/lalamove-pedido`  \nPré-req: F01 executado (quotationId + stopIds no SPA)\n\n**Envia:** spa_id → **Recebe:** orderId gravado → stage IN_PROCESS",
+        "color": 5
+      }
+    },
+    {
+      "id": "wh",
+      "name": "🎯 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        320
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lalamove-pedido",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "gs",
+      "name": "🔗 Get SPA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const spa_id = String($input.first().json.body?.spa_id || $input.first().json.spa_id || '');\nif (!spa_id) throw new Error('spa_id obrigatório');\nconst token = $env.B24_TOKEN;\nreturn [{ json:{\n  spa_id,\n  _url: 'https://promobrindes.bitrix24.com.br/rest/1/'+token+'/crm.item.get?entityTypeId=1690&id='+spa_id\n} }];"
+      }
+    },
+    {
+      "id": "gr",
+      "name": "📋 GET SPA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        320
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json._url }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "bo",
+      "name": "📐 Build Order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const item = $('📋 GET SPA').first().json?.result?.item || {};\nconst d    = $('🔗 Get SPA').first().json;\nconst qid  = item['ufCrm276_1758655595'];\nconst sc   = item['ufCrm276_1758654848'];\nconst se   = item['ufCrm276_1758654830'];\nif (!qid) throw new Error('Execute F01 primeiro — quotationId não encontrado no SPA '+d.spa_id);\nif (!sc || !se) throw new Error('stopIds não encontrados no SPA '+d.spa_id);\nconst nome_dest  = item['ufCrm276_1758913742']  || '';\nconst tel_dest   = item['ufCrm276_1758913684']   || '';\nconst referencia = item['ufCrm276_1758913748'] || '';\nconst payload = {\n  quotationId: qid,\n  stops: [\n    { stopId: sc },\n    { stopId: se,\n       recipient: { name: nome_dest, phone: { displayNumber: tel_dest, countryCode: '+55' } },\n       remarks: referencia }\n  ],\n  isPODEnabled: true,\n  driverNote: referencia || '',\n};\nreturn [{ json:{\n  spa_id: d.spa_id,\n  category_id: item.categoryId || 730,\n  http_method: 'POST', http_path: '/v3/orders',\n  http_body: JSON.stringify(payload)\n} }];"
+      }
+    },
+    {
+      "id": "hm",
+      "name": "🔐 HMAC",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst ts  = Date.now().toString();\nconst method  = $json.http_method || 'POST';\nconst path    = $json.http_path;\nconst bodyStr = $json.http_body || '';\nconst raw = ts + '\\r\\n' + method + '\\r\\n' + path + '\\r\\n\\r\\n' + bodyStr;\nconst sig = crypto.createHmac('sha256', 'sk_prod_v30Ci06vXqPeizCg6e461VZEymmFzMDAXZQwTm3NdYcwyLaS8nxrQEX0JKcp0mAM').update(raw).digest('hex');\nreturn [{ json: { ...$json,\n  _auth: 'hmac pk_prod_d38621223012b9ec71d0634589126e3b:' + ts + ':' + sig,\n  _ts: ts\n}}];"
+      }
+    },
+    {
+      "id": "po",
+      "name": "🚀 POST Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        320
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://rest.lalamove.com/v3/orders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json._auth }}"
+            },
+            {
+              "name": "Market",
+              "value": "BR"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.http_body }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "po2",
+      "name": "📊 Parse Order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const o = $('🚀 POST Order').first().json;\nconst d = $('📐 Build Order').first().json;\nif (!o.orderId) throw new Error('Sem orderId: '+JSON.stringify(o).slice(0,200));\nreturn [{ json:{\n  spa_id:      d.spa_id,\n  category_id: d.category_id,\n  orderId:     o.orderId,\n  shareLink:   o.shareLink || '',\n  status:      o.status || 'MATCHING',\n  b24_fields: {\n    'ufCrm276_1758817942': o.orderId,\n    stageId: 'DT1690_'+d.category_id+':IN_PROCESS',\n  },\n} }];"
+      }
+    },
+    {
+      "id": "bu",
+      "name": "🔗 Build B24",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst token = $env.B24_TOKEN;\nconst url   = 'https://promobrindes.bitrix24.com.br/rest/1/'+token+'/crm.item.update';\nconst body  = {entityTypeId:1690,id:parseInt(d.spa_id),fields:d.b24_fields};\nreturn [{ json:{ _url:url, _body:JSON.stringify(body), orderId:d.orderId } }];"
+      }
+    },
+    {
+      "id": "b4",
+      "name": "💾 Bitrix24 Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2020,
+        320
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json._url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json._body }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ok",
+      "name": "✅ Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2240,
+        320
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"ok\":true,\"orderId\":\"{{ $json.orderId }}\"}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "🎯 Webhook": {
+      "main": [
+        [
+          {
+            "node": "🔗 Get SPA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Get SPA": {
+      "main": [
+        [
+          {
+            "node": "📋 GET SPA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 GET SPA": {
+      "main": [
+        [
+          {
+            "node": "📐 Build Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📐 Build Order": {
+      "main": [
+        [
+          {
+            "node": "🔐 HMAC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔐 HMAC": {
+      "main": [
+        [
+          {
+            "node": "🚀 POST Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 POST Order": {
+      "main": [
+        [
+          {
+            "node": "📊 Parse Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Parse Order": {
+      "main": [
+        [
+          {
+            "node": "🔗 Build B24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Build B24": {
+      "main": [
+        [
+          {
+            "node": "💾 Bitrix24 Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Bitrix24 Update": {
+      "main": [
+        [
+          {
+            "node": "✅ Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "meta": {}
+}
