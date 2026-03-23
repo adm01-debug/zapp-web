@@ -1,4 +1,5 @@
 import { Sparkles, Construction, ArrowLeft, AlertCircle } from 'lucide-react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { ViewHeader } from '@/components/layout/ViewHeader';
