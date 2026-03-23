@@ -2,6 +2,7 @@ import { Sparkles, Construction, ArrowLeft, AlertCircle } from 'lucide-react';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { ViewHeader } from '@/components/layout/ViewHeader';
 import * as Views from './lazyViews';
 
