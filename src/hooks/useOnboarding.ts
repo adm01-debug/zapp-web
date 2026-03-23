@@ -61,7 +61,7 @@ export function useOnboarding() {
 
   const resetOnboarding = () => {
     if (user) {
-      localStorage.removeItem(`${ONBOARDING_KEY}_${user.id}`);
+      try { localStorage.removeItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* ignore */ }
       setHasCompletedOnboarding(false);
     }
   };

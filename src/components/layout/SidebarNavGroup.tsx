@@ -52,9 +52,13 @@ export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, on
 
       {isOpen && (
         <nav className="flex flex-col items-center gap-0.5 mt-0.5 w-full" aria-label={label}>
-          {items.map((item) => (
-            <SidebarNavItem key={item.id} item={item} currentView={currentView} onViewChange={onViewChange} />
-          ))}
+          <ul role="list" className="flex flex-col items-center gap-0.5 w-full list-none p-0 m-0">
+            {items.map((item) => (
+              <li key={item.id}>
+                <SidebarNavItem item={item} currentView={currentView} onViewChange={onViewChange} />
+              </li>
+            ))}
+          </ul>
         </nav>
       )}
     </div>

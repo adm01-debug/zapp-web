@@ -90,22 +90,23 @@ export function useOnboardingChecklist() {
 
   useEffect(() => {
     if (user) {
-      const dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`);
-      setIsDismissed(dismissed === 'true');
+      let dismissed = false;
+      try { dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true'; } catch { /* ignore */ }
+      setIsDismissed(dismissed);
       checkStatus();
     }
   }, [user, checkStatus]);
 
   const dismiss = useCallback(() => {
     if (user) {
-      localStorage.setItem(`checklist_dismissed_${user.id}`, 'true');
+      try { localStorage.setItem(`checklist_dismissed_${user.id}`, 'true'); } catch { /* ignore */ }
       setIsDismissed(true);
     }
   }, [user]);
 
   const reset = useCallback(() => {
     if (user) {
-      localStorage.removeItem(`checklist_dismissed_${user.id}`);
+      try { localStorage.removeItem(`checklist_dismissed_${user.id}`); } catch { /* ignore */ }
       setIsDismissed(false);
     }
   }, [user]);
