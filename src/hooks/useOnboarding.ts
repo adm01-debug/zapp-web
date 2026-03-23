@@ -17,7 +17,8 @@ export function useOnboarding() {
     }
 
     // Check localStorage first for quick response
-    const localCompleted = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`);
+    let localCompleted: string | null = null;
+    try { localCompleted = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* private mode */ }
     if (localCompleted === 'true') {
       setHasCompletedOnboarding(true);
       setLoading(false);
