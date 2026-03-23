@@ -1,5 +1,5 @@
-import { motion, HTMLMotionProps, Variants, AnimatePresence } from 'framer-motion';
-import { forwardRef, ReactNode, useEffect, useState } from 'react';
+import { motion, HTMLMotionProps, Variants, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { forwardRef, ReactNode, useEffect, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 // ============ ANIMATION VARIANTS ============
@@ -117,16 +117,19 @@ interface PageTransitionProps {
 
 export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className }, ref) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const shouldReduce = useReducedMotion();
   
   return (
     <motion.div
       ref={ref}
-      initial={isMobile ? { opacity: 0, x: 24 } : { opacity: 0 }}
+      initial={shouldReduce ? false : (isMobile ? { opacity: 0, x: 24 } : { opacity: 0 })}
       animate={isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
-      exit={isMobile ? { opacity: 0, x: -16 } : { opacity: 0 }}
-      transition={isMobile
-        ? { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
-        : { duration: 0.2, ease: 'easeOut' }
+      exit={shouldReduce ? undefined : (isMobile ? { opacity: 0, x: -16 } : { opacity: 0 })}
+      transition={shouldReduce
+        ? { duration: 0 }
+        : isMobile
+          ? { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
+          : { duration: 0.2, ease: 'easeOut' }
       }
       className={cn('h-full min-h-0 overflow-hidden', className)}
     >
@@ -386,21 +389,27 @@ interface AnimatedCounterProps {
 
 export function AnimatedCounter({ value, duration = 1, className }: AnimatedCounterProps) {
   const [displayValue, setDisplayValue] = useState(0);
+  const prevValueRef = useRef(0);
 
   useEffect(() => {
     let startTime: number;
     let animationFrame: number;
-    const startValue = displayValue;
+    const startValue = prevValueRef.current;
     const diff = value - startValue;
+
+    if (diff === 0) return;
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
       const easeProgress = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(Math.round(startValue + diff * easeProgress));
+      const current = Math.round(startValue + diff * easeProgress);
+      setDisplayValue(current);
 
       if (progress < 1) {
         animationFrame = requestAnimationFrame(animate);
+      } else {
+        prevValueRef.current = value;
       }
     };
 
