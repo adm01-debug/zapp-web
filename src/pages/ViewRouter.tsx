@@ -47,54 +47,69 @@ function WithHeader({ viewId, children, canGoBack, canGoForward, onGoBack, onGoF
   );
 }
 
+// Declarative route map — easier to maintain than switch/case
+const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
+  'inbox': Views.RealtimeInboxView,
+  'dashboard': Views.DashboardView,
+  'agents': Views.AgentsView,
+  'queues': Views.QueuesView,
+  'contacts': Views.ContactsView,
+  'groups': Views.GroupsView,
+  'connections': Views.ConnectionsView,
+  'wallet': Views.ClientWalletView,
+  'catalog': Views.ProductManagement,
+  'transcriptions': Views.TranscriptionsHistoryView,
+  'admin': Views.AdminView,
+  'tags': Views.TagsView,
+  'sentiment': Views.SentimentAlertsDashboard,
+  'reports': Views.AdvancedReportsView,
+  'security': Views.SecurityView,
+  'settings': Views.SettingsView,
+  'docs': Views.SystemFeaturesView,
+  'campaigns': Views.CampaignsView,
+  'chatbot': Views.ChatbotFlowsView,
+  'automations': Views.AutomationsManager,
+  'integrations': Views.IntegrationsHub,
+  'privacy': Views.LGPDComplianceView,
+  'pipeline': Views.SalesPipelineView,
+  'knowledge': Views.KnowledgeBaseView,
+  'payments': Views.PaymentLinksView,
+  'wa-flows': Views.WhatsAppFlowsBuilder,
+  'meta-capi': Views.MetaCAPIView,
+  'diagnostics': Views.DiagnosticsView,
+  'voip': Views.VoIPPanel,
+  'auto-export': Views.AutoExportManager,
+  'google-calendar': Views.GoogleCalendarIntegration,
+  'themes': Views.ThemeCustomizer,
+  'schedule': Views.ScheduleCalendarView,
+  'warroom': Views.WarRoomDashboard,
+  'wa-templates': Views.WhatsAppTemplatesManager,
+  'omnichannel': Views.OmnichannelManager,
+  'churn': Views.ChurnPredictionDashboard,
+  'ticket-classifier': Views.AutoTicketClassifier,
+  'performance': Views.PerformanceMonitor,
+  'omni-inbox': Views.OmnichannelInbox,
+  'audit-logs': Views.AuditLogDashboard,
+  'telemetry': Views.AdminTelemetriaPage,
+};
+
+// Views that need custom props
+const SPECIAL_VIEWS: Record<string, (props: ViewRouterProps) => React.ReactNode> = {
+  'achievements': (props) => <Views.AchievementsSystemLazy userId={props.userId} />,
+};
+
 export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: ViewRouterProps) {
   const content = (() => {
-    switch (currentView) {
-      case 'inbox': return <Views.RealtimeInboxView />;
-      case 'dashboard': return <Views.DashboardView />;
-      case 'agents': return <Views.AgentsView />;
-      case 'queues': return <Views.QueuesView />;
-      case 'contacts': return <Views.ContactsView />;
-      case 'groups': return <Views.GroupsView />;
-      case 'connections': return <Views.ConnectionsView />;
-      case 'wallet': return <Views.ClientWalletView />;
-      case 'catalog': return <Views.ProductManagement />;
-      case 'transcriptions': return <Views.TranscriptionsHistoryView />;
-      case 'admin': return <Views.AdminView />;
-      case 'tags': return <Views.TagsView />;
-      case 'sentiment': return <Views.SentimentAlertsDashboard />;
-      case 'reports': return <Views.AdvancedReportsView />;
-      case 'security': return <Views.SecurityView />;
-      case 'settings': return <Views.SettingsView />;
-      case 'docs': return <Views.SystemFeaturesView />;
-      case 'campaigns': return <Views.CampaignsView />;
-      case 'chatbot': return <Views.ChatbotFlowsView />;
-      case 'automations': return <Views.AutomationsManager />;
-      case 'integrations': return <Views.IntegrationsHub />;
-      case 'privacy': return <Views.LGPDComplianceView />;
-      case 'pipeline': return <Views.SalesPipelineView />;
-      case 'knowledge': return <Views.KnowledgeBaseView />;
-      case 'payments': return <Views.PaymentLinksView />;
-      case 'wa-flows': return <Views.WhatsAppFlowsBuilder />;
-      case 'meta-capi': return <Views.MetaCAPIView />;
-      case 'diagnostics': return <Views.DiagnosticsView />;
-      case 'voip': return <Views.VoIPPanel />;
-      case 'auto-export': return <Views.AutoExportManager />;
-      case 'google-calendar': return <Views.GoogleCalendarIntegration />;
-      case 'themes': return <Views.ThemeCustomizer />;
-      case 'achievements': return <Views.AchievementsSystemLazy userId={userId} />;
-      case 'schedule': return <Views.ScheduleCalendarView />;
-      case 'warroom': return <Views.WarRoomDashboard />;
-      case 'wa-templates': return <Views.WhatsAppTemplatesManager />;
-      case 'omnichannel': return <Views.OmnichannelManager />;
-      case 'churn': return <Views.ChurnPredictionDashboard />;
-      case 'ticket-classifier': return <Views.AutoTicketClassifier />;
-      case 'performance': return <Views.PerformanceMonitor />;
-      case 'omni-inbox': return <Views.OmnichannelInbox />;
-      case 'audit-logs': return <Views.AuditLogDashboard />;
-      case 'telemetry': return <Views.AdminTelemetriaPage />;
-      default: return <FallbackView currentView={currentView} />;
+    // Check special views first (those needing props)
+    if (SPECIAL_VIEWS[currentView]) {
+      return SPECIAL_VIEWS[currentView]({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo });
     }
+    // Standard views from map
+    const ViewComponent = VIEW_MAP[currentView];
+    if (ViewComponent) {
+      return <ViewComponent />;
+    }
+    return <FallbackView currentView={currentView} />;
   })();
 
   return (
