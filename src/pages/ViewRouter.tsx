@@ -101,6 +101,9 @@ const SPECIAL_VIEWS: Record<string, (props: ViewRouterProps) => React.ReactNode>
 };
 
 export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: ViewRouterProps) {
+  const mod = useCurrentModule(currentView);
+  useDocumentTitle(mod.label);
+
   const content = (() => {
     // Check special views first (those needing props)
     if (SPECIAL_VIEWS[currentView]) {
