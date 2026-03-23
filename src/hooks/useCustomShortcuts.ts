@@ -260,7 +260,7 @@ export function useCustomShortcuts() {
         };
       }
     });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customBindings));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(customBindings)); } catch { /* quota exceeded */ }
   }, []);
 
   const updateShortcut = useCallback((id: string, key: string, modifiers: { ctrlKey?: boolean; shiftKey?: boolean; altKey?: boolean }) => {
