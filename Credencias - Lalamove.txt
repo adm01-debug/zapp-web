@@ -1,0 +1,10 @@
+Cliente_id 55c6c42ddf3526b5be765263f5f558688a22f1ee
+Cliente secret 253b997e49bad82fbfadaee5ae441cef00b15809036936955bbffeb54c2e
+ 
+Ambiente de Testes (Sandbox): https://rest.sandbox.lalamove.com/v3
+
+Ambiente de Produção (Production): https://rest.lalamove.com/v3
+
+pk_prod_d38621223012b9ec71d0634589126e3b
+
+sk_prod_v30Ci06vXqPeizCg6e461VZEymmFzMDAXZQwTm3NdYcwyLaS8nxrQEX0JKcp0mAM

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lalamove API v3 — Documentação Técnica (Brasil)</title>
+<style>
+  :root {
+    --orange: #C55A11;
+    --orange-light: #FFF5EF;
+    --orange-mid: #F4A460;
+    --dark: #1F2937;
+    --gray: #6B7280;
+    --gray-light: #F3F4F6;
+    --border: #E5E7EB;
+    --code-bg: #1A202C;
+    --code-header: #2D3748;
+    --code-text: #E2E8F0;
+    --warn-bg: #FFF3CD; --warn-border: #FBBF24; --warn-text: #856404;
+    --ok-bg: #D4EDDA;   --ok-border: #34D399;   --ok-text: #155724;
+    --err-bg: #F8D7DA;  --err-border: #F87171;  --err-text: #721C24;
+    --info-bg: #D1ECF1; --info-border: #38BDF8;  --info-text: #0C5460;
+    --errata-bg: #FFF0E6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; color: var(--dark); background: #FAFAFA; line-height: 1.7; }
+
+  /* LAYOUT */
+  .wrapper { display: flex; min-height: 100vh; }
+  nav { width: 270px; min-width: 270px; background: #111827; color: #D1D5DB; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 0 0 40px 0; }
+  nav .nav-logo { padding: 24px 20px 16px; border-bottom: 1px solid #374151; }
+  nav .nav-logo span { color: var(--orange); font-weight: 700; font-size: 18px; }
+  nav .nav-logo small { display: block; color: #6B7280; font-size: 11px; margin-top: 2px; }
+  nav ul { list-style: none; padding: 12px 0; }
+  nav ul li a { display: block; padding: 7px 20px; color: #9CA3AF; text-decoration: none; font-size: 13px; transition: all .15s; border-left: 3px solid transparent; }
+  nav ul li a:hover { color: #fff; border-left-color: var(--orange); background: #1F2937; }
+  nav ul li.errata a { color: #FBBF24; }
+  nav ul li.section > a { color: #E5E7EB; font-weight: 600; font-size: 13px; margin-top: 8px; }
+  nav ul li.sub > a { padding-left: 34px; font-size: 12px; }
+  main { flex: 1; max-width: 960px; padding: 40px 48px; }
+
+  /* HEADERS */
+  h1 { font-size: 26px; color: var(--orange); font-weight: 700; margin: 48px 0 12px; padding-bottom: 10px; border-bottom: 3px solid var(--orange); }
+  h1:first-child { margin-top: 0; }
+  h2 { font-size: 18px; color: var(--dark); font-weight: 700; margin: 32px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; color: var(--orange); font-weight: 600; margin: 20px 0 8px; }
+  p  { margin: 8px 0 14px; color: var(--dark); }
+
+  /* COVER */
+  .cover { text-align: center; padding: 40px 0 48px; border-bottom: 3px solid var(--orange); margin-bottom: 48px; }
+  .cover h1 { font-size: 40px; border: none; margin: 0 0 8px; }
+  .cover .subtitle { font-size: 18px; color: var(--gray); margin-bottom: 20px; }
+  .cover .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .badge.green  { background: var(--ok-bg);   color: var(--ok-text);   border: 1px solid var(--ok-border); }
+  .badge.blue   { background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); }
+  .badge.orange { background: var(--orange-light); color: var(--orange); border: 1px solid var(--orange-mid); }
+
+  /* ERRATA BOX */
+  .errata-section { background: var(--errata-bg); border: 2px solid var(--orange); border-radius: 10px; padding: 28px 32px; margin: 0 0 48px; }
+  .errata-section h1 { color: var(--orange); border-color: var(--orange); margin-top: 0; font-size: 22px; }
+  .errata-section h2 { font-size: 16px; color: var(--dark); margin-top: 28px; }
+  .errata-proof { background: var(--code-bg); color: var(--code-text); font-family: 'Courier New', monospace; font-size: 13px; padding: 14px 18px; border-radius: 6px; margin: 10px 0; overflow-x: auto; }
+  .errata-tag { display: inline-block; background: var(--orange); color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+
+  /* CALLOUTS */
+  .callout { padding: 10px 16px; border-radius: 6px; margin: 10px 0; font-size: 14px; border-left: 4px solid; }
+  .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+  .callout.ok   { background: var(--ok-bg);   border-color: var(--ok-border);   color: var(--ok-text); }
+  .callout.err  { background: var(--err-bg);  border-color: var(--err-border);  color: var(--err-text); }
+  .callout.info { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
+
+  /* CODE */
+  .code-block { margin: 12px 0 20px; border-radius: 8px; overflow: hidden; }
+  .code-label { background: var(--code-header); color: #A0AEC0; font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700; padding: 7px 16px; border-bottom: 1px solid #374151; }
+  pre { background: var(--code-bg); color: var(--code-text); font-family: 'Courier New', monospace; font-size: 13px; padding: 18px; overflow-x: auto; line-height: 1.6; margin: 0; }
+  code { background: #F3F4F6; color: #C55A11; font-family: 'Courier New', monospace; font-size: 13px; padding: 1px 5px; border-radius: 3px; }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; margin: 14px 0 22px; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { background: var(--orange); color: white; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 13px; }
+  tbody tr:nth-child(even) { background: var(--gray-light); }
+  tbody tr:hover { background: #FFF0E6; }
+  tbody td { padding: 9px 14px; border-top: 1px solid var(--border); vertical-align: top; font-size: 13px; }
+  tbody td code { font-size: 12px; }
+
+  /* STATUS FLOW */
+  .flow { font-family: 'Courier New', monospace; font-size: 13px; background: var(--code-bg); color: #A3E635; padding: 18px; border-radius: 8px; overflow-x: auto; line-height: 1.8; }
+
+  /* SCROLLBAR */
+  nav::-webkit-scrollbar { width: 5px; }
+  nav::-webkit-scrollbar-track { background: #111827; }
+  nav::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { display: none; }
+    main { padding: 24px 20px; }
+  }
+
+  /* ANCHOR OFFSET */
+  [id] { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span>Lalamove API v3</span>
+    <small>Brasil · Auditado 03/03/2026 · v3.0</small>
+  </div>
+  <ul>
+    <li class="errata"><a href="#errata">⚠️ ERRATA — 3 Correções</a></li>
+    <li class="section"><a href="#s1">1. Autenticação</a></li>
+    <li class="sub"><a href="#s1-1">Cabeçalhos</a></li>
+    <li class="sub"><a href="#s1-2">Algoritmo HMAC</a></li>
+    <li class="sub"><a href="#s1-3">Node.js / Python</a></li>
+    <li class="section"><a href="#s2">2. Cidades e Serviços</a></li>
+    <li class="sub"><a href="#s2-1">16 Cidades</a></li>
+    <li class="sub"><a href="#s2-2">14 serviceTypes</a></li>
+    <li class="sub"><a href="#s2-3">28 specialRequests</a></li>
+    <li class="sub"><a href="#s2-4">Campo item</a></li>
+    <li class="section"><a href="#s3">3. Cotações</a></li>
+    <li class="sub"><a href="#s3-1">POST /v3/quotations</a></li>
+    <li class="sub"><a href="#s3-2">GET /v3/quotations/{id}</a></li>
+    <li class="section"><a href="#s4">4. Pedidos (Orders)</a></li>
+    <li class="sub"><a href="#s4-1">POST /v3/orders</a></li>
+    <li class="sub"><a href="#s4-2">Campos críticos</a></li>
+    <li class="sub"><a href="#s4-3">Fluxo de status</a></li>
+    <li class="sub"><a href="#s4-4">PATCH / DELETE</a></li>
+    <li class="section"><a href="#s5">5. Priority Fee</a></li>
+    <li class="section"><a href="#s6">6. Motorista</a></li>
+    <li class="section"><a href="#s7">7. Webhook</a></li>
+    <li class="section"><a href="#s8">8. Erros</a></li>
+    <li class="section"><a href="#s9">9. Rate Limits</a></li>
+    <li class="section"><a href="#s10">10. Preços Reais</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- CAPA -->
+  <div class="cover">
+    <h1>Lalamove API v3</h1>
+    <div class="subtitle">Documentação Técnica Completa — Brasil</div>
+    <div class="badges">
+      <span class="badge green">✅ Auditada em produção</span>
+      <span class="badge blue">🔬 03/03/2026</span>
+      <span class="badge orange">v3.0 — errata aplicada</span>
+    </div>
+  </div>
+
+  <!-- ERRATA -->
+  <div class="errata-section" id="errata">
+    <h1>⚠️ ERRATA — Correções vs Documentação Oficial</h1>
+    <p>Os 3 itens abaixo foram <strong>testados diretamente na API de produção</strong> e divergem da documentação oficial Lalamove.</p>
+
+    <h2><span class="errata-tag">CORREÇÃO 1</span> Campo de serviços: <code>services</code>, não <code>serviceTypes</code></h2>
+    <div class="callout info">🔬 Testado: <code>GET /v3/cities</code> → impressão explícita de todas as keys do objeto cidade</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Documentação oficial diz</th><th>Realidade em produção</th></tr></thead>
+        <tbody>
+          <tr><td>Nome do campo</td><td><code>serviceTypes</code></td><td><strong><code>services</code></strong></td></tr>
+          <tr><td>Keys do objeto cidade</td><td>locode, name, serviceTypes, ...</td><td><strong>Apenas: locode, name, services</strong></td></tr>
+          <tr><td><code>serviceTypes</code> presente?</td><td>Sim</td><td><strong>False — campo não existe</strong></td></tr>
+          <tr><td><code>services</code> presente?</td><td>Não mencionado</td><td><strong>True — este é o campo correto</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="errata-proof">TODAS AS KEYS DO OBJETO CIDADE:
+  ['locode', 'name', 'services']
+
+  "serviceTypes" presente? False
+  "services"     presente? True</div>
+    <div class="code-block"><div class="code-label">Código correto</div><pre><code><span style="color:#68D391"># ✅ Correto:</span>
+for city in response['data']:
+    services = city['services']
+
+<span style="color:#FC8181"># ❌ Errado — lança KeyError:</span>
+services = city['serviceTypes']</code></pre></div>
+
+    <h2><span class="errata-tag">CORREÇÃO 2</span> <code>driverId</code>: sempre string <code>""</code>, nunca <code>null</code></h2>
+    <div class="callout info">🔬 Testado: POST order + polling GET + GET após status <code>ON_GOING</code> com motorista real</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Cenário</th><th>Doc oficial sugere</th><th>Realidade em produção</th></tr></thead>
+        <tbody>
+          <tr><td>Sem motorista (<code>ASSIGNING_DRIVER</code>)</td><td><code>null</code> ou ausente</td><td><strong><code>""</code> (string vazia)</strong></td></tr>
+          <tr><td>Com motorista (<code>ON_GOING</code>)</td><td><code>"123456"</code></td><td><strong><code>"967219"</code> (string com ID)</strong></td></tr>
+          <tr><td>Após cancelamento</td><td><code>null</code></td><td><strong><code>""</code> (volta para string vazia)</strong></td></tr>
+          <tr><td><code>typeof driverId</code></td><td>—</td><td><strong>Sempre <code>string</code> — nunca <code>null</code></strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="errata-proof">driverId raw: "" | type: str</div>
+    <div class="code-block"><div class="code-label">Verificação correta</div><pre><code><span style="color:#68D391">// ✅ Correto:</span>
+if (order.driverId !== "") {
+  const driver = await getDriver(orderId, order.driverId);
+}
+
+<span style="color:#FC8181">// ❌ Falha — driverId nunca é null:</span>
+if (order.driverId === null) { ... }
+if (order.driverId == null)  { ... }</code></pre></div>
+
+    <h2><span class="errata-tag">CORREÇÃO 3</span> <code>cancelParty</code> e <code>cancelledReason</code>: não existem na API BR</h2>
+    <div class="callout info">🔬 Testado em 2 cenários: cancelamento sem motorista (<code>ASSIGNING_DRIVER</code>) <strong>e</strong> com motorista (<code>ON_GOING</code>, driverId: "967219")</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Cenário</th><th>Doc oficial diz</th><th>Realidade em produção</th></tr></thead>
+        <tbody>
+          <tr><td>Sem motorista (<code>ASSIGNING_DRIVER</code>)</td><td>campos presentes</td><td><strong>AUSENTES</strong></td></tr>
+          <tr><td>Com motorista (<code>ON_GOING</code>)</td><td>campos presentes</td><td><strong>AUSENTES</strong></td></tr>
+          <tr><td><code>cancelReason</code> (variação)</td><td>mencionado</td><td><strong>AUSENTE</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="errata-proof">DELETE /v3/orders/3443169998154191792  →  204 No Content
+
+GET /v3/orders/3443169998154191792:
+  status: CANCELED
+  ALL KEYS: ['orderId', 'quotationId', 'priceBreakdown', 'driverId',
+             'shareLink', 'status', 'distance', 'stops', 'remarks']
+
+  cancelParty:     "&lt;&lt;AUSENTE&gt;&gt;"
+  cancelledReason: "&lt;&lt;AUSENTE&gt;&gt;"
+  cancelReason:    "&lt;&lt;AUSENTE&gt;&gt;"</div>
+    <div class="callout warn">⚠️ Esses campos podem existir em outros mercados (HK, SG, MX), mas <strong>não existem na API Brasil em produção</strong>.</div>
+  </div>
+
+  <!-- S1 -->
+  <h1 id="s1">1. Autenticação HMAC SHA256</h1>
+  <p>Toda requisição exige autenticação via HMAC SHA256. <strong>Nenhum endpoint é público.</strong></p>
+
+  <h2 id="s1-1">1.1 Cabeçalhos obrigatórios</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Header</th><th>Valor</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>Authorization</code></td><td><code>hmac {API_KEY}:{TIMESTAMP}:{SIGNATURE}</code></td><td>Token de autenticação</td></tr>
+      <tr><td><code>Market</code></td><td><code>BR</code></td><td>Mercado Brasil — obrigatório</td></tr>
+      <tr><td><code>Request-ID</code></td><td>UUID v4 único por requisição</td><td>Idempotência e rastreabilidade</td></tr>
+      <tr><td><code>Content-Type</code></td><td><code>application/json</code></td><td>Obrigatório em POST e PATCH</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="s1-2">1.2 Algoritmo de assinatura</h2>
+  <div class="code-block"><div class="code-label">Algoritmo</div><pre><code>TIMESTAMP  = milissegundos Unix  (ex: "1772553742000")
+
+RAW_STRING = TIMESTAMP
+           + "\r\n" + METHOD       (GET | POST | PATCH | DELETE)
+           + "\r\n" + PATH         (/v3/quotations, etc.)
+           + "\r\n\r\n"
+           + BODY_JSON            (string vazia "" se sem body)
+
+SIGNATURE  = HMAC-SHA256(SECRET_KEY, RAW_STRING)
+Authorization: hmac {API_KEY}:{TIMESTAMP}:{SIGNATURE}</code></pre></div>
+  <div class="callout warn">⚠️ Para GET e DELETE sem body: <code>BODY_JSON = ""</code>, mas os <code>\r\n\r\n</code> finais <strong>devem</strong> estar presentes.</div>
+
+  <h2 id="s1-3">1.3 Implementações</h2>
+  <div class="code-block"><div class="code-label">Node.js</div><pre><code>const crypto = require('crypto');
+
+function buildHeaders(method, path, body = null) {
+  const ts  = Date.now().toString();
+  const raw = `${ts}\r\n${method}\r\n${path}\r\n\r\n${body ? JSON.stringify(body) : ''}`;
+  const sig = crypto.createHmac('sha256', SECRET_KEY).update(raw).digest('hex');
+  return {
+    'Authorization': `hmac ${API_KEY}:${ts}:${sig}`,
+    'Market': 'BR',
+    'Request-ID': crypto.randomUUID(),
+    'Content-Type': 'application/json',
+  };
+}</code></pre></div>
+  <div class="code-block"><div class="code-label">Python</div><pre><code>import hmac, hashlib, time, uuid, json
+
+def build_headers(method, path, body=None):
+    ts  = str(int(time.time() * 1000))
+    raw = f'{ts}\r\n{method}\r\n{path}\r\n\r\n{json.dumps(body) if body else ""}'
+    sig = hmac.new(SECRET_KEY.encode(), raw.encode(), hashlib.sha256).hexdigest()
+    return {
+        'Authorization': f'hmac {API_KEY}:{ts}:{sig}',
+        'Market': 'BR',
+        'Request-ID': str(uuid.uuid4()),
+        'Content-Type': 'application/json',
+    }</code></pre></div>
+
+  <!-- S2 -->
+  <h1 id="s2">2. Cidades e Serviços Disponíveis no Brasil</h1>
+  <p><strong>Endpoint:</strong> <code>GET /v3/cities</code> &nbsp;·&nbsp; <strong>Rate limit:</strong> 300 req/janela</p>
+  <div class="callout err">❌ <strong>CORREÇÃO:</strong> O campo se chama <code>"services"</code> — <strong>não</strong> <code>"serviceTypes"</code>. <code>city['serviceTypes']</code> lança <code>KeyError</code>. Keys reais do objeto cidade: <code>['locode', 'name', 'services']</code></div>
+
+  <h2 id="s2-1">2.1 16 cidades cobertas</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Locode</th><th>Cidade</th></tr></thead>
+    <tbody>
+      <tr><td><code>BR AJU</code></td><td>Aracaju</td></tr>
+      <tr><td><code>BR BEL</code></td><td>Belém</td></tr>
+      <tr><td><code>BR BHZ</code></td><td>Belo Horizonte</td></tr>
+      <tr><td><code>BR BSB</code></td><td>Brasília</td></tr>
+      <tr><td><code>BR CWB</code></td><td>Curitiba</td></tr>
+      <tr><td><code>BR FLN</code></td><td>Florianópolis</td></tr>
+      <tr><td><code>BR FOR</code></td><td>Fortaleza</td></tr>
+      <tr><td><code>BR GYN</code></td><td>Goiânia</td></tr>
+      <tr><td><code>BR MAO</code></td><td>Manaus</td></tr>
+      <tr><td><code>BR POA</code></td><td>Porto Alegre</td></tr>
+      <tr><td><code>BR RAO</code></td><td>Ribeirão Preto</td></tr>
+      <tr><td><code>BR REC</code></td><td>Recife</td></tr>
+      <tr><td><code>BR RIO</code></td><td>Rio de Janeiro</td></tr>
+      <tr><td><code>BR SAO</code></td><td>Sao Paulo &amp; Campinas</td></tr>
+      <tr><td><code>BR SLZ</code></td><td>São Luís</td></tr>
+      <tr><td><code>BR SSA</code></td><td>Salvador</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="s2-2">2.2 Todos os 14 serviceTypes disponíveis no Brasil</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>serviceType</th><th>Carga máx.</th><th>Dimensões (L×W×H)</th><th>item?</th><th>Disponibilidade</th></tr></thead>
+    <tbody>
+      <tr><td><code>LALAGO</code></td><td>20 kg</td><td>0.3×0.4×0.3 m</td><td>—</td><td>Todas as cidades</td></tr>
+      <tr><td><code>LALAPRO</code></td><td>20 kg</td><td>0.4×0.4×0.3 m</td><td>—</td><td><strong>Apenas SP e RIO</strong></td></tr>
+      <tr><td><code>LALAGOFOUR</code></td><td>20 kg</td><td>0.3×0.4×0.3 m</td><td>—</td><td>BHZ, CWB, RIO, SP</td></tr>
+      <tr><td><code>CAR</code></td><td>300 kg</td><td>1.2×0.8×0.6 m</td><td>—</td><td>Todas as cidades</td></tr>
+      <tr><td><code>CARFOURH</code></td><td>300 kg</td><td>1.2×0.8×0.6 m</td><td>—</td><td><strong>Apenas SP</strong></td></tr>
+      <tr><td><code>HATCHBACK</code></td><td>200 kg</td><td>1×0.7×0.6 m</td><td>—</td><td>Todas as cidades</td></tr>
+      <tr><td><code>HATCHFOURH</code></td><td>200 kg</td><td>1×0.7×0.6 m</td><td>—</td><td><strong>Apenas SP</strong></td></tr>
+      <tr><td><code>UV_FIORINO</code></td><td>500 kg</td><td>1.8×1.3×1.1 m</td><td>✅</td><td>BHZ/CWB/FOR/POA/RIO/SP/GYN/FLN/RAO/SSA</td></tr>
+      <tr><td><code>UV_4H</code></td><td>500 kg</td><td>1.8×1.3×1.1 m</td><td>—</td><td>BHZ/CWB/FOR/POA/RIO/SP/GYN/FLN/RAO/SSA</td></tr>
+      <tr><td><code>VAN</code></td><td>1000 kg</td><td>2.7×1.8×1.6 m</td><td>✅</td><td>BHZ, BSB, CWB, POA, RIO, SP</td></tr>
+      <tr><td><code>VANFOURH</code></td><td>1000 kg</td><td>2.7×1.8×1.6 m</td><td>—</td><td>BHZ, RIO, SP</td></tr>
+      <tr><td><code>TRUCK330</code></td><td>1500 kg</td><td>3×1.8×2 m (SP) / 2×2×2.5 m (RIO)</td><td>✅</td><td>BHZ/BSB/CWB/FOR/POA/RIO/SP</td></tr>
+      <tr><td><code>TRUCK3_5T</code></td><td>2500 kg</td><td>4×2.2×2.2 m</td><td>—</td><td>⚠️ <strong>Apenas SP</strong></td></tr>
+      <tr><td><code>TRUCK_6H</code></td><td>1500 kg</td><td>3×1.8×2 m (SP) / 2×2×2.5 m (RIO)</td><td>—</td><td>BHZ, RIO, SP</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn">⚠️ <code>TRUCK330</code> e <code>TRUCK_6H</code> têm dimensões <strong>diferentes por cidade</strong>: 3×1.8×2 m em SP, 2×2×2.5 m no RIO.</div>
+
+  <h2 id="s2-3">2.3 Todos os 28 specialRequests disponíveis</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>specialRequest</th><th>Descrição</th><th>Veículos que aceitam</th></tr></thead>
+    <tbody>
+      <tr><td><code>THERMAL_BAG_1</code></td><td>Bolsa térmica</td><td>LALAGO, LALAPRO</td></tr>
+      <tr><td><code>RETURN</code></td><td>Viagem de retorno</td><td>CAR, HATCHBACK, LALAGO, LALAPRO</td></tr>
+      <tr><td><code>WAITING_TIME_030MIN</code></td><td>Espera até 30 min</td><td>CAR, HATCHBACK, LALAGO, LALAPRO, TRUCK330, UV_FIORINO, VAN</td></tr>
+      <tr><td><code>WAITING_TIME_060MIN</code></td><td>Espera até 1h</td><td>CAR, HATCHBACK, LALAGO, LALAPRO, TRUCK330, UV_FIORINO, VAN</td></tr>
+      <tr><td><code>WAITING_TIME_1</code></td><td>Espera até 1,5h</td><td>CAR, HATCHBACK, LALAGO, LALAPRO, TRUCK330, UV_FIORINO, VAN</td></tr>
+      <tr><td><code>LOADING_1DRIVER_MAX030MIN</code></td><td>Ajuda motorista: 30 min</td><td>CAR, HATCHBACK, UV_FIORINO, VAN</td></tr>
+      <tr><td><code>LOADING_1DRIVER_MAX060MIN</code></td><td>Ajuda motorista: 1h</td><td>CAR, HATCHBACK, TRUCK330, TRUCK3_5T, UV_FIORINO, VAN</td></tr>
+      <tr><td><code>LOADING_1DRIVER_MAX090MIN</code></td><td>Ajuda motorista: 1,5h</td><td>CAR, HATCHBACK, UV_FIORINO, VAN</td></tr>
+      <tr><td><code>LOADING_1DRIVER_MAX120MIN</code></td><td>Ajuda motorista: 2h</td><td>TRUCK330, TRUCK3_5T, VAN</td></tr>
+      <tr><td><code>LOADING_1DRIVER_MAX180MIN</code></td><td>Ajuda motorista: 3h</td><td>TRUCK330, TRUCK3_5T, VAN</td></tr>
+      <tr><td><code>LOADING_1DRIVER1HELPER_MAX060MIN</code></td><td>Motorista + ajudante: 1h</td><td>TRUCK330, TRUCK3_5T, VAN</td></tr>
+      <tr><td><code>LOADING_1DRIVER1HELPER_MAX120MIN</code></td><td>Motorista + ajudante: 2h</td><td>TRUCK330, TRUCK3_5T</td></tr>
+      <tr><td><code>LOADING_1DRIVER1HELPER_MAX180MIN</code></td><td>Motorista + ajudante: 3h</td><td>TRUCK330, TRUCK3_5T</td></tr>
+      <tr><td><code>LOADING_1DRIVER1HELPER</code></td><td>Motorista + ajudante porta-a-porta</td><td>TRUCK_6H</td></tr>
+      <tr><td><code>HOUSE_MOVING_MAX120MIN</code></td><td>Mudança residencial: 2h</td><td>TRUCK330</td></tr>
+      <tr><td><code>HOUSE_MOVING_MAX180MIN</code></td><td>Mudança residencial: 3h</td><td>TRUCK330</td></tr>
+      <tr><td><code>HOUSE_MOVING_MAX240MIN</code></td><td>Mudança residencial: 4h</td><td>TRUCK330</td></tr>
+      <tr><td><code>REFRIGERATED_VEHICLE</code></td><td>Refrigerado (-1°C a -15°C)</td><td>UV_FIORINO — ⚠️ Apenas SP</td></tr>
+      <tr><td><code>INSULATED_VEHICLE</code></td><td>Isotérmico</td><td>UV_FIORINO — ⚠️ Apenas SP</td></tr>
+      <tr><td><code>FROZEN_VEHICLE</code></td><td>Congelado (abaixo -15°C)</td><td>UV_FIORINO — ⚠️ Apenas SP</td></tr>
+      <tr><td><code>HOURLY_RENTAL_1</code></td><td>Hora extra +1h</td><td>CARFOURH, HATCHFOURH, VANFOURH</td></tr>
+      <tr><td><code>HOURLY_RENTAL_2</code></td><td>Hora extra +2h</td><td>CARFOURH, HATCHFOURH, VANFOURH</td></tr>
+      <tr><td><code>HOURLY_RENTAL_3</code></td><td>Hora extra +3h</td><td>CARFOURH, HATCHFOURH, VANFOURH</td></tr>
+      <tr><td><code>HOURLY_RENTAL_4</code></td><td>Hora extra +4h</td><td>VANFOURH</td></tr>
+      <tr><td><code>RENTAL_TIME_1HR</code></td><td>Tempo extra +1h (locação)</td><td>LALAGOFOUR, TRUCK_6H, UV_4H, VANFOURH</td></tr>
+      <tr><td><code>RENTAL_TIME_2HR</code></td><td>Tempo extra +2h (locação)</td><td>LALAGOFOUR, TRUCK_6H, UV_4H, VANFOURH</td></tr>
+      <tr><td><code>RENTAL_TIME_3HR</code></td><td>Tempo extra +3h (locação)</td><td>LALAGOFOUR, VANFOURH</td></tr>
+      <tr><td><code>RENTAL_TIME_4HR</code></td><td>Tempo extra +4h (locação)</td><td>CARFOURH, HATCHFOURH, TRUCK_6H, UV_4H, VANFOURH</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="s2-4">2.4 Campo <code>item</code> (deliveryItemSpecification)</h2>
+  <p>Apenas <code>TRUCK330</code>, <code>UV_FIORINO</code> e <code>VAN</code> processam o campo <code>item</code>. Os demais aceitam sem erro mas <strong>ignoram silenciosamente</strong>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>serviceType</th><th>weight (valores aceitos)</th></tr></thead>
+    <tbody>
+      <tr><td><code>TRUCK330</code></td><td><code>LESS_THAN_300_KG</code> | <code>300_KG_TO_750_KG</code> | <code>750_KG_TO_1500_KG</code></td></tr>
+      <tr><td><code>UV_FIORINO</code></td><td><code>LESS_THAN_100_KG</code> | <code>100_KG_TO_250_KG</code> | <code>250_KG_TO_500_KG</code></td></tr>
+      <tr><td><code>VAN</code></td><td><code>LESS_THAN_200_KG</code> | <code>200_KG_TO_500_KG</code> | <code>500_KG_TO_1000_KG</code></td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>categories:</strong> <code>FOOD_PRODUCTS_OR_GROCERY</code>, <code>CONSTRUCTION_MATERIALS_OR_PARTS</code>, <code>RETAIL_AND_WHOLESALE_</code>, <code>FURNITURE_OR_HOME_APPLIANCES</code>, <code>FRAGILE_ITEMS</code></p>
+  <p><strong>handlingInstructions:</strong> <code>FRAGILE_OR_HANDLE_WITH_CARE</code>, <code>DO_NOT_STACK</code>, <code>KEEP_UPRIGHT</code>, <code>KEEP_DRY</code>, <code>NO_BENDING</code></p>
+
+  <!-- S3 -->
+  <h1 id="s3">3. Cotações (Quotations)</h1>
+  <h2 id="s3-1">3.1 POST /v3/quotations</h2>
+  <div class="code-block"><div class="code-label">Request</div><pre><code>{
+  "data": {
+    "serviceType": "LALAPRO",
+    "language": "pt_BR",
+    "scheduleAt": "2026-03-04T10:00:00.000Z",
+    "isRouteOptimized": false,
+    "specialRequests": ["WAITING_TIME_030MIN"],
+    "stops": [
+      { "coordinates": { "lat": "-23.5589", "lng": "-46.6345" },
+        "address": "R. Clímaco Barbosa, 665 - Cambuci, SP" },
+      { "coordinates": { "lat": "-23.5401", "lng": "-46.6066" },
+        "address": "Av. Renata, 249 - Belenzinho, SP" }
+    ],
+    "item": {
+      "quantity": "5",
+      "weight": "LESS_THAN_300_KG",
+      "categories": ["FURNITURE_OR_HOME_APPLIANCES"],
+      "handlingInstructions": ["FRAGILE_OR_HANDLE_WITH_CARE"]
+    }
+  }
+}</code></pre></div>
+  <div class="code-block"><div class="code-label">Response 201 Created</div><pre><code>{
+  "data": {
+    "quotationId": "3443167815824261304",
+    "scheduleAt":  "2026-03-03T16:01:03.00Z",
+    "expiresAt":   "2026-03-03T16:06:04.00Z",
+    "serviceType": "LALAPRO",
+    "language":    "PT_BR",
+    "isRouteOptimized": false,
+    "stops": [
+      { "stopId": "3443167815824261305",
+        "coordinates": { "lat": "-23.5589000", "lng": "-46.6345000" },
+        "address": "R. Clímaco Barbosa, 665 - Cambuci, SP" }
+    ],
+    "priceBreakdown": {
+      "base":                    "22.32",
+      "specialRequests":         "90.00",
+      "multiStopSurcharge":      "3.00",
+      "totalBeforeOptimization": "52.93",
+      "totalExcludePriorityFee": "28.02",
+      "total":                   "28.02",
+      "currency":                "BRL"
+    },
+    "distance": { "value": "4580", "unit": "m" }
+  }
+}</code></pre></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Campo</th><th>Detalhe confirmado em produção</th></tr></thead>
+    <tbody>
+      <tr><td><code>quotationId</code> / <code>stopId</code></td><td>Sempre strings de <strong>19 dígitos</strong></td></tr>
+      <tr><td><code>language</code> retornado</td><td>Sempre em maiúsculas: <code>PT_BR</code></td></tr>
+      <tr><td><code>scheduleAt</code> retornado</td><td>Formato <code>.00Z</code> (2 decimais, não 3)</td></tr>
+      <tr><td><code>expiresAt</code></td><td>Cotação expira em <strong>~5 minutos</strong></td></tr>
+      <tr><td><code>specialRequests</code> no breakdown</td><td>Presente <strong>somente</strong> se houver SRs</td></tr>
+      <tr><td><code>multiStopSurcharge</code></td><td>Presente <strong>somente</strong> com 3+ paradas</td></tr>
+      <tr><td>Limite de paradas</td><td><strong>Sem limite documentado</strong> — 17 paradas testadas → 201 ✅</td></tr>
+      <tr><td><code>item</code> em veículo sem spec</td><td>Aceito e <strong>ignorado silenciosamente</strong> (201)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="s3-2">3.2 GET /v3/quotations/{quotationId}</h2>
+  <p>Retorna estrutura idêntica ao POST 201. Útil para verificar validade antes de criar o pedido.</p>
+
+  <!-- S4 -->
+  <h1 id="s4">4. Pedidos (Orders)</h1>
+  <h2 id="s4-1">4.1 POST /v3/orders</h2>
+  <div class="code-block"><div class="code-label">Request</div><pre><code>{
+  "data": {
+    "quotationId": "3443167915355095673",
+    "isPODEnabled": true,
+    "sender":     { "stopId": "...", "name": "Remetente", "phone": "+5511955550001" },
+    "recipients": [{ "stopId": "...", "name": "Destinatário", "phone": "+5511944440002",
+                     "remarks": "Instrução linha 1\r\nLinha 2" }],
+    "metadata":   { "pedido_interno": "12345", "sistema": "bitrix24" }
+  }
+}</code></pre></div>
+  <div class="code-block"><div class="code-label">Response 201 Created</div><pre><code>{
+  "data": {
+    "orderId":    "3443160224863834408",
+    "quotationId":"3443167915355095673",
+    "priceBreakdown": {
+      "base": "22.32", "totalExcludePriorityFee": "22.32",
+      "total": "22.32", "currency": "BRL"
+    },
+    "driverId":  "",          <span style="color:#68D391">// SEMPRE string — NUNCA null</span>
+    "shareLink": "https://share.lalamove.com/?BR1002...",
+    "status":    "ASSIGNING_DRIVER",
+    "distance":  { "value": "4574", "unit": "m" },
+    "stops": [
+      { "coordinates": {...}, "name": "Remetente", "phone": "11955550001",
+        "delivery_code": { "value": "", "status": "Not Applicable" } },
+      { "coordinates": {...}, "name": "Destinatário", "phone": "11944440002",
+        "POD": { "status": "PENDING" },
+        "delivery_code": { "value": "", "status": "Not Applicable" } }
+    ],
+    "metadata": { "pedido_interno": "12345" },
+    "remarks":  ["Instrução linha 1", "Linha 2"]   <span style="color:#68D391">// array — split por \r\n</span>
+  }
+}</code></pre></div>
+
+  <h2 id="s4-2">4.2 Campos críticos confirmados em produção</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Campo</th><th>Comportamento real confirmado</th></tr></thead>
+    <tbody>
+      <tr><td><code>driverId</code></td><td><strong>Sempre string.</strong> <code>""</code> sem motorista, <code>"967219"</code> com motorista. <strong>Nunca <code>null</code>.</strong> Checar: <code>driverId !== ""</code></td></tr>
+      <tr><td><code>isPODEnabled</code></td><td><strong>Não retornado</strong> no response. Confirmar via <code>stops[n].POD.status === "PENDING"</code></td></tr>
+      <tr><td><code>remarks</code></td><td>Retornado como <strong>array</strong> de strings. O <code>\r\n</code> do input vira separador</td></tr>
+      <tr><td><code>phone</code></td><td>Retornado <strong>sem <code>+55</code></strong>. Ex: <code>"+5511955550001"</code> → <code>"11955550001"</code></td></tr>
+      <tr><td><code>stops[n].stopId</code></td><td><strong>Ausente</strong> no response do order — presente apenas na cotação</td></tr>
+      <tr><td><code>cancelParty</code></td><td><strong>Não existe</strong> na API BR — ausente mesmo após cancelamento com motorista <code>ON_GOING</code></td></tr>
+      <tr><td><code>cancelledReason</code></td><td><strong>Não existe</strong> na API BR — testado nos dois cenários</td></tr>
+      <tr><td><code>delivery_code</code></td><td>Campo não documentado em todos os stops: <code>{"value":"","status":"Not Applicable"}</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="s4-3">4.3 Fluxo de status</h2>
+  <div class="flow">ASSIGNING_DRIVER  →  ON_GOING  →  PICKED_UP  →  DELIVERING  →  COMPLETED
+      │                                                              │
+      ├──→  REJECTED   (nenhum motorista disponível)                └──→ CANCELED
+      ├──→  EXPIRED    (pedido expirou)
+      └──→  CANCELED   (cancelado pelo cliente)</div>
+
+  <h2 id="s4-4">4.4 PATCH e DELETE</h2>
+  <div class="callout err">❌ <strong>PATCH:</strong> Pedidos em <code>ASSIGNING_DRIVER</code> não podem ser editados → <code>422 ERR_ORDER_EDIT: "Cannot edit order"</code></div>
+  <div class="callout ok">✅ <strong>DELETE bem-sucedido:</strong> <code>204 No Content</code>, body vazio</div>
+  <div class="callout err">❌ <strong>DELETE em pedido já cancelado:</strong> <code>422 ERR_CANCELLATION: "Cannot cancel order."</code></div>
+  <div class="callout err">❌ <strong>Pós-cancelamento:</strong> <code>cancelParty</code> e <code>cancelledReason</code> NÃO existem — testado com motorista <code>ON_GOING</code></div>
+
+  <!-- S5 -->
+  <h1 id="s5">5. Priority Fee</h1>
+  <h2>POST /v3/orders/{orderId}/priority-fee</h2>
+  <div class="code-block"><div class="code-label">Request / Response</div><pre><code><span style="color:#A0AEC0">// Request:</span>
+{ "data": { "priorityFee": "5" } }
+
+<span style="color:#A0AEC0">// Response 200 OK — priceBreakdown atualizado:</span>
+{
+  "base": "22.32",
+  "priorityFee": "5.00",
+  "totalExcludePriorityFee": "22.32",
+  "total": "27.32",
+  "currency": "BRL"
+}</code></pre></div>
+  <div class="callout ok">✅ <code>priorityFee</code> só pode ser <strong>aumentado</strong>, nunca reduzido.</div>
+  <div class="callout err">❌ Reduzir: <code>422 ERR_INVALID_TIPS</code> — "The amount you attempted to add should be higher than previous priority fee."</div>
+
+  <!-- S6 -->
+  <h1 id="s6">6. Motorista (Driver)</h1>
+  <h2>GET /v3/orders/{orderId}/drivers/{driverId}</h2>
+  <div class="callout warn">⚠️ Só chamar quando <code>driverId !== ""</code>. Com string vazia retorna <code>404 ERR_DRIVER_NOT_FOUND</code>.</div>
+  <div class="code-block"><div class="code-label">Verificação correta</div><pre><code><span style="color:#68D391">// ✅ Correto:</span>
+const order = await getOrder(orderId);
+if (order.driverId !== "") {
+  const driver = await getDriver(orderId, order.driverId);
+}
+
+<span style="color:#FC8181">// ❌ NUNCA fazer — driverId nunca é null:</span>
+if (order.driverId === null) { ... }</code></pre></div>
+
+  <!-- S7 -->
+  <h1 id="s7">7. Webhook</h1>
+  <h2>PATCH /v3/webhook</h2>
+  <div class="code-block"><div class="code-label">Request</div><pre><code>{ "data": { "url": "https://seu-dominio.com/webhook/lalamove" } }
+// Response: 200 OK
+// Rate limit header: ratelimits-limit-patchweb</code></pre></div>
+  <div class="callout err">❌ <code>GET /v3/webhook</code> → <code>405 Method Not Allowed</code> — não é possível consultar a URL configurada.</div>
+
+  <h3>Eventos de webhook</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Evento (status)</th><th>Quando ocorre</th></tr></thead>
+    <tbody>
+      <tr><td><code>ASSIGNING_DRIVER</code></td><td>Pedido criado, aguardando motorista</td></tr>
+      <tr><td><code>ON_GOING</code></td><td>Motorista aceitou, a caminho da coleta</td></tr>
+      <tr><td><code>PICKED_UP</code></td><td>Carga coletada</td></tr>
+      <tr><td><code>DELIVERING</code></td><td>Em rota de entrega</td></tr>
+      <tr><td><code>COMPLETED</code></td><td>Entrega confirmada</td></tr>
+      <tr><td><code>CANCELED</code></td><td>Pedido cancelado</td></tr>
+      <tr><td><code>REJECTED</code></td><td>Nenhum motorista disponível</td></tr>
+      <tr><td><code>EXPIRED</code></td><td>Pedido expirou sem atribuição</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- S8 -->
+  <h1 id="s8">8. Códigos de Erro</h1>
+  <div class="code-block"><div class="code-label">Estrutura padrão</div><pre><code>{
+  "errors": [
+    {
+      "id":      "ERR_INVALID_FIELD",
+      "message": "Descrição legível",
+      "detail":  "/data/campo"    // JSON pointer — apenas ERR_INVALID_FIELD
+    }
+  ]
+}</code></pre></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>HTTP</th><th>errors[0].id</th><th>Quando ocorre</th></tr></thead>
+    <tbody>
+      <tr><td>422</td><td><code>ERR_INVALID_FIELD</code></td><td>Campo inválido, faltando ou valor não aceito. <code>detail</code> indica o campo exato</td></tr>
+      <tr><td>422</td><td><code>ERR_INVALID_QUOTATION_ID</code></td><td><code>quotationId</code> inexistente ou expirado (&gt;5 min)</td></tr>
+      <tr><td>422</td><td><code>ERR_ORDER_EDIT</code></td><td>PATCH em pedido não editável</td></tr>
+      <tr><td>422</td><td><code>ERR_CANCELLATION</code></td><td>DELETE em pedido já cancelado</td></tr>
+      <tr><td>422</td><td><code>ERR_INVALID_TIPS</code></td><td><code>priorityFee</code> menor ou igual ao valor atual</td></tr>
+      <tr><td>404</td><td><code>ERR_ORDER_NOT_FOUND</code></td><td><code>orderId</code> não existe</td></tr>
+      <tr><td>404</td><td><code>ERR_DRIVER_NOT_FOUND</code></td><td><code>driverId</code> inválido</td></tr>
+      <tr><td>502</td><td><em>(sem errors[])</em></td><td>Auth inválida — gateway retorna 502 genérico</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Mensagens reais de ERR_INVALID_FIELD</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>detail (campo)</th><th>message retornado pela API</th></tr></thead>
+    <tbody>
+      <tr><td><code>/data/stops</code></td><td>"minimum 2 items required, but found 1 items"</td></tr>
+      <tr><td><code>/data/serviceType</code></td><td>"value must be one of "CAR", "LALAPRO", ..." (lista dos 14 tipos)</td></tr>
+      <tr><td><code>/data/scheduleAt</code></td><td>"'2020-01-01T...' is not valid. Date cannot be a past date or more than 30 days in advance."</td></tr>
+      <tr><td><code>/data/specialRequests/0</code></td><td>"value must be one of "WAITING_TIME_030MIN", ..." (lista dos SRs válidos para o serviceType)</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- S9 -->
+  <h1 id="s9">9. Rate Limits</h1>
+  <div class="code-block"><div class="code-label">Headers confirmados em produção</div><pre><code>ratelimits-limit-{endpoint}      → máximo de requisições por janela
+ratelimits-remaining-{endpoint}  → requisições restantes
+ratelimits-reset-{endpoint}      → Unix timestamp do reset
+
+Confirmados:
+  ratelimits-limit-getcities:      300
+  ratelimits-remaining-getcities:  299
+  ratelimits-reset-getcities:      1772552584
+  ratelimits-limit-patchweb:       (presente no PATCH /v3/webhook)</code></pre></div>
+
+  <!-- S10 -->
+  <h1 id="s10">10. Referência de Preços Reais (SP, ~4,5 km)</h1>
+  <p>Preços capturados em produção em 03/03/2026.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>serviceType</th><th>Preço base</th><th>specialRequest</th><th>Total</th></tr></thead>
+    <tbody>
+      <tr><td>HATCHBACK</td><td>R$ 16,97</td><td>—</td><td>R$ 16,97</td></tr>
+      <tr><td>LALAPRO</td><td>R$ 22,32</td><td>—</td><td>R$ 22,32</td></tr>
+      <tr><td>VAN</td><td>R$ 75,53</td><td>—</td><td>R$ 75,53</td></tr>
+      <tr><td>UV_FIORINO</td><td>R$ 39,41</td><td>REFRIGERATED_VEHICLE (+R$ 85,00)</td><td>R$ 124,41</td></tr>
+      <tr><td>TRUCK330</td><td>R$ 110,00</td><td>LOADING_1DRIVER1HELPER_MAX060MIN (+R$ 90,00)</td><td>R$ 200,00</td></tr>
+      <tr><td>LALAPRO 3 paradas*</td><td>R$ 25,02</td><td>multiStopSurcharge (+R$ 3,00)</td><td>R$ 28,02</td></tr>
+    </tbody>
+  </table></div>
+  <p>* Com <code>isRouteOptimized: true</code>. Sem otimização, <code>totalBeforeOptimization</code> seria R$ 52,93.</p>
+
+  <!-- FOOTER -->
+  <hr style="border:none;border-top:2px solid #E5E7EB;margin:48px 0 20px">
+  <p style="color:#9CA3AF;font-size:13px;text-align:center">Documentação auditada em produção &nbsp;·&nbsp; 03/03/2026 &nbsp;·&nbsp; Lalamove API v3 Brasil &nbsp;·&nbsp; v3.0 (errata aplicada)</p>
+
+</main>
+</div>
+</body>
+</html>
