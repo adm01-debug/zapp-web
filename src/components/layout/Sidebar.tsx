@@ -50,14 +50,14 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
       aria-label="Menu de navegação principal"
       className={cn(
         'flex flex-col h-screen border-r border-border bg-sidebar shrink-0 transition-[width] duration-300 ease-in-out overflow-hidden',
-        collapsed ? 'w-[62px]' : 'w-[210px]'
+        collapsed ? 'w-[62px]' : 'w-[220px]'
       )}
     >
-      {/* Logo + Toggle */}
+      {/* ─── Logo + Toggle ─── */}
       <div className={cn('flex items-center h-[56px] shrink-0 px-3', collapsed ? 'justify-center' : 'justify-between')}>
         <button
           onClick={() => onViewChange('inbox')}
-          className="w-[38px] h-[38px] rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 transition-colors shrink-0"
+          className="w-[36px] h-[36px] rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 transition-colors shrink-0"
           aria-label="ZAPP — Ir para Inbox"
         >
           <span className="text-primary-foreground font-bold text-sm tracking-tight">Z</span>
@@ -84,9 +84,9 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         </Tooltip>
       </div>
 
-      {/* Primary Nav */}
-      <nav className={cn('flex flex-col gap-1', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Menu principal">
-        <ul role="list" className={cn('flex flex-col gap-1 w-full list-none p-0 m-0', collapsed && 'items-center')}>
+      {/* ─── Primary Nav ─── */}
+      <nav className={cn('flex flex-col gap-0.5', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Menu principal">
+        <ul role="list" className={cn('flex flex-col gap-0.5 w-full list-none p-0 m-0', collapsed && 'items-center')}>
           {primaryNav.map((item) => (
             <li key={item.id}>
               <SidebarNavItem
@@ -101,14 +101,14 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         </ul>
       </nav>
 
-      {/* ⌘K Search */}
-      <div className={cn('flex my-1', collapsed ? 'justify-center px-[11px]' : 'px-2')}>
+      {/* ─── ⌘K Search ─── */}
+      <div className={cn('flex my-1.5', collapsed ? 'justify-center px-[11px]' : 'px-2')}>
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <button
               onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
               className={cn(
-                'rounded-lg flex items-center gap-2 text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/50 hover:border-border',
+                'rounded-lg flex items-center gap-2 text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/40 hover:border-border',
                 collapsed ? 'w-[40px] h-[30px] justify-center' : 'w-full h-[32px] px-3'
               )}
               aria-label="Buscar módulo (Ctrl+K)"
@@ -126,11 +126,12 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         </Tooltip>
       </div>
 
-      <div className="mx-3 my-1 h-px bg-border/60" />
+      {/* ─── Section Divider ─── */}
+      <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
 
-      {/* Collapsible groups */}
+      {/* ─── Collapsible Groups ─── */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scroll-smooth [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/40 hover:[&::-webkit-scrollbar-thumb]:bg-border/70">
-        <div className={cn('flex flex-col gap-0.5 py-1', collapsed ? 'items-center px-[11px]' : 'px-2')}>
+        <div className={cn('flex flex-col gap-1.5 py-1', collapsed ? 'items-center px-[11px]' : 'px-2')}>
           {sidebarGroups.map((group) => (
             <SidebarNavGroup
               key={group.label}
@@ -145,30 +146,29 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         </div>
       </div>
 
-      {/* Bottom controls */}
-      <div className="flex flex-col items-center gap-1 pt-1.5 pb-3 shrink-0">
-        <div className="mx-3 mb-1 h-px bg-border/60 self-stretch" />
+      {/* ─── Bottom Controls ─── */}
+      <div className="flex flex-col items-center gap-1.5 pt-1.5 pb-3 shrink-0">
+        <div className="mx-3 h-px bg-border/40 self-stretch" />
 
         <div className={cn(
-          'flex flex-col items-center gap-1 rounded-xl border border-border/70 bg-muted/35 px-1 py-1.5 shadow-sm',
-          !collapsed && 'self-stretch mx-2'
+          'flex items-center gap-0.5 rounded-xl border border-border/50 bg-muted/25 px-1 py-1 shadow-sm',
+          collapsed ? 'flex-col' : 'flex-row self-stretch mx-2'
         )}>
-          <ScreenProtectionToggle className="w-[36px] h-[36px]" />
-          <PushNotificationToggle className="w-[36px] h-[36px]" />
-          <SoundMuteToggle className="w-[36px] h-[36px]" />
-
+          <ScreenProtectionToggle className="w-[32px] h-[32px]" />
+          <PushNotificationToggle className="w-[32px] h-[32px]" />
+          <SoundMuteToggle className="w-[32px] h-[32px]" />
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
                 className={cn(
-                  "w-[36px] h-[36px] rounded-lg flex items-center justify-center transition-all duration-200",
+                  "w-[32px] h-[32px] rounded-lg flex items-center justify-center transition-all duration-200",
                   "text-muted-foreground hover:bg-muted hover:text-foreground",
                   isDark && "text-primary"
                 )}
                 aria-label={isDark ? 'Modo claro' : 'Modo escuro'}
               >
-                {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+                {isDark ? <Sun className="w-[16px] h-[16px]" /> : <Moon className="w-[16px] h-[16px]" />}
               </button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8} className="text-xs">
@@ -177,11 +177,18 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
           </Tooltip>
         </div>
 
+        {/* ─── Agent Profile ─── */}
         {currentAgent && (
           <Popover open={statusOpen} onOpenChange={setStatusOpen}>
             <PopoverTrigger asChild>
-              <button className={cn('relative group flex items-center gap-2', !collapsed && 'w-full px-3')} aria-label="Status e perfil">
-                <Avatar className="w-[34px] h-[34px] ring-2 ring-transparent group-hover:ring-primary/30 transition-all shrink-0">
+              <button
+                className={cn(
+                  'relative group flex items-center gap-2.5 rounded-lg transition-colors hover:bg-muted/40',
+                  collapsed ? 'justify-center p-1' : 'w-full px-3 py-1.5'
+                )}
+                aria-label="Status e perfil"
+              >
+                <Avatar className="w-[32px] h-[32px] ring-2 ring-transparent group-hover:ring-primary/30 transition-all shrink-0">
                   <AvatarImage src={currentAgent.avatar} alt={currentAgent.name} />
                   <AvatarFallback className="bg-primary/15 text-primary text-[11px] font-semibold">
                     {currentAgent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
@@ -190,7 +197,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
                 <span
                   className={cn(
                     'absolute w-2.5 h-2.5 rounded-full border-2 border-sidebar',
-                    collapsed ? '-bottom-0.5 -right-0.5' : 'bottom-0 left-[26px]',
+                    collapsed ? '-bottom-0.5 -right-0.5' : 'bottom-1 left-[30px]',
                     currentAgent.status === 'online' && 'bg-[hsl(var(--online))]',
                     currentAgent.status === 'away' && 'bg-[hsl(var(--away))]',
                     currentAgent.status === 'offline' && 'bg-[hsl(var(--offline))]'
@@ -198,8 +205,15 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
                 />
                 {!collapsed && (
                   <div className="flex flex-col min-w-0 text-left">
-                    <span className="text-xs font-medium text-foreground truncate">{currentAgent.name}</span>
-                    <span className="text-[10px] text-muted-foreground capitalize">{currentAgent.status === 'away' ? 'Ausente' : currentAgent.status}</span>
+                    <span className="text-xs font-medium text-foreground truncate leading-tight">{currentAgent.name}</span>
+                    <span className={cn(
+                      'text-[10px] capitalize leading-tight',
+                      currentAgent.status === 'online' && 'text-[hsl(var(--online))]',
+                      currentAgent.status === 'away' && 'text-[hsl(var(--away))]',
+                      currentAgent.status === 'offline' && 'text-muted-foreground'
+                    )}>
+                      {currentAgent.status === 'away' ? 'Ausente' : currentAgent.status === 'online' ? 'Online' : 'Offline'}
+                    </span>
                   </div>
                 )}
               </button>
@@ -249,7 +263,7 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
                 onClick={onLogout}
                 className={cn(
                   'rounded-lg flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors',
-                  collapsed ? 'w-[34px] h-[34px] justify-center' : 'w-full h-[34px] px-3'
+                  collapsed ? 'w-[32px] h-[32px] justify-center' : 'w-full h-[32px] px-3'
                 )}
                 aria-label="Sair da conta"
               >

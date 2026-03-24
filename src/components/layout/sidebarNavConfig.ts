@@ -39,7 +39,6 @@ import {
   BookOpen,
   Settings,
   Compass,
-  Wrench,
   LayoutDashboard,
   Lock,
 } from 'lucide-react';
