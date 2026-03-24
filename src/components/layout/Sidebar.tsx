@@ -83,6 +83,26 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         )}
       </div>
 
+      {/* ─── Expand Button (collapsed only) ─── */}
+      {collapsed && (
+        <div className="flex justify-center my-1">
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggle}
+                className="w-[38px] h-[38px] rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all border border-border/40 hover:border-border"
+                aria-label="Expandir menu"
+              >
+                <PanelLeftOpen className="w-[16px] h-[16px]" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-xs">
+              Expandir <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘B</kbd>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
+
       {/* ─── Primary Nav ─── */}
       <nav className={cn('flex flex-col gap-0.5', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Menu principal">
         <ul role="list" className={cn('flex flex-col gap-0.5 w-full list-none p-0 m-0', collapsed && 'items-center')}>
