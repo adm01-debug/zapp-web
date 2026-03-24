@@ -36,11 +36,11 @@ export function SidebarNavItem({ item, currentView, onViewChange, badge, collaps
       aria-label={badgeCount ? `${item.label} (${badgeCount} não lidas)` : item.label}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative rounded-[10px] flex items-center gap-2.5 transition-colors duration-150',
-        collapsed ? 'w-[40px] h-[40px] justify-center' : 'w-full h-[38px] px-3',
+        'relative rounded-[10px] flex items-center gap-2.5 transition-all duration-150 group/item',
+        collapsed ? 'w-[40px] h-[40px] justify-center' : 'w-full h-[36px] px-3',
         isActive
           ? 'text-primary-foreground'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.97]'
+          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.97]'
       )}
     >
       {isActive && (
@@ -50,9 +50,12 @@ export function SidebarNavItem({ item, currentView, onViewChange, badge, collaps
           transition={{ type: 'spring', stiffness: 380, damping: 28 }}
         />
       )}
-      <Icon className="w-[18px] h-[18px] relative z-10 shrink-0" />
+      <Icon className={cn(
+        'w-[18px] h-[18px] relative z-10 shrink-0 transition-transform duration-150',
+        !isActive && 'group-hover/item:scale-110'
+      )} />
       {!collapsed && (
-        <span className="relative z-10 text-xs font-medium truncate">{item.label}</span>
+        <span className="relative z-10 text-[13px] font-medium truncate">{item.label}</span>
       )}
       {badgeCount != null && badgeCount > 0 && (
         <motion.span
@@ -69,7 +72,6 @@ export function SidebarNavItem({ item, currentView, onViewChange, badge, collaps
     </button>
   );
 
-  // Only show tooltip when collapsed
   if (collapsed) {
     return (
       <Tooltip delayDuration={0}>
