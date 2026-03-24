@@ -65,23 +65,22 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         {!collapsed && (
           <span className="text-sm font-bold text-foreground tracking-tight ml-2 mr-auto">ZAPP</span>
         )}
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <button
-              onClick={toggle}
-              className={cn(
-                'w-[28px] h-[28px] rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0',
-                collapsed && 'absolute left-[17px] top-[58px] z-10'
-              )}
-              aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-            >
-              {collapsed ? <PanelLeftOpen className="w-[15px] h-[15px]" /> : <PanelLeftClose className="w-[15px] h-[15px]" />}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8} className="text-xs">
-            {collapsed ? 'Expandir' : 'Recolher'} <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘B</kbd>
-          </TooltipContent>
-        </Tooltip>
+        {!collapsed && (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggle}
+                className="w-[28px] h-[28px] rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
+                aria-label="Recolher menu"
+              >
+                <PanelLeftClose className="w-[15px] h-[15px]" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-xs">
+              Recolher <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘B</kbd>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* ─── Primary Nav ─── */}
