@@ -9,11 +9,14 @@ import {
   Clock,
   MinusCircle,
   Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTheme } from '@/hooks/useTheme';
+import { useSidebarCollapse } from '@/hooks/useSidebarCollapse';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
 import { SoundMuteToggle } from '@/components/notifications/SoundMuteToggle';
@@ -38,28 +41,52 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const [statusOpen, setStatusOpen] = useState(false);
+  const { collapsed, toggle } = useSidebarCollapse();
 
   return (
     <aside
       id="main-navigation"
       role="navigation"
       aria-label="Menu de navegação principal"
-      className="flex flex-col h-screen w-[62px] border-r border-border bg-sidebar shrink-0"
+      className={cn(
+        'flex flex-col h-screen border-r border-border bg-sidebar shrink-0 transition-[width] duration-300 ease-in-out overflow-hidden',
+        collapsed ? 'w-[62px]' : 'w-[210px]'
+      )}
     >
-      {/* Logo */}
-      <div className="flex items-center justify-center h-[56px] shrink-0">
+      {/* Logo + Toggle */}
+      <div className={cn('flex items-center h-[56px] shrink-0 px-3', collapsed ? 'justify-center' : 'justify-between')}>
         <button
           onClick={() => onViewChange('inbox')}
-          className="w-[38px] h-[38px] rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 transition-colors"
+          className="w-[38px] h-[38px] rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 transition-colors shrink-0"
           aria-label="ZAPP — Ir para Inbox"
         >
           <span className="text-primary-foreground font-bold text-sm tracking-tight">Z</span>
         </button>
+        {!collapsed && (
+          <span className="text-sm font-bold text-foreground tracking-tight ml-2 mr-auto">ZAPP</span>
+        )}
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={toggle}
+              className={cn(
+                'w-[28px] h-[28px] rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0',
+                collapsed && 'absolute left-[17px] top-[58px] z-10'
+              )}
+              aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+            >
+              {collapsed ? <PanelLeftOpen className="w-[15px] h-[15px]" /> : <PanelLeftClose className="w-[15px] h-[15px]" />}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right" sideOffset={8} className="text-xs">
+            {collapsed ? 'Expandir' : 'Recolher'} <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘B</kbd>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
-      {/* Primary Nav — always visible */}
-      <nav className="flex flex-col items-center gap-1 px-[11px]" aria-label="Menu principal">
-        <ul role="list" className="flex flex-col items-center gap-1 w-full list-none p-0 m-0">
+      {/* Primary Nav */}
+      <nav className={cn('flex flex-col gap-1', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Menu principal">
+        <ul role="list" className={cn('flex flex-col gap-1 w-full list-none p-0 m-0', collapsed && 'items-center')}>
           {primaryNav.map((item) => (
             <li key={item.id}>
               <SidebarNavItem
@@ -67,35 +94,43 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
                 currentView={currentView}
                 onViewChange={onViewChange}
                 badge={item.id === 'inbox' ? inboxBadge : undefined}
+                collapsed={collapsed}
               />
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* ⌘K Search trigger */}
-      <div className="flex justify-center px-[11px] my-1">
+      {/* ⌘K Search */}
+      <div className={cn('flex my-1', collapsed ? 'justify-center px-[11px]' : 'px-2')}>
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <button
               onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
-              className="w-[40px] h-[30px] rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/50 hover:border-border"
+              className={cn(
+                'rounded-lg flex items-center gap-2 text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/50 hover:border-border',
+                collapsed ? 'w-[40px] h-[30px] justify-center' : 'w-full h-[32px] px-3'
+              )}
               aria-label="Buscar módulo (Ctrl+K)"
             >
-              <Search className="w-[14px] h-[14px]" />
+              <Search className="w-[14px] h-[14px] shrink-0" />
+              {!collapsed && <span className="text-xs text-muted-foreground/60">Buscar...</span>}
+              {!collapsed && <kbd className="ml-auto px-1 py-0.5 rounded bg-muted text-[9px] font-mono text-muted-foreground/50">⌘K</kbd>}
             </button>
           </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8} className="text-xs">
-            Buscar <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘K</kbd>
-          </TooltipContent>
+          {collapsed && (
+            <TooltipContent side="right" sideOffset={8} className="text-xs">
+              Buscar <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘K</kbd>
+            </TooltipContent>
+          )}
         </Tooltip>
       </div>
 
       <div className="mx-3 my-1 h-px bg-border/60" />
 
       {/* Collapsible groups */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin px-[11px] scroll-smooth [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/40 hover:[&::-webkit-scrollbar-thumb]:bg-border/70">
-        <div className="flex flex-col items-center gap-0.5 py-1">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scroll-smooth [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/40 hover:[&::-webkit-scrollbar-thumb]:bg-border/70">
+        <div className={cn('flex flex-col gap-0.5 py-1', collapsed ? 'items-center px-[11px]' : 'px-2')}>
           {sidebarGroups.map((group) => (
             <SidebarNavGroup
               key={group.label}
@@ -104,16 +139,20 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
               items={group.items}
               currentView={currentView}
               onViewChange={onViewChange}
+              collapsed={collapsed}
             />
           ))}
         </div>
       </div>
 
-      {/* Bottom: Theme toggle + Avatar + Logout */}
+      {/* Bottom controls */}
       <div className="flex flex-col items-center gap-1 pt-1.5 pb-3 shrink-0">
         <div className="mx-3 mb-1 h-px bg-border/60 self-stretch" />
 
-        <div className="flex flex-col items-center gap-1 rounded-xl border border-border/70 bg-muted/35 px-1 py-1.5 shadow-sm">
+        <div className={cn(
+          'flex flex-col items-center gap-1 rounded-xl border border-border/70 bg-muted/35 px-1 py-1.5 shadow-sm',
+          !collapsed && 'self-stretch mx-2'
+        )}>
           <ScreenProtectionToggle className="w-[36px] h-[36px]" />
           <PushNotificationToggle className="w-[36px] h-[36px]" />
           <SoundMuteToggle className="w-[36px] h-[36px]" />
@@ -141,8 +180,8 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         {currentAgent && (
           <Popover open={statusOpen} onOpenChange={setStatusOpen}>
             <PopoverTrigger asChild>
-              <button className="relative group" aria-label="Status e perfil">
-                <Avatar className="w-[34px] h-[34px] ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
+              <button className={cn('relative group flex items-center gap-2', !collapsed && 'w-full px-3')} aria-label="Status e perfil">
+                <Avatar className="w-[34px] h-[34px] ring-2 ring-transparent group-hover:ring-primary/30 transition-all shrink-0">
                   <AvatarImage src={currentAgent.avatar} alt={currentAgent.name} />
                   <AvatarFallback className="bg-primary/15 text-primary text-[11px] font-semibold">
                     {currentAgent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
@@ -150,12 +189,19 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
                 </Avatar>
                 <span
                   className={cn(
-                    'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar',
+                    'absolute w-2.5 h-2.5 rounded-full border-2 border-sidebar',
+                    collapsed ? '-bottom-0.5 -right-0.5' : 'bottom-0 left-[26px]',
                     currentAgent.status === 'online' && 'bg-[hsl(var(--online))]',
                     currentAgent.status === 'away' && 'bg-[hsl(var(--away))]',
                     currentAgent.status === 'offline' && 'bg-[hsl(var(--offline))]'
                   )}
                 />
+                {!collapsed && (
+                  <div className="flex flex-col min-w-0 text-left">
+                    <span className="text-xs font-medium text-foreground truncate">{currentAgent.name}</span>
+                    <span className="text-[10px] text-muted-foreground capitalize">{currentAgent.status === 'away' ? 'Ausente' : currentAgent.status}</span>
+                  </div>
+                )}
               </button>
             </PopoverTrigger>
             <PopoverContent side="right" sideOffset={12} align="end" className="w-48 p-2">
@@ -201,13 +247,19 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
             <TooltipTrigger asChild>
               <button
                 onClick={onLogout}
-                className="w-[34px] h-[34px] rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                className={cn(
+                  'rounded-lg flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors',
+                  collapsed ? 'w-[34px] h-[34px] justify-center' : 'w-full h-[34px] px-3'
+                )}
                 aria-label="Sair da conta"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 shrink-0" />
+                {!collapsed && <span className="text-xs">Sair</span>}
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} className="text-xs">Sair</TooltipContent>
+            {collapsed && (
+              <TooltipContent side="right" sideOffset={8} className="text-xs">Sair</TooltipContent>
+            )}
           </Tooltip>
         )}
       </div>
