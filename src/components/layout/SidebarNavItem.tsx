@@ -36,8 +36,8 @@ export function SidebarNavItem({ item, currentView, onViewChange, badge, collaps
       aria-label={badgeCount ? `${item.label} (${badgeCount} não lidas)` : item.label}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative rounded-[10px] flex items-center gap-2.5 transition-all duration-150 group/item',
-        collapsed ? 'w-[40px] h-[40px] justify-center' : 'w-full h-[36px] px-3',
+        'relative rounded-full flex items-center gap-2.5 transition-all duration-150 group/item',
+        collapsed ? 'w-[38px] h-[38px] justify-center' : 'w-full h-[36px] px-3 rounded-xl',
         isActive
           ? 'text-primary-foreground'
           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.97]'
