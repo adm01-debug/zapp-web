@@ -65,24 +65,43 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inb
         {!collapsed && (
           <span className="text-sm font-bold text-foreground tracking-tight ml-2 mr-auto">ZAPP</span>
         )}
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <button
-              onClick={toggle}
-              className={cn(
-                'w-[28px] h-[28px] rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0',
-                collapsed && 'absolute left-[17px] top-[58px] z-10'
-              )}
-              aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-            >
-              {collapsed ? <PanelLeftOpen className="w-[15px] h-[15px]" /> : <PanelLeftClose className="w-[15px] h-[15px]" />}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8} className="text-xs">
-            {collapsed ? 'Expandir' : 'Recolher'} <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘B</kbd>
-          </TooltipContent>
-        </Tooltip>
+        {!collapsed && (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggle}
+                className="w-[28px] h-[28px] rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
+                aria-label="Recolher menu"
+              >
+                <PanelLeftClose className="w-[15px] h-[15px]" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-xs">
+              Recolher <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘B</kbd>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
+
+      {/* ─── Expand Button (collapsed only) ─── */}
+      {collapsed && (
+        <div className="flex justify-center my-1">
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggle}
+                className="w-[38px] h-[38px] rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all border border-border/40 hover:border-border"
+                aria-label="Expandir menu"
+              >
+                <PanelLeftOpen className="w-[16px] h-[16px]" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-xs">
+              Expandir <kbd className="ml-1 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘B</kbd>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
 
       {/* ─── Primary Nav ─── */}
       <nav className={cn('flex flex-col gap-0.5', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Menu principal">
