@@ -46,7 +46,7 @@ export function SidebarNavItem({ item, currentView, onViewChange, badge, collaps
       {isActive && (
         <motion.div
           layoutId="sidebar-active-pill"
-          className="absolute inset-0 rounded-[10px] bg-primary shadow-[var(--shadow-glow-primary)]"
+          className="absolute inset-0 rounded-xl bg-primary/20 border border-primary/30"
           transition={{ type: 'spring', stiffness: 380, damping: 28 }}
         />
       )}
