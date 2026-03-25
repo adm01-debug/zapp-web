@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -18,7 +19,12 @@ function getCorsHeaders(req: Request) {
   };
 }
 
+const logger = createStructuredLogger('ai-conversation-summary');
+
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
@@ -57,6 +63,20 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Check AI response cache
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const cacheKey = await generateCacheKey('ai-conversation-summary', messages);
+    const cached = await getCachedResponse(supabaseClient, cacheKey);
+    if (cached.hit) {
+      console.log('Cache HIT for ai-conversation-summary');
+      return new Response(JSON.stringify(cached.response), {
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
+      });
+    }
+
     // Format messages for context
     const conversationText = messages
       .map((msg: { sender: string; content: string; created_at: string }) => 
@@ -73,6 +93,8 @@ Analise a conversa abaixo e forneça:
 
 Responda em português brasileiro de forma clara e objetiva.`;
 
+    logger.info('Calling AI gateway', { model: 'google/gemini-2.5-flash', messageCount: messages.length });
+    const aiTimer = logger.startTimer('ai-api-call');
     const response = await fetchWithRetry('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {

@@ -97,13 +97,40 @@ serve(async (req) => {
 
   // Handle webhook events (POST request)
   if (req.method === 'POST') {
+    let idempotencyKey: string | null = null;
+    let supabase: ReturnType<typeof createClient> | null = null;
+
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       const payload: WhatsAppWebhookPayload = await req.json();
       logger.info('Webhook payload received', { entries: payload.entry?.length ?? 0 });
+
+      // Generate idempotency key from message IDs or status IDs in the payload
+      const keyParts: string[] = [];
+      for (const entry of payload.entry || []) {
+        keyParts.push(entry.id);
+        for (const change of entry.changes || []) {
+          for (const status of change.value.statuses || []) {
+            keyParts.push(status.id, status.status);
+          }
+          for (const message of change.value.messages || []) {
+            keyParts.push(message.id);
+          }
+        }
+      }
+      idempotencyKey = await generateIdempotencyKey(...keyParts);
+
+      const { isDuplicate, cachedResponse } = await checkIdempotency(supabase, idempotencyKey, 'whatsapp-webhook');
+      if (isDuplicate && cachedResponse) {
+        logger.info('Duplicate WhatsApp webhook detected, returning cached response');
+        return new Response(JSON.stringify(cachedResponse.body), {
+          status: cachedResponse.status,
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+        });
+      }
 
       // Process status updates
       for (const entry of payload.entry || []) {
@@ -141,12 +168,41 @@ serve(async (req) => {
         }
       }
 
-      return new Response(JSON.stringify({ success: true }), {
+      const responseBody = { success: true };
+      if (supabase && idempotencyKey) {
+        await completeIdempotency(supabase, idempotencyKey, 200, responseBody);
+      }
+
+      requestTimer.end({ status: 'success' });
+      return new Response(JSON.stringify(responseBody), {
         status: 200,
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       });
     } catch (error) {
-      console.error('Webhook processing error:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack || '' : '';
+      logger.error('Webhook processing error', { error: errorMsg });
+      requestTimer.end({ error: true });
+
+      // Mark idempotency as failed so it can be retried
+      if (supabase && idempotencyKey) {
+        await failIdempotency(supabase, idempotencyKey);
+      }
+
+      // Enqueue to dead letter queue for retry
+      if (supabase) {
+        try {
+          await enqueueToDeadLetter(supabase, {
+            sourceFunction: 'whatsapp-webhook',
+            payload: { error: errorMsg },
+            errorMessage: errorMsg,
+            errorStack: errorStack,
+          });
+        } catch (dlqError) {
+          console.error('Failed to enqueue to DLQ:', dlqError);
+        }
+      }
+
       return new Response(JSON.stringify({ error: 'Internal server error' }), {
         status: 500,
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
