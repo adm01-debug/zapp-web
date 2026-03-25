@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -36,6 +37,10 @@ interface EmailRequest {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: getCorsHeaders(req) });
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'send-email', getCorsHeaders(req));
   }
 
   // Rate limit: 10 email requests per minute per IP
@@ -88,6 +93,7 @@ serve(async (req) => {
       },
       timeout: 30000,
       maxRetries: 3,
+      circuitBreakerService: 'resend',
       body: JSON.stringify(payload),
     });
 

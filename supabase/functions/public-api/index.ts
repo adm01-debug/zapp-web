@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -17,6 +18,10 @@ function getCorsHeaders(req: Request) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'public-api', getCorsHeaders(req));
   }
 
   // Rate limit: 60 requests per minute per API key

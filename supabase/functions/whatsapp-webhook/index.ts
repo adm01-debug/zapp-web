@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
+import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -47,10 +51,19 @@ interface WhatsAppWebhookPayload {
   }>;
 }
 
+const logger = createStructuredLogger('whatsapp-webhook');
+
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'whatsapp-webhook', getCorsHeaders(req));
   }
 
   // Handle webhook verification (GET request from WhatsApp)
@@ -62,7 +75,7 @@ serve(async (req) => {
 
     const verifyToken = Deno.env.get('WHATSAPP_VERIFY_TOKEN');
     if (!verifyToken) {
-      console.error('WHATSAPP_VERIFY_TOKEN not configured');
+      logger.error('WHATSAPP_VERIFY_TOKEN not configured');
       return new Response(
         JSON.stringify({ error: 'Webhook verification not configured' }),
         { status: 503, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
@@ -70,13 +83,15 @@ serve(async (req) => {
     }
 
     if (mode === 'subscribe' && token === verifyToken) {
-      console.log('Webhook verified successfully');
-      return new Response(challenge, { 
+      logger.info('Webhook verified successfully');
+      requestTimer.end({ verification: 'success' });
+      return new Response(challenge, {
         status: 200,
         headers: { ...getCorsHeaders(req), 'Content-Type': 'text/plain' }
       });
     }
 
+    logger.warn('Webhook verification failed', { mode });
     return new Response('Forbidden', { status: 403, headers: getCorsHeaders(req) });
   }
 
@@ -88,7 +103,7 @@ serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       const payload: WhatsAppWebhookPayload = await req.json();
-      console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
+      logger.info('Webhook payload received', { entries: payload.entry?.length ?? 0 });
 
       // Process status updates
       for (const entry of payload.entry || []) {
@@ -98,7 +113,7 @@ serve(async (req) => {
           // Handle status updates
           if (value.statuses) {
             for (const status of value.statuses) {
-              console.log(`Processing status update: ${status.id} -> ${status.status}`);
+              logger.info('Processing status update', { messageId: status.id, status: status.status });
 
               const { error } = await supabase
                 .from('messages')
@@ -109,9 +124,9 @@ serve(async (req) => {
                 .eq('external_id', status.id);
 
               if (error) {
-                console.error('Error updating message status:', error);
+                logger.error('Error updating message status', { messageId: status.id, error: error.message });
               } else {
-                console.log(`Successfully updated status for message ${status.id}`);
+                logger.info('Status updated', { messageId: status.id });
               }
             }
           }
@@ -119,7 +134,7 @@ serve(async (req) => {
           // Handle incoming messages (optional - can be extended)
           if (value.messages) {
             for (const message of value.messages) {
-              console.log(`Received message from ${message.from}: ${message.type}`);
+              logger.info('Message received', { from: message.from, type: message.type });
               // Messages can be processed here if needed
             }
           }

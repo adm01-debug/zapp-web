@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
+import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -25,9 +29,18 @@ interface WebhookPayload {
   apikey?: string;
 }
 
+const logger = createStructuredLogger('evolution-webhook');
+
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'evolution-webhook', getCorsHeaders(req));
   }
 
   if (req.method !== 'POST') {
@@ -38,22 +51,38 @@ serve(async (req) => {
   const webhookApiKey = req.headers.get('apikey') || req.headers.get('x-api-key') || '';
   const expectedApiKey = Deno.env.get('EVOLUTION_API_KEY') || '';
   if (expectedApiKey && webhookApiKey !== expectedApiKey) {
-    console.warn('Invalid webhook API key received');
+    logger.warn('Invalid webhook API key received');
     return new Response(
       JSON.stringify({ error: 'Unauthorized webhook request' }),
       { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   }
 
+  let idempotencyKey: string | null = null;
+  let supabase: ReturnType<typeof createClient> | null = null;
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: WebhookPayload = await req.json();
-    console.log('Evolution webhook received:', payload.event, payload.instance);
+    logger.info('Webhook received', { event: payload.event, instance: payload.instance });
 
     const { event, instance, data } = payload;
+
+    // Generate idempotency key from event data
+    const messageKey = (data.key as Record<string, string>)?.id || '';
+    idempotencyKey = await generateIdempotencyKey(instance, event, messageKey, payload.date_time || '');
+
+    const { isDuplicate, cachedResponse } = await checkIdempotency(supabase, idempotencyKey, 'evolution-webhook');
+    if (isDuplicate && cachedResponse) {
+      logger.info('Duplicate webhook detected, returning cached response');
+      return new Response(JSON.stringify(cachedResponse.body), {
+        status: cachedResponse.status,
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+      });
+    }
 
     // =============================================
     // CONNECTION_UPDATE
@@ -442,14 +471,43 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    const responseBody = { success: true };
+    if (supabase && idempotencyKey) {
+      await completeIdempotency(supabase, idempotencyKey, 200, responseBody);
+    }
+
+    requestTimer.end({ event: payload.event, instance: payload.instance });
+    return new Response(JSON.stringify(responseBody), {
       status: 200,
       headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     });
 
   } catch (error: unknown) {
-    console.error('Evolution webhook error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
+    const stack = error instanceof Error ? error.stack || '' : '';
+    logger.error('Evolution webhook error', { error: message });
+    requestTimer.end({ error: message });
+
+    // Mark idempotency as failed so it can be retried
+    if (supabase && idempotencyKey) {
+      await failIdempotency(supabase, idempotencyKey);
+    }
+
+    // Enqueue to dead letter queue for retry
+    if (supabase) {
+      try {
+        await enqueueToDeadLetter(supabase, {
+          sourceFunction: 'evolution-webhook',
+          eventType: 'unknown',
+          payload: { error: message },
+          errorMessage: message,
+          errorStack: stack,
+        });
+      } catch (dlqError) {
+        console.error('Failed to enqueue to DLQ:', dlqError);
+      }
+    }
+
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },

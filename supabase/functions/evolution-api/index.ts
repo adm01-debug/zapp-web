@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -23,6 +24,10 @@ function getCorsHeaders(req: Request) {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'evolution-api', getCorsHeaders(req));
   }
 
   // Rate limit: 30 requests per minute per IP
@@ -89,7 +94,7 @@ serve(async (req) => {
     }
 
     console.log(`[Evolution API] ${method} ${fullUrl}`);
-    const response = await fetchWithRetry(fullUrl, { ...opts, timeout: 30000, maxRetries: 2 });
+    const response = await fetchWithRetry(fullUrl, { ...opts, timeout: 30000, maxRetries: 2, circuitBreakerService: 'evolution' });
     const data = await response.json();
 
     return new Response(JSON.stringify(data), {
@@ -139,6 +144,7 @@ serve(async (req) => {
         headers: { 'apikey': evolutionApiKey },
         timeout: 30000,
         maxRetries: 2,
+        circuitBreakerService: 'evolution',
       });
       const data = await response.json();
 
@@ -168,6 +174,7 @@ serve(async (req) => {
         headers: { 'apikey': evolutionApiKey },
         timeout: 30000,
         maxRetries: 2,
+        circuitBreakerService: 'evolution',
       });
       const data = await response.json();
 
@@ -201,6 +208,7 @@ serve(async (req) => {
         headers: { 'apikey': evolutionApiKey },
         timeout: 30000,
         maxRetries: 2,
+        circuitBreakerService: 'evolution',
       });
       const data = await response.json();
 

@@ -66,6 +66,10 @@ verify_jwt = false
 # Auth handled in function: requires Bearer token
 verify_jwt = false
 
+[functions.health]
+# Public health check endpoint; no auth required
+verify_jwt = false
+
 # --- Public/webhook functions (no JWT required, auth handled differently or not needed) ---
 
 [functions.evolution-webhook]
