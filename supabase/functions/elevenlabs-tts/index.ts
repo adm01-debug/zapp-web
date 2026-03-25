@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -45,7 +46,7 @@ serve(async (req) => {
 
     console.log(`Generating TTS for text: "${text.substring(0, 50)}..." with voice: ${selectedVoiceId}`);
 
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`,
       {
         method: 'POST',
@@ -53,6 +54,8 @@ serve(async (req) => {
           'xi-api-key': ELEVENLABS_API_KEY,
           'Content-Type': 'application/json',
         },
+        timeout: 45000,
+        maxRetries: 3,
         body: JSON.stringify({
           text,
           model_id: 'eleven_multilingual_v2',

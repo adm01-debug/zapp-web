@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -51,7 +52,7 @@ serve(async (req) => {
 
     // Download the audio file from the URL
     console.log('Downloading audio file...');
-    const audioResponse = await fetch(audioUrl);
+    const audioResponse = await fetchWithRetry(audioUrl, { timeout: 30000, maxRetries: 3 });
     if (!audioResponse.ok) {
       console.error('Failed to download audio:', audioResponse.status);
       return new Response(
@@ -86,11 +87,13 @@ serve(async (req) => {
     console.log('Sending to ElevenLabs STT API...');
     
     // Call ElevenLabs Speech-to-Text API
-    const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
+    const response = await fetchWithRetry('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: {
         'xi-api-key': ELEVENLABS_API_KEY,
       },
+      timeout: 60000,
+      maxRetries: 3,
       body: formData,
     });
 

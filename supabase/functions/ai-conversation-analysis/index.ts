@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
+import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -71,12 +73,14 @@ Responda em português brasileiro de forma clara e objetiva.`;
 
     console.log('Calling Lovable AI for conversation analysis...');
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetchWithRetry('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
+      timeout: 60000,
+      maxRetries: 3,
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [

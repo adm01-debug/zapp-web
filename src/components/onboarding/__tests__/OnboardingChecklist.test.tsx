@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
 
 // Build a chain mock factory that we can recreate per test
 function makeChain() {
@@ -34,6 +35,21 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('@/lib/logger', () => ({
   log: { error: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn() },
+}));
+
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: React.forwardRef(({ children, ...props }: any, ref: any) => {
+      // Filter out framer-motion specific props
+      const {
+        initial, animate, exit, transition, whileHover, whileTap,
+        variants, layout, layoutId, onAnimationComplete,
+        ...htmlProps
+      } = props;
+      return <div ref={ref} {...htmlProps}>{children}</div>;
+    }),
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
 import { OnboardingChecklist } from '../OnboardingChecklist';

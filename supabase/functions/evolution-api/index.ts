@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
+import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -80,7 +82,7 @@ serve(async (req) => {
     }
 
     console.log(`[Evolution API] ${method} ${fullUrl}`);
-    const response = await fetch(fullUrl, opts);
+    const response = await fetchWithRetry(fullUrl, { ...opts, timeout: 30000, maxRetries: 2 });
     const data = await response.json();
 
     return new Response(JSON.stringify(data), {
@@ -125,9 +127,11 @@ serve(async (req) => {
     // GET /instance/connect/{instance}
     if (action === 'connect') {
       const fullUrl = `${evolutionApiUrl}/instance/connect/${instance}`;
-      const response = await fetch(fullUrl, {
+      const response = await fetchWithRetry(fullUrl, {
         method: 'GET',
         headers: { 'apikey': evolutionApiKey },
+        timeout: 30000,
+        maxRetries: 2,
       });
       const data = await response.json();
 
@@ -152,9 +156,11 @@ serve(async (req) => {
     // GET /instance/connectionState/{instance}
     if (action === 'status') {
       const fullUrl = `${evolutionApiUrl}/instance/connectionState/${instance}`;
-      const response = await fetch(fullUrl, {
+      const response = await fetchWithRetry(fullUrl, {
         method: 'GET',
         headers: { 'apikey': evolutionApiKey },
+        timeout: 30000,
+        maxRetries: 2,
       });
       const data = await response.json();
 
@@ -183,9 +189,11 @@ serve(async (req) => {
     // DELETE /instance/logout/{instance}
     if (action === 'disconnect') {
       const fullUrl = `${evolutionApiUrl}/instance/logout/${instance}`;
-      const response = await fetch(fullUrl, {
+      const response = await fetchWithRetry(fullUrl, {
         method: 'DELETE',
         headers: { 'apikey': evolutionApiKey },
+        timeout: 30000,
+        maxRetries: 2,
       });
       const data = await response.json();
 

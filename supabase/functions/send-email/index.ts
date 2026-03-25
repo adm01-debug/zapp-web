@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 

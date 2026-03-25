@@ -26,11 +26,26 @@ const mockConnections = [
   },
 ];
 
-const mockCreateInstance = vi.fn().mockResolvedValue({});
-const mockConnectInstance = vi.fn().mockResolvedValue({ qrcode: { base64: 'qr123' } });
-const mockGetInstanceStatus = vi.fn().mockResolvedValue({ state: 'close' });
-const mockDisconnectInstance = vi.fn().mockResolvedValue({});
-const mockDeleteInstance = vi.fn().mockResolvedValue({});
+const {
+  mockCreateInstance,
+  mockConnectInstance,
+  mockGetInstanceStatus,
+  mockDisconnectInstance,
+  mockDeleteInstance,
+  mockFrom,
+  mockChannel,
+} = vi.hoisted(() => ({
+  mockCreateInstance: vi.fn().mockResolvedValue({}),
+  mockConnectInstance: vi.fn().mockResolvedValue({ qrcode: { base64: 'qr123' } }),
+  mockGetInstanceStatus: vi.fn().mockResolvedValue({ state: 'close' }),
+  mockDisconnectInstance: vi.fn().mockResolvedValue({}),
+  mockDeleteInstance: vi.fn().mockResolvedValue({}),
+  mockFrom: vi.fn(),
+  mockChannel: vi.fn().mockReturnValue({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
+  }),
+}));
 
 vi.mock('@/hooks/useEvolutionApi', () => ({
   useEvolutionApi: () => ({
@@ -42,12 +57,6 @@ vi.mock('@/hooks/useEvolutionApi', () => ({
     deleteInstance: mockDeleteInstance,
   }),
 }));
-
-const mockFrom = vi.fn();
-const mockChannel = vi.fn().mockReturnValue({
-  on: vi.fn().mockReturnThis(),
-  subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
-});
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -41,13 +42,15 @@ serve(async (req) => {
     console.log('Requesting ElevenLabs realtime scribe token...');
 
     // Request a single-use token for realtime transcription
-    const response = await fetch(
+    const response = await fetchWithRetry(
       'https://api.elevenlabs.io/v1/single-use-token/realtime_scribe',
       {
         method: 'POST',
         headers: {
           'xi-api-key': ELEVENLABS_API_KEY,
         },
+        timeout: 30000,
+        maxRetries: 3,
       }
     );
 

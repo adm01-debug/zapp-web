@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -136,10 +137,12 @@ serve(async (req) => {
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         // Fetch contacts from Bitrix
-        const contactsResponse = await fetch(`${BITRIX_WEBHOOK_URL}/crm.contact.list`, {
+        const contactsResponse = await fetchWithRetry(`${BITRIX_WEBHOOK_URL}/crm.contact.list`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          timeout: 30000,
+          maxRetries: 3,
+          body: JSON.stringify({
             filter: filters || {},
             select: ['ID', 'NAME', 'LAST_NAME', 'EMAIL', 'PHONE', 'COMPANY_ID', 'POST']
           }),
@@ -188,9 +191,11 @@ serve(async (req) => {
 
       case 'push_contact':
         // Push local contact to Bitrix
-        const pushResponse = await fetch(`${BITRIX_WEBHOOK_URL}/crm.contact.add`, {
+        const pushResponse = await fetchWithRetry(`${BITRIX_WEBHOOK_URL}/crm.contact.add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          timeout: 30000,
+          maxRetries: 3,
           body: JSON.stringify({
             fields: {
               NAME: data?.name,
@@ -210,9 +215,11 @@ serve(async (req) => {
 
       case 'create_lead_from_conversation':
         // Create lead from WhatsApp conversation
-        const leadResponse = await fetch(`${BITRIX_WEBHOOK_URL}/crm.lead.add`, {
+        const leadResponse = await fetchWithRetry(`${BITRIX_WEBHOOK_URL}/crm.lead.add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          timeout: 30000,
+          maxRetries: 3,
           body: JSON.stringify({
             fields: {
               TITLE: data?.title || `Lead WhatsApp - ${data?.contactName}`,
@@ -243,9 +250,11 @@ serve(async (req) => {
     if (endpoint) {
       console.log(`Calling Bitrix: ${BITRIX_WEBHOOK_URL}/${endpoint}`);
       
-      const bitrixResponse = await fetch(`${BITRIX_WEBHOOK_URL}/${endpoint}`, {
+      const bitrixResponse = await fetchWithRetry(`${BITRIX_WEBHOOK_URL}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        timeout: 30000,
+        maxRetries: 3,
         body: body ? JSON.stringify(body) : undefined,
       });
 
