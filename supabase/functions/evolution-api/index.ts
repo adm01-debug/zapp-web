@@ -25,6 +25,13 @@ serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  // Rate limit: 30 requests per minute per IP
+  const clientIP = getClientIP(req);
+  const rateCheck = checkRateLimit(`evolution-api:${clientIP}`, { maxRequests: 30, windowSeconds: 60 });
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck, getCorsHeaders(req));
+  }
+
   // Verify authentication
   const authHeader = req.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {

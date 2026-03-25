@@ -21,6 +21,13 @@ serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  // Rate limit: 20 AI requests per minute per IP
+  const clientIP = getClientIP(req);
+  const rateCheck = checkRateLimit(`ai:${clientIP}`, { maxRequests: 20, windowSeconds: 60 });
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck, getCorsHeaders(req));
+  }
+
   // Verify authentication
   const authHeader = req.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -148,12 +149,14 @@ serve(async (req) => {
 
     if (RESEND_API_KEY && agentProfile?.email) {
       try {
-        const emailResponse = await fetch('https://api.resend.com/emails', {
+        const emailResponse = await fetchWithRetry('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${RESEND_API_KEY}`,
             'Content-Type': 'application/json',
           },
+          timeout: 30000,
+          maxRetries: 3,
           body: JSON.stringify({
             from: 'Alertas <onboarding@resend.dev>',
             to: [agentProfile.email],

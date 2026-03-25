@@ -19,6 +19,13 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  // Rate limit: 60 requests per minute per API key
+  const apiKey = req.headers.get('x-api-key') || 'unknown';
+  const rateCheck = checkRateLimit(`public-api:${apiKey}`, { maxRequests: 60, windowSeconds: 60 });
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck, getCorsHeaders(req));
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

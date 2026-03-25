@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
+import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -18,6 +19,13 @@ serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
+  }
+
+  // Rate limit: 10 audio requests per minute per IP
+  const clientIP = getClientIP(req);
+  const rateCheck = checkRateLimit(`audio:${clientIP}`, { maxRequests: 10, windowSeconds: 60 });
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck, getCorsHeaders(req));
   }
 
   // Verify authentication

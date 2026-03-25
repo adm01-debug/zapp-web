@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -18,6 +19,13 @@ function getCorsHeaders(req: Request) {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
+  }
+
+  // Rate limit: 30 chatbot requests per minute per IP
+  const clientIP = getClientIP(req);
+  const rateCheck = checkRateLimit(`chatbot:${clientIP}`, { maxRequests: 30, windowSeconds: 60 });
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck, getCorsHeaders(req));
   }
 
   // Verify authentication
@@ -98,12 +106,14 @@ Responda em JSON:
   "matched_article": "título do artigo usado ou null"
 }`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetchWithRetry("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
+      timeout: 60000,
+      maxRetries: 3,
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [

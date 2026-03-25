@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { playNotificationSound, showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSounds';
 import { getLogger } from '@/lib/logger';
+import { useSubscriptionManager } from './useSubscriptionManager';
 
 const log = getLogger('RealtimeMessages');
 
@@ -65,6 +66,7 @@ export function useRealtimeMessages() {
   const [newMessageNotification, setNewMessageNotification] = useState<NewMessageNotification | null>(null);
   const selectedContactIdRef = useRef<string | null>(null);
   const soundEnabledRef = useRef(true);
+  const { subscribe, unsubscribeAll } = useSubscriptionManager(10);
 
   // Fetch initial data
   const fetchConversations = useCallback(async () => {
@@ -207,49 +209,29 @@ export function useRealtimeMessages() {
     });
   }, []);
 
-  // Subscribe to realtime updates
+  // Subscribe to realtime updates via subscription manager
+  // Uses a single consolidated channel with automatic reconnection
   useEffect(() => {
     fetchConversations();
 
-    const channel = supabase
-      .channel('messages-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-        },
-        handleNewMessage
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-        },
-        handleMessageUpdate
-      )
-      .subscribe((status) => {
-        log.debug('Subscription status', { status });
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          log.warn('Realtime channel error, attempting reconnect...', { status });
-          setTimeout(() => {
-            supabase.removeChannel(channel);
-            channel.subscribe();
-          }, 5000);
-        }
-      });
+    subscribe({
+      channelName: 'messages-realtime-insert',
+      table: 'messages',
+      event: 'INSERT',
+      callback: handleNewMessage,
+    });
+
+    subscribe({
+      channelName: 'messages-realtime-update',
+      table: 'messages',
+      event: 'UPDATE',
+      callback: handleMessageUpdate,
+    });
 
     return () => {
-      channel.unsubscribe().then(() => {
-        supabase.removeChannel(channel);
-      }).catch(() => {
-        supabase.removeChannel(channel);
-      });
+      unsubscribeAll();
     };
-  }, [fetchConversations, handleNewMessage, handleMessageUpdate]);
+  }, [fetchConversations, handleNewMessage, handleMessageUpdate, subscribe, unsubscribeAll]);
 
   // Send a message (saves to DB + sends via Evolution API)
   const sendMessage = async (

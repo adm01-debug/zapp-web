@@ -154,23 +154,23 @@ vi.mock('@/components/ui/empty-state', () => ({
   ),
 }));
 
-vi.mock('./BusinessHoursDialog', () => ({
+vi.mock('../BusinessHoursDialog', () => ({
   BusinessHoursDialog: () => null,
 }));
 
-vi.mock('./BusinessHoursIndicator', () => ({
+vi.mock('../BusinessHoursIndicator', () => ({
   BusinessHoursIndicator: () => null,
 }));
 
-vi.mock('./ConnectionQueuesDialog', () => ({
+vi.mock('../ConnectionQueuesDialog', () => ({
   ConnectionQueuesDialog: () => null,
 }));
 
-vi.mock('./InstanceSettingsDialog', () => ({
+vi.mock('../InstanceSettingsDialog', () => ({
   InstanceSettingsDialog: () => null,
 }));
 
-vi.mock('./IntegrationsPanel', () => ({
+vi.mock('../IntegrationsPanel', () => ({
   IntegrationsPanel: () => null,
 }));
 

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -151,12 +152,14 @@ Deno.serve(async (req) => {
     // Send via Resend if key available
     if (resendApiKey && report.recipients?.length > 0) {
       for (const recipient of report.recipients) {
-        const emailResponse = await fetch("https://api.resend.com/emails", {
+        const emailResponse = await fetchWithRetry("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${resendApiKey}`,
             "Content-Type": "application/json",
           },
+          timeout: 30000,
+          maxRetries: 3,
           body: JSON.stringify({
             from: "reports@noreply.lovable.app",
             to: recipient,

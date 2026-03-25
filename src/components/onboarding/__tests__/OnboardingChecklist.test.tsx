@@ -79,8 +79,8 @@ describe('OnboardingChecklist', () => {
     render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText('Complete seu perfil')).toBeInTheDocument();
+      expect(screen.getByText('Conecte seu WhatsApp')).toBeInTheDocument();
     });
-    expect(screen.getByText('Conecte seu WhatsApp')).toBeInTheDocument();
   });
 
   it('renders step descriptions', async () => {
@@ -100,10 +100,12 @@ describe('OnboardingChecklist', () => {
   it('calls onNavigate when step action is clicked', async () => {
     const onNavigate = vi.fn();
     render(<OnboardingChecklist onNavigate={onNavigate} />);
+    let btn: HTMLElement;
     await waitFor(() => {
-      expect(screen.getByText('Completar perfil')).toBeInTheDocument();
+      btn = screen.getByText('Completar perfil');
+      expect(btn).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByText('Completar perfil'));
+    fireEvent.click(btn!);
     expect(onNavigate).toHaveBeenCalledWith('agents');
   });
 
@@ -111,8 +113,8 @@ describe('OnboardingChecklist', () => {
     render(<OnboardingChecklist compact />);
     await waitFor(() => {
       expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
+      expect(screen.getByText(/passos concluídos/)).toBeInTheDocument();
     });
-    expect(screen.getByText(/passos concluídos/)).toBeInTheDocument();
   });
 
   it('returns null when dismissed via localStorage', async () => {

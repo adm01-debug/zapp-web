@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -37,6 +38,13 @@ serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  // Rate limit: 10 email requests per minute per IP
+  const clientIP = getClientIP(req);
+  const rateCheck = checkRateLimit(`send-email:${clientIP}`, { maxRequests: 10, windowSeconds: 60 });
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck, getCorsHeaders(req));
+  }
+
   // Verify authentication
   const authHeader = req.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
@@ -72,12 +80,14 @@ serve(async (req) => {
     if (body.bcc) payload.bcc = body.bcc;
     if (body.attachments) payload.attachments = body.attachments;
 
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetchWithRetry("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
+      timeout: 30000,
+      maxRetries: 3,
       body: JSON.stringify(payload),
     });
 

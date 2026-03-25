@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getLogger } from '@/lib/logger';
+import { useSubscriptionManager } from './useSubscriptionManager';
 
 const log = getLogger('RealtimeDashboard');
 
@@ -26,6 +27,7 @@ export interface RealtimeDashboardState {
 const MAX_HISTORY = 60; // Keep last 60 data points (1 per minute = 1 hour)
 
 export function useRealtimeDashboard() {
+  const { subscribe, unsubscribeAll } = useSubscriptionManager(10);
   const [state, setState] = useState<RealtimeDashboardState>({
     messagesThisHour: 0,
     messagesLastHour: 0,
@@ -96,60 +98,55 @@ export function useRealtimeDashboard() {
     }
   }, []);
 
-  // Subscribe to realtime changes
+  // Subscribe to realtime changes via subscription manager
+  // Uses deduplicated channels with automatic reconnection
   useEffect(() => {
     fetchInitialData();
 
-    const channel = supabase
-      .channel('dashboard-realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          log.debug('New message received in dashboard');
-          minuteCountRef.current++;
-          messageCountRef.current++;
+    subscribe({
+      channelName: 'dashboard-messages-insert',
+      table: 'messages',
+      event: 'INSERT',
+      callback: (payload) => {
+        log.debug('New message received in dashboard');
+        minuteCountRef.current++;
+        messageCountRef.current++;
 
+        setState(prev => ({
+          ...prev,
+          messagesThisHour: messageCountRef.current,
+          lastMessageAt: new Date(),
+          isConnected: true,
+          unreadMessages: payload.new.sender === 'contact' ? prev.unreadMessages + 1 : prev.unreadMessages,
+        }));
+      },
+    });
+
+    subscribe({
+      channelName: 'dashboard-contacts-insert',
+      table: 'contacts',
+      event: 'INSERT',
+      callback: () => {
+        setState(prev => ({
+          ...prev,
+          newContactsToday: prev.newContactsToday + 1,
+        }));
+      },
+    });
+
+    subscribe({
+      channelName: 'dashboard-messages-update',
+      table: 'messages',
+      event: 'UPDATE',
+      callback: (payload) => {
+        if (payload.new.is_read && !payload.old?.is_read) {
           setState(prev => ({
             ...prev,
-            messagesThisHour: messageCountRef.current,
-            lastMessageAt: new Date(),
-            unreadMessages: payload.new.sender === 'contact' ? prev.unreadMessages + 1 : prev.unreadMessages,
+            unreadMessages: Math.max(0, prev.unreadMessages - 1),
           }));
         }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'contacts' },
-        () => {
-          setState(prev => ({
-            ...prev,
-            newContactsToday: prev.newContactsToday + 1,
-          }));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'messages' },
-        (payload) => {
-          if (payload.new.is_read && !payload.old?.is_read) {
-            setState(prev => ({
-              ...prev,
-              unreadMessages: Math.max(0, prev.unreadMessages - 1),
-            }));
-          }
-        }
-      )
-      .subscribe((status) => {
-        setState(prev => ({ ...prev, isConnected: status === 'SUBSCRIBED' }));
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          log.warn('Realtime channel error, attempting reconnect...', { status });
-          setTimeout(() => {
-            supabase.removeChannel(channel);
-            channel.subscribe();
-          }, 5000);
-        }
-      });
+      },
+    });
 
     // Collect metrics every minute
     const metricsInterval = setInterval(() => {
@@ -162,7 +159,7 @@ export function useRealtimeDashboard() {
         };
 
         const newHistory = [...prev.metricsHistory, metric].slice(-MAX_HISTORY);
-        
+
         return {
           ...prev,
           messagesPerMinute: minuteCountRef.current,
@@ -177,11 +174,11 @@ export function useRealtimeDashboard() {
     const refreshInterval = setInterval(fetchInitialData, 5 * 60 * 1000);
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribeAll();
       clearInterval(metricsInterval);
       clearInterval(refreshInterval);
     };
-  }, [fetchInitialData]);
+  }, [fetchInitialData, subscribe, unsubscribeAll]);
 
   return state;
 }
