@@ -42,6 +42,10 @@ verify_jwt = false
 # Auth handled in function: requires Bearer token
 verify_jwt = false
 
+[functions.cleanup-ai-cache]
+# Cron/scheduler cleanup function; no auth required
+verify_jwt = false
+
 [functions.sentiment-alert]
 # Auth handled in function: requires Bearer token
 verify_jwt = false
