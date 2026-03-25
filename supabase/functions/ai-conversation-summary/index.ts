@@ -74,6 +74,7 @@ Responda em português brasileiro de forma clara e objetiva.`;
       },
       timeout: 60000,
       maxRetries: 3,
+      circuitBreakerService: 'ai-gateway',
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
