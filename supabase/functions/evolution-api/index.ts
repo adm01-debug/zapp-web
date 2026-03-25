@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -21,7 +22,12 @@ function getCorsHeaders(req: Request) {
 // EVOLUTION API v2 — FULL INTEGRATION (60+ endpoints)
 // ============================================================
 
+const logger = createStructuredLogger('evolution-api');
+
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
