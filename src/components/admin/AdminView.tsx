@@ -109,19 +109,16 @@ export function AdminView() {
     if (activeTab === 'users') {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, user_roles(role)')
         .order('name');
 
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('*');
-
-      if (profiles && roles) {
+      if (profiles) {
         const usersWithRoles = profiles.map(profile => {
-          const userRole = roles.find(r => r.user_id === profile.user_id);
+          const userRoles = (profile as any).user_roles as { role: string }[] | null;
+          const role = userRoles && userRoles.length > 0 ? userRoles[0].role : 'agent';
           return {
             ...profile,
-            role: (userRole?.role || 'agent') as AppRole,
+            role: role as AppRole,
           };
         });
         setUsers(usersWithRoles);

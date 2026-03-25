@@ -1,46 +1,97 @@
 project_id = "rhqfnvvjdwvnulxybmrk"
 
+# --- Functions with custom auth middleware (verify_jwt = false because they handle auth themselves) ---
+
 [functions.ai-conversation-summary]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
 [functions.ai-conversation-analysis]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
 [functions.ai-suggest-reply]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
 [functions.ai-transcribe-audio]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
-[functions.get-mapbox-token]
+[functions.ai-auto-tag]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
-[functions.whatsapp-webhook]
+[functions.chatbot-l1]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
-[functions.sentiment-alert]
+[functions.send-email]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
-[functions.evolution-api]
-verify_jwt = false
-
-[functions.evolution-webhook]
-verify_jwt = false
-
-[functions.bitrix-api]
-verify_jwt = false
-
-[functions.elevenlabs-tts]
-verify_jwt = false
-
-[functions.elevenlabs-scribe-token]
+[functions.send-scheduled-report]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
 [functions.send-rate-limit-alert]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
 [functions.cleanup-rate-limit-logs]
+# Auth handled in function: requires Bearer token
+verify_jwt = false
+
+[functions.sentiment-alert]
+# Auth handled in function: requires Bearer token
+verify_jwt = false
+
+[functions.evolution-api]
+# Auth handled in function: requires Bearer token
 verify_jwt = false
 
 [functions.evolution-sync]
+# Auth handled in function: requires Bearer token
+verify_jwt = false
+
+[functions.bitrix-api]
+# Auth handled in function: requires Bearer token
+verify_jwt = false
+
+[functions.elevenlabs-tts]
+# Auth handled in function: requires Bearer token
+verify_jwt = false
+
+[functions.elevenlabs-scribe-token]
+# Auth handled in function: requires Bearer token
+verify_jwt = false
+
+# --- Public/webhook functions (no JWT required, auth handled differently or not needed) ---
+
+[functions.evolution-webhook]
+# Receives webhooks from Evolution API; authenticates via API key header
+verify_jwt = false
+
+[functions.whatsapp-webhook]
+# Receives webhooks from WhatsApp; uses hub.verify_token for verification
+verify_jwt = false
+
+[functions.public-api]
+# Public API endpoint; authenticates via x-api-key header
+verify_jwt = false
+
+[functions.get-mapbox-token]
+# Returns public Mapbox token; no auth required
+verify_jwt = false
+
+[functions.detect-new-device]
+# Called during login flow; has its own auth check inside
+verify_jwt = false
+
+[functions.approve-password-reset]
+# Has its own admin authorization check inside
+verify_jwt = false
+
+[functions.webauthn]
+# Has its own auth flow for passkey registration/authentication
 verify_jwt = false

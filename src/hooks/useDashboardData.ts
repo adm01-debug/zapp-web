@@ -76,7 +76,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return { agents: data || [], onlineAgents, totalAgents };
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000, // 2 min - agents status doesn't change frequently
   });
 
   // Fetch contacts with conversation status
@@ -121,7 +121,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return contacts || [];
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000, // 1 min - contacts data supplemented by realtime
   });
 
   // Fetch messages for recent activity and stats
@@ -176,7 +176,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return messages || [];
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000, // 1 min - messages supplemented by realtime
   });
 
   // Fetch queues
@@ -204,7 +204,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return queues || [];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000, // 2 min - queue structure rarely changes
   });
 
   // Fetch contacts per queue for waiting count
@@ -227,7 +227,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       
       return queueCounts;
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000, // 2 min - queue counts supplemented by realtime
   });
 
   // Fetch SLA data for response times

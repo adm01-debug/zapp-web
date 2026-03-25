@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Max-Age': '3600',
+  };
+}
 
 interface WhatsAppStatus {
   id: string;
@@ -42,7 +50,7 @@ interface WhatsAppWebhookPayload {
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   // Handle webhook verification (GET request from WhatsApp)
@@ -52,17 +60,24 @@ serve(async (req) => {
     const token = url.searchParams.get('hub.verify_token');
     const challenge = url.searchParams.get('hub.challenge');
 
-    const verifyToken = Deno.env.get('WHATSAPP_VERIFY_TOKEN') || 'lovable_webhook_token';
+    const verifyToken = Deno.env.get('WHATSAPP_VERIFY_TOKEN');
+    if (!verifyToken) {
+      console.error('WHATSAPP_VERIFY_TOKEN not configured');
+      return new Response(
+        JSON.stringify({ error: 'Webhook verification not configured' }),
+        { status: 503, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (mode === 'subscribe' && token === verifyToken) {
       console.log('Webhook verified successfully');
       return new Response(challenge, { 
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'text/plain' }
       });
     }
 
-    return new Response('Forbidden', { status: 403, headers: corsHeaders });
+    return new Response('Forbidden', { status: 403, headers: getCorsHeaders(req) });
   }
 
   // Handle webhook events (POST request)
@@ -113,16 +128,16 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error('Webhook processing error:', error);
       return new Response(JSON.stringify({ error: 'Internal server error' }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       });
     }
   }
 
-  return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+  return new Response('Method not allowed', { status: 405, headers: getCorsHeaders(req) });
 });

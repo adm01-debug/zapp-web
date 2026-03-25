@@ -127,6 +127,7 @@ export function ConnectionsView() {
   }>({ open: false, instanceName: '', connectionName: '' });
   const [isCreating, setIsCreating] = useState(false);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const { 
     isLoading: evolutionLoading, 
@@ -197,6 +198,7 @@ export function ConnectionsView() {
     return () => {
       supabase.removeChannel(channel);
       if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, [fetchConnections]);
 
@@ -304,12 +306,20 @@ export function ConnectionsView() {
 
   const startStatusPolling = useCallback((instanceName: string, _connectionId: string) => {
     if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     const interval = setInterval(async () => {
+      if (controller.signal.aborted) {
+        clearInterval(interval);
+        return;
+      }
       try {
         const result = await getInstanceStatus(instanceName);
 
-        if (result?.state === 'open' || result?.status === 'connected') {
+        if (!controller.signal.aborted && (result?.state === 'open' || result?.status === 'connected')) {
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
@@ -325,7 +335,9 @@ export function ConnectionsView() {
           });
         }
       } catch (error) {
-        log.error('Status polling error:', error);
+        if (!controller.signal.aborted) {
+          log.error('Status polling error:', error);
+        }
       }
     }, 3000);
 

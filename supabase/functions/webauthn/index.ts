@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Max-Age': '3600',
+  };
+}
 
 // Base64URL encoding/decoding utilities
 function base64URLEncode(buffer: ArrayBuffer): string {
@@ -47,7 +55,7 @@ function getRpId(origin: string): string {
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -87,7 +95,7 @@ serve(async (req) => {
         if (!userId || !userEmail) {
           return new Response(
             JSON.stringify({ error: 'userId and userEmail are required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -95,7 +103,7 @@ serve(async (req) => {
         if (!authenticatedUserId || authenticatedUserId !== userId) {
           return new Response(
             JSON.stringify({ error: 'Unauthorized: you can only register passkeys for your own account' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -153,7 +161,7 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ options }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         );
       }
 
@@ -163,7 +171,7 @@ serve(async (req) => {
         if (!userId || !credential) {
           return new Response(
             JSON.stringify({ error: 'userId and credential are required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -171,7 +179,7 @@ serve(async (req) => {
         if (!authenticatedUserId || authenticatedUserId !== userId) {
           return new Response(
             JSON.stringify({ error: 'Unauthorized: you can only verify passkeys for your own account' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -189,7 +197,7 @@ serve(async (req) => {
           console.error('Challenge not found:', challengeError);
           return new Response(
             JSON.stringify({ error: 'Challenge not found or expired' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -199,7 +207,7 @@ serve(async (req) => {
         if (type !== 'public-key') {
           return new Response(
             JSON.stringify({ error: 'Invalid credential type' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -213,14 +221,14 @@ serve(async (req) => {
         if (clientData.type !== 'webauthn.create') {
           return new Response(
             JSON.stringify({ error: 'Invalid client data type' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
         if (clientData.challenge !== challengeData.challenge) {
           return new Response(
             JSON.stringify({ error: 'Challenge mismatch' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -242,7 +250,7 @@ serve(async (req) => {
           console.error('Failed to store credential:', insertError);
           return new Response(
             JSON.stringify({ error: 'Failed to store credential' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -257,7 +265,7 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ success: true, credentialId: id }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         );
       }
 
@@ -312,7 +320,7 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ options }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         );
       }
 
@@ -322,7 +330,7 @@ serve(async (req) => {
         if (!credential) {
           return new Response(
             JSON.stringify({ error: 'credential is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -339,7 +347,7 @@ serve(async (req) => {
           console.error('Credential not found:', credError);
           return new Response(
             JSON.stringify({ error: 'Credential not found' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -356,7 +364,7 @@ serve(async (req) => {
         if (!challengeData) {
           return new Response(
             JSON.stringify({ error: 'Challenge not found or expired' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -366,14 +374,14 @@ serve(async (req) => {
         if (clientData.type !== 'webauthn.get') {
           return new Response(
             JSON.stringify({ error: 'Invalid client data type' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
         if (clientData.challenge !== challengeData.challenge) {
           return new Response(
             JSON.stringify({ error: 'Challenge mismatch' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
 
@@ -404,14 +412,14 @@ serve(async (req) => {
             userId: storedCred.user_id,
             userEmail: userData?.user?.email,
           }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         );
       }
 
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         );
     }
   } catch (error: unknown) {
@@ -419,7 +427,7 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   }
 });
