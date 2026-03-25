@@ -39,7 +39,7 @@ serve(async (req) => {
 
   try {
     const { messages, contactName } = await req.json();
-    
+
     if (!messages || messages.length < 5) {
       return new Response(
         JSON.stringify({ error: 'Conversation must have at least 5 messages for analysis' }),
@@ -52,9 +52,23 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Check AI response cache
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const cacheKey = await generateCacheKey('ai-conversation-analysis', messages);
+    const cached = await getCachedResponse(supabaseClient, cacheKey);
+    if (cached.hit) {
+      console.log('Cache HIT for ai-conversation-analysis');
+      return new Response(JSON.stringify(cached.response), {
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
+      });
+    }
+
     // Format messages for context
     const conversationText = messages
-      .map((msg: { sender: string; content: string; created_at: string }) => 
+      .map((msg: { sender: string; content: string; created_at: string }) =>
         `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content}`
       )
       .join('\n');
@@ -106,24 +120,24 @@ Responda em português brasileiro de forma clara e objetiva.`;
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { 
-                    type: "string", 
-                    description: "Brief summary of the conversation (max 4 sentences)" 
+                  summary: {
+                    type: "string",
+                    description: "Brief summary of the conversation (max 4 sentences)"
                   },
-                  status: { 
-                    type: "string", 
+                  status: {
+                    type: "string",
                     enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente"],
-                    description: "Current status of the conversation" 
+                    description: "Current status of the conversation"
                   },
-                  keyPoints: { 
-                    type: "array", 
+                  keyPoints: {
+                    type: "array",
                     items: { type: "string" },
-                    description: "Key points discussed (max 5)" 
+                    description: "Key points discussed (max 5)"
                   },
-                  nextSteps: { 
-                    type: "array", 
+                  nextSteps: {
+                    type: "array",
                     items: { type: "string" },
-                    description: "Suggested next steps for the agent" 
+                    description: "Suggested next steps for the agent"
                   },
                   sentiment: {
                     type: "string",
@@ -182,27 +196,37 @@ Responda em português brasileiro de forma clara e objetiva.`;
 
     // Extract the tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    let resultData;
     if (toolCall?.function?.arguments) {
-      const analysisData = JSON.parse(toolCall.function.arguments);
-      console.log('Analysis data:', analysisData);
-      return new Response(
-        JSON.stringify(analysisData),
-        { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Fallback to content if no tool call
-    const content = data.choices?.[0]?.message?.content;
-    return new Response(
-      JSON.stringify({ 
-        summary: content || 'Unable to analyze conversation', 
-        status: 'pendente', 
-        keyPoints: [], 
+      resultData = JSON.parse(toolCall.function.arguments);
+      console.log('Analysis data:', resultData);
+    } else {
+      // Fallback to content if no tool call
+      const content = data.choices?.[0]?.message?.content;
+      resultData = {
+        summary: content || 'Unable to analyze conversation',
+        status: 'pendente',
+        keyPoints: [],
         sentiment: 'neutro',
         sentimentScore: 50,
         urgency: 'media'
-      }),
-      { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      };
+    }
+
+    // Cache the response (TTL: 2 hours)
+    await setCachedResponse(supabaseClient, {
+      cacheKey,
+      functionName: 'ai-conversation-analysis',
+      model: 'google/gemini-2.5-flash',
+      requestHash: cacheKey,
+      responseBody: resultData,
+      tokenCount: data.usage?.total_tokens,
+      ttlHours: 2,
+    });
+
+    return new Response(
+      JSON.stringify(resultData),
+      { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'MISS' } }
     );
 
   } catch (error) {
