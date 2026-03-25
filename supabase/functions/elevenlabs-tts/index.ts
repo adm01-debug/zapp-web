@@ -64,6 +64,7 @@ serve(async (req) => {
         },
         timeout: 45000,
         maxRetries: 3,
+        circuitBreakerService: 'elevenlabs',
         body: JSON.stringify({
           text,
           model_id: 'eleven_multilingual_v2',

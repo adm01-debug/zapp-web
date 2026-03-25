@@ -102,6 +102,7 @@ serve(async (req) => {
       },
       timeout: 60000,
       maxRetries: 3,
+      circuitBreakerService: 'elevenlabs',
       body: formData,
     });
 

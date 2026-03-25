@@ -160,6 +160,7 @@ Deno.serve(async (req) => {
           },
           timeout: 30000,
           maxRetries: 3,
+          circuitBreakerService: 'resend',
           body: JSON.stringify({
             from: "reports@noreply.lovable.app",
             to: recipient,

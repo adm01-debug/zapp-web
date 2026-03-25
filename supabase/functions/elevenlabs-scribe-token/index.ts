@@ -51,6 +51,7 @@ serve(async (req) => {
         },
         timeout: 30000,
         maxRetries: 3,
+        circuitBreakerService: 'elevenlabs',
       }
     );
 

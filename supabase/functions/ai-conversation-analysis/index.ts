@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -88,6 +90,7 @@ Responda em português brasileiro de forma clara e objetiva.`;
       },
       timeout: 60000,
       maxRetries: 3,
+      circuitBreakerService: 'ai-gateway',
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { getLogger } from "@/lib/logger";
+import { initRUM } from "@/lib/rum";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -69,6 +70,11 @@ const queryClient = new QueryClient({
 function AppContent() {
   // Register service worker for push notifications
   useServiceWorker();
+
+  // Initialize Real User Monitoring
+  useEffect(() => {
+    initRUM();
+  }, []);
 
   // Global unhandled rejection handler
   useEffect(() => {

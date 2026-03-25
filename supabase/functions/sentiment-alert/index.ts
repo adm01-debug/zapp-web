@@ -157,6 +157,7 @@ serve(async (req) => {
           },
           timeout: 30000,
           maxRetries: 3,
+          circuitBreakerService: 'resend',
           body: JSON.stringify({
             from: 'Alertas <onboarding@resend.dev>',
             to: [agentProfile.email],
