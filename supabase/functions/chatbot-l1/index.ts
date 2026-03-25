@@ -170,8 +170,17 @@ Responda em JSON:
       result.transfer_reason = 'low_confidence';
     }
 
+    const handled = !result.transfer_to_human;
+    logger.info(handled ? 'Request handled by chatbot' : 'Transferring to human', {
+      handled,
+      confidence: result.confidence,
+      transfer_reason: result.transfer_reason ?? null,
+      matched_article: result.matched_article ?? null,
+    });
+    requestTimer.end({ handled, confidence: result.confidence });
+
     return new Response(JSON.stringify({
-      handled: !result.transfer_to_human,
+      handled,
       response: result.response,
       transfer_to_human: result.transfer_to_human || false,
       transfer_reason: result.transfer_reason,
@@ -181,8 +190,9 @@ Responda em JSON:
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
-    console.error("Error in chatbot-l1:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    logger.error("Error in chatbot-l1", { error: errorMessage });
+    requestTimer.end({ error: true });
     return new Response(JSON.stringify({ handled: false, error: errorMessage }), {
       status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
