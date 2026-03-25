@@ -15,6 +15,11 @@ vi.mock('sonner', () => ({
 
 import { AutomationsManager } from '../AutomationsManager';
 
+function findIconButtons(container: HTMLElement, iconClass: string): HTMLButtonElement[] {
+  const svgs = container.querySelectorAll(`[class*="${iconClass}"]`);
+  return Array.from(svgs).map(s => s.closest('button')).filter(Boolean) as HTMLButtonElement[];
+}
+
 function renderView() {
   return render(<AutomationsManager />);
 }
@@ -136,9 +141,8 @@ describe('AutomationsManager', () => {
     // Clear mocks after create toast
     vi.mocked(toast.success).mockClear();
 
-    const trashBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-trash-2') !== null
-    );
+    const trashBtns = findIconButtons(document.body, 'trash');
+    expect(trashBtns.length).toBeGreaterThan(0);
     await userEvent.click(trashBtns[0]);
     expect(toast.success).toHaveBeenCalledWith('Automação removida!');
     expect(screen.queryByText('To Delete')).not.toBeInTheDocument();
@@ -154,9 +158,7 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('Original')).toBeInTheDocument());
 
-    const copyBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-copy') !== null
-    );
+    const copyBtns = findIconButtons(document.body, 'lucide-copy');
     await userEvent.click(copyBtns[0]);
     expect(toast.success).toHaveBeenCalledWith('Automação duplicada!');
     expect(screen.getByText('Original (cópia)')).toBeInTheDocument();
@@ -169,9 +171,7 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('Src')).toBeInTheDocument());
 
-    const copyBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-copy') !== null
-    );
+    const copyBtns = findIconButtons(document.body, 'lucide-copy');
     await userEvent.click(copyBtns[0]);
     const badges = screen.getAllByText('Inativo');
     expect(badges.length).toBeGreaterThanOrEqual(1);
@@ -216,11 +216,11 @@ describe('AutomationsManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
     await waitFor(() => expect(screen.getByText('To Edit')).toBeInTheDocument());
 
-    const editBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-edit-2') !== null
-    );
+    const editBtns = findIconButtons(document.body, 'lucide-pen');
+    expect(editBtns.length).toBeGreaterThan(0);
     await userEvent.click(editBtns[0]);
-    expect(screen.getByText('Editar Automação')).toBeInTheDocument();
+    // Editor dialog title includes icon + text
+    expect(screen.getByText(/Editar Automação/)).toBeInTheDocument();
   });
 
   // ---- Cancel dialog ----

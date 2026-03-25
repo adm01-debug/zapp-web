@@ -76,6 +76,11 @@ vi.mock('../ChatbotFlowEditor', () => ({
 
 import { ChatbotFlowsView } from '../ChatbotFlowsView';
 
+function findIconButtons(container: HTMLElement, iconClass: string): HTMLButtonElement[] {
+  const svgs = container.querySelectorAll(`[class*="${iconClass}"]`);
+  return Array.from(svgs).map(s => s.closest('button')).filter(Boolean) as HTMLButtonElement[];
+}
+
 function renderView() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -165,11 +170,9 @@ describe('ChatbotFlowsView', () => {
 
   // ---- Delete Flow ----
 
-  it('calls deleteFlow when trash button is clicked', async () => {
-    renderView();
-    const trashButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-trash-2') !== null
-    );
+  it('calls deleteFlow when trash button is clicked', () => {
+    const { container } = renderView();
+    const trashButtons = findIconButtons(container, 'trash');
     expect(trashButtons.length).toBe(3);
     fireEvent.click(trashButtons[1]); // f2
     expect(mockDeleteFlow.mutate).toHaveBeenCalledWith('f2');
@@ -221,21 +224,17 @@ describe('ChatbotFlowsView', () => {
 
   // ---- Flow Editor ----
 
-  it('opens flow editor when edit button is clicked', async () => {
-    renderView();
-    const editButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-edit-2') !== null
-    );
+  it('opens flow editor when edit button is clicked', () => {
+    const { container } = renderView();
+    const editButtons = findIconButtons(container, 'lucide-pen');
     fireEvent.click(editButtons[0]);
     expect(screen.getByTestId('flow-editor')).toBeInTheDocument();
     expect(screen.getByText('Editor: Boas-vindas')).toBeInTheDocument();
   });
 
   it('returns to list view when editor is closed', async () => {
-    renderView();
-    const editButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-edit-2') !== null
-    );
+    const { container } = renderView();
+    const editButtons = findIconButtons(container, 'lucide-pen');
     fireEvent.click(editButtons[0]);
     await userEvent.click(screen.getByText('Close Editor'));
     expect(screen.getByText('Chatbot Flows')).toBeInTheDocument();
@@ -243,11 +242,9 @@ describe('ChatbotFlowsView', () => {
 
   // ---- Duplicate ----
 
-  it('calls createFlow.mutate for duplication with copy suffix', async () => {
-    renderView();
-    const copyButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-copy') !== null
-    );
+  it('calls createFlow.mutate for duplication with copy suffix', () => {
+    const { container } = renderView();
+    const copyButtons = findIconButtons(container, 'lucide-copy');
     fireEvent.click(copyButtons[0]);
     expect(mockCreateFlow.mutate).toHaveBeenCalledTimes(1);
     expect(mockCreateFlow.mutate.mock.calls[0][0].name).toContain('(cópia)');

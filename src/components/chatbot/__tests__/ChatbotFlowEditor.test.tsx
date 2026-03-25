@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -11,6 +11,12 @@ vi.mock('framer-motion', () => ({
 
 import { ChatbotFlowEditor } from '../ChatbotFlowEditor';
 import type { ChatbotFlow } from '@/hooks/useChatbotFlows';
+
+/** Find buttons containing an SVG icon with a given class fragment */
+function findIconButtons(container: HTMLElement, iconClass: string): HTMLButtonElement[] {
+  const svgs = container.querySelectorAll(`[class*="${iconClass}"]`);
+  return Array.from(svgs).map(s => s.closest('button')).filter(Boolean) as HTMLButtonElement[];
+}
 
 const baseFlow: ChatbotFlow = {
   id: 'f1', name: 'Test Flow', description: 'Test', is_active: true,
@@ -57,22 +63,18 @@ describe('ChatbotFlowEditor', () => {
     expect(screen.getByText('Fluxo vazio')).toBeInTheDocument();
   });
 
-  it('calls onClose when back button is clicked', async () => {
-    render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const backBtn = screen.getAllByRole('button').find(
-      b => b.querySelector('.lucide-arrow-left') !== null
-    );
-    expect(backBtn).toBeDefined();
-    fireEvent.click(backBtn!);
+  it('calls onClose when back button is clicked', () => {
+    const { container } = render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
+    const backBtns = findIconButtons(container, 'arrow-left');
+    expect(backBtns.length).toBeGreaterThan(0);
+    fireEvent.click(backBtns[0]);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onSave with current nodes and edges', async () => {
-    render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const saveBtn = screen.getAllByRole('button').find(
-      b => b.querySelector('.lucide-save') !== null
-    );
-    fireEvent.click(saveBtn!);
+  it('calls onSave with current nodes and edges', () => {
+    const { container } = render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
+    const saveBtns = findIconButtons(container, 'lucide-save');
+    fireEvent.click(saveBtns[0]);
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave.mock.calls[0][0]).toHaveLength(2);
     expect(onSave.mock.calls[0][1]).toHaveLength(1);
@@ -80,62 +82,48 @@ describe('ChatbotFlowEditor', () => {
 
   it('opens add node dialog', async () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    // Click "Adicionar Nó" button in toolbar
     const addNodeBtn = screen.getAllByRole('button').find(
       b => b.textContent?.includes('Adicionar Nó')
     );
     expect(addNodeBtn).toBeDefined();
     await userEvent.click(addNodeBtn!);
-    // Dialog should show node type options
     expect(screen.getByText('Pergunta')).toBeInTheDocument();
     expect(screen.getByText('Aguardar')).toBeInTheDocument();
   });
 
   it('adds a new message node', async () => {
-    render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
+    const { container } = render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
     const addNodeBtn = screen.getAllByRole('button').find(
       b => b.textContent?.includes('Adicionar Nó')
     );
     await userEvent.click(addNodeBtn!);
-    // Find the "Mensagem" button in the dialog grid
     const msgBtns = screen.getAllByRole('button').filter(
       b => b.textContent?.trim() === 'Mensagem'
     );
     await userEvent.click(msgBtns[0]);
-    // Save and check 3 nodes
-    const saveBtn = screen.getAllByRole('button').find(
-      b => b.querySelector('.lucide-save') !== null
-    );
-    fireEvent.click(saveBtn!);
+    const saveBtns = findIconButtons(container, 'lucide-save');
+    fireEvent.click(saveBtns[0]);
     expect(onSave.mock.calls[0][0]).toHaveLength(3);
   });
 
   it('does not show delete button on start nodes', () => {
-    render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const trashButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-trash-2') !== null
-    );
-    // Only message node should have trash (start type excluded)
+    const { container } = render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
+    const trashButtons = findIconButtons(container, 'trash');
     expect(trashButtons.length).toBe(1);
   });
 
-  it('removes a node when trash is clicked', async () => {
-    render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const trashButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-trash-2') !== null
-    );
+  it('removes a node when trash is clicked', () => {
+    const { container } = render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
+    const trashButtons = findIconButtons(container, 'trash');
     fireEvent.click(trashButtons[0]);
-    const saveBtn = screen.getAllByRole('button').find(
-      b => b.querySelector('.lucide-save') !== null
-    );
-    fireEvent.click(saveBtn!);
+    const saveBtns = findIconButtons(container, 'lucide-save');
+    fireEvent.click(saveBtns[0]);
     expect(onSave.mock.calls[0][0]).toHaveLength(1);
     expect(onSave.mock.calls[0][1]).toHaveLength(0);
   });
 
-  it('shows connection panel when a node is clicked', async () => {
+  it('shows connection panel when a node is clicked', () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    // Click on the start node card area
     fireEvent.click(screen.getByText('Start Node'));
     expect(screen.getByText('Conectar a:')).toBeInTheDocument();
   });
@@ -147,16 +135,12 @@ describe('ChatbotFlowEditor', () => {
 
   it('shows edge connections as badges', () => {
     render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    // Edge from n1 -> n2, should show target label "Mensagem 1"
-    const edgeBadge = screen.getByText(/→ Mensagem 1/);
-    expect(edgeBadge).toBeInTheDocument();
+    expect(screen.getByText(/→ Msg Node 1/)).toBeInTheDocument();
   });
 
-  it('opens edit node dialog', async () => {
-    render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
-    const editBtns = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-message-square') !== null
-    );
+  it('opens edit node dialog', () => {
+    const { container } = render(<ChatbotFlowEditor flow={baseFlow} onSave={onSave} onClose={onClose} />);
+    const editBtns = findIconButtons(container, 'message-square');
     expect(editBtns.length).toBeGreaterThan(0);
     fireEvent.click(editBtns[0]);
     expect(screen.getByText(/Editar Nó/)).toBeInTheDocument();

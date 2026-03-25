@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { TourProvider, useTour, DEFAULT_ONBOARDING_STEPS, type TourStep } from '../OnboardingTour';
 
-// Mock createPortal since tests don't have full DOM structure
+// Mock createPortal
 vi.mock('react-dom', async () => {
   const actual = await vi.importActual('react-dom');
   return {
@@ -10,6 +10,16 @@ vi.mock('react-dom', async () => {
     createPortal: (node: React.ReactNode) => node,
   };
 });
+
+// Mock scrollIntoView which doesn't exist in jsdom
+Element.prototype.scrollIntoView = vi.fn();
+
+// Mock getBoundingClientRect for target elements
+const mockRect = {
+  top: 100, bottom: 200, left: 50, right: 150,
+  width: 100, height: 100, x: 50, y: 100,
+  toJSON: () => {},
+};
 
 const testSteps: TourStep[] = [
   { id: 'step1', target: '#step1', title: 'Step 1', description: 'Description 1' },
@@ -34,11 +44,28 @@ function TourConsumer() {
 }
 
 describe('TourProvider', () => {
+  let targetEl: HTMLDivElement;
+
   beforeEach(() => {
     // Create target elements for the tour
-    const el = document.createElement('div');
-    el.id = 'step1';
-    document.body.appendChild(el);
+    targetEl = document.createElement('div');
+    targetEl.id = 'step1';
+    targetEl.getBoundingClientRect = vi.fn().mockReturnValue(mockRect);
+    document.body.appendChild(targetEl);
+
+    const el2 = document.createElement('div');
+    el2.id = 'step2';
+    el2.getBoundingClientRect = vi.fn().mockReturnValue(mockRect);
+    document.body.appendChild(el2);
+
+    const el3 = document.createElement('div');
+    el3.id = 'step3';
+    el3.getBoundingClientRect = vi.fn().mockReturnValue(mockRect);
+    document.body.appendChild(el3);
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
   });
 
   it('renders children', () => {
@@ -87,6 +114,27 @@ describe('TourProvider', () => {
     );
     fireEvent.click(screen.getByText('Start Tour'));
     expect(screen.getByTestId('step')).toHaveTextContent('0');
+  });
+
+  it('shows step title and description in overlay', () => {
+    render(
+      <TourProvider>
+        <TourConsumer />
+      </TourProvider>
+    );
+    fireEvent.click(screen.getByText('Start Tour'));
+    expect(screen.getByText('Step 1')).toBeInTheDocument();
+    expect(screen.getByText('Description 1')).toBeInTheDocument();
+  });
+
+  it('shows step counter', () => {
+    render(
+      <TourProvider>
+        <TourConsumer />
+      </TourProvider>
+    );
+    fireEvent.click(screen.getByText('Start Tour'));
+    expect(screen.getByText('Passo 1 de 3')).toBeInTheDocument();
   });
 
   it('advances to next step', () => {

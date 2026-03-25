@@ -70,6 +70,11 @@ vi.mock('framer-motion', () => ({
 
 import { CampaignsView } from '../CampaignsView';
 
+function findIconButtons(container: HTMLElement, iconClass: string): HTMLButtonElement[] {
+  const svgs = container.querySelectorAll(`[class*="${iconClass}"]`);
+  return Array.from(svgs).map(s => s.closest('button')).filter(Boolean) as HTMLButtonElement[];
+}
+
 function renderView() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -187,33 +192,27 @@ describe('CampaignsView', () => {
 
   // ---- Actions: start, pause, delete ----
 
-  it('calls updateCampaign with sending when play is clicked on a draft', async () => {
-    renderView();
-    // Find all play buttons (svg with class lucide-play)
-    const playButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-play') !== null
-    );
+  it('calls updateCampaign with sending when play is clicked on a draft', () => {
+    const { container } = renderView();
+    const playButtons = findIconButtons(container, 'lucide-play');
     expect(playButtons.length).toBeGreaterThan(0);
     fireEvent.click(playButtons[0]);
     expect(mockUpdateMutate).toHaveBeenCalledWith({ id: 'c1', status: 'sending' });
   });
 
-  it('calls updateCampaign with paused when pause is clicked on a sending campaign', async () => {
-    renderView();
-    const pauseButtons = screen.getAllByRole('button').filter(
-      b => b.querySelector('.lucide-pause') !== null
-    );
+  it('calls updateCampaign with paused when pause is clicked on a sending campaign', () => {
+    const { container } = renderView();
+    const pauseButtons = findIconButtons(container, 'lucide-pause');
     expect(pauseButtons.length).toBeGreaterThan(0);
     fireEvent.click(pauseButtons[0]);
     expect(mockUpdateMutate).toHaveBeenCalledWith({ id: 'c2', status: 'paused' });
   });
 
-  it('calls deleteCampaign when trash button is clicked', async () => {
-    renderView();
-    // Trash buttons are inside the stopPropagation div
-    const trashButtons = document.querySelectorAll('svg.lucide-trash-2');
+  it('calls deleteCampaign when trash button is clicked', () => {
+    const { container } = renderView();
+    const trashButtons = findIconButtons(container, 'trash');
     expect(trashButtons.length).toBeGreaterThanOrEqual(5);
-    fireEvent.click(trashButtons[0].closest('button')!);
+    fireEvent.click(trashButtons[0]);
     expect(mockDeleteMutate).toHaveBeenCalledWith('c1');
   });
 

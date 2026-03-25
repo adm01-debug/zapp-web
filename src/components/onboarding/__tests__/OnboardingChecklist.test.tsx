@@ -2,17 +2,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-// Mock supabase
+// Build a chain mock factory that we can recreate per test
+function makeChain() {
+  const chain: any = {};
+  chain.select = vi.fn().mockReturnValue(chain);
+  chain.eq = vi.fn().mockReturnValue(chain);
+  chain.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+  chain.limit = vi.fn().mockResolvedValue({ data: [], error: null });
+  chain.insert = vi.fn().mockResolvedValue({ error: null });
+  return chain;
+}
+
+let currentChain = makeChain();
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      }),
-    }),
+    from: vi.fn(() => currentChain),
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }),
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
@@ -35,8 +40,9 @@ import { OnboardingChecklist } from '../OnboardingChecklist';
 
 describe('OnboardingChecklist', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     localStorage.clear();
+    // Reset the chain for each test
+    currentChain = makeChain();
   });
 
   it('renders checklist title after loading', async () => {
@@ -46,7 +52,7 @@ describe('OnboardingChecklist', () => {
     });
   });
 
-  it('shows step count', async () => {
+  it('shows step count text', async () => {
     render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText(/de \d+ passos concluídos/)).toBeInTheDocument();
@@ -57,8 +63,8 @@ describe('OnboardingChecklist', () => {
     render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText('Complete seu perfil')).toBeInTheDocument();
-      expect(screen.getByText('Conecte seu WhatsApp')).toBeInTheDocument();
     });
+    expect(screen.getByText('Conecte seu WhatsApp')).toBeInTheDocument();
   });
 
   it('renders step descriptions', async () => {
@@ -85,32 +91,11 @@ describe('OnboardingChecklist', () => {
     expect(onNavigate).toHaveBeenCalledWith('agents');
   });
 
-  it('calls onDismiss and saves to localStorage when dismissed', async () => {
-    const onDismiss = vi.fn();
-    render(<OnboardingChecklist onDismiss={onDismiss} />);
-    await waitFor(() => {
-      expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
-    });
-
-    // Find dismiss button (X icon button at the top)
-    const buttons = screen.getAllByRole('button');
-    // The last X-style buttons are dismiss and collapse
-    const dismissButton = buttons.find(b => {
-      // The dismiss button in CardHeader
-      return b.className.includes('h-8') && b.className.includes('w-8');
-    });
-    // Click the last icon button (dismiss)
-    if (dismissButton) {
-      fireEvent.click(dismissButton);
-    }
-  });
-
-  it('renders compact variant', async () => {
+  it('renders compact variant with progress info', async () => {
     render(<OnboardingChecklist compact />);
     await waitFor(() => {
       expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
     });
-    // Compact shows progress bar inline
     expect(screen.getByText(/passos concluídos/)).toBeInTheDocument();
   });
 
@@ -118,28 +103,34 @@ describe('OnboardingChecklist', () => {
     localStorage.setItem('checklist_dismissed_u1', 'true');
     const { container } = render(<OnboardingChecklist />);
     await waitFor(() => {
-      // Should render nothing
-      expect(container.querySelector('.relative')).not.toBeInTheDocument();
+      expect(container.textContent).toBe('');
     });
   });
 
-  it('has progress bar', async () => {
+  it('has progress bar element', async () => {
     render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
     });
-    // Progress component should be rendered
     const progressBar = document.querySelector('[role="progressbar"]');
     expect(progressBar).toBeInTheDocument();
   });
 
-  it('renders sparkles icon', async () => {
+  it('renders SVG icons', async () => {
     const { container } = render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
     });
-    // SVG icon should be present
-    const svg = container.querySelector('svg');
-    expect(svg).toBeInTheDocument();
+    const svgs = container.querySelectorAll('svg');
+    expect(svgs.length).toBeGreaterThan(0);
+  });
+
+  it('renders card container', async () => {
+    const { container } = render(<OnboardingChecklist />);
+    await waitFor(() => {
+      expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
+    });
+    const card = container.querySelector('.rounded-xl');
+    expect(card).toBeInTheDocument();
   });
 });
