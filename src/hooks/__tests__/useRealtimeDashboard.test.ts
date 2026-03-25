@@ -32,6 +32,26 @@ vi.mock('@/lib/logger', () => ({
     info: vi.fn(),
     warn: vi.fn(),
   }),
+  createLogger: () => ({
+    error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  }),
+}));
+
+const mockSubscribe = vi.fn();
+const mockUnsubscribe = vi.fn();
+const mockUnsubscribeAll = vi.fn();
+const mockGetActiveCount = vi.fn().mockReturnValue(0);
+
+vi.mock('@/hooks/useSubscriptionManager', () => ({
+  useSubscriptionManager: () => ({
+    subscribe: mockSubscribe,
+    unsubscribe: mockUnsubscribe,
+    unsubscribeAll: mockUnsubscribeAll,
+    getActiveCount: mockGetActiveCount,
+  }),
 }));
 
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
@@ -72,25 +92,28 @@ describe('useRealtimeDashboard', () => {
 
   it('subscribes to realtime channel on mount', () => {
     renderHook(() => useRealtimeDashboard());
-    expect(mockSupabaseChannel).toHaveBeenCalledWith('dashboard-realtime');
-    expect(mockChannel.on).toHaveBeenCalled();
-    expect(mockChannel.subscribe).toHaveBeenCalled();
+    expect(mockSubscribe).toHaveBeenCalled();
   });
 
   it('cleans up channel and intervals on unmount', () => {
     const { unmount } = renderHook(() => useRealtimeDashboard());
     unmount();
-    expect(mockRemoveChannel).toHaveBeenCalledWith(mockChannel);
+    expect(mockUnsubscribeAll).toHaveBeenCalled();
   });
 
   it('subscribes to messages INSERT, contacts INSERT, and messages UPDATE', () => {
     renderHook(() => useRealtimeDashboard());
-    expect(mockChannel.on).toHaveBeenCalledTimes(3);
+    expect(mockSubscribe).toHaveBeenCalledTimes(3);
 
-    const calls = mockChannel.on.mock.calls;
-    expect(calls[0][1]).toEqual(expect.objectContaining({ event: 'INSERT', table: 'messages' }));
-    expect(calls[1][1]).toEqual(expect.objectContaining({ event: 'INSERT', table: 'contacts' }));
-    expect(calls[2][1]).toEqual(expect.objectContaining({ event: 'UPDATE', table: 'messages' }));
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ channelName: 'dashboard-messages-insert', table: 'messages', event: 'INSERT' })
+    );
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ channelName: 'dashboard-contacts-insert', table: 'contacts', event: 'INSERT' })
+    );
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ channelName: 'dashboard-messages-update', table: 'messages', event: 'UPDATE' })
+    );
   });
 
   it('returns state object with all expected properties', () => {
@@ -107,10 +130,12 @@ describe('useRealtimeDashboard', () => {
     expect(keys).toContain('isConnected');
   });
 
-  it('sets isConnected to true when subscription callback fires', () => {
-    // The subscribe callback fires synchronously with 'SUBSCRIBED'
+  it('sets isConnected to true after initial data fetch', async () => {
     const { result } = renderHook(() => useRealtimeDashboard());
-    // isConnected becomes true synchronously from the subscribe mock
+    // Advance a small amount of time to let microtasks (async fetch) resolve
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10);
+    });
     expect(result.current.isConnected).toBe(true);
   });
 
@@ -127,7 +152,9 @@ describe('useRealtimeDashboard', () => {
   it('handles new message INSERT by updating lastMessageAt', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
 
-    const insertHandler = mockChannel.on.mock.calls[0][2];
+    // Extract the messages INSERT callback from mockSubscribe calls
+    const insertCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-messages-insert');
+    const insertHandler = insertCall[0].callback;
     act(() => {
       insertHandler({ new: { id: 'new1', sender: 'contact', created_at: new Date().toISOString() } });
     });
@@ -139,7 +166,8 @@ describe('useRealtimeDashboard', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
 
     const initialUnread = result.current.unreadMessages;
-    const insertHandler = mockChannel.on.mock.calls[0][2];
+    const insertCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-messages-insert');
+    const insertHandler = insertCall[0].callback;
     act(() => {
       insertHandler({ new: { id: 'new1', sender: 'contact' } });
     });
@@ -151,7 +179,8 @@ describe('useRealtimeDashboard', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
 
     const initialUnread = result.current.unreadMessages;
-    const insertHandler = mockChannel.on.mock.calls[0][2];
+    const insertCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-messages-insert');
+    const insertHandler = insertCall[0].callback;
     act(() => {
       insertHandler({ new: { id: 'new1', sender: 'agent' } });
     });
@@ -163,7 +192,8 @@ describe('useRealtimeDashboard', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
 
     const initial = result.current.newContactsToday;
-    const contactInsertHandler = mockChannel.on.mock.calls[1][2];
+    const contactCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-contacts-insert');
+    const contactInsertHandler = contactCall[0].callback;
     act(() => {
       contactInsertHandler({ new: { id: 'contact1' } });
     });
@@ -175,13 +205,15 @@ describe('useRealtimeDashboard', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
 
     // First add unread
-    const insertHandler = mockChannel.on.mock.calls[0][2];
+    const insertCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-messages-insert');
+    const insertHandler = insertCall[0].callback;
     act(() => {
       insertHandler({ new: { id: 'new1', sender: 'contact' } });
     });
 
     const afterInsert = result.current.unreadMessages;
-    const updateHandler = mockChannel.on.mock.calls[2][2];
+    const updateCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-messages-update');
+    const updateHandler = updateCall[0].callback;
     act(() => {
       updateHandler({ new: { is_read: true }, old: { is_read: false } });
     });
@@ -192,7 +224,8 @@ describe('useRealtimeDashboard', () => {
   it('does not go below zero unread messages', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
 
-    const updateHandler = mockChannel.on.mock.calls[2][2];
+    const updateCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-messages-update');
+    const updateHandler = updateCall[0].callback;
     act(() => {
       updateHandler({ new: { is_read: true }, old: { is_read: false } });
     });
@@ -230,7 +263,8 @@ describe('useRealtimeDashboard', () => {
   it('messagesPerMinute resets after interval tick', () => {
     const { result } = renderHook(() => useRealtimeDashboard());
 
-    const insertHandler = mockChannel.on.mock.calls[0][2];
+    const insertCall = mockSubscribe.mock.calls.find((c: any) => c[0].channelName === 'dashboard-messages-insert');
+    const insertHandler = insertCall[0].callback;
     act(() => {
       insertHandler({ new: { id: 'new1', sender: 'agent' } });
       insertHandler({ new: { id: 'new2', sender: 'agent' } });

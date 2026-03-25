@@ -50,6 +50,26 @@ vi.mock('@/lib/logger', () => ({
     info: vi.fn(),
     warn: vi.fn(),
   }),
+  createLogger: () => ({
+    error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  }),
+}));
+
+const mockSubscribe = vi.fn();
+const mockUnsubscribe = vi.fn();
+const mockUnsubscribeAll = vi.fn();
+const mockGetActiveCount = vi.fn().mockReturnValue(0);
+
+vi.mock('@/hooks/useSubscriptionManager', () => ({
+  useSubscriptionManager: () => ({
+    subscribe: mockSubscribe,
+    unsubscribe: mockUnsubscribe,
+    unsubscribeAll: mockUnsubscribeAll,
+    getActiveCount: mockGetActiveCount,
+  }),
 }));
 
 vi.mock('@/utils/notificationSounds', () => ({
@@ -176,35 +196,21 @@ describe('useRealtimeMessages', () => {
     expect(result.current.conversations[0].contact.name).toBe('Bob');
   });
 
-  // --- Realtime subscription ---
-  it('subscribes to realtime messages channel', () => {
+  // --- Realtime subscription via subscription manager ---
+  it('subscribes to realtime messages via subscription manager', () => {
     renderHook(() => useRealtimeMessages());
-    expect(mockSupabaseChannel).toHaveBeenCalledWith('messages-realtime');
-    expect(mockChannel.on).toHaveBeenCalledTimes(2);
-  });
-
-  it('subscribes to INSERT events', () => {
-    renderHook(() => useRealtimeMessages());
-    expect(mockChannel.on).toHaveBeenCalledWith(
-      'postgres_changes',
-      expect.objectContaining({ event: 'INSERT', table: 'messages' }),
-      expect.any(Function)
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ channelName: 'messages-realtime-insert', table: 'messages', event: 'INSERT' })
+    );
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ channelName: 'messages-realtime-update', table: 'messages', event: 'UPDATE' })
     );
   });
 
-  it('subscribes to UPDATE events', () => {
-    renderHook(() => useRealtimeMessages());
-    expect(mockChannel.on).toHaveBeenCalledWith(
-      'postgres_changes',
-      expect.objectContaining({ event: 'UPDATE', table: 'messages' }),
-      expect.any(Function)
-    );
-  });
-
-  it('cleans up on unmount', () => {
+  it('cleans up subscriptions on unmount', () => {
     const { unmount } = renderHook(() => useRealtimeMessages());
     unmount();
-    expect(mockChannel.unsubscribe).toHaveBeenCalled();
+    expect(mockUnsubscribeAll).toHaveBeenCalled();
   });
 
   // --- Functions ---

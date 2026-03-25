@@ -28,8 +28,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
+const mockUser = { id: 'u1', email: 'test@test.com' };
+
 vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'u1', email: 'test@test.com' } }),
+  useAuth: () => ({ user: mockUser }),
   AuthProvider: ({ children }: any) => children,
 }));
 
@@ -100,12 +102,11 @@ describe('OnboardingChecklist', () => {
   it('calls onNavigate when step action is clicked', async () => {
     const onNavigate = vi.fn();
     render(<OnboardingChecklist onNavigate={onNavigate} />);
-    let btn: HTMLElement;
     await waitFor(() => {
-      btn = screen.getByText('Completar perfil');
+      const btn = screen.getByText('Completar perfil');
       expect(btn).toBeInTheDocument();
+      fireEvent.click(btn);
     });
-    fireEvent.click(btn!);
     expect(onNavigate).toHaveBeenCalledWith('agents');
   });
 
@@ -129,26 +130,26 @@ describe('OnboardingChecklist', () => {
     render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
+      const progressBar = document.querySelector('[role="progressbar"]');
+      expect(progressBar).toBeInTheDocument();
     });
-    const progressBar = document.querySelector('[role="progressbar"]');
-    expect(progressBar).toBeInTheDocument();
   });
 
   it('renders SVG icons', async () => {
     const { container } = render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
+      const svgs = container.querySelectorAll('svg');
+      expect(svgs.length).toBeGreaterThan(0);
     });
-    const svgs = container.querySelectorAll('svg');
-    expect(svgs.length).toBeGreaterThan(0);
   });
 
   it('renders card container', async () => {
     const { container } = render(<OnboardingChecklist />);
     await waitFor(() => {
       expect(screen.getByText('Configure sua conta')).toBeInTheDocument();
+      const card = container.querySelector('.rounded-xl');
+      expect(card).toBeInTheDocument();
     });
-    const card = container.querySelector('.rounded-xl');
-    expect(card).toBeInTheDocument();
   });
 });
