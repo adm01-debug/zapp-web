@@ -99,9 +99,11 @@ serve(async (req) => {
       opts.body = JSON.stringify(body);
     }
 
-    console.log(`[Evolution API] ${method} ${fullUrl}`);
+    logger.info('Proxying to Evolution API', { method, path, fullUrl });
+    const proxyTimer = logger.startTimer('proxy-request');
     const response = await fetchWithRetry(fullUrl, { ...opts, timeout: 30000, maxRetries: 2, circuitBreakerService: 'evolution' });
     const data = await response.json();
+    proxyTimer.end({ status: response.status, path });
 
     return new Response(JSON.stringify(data), {
       status: response.ok ? 200 : response.status,
@@ -1169,14 +1171,17 @@ serve(async (req) => {
     // =============================================
     // DEFAULT: Unknown action
     // =============================================
+    logger.warn('Unknown action requested', { action });
+    requestTimer.end({ status: 404, action });
     return new Response(JSON.stringify({ error: 'Unknown action', action }), {
       status: 404,
       headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     });
 
   } catch (error: unknown) {
-    console.error('Evolution API error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Evolution API error', { error: message, action });
+    requestTimer.end({ error: true, action });
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },

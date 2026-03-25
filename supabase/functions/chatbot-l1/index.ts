@@ -96,6 +96,18 @@ serve(async (req) => {
       content: m.content,
     }));
 
+    // Check AI response cache (use conversation history + current message for cache key)
+    const cacheMessages = [...conversationHistory, { role: 'user', content: message }];
+    const cacheKey = await generateCacheKey('chatbot-l1', cacheMessages, { kbContext });
+    const cached = await getCachedResponse(supabase, cacheKey);
+    if (cached.hit) {
+      logger.info('Cache HIT for chatbot-l1');
+      requestTimer.end({ status: 'cache_hit' });
+      return new Response(JSON.stringify(cached.response), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "X-Cache": "HIT" },
+      });
+    }
+
     const systemPrompt = `Você é um assistente de atendimento automatizado (Nível 1) via WhatsApp.
 Seu objetivo é resolver dúvidas simples usando a Base de Conhecimento da empresa.
 
@@ -171,23 +183,36 @@ Responda em JSON:
     }
 
     const handled = !result.transfer_to_human;
-    logger.info(handled ? 'Request handled by chatbot' : 'Transferring to human', {
-      handled,
-      confidence: result.confidence,
-      transfer_reason: result.transfer_reason ?? null,
-      matched_article: result.matched_article ?? null,
-    });
-    requestTimer.end({ handled, confidence: result.confidence });
-
-    return new Response(JSON.stringify({
+    const responseBody = {
       handled,
       response: result.response,
       transfer_to_human: result.transfer_to_human || false,
       transfer_reason: result.transfer_reason,
       confidence: result.confidence,
       matched_article: result.matched_article,
-    }), {
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+    };
+
+    // Cache the response (TTL: 1 hour)
+    await setCachedResponse(supabase, {
+      cacheKey,
+      functionName: 'chatbot-l1',
+      model: 'google/gemini-3-flash-preview',
+      requestHash: cacheKey,
+      responseBody,
+      tokenCount: data.usage?.total_tokens,
+      ttlHours: 1,
+    });
+
+    logger.info(handled ? 'Request handled by chatbot' : 'Transferring to human', {
+      handled,
+      confidence: result.confidence,
+      transfer_reason: result.transfer_reason ?? null,
+      matched_article: result.matched_article ?? null,
+    });
+    requestTimer.end({ handled, confidence: result.confidence, cache: 'MISS' });
+
+    return new Response(JSON.stringify(responseBody), {
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "X-Cache": "MISS" },
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

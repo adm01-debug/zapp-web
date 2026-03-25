@@ -64,6 +64,31 @@ serve(async (req) => {
       });
     }
 
+    // Check AI response cache
+    const cacheKey = await generateCacheKey('ai-auto-tag', conversationMessages);
+    const cached = await getCachedResponse(supabase, cacheKey);
+    if (cached.hit) {
+      console.log('Cache HIT for ai-auto-tag');
+      const cachedResult = cached.response;
+
+      // Still save tags to database even on cache hit
+      if (contactId && cachedResult.tags?.length > 0) {
+        await supabase.from('ai_conversation_tags').delete().eq('contact_id', contactId);
+        await supabase.from('ai_conversation_tags').insert(
+          cachedResult.tags.map((t: any) => ({
+            contact_id: contactId,
+            tag_name: t.name,
+            confidence: t.confidence,
+            source: 'ai',
+          }))
+        );
+      }
+
+      return new Response(JSON.stringify(cachedResult), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "X-Cache": "HIT" },
+      });
+    }
+
     const conversationText = conversationMessages
       .map((m: any) => `${m.sender}: ${m.content}`)
       .join('\n');
@@ -127,11 +152,22 @@ Responda APENAS em JSON:
       result = { tags: [], sentiment: 'neutral', summary: '' };
     }
 
+    // Cache the response (TTL: 4 hours)
+    await setCachedResponse(supabase, {
+      cacheKey,
+      functionName: 'ai-auto-tag',
+      model: 'google/gemini-3-flash-preview',
+      requestHash: cacheKey,
+      responseBody: result,
+      tokenCount: data.usage?.total_tokens,
+      ttlHours: 4,
+    });
+
     // Save tags to database
     if (contactId && result.tags?.length > 0) {
       // Remove old AI tags for this contact
       await supabase.from('ai_conversation_tags').delete().eq('contact_id', contactId);
-      
+
       // Insert new ones
       await supabase.from('ai_conversation_tags').insert(
         result.tags.map((t: any) => ({
@@ -144,7 +180,7 @@ Responda APENAS em JSON:
     }
 
     return new Response(JSON.stringify(result), {
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "X-Cache": "MISS" },
     });
   } catch (error: unknown) {
     console.error("Error in ai-auto-tag:", error);

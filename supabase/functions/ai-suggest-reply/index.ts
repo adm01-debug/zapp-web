@@ -46,18 +46,29 @@ serve(async (req) => {
   try {
     const { messages, contactName, context, contactId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
+
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check AI response cache
+    const cacheKey = await generateCacheKey('ai-suggest-reply', messages || [], { contactName, context });
+    const cached = await getCachedResponse(supabase, cacheKey);
+    if (cached.hit) {
+      logger.info('Cache HIT for ai-suggest-reply');
+      requestTimer.end({ status: 'cache_hit' });
+      return new Response(JSON.stringify(cached.response), {
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
+      });
     }
 
     // Fetch Knowledge Base articles for context
     let knowledgeContext = '';
     try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
       const { data: articles } = await supabase
         .from('knowledge_base_articles')
         .select('title, content, category')
@@ -111,7 +122,7 @@ Se houver artigos relevantes, cite informações específicas nas respostas.
 
 Baseado na conversa, gere exatamente 3 sugestões de resposta:
 1. Uma resposta direta e objetiva (use dados da KB se aplicável)
-2. Uma resposta mais empática e detalhada  
+2. Uma resposta mais empática e detalhada
 3. Uma resposta com pergunta de follow-up
 
 Responda APENAS em formato JSON com a seguinte estrutura:
@@ -153,7 +164,7 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       const errorText = await response.text();
       logger.error("AI gateway error", { status: response.status, errorText });
       aiTimer.end({ status: response.status, error: true });
-      
+
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
           status: 429,
@@ -192,9 +203,20 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       };
     }
 
-    requestTimer.end({ status: 'success' });
+    // Cache the response (TTL: 1 hour)
+    await setCachedResponse(supabase, {
+      cacheKey,
+      functionName: 'ai-suggest-reply',
+      model: 'google/gemini-3-flash-preview',
+      requestHash: cacheKey,
+      responseBody: suggestions,
+      tokenCount: data.usage?.total_tokens,
+      ttlHours: 1,
+    });
+
+    requestTimer.end({ status: 'success', cache: 'MISS' });
     return new Response(JSON.stringify(suggestions), {
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "X-Cache": "MISS" },
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
