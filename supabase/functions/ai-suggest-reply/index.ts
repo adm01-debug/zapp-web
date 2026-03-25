@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -17,7 +18,12 @@ function getCorsHeaders(req: Request) {
   };
 }
 
+const logger = createStructuredLogger('ai-suggest-reply');
+
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
@@ -58,6 +64,7 @@ serve(async (req) => {
         .eq('is_published', true)
         .limit(10);
 
+      logger.info('KB articles fetched', { count: articles?.length ?? 0 });
       if (articles && articles.length > 0) {
         knowledgeContext = `\n\nBASE DE CONHECIMENTO DA EMPRESA (use como referência para suas respostas):\n${
           articles.map(a => `[${a.category || 'Geral'}] ${a.title}: ${a.content.substring(0, 500)}`).join('\n---\n')
@@ -87,10 +94,10 @@ serve(async (req) => {
         }
       }
     } catch (e) {
-      console.error("Error fetching knowledge base:", e);
+      logger.error("Error fetching knowledge base", { error: e instanceof Error ? e.message : String(e) });
     }
 
-    console.log("Generating reply suggestions for:", contactName, "with KB context:", knowledgeContext.length > 0);
+    logger.info("Generating reply suggestions", { contactName, hasKBContext: knowledgeContext.length > 0 });
 
     const systemPrompt = `Você é um Copilot de IA especializado em atendimento ao cliente via WhatsApp.
 Seu papel é sugerir respostas profissionais, empáticas e CONTEXTUALIZADAS para agentes de suporte.
@@ -121,6 +128,7 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       content: m.content
     })) || [];
 
+    const aiTimer = logger.startTimer('ai-api-call');
     const response = await fetchWithRetry("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -143,7 +151,8 @@ Responda APENAS em formato JSON com a seguinte estrutura:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      logger.error("AI gateway error", { status: response.status, errorText });
+      aiTimer.end({ status: response.status, error: true });
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
@@ -161,6 +170,7 @@ Responda APENAS em formato JSON com a seguinte estrutura:
     }
 
     const data = await response.json();
+    aiTimer.end({ tokens: data.usage?.total_tokens });
     const content = data.choices?.[0]?.message?.content;
 
     let suggestions;
@@ -172,7 +182,7 @@ Responda APENAS em formato JSON com a seguinte estrutura:
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
-      console.error("Parse error:", parseError);
+      logger.warn("Parse error on AI response, using fallback suggestions");
       suggestions = {
         suggestions: [
           { type: "direct", text: "Entendi sua solicitação. Vou verificar isso para você.", emoji: "✓", source: null },
@@ -182,12 +192,14 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       };
     }
 
+    requestTimer.end({ status: 'success' });
     return new Response(JSON.stringify(suggestions), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
-    console.error("Error in ai-suggest-reply:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    logger.error("Error in ai-suggest-reply", { error: errorMessage });
+    requestTimer.end({ error: true });
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },

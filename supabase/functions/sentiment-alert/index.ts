@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
+import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
+import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -39,23 +41,36 @@ serve(async (req) => {
     });
   }
 
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  let idempotencyKey: string | null = null;
+
   try {
-    const { 
-      contactId, 
-      contactName, 
-      sentimentScore, 
-      previousScore, 
-      analysisId, 
+    const {
+      contactId,
+      contactName,
+      sentimentScore,
+      previousScore,
+      analysisId,
       agentEmail,
       threshold = 30,
       consecutiveRequired = 2
     }: AlertRequest = await req.json();
-    
+
     console.log('Sentiment alert triggered:', { contactId, contactName, sentimentScore, previousScore, threshold, consecutiveRequired });
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Generate idempotency key from contact_id + alert type (analysis ID)
+    idempotencyKey = await generateIdempotencyKey(contactId, 'sentiment_alert', analysisId);
+
+    const { isDuplicate, cachedResponse } = await checkIdempotency(supabase, idempotencyKey, 'sentiment-alert');
+    if (isDuplicate && cachedResponse) {
+      console.log('Duplicate sentiment alert detected, returning cached response');
+      return new Response(JSON.stringify(cachedResponse.body), {
+        status: cachedResponse.status,
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+      });
+    }
 
     // Check for consecutive low sentiment (below user's threshold)
     const { data: recentAnalyses, error: fetchError } = await supabase
@@ -214,21 +229,48 @@ serve(async (req) => {
       }
     }
 
+    const responseBody = {
+      alerted: true,
+      consecutiveLow,
+      emailSent,
+      agentNotified: agentProfile?.name || null,
+      alertDetails,
+    };
+
+    if (idempotencyKey) {
+      await completeIdempotency(supabase, idempotencyKey, 200, responseBody);
+    }
+
     return new Response(
-      JSON.stringify({ 
-        alerted: true,
-        consecutiveLow,
-        emailSent,
-        agentNotified: agentProfile?.name || null,
-        alertDetails,
-      }),
+      JSON.stringify(responseBody),
       { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error processing sentiment alert:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack || '' : '';
+
+    // Mark idempotency as failed
+    if (idempotencyKey) {
+      await failIdempotency(supabase, idempotencyKey);
+    }
+
+    // Enqueue to DLQ for retry
+    try {
+      await enqueueToDeadLetter(supabase, {
+        sourceFunction: 'sentiment-alert',
+        eventType: 'sentiment_alert',
+        payload: { error: errorMsg },
+        errorMessage: errorMsg,
+        errorStack: errorStack,
+      });
+    } catch (dlqError) {
+      console.error('Failed to enqueue to DLQ:', dlqError);
+    }
+
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: errorMsg }),
       { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
   }

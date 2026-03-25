@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
+import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -58,6 +61,11 @@ serve(async (req) => {
     });
   }
 
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  let idempotencyKey: string | null = null;
+
   try {
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY not configured");
@@ -70,6 +78,20 @@ serve(async (req) => {
         JSON.stringify({ error: "Missing required fields: to, subject" }),
         { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
+    }
+
+    // Generate idempotency key from recipient + subject + timestamp (truncated to minute)
+    const recipient = Array.isArray(body.to) ? body.to.sort().join(',') : body.to;
+    const minuteTimestamp = new Date().toISOString().slice(0, 16); // truncate to minute
+    idempotencyKey = await generateIdempotencyKey(recipient, body.subject, minuteTimestamp);
+
+    const { isDuplicate, cachedResponse } = await checkIdempotency(supabase, idempotencyKey, 'send-email');
+    if (isDuplicate && cachedResponse) {
+      console.log('Duplicate email request detected, returning cached response');
+      return new Response(JSON.stringify(cachedResponse.body), {
+        status: cachedResponse.status,
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+      });
     }
 
     const payload: Record<string, unknown> = {
@@ -101,18 +123,56 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error("Resend API error:", data);
+
+      // Enqueue failed email to DLQ for retry
+      await enqueueToDeadLetter(supabase, {
+        sourceFunction: 'send-email',
+        eventType: 'send_email',
+        payload: { to: body.to, subject: body.subject, html: body.html, text: body.text },
+        errorMessage: `Resend API error: ${response.status}`,
+        errorStack: JSON.stringify(data),
+      });
+
+      if (idempotencyKey) {
+        await failIdempotency(supabase, idempotencyKey);
+      }
+
       return new Response(
         JSON.stringify({ error: "Failed to send email", details: data }),
         { status: response.status, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
+    const responseBody = { success: true, id: data.id };
+    if (idempotencyKey) {
+      await completeIdempotency(supabase, idempotencyKey, 200, responseBody);
+    }
+
     return new Response(
-      JSON.stringify({ success: true, id: data.id }),
+      JSON.stringify(responseBody),
       { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error:", error.message);
+
+    // Mark idempotency as failed
+    if (idempotencyKey) {
+      await failIdempotency(supabase, idempotencyKey);
+    }
+
+    // Enqueue to DLQ for retry
+    try {
+      await enqueueToDeadLetter(supabase, {
+        sourceFunction: 'send-email',
+        eventType: 'send_email',
+        payload: { error: error.message },
+        errorMessage: error.message,
+        errorStack: error.stack || '',
+      });
+    } catch (dlqError) {
+      console.error('Failed to enqueue to DLQ:', dlqError);
+    }
+
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }

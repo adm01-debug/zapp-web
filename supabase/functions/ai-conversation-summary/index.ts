@@ -50,7 +50,7 @@ serve(async (req) => {
 
   try {
     const { messages, contactName } = await req.json();
-    
+
     if (!messages || messages.length < 10) {
       return new Response(
         JSON.stringify({ error: 'Conversation must have at least 10 messages for summary' }),
@@ -71,7 +71,8 @@ serve(async (req) => {
     const cacheKey = await generateCacheKey('ai-conversation-summary', messages);
     const cached = await getCachedResponse(supabaseClient, cacheKey);
     if (cached.hit) {
-      console.log('Cache HIT for ai-conversation-summary');
+      logger.info('Cache HIT for ai-conversation-summary');
+      requestTimer.end({ status: 'cache_hit' });
       return new Response(JSON.stringify(cached.response), {
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
       });
@@ -79,7 +80,7 @@ serve(async (req) => {
 
     // Format messages for context
     const conversationText = messages
-      .map((msg: { sender: string; content: string; created_at: string }) => 
+      .map((msg: { sender: string; content: string; created_at: string }) =>
         `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content}`
       )
       .join('\n');
@@ -119,24 +120,24 @@ Responda em português brasileiro de forma clara e objetiva.`;
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { 
-                    type: "string", 
-                    description: "Brief summary of the main topic (max 3 sentences)" 
+                  summary: {
+                    type: "string",
+                    description: "Brief summary of the main topic (max 3 sentences)"
                   },
-                  status: { 
-                    type: "string", 
+                  status: {
+                    type: "string",
                     enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente"],
-                    description: "Current status of the conversation" 
+                    description: "Current status of the conversation"
                   },
-                  keyPoints: { 
-                    type: "array", 
+                  keyPoints: {
+                    type: "array",
                     items: { type: "string" },
-                    description: "Key points discussed (max 5)" 
+                    description: "Key points discussed (max 5)"
                   },
-                  nextSteps: { 
-                    type: "array", 
+                  nextSteps: {
+                    type: "array",
                     items: { type: "string" },
-                    description: "Suggested next steps" 
+                    description: "Suggested next steps"
                   },
                   sentiment: {
                     type: "string",
@@ -168,32 +169,46 @@ Responda em português brasileiro de forma clara e objetiva.`;
         );
       }
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      logger.error('AI gateway error', { status: response.status, errorText });
+      aiTimer.end({ status: response.status, error: true });
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('AI response:', JSON.stringify(data, null, 2));
+    const usage = data.usage;
+    aiTimer.end({ tokens: usage?.total_tokens, promptTokens: usage?.prompt_tokens, completionTokens: usage?.completion_tokens });
 
     // Extract the tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    let resultData;
     if (toolCall?.function?.arguments) {
-      const summaryData = JSON.parse(toolCall.function.arguments);
-      return new Response(
-        JSON.stringify(summaryData),
-        { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      resultData = JSON.parse(toolCall.function.arguments);
+    } else {
+      // Fallback to content if no tool call
+      const content = data.choices?.[0]?.message?.content;
+      resultData = { summary: content, status: 'pendente', keyPoints: [], sentiment: 'neutro' };
     }
 
-    // Fallback to content if no tool call
-    const content = data.choices?.[0]?.message?.content;
+    // Cache the response (TTL: 2 hours)
+    await setCachedResponse(supabaseClient, {
+      cacheKey,
+      functionName: 'ai-conversation-summary',
+      model: 'google/gemini-2.5-flash',
+      requestHash: cacheKey,
+      responseBody: resultData,
+      tokenCount: usage?.total_tokens,
+      ttlHours: 2,
+    });
+
+    requestTimer.end({ status: 'success', cache: 'MISS' });
     return new Response(
-      JSON.stringify({ summary: content, status: 'pendente', keyPoints: [], sentiment: 'neutro' }),
-      { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      JSON.stringify(resultData),
+      { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'MISS' } }
     );
 
   } catch (error) {
-    console.error('Error generating summary:', error);
+    logger.error('Error generating summary', { error: error instanceof Error ? error.message : 'Unknown error' });
+    requestTimer.end({ error: true });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }

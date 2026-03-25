@@ -142,6 +142,7 @@ serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           timeout: 30000,
           maxRetries: 3,
+          circuitBreakerService: 'bitrix',
           body: JSON.stringify({
             filter: filters || {},
             select: ['ID', 'NAME', 'LAST_NAME', 'EMAIL', 'PHONE', 'COMPANY_ID', 'POST']
@@ -196,6 +197,7 @@ serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           timeout: 30000,
           maxRetries: 3,
+          circuitBreakerService: 'bitrix',
           body: JSON.stringify({
             fields: {
               NAME: data?.name,
@@ -220,6 +222,7 @@ serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           timeout: 30000,
           maxRetries: 3,
+          circuitBreakerService: 'bitrix',
           body: JSON.stringify({
             fields: {
               TITLE: data?.title || `Lead WhatsApp - ${data?.contactName}`,
@@ -255,6 +258,7 @@ serve(async (req) => {
         headers: { 'Content-Type': 'application/json' },
         timeout: 30000,
         maxRetries: 3,
+        circuitBreakerService: 'bitrix',
         body: body ? JSON.stringify(body) : undefined,
       });
 
