@@ -102,8 +102,7 @@ export function WhatsAppFlowsBuilder() {
       description: formDescription || null,
       screens: defaultScreens as unknown,
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-    const { error } = await supabase.from('whatsapp_flows').insert(insertPayload as any);
+    const { error } = await supabase.from('whatsapp_flows').insert(insertPayload as Record<string, unknown>);
 
     if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
     toast({ title: 'Flow criado!' });
@@ -165,8 +164,7 @@ export function WhatsAppFlowsBuilder() {
   const updateFlowScreens = async (screens: FlowScreen[]) => {
     if (!selectedFlow) return;
     setSelectedFlow({ ...selectedFlow, screens });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-    await supabase.from('whatsapp_flows').update({ screens: screens as unknown } as any).eq('id', selectedFlow.id);
+    await supabase.from('whatsapp_flows').update({ screens: screens as unknown as Record<string, unknown> }).eq('id', selectedFlow.id);
   };
 
   // Flow list view

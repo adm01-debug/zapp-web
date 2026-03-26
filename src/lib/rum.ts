@@ -40,7 +40,7 @@ function observeLCP() {
       const entries = list.getEntries();
       const last = entries[entries.length - 1];
       if (last) {
-        push('LCP', last.startTime, { element: (last as any).element?.tagName });
+        push('LCP', last.startTime, { element: (last as unknown as { element?: Element }).element?.tagName });
       }
     });
     observer.observe({ type: 'largest-contentful-paint', buffered: true });
@@ -70,8 +70,9 @@ function observeCLS() {
     let clsValue = 0;
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value ?? 0;
+        const layoutShift = entry as unknown as { hadRecentInput: boolean; value: number };
+        if (!layoutShift.hadRecentInput) {
+          clsValue += layoutShift.value ?? 0;
         }
       }
       push('CLS', clsValue);

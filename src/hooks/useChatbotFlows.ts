@@ -49,8 +49,7 @@ export function useChatbotFlows() {
   const flowsQuery = useQuery({
     queryKey: ['chatbot-flows'],
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
         .select('*')
         .order('created_at', { ascending: false });
@@ -61,8 +60,7 @@ export function useChatbotFlows() {
 
   const createFlow = useMutation({
     mutationFn: async (flow: Partial<ChatbotFlow>) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
         .insert({
           ...flow,
@@ -91,8 +89,7 @@ export function useChatbotFlows() {
       if (updates.edges) payload.edges = JSON.stringify(updates.edges);
       if (updates.variables) payload.variables = JSON.stringify(updates.variables);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
         .update(payload)
         .eq('id', id)
@@ -110,8 +107,7 @@ export function useChatbotFlows() {
 
   const deleteFlow = useMutation({
     mutationFn: async (id: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('chatbot_flows')
         .delete()
         .eq('id', id);
@@ -126,8 +122,7 @@ export function useChatbotFlows() {
 
   const toggleFlow = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('chatbot_flows')
         .update({ is_active })
         .eq('id', id);

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { validateRequired, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -37,7 +38,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceId } = await req.json();
+    const { text, voiceId, model_id } = await req.json();
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
 
     if (!ELEVENLABS_API_KEY) {
@@ -45,8 +46,15 @@ serve(async (req) => {
       throw new Error('ElevenLabs API key not configured');
     }
 
-    if (!text || text.trim() === '') {
-      throw new Error('Text is required');
+    // Input validation
+    try {
+      validateRequired({ text }, ['text']);
+      validateStringLength(text.trim(), 'text', 1, 5000);
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        return validationErrorResponse(e, getCorsHeaders(req));
+      }
+      throw e;
     }
 
     // Default voice: Sarah (friendly, natural)

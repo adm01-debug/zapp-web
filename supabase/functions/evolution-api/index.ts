@@ -4,6 +4,68 @@ import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { validateEnum, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
+
+const ALLOWED_ACTIONS = new Set([
+  // Instance management
+  'create-instance', 'list-instances', 'connect', 'status', 'instance-info',
+  'restart-instance', 'disconnect', 'delete-instance', 'set-presence',
+  // Settings
+  'set-settings', 'get-settings',
+  // Webhooks
+  'set-webhook', 'get-webhook',
+  // Message sending
+  'send-text', 'send-media', 'send-audio', 'send-sticker', 'send-location',
+  'send-contact', 'send-reaction', 'send-poll', 'send-list', 'send-buttons',
+  'send-status', 'send-template', 'mark-read', 'mark-unread', 'archive-chat',
+  'delete-message', 'update-message',
+  // Chat management
+  'find-chats', 'find-messages', 'find-status-messages', 'find-contacts',
+  'check-numbers', 'get-media-base64', 'delete-for-everyone', 'edit-message',
+  // Group management
+  'create-group', 'list-groups', 'group-info', 'group-participants',
+  'update-group-name', 'update-group-description', 'update-participants',
+  'update-group-setting', 'group-invite-code', 'revoke-invite-code',
+  'invite-info', 'accept-invite', 'leave-group', 'update-group-picture',
+  'toggle-ephemeral',
+  // Profile management
+  'fetch-profile', 'update-profile-name', 'update-profile-status',
+  'update-profile-picture', 'remove-profile-picture', 'fetch-profile-picture',
+  'fetch-business-profile', 'update-privacy',
+  // Labels
+  'find-labels', 'handle-label',
+  // Chatwoot integration
+  'set-chatwoot', 'get-chatwoot', 'delete-chatwoot',
+  // Typebot integration
+  'set-typebot', 'get-typebot', 'delete-typebot', 'typebot-sessions',
+  'typebot-change-status', 'start-typebot',
+  // OpenAI integration
+  'set-openai', 'get-openai', 'delete-openai',
+  // Dify integration
+  'set-dify', 'get-dify', 'delete-dify',
+  // Flowise integration
+  'set-flowise', 'get-flowise', 'delete-flowise',
+  // Evolution Bot integration
+  'set-evolution-bot', 'get-evolution-bot', 'delete-evolution-bot',
+  // RabbitMQ / SQS
+  'set-rabbitmq', 'get-rabbitmq', 'set-sqs', 'get-sqs',
+  // Template management
+  'create-template', 'find-templates', 'delete-template',
+  // Block/unblock
+  'update-block-status',
+  // PTV / Call / Presence
+  'send-ptv', 'offer-call', 'send-chat-presence',
+  // Business catalog
+  'get-catalog', 'get-collections',
+  // Proxy
+  'set-proxy', 'get-proxy',
+  // Evo AI
+  'set-evoai', 'get-evoai', 'delete-evoai',
+  // N8N
+  'set-n8n', 'get-n8n', 'delete-n8n',
+  // Event streaming
+  'set-kafka', 'get-kafka', 'set-nats', 'get-nats', 'set-pusher', 'get-pusher',
+]);
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -72,6 +134,15 @@ serve(async (req) => {
   const pathParts = url.pathname.split('/').filter(Boolean);
   // action is the last segment: e.g. "create-instance", "send-text", etc.
   const action = pathParts[pathParts.length - 1];
+
+  // Validate action is in the allowed whitelist
+  if (!action || !ALLOWED_ACTIONS.has(action)) {
+    logger.warn('Blocked disallowed action', { action });
+    return new Response(
+      JSON.stringify({ error: `Invalid or disallowed action: ${action}` }),
+      { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+    );
+  }
 
   const json = async () => {
     try { return await req.json(); } catch { return {}; }

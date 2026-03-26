@@ -51,6 +51,19 @@ serve(async (req) => {
 
   try {
     const { contactId, message, connectionId } = await req.json();
+
+    // Input validation
+    try {
+      validateRequired({ contactId, message }, ['contactId', 'message']);
+      validateUUID(contactId, 'contactId');
+      validateStringLength(message, 'message', 1, 4096);
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        return validationErrorResponse(e, getCorsHeaders(req));
+      }
+      throw e;
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 

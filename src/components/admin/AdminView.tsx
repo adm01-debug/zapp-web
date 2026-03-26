@@ -114,7 +114,7 @@ export function AdminView() {
 
       if (profiles) {
         const usersWithRoles = profiles.map(profile => {
-          const userRoles = (profile as any).user_roles as { role: string }[] | null;
+          const userRoles = (profile as { user_roles: { role: string }[] | null }).user_roles;
           const role = userRoles && userRoles.length > 0 ? userRoles[0].role : 'agent';
           return {
             ...profile,

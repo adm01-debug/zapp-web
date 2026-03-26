@@ -129,10 +129,9 @@ export function AudioMessagePlayer({
         setTranscriptionStatus('completed');
         
         // Update message in database with transcription
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- columns not in generated types
-        await (supabase as any)
+        await supabase
           .from('messages')
-          .update({ 
+          .update({
             transcription: data.transcription,
             transcription_status: 'completed'
           })

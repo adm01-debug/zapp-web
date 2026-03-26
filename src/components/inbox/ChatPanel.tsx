@@ -101,8 +101,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
           .maybeSingle();
         
         if (contact?.whatsapp_connection_id) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-        const { data: conn } = await (supabase as any)
+        const { data: conn } = await supabase
             .from('whatsapp_connections')
             .select('instance_id')
             .eq('id', contact.whatsapp_connection_id)

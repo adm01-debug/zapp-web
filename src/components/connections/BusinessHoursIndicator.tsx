@@ -31,8 +31,7 @@ export function BusinessHoursIndicator({
       const currentTimeStr = brazilTime.toTimeString().slice(0, 5); // HH:MM
 
       // Fetch business hours for today
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('business_hours')
         .select('*')
         .eq('whatsapp_connection_id', connectionId)
