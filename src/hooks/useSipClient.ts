@@ -214,6 +214,7 @@ export function useSipClient() {
 
       setCurrentNumber(number);
       setCallStatus('calling');
+      callStatusRef.current = 'calling';
       callStartTimeRef.current = new Date().toISOString(); // Capture start time NOW
 
       const inviter = new Inviter(uaRef.current, target, {
@@ -226,9 +227,11 @@ export function useSipClient() {
         switch (state) {
           case SessionState.Establishing:
             setCallStatus('ringing');
+            callStatusRef.current = 'ringing';
             break;
           case SessionState.Established:
             setCallStatus('active');
+            callStatusRef.current = 'active';
             startTimer();
             // Attach remote audio
             const remoteStream = new MediaStream();
@@ -245,10 +248,12 @@ export function useSipClient() {
             break;
           case SessionState.Terminated:
             stopTimer();
-            const wasActive = callStatus === 'active';
-            const wasCalling = callStatus === 'calling' || callStatus === 'ringing';
+            const prevStatus = callStatusRef.current;
+            const wasActive = prevStatus === 'active';
+            const wasCalling = prevStatus === 'calling' || prevStatus === 'ringing';
             
             setCallStatus('ended');
+            callStatusRef.current = 'ended';
             setIsMuted(false);
             
             // Determine proper call status for logging
@@ -257,7 +262,10 @@ export function useSipClient() {
             // Log call with correct data
             logCall(number, logStatus);
             
-            setTimeout(() => setCallStatus('idle'), 2000);
+            setTimeout(() => {
+              setCallStatus('idle');
+              callStatusRef.current = 'idle';
+            }, 2000);
             break;
         }
       });
