@@ -353,41 +353,6 @@ export function useSipClient() {
     }
   }, []);
 
-  const logCall = useCallback(async (number: string, status: string) => {
-    try {
-      // Get profile ID (not auth user ID) for proper FK reference
-      const agentId = await getProfileId();
-      
-      // Try to match number to a contact
-      const contactId = await findContactByPhone(number);
-      
-      // Use the captured start time, not current time
-      const startedAt = callStartTimeRef.current || new Date().toISOString();
-      const endedAt = new Date().toISOString();
-      
-      // Calculate actual duration from timestamps
-      const actualDuration = Math.round(
-        (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000
-      );
-
-      await supabase.from('calls').insert({
-        direction: 'outbound',
-        status: status, // Use proper status: 'ended', 'missed', etc.
-        started_at: startedAt,
-        ended_at: endedAt,
-        duration_seconds: actualDuration,
-        agent_id: agentId, // Now uses profile.id, not auth.users.id
-        contact_id: contactId, // Now matches to contacts table
-        notes: `Chamada para ${number}`,
-      });
-      
-      // Reset start time
-      callStartTimeRef.current = null;
-    } catch (err) {
-      console.error('Error logging call:', err);
-    }
-  }, [getProfileId, findContactByPhone]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
