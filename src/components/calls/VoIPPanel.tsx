@@ -31,11 +31,23 @@ interface Call {
 }
 
 export function VoIPPanel() {
-  const [activeTab, setActiveTab] = useState('history');
+  const [activeTab, setActiveTab] = useState('dialer');
   const [sipEnabled, setSipEnabled] = useState(true);
   const [autoRecord, setAutoRecord] = useState(true);
   const [sipServer, setSipServer] = useState('ip.b24-9441-1552764901.bitrixphone.com');
   const [sipUser, setSipUser] = useState('phone1');
+
+  const sip = useSipClient();
+
+  const handleSipConnect = async () => {
+    const { data } = await supabase.functions.invoke('get-sip-password');
+    const password = data?.password;
+    if (!password) {
+      toast.error('Senha SIP não configurada. Adicione o segredo SIP_PASSWORD.');
+      return;
+    }
+    sip.connect({ server: sipServer, user: sipUser, password });
+  };
 
   const { data: calls = [], isLoading } = useQuery({
     queryKey: ['calls-history'],
