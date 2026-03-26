@@ -322,6 +322,7 @@ export function useSipClient() {
     }
     stopTimer();
     setCallStatus('idle');
+    callStatusRef.current = 'idle';
     setIsMuted(false);
   }, [stopTimer]);
 
