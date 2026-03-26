@@ -192,6 +192,31 @@ export function useSipClient() {
     }
   }, []);
 
+  const logCall = useCallback(async (number: string, status: string) => {
+    try {
+      const agentId = await getProfileId();
+      const contactId = await findContactByPhone(number);
+      const startedAt = callStartTimeRef.current || new Date().toISOString();
+      const endedAt = new Date().toISOString();
+      const actualDuration = Math.round(
+        (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000
+      );
+      await supabase.from('calls').insert({
+        direction: 'outbound',
+        status,
+        started_at: startedAt,
+        ended_at: endedAt,
+        duration_seconds: actualDuration,
+        agent_id: agentId,
+        contact_id: contactId,
+        notes: `Chamada para ${number}`,
+      });
+      callStartTimeRef.current = null;
+    } catch (err) {
+      console.error('Error logging call:', err);
+    }
+  }, [getProfileId, findContactByPhone]);
+
   const makeCall = useCallback(async (number: string) => {
     if (!uaRef.current || sipStatus !== 'registered') {
       toast.error('VoIP não conectado. Conecte-se primeiro.');
