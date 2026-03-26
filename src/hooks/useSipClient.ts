@@ -10,11 +10,13 @@ interface SipConfig {
   server: string;
   user: string;
   password: string;
+  wsPort?: number;
 }
 
 export function useSipClient() {
   const [sipStatus, setSipStatus] = useState<SipStatus>('disconnected');
   const [callStatus, setCallStatus] = useState<CallStatus>('idle');
+  const callStatusRef = useRef<CallStatus>('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [currentNumber, setCurrentNumber] = useState('');
@@ -24,10 +26,18 @@ export function useSipClient() {
   const sessionRef = useRef<Inviter | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+  const callStartTimeRef = useRef<string | null>(null);
+  const profileIdRef = useRef<string | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const maxReconnectAttempts = 5;
 
   // Create or get audio element for remote stream
   const getRemoteAudio = useCallback(() => {
     if (!remoteAudioRef.current) {
+      // Clean up any orphaned elements first
+      const existing = document.getElementById('sip-remote-audio');
+      if (existing) existing.remove();
+      
       const audio = document.createElement('audio');
       audio.id = 'sip-remote-audio';
       audio.autoplay = true;
@@ -55,7 +65,8 @@ export function useSipClient() {
     try {
       setSipStatus('connecting');
 
-      const wsServer = `wss://${config.server}:8089/ws`;
+      const wsPort = config.wsPort || 8089;
+      const wsServer = `wss://${config.server}:${wsPort}/ws`;
       const uri = UserAgent.makeURI(`sip:${config.user}@${config.server}`);
       if (!uri) {
         throw new Error('URI SIP inválida');
@@ -77,6 +88,18 @@ export function useSipClient() {
 
       ua.transport.onDisconnect = () => {
         setSipStatus('disconnected');
+        // Auto-reconnect logic
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectAttemptsRef.current++;
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
+          toast.info(`Conexão perdida. Reconectando em ${delay / 1000}s... (tentativa ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
+          setTimeout(() => {
+            connect(config);
+          }, delay);
+        } else {
+          toast.error('Não foi possível reconectar ao servidor VoIP. Tente conectar manualmente.');
+          reconnectAttemptsRef.current = 0;
+        }
       };
 
       await ua.start();
@@ -86,6 +109,7 @@ export function useSipClient() {
         switch (state) {
           case 'Registered':
             setSipStatus('registered');
+            reconnectAttemptsRef.current = 0;
             toast.success('VoIP conectado!');
             break;
           case 'Unregistered':
@@ -110,21 +134,98 @@ export function useSipClient() {
 
   const disconnect = useCallback(async () => {
     try {
+      reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent auto-reconnect
       if (registererRef.current) {
         await registererRef.current.unregister();
       }
       if (uaRef.current) {
+        // Remove the onDisconnect handler to prevent reconnect
+        uaRef.current.transport.onDisconnect = () => {};
         await uaRef.current.stop();
       }
       setSipStatus('disconnected');
+      reconnectAttemptsRef.current = 0;
     } catch (err) {
       console.error('SIP disconnect error:', err);
     }
   }, []);
 
+  // Match phone number to a contact in the database
+  const findContactByPhone = useCallback(async (phone: string): Promise<string | null> => {
+    try {
+      // Normalize phone: remove spaces, dashes, parentheses
+      const normalized = phone.replace(/[\s\-\(\)]/g, '');
+      
+      const { data } = await supabase
+        .from('contacts')
+        .select('id')
+        .or(`phone.eq.${normalized},phone.eq.+${normalized},phone.ilike.%${normalized.slice(-8)}%`)
+        .limit(1)
+        .maybeSingle();
+      
+      return data?.id || null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Get current user's profile ID
+  const getProfileId = useCallback(async (): Promise<string | null> => {
+    if (profileIdRef.current) return profileIdRef.current;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (data?.id) {
+        profileIdRef.current = data.id;
+      }
+      return data?.id || null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const logCall = useCallback(async (number: string, status: string) => {
+    try {
+      const agentId = await getProfileId();
+      const contactId = await findContactByPhone(number);
+      const startedAt = callStartTimeRef.current || new Date().toISOString();
+      const endedAt = new Date().toISOString();
+      const actualDuration = Math.round(
+        (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000
+      );
+      await supabase.from('calls').insert({
+        direction: 'outbound',
+        status,
+        started_at: startedAt,
+        ended_at: endedAt,
+        duration_seconds: actualDuration,
+        agent_id: agentId,
+        contact_id: contactId,
+        notes: `Chamada para ${number}`,
+      });
+      callStartTimeRef.current = null;
+    } catch (err) {
+      console.error('Error logging call:', err);
+    }
+  }, [getProfileId, findContactByPhone]);
+
   const makeCall = useCallback(async (number: string) => {
     if (!uaRef.current || sipStatus !== 'registered') {
       toast.error('VoIP não conectado. Conecte-se primeiro.');
+      return;
+    }
+
+    // Basic rate limiting: prevent rapid calls
+    if (callStatusRef.current !== 'idle') {
+      toast.error('Já existe uma chamada em andamento.');
       return;
     }
 
@@ -138,6 +239,8 @@ export function useSipClient() {
 
       setCurrentNumber(number);
       setCallStatus('calling');
+      callStatusRef.current = 'calling';
+      callStartTimeRef.current = new Date().toISOString(); // Capture start time NOW
 
       const inviter = new Inviter(uaRef.current, target, {
         sessionDescriptionHandlerOptions: {
@@ -149,9 +252,11 @@ export function useSipClient() {
         switch (state) {
           case SessionState.Establishing:
             setCallStatus('ringing');
+            callStatusRef.current = 'ringing';
             break;
           case SessionState.Established:
             setCallStatus('active');
+            callStatusRef.current = 'active';
             startTimer();
             // Attach remote audio
             const remoteStream = new MediaStream();
@@ -167,12 +272,25 @@ export function useSipClient() {
             }
             break;
           case SessionState.Terminated:
-            setCallStatus('ended');
             stopTimer();
+            const prevStatus = callStatusRef.current;
+            const wasActive = prevStatus === 'active';
+            const wasCalling = prevStatus === 'calling' || prevStatus === 'ringing';
+            
+            setCallStatus('ended');
+            callStatusRef.current = 'ended';
             setIsMuted(false);
-            setTimeout(() => setCallStatus('idle'), 2000);
-            // Log call to database
-            logCall(number);
+            
+            // Determine proper call status for logging
+            const logStatus = wasActive ? 'ended' : wasCalling ? 'missed' : 'ended';
+            
+            // Log call with correct data
+            logCall(number, logStatus);
+            
+            setTimeout(() => {
+              setCallStatus('idle');
+              callStatusRef.current = 'idle';
+            }, 2000);
             break;
         }
       });
@@ -181,10 +299,13 @@ export function useSipClient() {
       sessionRef.current = inviter;
     } catch (err: any) {
       console.error('Call error:', err);
+      // Log failed call attempt
+      logCall(number, 'missed');
       setCallStatus('idle');
+      callStatusRef.current = 'idle';
       toast.error(`Erro ao ligar: ${err.message || 'Falha na chamada'}`);
     }
-  }, [sipStatus, startTimer, stopTimer, getRemoteAudio]);
+  }, [sipStatus, startTimer, stopTimer, getRemoteAudio, logCall]);
 
   const hangUp = useCallback(() => {
     if (sessionRef.current) {
@@ -201,6 +322,7 @@ export function useSipClient() {
     }
     stopTimer();
     setCallStatus('idle');
+    callStatusRef.current = 'idle';
     setIsMuted(false);
   }, [stopTimer]);
 
@@ -231,23 +353,6 @@ export function useSipClient() {
       console.error('DTMF error:', err);
     }
   }, []);
-
-  const logCall = useCallback(async (number: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      await supabase.from('calls').insert({
-        direction: 'outbound',
-        status: 'completed',
-        started_at: new Date().toISOString(),
-        ended_at: new Date().toISOString(),
-        duration_seconds: callDuration,
-        agent_id: user?.id || null,
-        notes: `Chamada para ${number}`,
-      });
-    } catch (err) {
-      console.error('Error logging call:', err);
-    }
-  }, [callDuration]);
 
   // Cleanup on unmount
   useEffect(() => {

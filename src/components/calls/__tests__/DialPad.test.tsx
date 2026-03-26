@@ -195,9 +195,9 @@ describe('DialPad', () => {
     expect(screen.getByText('00:00')).toBeInTheDocument();
   });
 
-  it('formats large durations correctly', () => {
+  it('formats large durations correctly with hours', () => {
     render(<DialPad {...defaultProps} callStatus="active" callDuration={3661} currentNumber="123" />);
-    expect(screen.getByText('61:01')).toBeInTheDocument();
+    expect(screen.getByText('1:01:01')).toBeInTheDocument();
   });
 
   it('displays current number during call', () => {
