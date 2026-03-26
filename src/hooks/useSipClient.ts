@@ -224,7 +224,7 @@ export function useSipClient() {
     }
 
     // Basic rate limiting: prevent rapid calls
-    if (callStatus !== 'idle') {
+    if (callStatusRef.current !== 'idle') {
       toast.error('Já existe uma chamada em andamento.');
       return;
     }
