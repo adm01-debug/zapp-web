@@ -66,6 +66,12 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
+// Polyfill MediaStream for jsdom
+globalThis.MediaStream = class MediaStream {
+  addTrack() {}
+  getTracks() { return []; }
+} as any;
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
