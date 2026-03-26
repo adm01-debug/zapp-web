@@ -115,10 +115,10 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
         query = query.lte('updated_at', dateRange.to.toISOString());
       }
       
-      const { data: contacts, error } = await query;
-      
+      const { data: contacts, error } = await query.limit(2000);
+
       if (error) throw error;
-      
+
       return contacts || [];
     },
     refetchInterval: 60000, // 1 min - contacts data supplemented by realtime

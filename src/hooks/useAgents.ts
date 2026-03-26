@@ -44,7 +44,8 @@ export function useAgents() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .order('name');
+        .order('name')
+        .limit(500);
 
       if (error) throw error;
       return data as AgentProfile[];
@@ -72,14 +73,15 @@ export function useAgents() {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch active chats count per agent
+  // Fetch active chats count per agent (limited query, counted in JS)
   const { data: activeChatsData } = useQuery({
     queryKey: ['agents-active-chats'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('contacts')
         .select('assigned_to')
-        .not('assigned_to', 'is', null);
+        .not('assigned_to', 'is', null)
+        .limit(5000);
 
       if (error) throw error;
 

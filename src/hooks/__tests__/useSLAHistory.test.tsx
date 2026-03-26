@@ -20,7 +20,9 @@ function makeChain(data: any = [], error: any = null) {
   return {
     select: vi.fn().mockReturnValue({
       gte: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({ data, error }),
+        order: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue({ data, error }),
+        }),
       }),
     }),
   };

@@ -55,7 +55,9 @@ vi.mock('@/integrations/supabase/client', () => ({
       if (table === 'campaigns') {
         return {
           select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockCampaigns, error: null }),
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: mockCampaigns, error: null }),
+            }),
           }),
           insert: mockInsert,
           update: mockUpdate,

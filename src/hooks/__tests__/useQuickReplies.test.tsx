@@ -51,9 +51,13 @@ describe('useQuickReplies', () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         or: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockTemplates, error: null }),
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: mockTemplates, error: null }),
+          }),
         }),
-        order: vi.fn().mockResolvedValue({ data: mockTemplates, error: null }),
+        order: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue({ data: mockTemplates, error: null }),
+        }),
       }),
       insert: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -83,7 +87,9 @@ describe('useQuickReplies', () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         or: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: [], error: null }),
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
         }),
       }),
     });

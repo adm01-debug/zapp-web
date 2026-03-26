@@ -157,6 +157,8 @@ export function useMessagesReactions(messageIds: string[]) {
   useEffect(() => {
     if (messageIds.length === 0) return;
 
+    let cancelled = false;
+
     const fetchReactions = async () => {
       setIsLoading(true);
       try {
@@ -165,6 +167,7 @@ export function useMessagesReactions(messageIds: string[]) {
           .select('*')
           .in('message_id', messageIds);
 
+        if (cancelled) return;
         if (error) throw error;
 
         // Group by message_id
@@ -178,13 +181,21 @@ export function useMessagesReactions(messageIds: string[]) {
 
         setReactionsMap(grouped);
       } catch (err) {
-        log.error('Error fetching reactions:', err);
+        if (!cancelled) {
+          log.error('Error fetching reactions:', err);
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchReactions();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messageIds.join(',')]);
 

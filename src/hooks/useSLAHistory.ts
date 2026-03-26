@@ -64,7 +64,8 @@ export const useSLAHistory = (period: HistoryPeriod = '30d') => {
           .from('conversation_sla')
           .select('*')
           .gte('created_at', startDate.toISOString())
-          .order('created_at', { ascending: true });
+          .order('created_at', { ascending: true })
+          .limit(5000);
 
         if (error) throw error;
 

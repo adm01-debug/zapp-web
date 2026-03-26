@@ -201,26 +201,19 @@ serve(async (req) => {
           .single();
 
         if (connection && pushName) {
-          // Upsert: update name/avatar if contact exists, create if not
-          const { data: existing } = await supabase
-            .from('contacts')
-            .select('id')
-            .eq('phone', phone)
-            .eq('whatsapp_connection_id', connection.id)
-            .single();
+          // Upsert contact to prevent race condition duplicates
+          const upsertData: Record<string, unknown> = {
+            phone,
+            name: pushName,
+            whatsapp_connection_id: connection.id,
+            updated_at: new Date().toISOString(),
+          };
+          if (profilePicUrl) upsertData.avatar_url = profilePicUrl;
 
-          if (existing) {
-            const updateData: Record<string, unknown> = { name: pushName, updated_at: new Date().toISOString() };
-            if (profilePicUrl) updateData.avatar_url = profilePicUrl;
-            await supabase.from('contacts').update(updateData).eq('id', existing.id);
-          } else {
-            await supabase.from('contacts').insert({
-              phone,
-              name: pushName,
-              avatar_url: profilePicUrl || null,
-              whatsapp_connection_id: connection.id,
-            });
-          }
+          await supabase.from('contacts').upsert(upsertData, {
+            onConflict: 'phone,whatsapp_connection_id',
+            ignoreDuplicates: false,
+          });
           console.log(`Contact synced: ${phone} (${pushName})`);
         }
       }
@@ -438,21 +431,20 @@ serve(async (req) => {
           .single();
 
         if (connection) {
-          // Find or create contact
-          let { data: contact } = await supabase
+          // Upsert contact to prevent race condition duplicates
+          const { data: upsertedCallContact } = await supabase
             .from('contacts')
+            .upsert({ phone, name: phone, whatsapp_connection_id: connection.id, updated_at: new Date().toISOString() }, {
+              onConflict: 'phone,whatsapp_connection_id',
+              ignoreDuplicates: false,
+            })
             .select('id')
-            .eq('phone', phone)
-            .eq('whatsapp_connection_id', connection.id)
             .single();
 
+          let contact = upsertedCallContact;
           if (!contact) {
-            const { data: newContact } = await supabase
-              .from('contacts')
-              .insert({ phone, name: phone, whatsapp_connection_id: connection.id })
-              .select('id')
-              .single();
-            contact = newContact;
+            const { data: existing } = await supabase.from('contacts').select('id').eq('phone', phone).eq('whatsapp_connection_id', connection.id).single();
+            contact = existing;
           }
 
           if (contact) {
@@ -587,25 +579,31 @@ async function handleIncomingMessage(
 
   if (!connection) return;
 
-  // Find or create contact
-  let { data: contact } = await supabase
+  // Upsert contact to prevent race condition duplicates
+  const { data: upsertedContact } = await supabase
     .from('contacts')
+    .upsert({
+      phone,
+      name: (data.pushName as string) || phone,
+      whatsapp_connection_id: connection.id,
+      updated_at: new Date().toISOString(),
+    }, {
+      onConflict: 'phone,whatsapp_connection_id',
+      ignoreDuplicates: false,
+    })
     .select('id')
-    .eq('phone', phone)
-    .eq('whatsapp_connection_id', connection.id)
     .single();
 
+  // Fallback: if upsert doesn't return (ignoreDuplicates edge case), fetch existing
+  let contact = upsertedContact;
   if (!contact) {
-    const { data: newContact } = await supabase
+    const { data: existingContact } = await supabase
       .from('contacts')
-      .insert({
-        phone,
-        name: (data.pushName as string) || phone,
-        whatsapp_connection_id: connection.id,
-      })
       .select('id')
+      .eq('phone', phone)
+      .eq('whatsapp_connection_id', connection.id)
       .single();
-    contact = newContact;
+    contact = existingContact;
   }
 
   if (!contact) return;

@@ -11,7 +11,7 @@ import { GamificationProvider } from "@/components/gamification/GamificationProv
 import { RealtimeSentimentAlertProvider } from "@/components/notifications/RealtimeSentimentAlertProvider";
 import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProvider";
 import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
-import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
+import { ErrorBoundary, ErrorFallback } from "@/components/errors/ErrorBoundary";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { SkipLinks } from "@/components/ui/skip-link";
 import { LiveRegion } from "@/components/ui/visually-hidden";
@@ -61,7 +61,8 @@ function RouteLoadingFallback() {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 1, // 1 minute
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
       retry: 1,
     },
   },
@@ -115,22 +116,22 @@ function AppContent() {
             <Route path="/auth/callback" element={<SSOCallback />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />
             
-            {/* Protected routes */}
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/queue/:id" element={<ProtectedRoute><QueueDetails /></ProtectedRoute>} />
-            <Route path="/queues/comparison" element={<ProtectedRoute><QueuesComparison /></ProtectedRoute>} />
-            <Route path="/sla" element={<ProtectedRoute><SLADashboard /></ProtectedRoute>} />
-            <Route path="/sla/history" element={<ProtectedRoute><SLAHistory /></ProtectedRoute>} />
-            
+            {/* Protected routes — each wrapped in ErrorBoundary for isolation */}
+            <Route path="/" element={<ProtectedRoute><ErrorBoundary><Index /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/queue/:id" element={<ProtectedRoute><ErrorBoundary><QueueDetails /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/queues/comparison" element={<ProtectedRoute><ErrorBoundary><QueuesComparison /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/sla" element={<ProtectedRoute><ErrorBoundary><SLADashboard /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/sla/history" element={<ProtectedRoute><ErrorBoundary><SLAHistory /></ErrorBoundary></ProtectedRoute>} />
+
             {/* Admin routes */}
             <Route path="/admin/roles" element={
               <ProtectedRoute requiredRoles={['admin']}>
-                <RolesPage />
+                <ErrorBoundary><RolesPage /></ErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/admin/rate-limit" element={
               <ProtectedRoute requiredRoles={['admin']}>
-                <RateLimitDashboard />
+                <ErrorBoundary><RateLimitDashboard /></ErrorBoundary>
               </ProtectedRoute>
             } />
             

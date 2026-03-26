@@ -53,18 +53,22 @@ serve(async (req) => {
     if (action === 'sync-contacts') {
       console.log(`[Sync] Fetching contacts from instance ${instanceName}`);
 
-      // Fetch contacts from Evolution API (POST with where clause)
+      // Fetch contacts from Evolution API (POST with where clause) — with timeout
+      const contactsAbort = new AbortController();
+      const contactsTimeout = setTimeout(() => contactsAbort.abort(), 30000);
       const contactsResponse = await fetch(
         `${evolutionApiUrl}/chat/findContacts/${instanceName}`,
-        { 
-          method: 'POST', 
-          headers: { 
+        {
+          method: 'POST',
+          headers: {
             'Content-Type': 'application/json',
             'apikey': evolutionApiKey,
           },
           body: JSON.stringify({ where: {} }),
+          signal: contactsAbort.signal,
         }
       );
+      clearTimeout(contactsTimeout);
 
       if (!contactsResponse.ok) {
         const errText = await contactsResponse.text();

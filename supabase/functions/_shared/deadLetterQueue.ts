@@ -12,7 +12,11 @@ export interface DeadLetterEntry {
   errorMessage?: string;
   errorStack?: string;
   maxRetries?: number;
+  depth?: number; // Track re-enqueue depth to prevent infinite loops
 }
+
+const MAX_DEPTH = 3; // Maximum re-enqueue depth
+const MAX_BACKOFF_SECONDS = 3600; // Cap backoff at 1 hour
 
 /**
  * Enqueue a failed operation to the dead letter queue.
@@ -23,6 +27,14 @@ export async function enqueueToDeadLetter(
   entry: DeadLetterEntry
 ): Promise<{ id: string } | null> {
   const maxRetries = entry.maxRetries ?? 3;
+  const depth = entry.depth ?? 0;
+
+  // Prevent infinite re-enqueue loops
+  if (depth >= MAX_DEPTH) {
+    console.error(`DLQ depth limit (${MAX_DEPTH}) reached for ${entry.sourceFunction}/${entry.eventType}. Dropping.`);
+    return null;
+  }
+
   // First retry in 60 seconds (2^0 * 60)
   const nextRetryAt = new Date(Date.now() + 60 * 1000).toISOString();
 
@@ -31,7 +43,7 @@ export async function enqueueToDeadLetter(
     .insert({
       source_function: entry.sourceFunction,
       event_type: entry.eventType || null,
-      payload: entry.payload,
+      payload: { ...entry.payload, _dlq_depth: depth },
       error_message: entry.errorMessage || null,
       error_stack: entry.errorStack || null,
       max_retries: maxRetries,
@@ -47,7 +59,7 @@ export async function enqueueToDeadLetter(
     return null;
   }
 
-  console.log(`Enqueued to DLQ: ${data.id} (${entry.sourceFunction}/${entry.eventType})`);
+  console.log(`Enqueued to DLQ: ${data.id} (${entry.sourceFunction}/${entry.eventType}) depth=${depth}`);
   return { id: data.id };
 }
 
@@ -117,8 +129,8 @@ export async function processDeadLetterQueue(
           .eq('id', item.id);
         failed++;
       } else {
-        // Schedule next retry with exponential backoff: 2^retry_count * 60 seconds
-        const backoffSeconds = Math.pow(2, newRetryCount) * 60;
+        // Schedule next retry with exponential backoff: 2^retry_count * 60 seconds, capped
+        const backoffSeconds = Math.min(Math.pow(2, newRetryCount) * 60, MAX_BACKOFF_SECONDS);
         const nextRetryAt = new Date(Date.now() + backoffSeconds * 1000).toISOString();
 
         await supabase

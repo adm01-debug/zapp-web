@@ -49,7 +49,8 @@ export function useQuickReplies() {
         .from('message_templates')
         .select('*')
         .or(`user_id.eq.${user.id},is_global.eq.true`)
-        .order('use_count', { ascending: false });
+        .order('use_count', { ascending: false })
+        .limit(200);
 
       if (error) throw error;
       return data as QuickReplyTemplate[];

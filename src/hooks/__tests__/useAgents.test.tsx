@@ -19,7 +19,9 @@ vi.mock('@/integrations/supabase/client', () => ({
       if (table === 'profiles') {
         return {
           select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
+            }),
           }),
         };
       }
@@ -40,7 +42,9 @@ vi.mock('@/integrations/supabase/client', () => ({
       if (table === 'contacts') {
         return {
           select: vi.fn().mockReturnValue({
-            not: vi.fn().mockResolvedValue({ data: [{ assigned_to: 'p1' }, { assigned_to: 'p1' }], error: null }),
+            not: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: [{ assigned_to: 'p1' }, { assigned_to: 'p1' }], error: null }),
+            }),
           }),
         };
       }

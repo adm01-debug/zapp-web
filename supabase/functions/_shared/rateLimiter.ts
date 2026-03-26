@@ -12,6 +12,7 @@ interface RateLimitEntry {
 }
 
 const store = new Map<string, RateLimitEntry>();
+const MAX_ENTRIES = 10000; // Prevent memory exhaustion from DDoS with varied IPs
 
 // Clean up expired entries periodically
 const CLEANUP_INTERVAL = 60000; // 1 minute
@@ -24,6 +25,16 @@ function cleanup() {
 
   for (const [key, entry] of store.entries()) {
     if (now > entry.resetAt) {
+      store.delete(key);
+    }
+  }
+
+  // Evict oldest entries if store exceeds MAX_ENTRIES
+  if (store.size > MAX_ENTRIES) {
+    const entries = Array.from(store.entries())
+      .sort((a, b) => a[1].resetAt - b[1].resetAt);
+    const toDelete = entries.slice(0, store.size - MAX_ENTRIES);
+    for (const [key] of toDelete) {
       store.delete(key);
     }
   }
