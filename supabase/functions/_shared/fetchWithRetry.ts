@@ -52,9 +52,10 @@ export async function fetchWithRetry(
           const delay = retryAfter
             ? parseInt(retryAfter, 10) * 1000
             : Math.min(baseDelay * Math.pow(2, attempt), 10000);
+          const jitter = Math.random() * 0.3 * delay;
 
           if (attempt < maxRetries - 1) {
-            await new Promise(r => setTimeout(r, delay));
+            await new Promise(r => setTimeout(r, delay + jitter));
             continue;
           }
         }
@@ -71,7 +72,8 @@ export async function fetchWithRetry(
         // Retry on network errors
         if (attempt < maxRetries - 1) {
           const delay = Math.min(baseDelay * Math.pow(2, attempt), 10000);
-          await new Promise(r => setTimeout(r, delay));
+          const jitter = Math.random() * 0.3 * delay;
+          await new Promise(r => setTimeout(r, delay + jitter));
         }
       }
     }

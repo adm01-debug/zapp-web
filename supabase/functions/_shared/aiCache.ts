@@ -14,7 +14,8 @@ import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 export async function generateCacheKey(
   functionName: string,
   messages: any[],
-  options?: Record<string, any>
+  options?: Record<string, any>,
+  model?: string
 ): Promise<string> {
   // Normalize messages: extract only role and content, ignore timestamps and metadata
   const normalizedMessages = (messages || []).map((msg: any) => ({
@@ -26,6 +27,10 @@ export async function generateCacheKey(
     fn: functionName,
     msgs: normalizedMessages,
   };
+
+  if (model) {
+    payload.model = model;
+  }
 
   if (options) {
     payload.opts = options;

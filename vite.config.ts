@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
       "X-Frame-Options": "DENY",
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "strict-origin-when-cross-origin",
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://ai.gateway.lovable.dev https://api.elevenlabs.io https://api.mapbox.com https://events.mapbox.com; frame-src 'none'; object-src 'none'; base-uri 'self';",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.mapbox.com https://api.mapbox.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://ai.gateway.lovable.dev https://api.elevenlabs.io https://api.mapbox.com https://events.mapbox.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';",
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

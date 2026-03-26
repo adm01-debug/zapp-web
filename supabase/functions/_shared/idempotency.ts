@@ -28,7 +28,7 @@ export async function checkIdempotency(
   // Check for existing key (not expired)
   const { data: existing } = await supabase
     .from('idempotency_keys')
-    .select('key, status, response_status, response_body, expires_at')
+    .select('key, status, response_status, response_body, expires_at, created_at')
     .eq('key', key)
     .single();
 
@@ -46,6 +46,17 @@ export async function checkIdempotency(
         },
       };
     } else if (existing.status === 'processing') {
+      // Check if processing entry is stale (older than 5 minutes)
+      const createdAt = new Date(existing.created_at);
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      if (createdAt < fiveMinutesAgo) {
+        // Stale processing entry — allow reprocessing by updating with new timestamp
+        await supabase
+          .from('idempotency_keys')
+          .update({ status: 'processing', created_at: new Date().toISOString() })
+          .eq('key', key);
+        return { isDuplicate: false };
+      }
       // Another request is currently processing this — treat as duplicate to avoid double processing
       return {
         isDuplicate: true,

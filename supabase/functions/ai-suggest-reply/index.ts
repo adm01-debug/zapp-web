@@ -56,7 +56,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check AI response cache
-    const cacheKey = await generateCacheKey('ai-suggest-reply', messages || [], { contactName, context });
+    const cacheKey = await generateCacheKey('ai-suggest-reply', messages || [], { contactName, context }, 'google/gemini-3-flash-preview');
     const cached = await getCachedResponse(supabase, cacheKey);
     if (cached.hit) {
       logger.info('Cache HIT for ai-suggest-reply');

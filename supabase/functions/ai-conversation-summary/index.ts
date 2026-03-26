@@ -68,7 +68,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-    const cacheKey = await generateCacheKey('ai-conversation-summary', messages);
+    const cacheKey = await generateCacheKey('ai-conversation-summary', messages, undefined, 'google/gemini-2.5-flash');
     const cached = await getCachedResponse(supabaseClient, cacheKey);
     if (cached.hit) {
       logger.info('Cache HIT for ai-conversation-summary');

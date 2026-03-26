@@ -74,40 +74,33 @@ export function useRealtimeMessages() {
       setLoading(true);
       setError(null);
 
-      // Fetch contacts with their messages
-      const { data: contacts, error: contactsError } = await supabase
+      // Fetch contacts with their messages in a single query (join)
+      const { data: contactsWithMessages, error: contactsError } = await supabase
         .from('contacts')
-        .select('*')
+        .select('*, messages(*)')
         .order('updated_at', { ascending: false });
 
       if (contactsError) throw contactsError;
 
-      // Fetch recent messages (last 50 per contact, up to 5000 total)
-      // Note: Supabase default row limit is 1000. Fetch in batches if needed.
-      const { data: messages, error: messagesError } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1000);
-
-      if (messagesError) throw messagesError;
-
-      // Group messages by contact
+      // Build conversations from joined data
       const conversationsMap = new Map<string, ConversationWithMessages>();
 
-      contacts?.forEach((contact) => {
-        const contactMessages = (messages?.filter((m) => m.contact_id === contact.id) || []).map((m) => ({
+      contactsWithMessages?.forEach((contact) => {
+        const rawMessages = contact.messages || [];
+        const contactMessages = rawMessages.map((m: any) => ({
           ...m,
           status: (m.status as RealtimeMessage['status']) || 'sent',
           status_updated_at: m.status_updated_at || null,
         }));
-        // Sort ascending (oldest first) for display since we fetched desc
-        contactMessages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-        const unreadCount = contactMessages.filter((m) => !m.is_read && m.sender === 'contact').length;
+        // Sort ascending (oldest first) for display
+        contactMessages.sort((a: RealtimeMessage, b: RealtimeMessage) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        const unreadCount = contactMessages.filter((m: RealtimeMessage) => !m.is_read && m.sender === 'contact').length;
         const lastMessage = contactMessages.length > 0 ? contactMessages[contactMessages.length - 1] : null;
 
+        // Extract contact fields without the nested messages
+        const { messages: _messages, ...contactData } = contact;
         conversationsMap.set(contact.id, {
-          contact,
+          contact: contactData,
           messages: contactMessages,
           unreadCount,
           lastMessage,

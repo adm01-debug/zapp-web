@@ -65,7 +65,7 @@ serve(async (req) => {
     }
 
     // Check AI response cache
-    const cacheKey = await generateCacheKey('ai-auto-tag', conversationMessages);
+    const cacheKey = await generateCacheKey('ai-auto-tag', conversationMessages, undefined, 'google/gemini-3-flash-preview');
     const cached = await getCachedResponse(supabase, cacheKey);
     if (cached.hit) {
       console.log('Cache HIT for ai-auto-tag');
