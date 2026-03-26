@@ -129,9 +129,30 @@ export function VoIPPanel() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-muted/50">
+          <TabsTrigger value="dialer"><Keyboard className="w-4 h-4 mr-1" /> Discador</TabsTrigger>
           <TabsTrigger value="history"><History className="w-4 h-4 mr-1" /> Histórico</TabsTrigger>
           <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-1" /> Configurações</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dialer" className="mt-4">
+          <Card className="border-secondary/30">
+            <CardContent className="p-6">
+              <DialPad
+                sipStatus={sip.sipStatus}
+                callStatus={sip.callStatus}
+                callDuration={sip.callDuration}
+                isMuted={sip.isMuted}
+                currentNumber={sip.currentNumber}
+                onConnect={handleSipConnect}
+                onDisconnect={sip.disconnect}
+                onCall={sip.makeCall}
+                onHangUp={sip.hangUp}
+                onToggleMute={sip.toggleMute}
+                onDTMF={sip.sendDTMF}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="history" className="space-y-3 mt-4">
           {isLoading ? (
