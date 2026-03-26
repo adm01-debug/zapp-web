@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Phone, PhoneCall, PhoneIncoming, PhoneOutgoing, PhoneMissed, Settings, Clock, FileAudio, Mic, History } from 'lucide-react';
+import { Phone, PhoneCall, PhoneIncoming, PhoneOutgoing, PhoneMissed, Settings, Clock, FileAudio, History, Keyboard } from 'lucide-react';
 import { format, formatDuration, intervalToDuration } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { DialPad } from './DialPad';
+import { useSipClient } from '@/hooks/useSipClient';
 
 interface Call {
   id: string;
