@@ -281,9 +281,20 @@ export function VoIPPanel() {
                       className="bg-muted border-border"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Porta WebSocket</Label>
+                    <Input
+                      type="number"
+                      value={wsPort}
+                      onChange={(e) => setWsPort(parseInt(e.target.value) || 8089)}
+                      placeholder="8089"
+                      className="bg-muted border-border"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Porta WSS do servidor SIP (padrão: 8089)</p>
+                  </div>
                   <Button
                     size="sm"
-                    onClick={() => toast.info('Configurações de VoIP salvas. Configure o segredo SIP_PASSWORD para conectar.')}
+                    onClick={saveSipSettings}
                   >
                     Salvar Configurações
                   </Button>
