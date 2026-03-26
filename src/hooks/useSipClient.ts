@@ -277,9 +277,10 @@ export function useSipClient() {
       // Log failed call attempt
       logCall(number, 'missed');
       setCallStatus('idle');
+      callStatusRef.current = 'idle';
       toast.error(`Erro ao ligar: ${err.message || 'Falha na chamada'}`);
     }
-  }, [sipStatus, callStatus, startTimer, stopTimer, getRemoteAudio]);
+  }, [sipStatus, startTimer, stopTimer, getRemoteAudio, logCall]);
 
   const hangUp = useCallback(() => {
     if (sessionRef.current) {
