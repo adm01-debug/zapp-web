@@ -84,9 +84,10 @@ export function InteractiveMessageDisplay({
               </p>
             )}
             {interactive.header.type === 'image' && interactive.header.mediaUrl && (
-              <img 
-                src={interactive.header.mediaUrl} 
-                alt="Header" 
+              <img
+                src={interactive.header.mediaUrl}
+                alt="Header"
+                loading="lazy"
                 className="rounded-lg max-w-full h-auto mb-2"
               />
             )}

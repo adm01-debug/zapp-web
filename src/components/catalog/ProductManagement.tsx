@@ -255,6 +255,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <img
                 src={formData.image_url}
                 alt="Preview"
+                loading="lazy"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
@@ -535,6 +536,7 @@ export const ProductManagement: React.FC = () => {
                             <img
                               src={product.image_url}
                               alt={product.name}
+                              loading="lazy"
                               className="w-full h-full object-cover"
                             />
                           ) : (

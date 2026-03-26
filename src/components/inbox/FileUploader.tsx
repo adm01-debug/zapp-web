@@ -552,6 +552,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
                         <img
                           src={queuedFile.preview}
                           alt="Preview"
+                          loading="lazy"
                           className="w-12 h-12 object-cover rounded"
                         />
                       ) : (
@@ -632,6 +633,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
                       <img
                         src={filePreview.preview}
                         alt="Preview"
+                        loading="lazy"
                         className="w-20 h-20 object-cover rounded-lg"
                       />
                     ) : (

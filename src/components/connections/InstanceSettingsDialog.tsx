@@ -237,7 +237,7 @@ export function InstanceSettingsDialog({
           <TabsContent value="profile" className="space-y-4 mt-4">
             {profile.pictureUrl && (
               <div className="flex justify-center">
-                <img src={profile.pictureUrl} alt="Profile" className="w-24 h-24 rounded-full object-cover border-2 border-primary/30" />
+                <img src={profile.pictureUrl} alt="Profile" loading="lazy" className="w-24 h-24 rounded-full object-cover border-2 border-primary/30" />
               </div>
             )}
             <div>

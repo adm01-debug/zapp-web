@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateL
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
+import { validateEmail, validateRequired, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -73,11 +74,22 @@ serve(async (req) => {
 
     const body: EmailRequest = await req.json();
 
-    if (!body.to || !body.subject) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: to, subject" }),
-        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
-      );
+    // Input validation
+    try {
+      validateRequired(body as unknown as Record<string, unknown>, ['to', 'subject']);
+      const toAddress = Array.isArray(body.to) ? body.to[0] : body.to;
+      if (toAddress) {
+        validateEmail(toAddress, 'to');
+      }
+      validateStringLength(body.subject, 'subject', 1, 200);
+      if (!body.html && !body.text) {
+        throw new ValidationError('Missing required fields: html or text (at least one must be provided)');
+      }
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        return validationErrorResponse(e, getCorsHeaders(req));
+      }
+      throw e;
     }
 
     // Generate idempotency key from recipient + subject + timestamp (truncated to minute)
