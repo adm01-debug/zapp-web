@@ -16,6 +16,7 @@ interface SipConfig {
 export function useSipClient() {
   const [sipStatus, setSipStatus] = useState<SipStatus>('disconnected');
   const [callStatus, setCallStatus] = useState<CallStatus>('idle');
+  const callStatusRef = useRef<CallStatus>('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [currentNumber, setCurrentNumber] = useState('');
