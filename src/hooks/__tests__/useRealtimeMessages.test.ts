@@ -81,15 +81,29 @@ vi.mock('@/utils/notificationSounds', () => ({
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 
 function setupDefaultMocks() {
+  // Build contacts with nested messages for the join query pattern
+  const contactsWithMessages = [
+    { ...mockContacts[0], messages: mockMessages.filter(m => m.contact_id === 'contact1') },
+    { ...mockContacts[1], messages: mockMessages.filter(m => m.contact_id === 'contact2') },
+  ];
+
   mockFrom.mockImplementation((table: string) => {
     if (table === 'contacts') {
       return {
-        select: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockContacts, error: null }),
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: mockContacts[0], error: null }),
-            maybeSingle: vi.fn().mockResolvedValue({ data: mockContacts[0], error: null }),
-          }),
+        select: vi.fn().mockImplementation((selectStr: string) => {
+          if (selectStr && selectStr.includes('messages')) {
+            // Join query: .from('contacts').select('*, messages(*)')
+            return {
+              order: vi.fn().mockResolvedValue({ data: contactsWithMessages, error: null }),
+            };
+          }
+          return {
+            order: vi.fn().mockResolvedValue({ data: mockContacts, error: null }),
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: mockContacts[0], error: null }),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockContacts[0], error: null }),
+            }),
+          };
         }),
       };
     }
@@ -288,16 +302,7 @@ describe('useRealtimeMessages', () => {
       if (table === 'contacts') {
         return {
           select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockContacts, error: null }),
-          }),
-        };
-      }
-      if (table === 'messages') {
-        return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
-            }),
+            order: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
           }),
         };
       }
