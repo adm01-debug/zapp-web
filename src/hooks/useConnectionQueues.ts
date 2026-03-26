@@ -17,8 +17,7 @@ export function useConnectionQueues(connectionId?: string) {
     if (!connectionId) return;
     setIsLoading(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('whatsapp_connection_queues')
         .select('*')
         .eq('whatsapp_connection_id', connectionId);
@@ -38,8 +37,7 @@ export function useConnectionQueues(connectionId?: string) {
   const addQueue = useCallback(async (queueId: string) => {
     if (!connectionId) return;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('whatsapp_connection_queues')
         .insert({ whatsapp_connection_id: connectionId, queue_id: queueId });
       if (error) throw error;
@@ -53,8 +51,7 @@ export function useConnectionQueues(connectionId?: string) {
   const removeQueue = useCallback(async (queueId: string) => {
     if (!connectionId) return;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('whatsapp_connection_queues')
         .delete()
         .eq('whatsapp_connection_id', connectionId)

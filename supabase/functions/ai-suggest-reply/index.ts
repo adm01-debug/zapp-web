@@ -4,6 +4,7 @@ import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { validateUUID, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -45,6 +46,22 @@ serve(async (req) => {
 
   try {
     const { messages, contactName, context, contactId } = await req.json();
+
+    // Input validation
+    try {
+      if (contactId) {
+        validateUUID(contactId, 'contactId');
+      }
+      if (messages && !Array.isArray(messages)) {
+        throw new ValidationError('messages must be an array');
+      }
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        return validationErrorResponse(e, getCorsHeaders(req));
+      }
+      throw e;
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {

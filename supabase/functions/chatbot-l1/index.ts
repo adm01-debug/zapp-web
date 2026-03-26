@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateL
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
+import { validateRequired, validateUUID, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
