@@ -31,10 +31,10 @@ interface Call {
 
 export function VoIPPanel() {
   const [activeTab, setActiveTab] = useState('history');
-  const [sipEnabled, setSipEnabled] = useState(false);
+  const [sipEnabled, setSipEnabled] = useState(true);
   const [autoRecord, setAutoRecord] = useState(true);
-  const [sipServer, setSipServer] = useState('');
-  const [sipUser, setSipUser] = useState('');
+  const [sipServer, setSipServer] = useState('ip.b24-9441-1552764901.bitrixphone.com');
+  const [sipUser, setSipUser] = useState('phone1');
 
   const { data: calls = [], isLoading } = useQuery({
     queryKey: ['calls-history'],
