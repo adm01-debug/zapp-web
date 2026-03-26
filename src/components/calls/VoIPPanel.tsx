@@ -30,14 +30,46 @@ interface Call {
   notes: string | null;
 }
 
+const SIP_SETTINGS_KEY = 'voip_sip_settings';
+
+interface SipSettings {
+  server: string;
+  user: string;
+  wsPort: number;
+  sipEnabled: boolean;
+  autoRecord: boolean;
+}
+
+function loadSipSettings(): SipSettings {
+  try {
+    const stored = localStorage.getItem(SIP_SETTINGS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return {
+    server: 'ip.b24-9441-1552764901.bitrixphone.com',
+    user: 'phone1',
+    wsPort: 8089,
+    sipEnabled: true,
+    autoRecord: true,
+  };
+}
+
 export function VoIPPanel() {
   const [activeTab, setActiveTab] = useState('dialer');
-  const [sipEnabled, setSipEnabled] = useState(true);
-  const [autoRecord, setAutoRecord] = useState(true);
-  const [sipServer, setSipServer] = useState('ip.b24-9441-1552764901.bitrixphone.com');
-  const [sipUser, setSipUser] = useState('phone1');
+  const defaults = loadSipSettings();
+  const [sipEnabled, setSipEnabled] = useState(defaults.sipEnabled);
+  const [autoRecord, setAutoRecord] = useState(defaults.autoRecord);
+  const [sipServer, setSipServer] = useState(defaults.server);
+  const [sipUser, setSipUser] = useState(defaults.user);
+  const [wsPort, setWsPort] = useState(defaults.wsPort);
 
   const sip = useSipClient();
+
+  const saveSipSettings = () => {
+    const settings: SipSettings = { server: sipServer, user: sipUser, wsPort, sipEnabled, autoRecord };
+    localStorage.setItem(SIP_SETTINGS_KEY, JSON.stringify(settings));
+    toast.success('Configurações de VoIP salvas!');
+  };
 
   const handleSipConnect = async () => {
     const { data } = await supabase.functions.invoke('get-sip-password');
@@ -46,7 +78,7 @@ export function VoIPPanel() {
       toast.error('Senha SIP não configurada. Adicione o segredo SIP_PASSWORD.');
       return;
     }
-    sip.connect({ server: sipServer, user: sipUser, password });
+    sip.connect({ server: sipServer, user: sipUser, password, wsPort });
   };
 
   const { data: calls = [], isLoading } = useQuery({
