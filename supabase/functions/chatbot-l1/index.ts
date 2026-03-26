@@ -98,7 +98,7 @@ serve(async (req) => {
 
     // Check AI response cache (use conversation history + current message for cache key)
     const cacheMessages = [...conversationHistory, { role: 'user', content: message }];
-    const cacheKey = await generateCacheKey('chatbot-l1', cacheMessages, { kbContext });
+    const cacheKey = await generateCacheKey('chatbot-l1', cacheMessages, { kbContext }, 'google/gemini-3-flash-preview');
     const cached = await getCachedResponse(supabase, cacheKey);
     if (cached.hit) {
       logger.info('Cache HIT for chatbot-l1');
