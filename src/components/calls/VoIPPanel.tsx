@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Phone, PhoneCall, PhoneIncoming, PhoneOutgoing, PhoneMissed, Settings, Clock, FileAudio, Mic, History } from 'lucide-react';
+import { Phone, PhoneCall, PhoneIncoming, PhoneOutgoing, PhoneMissed, Settings, Clock, FileAudio, History, Keyboard } from 'lucide-react';
 import { format, formatDuration, intervalToDuration } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { DialPad } from './DialPad';
+import { useSipClient } from '@/hooks/useSipClient';
 
 interface Call {
   id: string;
@@ -30,11 +31,23 @@ interface Call {
 }
 
 export function VoIPPanel() {
-  const [activeTab, setActiveTab] = useState('history');
+  const [activeTab, setActiveTab] = useState('dialer');
   const [sipEnabled, setSipEnabled] = useState(true);
   const [autoRecord, setAutoRecord] = useState(true);
   const [sipServer, setSipServer] = useState('ip.b24-9441-1552764901.bitrixphone.com');
   const [sipUser, setSipUser] = useState('phone1');
+
+  const sip = useSipClient();
+
+  const handleSipConnect = async () => {
+    const { data } = await supabase.functions.invoke('get-sip-password');
+    const password = data?.password;
+    if (!password) {
+      toast.error('Senha SIP não configurada. Adicione o segredo SIP_PASSWORD.');
+      return;
+    }
+    sip.connect({ server: sipServer, user: sipUser, password });
+  };
 
   const { data: calls = [], isLoading } = useQuery({
     queryKey: ['calls-history'],
@@ -116,9 +129,30 @@ export function VoIPPanel() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-muted/50">
+          <TabsTrigger value="dialer"><Keyboard className="w-4 h-4 mr-1" /> Discador</TabsTrigger>
           <TabsTrigger value="history"><History className="w-4 h-4 mr-1" /> Histórico</TabsTrigger>
           <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-1" /> Configurações</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dialer" className="mt-4">
+          <Card className="border-secondary/30">
+            <CardContent className="p-6">
+              <DialPad
+                sipStatus={sip.sipStatus}
+                callStatus={sip.callStatus}
+                callDuration={sip.callDuration}
+                isMuted={sip.isMuted}
+                currentNumber={sip.currentNumber}
+                onConnect={handleSipConnect}
+                onDisconnect={sip.disconnect}
+                onCall={sip.makeCall}
+                onHangUp={sip.hangUp}
+                onToggleMute={sip.toggleMute}
+                onDTMF={sip.sendDTMF}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="history" className="space-y-3 mt-4">
           {isLoading ? (
