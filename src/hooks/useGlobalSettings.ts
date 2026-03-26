@@ -19,8 +19,7 @@ export function useGlobalSettings() {
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('global_settings')
         .select('*')
         .order('key');
@@ -43,8 +42,7 @@ export function useGlobalSettings() {
 
   const updateSetting = useCallback(async (key: string, value: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('global_settings')
         .update({ value })
         .eq('key', key);
@@ -58,8 +56,7 @@ export function useGlobalSettings() {
 
   const addSetting = useCallback(async (key: string, value: string, description?: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('global_settings')
         .upsert({ key, value, description }, { onConflict: 'key' })
         .select()

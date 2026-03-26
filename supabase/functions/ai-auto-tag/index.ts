@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
+import { validateUUID, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -39,6 +40,19 @@ serve(async (req) => {
 
   try {
     const { contactId, messages } = await req.json();
+
+    // Input validation
+    try {
+      if (contactId) {
+        validateUUID(contactId, 'contactId');
+      }
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        return validationErrorResponse(e, getCorsHeaders(req));
+      }
+      throw e;
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 

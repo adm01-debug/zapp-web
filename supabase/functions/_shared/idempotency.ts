@@ -3,7 +3,7 @@
  * Uses SHA-256 hashing to generate deterministic keys from request parts.
  */
 
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 
 export interface CachedResponse {
   status: number;

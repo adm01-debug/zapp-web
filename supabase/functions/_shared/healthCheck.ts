@@ -3,7 +3,7 @@
  * Provides lightweight health endpoints for monitoring.
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 
 const startTime = Date.now();
 

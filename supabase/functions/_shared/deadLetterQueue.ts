@@ -3,7 +3,7 @@
  * Provides exponential backoff and structured error tracking.
  */
 
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 
 export interface DeadLetterEntry {
   sourceFunction: string;

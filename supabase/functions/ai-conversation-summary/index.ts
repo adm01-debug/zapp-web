@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateL
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
+import { validateRequired, validateUUID, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -49,13 +50,24 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, contactName } = await req.json();
+    const { contactId, messages, contactName } = await req.json();
 
-    if (!messages || messages.length < 10) {
-      return new Response(
-        JSON.stringify({ error: 'Conversation must have at least 10 messages for summary' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+    // Input validation
+    try {
+      if (contactId) {
+        validateUUID(contactId, 'contactId');
+      }
+      if (!messages || !Array.isArray(messages)) {
+        throw new ValidationError('messages must be a non-empty array');
+      }
+      if (messages.length < 10) {
+        throw new ValidationError('Conversation must have at least 10 messages for summary');
+      }
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        return validationErrorResponse(e, getCorsHeaders(req));
+      }
+      throw e;
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');

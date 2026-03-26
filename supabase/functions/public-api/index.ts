@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { validateRequired, validatePhoneE164, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -68,11 +69,16 @@ Deno.serve(async (req) => {
       if (action === 'send') {
         const { number, message, connectionId } = body;
 
-        if (!number || !message) {
-          return new Response(JSON.stringify({ error: 'number and message are required' }), {
-            status: 400,
-            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-          });
+        // Input validation
+        try {
+          validateRequired({ number, message }, ['number', 'message']);
+          validatePhoneE164(number, 'number');
+          validateStringLength(message, 'message', 1, 4096);
+        } catch (e) {
+          if (e instanceof ValidationError) {
+            return validationErrorResponse(e, getCorsHeaders(req));
+          }
+          throw e;
         }
 
         // Find or use specified connection
