@@ -438,291 +438,403 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) { setStep('configure'); setSelectedContact(null); } }}>
       <DialogContent className="max-w-lg max-h-[85vh] p-0 gap-0">
-        <DialogHeader className="p-5 pb-3">
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <Send className="w-5 h-5 text-primary" />
-            {sendMode === 'variant' && activeGroup
-              ? `Enviar ${activeGroup.colorName}`
-              : 'Enviar Produto'}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {sendMode === 'variant'
-              ? 'Enviando variação específica do produto'
-              : 'Selecione fotos, modelo de mensagem e envie'}
-          </p>
-        </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh]">
-          <div className="px-5 pb-5 space-y-4">
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* STEP 1: Configure product / message                */}
+        {/* ═══════════════════════════════════════════════════ */}
+        {step === 'configure' && (
+          <>
+            <DialogHeader className="p-5 pb-3">
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <Send className="w-5 h-5 text-primary" />
+                {sendMode === 'variant' && activeGroup
+                  ? `Enviar ${activeGroup.colorName}`
+                  : 'Enviar Produto'}
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {sendMode === 'variant'
+                  ? 'Enviando variação específica do produto'
+                  : 'Selecione fotos, modelo de mensagem e envie'}
+              </p>
+            </DialogHeader>
 
-            {/* ─── Mode Selector (Product vs Variant) ──────── */}
-            {variantGroups.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Button
-                    variant={sendMode === 'product' ? 'default' : 'outline'}
-                    size="sm"
-                    className="text-xs h-8 gap-1.5"
-                    onClick={() => {
-                      setSendMode('product');
-                      setSelectedColorGroup(null);
-                      setIsEditing(false);
-                    }}
-                  >
-                    <Package className="w-3.5 h-3.5" />
-                    Produto Completo
-                  </Button>
-                  <Button
-                    variant={sendMode === 'variant' ? 'default' : 'outline'}
-                    size="sm"
-                    className="text-xs h-8 gap-1.5"
-                    onClick={() => {
-                      setSendMode('variant');
-                      if (!selectedColorGroup && variantGroups.length > 0) {
-                        setSelectedColorGroup(variantGroups[0].colorName);
-                      }
-                      setIsEditing(false);
-                    }}
-                  >
-                    <Palette className="w-3.5 h-3.5" />
-                    Variação Específica
-                  </Button>
-                </div>
+            <ScrollArea className="max-h-[60vh]">
+              <div className="px-5 pb-5 space-y-4">
 
-                {/* ─── Variant Color Selector ───────────────── */}
-                {sendMode === 'variant' && (
-                  <div className="space-y-2">
-                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                      Selecione a variação
-                    </span>
-                    <div className="grid grid-cols-2 gap-2">
-                      {variantGroups.map((group) => {
-                        const isSelected = selectedColorGroup === group.colorName;
-                        const groupStock = group.variants.reduce((s, v) => s + v.stock_quantity, 0);
-                        return (
-                          <button
-                            key={group.colorName}
-                            onClick={() => {
-                              setSelectedColorGroup(group.colorName);
-                              setIsEditing(false);
-                            }}
-                            className={cn(
-                              'flex items-center gap-3 p-2.5 rounded-lg border-2 transition-all text-left',
-                              isSelected
-                                ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                                : 'border-border/50 hover:border-border'
-                            )}
-                          >
-                            {/* Color swatch or thumbnail */}
-                            {group.images[0] ? (
-                              <img
-                                src={group.images[0]}
-                                alt={group.colorName}
-                                className="w-10 h-10 rounded-md object-cover flex-shrink-0"
-                                loading="lazy"
-                              />
-                            ) : group.colorHex ? (
-                              <div
-                                className="w-10 h-10 rounded-md border flex-shrink-0"
-                                style={{ backgroundColor: group.colorHex }}
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-                                <Palette className="w-4 h-4 text-muted-foreground" />
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                {group.colorHex && (
+                {/* ─── Mode Selector (Product vs Variant) ──────── */}
+                {variantGroups.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Button
+                        variant={sendMode === 'product' ? 'default' : 'outline'}
+                        size="sm"
+                        className="text-xs h-8 gap-1.5"
+                        onClick={() => {
+                          setSendMode('product');
+                          setSelectedColorGroup(null);
+                          setIsEditing(false);
+                        }}
+                      >
+                        <Package className="w-3.5 h-3.5" />
+                        Produto Completo
+                      </Button>
+                      <Button
+                        variant={sendMode === 'variant' ? 'default' : 'outline'}
+                        size="sm"
+                        className="text-xs h-8 gap-1.5"
+                        onClick={() => {
+                          setSendMode('variant');
+                          if (!selectedColorGroup && variantGroups.length > 0) {
+                            setSelectedColorGroup(variantGroups[0].colorName);
+                          }
+                          setIsEditing(false);
+                        }}
+                      >
+                        <Palette className="w-3.5 h-3.5" />
+                        Variação Específica
+                      </Button>
+                    </div>
+
+                    {/* ─── Variant Color Selector ───────────────── */}
+                    {sendMode === 'variant' && (
+                      <div className="space-y-2">
+                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                          Selecione a variação
+                        </span>
+                        <div className="grid grid-cols-2 gap-2">
+                          {variantGroups.map((group) => {
+                            const isSelected = selectedColorGroup === group.colorName;
+                            const groupStock = group.variants.reduce((s, v) => s + v.stock_quantity, 0);
+                            return (
+                              <button
+                                key={group.colorName}
+                                onClick={() => {
+                                  setSelectedColorGroup(group.colorName);
+                                  setIsEditing(false);
+                                }}
+                                className={cn(
+                                  'flex items-center gap-3 p-2.5 rounded-lg border-2 transition-all text-left',
+                                  isSelected
+                                    ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                                    : 'border-border/50 hover:border-border'
+                                )}
+                              >
+                                {group.images[0] ? (
+                                  <img
+                                    src={group.images[0]}
+                                    alt={group.colorName}
+                                    className="w-10 h-10 rounded-md object-cover flex-shrink-0"
+                                    loading="lazy"
+                                  />
+                                ) : group.colorHex ? (
                                   <div
-                                    className="w-3 h-3 rounded-full border border-border/50 flex-shrink-0"
+                                    className="w-10 h-10 rounded-md border flex-shrink-0"
                                     style={{ backgroundColor: group.colorHex }}
                                   />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                                    <Palette className="w-4 h-4 text-muted-foreground" />
+                                  </div>
                                 )}
-                                <span className="font-medium text-sm truncate">
-                                  {group.colorName}
-                                </span>
-                              </div>
-                              <span className="text-[11px] text-muted-foreground">
-                                {group.images.length} foto{group.images.length !== 1 ? 's' : ''} · {groupStock} un.
-                              </span>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    {group.colorHex && (
+                                      <div
+                                        className="w-3 h-3 rounded-full border border-border/50 flex-shrink-0"
+                                        style={{ backgroundColor: group.colorHex }}
+                                      />
+                                    )}
+                                    <span className="font-medium text-sm truncate">
+                                      {group.colorName}
+                                    </span>
+                                  </div>
+                                  <span className="text-[11px] text-muted-foreground">
+                                    {group.images.length} foto{group.images.length !== 1 ? 's' : ''} · {groupStock} un.
+                                  </span>
+                                </div>
+                                {isSelected && (
+                                  <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {loadingVariants && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                    Carregando variantes...
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* ─── Photo Selection ────────────────────────── */}
+                {visibleImages.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        {selectedImages.size} de {visibleImages.length} fotos selecionadas
+                      </span>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 text-xs"
+                        onClick={() =>
+                          selectedImages.size === visibleImages.length
+                            ? setSelectedImages(new Set())
+                            : setSelectedImages(new Set(visibleImages.map((i) => i.url)))
+                        }
+                      >
+                        {selectedImages.size === visibleImages.length
+                          ? 'Desmarcar todas'
+                          : 'Selecionar todas'}
+                      </Button>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {visibleImages.map((img) => (
+                        <button
+                          key={img.url}
+                          onClick={() => toggleImage(img.url)}
+                          className={cn(
+                            'relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all',
+                            selectedImages.has(img.url)
+                              ? 'border-primary ring-2 ring-primary/30'
+                              : 'border-border/50 opacity-60 hover:opacity-100'
+                          )}
+                        >
+                          <img
+                            src={img.url}
+                            alt={img.label}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          {selectedImages.has(img.url) && (
+                            <div className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                              <Check className="w-3 h-3 text-primary-foreground" />
                             </div>
-                            {isSelected && (
-                              <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                            )}
-                          </button>
-                        );
-                      })}
+                          )}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
-              </div>
-            )}
 
-            {loadingVariants && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                Carregando variantes...
-              </div>
-            )}
+                <Separator />
 
-            <Separator />
-
-            {/* ─── Photo Selection ────────────────────────── */}
-            {visibleImages.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    {selectedImages.size} de {visibleImages.length} fotos selecionadas
-                  </span>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0 text-xs"
-                    onClick={() =>
-                      selectedImages.size === visibleImages.length
-                        ? setSelectedImages(new Set())
-                        : setSelectedImages(new Set(visibleImages.map((i) => i.url)))
-                    }
-                  >
-                    {selectedImages.size === visibleImages.length
-                      ? 'Desmarcar todas'
-                      : 'Selecionar todas'}
-                  </Button>
+                {/* ─── Message Template Selector ──────────────── */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Modelo de mensagem</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs gap-1"
+                      onClick={handleEditMessage}
+                    >
+                      <Pencil className="w-3 h-3" />
+                      {isEditing ? 'Usar modelo' : 'Editar'}
+                    </Button>
+                  </div>
+                  {!isEditing && (
+                    <div className="flex gap-2">
+                      {(Object.keys(templateLabels) as MessageTemplate[]).map((t) => (
+                        <Button
+                          key={t}
+                          variant={template === t ? 'default' : 'outline'}
+                          size="sm"
+                          className="text-xs h-7"
+                          onClick={() => { setTemplate(t); setIsEditing(false); }}
+                        >
+                          {templateLabels[t]}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  {visibleImages.map((img) => (
+
+                {/* ─── Message Preview / Editor ───────────────── */}
+                <div className="rounded-lg bg-muted/50 border border-border/50 p-4">
+                  {isEditing ? (
+                    <Textarea
+                      value={customMessage}
+                      onChange={(e) => setCustomMessage(e.target.value)}
+                      className="min-h-[150px] bg-transparent border-0 p-0 focus-visible:ring-0 resize-none text-sm"
+                      placeholder="Escreva sua mensagem personalizada..."
+                    />
+                  ) : (
+                    <p className="text-sm whitespace-pre-line leading-relaxed">
+                      {message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </ScrollArea>
+
+            {/* ─── Footer: Step 1 ──────────────────────────── */}
+            <div className="p-4 border-t flex items-center gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <div className="flex flex-1">
+                <Button className="flex-1 rounded-r-none gap-2" onClick={handleSend}>
+                  <User className="w-4 h-4" />
+                  Selecionar Contato
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="rounded-l-none border-l border-primary-foreground/20 px-2">
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuLabel>Compartilhar</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={handleCopyDescription}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copiar Descrição
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadImages}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download ({selectedImages.size} fotos)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* STEP 2: Select contact to send                     */}
+        {/* ═══════════════════════════════════════════════════ */}
+        {step === 'selectContact' && (
+          <>
+            <DialogHeader className="p-5 pb-3">
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <User className="w-5 h-5 text-primary" />
+                Selecionar Contato
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Escolha para quem enviar <span className="font-medium text-foreground">{fullProduct.name}</span>
+              </p>
+            </DialogHeader>
+
+            <div className="px-5 space-y-3">
+              {/* Product summary chip */}
+              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 border border-border/30">
+                {fullProduct.primary_image_url && (
+                  <img
+                    src={fullProduct.primary_image_url}
+                    alt={fullProduct.name}
+                    className="w-10 h-10 rounded-md object-cover flex-shrink-0"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{fullProduct.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedImages.size} foto(s) · Modelo {templateLabels[template]}
+                    {sendMode === 'variant' && activeGroup ? ` · ${activeGroup.colorName}` : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar contato por nome ou telefone..."
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                  className="pl-9"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Contact results */}
+            <ScrollArea className="max-h-[45vh] px-5 py-2">
+              {searchingContacts ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : contactResults.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <User className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                  <p className="text-sm">
+                    {contactSearch.trim() ? 'Nenhum contato encontrado' : 'Busque por nome ou telefone'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {contactResults.map((contact) => (
                     <button
-                      key={img.url}
-                      onClick={() => toggleImage(img.url)}
+                      key={contact.id}
+                      onClick={() => setSelectedContact(contact)}
                       className={cn(
-                        'relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all',
-                        selectedImages.has(img.url)
-                          ? 'border-primary ring-2 ring-primary/30'
-                          : 'border-border/50 opacity-60 hover:opacity-100'
+                        'w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left',
+                        selectedContact?.id === contact.id
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                          : 'border-transparent hover:bg-muted/50'
                       )}
                     >
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      {selectedImages.has(img.url) && (
-                        <div className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-3 h-3 text-primary-foreground" />
-                        </div>
+                      <Avatar className="w-10 h-10 flex-shrink-0">
+                        <AvatarImage src={contact.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          {contact.name?.[0] || '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{contact.name}</p>
+                        <p className="text-xs text-muted-foreground">{contact.phone}</p>
+                      </div>
+                      {selectedContact?.id === contact.id && (
+                        <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       )}
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
-
-            <Separator />
-
-            {/* ─── Message Template Selector ──────────────── */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Modelo de mensagem</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  onClick={handleEditMessage}
-                >
-                  <Pencil className="w-3 h-3" />
-                  {isEditing ? 'Usar modelo' : 'Editar'}
-                </Button>
-              </div>
-              {!isEditing && (
-                <div className="flex gap-2">
-                  {(Object.keys(templateLabels) as MessageTemplate[]).map((t) => (
-                    <Button
-                      key={t}
-                      variant={template === t ? 'default' : 'outline'}
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() => { setTemplate(t); setIsEditing(false); }}
-                    >
-                      {templateLabels[t]}
-                    </Button>
-                  ))}
-                </div>
               )}
-            </div>
+            </ScrollArea>
 
-            {/* ─── Message Preview / Editor ───────────────── */}
-            <div className="rounded-lg bg-muted/50 border border-border/50 p-4">
-              {isEditing ? (
-                <Textarea
-                  value={customMessage}
-                  onChange={(e) => setCustomMessage(e.target.value)}
-                  className="min-h-[150px] bg-transparent border-0 p-0 focus-visible:ring-0 resize-none text-sm"
-                  placeholder="Escreva sua mensagem personalizada..."
-                />
-              ) : (
-                <p className="text-sm whitespace-pre-line leading-relaxed">
-                  {message}
-                </p>
-              )}
-            </div>
-          </div>
-        </ScrollArea>
-
-        {/* ─── Footer Actions ──────────────────────────── */}
-        <div className="p-4 border-t flex items-center gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <div className="flex flex-1">
-            <Button className="flex-1 rounded-r-none gap-2" onClick={handleSend}>
-              <Send className="w-4 h-4" />
-              Enviar
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="rounded-l-none border-l border-primary-foreground/20 px-2">
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel>Opções de Envio</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => { setSendMode('product'); setSelectedColorGroup(null); handleSend(); }}>
-                  <Package className="w-4 h-4 mr-2" />
-                  Enviar Produto Simples
-                </DropdownMenuItem>
-                {variantGroups.length > 0 && (
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setSendMode('product');
-                      setSelectedImages(new Set(allImages.map((i) => i.url)));
-                      setTimeout(handleSend, 50);
-                    }}
-                  >
-                    <Palette className="w-4 h-4 mr-2" />
-                    Enviar Todas as Cores
-                  </DropdownMenuItem>
+            {/* ─── Footer: Step 2 ──────────────────────────── */}
+            <div className="p-4 border-t flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setStep('configure')}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Voltar
+              </Button>
+              <Button
+                className="flex-1 gap-2"
+                disabled={!selectedContact || isSending}
+                onClick={handleSendToContact}
+              >
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
                 )}
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Compartilhar</DropdownMenuLabel>
-                <DropdownMenuItem onClick={handleCopyDescription}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copiar Descrição
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownloadImages}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Download ({selectedImages.size} fotos)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+                {isSending
+                  ? 'Enviando...'
+                  : selectedContact
+                    ? `Enviar para ${selectedContact.name}`
+                    : 'Selecione um contato'}
+              </Button>
+            </div>
+          </>
+        )}
+
       </DialogContent>
     </Dialog>
   );
