@@ -398,20 +398,8 @@ export function RealtimeInboxView() {
         .from('audio-messages')
         .getPublicUrl(fileName);
 
-      // Convert blob to base64 using chunked approach to avoid stack overflow
-      const arrayBuffer = await blob.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      const chunkSize = 8192;
-      let binary = '';
-
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
-        for (let j = 0; j < chunk.length; j++) {
-          binary += String.fromCharCode(chunk[j]);
-        }
-      }
-
-      await sendMessage(selectedContactId, '[Áudio]', 'audio', urlData.publicUrl, btoa(binary));
+      // Send via public URL — Evolution API converts WebM to OGG/Opus automatically
+      await sendMessage(selectedContactId, '[Áudio]', 'audio', urlData.publicUrl);
     } catch (err) {
       log.error('Error in handleSendAudio:', err);
       toast.error('Erro ao enviar áudio. Tente novamente.');

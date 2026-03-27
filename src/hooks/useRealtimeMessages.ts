@@ -352,8 +352,8 @@ export function useRealtimeMessages() {
           evolutionBody = {
             instanceName: connection.instance_id,
             number: phone,
-            audio: mediaPayload || mediaUrl,
-            encoding: Boolean(mediaPayload),
+            audio: mediaUrl || mediaPayload,
+            encoding: !mediaUrl && Boolean(mediaPayload),
           };
         } else if (messageType === 'video' && mediaUrl) {
           evolutionAction = 'send-media';
