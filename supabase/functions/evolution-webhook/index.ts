@@ -441,13 +441,28 @@ serve(async (req) => {
             const contact = await getContactByPhone(supabase, phone, connection.id);
 
             if (contact?.id) {
+              // Determine message type from the webhook payload to match accurately
+              const msgPayload = entry.message || baseData.message;
+              let webhookMsgType = 'text';
+              if (isRecord(msgPayload)) {
+                if (msgPayload.imageMessage) webhookMsgType = 'image';
+                else if (msgPayload.videoMessage) webhookMsgType = 'video';
+                else if (msgPayload.audioMessage) webhookMsgType = 'audio';
+                else if (msgPayload.documentMessage || msgPayload.documentWithCaptionMessage) webhookMsgType = 'document';
+                else if (msgPayload.stickerMessage) webhookMsgType = 'sticker';
+              }
+
+              // Only match pending messages created in the last 60 seconds AND same type
+              const recentCutoff = new Date(Date.now() - 60_000).toISOString();
               const { data: pendingMessage } = await supabase
                 .from('messages')
                 .select('id')
                 .eq('contact_id', contact.id)
                 .eq('sender', 'agent')
+                .eq('message_type', webhookMsgType)
                 .is('external_id', null)
-                .order('created_at', { ascending: false })
+                .gte('created_at', recentCutoff)
+                .order('created_at', { ascending: true })
                 .limit(1)
                 .maybeSingle();
 
