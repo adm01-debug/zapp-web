@@ -273,6 +273,15 @@ export const ExternalProductManagement: React.FC = () => {
           </Button>
         </div>
       )}
+
+      {/* Send Product Dialog */}
+      {sendProduct && (
+        <SendProductDialog
+          product={sendProduct}
+          open={!!sendProduct}
+          onOpenChange={(open) => { if (!open) setSendProduct(null); }}
+        />
+      )}
     </div>
   );
 };
