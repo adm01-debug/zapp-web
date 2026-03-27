@@ -32,6 +32,12 @@ export function AudioMessagePlayer({
   const [showTranscription, setShowTranscription] = useState(!!existingTranscription);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // Stable waveform heights - generated once per component instance
+  const waveformHeights = useMemo(
+    () => Array.from({ length: 30 }, () => Math.random() * 60 + 20),
+    []
+  );
+
   // Realtime subscription for transcription updates
   useEffect(() => {
     const channel = supabase
