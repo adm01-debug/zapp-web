@@ -15,9 +15,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Send,
   ChevronDown,
@@ -27,10 +29,22 @@ import {
   Palette,
   Check,
   Pencil,
+  Search,
+  Loader2,
+  ArrowLeft,
+  User,
 } from 'lucide-react';
 import { ExternalProduct, ExternalProductVariant, useExternalCatalog } from '@/hooks/useExternalCatalog';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+
+interface ContactResult {
+  id: string;
+  name: string;
+  phone: string;
+  avatar_url: string | null;
+}
 
 type MessageTemplate = 'formal' | 'informal' | 'promo';
 type SendMode = 'product' | 'variant';
