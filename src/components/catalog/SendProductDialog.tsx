@@ -392,10 +392,9 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
         // Update message with external_id from API response
         const externalId = apiResult?.key?.id || null;
         if (dbResult?.id && externalId) {
-          supabase.from('messages')
+          await supabase.from('messages')
             .update({ external_id: externalId, status: 'sent' })
-            .eq('id', dbResult.id)
-            .then(() => {});
+            .eq('id', dbResult.id);
         }
       }
 
