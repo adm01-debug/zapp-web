@@ -67,7 +67,8 @@ export function AudioMessagePlayer({
     if (!audio) return;
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
+      const d = audio.duration;
+      setDuration(isFinite(d) && !isNaN(d) ? d : 0);
     };
 
     const handleTimeUpdate = () => {
