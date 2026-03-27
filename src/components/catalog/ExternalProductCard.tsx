@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,7 +24,7 @@ import {
   Box,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ExternalProduct } from '@/hooks/useExternalCatalog';
+import { ExternalProduct, useExternalCatalog } from '@/hooks/useExternalCatalog';
 
 interface ExternalProductCardProps {
   product: ExternalProduct;
@@ -34,6 +34,35 @@ interface ExternalProductCardProps {
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  e.currentTarget.style.display = 'none';
+  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+  if (fallback) fallback.style.display = 'flex';
+};
+
+const ProductImage: React.FC<{ src: string | null; alt: string; iconSize?: string }> = ({ src, alt, iconSize = 'w-6 h-6' }) => (
+  <>
+    {src ? (
+      <>
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={handleImageError}
+        />
+        <div className="w-full h-full items-center justify-center hidden">
+          <Package className={`${iconSize} text-muted-foreground`} />
+        </div>
+      </>
+    ) : (
+      <div className="w-full h-full flex items-center justify-center">
+        <Package className={`${iconSize} text-muted-foreground`} />
+      </div>
+    )}
+  </>
+);
 
 export const ExternalProductCard: React.FC<ExternalProductCardProps> = ({
   product,
@@ -49,13 +78,7 @@ export const ExternalProductCard: React.FC<ExternalProductCardProps> = ({
         className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border/30 hover:border-primary/30 transition-colors"
       >
         <div className="w-14 h-14 rounded-md overflow-hidden bg-muted flex-shrink-0">
-          {product.primary_image_url ? (
-            <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Package className="w-6 h-6 text-muted-foreground" />
-            </div>
-          )}
+          <ProductImage src={product.primary_image_url} alt={product.name} />
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">{product.name}</h4>
@@ -96,13 +119,7 @@ export const ExternalProductCard: React.FC<ExternalProductCardProps> = ({
       <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300 }}>
         <Card className="overflow-hidden border-border/30 hover:border-primary/30 transition-colors h-full flex flex-col">
           <div className="aspect-square relative bg-muted">
-            {product.primary_image_url ? (
-              <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="w-12 h-12 text-muted-foreground" />
-              </div>
-            )}
+            <ProductImage src={product.primary_image_url} alt={product.name} iconSize="w-12 h-12" />
             {product.is_stockout && (
               <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                 <Badge variant="destructive">Esgotado</Badge>
@@ -176,64 +193,76 @@ interface ProductDetailDialogProps {
 }
 
 function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDetailDialogProps) {
+  const { fetchProduct } = useExternalCatalog();
+  const [fullProduct, setFullProduct] = useState<ExternalProduct>(product);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
+  useEffect(() => {
+    if (open && !product.variants?.length) {
+      setLoadingVariants(true);
+      fetchProduct(product.id).then((p) => {
+        if (p) setFullProduct(p);
+      }).finally(() => setLoadingVariants(false));
+    } else {
+      setFullProduct(product);
+    }
+  }, [open, product.id]);
+
+  const displayProduct = fullProduct;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] p-0">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-lg leading-tight">{product.name}</DialogTitle>
+          <DialogTitle className="text-lg leading-tight">{displayProduct.name}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh]">
           <div className="p-6 pt-4 space-y-5">
             {/* Image + Basic Info */}
             <div className="flex gap-4">
               <div className="w-40 h-40 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                {product.primary_image_url ? (
-                  <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="w-10 h-10 text-muted-foreground" />
-                  </div>
-                )}
+                <ProductImage src={displayProduct.primary_image_url} alt={displayProduct.name} iconSize="w-10 h-10" />
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex flex-wrap gap-1.5">
-                  {product.categories && <Badge variant="secondary">{product.categories.name}</Badge>}
-                  {product.brand && <Badge variant="outline">{product.brand}</Badge>}
-                  {product.is_kit && <Badge className="bg-accent text-accent-foreground">Kit</Badge>}
-                  {product.allows_personalization && <Badge variant="outline" className="border-primary/50 text-primary">Personalização</Badge>}
+                  {displayProduct.categories && <Badge variant="secondary">{displayProduct.categories.name}</Badge>}
+                  {displayProduct.brand && <Badge variant="outline">{displayProduct.brand}</Badge>}
+                  {displayProduct.is_kit && <Badge className="bg-accent text-accent-foreground">Kit</Badge>}
+                  {displayProduct.allows_personalization && <Badge variant="outline" className="border-primary/50 text-primary">Personalização</Badge>}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Preço de venda:</span>
-                    <p className="font-bold text-primary text-lg">{formatPrice(product.sale_price)}</p>
+                    <p className="font-bold text-primary text-lg">{formatPrice(displayProduct.sale_price)}</p>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Preço de custo:</span>
-                    <p className="font-semibold">{formatPrice(product.cost_price)}</p>
-                  </div>
+                  {displayProduct.suggested_price && displayProduct.suggested_price !== displayProduct.sale_price && (
+                    <div>
+                      <span className="text-muted-foreground">Preço sugerido:</span>
+                      <p className="font-semibold">{formatPrice(displayProduct.suggested_price)}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <Tag className="w-4 h-4 text-muted-foreground" />
-                  <span>SKU: <strong>{product.sku}</strong></span>
+                  <span>SKU: <strong>{displayProduct.sku}</strong></span>
                 </div>
-                {product.is_stockout ? (
+                {displayProduct.is_stockout ? (
                   <Badge variant="destructive">Sem estoque</Badge>
                 ) : (
                   <Badge variant="outline" className="text-success border-success/50">
-                    {product.stock_quantity} em estoque
+                    {displayProduct.stock_quantity} em estoque
                   </Badge>
                 )}
               </div>
             </div>
 
             {/* Description */}
-            {(product.description || product.short_description) && (
+            {(displayProduct.description || displayProduct.short_description) && (
               <>
                 <Separator />
                 <div>
                   <h4 className="font-semibold text-sm mb-1">Descrição</h4>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {product.description || product.short_description}
+                    {displayProduct.description || displayProduct.short_description}
                   </p>
                 </div>
               </>
@@ -242,64 +271,64 @@ function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDet
             {/* Technical Details */}
             <Separator />
             <div className="grid grid-cols-2 gap-3 text-sm">
-              {product.dimensions_display && (
+              {displayProduct.dimensions_display && (
                 <div className="flex items-start gap-2">
                   <Ruler className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground block text-xs">Dimensões</span>
-                    <span>{product.dimensions_display}</span>
+                    <span>{displayProduct.dimensions_display}</span>
                   </div>
                 </div>
               )}
-              {product.weight_g != null && product.weight_g > 0 && (
+              {displayProduct.weight_g != null && displayProduct.weight_g > 0 && (
                 <div className="flex items-start gap-2">
                   <Weight className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground block text-xs">Peso</span>
-                    <span>{product.weight_g >= 1000 ? `${(product.weight_g / 1000).toFixed(2)} kg` : `${product.weight_g} g`}</span>
+                    <span>{displayProduct.weight_g >= 1000 ? `${(displayProduct.weight_g / 1000).toFixed(2)} kg` : `${displayProduct.weight_g} g`}</span>
                   </div>
                 </div>
               )}
-              {product.origin_country && (
+              {displayProduct.origin_country && (
                 <div className="flex items-start gap-2">
                   <Globe className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground block text-xs">Origem</span>
-                    <span>{product.origin_country}</span>
+                    <span>{displayProduct.origin_country}</span>
                   </div>
                 </div>
               )}
-              {product.lead_time_days != null && (
+              {displayProduct.lead_time_days != null && (
                 <div className="flex items-start gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground block text-xs">Prazo</span>
-                    <span>{product.lead_time_days} dias úteis</span>
+                    <span>{displayProduct.lead_time_days} dias úteis</span>
                   </div>
                 </div>
               )}
-              {product.min_quantity != null && (
+              {displayProduct.min_quantity != null && (
                 <div className="flex items-start gap-2">
                   <Layers className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground block text-xs">Qtd. mínima</span>
-                    <span>{product.min_quantity} un.</span>
+                    <span>{displayProduct.min_quantity} un.</span>
                   </div>
                 </div>
               )}
-              {product.ncm_code && (
+              {displayProduct.ncm_code && (
                 <div className="flex items-start gap-2">
                   <Box className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground block text-xs">NCM</span>
-                    <span>{product.ncm_code}</span>
+                    <span>{displayProduct.ncm_code}</span>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Colors */}
-            {product.colors && product.colors.length > 0 && (
+            {displayProduct.colors && displayProduct.colors.length > 0 && (
               <>
                 <Separator />
                 <div>
@@ -307,7 +336,7 @@ function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDet
                     <Palette className="w-4 h-4" /> Cores disponíveis
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
-                    {product.colors.map((color) => (
+                    {displayProduct.colors.map((color) => (
                       <Badge key={color} variant="outline" className="text-xs">{color}</Badge>
                     ))}
                   </div>
@@ -316,16 +345,21 @@ function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDet
             )}
 
             {/* Variants */}
-            {product.variants && product.variants.length > 0 && (
+            {loadingVariants ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                Carregando variantes...
+              </div>
+            ) : displayProduct.variants && displayProduct.variants.length > 0 ? (
               <>
                 <Separator />
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Variantes ({product.variants.length})</h4>
+                  <h4 className="font-semibold text-sm mb-2">Variantes ({displayProduct.variants.length})</h4>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {product.variants.map((v) => (
+                    {displayProduct.variants.map((v) => (
                       <div key={v.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50 text-sm">
                         {v.selected_thumbnail && (
-                          <img src={v.selected_thumbnail} alt={v.name} className="w-10 h-10 rounded object-cover" />
+                          <img src={v.selected_thumbnail} alt={v.name} className="w-10 h-10 rounded object-cover" loading="lazy" onError={handleImageError} />
                         )}
                         {v.color_hex && (
                           <div className="w-5 h-5 rounded-full border" style={{ backgroundColor: v.color_hex }} />
@@ -340,22 +374,22 @@ function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDet
                   </div>
                 </div>
               </>
-            )}
+            ) : null}
 
             {/* Supplier */}
-            {product.suppliers && (
+            {displayProduct.suppliers && (
               <>
                 <Separator />
                 <div className="text-sm">
                   <span className="text-muted-foreground">Fornecedor: </span>
-                  <strong>{product.suppliers.name}</strong>
+                  <strong>{displayProduct.suppliers.name}</strong>
                 </div>
               </>
             )}
 
             {/* Send button */}
             {onSend && (
-              <Button className="w-full" onClick={() => { onSend(product); onOpenChange(false); }} disabled={product.is_stockout}>
+              <Button className="w-full" onClick={() => { onSend(displayProduct); onOpenChange(false); }} disabled={displayProduct.is_stockout}>
                 <Send className="w-4 h-4 mr-2" />
                 Enviar produto no chat
               </Button>

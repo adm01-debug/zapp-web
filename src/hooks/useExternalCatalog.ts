@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { createLogger } from '@/lib/logger';
 
@@ -38,7 +39,6 @@ export interface ExternalProduct {
   description: string | null;
   short_description: string | null;
   sku: string;
-  cost_price: number;
   sale_price: number;
   suggested_price: number | null;
   stock_quantity: number;
@@ -79,77 +79,107 @@ export interface CatalogFilters {
   ascending?: boolean;
 }
 
+// ─── API invoke ───────────────────────────────────────────────
+async function invokeAction<T = unknown>(action: string, params: Record<string, unknown> = {}): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('promogifts-catalog', {
+    body: { action, params },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data as T;
+}
+
 // ─── Hook ─────────────────────────────────────────────────────
 export function useExternalCatalog() {
-  const [products, setProducts] = useState<ExternalProduct[]>([]);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [categories, setCategories] = useState<ExternalCategory[]>([]);
-  const [suppliers, setSuppliers] = useState<ExternalSupplier[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [filters, setFilters] = useState<CatalogFilters>({});
 
-  const invoke = useCallback(async (action: string, params: Record<string, unknown> = {}) => {
-    const { data, error } = await supabase.functions.invoke('promogifts-catalog', {
-      body: { action, params },
+  // Products query with caching (5 min stale, 10 min gc)
+  const productsQuery = useQuery({
+    queryKey: ['external-catalog', 'products', filters],
+    queryFn: async () => {
+      const result = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>('list_products', filters as Record<string, unknown>);
+      logger.info('Products fetched', { count: result.data?.length, total: result.meta?.total, ms: result.meta?.duration_ms });
+      return result;
+    },
+    enabled: false, // Manual fetch
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  // Categories (cached aggressively - rarely change)
+  const categoriesQuery = useQuery({
+    queryKey: ['external-catalog', 'categories'],
+    queryFn: async () => {
+      const result = await invokeAction<{ data: ExternalCategory[] }>('list_categories');
+      return result.data || [];
+    },
+    enabled: false,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
+
+  // Suppliers (cached aggressively)
+  const suppliersQuery = useQuery({
+    queryKey: ['external-catalog', 'suppliers'],
+    queryFn: async () => {
+      const result = await invokeAction<{ data: ExternalSupplier[] }>('list_suppliers');
+      return result.data || [];
+    },
+    enabled: false,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
+
+  const fetchProducts = useCallback(async (newFilters: CatalogFilters = {}) => {
+    setFilters(newFilters);
+    // Invalidate and refetch with new filters
+    await queryClient.fetchQuery({
+      queryKey: ['external-catalog', 'products', newFilters],
+      queryFn: async () => {
+        const result = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>('list_products', newFilters as Record<string, unknown>);
+        logger.info('Products fetched', { count: result.data?.length, total: result.meta?.total });
+        return result;
+      },
+      staleTime: 5 * 60 * 1000,
     });
-    if (error) throw new Error(error.message);
-    if (data?.error) throw new Error(data.error);
-    return data;
-  }, []);
-
-  const fetchProducts = useCallback(async (filters: CatalogFilters = {}) => {
-    const params = { ...filters } as Record<string, unknown>;
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await invoke('list_products', params);
-      setProducts(result.data || []);
-      setTotalProducts(result.meta?.total ?? 0);
-      logger.info('Products fetched', { count: result.data?.length, total: result.meta?.total });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro ao buscar produtos';
-      setError(msg);
-      logger.error('Failed to fetch products', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [invoke]);
+  }, [queryClient]);
 
   const fetchProduct = useCallback(async (productId: string): Promise<ExternalProduct | null> => {
     try {
-      const result = await invoke('get_product', { product_id: productId });
-      return result.data || null;
+      const result = await queryClient.fetchQuery({
+        queryKey: ['external-catalog', 'product', productId],
+        queryFn: async () => {
+          const res = await invokeAction<{ data: ExternalProduct }>('get_product', { product_id: productId });
+          return res.data || null;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+      return result;
     } catch (err) {
       logger.error('Failed to fetch product', err);
       return null;
     }
-  }, [invoke]);
+  }, [queryClient]);
 
   const fetchCategories = useCallback(async () => {
-    try {
-      const result = await invoke('list_categories');
-      setCategories(result.data || []);
-    } catch (err) {
-      logger.error('Failed to fetch categories', err);
-    }
-  }, [invoke]);
+    await categoriesQuery.refetch();
+  }, [categoriesQuery]);
 
   const fetchSuppliers = useCallback(async () => {
-    try {
-      const result = await invoke('list_suppliers');
-      setSuppliers(result.data || []);
-    } catch (err) {
-      logger.error('Failed to fetch suppliers', err);
-    }
-  }, [invoke]);
+    await suppliersQuery.refetch();
+  }, [suppliersQuery]);
+
+  // Get data from queries
+  const products = queryClient.getQueryData<{ data: ExternalProduct[]; meta: { total: number } }>(['external-catalog', 'products', filters]);
 
   return {
-    products,
-    totalProducts,
-    categories,
-    suppliers,
-    loading,
-    error,
+    products: products?.data || productsQuery.data?.data || [],
+    totalProducts: products?.meta?.total ?? productsQuery.data?.meta?.total ?? 0,
+    categories: categoriesQuery.data || [],
+    suppliers: suppliersQuery.data || [],
+    loading: productsQuery.isFetching,
+    error: productsQuery.error?.message || null,
     fetchProducts,
     fetchProduct,
     fetchCategories,

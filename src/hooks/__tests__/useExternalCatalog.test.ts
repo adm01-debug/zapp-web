@@ -23,7 +23,6 @@ const mockProduct = (overrides: Partial<ExternalProduct> = {}): ExternalProduct 
   description: 'Caneta de plástico com tinta azul',
   short_description: 'Caneta azul',
   sku: 'CAN-001',
-  cost_price: 1.5,
   sale_price: 3.99,
   suggested_price: 4.50,
   stock_quantity: 5000,
@@ -440,7 +439,7 @@ describe('Type Contracts', () => {
   it('ExternalProduct has all required fields', () => {
     const product = mockProduct();
     const requiredFields: (keyof ExternalProduct)[] = [
-      'id', 'name', 'sku', 'cost_price', 'sale_price', 'stock_quantity',
+      'id', 'name', 'sku', 'sale_price', 'stock_quantity',
       'is_active', 'is_stockout', 'is_kit', 'allows_personalization',
     ];
     for (const field of requiredFields) {
@@ -555,7 +554,7 @@ describe('Edge Function Contract', () => {
 // ═══════════════════════════════════════════════════════════════════
 describe('Data Integrity', () => {
   it('preserves numeric precision on prices', async () => {
-    const product = mockProduct({ cost_price: 17.90, sale_price: 38.49, suggested_price: 44.75 });
+    const product = mockProduct({ sale_price: 38.49, suggested_price: 44.75 });
     setupMockInvoke({
       list_products: { data: [product], meta: { total: 1 } },
     });
@@ -563,7 +562,6 @@ describe('Data Integrity', () => {
     const { result } = renderHook(() => useExternalCatalog());
     await act(async () => { await result.current.fetchProducts(); });
 
-    expect(result.current.products[0].cost_price).toBe(17.90);
     expect(result.current.products[0].sale_price).toBe(38.49);
     expect(result.current.products[0].suggested_price).toBe(44.75);
   });
@@ -667,12 +665,12 @@ describe('Edge Cases & Boundaries', () => {
   });
 
   it('handles product with price = 0', () => {
-    const p = mockProduct({ sale_price: 0, cost_price: 0 });
+    const p = mockProduct({ sale_price: 0 });
     expect(p.sale_price).toBe(0);
   });
 
   it('handles product with very high price', () => {
-    const p = mockProduct({ sale_price: 99999.99, cost_price: 50000 });
+    const p = mockProduct({ sale_price: 99999.99 });
     expect(p.sale_price).toBe(99999.99);
   });
 
@@ -930,13 +928,10 @@ describe('Security Gaps Audit', () => {
     expect(usesEnvVars).toBe(true);
   });
 
-  it('cost_price is exposed to agents - potential security concern', () => {
-    // FINDING: cost_price is visible in the product detail dialog
-    // This may be intentional for sales agents but should be validated
-    const product = mockProduct({ cost_price: 17.90, sale_price: 38.49 });
-    const margin = product.sale_price - product.cost_price;
-    expect(margin).toBeGreaterThan(0);
-    // Note: If cost_price should be hidden from certain roles, RLS or field filtering needed
+  it('cost_price is NOT exposed to agents - security fix applied', () => {
+    // FIXED: cost_price is no longer returned from the edge function
+    const product = mockProduct();
+    expect('cost_price' in product).toBe(false);
   });
 
   it('search input is not sanitized for SQL injection', () => {
