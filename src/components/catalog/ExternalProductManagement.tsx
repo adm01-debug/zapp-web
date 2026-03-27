@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,35 +54,38 @@ export const ExternalProductManagement: React.FC = () => {
   const parentCategories = categories.filter((c) => !c.parent_id);
   const getSubcategories = (parentId: string) => categories.filter((c) => c.parent_id === parentId);
 
-  const doFetch = (overrides: Record<string, unknown> = {}) => {
+  const buildFilters = useCallback((pageOverride?: number): Record<string, unknown> => {
+    const currentPage = pageOverride ?? page;
     const params: Record<string, unknown> = {
       limit: PAGE_SIZE,
-      offset: page * PAGE_SIZE,
+      offset: currentPage * PAGE_SIZE,
       only_in_stock: onlyInStock,
-      ...overrides,
     };
     if (search) params.search = search;
     if (categoryId !== 'all') params.category_id = categoryId;
     if (supplierId !== 'all') params.supplier_id = supplierId;
-    fetchProducts(params);
-  };
+    return params;
+  }, [page, search, categoryId, supplierId, onlyInStock]);
 
+  // Initial load
   useEffect(() => {
     fetchCategories();
     fetchSuppliers();
-    doFetch();
+    fetchProducts(buildFilters());
   }, []);
 
+  // Filter changes - debounced
   useEffect(() => {
     const t = setTimeout(() => {
       setPage(0);
-      doFetch({ offset: 0 });
+      fetchProducts(buildFilters(0));
     }, 300);
     return () => clearTimeout(t);
   }, [search, categoryId, supplierId, onlyInStock]);
 
+  // Page changes
   useEffect(() => {
-    if (page > 0) doFetch();
+    if (page > 0) fetchProducts(buildFilters());
   }, [page]);
 
   const totalPages = Math.ceil(totalProducts / PAGE_SIZE);
@@ -113,7 +116,7 @@ export const ExternalProductManagement: React.FC = () => {
             <Badge variant="secondary">{totalProducts.toLocaleString('pt-BR')} produtos</Badge>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => doFetch()}>
+            <Button variant="outline" size="sm" onClick={() => fetchProducts(buildFilters())}>
               <RefreshCw className="w-4 h-4 mr-1" />
               Atualizar
             </Button>
