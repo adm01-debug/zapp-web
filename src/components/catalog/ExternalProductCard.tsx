@@ -207,10 +207,12 @@ function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDet
                     <span className="text-muted-foreground">Preço de venda:</span>
                     <p className="font-bold text-primary text-lg">{formatPrice(product.sale_price)}</p>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Preço de custo:</span>
-                    <p className="font-semibold">{formatPrice(product.cost_price)}</p>
-                  </div>
+                  {product.suggested_price && product.suggested_price !== product.sale_price && (
+                    <div>
+                      <span className="text-muted-foreground">Preço sugerido:</span>
+                      <p className="font-semibold">{formatPrice(product.suggested_price)}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <Tag className="w-4 h-4 text-muted-foreground" />
