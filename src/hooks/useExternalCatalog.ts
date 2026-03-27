@@ -39,7 +39,6 @@ export interface ExternalProduct {
   short_description: string | null;
   sku: string;
   sale_price: number;
-  sale_price: number;
   suggested_price: number | null;
   stock_quantity: number;
   primary_image_url: string | null;
