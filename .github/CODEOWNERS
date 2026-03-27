@@ -1,0 +1,18 @@
+# Code owners for zapp-web
+# These users/teams will be automatically requested for review
+
+# Default owners for everything
+* @zapp-team
+
+# Security-sensitive files require security team review
+supabase/migrations/ @zapp-team @security-team
+supabase/functions/_shared/jwtVerifier.ts @zapp-team @security-team
+supabase/functions/_shared/corsHandler.ts @zapp-team @security-team
+supabase/functions/_shared/ssrfGuard.ts @zapp-team @security-team
+supabase/functions/_shared/rateLimiter.ts @zapp-team @security-team
+
+# CI/CD changes require DevOps review
+.github/ @zapp-team @devops-team
+
+# Edge Functions
+supabase/functions/ @zapp-team @backend-team

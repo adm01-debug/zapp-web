@@ -42,6 +42,10 @@ verify_jwt = false
 # Auth handled in function: requires Bearer token
 verify_jwt = false
 
+[functions.auto-close-conversations]
+# Cron/scheduler function; auto-closes inactive conversations, no auth required
+verify_jwt = false
+
 [functions.cleanup-ai-cache]
 # Cron/scheduler cleanup function; no auth required
 verify_jwt = false
@@ -98,6 +102,10 @@ verify_jwt = false
 
 [functions.approve-password-reset]
 # Has its own admin authorization check inside
+verify_jwt = false
+
+[functions.campaign-worker]
+# Cron/scheduler function; processes scheduled campaigns via Evolution API
 verify_jwt = false
 
 [functions.dlq-processor]
