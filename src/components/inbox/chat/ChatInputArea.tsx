@@ -82,7 +82,7 @@ interface ChatInputAreaProps {
   onOpenInteractiveBuilder: () => void;
   onOpenSchedule: () => void;
   onOpenLocationPicker: () => void;
-  onSendProduct: (product: Product) => void;
+  onSendProduct: (product: ExternalProduct) => void;
   onSendSticker: (stickerUrl: string) => void;
   onSendAudioMeme: (audioUrl: string) => void;
   onSendCustomEmoji: (emojiUrl: string) => void;
