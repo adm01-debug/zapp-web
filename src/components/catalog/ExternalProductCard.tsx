@@ -24,7 +24,7 @@ import {
   Box,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ExternalProduct } from '@/hooks/useExternalCatalog';
+import { ExternalProduct, useExternalCatalog } from '@/hooks/useExternalCatalog';
 
 interface ExternalProductCardProps {
   product: ExternalProduct;
