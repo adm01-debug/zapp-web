@@ -666,7 +666,7 @@ describe('Edge Cases & Boundaries', () => {
   });
 
   it('handles product with price = 0', () => {
-    const p = mockProduct({ sale_price: 0, cost_price: 0 });
+    const p = mockProduct({ sale_price: 0 });
     expect(p.sale_price).toBe(0);
   });
 
