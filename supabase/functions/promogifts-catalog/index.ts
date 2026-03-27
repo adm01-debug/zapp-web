@@ -116,8 +116,14 @@ Deno.serve(async (req) => {
            suppliers:supplier_id(id, name)`
         )
         .eq("id", product_id)
-        .single();
+        .maybeSingle();
       if (productErr) throw productErr;
+      if (!product) {
+        return new Response(JSON.stringify({ error: "Product not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       // Fetch variants
       const { data: variants, error: varErr } = await extClient
