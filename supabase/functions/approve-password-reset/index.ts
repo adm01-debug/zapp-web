@@ -1,18 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('approve-password-reset');
 
 interface ApproveResetRequest {
   requestId: string;
@@ -22,7 +14,11 @@ interface ApproveResetRequest {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'approve-password-reset', getCorsHeaders(req));
   }
 
   try {
@@ -58,7 +54,7 @@ serve(async (req) => {
 
     const { requestId, action, rejectionReason }: ApproveResetRequest = await req.json();
 
-    console.log(`Processing ${action} for request ${requestId}`);
+    logger.info(`Processing ${action} for request`, { requestId });
 
     // Get the reset request
     const { data: resetRequest, error: fetchError } = await supabaseAdmin
@@ -90,7 +86,7 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      console.log("Password reset request rejected");
+      logger.info("Password reset request rejected", { requestId });
 
       return new Response(
         JSON.stringify({ success: true, message: "Solicitação rejeitada" }),
@@ -112,7 +108,7 @@ serve(async (req) => {
     });
 
     if (resetError) {
-      console.error("Error generating reset link:", resetError);
+      logger.error("Error generating reset link", { error: resetError.message });
       throw new Error("Failed to generate reset link");
     }
 
@@ -131,7 +127,7 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
-    console.log("Password reset approved, link generated");
+    logger.info("Password reset approved, link generated", { requestId });
 
     return new Response(
       JSON.stringify({ 
@@ -152,7 +148,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error("Error in approve-password-reset:", error);
+    logger.error("Error in approve-password-reset", { error: error.message });
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }

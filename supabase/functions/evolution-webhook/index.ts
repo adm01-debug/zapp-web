@@ -4,19 +4,7 @@ import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
-
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 
 interface WebhookPayload {
   event: string;
@@ -36,7 +24,7 @@ serve(async (req) => {
   logger.setRequestContext(req);
 
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
   }
 
   if (isHealthCheck(req)) {

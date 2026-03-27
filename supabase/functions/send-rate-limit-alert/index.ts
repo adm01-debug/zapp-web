@@ -1,18 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('send-rate-limit-alert');
 
 interface RateLimitAlertRequest {
   ip_address: string;
@@ -23,13 +16,17 @@ interface RateLimitAlertRequest {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'send-rate-limit-alert', getCorsHeaders(req));
   }
 
   // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -42,7 +39,7 @@ serve(async (req) => {
 
     const { ip_address, endpoint, request_count, blocked }: RateLimitAlertRequest = await req.json();
 
-    console.log(`Rate limit alert: IP ${ip_address} hit ${endpoint} ${request_count} times. Blocked: ${blocked}`);
+    logger.info(`Rate limit alert: IP ${ip_address} hit ${endpoint} ${request_count} times. Blocked: ${blocked}`);
 
     // Create security alert
     const { error: alertError } = await supabaseClient
@@ -64,7 +61,7 @@ serve(async (req) => {
       });
 
     if (alertError) {
-      console.error("Error creating alert:", alertError);
+      logger.error("Error creating alert", { error: alertError });
       throw alertError;
     }
 
@@ -88,7 +85,7 @@ serve(async (req) => {
         });
 
       if (blockError) {
-        console.error("Error blocking IP:", blockError);
+        logger.error("Error blocking IP", { error: blockError });
       }
     }
 
@@ -116,7 +113,7 @@ serve(async (req) => {
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error in send-rate-limit-alert:", error);
+    logger.error("Error in send-rate-limit-alert", { error: errorMessage });
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { 

@@ -1,19 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('bitrix-api');
 
 interface BitrixRequest {
   action: string;
@@ -26,13 +19,17 @@ interface BitrixRequest {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'bitrix-api', getCorsHeaders(req));
   }
 
   // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -52,7 +49,7 @@ serve(async (req) => {
     }
 
     const { action, entityType, entityId, data, filters }: BitrixRequest = await req.json();
-    console.log(`Bitrix API action: ${action}, entityType: ${entityType}`);
+    logger.info(`Bitrix API action: ${action}, entityType: ${entityType}`);
 
     let endpoint = '';
     let method = 'GET';
@@ -251,7 +248,7 @@ serve(async (req) => {
 
     // Make request to Bitrix API
     if (endpoint) {
-      console.log(`Calling Bitrix: ${BITRIX_WEBHOOK_URL}/${endpoint}`);
+      logger.info(`Calling Bitrix: ${BITRIX_WEBHOOK_URL}/${endpoint}`);
       
       const bitrixResponse = await fetchWithRetry(`${BITRIX_WEBHOOK_URL}/${endpoint}`, {
         method: 'POST',
@@ -263,7 +260,7 @@ serve(async (req) => {
       });
 
       const responseData = await bitrixResponse.json();
-      console.log('Bitrix response:', JSON.stringify(responseData).substring(0, 500));
+      logger.info('Bitrix response', { data: JSON.stringify(responseData).substring(0, 500) });
 
       if (responseData.error) {
         return new Response(
@@ -288,7 +285,7 @@ serve(async (req) => {
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('Bitrix API error:', error);
+    logger.error('Bitrix API error', { error: errorMessage });
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }

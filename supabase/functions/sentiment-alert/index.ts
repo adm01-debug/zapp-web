@@ -3,19 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
-
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
 interface AlertRequest {
   contactId: string;
@@ -28,15 +19,21 @@ interface AlertRequest {
   consecutiveRequired?: number; // User's custom consecutive count (default 2)
 }
 
+const logger = createStructuredLogger('sentiment-alert');
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'sentiment-alert', getCorsHeaders(req));
   }
 
   // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -58,14 +55,14 @@ serve(async (req) => {
       consecutiveRequired = 2
     }: AlertRequest = await req.json();
 
-    console.log('Sentiment alert triggered:', { contactId, contactName, sentimentScore, previousScore, threshold, consecutiveRequired });
+    logger.info('Sentiment alert triggered', { contactId, contactName, sentimentScore, previousScore, threshold, consecutiveRequired });
 
     // Generate idempotency key from contact_id + alert type (analysis ID)
     idempotencyKey = await generateIdempotencyKey(contactId, 'sentiment_alert', analysisId);
 
     const { isDuplicate, cachedResponse } = await checkIdempotency(supabase, idempotencyKey, 'sentiment-alert');
     if (isDuplicate && cachedResponse) {
-      console.log('Duplicate sentiment alert detected, returning cached response');
+      logger.info('Duplicate sentiment alert detected, returning cached response');
       return new Response(JSON.stringify(cachedResponse.body), {
         status: cachedResponse.status,
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
@@ -81,7 +78,7 @@ serve(async (req) => {
       .limit(consecutiveRequired + 1);
 
     if (fetchError) {
-      console.error('Error fetching analyses:', fetchError);
+      logger.error('Error fetching analyses', { error: fetchError.message });
       throw fetchError;
     }
 
@@ -95,7 +92,7 @@ serve(async (req) => {
       }
     }
 
-    console.log('Consecutive low sentiment analyses:', consecutiveLow, 'required:', consecutiveRequired);
+    logger.info('Consecutive low sentiment analyses', { consecutiveLow, consecutiveRequired });
 
     // Only alert if consecutive count meets user's requirement
     if (consecutiveLow < consecutiveRequired) {
@@ -155,7 +152,7 @@ serve(async (req) => {
       });
 
     if (logError) {
-      console.warn('Failed to log alert:', logError);
+      logger.error('Failed to log alert', { error: logError.message });
     }
 
     // If Resend is configured, send email alert
@@ -223,9 +220,9 @@ serve(async (req) => {
         });
 
         emailSent = emailResponse.ok;
-        console.log('Email alert sent:', emailSent);
+        logger.info('Email alert sent', { emailSent });
       } catch (emailError) {
-        console.error('Failed to send email alert:', emailError);
+        logger.error('Failed to send email alert', { error: String(emailError) });
       }
     }
 
@@ -247,7 +244,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error processing sentiment alert:', error);
+    logger.error('Error processing sentiment alert', { error: error instanceof Error ? error.message : 'Unknown error' });
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack || '' : '';
 
@@ -266,7 +263,7 @@ serve(async (req) => {
         errorStack: errorStack,
       });
     } catch (dlqError) {
-      console.error('Failed to enqueue to DLQ:', dlqError);
+      logger.error('Failed to enqueue to DLQ', { error: String(dlqError) });
     }
 
     return new Response(

@@ -1,28 +1,25 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('evolution-sync');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'evolution-sync', getCorsHeaders(req));
   }
 
   // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -51,7 +48,7 @@ serve(async (req) => {
     // 1. SYNC CONTACTS FROM EVOLUTION API
     // =============================================
     if (action === 'sync-contacts') {
-      console.log(`[Sync] Fetching contacts from instance ${instanceName}`);
+      logger.info(`Fetching contacts from instance ${instanceName}`);
 
       // Fetch contacts from Evolution API (POST with where clause) — with timeout
       const contactsAbort = new AbortController();
@@ -76,7 +73,7 @@ serve(async (req) => {
       }
 
       const contacts = await contactsResponse.json();
-      console.log(`[Sync] Fetched ${Array.isArray(contacts) ? contacts.length : 0} contacts`);
+      logger.info(`Fetched ${Array.isArray(contacts) ? contacts.length : 0} contacts`);
 
       if (!Array.isArray(contacts) || contacts.length === 0) {
         return new Response(JSON.stringify({ 
@@ -159,7 +156,7 @@ serve(async (req) => {
             .eq('whatsapp_connection_id', connection.id);
 
           if (updateError) {
-            console.warn(`[Sync] Failed to upsert contact ${phone}:`, updateError.message);
+            logger.error(`Failed to upsert contact ${phone}`, { error: updateError.message });
             skipped++;
             continue;
           }
@@ -168,7 +165,7 @@ serve(async (req) => {
         synced++;
       }
 
-      console.log(`[Sync] Page ${page}: synced ${synced}, skipped ${skipped}`);
+      logger.info(`Page ${page}: synced ${synced}, skipped ${skipped}`);
 
       return new Response(JSON.stringify({
         success: true,
@@ -192,7 +189,7 @@ serve(async (req) => {
         throw new Error('contactPhone is required');
       }
 
-      console.log(`[Sync] Fetching messages for ${contactPhone} from ${instanceName}`);
+      logger.info(`Fetching messages for ${contactPhone} from ${instanceName}`);
 
       const remoteJid = contactPhone.includes('@') ? contactPhone : `${contactPhone}@s.whatsapp.net`;
       
@@ -220,7 +217,7 @@ serve(async (req) => {
       const messagesData = await messagesResponse.json();
       const messages = Array.isArray(messagesData) ? messagesData : messagesData.messages || [];
       
-      console.log(`[Sync] Fetched ${messages.length} messages for ${contactPhone}`);
+      logger.info(`Fetched ${messages.length} messages for ${contactPhone}`);
 
       // Find connection and contact
       const { data: connection2 } = await supabase
@@ -329,7 +326,7 @@ serve(async (req) => {
     if (action === 'setup-webhook') {
       const webhookUrl = body.webhookUrl || `${supabaseUrl}/functions/v1/evolution-webhook`;
 
-      console.log(`[Sync] Setting up webhook for ${instanceName}: ${webhookUrl}`);
+      logger.info(`Setting up webhook for ${instanceName}: ${webhookUrl}`);
 
       const webhookResponse = await fetch(
         `${evolutionApiUrl}/webhook/set/${instanceName}`,
@@ -373,7 +370,7 @@ serve(async (req) => {
     // 4. CLEANUP MOCK DATA
     // =============================================
     if (action === 'cleanup-mock') {
-      console.log('[Sync] Cleaning up mock data...');
+      logger.info('Cleaning up mock data...');
 
       // Delete mock messages (those linked to mock contacts)
       const { data: mockContacts } = await supabase
@@ -408,7 +405,7 @@ serve(async (req) => {
           .delete()
           .in('id', mockIds);
 
-        console.log('[Sync] Mock data cleanup complete', {
+        logger.info('Mock data cleanup complete', {
           msgDelErr, tagDelErr, noteDelErr, contactDelErr,
           mockContactsRemoved: mockIds.length,
         });
@@ -437,7 +434,7 @@ serve(async (req) => {
       const results: Record<string, unknown> = {};
 
       // Step 1: Cleanup mock data
-      console.log('[FullSync] Step 1: Cleaning mock data...');
+      logger.info('FullSync Step 1: Cleaning mock data...');
       const { data: mockContacts } = await supabase
         .from('contacts')
         .select('id')
@@ -490,7 +487,7 @@ serve(async (req) => {
 
         if (contactsResponse.ok) {
           const contactsList = await contactsResponse.json();
-          console.log(`[FullSync] Fetched ${contactsList.length} contacts`);
+          logger.info(`FullSync fetched ${contactsList.length} contacts`);
 
           const validContacts: { phone: string; name: string; avatar_url: string | null; whatsapp_connection_id: string }[] = [];
           
@@ -511,7 +508,7 @@ serve(async (req) => {
             });
           }
 
-          console.log(`[FullSync] ${validContacts.length} valid, ${totalSkipped} skipped`);
+          logger.info(`FullSync ${validContacts.length} valid, ${totalSkipped} skipped`);
 
           // Insert up to 500 to avoid timeout
           const limit = Math.min(validContacts.length, 500);
@@ -528,10 +525,10 @@ serve(async (req) => {
             }
           }
         } else {
-          console.error(`[FullSync] findContacts error:`, await contactsResponse.text());
+          logger.error('FullSync findContacts error', { details: await contactsResponse.text() });
         }
       } catch (e) {
-        console.warn('[FullSync] Contact sync error:', e);
+        logger.error('FullSync contact sync error', { error: String(e) });
       }
       results.contacts = { synced: totalSynced, skipped: totalSkipped };
 
@@ -573,7 +570,7 @@ serve(async (req) => {
     });
 
   } catch (error: unknown) {
-    console.error('[Sync] Error:', error);
+    logger.error('Sync error', { error: error instanceof Error ? error.message : 'Unknown error' });
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({ error: message }), {
       status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },

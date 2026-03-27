@@ -1,18 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('webauthn');
 
 // Base64URL encoding/decoding utilities
 function base64URLEncode(buffer: ArrayBuffer): string {
@@ -55,7 +47,11 @@ function getRpId(origin: string): string {
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'webauthn', getCorsHeaders(req));
   }
 
   try {
@@ -86,7 +82,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`WebAuthn action: ${action}, origin: ${origin}, rpId: ${rpId}`);
+    logger.info('WebAuthn action received', { action, origin, rpId });
 
     switch (action) {
       case 'registration-options': {
@@ -157,7 +153,7 @@ serve(async (req) => {
           excludeCredentials,
         };
 
-        console.log('Registration options generated successfully');
+        logger.info('Registration options generated successfully');
 
         return new Response(
           JSON.stringify({ options }),
@@ -194,7 +190,7 @@ serve(async (req) => {
           .single();
 
         if (challengeError || !challengeData) {
-          console.error('Challenge not found:', challengeError);
+          logger.error('Challenge not found', { error: challengeError?.message });
           return new Response(
             JSON.stringify({ error: 'Challenge not found or expired' }),
             { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
@@ -247,7 +243,7 @@ serve(async (req) => {
           });
 
         if (insertError) {
-          console.error('Failed to store credential:', insertError);
+          logger.error('Failed to store credential', { error: insertError.message });
           return new Response(
             JSON.stringify({ error: 'Failed to store credential' }),
             { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
@@ -261,7 +257,7 @@ serve(async (req) => {
           .eq('user_id', userId)
           .eq('type', 'registration');
 
-        console.log('Registration verified successfully');
+        logger.info('Registration verified successfully');
 
         return new Response(
           JSON.stringify({ success: true, credentialId: id }),
@@ -316,7 +312,7 @@ serve(async (req) => {
           allowCredentials: allowCredentials.length > 0 ? allowCredentials : undefined,
         };
 
-        console.log('Authentication options generated');
+        logger.info('Authentication options generated');
 
         return new Response(
           JSON.stringify({ options }),
@@ -344,7 +340,7 @@ serve(async (req) => {
           .single();
 
         if (credError || !storedCred) {
-          console.error('Credential not found:', credError);
+          logger.error('Credential not found', { error: credError?.message });
           return new Response(
             JSON.stringify({ error: 'Credential not found' }),
             { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
@@ -404,7 +400,7 @@ serve(async (req) => {
         // Get user info
         const { data: userData } = await supabaseAdmin.auth.admin.getUserById(storedCred.user_id);
 
-        console.log('Authentication verified successfully for user:', storedCred.user_id);
+        logger.info('Authentication verified successfully', { userId: storedCred.user_id });
 
         return new Response(
           JSON.stringify({ 
@@ -423,7 +419,7 @@ serve(async (req) => {
         );
     }
   } catch (error: unknown) {
-    console.error('WebAuthn error:', error);
+    logger.error('WebAuthn error', { error: error instanceof Error ? error.message : String(error) });
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),

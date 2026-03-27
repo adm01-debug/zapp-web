@@ -6,21 +6,12 @@ import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
 import { validateEmail, validateRequired, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('send-email');
 
 interface EmailRequest {
   to: string | string[];
@@ -39,8 +30,11 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
   }
 
   if (isHealthCheck(req)) {
@@ -54,10 +48,11 @@ serve(async (req) => {
     return rateLimitResponse(rateCheck, getCorsHeaders(req));
   }
 
-  // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  // Verify JWT authentication
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    logger.warn('Authentication failed', { error: authError });
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -99,7 +94,7 @@ serve(async (req) => {
 
     const { isDuplicate, cachedResponse } = await checkIdempotency(supabase, idempotencyKey, 'send-email');
     if (isDuplicate && cachedResponse) {
-      console.log('Duplicate email request detected, returning cached response');
+      logger.info('Duplicate email request detected, returning cached response');
       return new Response(JSON.stringify(cachedResponse.body), {
         status: cachedResponse.status,
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
@@ -134,7 +129,7 @@ serve(async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Resend API error:", data);
+      logger.error("Resend API error", { status: response.status, data });
 
       // Enqueue failed email to DLQ for retry
       await enqueueToDeadLetter(supabase, {
@@ -165,7 +160,7 @@ serve(async (req) => {
       { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error:", error.message);
+    logger.error("Error sending email", { error: error instanceof Error ? error.message : String(error) });
 
     // Mark idempotency as failed
     if (idempotencyKey) {
@@ -182,7 +177,7 @@ serve(async (req) => {
         errorStack: error.stack || '',
       });
     } catch (dlqError) {
-      console.error('Failed to enqueue to DLQ:', dlqError);
+      logger.error('Failed to enqueue to DLQ', { error: dlqError instanceof Error ? dlqError.message : String(dlqError) });
     }
 
     return new Response(

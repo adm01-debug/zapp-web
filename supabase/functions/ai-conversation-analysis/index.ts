@@ -4,22 +4,23 @@ import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
 
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('ai-conversation-analysis');
 
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'ai-conversation-analysis', getCorsHeaders(req));
   }
 
   // Rate limit: 20 AI requests per minute per IP
@@ -29,10 +30,11 @@ serve(async (req) => {
     return rateLimitResponse(rateCheck, getCorsHeaders(req));
   }
 
-  // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  // Verify JWT authentication
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    logger.warn('Authentication failed', { error: authError });
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -60,7 +62,8 @@ serve(async (req) => {
     const cacheKey = await generateCacheKey('ai-conversation-analysis', messages, undefined, 'google/gemini-2.5-flash');
     const cached = await getCachedResponse(supabaseClient, cacheKey);
     if (cached.hit) {
-      console.log('Cache HIT for ai-conversation-analysis');
+      logger.info('Cache HIT for ai-conversation-analysis');
+      requestTimer.end({ status: 'cache_hit' });
       return new Response(JSON.stringify(cached.response), {
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
       });
@@ -94,7 +97,7 @@ Considere:
 
 Responda em português brasileiro de forma clara e objetiva.`;
 
-    console.log('Calling Lovable AI for conversation analysis...');
+    logger.info('Calling Lovable AI for conversation analysis');
 
     const response = await fetchWithRetry('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -187,19 +190,19 @@ Responda em português brasileiro de forma clara e objetiva.`;
         );
       }
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      logger.error('AI gateway error', { status: response.status, errorText });
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('AI response received:', JSON.stringify(data, null, 2));
+    logger.info('AI response received', { usage: data.usage });
 
     // Extract the tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let resultData;
     if (toolCall?.function?.arguments) {
       resultData = JSON.parse(toolCall.function.arguments);
-      console.log('Analysis data:', resultData);
+      logger.info('Analysis data extracted');
     } else {
       // Fallback to content if no tool call
       const content = data.choices?.[0]?.message?.content;
@@ -224,13 +227,15 @@ Responda em português brasileiro de forma clara e objetiva.`;
       ttlHours: 2,
     });
 
+    requestTimer.end({ status: 'success' });
     return new Response(
       JSON.stringify(resultData),
       { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'X-Cache': 'MISS' } }
     );
 
   } catch (error) {
-    console.error('Error analyzing conversation:', error);
+    logger.error('Error analyzing conversation', { error: error instanceof Error ? error.message : String(error) });
+    requestTimer.end({ error: true });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }

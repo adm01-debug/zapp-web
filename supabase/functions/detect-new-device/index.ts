@@ -1,21 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('detect-new-device');
 
 interface DeviceCheckRequest {
   device_fingerprint: string;
@@ -25,10 +16,14 @@ interface DeviceCheckRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log("detect-new-device: Request received");
+  logger.info("Request received");
 
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'detect-new-device', getCorsHeaders(req));
   }
 
   try {
@@ -38,7 +33,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get auth header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      console.error("detect-new-device: No authorization header");
+      logger.error("No authorization header");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
@@ -52,14 +47,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
     if (userError || !user) {
-      console.error("detect-new-device: User not found", userError);
+      logger.error("User not found", { error: userError?.message });
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
-    console.log("detect-new-device: User authenticated:", user.id);
+    logger.info("User authenticated", { userId: user.id });
 
     // Parse request body
     const { device_fingerprint, browser, os, device_name }: DeviceCheckRequest = await req.json();
@@ -69,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
                      req.headers.get("x-real-ip") || 
                      "unknown";
 
-    console.log("detect-new-device: Checking device:", { device_fingerprint, browser, os, clientIp });
+    logger.info("Checking device", { device_fingerprint, browser, os, clientIp });
 
     // Use service role client for database operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -83,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
       .maybeSingle();
 
     if (deviceError) {
-      console.error("detect-new-device: Error checking device:", deviceError);
+      logger.error("Error checking device", { error: deviceError.message });
       throw deviceError;
     }
 
@@ -92,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!existingDevice) {
       isNewDevice = true;
-      console.log("detect-new-device: NEW DEVICE DETECTED!");
+      logger.info("NEW DEVICE DETECTED!");
 
       // Insert new device
       const { data: newDevice, error: insertError } = await supabaseAdmin
@@ -110,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
         .single();
 
       if (insertError) {
-        console.error("detect-new-device: Error inserting device:", insertError);
+        logger.error("Error inserting device", { error: insertError.message });
         throw insertError;
       }
 
@@ -119,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Send email notification
       const userEmail = user.email;
       if (userEmail) {
-        console.log("detect-new-device: Sending email notification to:", userEmail);
+        logger.info("Sending email notification", { to: userEmail });
 
         try {
           const emailResponse = await resend.emails.send({
@@ -184,9 +179,9 @@ const handler = async (req: Request): Promise<Response> => {
             `,
           });
 
-          console.log("detect-new-device: Email sent successfully:", emailResponse);
+          logger.info("Email sent successfully", { responseId: emailResponse?.data?.id });
         } catch (emailError) {
-          console.error("detect-new-device: Error sending email:", emailError);
+          logger.error("Error sending email", { error: String(emailError) });
           // Don't fail the request if email fails
         }
       }
@@ -204,7 +199,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     } else {
       deviceId = existingDevice.id;
-      console.log("detect-new-device: Known device, updating last_seen");
+      logger.info("Known device, updating last_seen", { deviceId });
 
       // Update last seen
       await supabaseAdmin
@@ -231,7 +226,7 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (sessionError) {
-      console.error("detect-new-device: Error creating session:", sessionError);
+      logger.error("Error creating session", { error: sessionError.message });
     }
 
     return new Response(
@@ -248,7 +243,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    console.error("detect-new-device: Error:", error);
+    logger.error("Unhandled error", { error: error.message });
     return new Response(
       JSON.stringify({ error: error.message }),
       {

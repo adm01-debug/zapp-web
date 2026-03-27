@@ -5,22 +5,23 @@ import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateL
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
 import { validateUUID, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
 
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('ai-auto-tag');
 
 serve(async (req) => {
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'ai-auto-tag', getCorsHeaders(req));
   }
 
   // Rate limit: 20 AI requests per minute per IP
@@ -30,10 +31,11 @@ serve(async (req) => {
     return rateLimitResponse(rateCheck, getCorsHeaders(req));
   }
 
-  // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  // Verify JWT authentication
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    logger.warn('Authentication failed', { error: authError });
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -82,7 +84,7 @@ serve(async (req) => {
     const cacheKey = await generateCacheKey('ai-auto-tag', conversationMessages, undefined, 'google/gemini-3-flash-preview');
     const cached = await getCachedResponse(supabase, cacheKey);
     if (cached.hit) {
-      console.log('Cache HIT for ai-auto-tag');
+      logger.info('Cache HIT for ai-auto-tag');
       const cachedResult = cached.response;
 
       // Still save tags to database even on cache hit
@@ -193,12 +195,14 @@ Responda APENAS em JSON:
       );
     }
 
+    requestTimer.end({ status: 'success' });
     return new Response(JSON.stringify(result), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "X-Cache": "MISS" },
     });
   } catch (error: unknown) {
-    console.error("Error in ai-auto-tag:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    logger.error("Error in ai-auto-tag", { error: errorMessage });
+    requestTimer.end({ error: true });
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });

@@ -6,19 +6,8 @@ import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { generateCacheKey, getCachedResponse, setCachedResponse } from '../_shared/aiCache.ts';
 import { validateRequired, validateUUID, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
-
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
 
 const logger = createStructuredLogger('chatbot-l1');
 
@@ -27,7 +16,7 @@ serve(async (req) => {
   logger.setRequestContext(req);
 
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
   }
 
   if (isHealthCheck(req)) {
@@ -42,9 +31,9 @@ serve(async (req) => {
   }
 
   // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }

@@ -2,24 +2,21 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { validateRequired, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('elevenlabs-tts');
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'elevenlabs-tts', getCorsHeaders(req));
   }
 
   // Rate limit: 10 audio requests per minute per IP
@@ -30,9 +27,9 @@ serve(async (req) => {
   }
 
   // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -42,7 +39,7 @@ serve(async (req) => {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
 
     if (!ELEVENLABS_API_KEY) {
-      console.error('ELEVENLABS_API_KEY is not configured');
+      logger.error('ELEVENLABS_API_KEY is not configured');
       throw new Error('ElevenLabs API key not configured');
     }
 
@@ -60,7 +57,7 @@ serve(async (req) => {
     // Default voice: Sarah (friendly, natural)
     const selectedVoiceId = voiceId || 'EXAVITQu4vr4xnSDxMaL';
 
-    console.log(`Generating TTS for text: "${text.substring(0, 50)}..." with voice: ${selectedVoiceId}`);
+    logger.info(`Generating TTS for text: "${text.substring(0, 50)}..." with voice: ${selectedVoiceId}`);
 
     const response = await fetchWithRetry(
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`,
@@ -89,12 +86,12 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('ElevenLabs API error:', response.status, errorText);
+      logger.error('ElevenLabs API error', { status: response.status, details: errorText });
       throw new Error(`ElevenLabs API error: ${response.status}`);
     }
 
     const audioBuffer = await response.arrayBuffer();
-    console.log(`TTS generated successfully, audio size: ${audioBuffer.byteLength} bytes`);
+    logger.info(`TTS generated successfully, audio size: ${audioBuffer.byteLength} bytes`);
 
     return new Response(audioBuffer, {
       headers: {
@@ -104,7 +101,7 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error in elevenlabs-tts function:', errorMessage);
+    logger.error('Error in elevenlabs-tts function', { error: errorMessage });
     return new Response(
       JSON.stringify({ error: errorMessage }),
       {

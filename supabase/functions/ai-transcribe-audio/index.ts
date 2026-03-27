@@ -1,24 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
+import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { assertAllowedHost } from '../_shared/ssrfGuard.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : (ALLOWED_ORIGINS[0] || '');
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Max-Age': '3600',
-  };
-}
+const logger = createStructuredLogger('ai-transcribe-audio');
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  const requestTimer = logger.startTimer('request');
+  logger.setRequestContext(req);
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: getCorsHeaders(req) });
+    return handleCorsPreflight(req);
+  }
+
+  if (isHealthCheck(req)) {
+    return handleHealthCheck(req, 'ai-transcribe-audio', getCorsHeaders(req));
   }
 
   // Rate limit: 10 audio requests per minute per IP
@@ -28,10 +28,11 @@ serve(async (req) => {
     return rateLimitResponse(rateCheck, getCorsHeaders(req));
   }
 
-  // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+  // Verify JWT authentication
+  const { user, error: authError } = await verifyJWT(req);
+  if (authError || !user) {
+    logger.warn('Authentication failed', { error: authError });
+    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
       status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
@@ -46,12 +47,23 @@ serve(async (req) => {
       );
     }
 
-    console.log('Starting ElevenLabs transcription for message:', messageId);
-    console.log('Audio URL:', audioUrl);
+    // SSRF protection: validate audio URL host
+    try {
+      assertAllowedHost(audioUrl);
+    } catch (ssrfError) {
+      logger.warn('SSRF blocked', { url: audioUrl, error: String(ssrfError) });
+      return new Response(
+        JSON.stringify({ error: 'Invalid audio URL' }),
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      );
+    }
+
+    logger.info('Starting ElevenLabs transcription', { messageId });
+    logger.info('Audio URL received', { audioUrl });
 
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {
-      console.error('ELEVENLABS_API_KEY is not configured');
+      logger.error('ELEVENLABS_API_KEY is not configured');
       return new Response(
         JSON.stringify({ error: 'ElevenLabs API key not configured' }),
         { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
@@ -59,10 +71,10 @@ serve(async (req) => {
     }
 
     // Download the audio file from the URL
-    console.log('Downloading audio file...');
+    logger.info('Downloading audio file');
     const audioResponse = await fetchWithRetry(audioUrl, { timeout: 30000, maxRetries: 3 });
     if (!audioResponse.ok) {
-      console.error('Failed to download audio:', audioResponse.status);
+      logger.error('Failed to download audio', { status: audioResponse.status });
       return new Response(
         JSON.stringify({ error: 'Failed to download audio file' }),
         { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
@@ -70,7 +82,7 @@ serve(async (req) => {
     }
 
     const audioBlob = await audioResponse.blob();
-    console.log('Audio downloaded, size:', audioBlob.size, 'type:', audioBlob.type);
+    logger.info('Audio downloaded', { size: audioBlob.size, type: audioBlob.type });
 
     // Prepare form data for ElevenLabs Speech-to-Text API
     const formData = new FormData();
@@ -92,7 +104,7 @@ serve(async (req) => {
     formData.append('model_id', 'scribe_v1');
     formData.append('language_code', 'por'); // Portuguese (ISO 639-3)
 
-    console.log('Sending to ElevenLabs STT API...');
+    logger.info('Sending to ElevenLabs STT API');
     
     // Call ElevenLabs Speech-to-Text API
     const response = await fetchWithRetry('https://api.elevenlabs.io/v1/speech-to-text', {
@@ -108,7 +120,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('ElevenLabs STT error:', response.status, errorText);
+      logger.error('ElevenLabs STT error', { status: response.status, errorText });
       
       if (response.status === 429) {
         return new Response(
@@ -131,15 +143,16 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log('ElevenLabs response:', JSON.stringify(data));
+    logger.info('ElevenLabs response received');
     
     // Extract transcription text from response
     const transcription = data.text || '';
 
-    console.log('Transcription result:', transcription);
+    logger.info('Transcription complete', { length: transcription.length });
 
+    requestTimer.end({ status: 'success' });
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         transcription,
         messageId,
         words: data.words || [], // Include word-level timestamps if available
@@ -148,7 +161,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Transcription error:', error);
+    logger.error('Transcription error', { error: error instanceof Error ? error.message : String(error) });
+    requestTimer.end({ error: true });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
