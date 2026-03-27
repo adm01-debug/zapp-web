@@ -1,9 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { createLogger } from '@/lib/logger';
-
-const logger = createLogger('useExternalCatalog');
 
 // ─── Types ────────────────────────────────────────────────────
 export interface ExternalCategory {
@@ -93,57 +90,55 @@ async function invokeAction<T = unknown>(action: string, params: Record<string, 
 export function useExternalCatalog() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<CatalogFilters>({});
+  const [ready, setReady] = useState(false);
 
-  // Products query - uses filters as query key for caching
+  // Products query - auto-fetches when filters change and ready=true
   const productsQuery = useQuery({
     queryKey: ['external-catalog', 'products', filters],
     queryFn: async () => {
-      const result = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>('list_products', filters as Record<string, unknown>);
-      logger.info('Products fetched', { count: result.data?.length, total: result.meta?.total, ms: result.meta?.duration_ms });
+      console.log('[catalog] fetching products with filters:', JSON.stringify(filters));
+      const result = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>(
+        'list_products',
+        filters as Record<string, unknown>
+      );
+      console.log('[catalog] got', result.data?.length, 'products, total:', result.meta?.total);
       return result;
     },
-    enabled: false,
+    enabled: ready,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    retry: 2,
   });
 
-  // Categories (cached aggressively - rarely change)
+  // Categories
   const categoriesQuery = useQuery({
     queryKey: ['external-catalog', 'categories'],
     queryFn: async () => {
       const result = await invokeAction<{ data: ExternalCategory[] }>('list_categories');
       return result.data || [];
     },
-    enabled: false,
+    enabled: ready,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   });
 
-  // Suppliers (cached aggressively)
+  // Suppliers
   const suppliersQuery = useQuery({
     queryKey: ['external-catalog', 'suppliers'],
     queryFn: async () => {
       const result = await invokeAction<{ data: ExternalSupplier[] }>('list_suppliers');
       return result.data || [];
     },
-    enabled: false,
+    enabled: ready,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   });
 
-  const fetchProducts = useCallback(async (newFilters: CatalogFilters = {}) => {
+  // Called by component to set filters and trigger fetch
+  const fetchProducts = useCallback((newFilters: CatalogFilters = {}) => {
     setFilters(newFilters);
-    const result = await queryClient.fetchQuery({
-      queryKey: ['external-catalog', 'products', newFilters],
-      queryFn: async () => {
-        const res = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>('list_products', newFilters as Record<string, unknown>);
-        logger.info('Products fetched', { count: res.data?.length, total: res.meta?.total });
-        return res;
-      },
-      staleTime: 5 * 60 * 1000,
-    });
-    return result;
-  }, [queryClient]);
+    setReady(true);
+  }, []);
 
   const fetchProduct = useCallback(async (productId: string): Promise<ExternalProduct | null> => {
     try {
@@ -157,28 +152,25 @@ export function useExternalCatalog() {
       });
       return result;
     } catch (err) {
-      logger.error('Failed to fetch product', err);
+      console.error('[catalog] Failed to fetch product', err);
       return null;
     }
   }, [queryClient]);
 
-  const fetchCategories = useCallback(async () => {
-    await categoriesQuery.refetch();
-  }, [categoriesQuery]);
+  const fetchCategories = useCallback(() => {
+    setReady(true);
+  }, []);
 
-  const fetchSuppliers = useCallback(async () => {
-    await suppliersQuery.refetch();
-  }, [suppliersQuery]);
-
-  // Read products from cache using current filters state
-  const cachedProducts = queryClient.getQueryData<{ data: ExternalProduct[]; meta: { total: number } }>(['external-catalog', 'products', filters]);
+  const fetchSuppliers = useCallback(() => {
+    setReady(true);
+  }, []);
 
   return {
-    products: cachedProducts?.data || productsQuery.data?.data || [],
-    totalProducts: cachedProducts?.meta?.total ?? productsQuery.data?.meta?.total ?? 0,
+    products: productsQuery.data?.data || [],
+    totalProducts: productsQuery.data?.meta?.total ?? 0,
     categories: categoriesQuery.data || [],
     suppliers: suppliersQuery.data || [],
-    loading: productsQuery.isFetching,
+    loading: productsQuery.isLoading || productsQuery.isFetching,
     error: productsQuery.error?.message || null,
     fetchProducts,
     fetchProduct,
