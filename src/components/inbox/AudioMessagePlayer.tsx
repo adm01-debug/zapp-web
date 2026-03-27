@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { Play, Pause, Loader2, FileText, Volume2, RefreshCw, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -31,6 +31,12 @@ export function AudioMessagePlayer({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(!!existingTranscription);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Stable waveform heights - generated once per component instance
+  const waveformHeights = useMemo(
+    () => Array.from({ length: 30 }, () => Math.random() * 60 + 20),
+    []
+  );
 
   // Realtime subscription for transcription updates
   useEffect(() => {
@@ -67,7 +73,8 @@ export function AudioMessagePlayer({
     if (!audio) return;
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
+      const d = audio.duration;
+      setDuration(isFinite(d) && !isNaN(d) ? d : 0);
     };
 
     const handleTimeUpdate = () => {
@@ -105,6 +112,7 @@ export function AudioMessagePlayer({
   };
 
   const formatTime = (seconds: number) => {
+    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -257,8 +265,7 @@ export function AudioMessagePlayer({
             onClick={handleSeek}
           >
             <div className="absolute inset-y-0 left-0 right-0 flex items-center gap-[2px]">
-              {Array.from({ length: 30 }).map((_, i) => {
-                const height = Math.random() * 60 + 20;
+              {waveformHeights.map((height, i) => {
                 const isActive = (i / 30) * 100 <= progress;
                 return (
                   <motion.div
