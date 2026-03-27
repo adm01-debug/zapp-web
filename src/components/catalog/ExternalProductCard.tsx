@@ -78,13 +78,7 @@ export const ExternalProductCard: React.FC<ExternalProductCardProps> = ({
         className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border/30 hover:border-primary/30 transition-colors"
       >
         <div className="w-14 h-14 rounded-md overflow-hidden bg-muted flex-shrink-0">
-          {product.primary_image_url ? (
-            <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Package className="w-6 h-6 text-muted-foreground" />
-            </div>
-          )}
+          <ProductImage src={product.primary_image_url} alt={product.name} />
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">{product.name}</h4>
