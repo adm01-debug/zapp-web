@@ -671,7 +671,7 @@ describe('Edge Cases & Boundaries', () => {
   });
 
   it('handles product with very high price', () => {
-    const p = mockProduct({ sale_price: 99999.99, cost_price: 50000 });
+    const p = mockProduct({ sale_price: 99999.99 });
     expect(p.sale_price).toBe(99999.99);
   });
 
