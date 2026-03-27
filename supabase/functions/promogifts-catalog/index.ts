@@ -112,7 +112,12 @@ Deno.serve(async (req) => {
       const { data: product, error: productErr } = await extClient
         .from("products")
         .select(
-          `*, categories:category_id(id, name, slug, parent_id),
+          `id, name, description, short_description, sku, sale_price, suggested_price,
+           stock_quantity, primary_image_url, colors, brand, origin_country, min_quantity,
+           dimensions_display, weight_g, combined_sizes, product_type, is_kit, is_active,
+           is_stockout, allows_personalization, lead_time_days, supply_mode,
+           category_id, supplier_id, slug, capacity_ml, ncm_code,
+           categories:category_id(id, name, slug, parent_id),
            suppliers:supplier_id(id, name)`
         )
         .eq("id", product_id)
