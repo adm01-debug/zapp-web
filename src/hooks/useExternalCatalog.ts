@@ -94,7 +94,7 @@ export function useExternalCatalog() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<CatalogFilters>({});
 
-  // Products query with caching (5 min stale, 10 min gc)
+  // Products query - uses filters as query key for caching
   const productsQuery = useQuery({
     queryKey: ['external-catalog', 'products', filters],
     queryFn: async () => {
@@ -102,7 +102,7 @@ export function useExternalCatalog() {
       logger.info('Products fetched', { count: result.data?.length, total: result.meta?.total, ms: result.meta?.duration_ms });
       return result;
     },
-    enabled: false, // Manual fetch
+    enabled: false,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -133,16 +133,16 @@ export function useExternalCatalog() {
 
   const fetchProducts = useCallback(async (newFilters: CatalogFilters = {}) => {
     setFilters(newFilters);
-    // Invalidate and refetch with new filters
-    await queryClient.fetchQuery({
+    const result = await queryClient.fetchQuery({
       queryKey: ['external-catalog', 'products', newFilters],
       queryFn: async () => {
-        const result = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>('list_products', newFilters as Record<string, unknown>);
-        logger.info('Products fetched', { count: result.data?.length, total: result.meta?.total });
-        return result;
+        const res = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>('list_products', newFilters as Record<string, unknown>);
+        logger.info('Products fetched', { count: res.data?.length, total: res.meta?.total });
+        return res;
       },
       staleTime: 5 * 60 * 1000,
     });
+    return result;
   }, [queryClient]);
 
   const fetchProduct = useCallback(async (productId: string): Promise<ExternalProduct | null> => {
@@ -170,12 +170,12 @@ export function useExternalCatalog() {
     await suppliersQuery.refetch();
   }, [suppliersQuery]);
 
-  // Get data from queries
-  const products = queryClient.getQueryData<{ data: ExternalProduct[]; meta: { total: number } }>(['external-catalog', 'products', filters]);
+  // Read products from cache using current filters state
+  const cachedProducts = queryClient.getQueryData<{ data: ExternalProduct[]; meta: { total: number } }>(['external-catalog', 'products', filters]);
 
   return {
-    products: products?.data || productsQuery.data?.data || [],
-    totalProducts: products?.meta?.total ?? productsQuery.data?.meta?.total ?? 0,
+    products: cachedProducts?.data || productsQuery.data?.data || [],
+    totalProducts: cachedProducts?.meta?.total ?? productsQuery.data?.meta?.total ?? 0,
     categories: categoriesQuery.data || [],
     suppliers: suppliersQuery.data || [],
     loading: productsQuery.isFetching,
