@@ -204,13 +204,7 @@ function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDet
             {/* Image + Basic Info */}
             <div className="flex gap-4">
               <div className="w-40 h-40 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                {product.primary_image_url ? (
-                  <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="w-10 h-10 text-muted-foreground" />
-                  </div>
-                )}
+                <ProductImage src={product.primary_image_url} alt={product.name} iconSize="w-10 h-10" />
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex flex-wrap gap-1.5">
