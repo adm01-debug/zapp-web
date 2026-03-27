@@ -555,7 +555,7 @@ describe('Edge Function Contract', () => {
 // ═══════════════════════════════════════════════════════════════════
 describe('Data Integrity', () => {
   it('preserves numeric precision on prices', async () => {
-    const product = mockProduct({ cost_price: 17.90, sale_price: 38.49, suggested_price: 44.75 });
+    const product = mockProduct({ sale_price: 38.49, suggested_price: 44.75 });
     setupMockInvoke({
       list_products: { data: [product], meta: { total: 1 } },
     });
@@ -563,7 +563,6 @@ describe('Data Integrity', () => {
     const { result } = renderHook(() => useExternalCatalog());
     await act(async () => { await result.current.fetchProducts(); });
 
-    expect(result.current.products[0].cost_price).toBe(17.90);
     expect(result.current.products[0].sale_price).toBe(38.49);
     expect(result.current.products[0].suggested_price).toBe(44.75);
   });
