@@ -23,7 +23,7 @@ const mockProduct = (overrides: Partial<ExternalProduct> = {}): ExternalProduct 
   description: 'Caneta de plástico com tinta azul',
   short_description: 'Caneta azul',
   sku: 'CAN-001',
-  cost_price: 1.5,
+  sale_price: 3.99,
   sale_price: 3.99,
   suggested_price: 4.50,
   stock_quantity: 5000,
