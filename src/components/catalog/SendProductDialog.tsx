@@ -309,19 +309,126 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
     toast({ title: `📥 Download iniciado`, description: `${urls.length} foto(s)` });
   };
 
+  // Search contacts with debounce
+  useEffect(() => {
+    if (step !== 'selectContact' || !contactSearch.trim()) {
+      setContactResults([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      setSearchingContacts(true);
+      const { data } = await supabase
+        .from('contacts')
+        .select('id, name, phone, avatar_url')
+        .or(`name.ilike.%${contactSearch}%,phone.ilike.%${contactSearch}%`)
+        .limit(15);
+      setContactResults(data || []);
+      setSearchingContacts(false);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [contactSearch, step]);
+
+  // Load recent contacts when entering step 2
+  useEffect(() => {
+    if (step !== 'selectContact') return;
+    setSearchingContacts(true);
+    supabase
+      .from('contacts')
+      .select('id, name, phone, avatar_url')
+      .order('updated_at', { ascending: false })
+      .limit(15)
+      .then(({ data }) => {
+        if (!contactSearch.trim()) setContactResults(data || []);
+        setSearchingContacts(false);
+      });
+  }, [step]);
+
+  const handleGoToContactStep = () => {
+    setStep('selectContact');
+    setSelectedContact(null);
+    setContactSearch('');
+  };
+
+  const handleSendToContact = async () => {
+    if (!selectedContact) {
+      toast({ title: 'Selecione um contato', variant: 'destructive' });
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      // Get active WhatsApp connection
+      const { data: connections } = await supabase
+        .from('whatsapp_connections')
+        .select('id, name')
+        .eq('status', 'connected')
+        .limit(1);
+
+      const connection = connections?.[0];
+
+      // Send images first
+      const imgs = Array.from(selectedImages);
+      for (const imgUrl of imgs) {
+        await supabase.from('messages').insert({
+          contact_id: selectedContact.id,
+          content: imgUrl,
+          sender: 'agent',
+          message_type: 'image',
+          status: 'sending',
+          whatsapp_connection_id: connection?.id || null,
+        });
+
+        await supabase.functions.invoke('evolution-api', {
+          body: {
+            action: 'send-media',
+            instanceName: connection?.name || 'wpp2',
+            number: selectedContact.phone,
+            mediatype: 'image',
+            media: imgUrl,
+            caption: '',
+          },
+        });
+      }
+
+      // Send text message
+      await supabase.from('messages').insert({
+        contact_id: selectedContact.id,
+        content: message,
+        sender: 'agent',
+        message_type: 'text',
+        status: 'sending',
+        whatsapp_connection_id: connection?.id || null,
+      });
+
+      await supabase.functions.invoke('evolution-api', {
+        body: {
+          action: 'send-text',
+          instanceName: connection?.name || 'wpp2',
+          number: selectedContact.phone,
+          text: message,
+        },
+      });
+
+      toast({ title: '✅ Produto enviado!', description: `Enviado para ${selectedContact.name}` });
+      onOpenChange(false);
+      setStep('configure');
+      setSelectedContact(null);
+    } catch (err) {
+      console.error('Error sending product:', err);
+      toast({ title: 'Erro ao enviar produto', variant: 'destructive' });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleSend = () => {
     const imgs = Array.from(selectedImages);
     if (onConfirmSend) {
       onConfirmSend(message, imgs);
+      onOpenChange(false);
     } else {
-      const fullText = imgs.length > 0
-        ? `${message}\n\n${imgs.map((u) => `🔗 ${u}`).join('\n')}`
-        : message;
-      navigator.clipboard.writeText(fullText).then(() => {
-        toast({ title: '✅ Produto copiado!', description: 'Cole no chat para enviar ao cliente.' });
-      });
+      handleGoToContactStep();
     }
-    onOpenChange(false);
   };
 
   const templateLabels: Record<MessageTemplate, string> = {
