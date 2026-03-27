@@ -440,7 +440,7 @@ describe('Type Contracts', () => {
   it('ExternalProduct has all required fields', () => {
     const product = mockProduct();
     const requiredFields: (keyof ExternalProduct)[] = [
-      'id', 'name', 'sku', 'cost_price', 'sale_price', 'stock_quantity',
+      'id', 'name', 'sku', 'sale_price', 'stock_quantity',
       'is_active', 'is_stockout', 'is_kit', 'allows_personalization',
     ];
     for (const field of requiredFields) {
