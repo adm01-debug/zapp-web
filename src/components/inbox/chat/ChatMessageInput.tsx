@@ -12,8 +12,8 @@ import { AudioRecorder } from '../AudioRecorder';
 import { FileUploader, FileUploaderRef } from '../FileUploader';
 import { AISuggestions } from '../AISuggestions';
 import { MessageTemplates } from '../MessageTemplates';
-import { ProductCatalog } from '@/components/catalog/ProductCatalog';
-import { Product } from '@/components/catalog/ProductCard';
+import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
+import { ExternalProduct } from '@/hooks/useExternalCatalog';
 import {
   Popover,
   PopoverContent,

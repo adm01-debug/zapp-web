@@ -6,7 +6,7 @@ import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationM
 import { normalizeMediaUrl } from '@/utils/normalizeMediaUrl';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
-import { Product } from '@/components/catalog/ProductCard';
+import { ExternalProduct } from '@/hooks/useExternalCatalog';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
