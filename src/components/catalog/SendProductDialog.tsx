@@ -206,6 +206,14 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
   const [sendMode, setSendMode] = useState<SendMode>('product');
   const [selectedColorGroup, setSelectedColorGroup] = useState<string | null>(null);
 
+  // Contact selection step
+  const [step, setStep] = useState<'configure' | 'selectContact'>('configure');
+  const [contactSearch, setContactSearch] = useState('');
+  const [contactResults, setContactResults] = useState<ContactResult[]>([]);
+  const [searchingContacts, setSearchingContacts] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<ContactResult | null>(null);
+  const [isSending, setIsSending] = useState(false);
+
   // Load full product with variants when dialog opens
   useEffect(() => {
     if (open && (!product.variants || product.variants.length === 0)) {
