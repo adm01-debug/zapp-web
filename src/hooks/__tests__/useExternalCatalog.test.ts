@@ -24,7 +24,6 @@ const mockProduct = (overrides: Partial<ExternalProduct> = {}): ExternalProduct 
   short_description: 'Caneta azul',
   sku: 'CAN-001',
   sale_price: 3.99,
-  sale_price: 3.99,
   suggested_price: 4.50,
   stock_quantity: 5000,
   primary_image_url: 'https://example.com/caneta.jpg',
