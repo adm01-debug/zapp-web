@@ -392,10 +392,9 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
         // Update message with external_id from API response
         const externalId = apiResult?.key?.id || null;
         if (dbResult?.id && externalId) {
-          supabase.from('messages')
+          await supabase.from('messages')
             .update({ external_id: externalId, status: 'sent' })
-            .eq('id', dbResult.id)
-            .then(() => {});
+            .eq('id', dbResult.id);
         }
       }
 
@@ -421,10 +420,9 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
       // Update text message with external_id
       const textExternalId = textApiResult?.key?.id || null;
       if (textDbResult?.id && textExternalId) {
-        supabase.from('messages')
+        await supabase.from('messages')
           .update({ external_id: textExternalId, status: 'sent' })
-          .eq('id', textDbResult.id)
-          .then(() => {});
+          .eq('id', textDbResult.id);
       }
 
       toast({ title: '✅ Produto enviado!', description: `Enviado para ${selectedContact.name}` });
