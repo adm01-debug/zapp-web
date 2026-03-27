@@ -27,9 +27,8 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsErr } = await localClient.auth.getClaims(token);
-    if (claimsErr || !claims?.claims) {
+    const { data: userData, error: userErr } = await localClient.auth.getUser();
+    if (userErr || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -117,8 +116,14 @@ Deno.serve(async (req) => {
            suppliers:supplier_id(id, name)`
         )
         .eq("id", product_id)
-        .single();
+        .maybeSingle();
       if (productErr) throw productErr;
+      if (!product) {
+        return new Response(JSON.stringify({ error: "Product not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       // Fetch variants
       const { data: variants, error: varErr } = await extClient
