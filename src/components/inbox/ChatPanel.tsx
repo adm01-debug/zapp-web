@@ -425,11 +425,27 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   };
 
   const handleSendProduct = (product: ExternalProduct) => {
+    const price = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sale_price);
+    const lines = [
+      `📦 *${product.name}*`,
+      product.brand ? `🏷️ Marca: ${product.brand}` : '',
+      `💰 Preço: ${price}`,
+      product.min_quantity ? `📋 Qtd. mínima: ${product.min_quantity} un.` : '',
+      product.colors && product.colors.length > 0 ? `🎨 Cores: ${product.colors.join(', ')}` : '',
+      product.dimensions_display ? `📏 Dimensões: ${product.dimensions_display}` : '',
+      product.allows_personalization ? '✅ Permite personalização' : '',
+      product.lead_time_days ? `⏱️ Prazo: ${product.lead_time_days} dias úteis` : '',
+      product.is_stockout ? '⚠️ *Sem estoque no momento*' : `✅ Em estoque: ${product.stock_quantity} un.`,
+      product.short_description || product.description ? `\n${(product.short_description || product.description || '').slice(0, 300)}` : '',
+      product.primary_image_url ? `\n🔗 ${product.primary_image_url}` : '',
+    ].filter(Boolean).join('\n');
+
+    onSendMessage(lines);
     toast({
       title: 'Produto enviado!',
-      description: `${product.name} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sale_price)}`,
+      description: `${product.name} - ${price}`,
     });
-    log.debug('Product sent:', product);
+    log.debug('Product sent to chat:', product.id);
   };
 
   const { sendStickerMessage } = useEvolutionApi();
