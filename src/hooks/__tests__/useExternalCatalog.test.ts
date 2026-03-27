@@ -96,6 +96,8 @@ function setupMockInvoke(responses: Record<string, any>) {
 describe('useExternalCatalog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default safe mock - prevents crashes when hook calls invoke unexpectedly
+    mockInvoke.mockResolvedValue({ data: { data: [], meta: { total: 0 } }, error: null });
   });
 
   // ═══════════════════════════════════════════════════════════════
