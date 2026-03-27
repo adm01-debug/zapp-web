@@ -64,7 +64,7 @@ interface ChatMessageInputProps {
   onOpenInteractiveBuilder: () => void;
   onOpenSchedule: () => void;
   onOpenLocationPicker: () => void;
-  onSendProduct: (product: Product) => void;
+  onSendProduct: (product: ExternalProduct) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
   onExternalFiles?: (files: File[]) => void;
