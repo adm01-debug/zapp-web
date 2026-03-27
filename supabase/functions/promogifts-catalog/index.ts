@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       let query = extClient
         .from("products")
         .select(
-          `id, name, description, short_description, sku, cost_price, sale_price, suggested_price,
+          `id, name, description, short_description, sku, sale_price, suggested_price,
            stock_quantity, primary_image_url, colors, brand, origin_country, min_quantity,
            dimensions_display, weight_g, combined_sizes, product_type, is_kit, is_active,
            is_stockout, allows_personalization, lead_time_days, supply_mode,
