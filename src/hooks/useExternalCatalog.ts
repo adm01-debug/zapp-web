@@ -102,7 +102,7 @@ export function useExternalCatalog() {
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke('list_products', filters);
+      const result = await invoke('list_products', params);
       setProducts(result.data || []);
       setTotalProducts(result.meta?.total ?? 0);
       logger.info('Products fetched', { count: result.data?.length, total: result.meta?.total });
