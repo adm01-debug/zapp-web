@@ -338,7 +338,7 @@ function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDet
                     {product.variants.map((v) => (
                       <div key={v.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50 text-sm">
                         {v.selected_thumbnail && (
-                          <img src={v.selected_thumbnail} alt={v.name} className="w-10 h-10 rounded object-cover" />
+                          <img src={v.selected_thumbnail} alt={v.name} className="w-10 h-10 rounded object-cover" loading="lazy" onError={handleImageError} />
                         )}
                         {v.color_hex && (
                           <div className="w-5 h-5 rounded-full border" style={{ backgroundColor: v.color_hex }} />
