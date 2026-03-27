@@ -98,6 +98,7 @@ export function useExternalCatalog() {
   }, []);
 
   const fetchProducts = useCallback(async (filters: CatalogFilters = {}) => {
+    const params = { ...filters } as Record<string, unknown>;
     setLoading(true);
     setError(null);
     try {
