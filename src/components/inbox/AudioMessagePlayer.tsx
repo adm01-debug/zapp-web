@@ -259,8 +259,7 @@ export function AudioMessagePlayer({
             onClick={handleSeek}
           >
             <div className="absolute inset-y-0 left-0 right-0 flex items-center gap-[2px]">
-              {Array.from({ length: 30 }).map((_, i) => {
-                const height = Math.random() * 60 + 20;
+              {waveformHeights.map((height, i) => {
                 const isActive = (i / 30) * 100 <= progress;
                 return (
                   <motion.div
