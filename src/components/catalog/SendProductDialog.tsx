@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -26,36 +25,76 @@ import {
   Copy,
   Download,
   Palette,
-  Search,
   Check,
   Pencil,
-  Image as ImageIcon,
 } from 'lucide-react';
-import { ExternalProduct, ExternalProductVariant } from '@/hooks/useExternalCatalog';
+import { ExternalProduct, ExternalProductVariant, useExternalCatalog } from '@/hooks/useExternalCatalog';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 type MessageTemplate = 'formal' | 'informal' | 'promo';
+type SendMode = 'product' | 'variant';
+
+interface VariantGroup {
+  colorName: string;
+  colorHex: string | null;
+  variants: ExternalProductVariant[];
+  images: string[];
+}
 
 interface SendProductDialogProps {
   product: ExternalProduct;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called when user confirms send — receives formatted text + selected image URLs */
   onConfirmSend?: (text: string, images: string[]) => void;
 }
 
-// ─── Message template generators ──────────────────────────────
-function buildMessage(product: ExternalProduct, template: MessageTemplate): string {
+// ─── Group variants by color ──────────────────────────────────
+function groupVariantsByColor(variants: ExternalProductVariant[]): VariantGroup[] {
+  const map = new Map<string, VariantGroup>();
+
+  variants.forEach((v) => {
+    const key = v.color_name || v.name || 'Padrão';
+    if (!map.has(key)) {
+      map.set(key, {
+        colorName: key,
+        colorHex: v.color_hex,
+        variants: [],
+        images: [],
+      });
+    }
+    const group = map.get(key)!;
+    group.variants.push(v);
+    if (v.selected_thumbnail && !group.images.includes(v.selected_thumbnail)) {
+      group.images.push(v.selected_thumbnail);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+// ─── Message builders ─────────────────────────────────────────
+function buildMessage(
+  product: ExternalProduct,
+  template: MessageTemplate,
+  selectedVariant?: VariantGroup | null
+): string {
   const price = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   }).format(product.sale_price);
 
-  const colorsStr =
-    product.colors && product.colors.length > 0
-      ? product.colors.join(', ')
+  const variantInfo = selectedVariant
+    ? `Cor: ${selectedVariant.colorName}`
+    : product.colors && product.colors.length > 0
+      ? `Cores disponíveis: ${product.colors.join(', ')}`
       : null;
+
+  const stockInfo = selectedVariant
+    ? `Estoque: ${selectedVariant.variants.reduce((s, v) => s + v.stock_quantity, 0)} un.`
+    : product.is_stockout
+      ? '⚠️ Sem estoque no momento'
+      : `Em estoque: ${product.stock_quantity} un.`;
 
   switch (template) {
     case 'formal':
@@ -65,38 +104,35 @@ function buildMessage(product: ExternalProduct, template: MessageTemplate): stri
         `*${product.name}*`,
         product.brand ? `Marca: ${product.brand}` : '',
         `Valor: ${price}`,
+        variantInfo || '',
         product.min_quantity ? `Quantidade mínima: ${product.min_quantity} unidades` : '',
-        colorsStr ? `Cores disponíveis: ${colorsStr}` : '',
         product.dimensions_display ? `Dimensões: ${product.dimensions_display}` : '',
         product.allows_personalization ? `Permite personalização.` : '',
         product.lead_time_days ? `Prazo de entrega: ${product.lead_time_days} dias úteis` : '',
-        product.is_stockout ? `⚠️ Produto sem estoque no momento.` : '',
+        stockInfo,
         ``,
         product.short_description || product.description
           ? (product.short_description || product.description || '').slice(0, 300)
           : '',
         ``,
         `Fico à disposição para qualquer dúvida.`,
-      ]
-        .filter(Boolean)
-        .join('\n');
+      ].filter(Boolean).join('\n');
 
     case 'promo':
       return [
         `🔥 *OFERTA ESPECIAL* 🔥`,
         ``,
         `📦 *${product.name}*`,
+        selectedVariant ? `🎨 Cor: *${selectedVariant.colorName}*` : '',
         product.brand ? `🏷️ ${product.brand}` : '',
         `💰 *${price}*`,
-        colorsStr ? `🎨 ${colorsStr}` : '',
+        !selectedVariant && product.colors?.length ? `🎨 ${product.colors.join(', ')}` : '',
         product.min_quantity ? `📋 A partir de ${product.min_quantity} un.` : '',
         product.allows_personalization ? `✅ Personalização disponível!` : '',
-        product.is_stockout ? `⚠️ Sem estoque` : `✅ Pronta entrega!`,
+        `✅ ${stockInfo}`,
         ``,
         `Aproveite! Estoque limitado 🚀`,
-      ]
-        .filter(Boolean)
-        .join('\n');
+      ].filter(Boolean).join('\n');
 
     case 'informal':
     default:
@@ -106,6 +142,7 @@ function buildMessage(product: ExternalProduct, template: MessageTemplate): stri
         `Olha esse produto que separei pra você:`,
         ``,
         `*${product.name}*`,
+        selectedVariant ? `🎨 *${selectedVariant.colorName}*` : '',
         ``,
         product.short_description || product.description
           ? (product.short_description || product.description || '').slice(0, 200)
@@ -113,36 +150,28 @@ function buildMessage(product: ExternalProduct, template: MessageTemplate): stri
         ``,
         product.brand ? `Marca: ${product.brand}` : '',
         `Valor: ${price}`,
-        colorsStr ? `Cores: ${colorsStr}` : '',
+        !selectedVariant && product.colors?.length ? `Cores: ${product.colors.join(', ')}` : '',
         product.allows_personalization ? `Dá pra personalizar! ✨` : '',
-        product.is_stockout ? `⚠️ Sem estoque no momento` : '',
+        stockInfo.includes('⚠️') ? stockInfo : '',
         ``,
         `O que achou? 😉`,
-      ]
-        .filter(Boolean)
-        .join('\n');
+      ].filter(Boolean).join('\n');
   }
 }
 
-// ─── Collect all images from product + variants ───────────────
-function collectImages(product: ExternalProduct): { url: string; label: string }[] {
+// ─── Collect images ───────────────────────────────────────────
+function collectAllImages(product: ExternalProduct): { url: string; label: string }[] {
   const imgs: { url: string; label: string }[] = [];
-
   if (product.primary_image_url) {
     imgs.push({ url: product.primary_image_url, label: 'Principal' });
   }
-
   if (product.variants) {
     product.variants.forEach((v) => {
       if (v.selected_thumbnail && !imgs.some((i) => i.url === v.selected_thumbnail)) {
-        imgs.push({
-          url: v.selected_thumbnail!,
-          label: v.color_name || v.name,
-        });
+        imgs.push({ url: v.selected_thumbnail!, label: v.color_name || v.name });
       }
     });
   }
-
   return imgs;
 }
 
@@ -153,16 +182,66 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
   onOpenChange,
   onConfirmSend,
 }) => {
+  const { fetchProduct } = useExternalCatalog();
+  const [fullProduct, setFullProduct] = useState<ExternalProduct>(product);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
   const [template, setTemplate] = useState<MessageTemplate>('informal');
   const [isEditing, setIsEditing] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
+  const [sendMode, setSendMode] = useState<SendMode>('product');
+  const [selectedColorGroup, setSelectedColorGroup] = useState<string | null>(null);
 
-  const allImages = useMemo(() => collectImages(product), [product]);
-  const [selectedImages, setSelectedImages] = useState<Set<string>>(
-    () => new Set(allImages.map((i) => i.url))
+  // Load full product with variants when dialog opens
+  useEffect(() => {
+    if (open && (!product.variants || product.variants.length === 0)) {
+      setLoadingVariants(true);
+      fetchProduct(product.id).then((p) => {
+        if (p) setFullProduct(p);
+      }).finally(() => setLoadingVariants(false));
+    } else {
+      setFullProduct(product);
+    }
+  }, [open, product.id]);
+
+  const variantGroups = useMemo(
+    () => groupVariantsByColor(fullProduct.variants || []),
+    [fullProduct.variants]
   );
 
-  const message = isEditing ? customMessage : buildMessage(product, template);
+  const activeGroup = selectedColorGroup
+    ? variantGroups.find((g) => g.colorName === selectedColorGroup) || null
+    : null;
+
+  // Images depend on mode
+  const allImages = useMemo(() => collectAllImages(fullProduct), [fullProduct]);
+  const visibleImages = useMemo(() => {
+    if (sendMode === 'variant' && activeGroup) {
+      // Show variant images + primary
+      const imgs: { url: string; label: string }[] = [];
+      if (fullProduct.primary_image_url) {
+        imgs.push({ url: fullProduct.primary_image_url, label: 'Principal' });
+      }
+      activeGroup.images.forEach((url) => {
+        if (!imgs.some((i) => i.url === url)) {
+          imgs.push({ url, label: activeGroup.colorName });
+        }
+      });
+      return imgs;
+    }
+    return allImages;
+  }, [sendMode, activeGroup, allImages, fullProduct.primary_image_url]);
+
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+
+  // Sync selected images when visible images change
+  useEffect(() => {
+    setSelectedImages(new Set(visibleImages.map((i) => i.url)));
+  }, [visibleImages]);
+
+  const message = isEditing
+    ? customMessage
+    : buildMessage(fullProduct, template, sendMode === 'variant' ? activeGroup : null);
 
   const toggleImage = (url: string) => {
     setSelectedImages((prev) => {
@@ -173,13 +252,9 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
     });
   };
 
-  const selectAllImages = () =>
-    setSelectedImages(new Set(allImages.map((i) => i.url)));
-  const deselectAllImages = () => setSelectedImages(new Set());
-
   const handleEditMessage = () => {
     if (!isEditing) {
-      setCustomMessage(buildMessage(product, template));
+      setCustomMessage(message);
     }
     setIsEditing(!isEditing);
   };
@@ -202,17 +277,14 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
     urls.forEach((url, i) => {
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${product.name.replace(/\s+/g, '_')}_${i + 1}.jpg`;
+      a.download = `${fullProduct.name.replace(/\s+/g, '_')}_${i + 1}.jpg`;
       a.target = '_blank';
       a.rel = 'noopener';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     });
-    toast({
-      title: `📥 Download iniciado`,
-      description: `${urls.length} foto(s)`,
-    });
+    toast({ title: `📥 Download iniciado`, description: `${urls.length} foto(s)` });
   };
 
   const handleSend = () => {
@@ -220,15 +292,11 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
     if (onConfirmSend) {
       onConfirmSend(message, imgs);
     } else {
-      // Fallback: copy to clipboard
       const fullText = imgs.length > 0
         ? `${message}\n\n${imgs.map((u) => `🔗 ${u}`).join('\n')}`
         : message;
       navigator.clipboard.writeText(fullText).then(() => {
-        toast({
-          title: '✅ Produto copiado!',
-          description: 'Cole no chat para enviar ao cliente.',
-        });
+        toast({ title: '✅ Produto copiado!', description: 'Cole no chat para enviar ao cliente.' });
       });
     }
     onOpenChange(false);
@@ -246,39 +314,157 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
         <DialogHeader className="p-5 pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Send className="w-5 h-5 text-primary" />
-            Enviar Produto
+            {sendMode === 'variant' && activeGroup
+              ? `Enviar ${activeGroup.colorName}`
+              : 'Enviar Produto'}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Selecione fotos, modelo de mensagem e contato
+            {sendMode === 'variant'
+              ? 'Enviando variação específica do produto'
+              : 'Selecione fotos, modelo de mensagem e envie'}
           </p>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[65vh]">
+        <ScrollArea className="max-h-[60vh]">
           <div className="px-5 pb-5 space-y-4">
+
+            {/* ─── Mode Selector (Product vs Variant) ──────── */}
+            {variantGroups.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    variant={sendMode === 'product' ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs h-8 gap-1.5"
+                    onClick={() => {
+                      setSendMode('product');
+                      setSelectedColorGroup(null);
+                      setIsEditing(false);
+                    }}
+                  >
+                    <Package className="w-3.5 h-3.5" />
+                    Produto Completo
+                  </Button>
+                  <Button
+                    variant={sendMode === 'variant' ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs h-8 gap-1.5"
+                    onClick={() => {
+                      setSendMode('variant');
+                      if (!selectedColorGroup && variantGroups.length > 0) {
+                        setSelectedColorGroup(variantGroups[0].colorName);
+                      }
+                      setIsEditing(false);
+                    }}
+                  >
+                    <Palette className="w-3.5 h-3.5" />
+                    Variação Específica
+                  </Button>
+                </div>
+
+                {/* ─── Variant Color Selector ───────────────── */}
+                {sendMode === 'variant' && (
+                  <div className="space-y-2">
+                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                      Selecione a variação
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {variantGroups.map((group) => {
+                        const isSelected = selectedColorGroup === group.colorName;
+                        const groupStock = group.variants.reduce((s, v) => s + v.stock_quantity, 0);
+                        return (
+                          <button
+                            key={group.colorName}
+                            onClick={() => {
+                              setSelectedColorGroup(group.colorName);
+                              setIsEditing(false);
+                            }}
+                            className={cn(
+                              'flex items-center gap-3 p-2.5 rounded-lg border-2 transition-all text-left',
+                              isSelected
+                                ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                                : 'border-border/50 hover:border-border'
+                            )}
+                          >
+                            {/* Color swatch or thumbnail */}
+                            {group.images[0] ? (
+                              <img
+                                src={group.images[0]}
+                                alt={group.colorName}
+                                className="w-10 h-10 rounded-md object-cover flex-shrink-0"
+                                loading="lazy"
+                              />
+                            ) : group.colorHex ? (
+                              <div
+                                className="w-10 h-10 rounded-md border flex-shrink-0"
+                                style={{ backgroundColor: group.colorHex }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                                <Palette className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                {group.colorHex && (
+                                  <div
+                                    className="w-3 h-3 rounded-full border border-border/50 flex-shrink-0"
+                                    style={{ backgroundColor: group.colorHex }}
+                                  />
+                                )}
+                                <span className="font-medium text-sm truncate">
+                                  {group.colorName}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-muted-foreground">
+                                {group.images.length} foto{group.images.length !== 1 ? 's' : ''} · {groupStock} un.
+                              </span>
+                            </div>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {loadingVariants && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                Carregando variantes...
+              </div>
+            )}
+
+            <Separator />
+
             {/* ─── Photo Selection ────────────────────────── */}
-            {allImages.length > 0 && (
+            {visibleImages.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    {selectedImages.size} de {allImages.length} fotos selecionadas
+                    {selectedImages.size} de {visibleImages.length} fotos selecionadas
                   </span>
                   <Button
                     variant="link"
                     size="sm"
                     className="h-auto p-0 text-xs"
-                    onClick={
-                      selectedImages.size === allImages.length
-                        ? deselectAllImages
-                        : selectAllImages
+                    onClick={() =>
+                      selectedImages.size === visibleImages.length
+                        ? setSelectedImages(new Set())
+                        : setSelectedImages(new Set(visibleImages.map((i) => i.url)))
                     }
                   >
-                    {selectedImages.size === allImages.length
+                    {selectedImages.size === visibleImages.length
                       ? 'Desmarcar todas'
                       : 'Selecionar todas'}
                   </Button>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {allImages.map((img) => (
+                  {visibleImages.map((img) => (
                     <button
                       key={img.url}
                       onClick={() => toggleImage(img.url)}
@@ -333,7 +519,7 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
                       variant={template === t ? 'default' : 'outline'}
                       size="sm"
                       className="text-xs h-7"
-                      onClick={() => setTemplate(t)}
+                      onClick={() => { setTemplate(t); setIsEditing(false); }}
                     >
                       {templateLabels[t]}
                     </Button>
@@ -378,15 +564,16 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>Opções de Envio</DropdownMenuLabel>
-                <DropdownMenuItem onClick={handleSend}>
+                <DropdownMenuItem onClick={() => { setSendMode('product'); setSelectedColorGroup(null); handleSend(); }}>
                   <Package className="w-4 h-4 mr-2" />
                   Enviar Produto Simples
                 </DropdownMenuItem>
-                {product.variants && product.variants.length > 0 && (
+                {variantGroups.length > 0 && (
                   <DropdownMenuItem
                     onClick={() => {
-                      selectAllImages();
-                      handleSend();
+                      setSendMode('product');
+                      setSelectedImages(new Set(allImages.map((i) => i.url)));
+                      setTimeout(handleSend, 50);
                     }}
                   >
                     <Palette className="w-4 h-4 mr-2" />
