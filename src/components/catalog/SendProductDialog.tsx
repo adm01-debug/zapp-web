@@ -369,16 +369,16 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
       // Send images first
       const imgs = Array.from(selectedImages);
       for (const imgUrl of imgs) {
-        await supabase.from('messages').insert({
+        const { data: dbResult } = await supabase.from('messages').insert({
           contact_id: selectedContact.id,
           content: imgUrl,
           sender: 'agent',
           message_type: 'image',
           status: 'sending',
           whatsapp_connection_id: connection?.id || null,
-        });
+        }).select('id').single();
 
-        await supabase.functions.invoke('evolution-api', {
+        const { data: apiResult } = await supabase.functions.invoke('evolution-api', {
           body: {
             action: 'send-media',
             instanceName: connection?.name || 'wpp2',
@@ -388,19 +388,28 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
             caption: '',
           },
         });
+
+        // Update message with external_id from API response
+        const externalId = apiResult?.key?.id || null;
+        if (dbResult?.id && externalId) {
+          supabase.from('messages')
+            .update({ external_id: externalId, status: 'sent' })
+            .eq('id', dbResult.id)
+            .then(() => {});
+        }
       }
 
       // Send text message
-      await supabase.from('messages').insert({
+      const { data: textDbResult } = await supabase.from('messages').insert({
         contact_id: selectedContact.id,
         content: message,
         sender: 'agent',
         message_type: 'text',
         status: 'sending',
         whatsapp_connection_id: connection?.id || null,
-      });
+      }).select('id').single();
 
-      await supabase.functions.invoke('evolution-api', {
+      const { data: textApiResult } = await supabase.functions.invoke('evolution-api', {
         body: {
           action: 'send-text',
           instanceName: connection?.name || 'wpp2',
@@ -408,6 +417,15 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
           text: message,
         },
       });
+
+      // Update text message with external_id
+      const textExternalId = textApiResult?.key?.id || null;
+      if (textDbResult?.id && textExternalId) {
+        supabase.from('messages')
+          .update({ external_id: textExternalId, status: 'sent' })
+          .eq('id', textDbResult.id)
+          .then(() => {});
+      }
 
       toast({ title: '✅ Produto enviado!', description: `Enviado para ${selectedContact.name}` });
       onOpenChange(false);
