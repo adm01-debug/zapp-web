@@ -119,13 +119,7 @@ export const ExternalProductCard: React.FC<ExternalProductCardProps> = ({
       <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300 }}>
         <Card className="overflow-hidden border-border/30 hover:border-primary/30 transition-colors h-full flex flex-col">
           <div className="aspect-square relative bg-muted">
-            {product.primary_image_url ? (
-              <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="w-12 h-12 text-muted-foreground" />
-              </div>
-            )}
+            <ProductImage src={product.primary_image_url} alt={product.name} iconSize="w-12 h-12" />
             {product.is_stockout && (
               <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                 <Badge variant="destructive">Esgotado</Badge>
