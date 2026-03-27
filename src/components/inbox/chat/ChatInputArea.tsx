@@ -293,7 +293,7 @@ export function ChatInputArea({
         <Clock className="w-4 h-4" />
         Agendar
       </Button>
-      <ProductCatalog
+      <ExternalProductCatalog
         onSendProduct={onSendProduct}
         trigger={
           <Button

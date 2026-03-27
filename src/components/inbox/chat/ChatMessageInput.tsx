@@ -246,7 +246,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
         <TooltipContent>Compartilhar localização</TooltipContent>
       </Tooltip>
 
-      <ProductCatalog
+      <ExternalProductCatalog
         onSendProduct={onSendProduct}
         trigger={
           <Button

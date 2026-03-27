@@ -424,10 +424,10 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     log.debug('Location sent:', location);
   };
 
-  const handleSendProduct = (product: Product) => {
+  const handleSendProduct = (product: ExternalProduct) => {
     toast({
       title: 'Produto enviado!',
-      description: `${product.name} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: product.currency }).format(product.price)}`,
+      description: `${product.name} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sale_price)}`,
     });
     log.debug('Product sent:', product);
   };
