@@ -21,8 +21,8 @@ import { AudioRecorder } from '../AudioRecorder';
 import { FileUploader, FileUploaderRef } from '../FileUploader';
 import { AISuggestions } from '../AISuggestions';
 import { MessageTemplates } from '../MessageTemplates';
-import { ProductCatalog } from '@/components/catalog/ProductCatalog';
-import { Product } from '@/components/catalog/ProductCard';
+import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
+import { ExternalProduct } from '@/hooks/useExternalCatalog';
 import {
   Popover,
   PopoverContent,
@@ -82,7 +82,7 @@ interface ChatInputAreaProps {
   onOpenInteractiveBuilder: () => void;
   onOpenSchedule: () => void;
   onOpenLocationPicker: () => void;
-  onSendProduct: (product: Product) => void;
+  onSendProduct: (product: ExternalProduct) => void;
   onSendSticker: (stickerUrl: string) => void;
   onSendAudioMeme: (audioUrl: string) => void;
   onSendCustomEmoji: (emojiUrl: string) => void;
@@ -293,7 +293,7 @@ export function ChatInputArea({
         <Clock className="w-4 h-4" />
         Agendar
       </Button>
-      <ProductCatalog
+      <ExternalProductCatalog
         onSendProduct={onSendProduct}
         trigger={
           <Button

@@ -6,7 +6,7 @@ import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationM
 import { normalizeMediaUrl } from '@/utils/normalizeMediaUrl';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
-import { Product } from '@/components/catalog/ProductCard';
+import { ExternalProduct } from '@/hooks/useExternalCatalog';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
@@ -424,10 +424,10 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     log.debug('Location sent:', location);
   };
 
-  const handleSendProduct = (product: Product) => {
+  const handleSendProduct = (product: ExternalProduct) => {
     toast({
       title: 'Produto enviado!',
-      description: `${product.name} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: product.currency }).format(product.price)}`,
+      description: `${product.name} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sale_price)}`,
     });
     log.debug('Product sent:', product);
   };
