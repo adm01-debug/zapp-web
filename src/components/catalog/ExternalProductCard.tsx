@@ -193,6 +193,22 @@ interface ProductDetailDialogProps {
 }
 
 function ProductDetailDialog({ product, open, onOpenChange, onSend }: ProductDetailDialogProps) {
+  const { fetchProduct } = useExternalCatalog();
+  const [fullProduct, setFullProduct] = useState<ExternalProduct>(product);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
+  useEffect(() => {
+    if (open && !product.variants?.length) {
+      setLoadingVariants(true);
+      fetchProduct(product.id).then((p) => {
+        if (p) setFullProduct(p);
+      }).finally(() => setLoadingVariants(false));
+    } else {
+      setFullProduct(product);
+    }
+  }, [open, product.id]);
+
+  const displayProduct = fullProduct;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] p-0">
