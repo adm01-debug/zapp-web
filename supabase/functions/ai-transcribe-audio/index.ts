@@ -6,6 +6,10 @@ import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
 import { assertAllowedHost } from '../_shared/ssrfGuard.ts';
+import { requireEnv } from '../_shared/envValidator.ts';
+import { unauthorized, badRequest, serverError } from '../_shared/errorResponse.ts';
+
+requireEnv({ required: ['ELEVENLABS_API_KEY'] });
 
 const logger = createStructuredLogger('ai-transcribe-audio');
 
@@ -32,19 +36,14 @@ serve(async (req) => {
   const { user, error: authError } = await verifyJWT(req);
   if (authError || !user) {
     logger.warn('Authentication failed', { error: authError });
-    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
-      status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
-    });
+    return unauthorized(authError || 'Authentication required', getCorsHeaders(req));
   }
 
   try {
     const { audioUrl, messageId } = await req.json();
 
     if (!audioUrl) {
-      return new Response(
-        JSON.stringify({ error: 'Audio URL is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return badRequest('Audio URL is required', getCorsHeaders(req));
     }
 
     // SSRF protection: validate audio URL host
@@ -52,33 +51,20 @@ serve(async (req) => {
       assertAllowedHost(audioUrl);
     } catch (ssrfError) {
       logger.warn('SSRF blocked', { url: audioUrl, error: String(ssrfError) });
-      return new Response(
-        JSON.stringify({ error: 'Invalid audio URL' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return badRequest('Invalid audio URL', getCorsHeaders(req));
     }
 
     logger.info('Starting ElevenLabs transcription', { messageId });
     logger.info('Audio URL received', { audioUrl });
 
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-    if (!ELEVENLABS_API_KEY) {
-      logger.error('ELEVENLABS_API_KEY is not configured');
-      return new Response(
-        JSON.stringify({ error: 'ElevenLabs API key not configured' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
-    }
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY')!;
 
     // Download the audio file from the URL
     logger.info('Downloading audio file');
     const audioResponse = await fetchWithRetry(audioUrl, { timeout: 30000, maxRetries: 3 });
     if (!audioResponse.ok) {
       logger.error('Failed to download audio', { status: audioResponse.status });
-      return new Response(
-        JSON.stringify({ error: 'Failed to download audio file' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+      return badRequest('Failed to download audio file', getCorsHeaders(req));
     }
 
     const audioBlob = await audioResponse.blob();

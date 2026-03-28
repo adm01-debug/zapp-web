@@ -7,6 +7,10 @@ import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { validateEnum, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { requireEnv, EVOLUTION_ENV } from '../_shared/envValidator.ts';
+import { unauthorized, notFound, serverError } from '../_shared/errorResponse.ts';
+
+requireEnv(EVOLUTION_ENV);
 
 const ALLOWED_ACTIONS = new Set([
   // Instance management
@@ -97,9 +101,7 @@ serve(async (req) => {
   // Verify authentication
   const { user, error: authError } = await verifyJWT(req);
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
-      status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
-    });
+    return unauthorized(authError || 'Authentication required', getCorsHeaders(req));
   }
 
   const evolutionApiUrl = (Deno.env.get('EVOLUTION_API_URL') || '').replace(/\/+$/, '');
@@ -1233,18 +1235,12 @@ serve(async (req) => {
     // =============================================
     logger.warn('Unknown action requested', { action });
     requestTimer.end({ status: 404, action });
-    return new Response(JSON.stringify({ error: 'Unknown action', action }), {
-      status: 404,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return notFound('Unknown action: ' + action, getCorsHeaders(req));
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     logger.error('Evolution API error', { error: message, action });
     requestTimer.end({ error: true, action });
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return serverError('Evolution API error', getCorsHeaders(req));
   }
 });

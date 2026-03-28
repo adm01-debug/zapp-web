@@ -10,6 +10,10 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
 
+import { requireEnv } from '../_shared/envValidator.ts';
+
+requireEnv({ required: ['RESEND_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] });
+
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const logger = createStructuredLogger('send-email');
 

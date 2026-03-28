@@ -6,6 +6,9 @@ import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { errorResponse, serverError } from '../_shared/errorResponse.ts';
 import { getCircuitBreakerState, CircuitState } from '../_shared/circuitBreaker.ts';
+import { requireEnv, SUPABASE_ENV, EVOLUTION_ENV } from '../_shared/envValidator.ts';
+
+requireEnv({ required: [...SUPABASE_ENV.required, ...EVOLUTION_ENV.required] });
 
 // ============================================================
 // CAMPAIGN WORKER — Processes scheduled campaigns via Evolution API

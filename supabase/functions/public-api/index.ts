@@ -6,6 +6,9 @@ import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { validateRequired, validatePhoneE164, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 import { unauthorized, notFound, badRequest, serverError, errorResponse } from '../_shared/errorResponse.ts';
+import { requireEnv, SUPABASE_ENV } from '../_shared/envValidator.ts';
+
+requireEnv(SUPABASE_ENV);
 
 const logger = createStructuredLogger('public-api');
 
