@@ -110,6 +110,8 @@ export function ChatInputArea({
   contactPhone,
   contactName,
   instanceName,
+  onPollSent,
+  onContactSent,
   messages,
   quickReplies,
   isSending = false,
