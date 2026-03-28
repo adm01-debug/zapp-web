@@ -767,6 +767,7 @@ describe('Edge Cases & Boundaries', () => {
     setupMockInvoke({
       list_products: { data: [mockProduct()], meta: { total: 1 } },
       list_categories: { data: [mockCategory()] },
+      list_suppliers: { data: [] },
     });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
@@ -775,8 +776,12 @@ describe('Edge Cases & Boundaries', () => {
       result.current.fetchCategories();
     });
 
-    expect(result.current.products).toHaveLength(1);
-    expect(result.current.categories).toHaveLength(1);
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
+    await waitFor(() => {
+      expect(result.current.categories).toHaveLength(1);
+    });
   });
 
   it('handles special characters in search', async () => {
@@ -785,12 +790,15 @@ describe('Edge Cases & Boundaries', () => {
     });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => {
-      await result.current.fetchProducts({ search: "caneta d'água & %" });
+    act(() => {
+      result.current.fetchProducts({ search: "caneta d'água & %" });
     });
 
-    const call = mockInvoke.mock.calls[0];
-    expect(call[1].body.params.search).toBe("caneta d'água & %");
+    await waitFor(() => {
+      const call = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_products');
+      expect(call).toBeTruthy();
+      expect(call[1].body.params.search).toBe("caneta d'água & %");
+    });
   });
 
   it('handles unicode characters in product data', () => {
