@@ -17,7 +17,7 @@ import {
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { format, subDays, startOfDay, endOfDay, isAfter, isBefore } from 'date-fns';
@@ -148,8 +148,8 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
               </div>
             </div>
 
-            <ScrollArea className="max-h-[400px]">
-              <div className="p-4 space-y-6">
+            <div className="max-h-[400px] overflow-y-auto p-4 pb-6">
+              <div className="space-y-6">
                 {/* Status Filter */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -226,13 +226,10 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
                     value={filters.agentId || 'all'} 
                     onValueChange={setAgent}
                   >
-                    <SelectTrigger onPointerDown={(e) => e.stopPropagation()}>
+                    <SelectTrigger>
                       <SelectValue placeholder="Todos os atendentes" />
                     </SelectTrigger>
-                    <SelectContent
-                      onPointerDownOutside={(e) => e.stopPropagation()}
-                      onEscapeKeyDown={(e) => e.stopPropagation()}
-                    >
+                    <SelectContent>
                       <SelectItem value="all">Todos os atendentes</SelectItem>
                       {agents.map(agent => (
                         <SelectItem key={agent.id} value={agent.id}>
@@ -282,7 +279,7 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
                   )}
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           </PopoverContent>
         </Popover>
 
