@@ -226,10 +226,13 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
                     value={filters.agentId || 'all'} 
                     onValueChange={setAgent}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger onPointerDown={(e) => e.stopPropagation()}>
                       <SelectValue placeholder="Todos os atendentes" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      onPointerDownOutside={(e) => e.stopPropagation()}
+                      onEscapeKeyDown={(e) => e.stopPropagation()}
+                    >
                       <SelectItem value="all">Todos os atendentes</SelectItem>
                       {agents.map(agent => (
                         <SelectItem key={agent.id} value={agent.id}>
