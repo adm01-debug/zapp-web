@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock supabase
 const mockInvoke = vi.fn();
@@ -15,6 +17,16 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 import { useExternalCatalog, ExternalProduct, ExternalCategory, ExternalSupplier, ExternalProductVariant, CatalogFilters } from '@/hooks/useExternalCatalog';
+
+// ─── QueryClient Wrapper ──────────────────────────────────────
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  };
+}
 
 // ─── Fixtures ─────────────────────────────────────────────────
 const mockProduct = (overrides: Partial<ExternalProduct> = {}): ExternalProduct => ({

@@ -137,7 +137,7 @@ describe('TelemetryCharts', () => {
 
   it('handles single row', () => {
     render(<TelemetryCharts rows={[makeRow()]} timeFilter="24h" />);
-    expect(screen.getByText('Alertas ao Longo do Tempo')).toBeInTheDocument();
+    expect(screen.getByText('Alertas por Severidade')).toBeInTheDocument();
   });
 
   it('handles 200 rows without crashing', () => {
