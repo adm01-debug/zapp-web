@@ -5,6 +5,7 @@ import { verifyJWT } from '../_shared/jwtVerifier.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkIdempotency, completeIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
+import { unauthorized, serverError } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('send-rate-limit-alert');
 
@@ -27,9 +28,7 @@ serve(async (req) => {
   // Verify authentication
   const { user, error: authError } = await verifyJWT(req);
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
-      status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
-    });
+    return unauthorized(authError || 'Authentication required', getCorsHeaders(req));
   }
 
   try {
@@ -130,12 +129,6 @@ serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     logger.error("Error in send-rate-limit-alert", { error: errorMessage });
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { 
-        status: 500, 
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } 
-      }
-    );
+    return serverError('Failed to process rate limit alert', getCorsHeaders(req));
   }
 });

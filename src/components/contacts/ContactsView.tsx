@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -165,16 +165,16 @@ export function ContactsView() {
     contact_type: 'cliente',
   });
 
-  // Extract unique values for filters
-  const uniqueCompanies = [...new Set(contacts.map(c => c.company).filter(Boolean))] as string[];
-  const uniqueJobTitles = [...new Set(contacts.map(c => c.job_title).filter(Boolean))] as string[];
-  const uniqueTags = [...new Set(contacts.flatMap(c => c.tags || []))] as string[];
+  // Extract unique values for filters (memoized to avoid recalculation on every render)
+  const uniqueCompanies = useMemo(() => [...new Set(contacts.map(c => c.company).filter(Boolean))] as string[], [contacts]);
+  const uniqueJobTitles = useMemo(() => [...new Set(contacts.map(c => c.job_title).filter(Boolean))] as string[], [contacts]);
+  const uniqueTags = useMemo(() => [...new Set(contacts.flatMap(c => c.tags || []))] as string[], [contacts]);
 
-  // Count contacts by type
-  const contactCountByType = CONTACT_TYPES.reduce((acc, type) => {
+  // Count contacts by type (memoized)
+  const contactCountByType = useMemo(() => CONTACT_TYPES.reduce((acc, type) => {
     acc[type.value] = contacts.filter(c => (c.contact_type || 'cliente') === type.value).length;
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, number>), [contacts]);
 
   useEffect(() => {
     fetchContacts();
@@ -215,9 +215,28 @@ export function ContactsView() {
     }
   };
 
-  // Sort contacts
-  const sortContacts = (contactsList: Contact[]): Contact[] => {
-    return [...contactsList].sort((a, b) => {
+  // Memoized filtered and sorted contacts — avoids recalculation on unrelated state changes
+  const filteredContacts = useMemo(() => {
+    const dateFilterDate = getDateFilterDate(filterDateRange);
+    const searchLower = search.toLowerCase();
+
+    const filtered = contacts.filter((contact) => {
+      const matchesSearch =
+        contact.name.toLowerCase().includes(searchLower) ||
+        contact.phone.includes(search) ||
+        contact.email?.toLowerCase().includes(searchLower) ||
+        contact.company?.toLowerCase().includes(searchLower);
+
+      const matchesTab = activeTab === 'all' || (contact.contact_type || 'cliente') === activeTab;
+      const matchesCompany = !filterCompany || contact.company === filterCompany;
+      const matchesJobTitle = !filterJobTitle || contact.job_title === filterJobTitle;
+      const matchesTag = !filterTag || contact.tags?.includes(filterTag);
+      const matchesDate = !dateFilterDate || isAfter(new Date(contact.created_at), dateFilterDate);
+
+      return matchesSearch && matchesTab && matchesCompany && matchesJobTitle && matchesTag && matchesDate;
+    });
+
+    return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'name_asc':
           return a.name.localeCompare(b.name);
@@ -233,26 +252,7 @@ export function ContactsView() {
           return 0;
       }
     });
-  };
-
-  const filteredContacts = sortContacts(contacts.filter((contact) => {
-    const matchesSearch =
-      contact.name.toLowerCase().includes(search.toLowerCase()) ||
-      contact.phone.includes(search) ||
-      contact.email?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesTab = activeTab === 'all' || (contact.contact_type || 'cliente') === activeTab;
-    const matchesCompany = !filterCompany || contact.company === filterCompany;
-    const matchesJobTitle = !filterJobTitle || contact.job_title === filterJobTitle;
-    const matchesTag = !filterTag || contact.tags?.includes(filterTag);
-    
-    // Date filter
-    const dateFilterDate = getDateFilterDate(filterDateRange);
-    const matchesDate = !dateFilterDate || isAfter(new Date(contact.created_at), dateFilterDate);
-    
-    return matchesSearch && matchesTab && matchesCompany && matchesJobTitle && matchesTag && matchesDate;
-  }));
+  }, [contacts, search, activeTab, filterCompany, filterJobTitle, filterTag, filterDateRange, sortBy]);
 
   const activeFiltersCount = [filterCompany, filterJobTitle, filterTag, filterDateRange !== 'all' ? filterDateRange : ''].filter(Boolean).length;
 

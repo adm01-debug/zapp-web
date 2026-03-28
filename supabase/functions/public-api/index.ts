@@ -5,6 +5,7 @@ import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { validateRequired, validatePhoneE164, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
+import { unauthorized, notFound, badRequest, serverError, errorResponse } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('public-api');
 
@@ -32,10 +33,7 @@ Deno.serve(async (req) => {
     // Validate API token
     const apiKey = req.headers.get('x-api-key');
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'Missing x-api-key header' }), {
-        status: 401,
-        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-      });
+      return unauthorized('Missing x-api-key header', getCorsHeaders(req));
     }
 
     const { data: setting } = await supabase
@@ -45,10 +43,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!setting?.value || setting.value !== apiKey) {
-      return new Response(JSON.stringify({ error: 'Invalid API token' }), {
-        status: 403,
-        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-      });
+      return errorResponse('Invalid API token', { status: 403, code: 'FORBIDDEN', corsHeaders: getCorsHeaders(req) });
     }
 
     const url = new URL(req.url);
@@ -106,10 +101,7 @@ Deno.serve(async (req) => {
         }
 
         if (!connection) {
-          return new Response(JSON.stringify({ error: 'No active WhatsApp connection found' }), {
-            status: 404,
-            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-          });
+          return notFound('No active WhatsApp connection found', getCorsHeaders(req));
         }
 
         // Find or create contact
@@ -130,10 +122,7 @@ Deno.serve(async (req) => {
         }
 
         if (!contact) {
-          return new Response(JSON.stringify({ error: 'Failed to create contact' }), {
-            status: 500,
-            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-          });
+          return serverError('Failed to create contact', getCorsHeaders(req));
         }
 
         // Insert message
@@ -151,10 +140,7 @@ Deno.serve(async (req) => {
           .single();
 
         if (msgError) {
-          return new Response(JSON.stringify({ error: 'Failed to save message', details: msgError.message }), {
-            status: 500,
-            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-          });
+          return serverError('Failed to save message', getCorsHeaders(req));
         }
 
         // Send via Evolution API
@@ -206,20 +192,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      return new Response(JSON.stringify({ error: 'Unknown action. Supported: send' }), {
-        status: 400,
-        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-      });
+      return badRequest('Unknown action. Supported: send', getCorsHeaders(req));
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return errorResponse('Method not allowed', { status: 405, code: 'METHOD_NOT_ALLOWED', corsHeaders: getCorsHeaders(req) });
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Internal server error', details: String(err) }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    logger.error('Internal server error', { error: String(err) });
+    return serverError('Internal server error', getCorsHeaders(req));
   }
 });

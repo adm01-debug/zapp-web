@@ -4,6 +4,7 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { unauthorized, badRequest, notFound, serverError } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('approve-password-reset');
 
@@ -40,7 +41,7 @@ serve(async (req) => {
     // Get authorization header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("Authorization header required");
+      return unauthorized('Authorization header required', corsHeaders);
     }
 
     // Create client with user's token to verify permissions
@@ -51,13 +52,13 @@ serve(async (req) => {
     // Verify user is admin
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
     if (userError || !user) {
-      throw new Error("Unauthorized");
+      return unauthorized('Invalid or expired token', corsHeaders);
     }
 
     // Check if user is admin
     const { data: isAdmin } = await supabaseUser.rpc("is_admin_or_supervisor", { _user_id: user.id });
     if (!isAdmin) {
-      throw new Error("Only admins can approve password resets");
+      return unauthorized('Only admins can approve password resets', corsHeaders);
     }
 
     // Create admin client for operations
@@ -75,11 +76,11 @@ serve(async (req) => {
       .single();
 
     if (fetchError || !resetRequest) {
-      throw new Error("Reset request not found");
+      return notFound('Reset request not found', corsHeaders);
     }
 
     if (resetRequest.status !== "pending") {
-      throw new Error("Request already processed");
+      return badRequest('Request already processed', corsHeaders);
     }
 
     if (action === "reject") {
@@ -141,28 +142,17 @@ serve(async (req) => {
     logger.info("Password reset approved, link generated", { requestId });
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: "Solicitação aprovada",
-        resetLink: resetData.properties?.action_link 
+        resetLink: resetData.properties?.action_link
       }),
       { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Solicitação aprovada e email enviado",
-        resetLink: resetData.properties?.action_link 
-      }),
-      { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
-    );
-
-  } catch (error: any) {
-    logger.error("Error in approve-password-reset", { error: error.message });
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    logger.error("Error in approve-password-reset", { error: message });
+    return serverError('Failed to process password reset', getCorsHeaders(req));
   }
 });
