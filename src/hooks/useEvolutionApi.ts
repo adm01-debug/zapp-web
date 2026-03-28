@@ -233,9 +233,12 @@ export function useEvolutionApi() {
 
     const promise = (async () => {
       try {
+        // Always use POST to the edge function — the edge function itself maps
+        // to the correct HTTP method when calling the Evolution API.
+        // Browsers reject GET/HEAD requests that carry a body.
         const { data, error } = await supabase.functions.invoke(`evolution-api/${action}`, {
-          method,
-          body,
+          method: 'POST',
+          body: body ?? {},
         });
         if (error) throw error;
         // Check for wrapped API errors (edge function returns 200 with error field)
