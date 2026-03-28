@@ -94,6 +94,7 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber, onPollSent,
         selectableCount: pollSelectableCount,
         values: validOptions,
       });
+      onPollSent?.({ name: pollName, options: validOptions, selectableCount: pollSelectableCount });
       toast.success('Enquete enviada!');
       setPollName('');
       setPollOptions(['', '']);
