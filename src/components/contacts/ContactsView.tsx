@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
@@ -79,6 +79,9 @@ import {
   CheckCircle2,
   Copy,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -86,6 +89,7 @@ import { format, subDays, subMonths, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
+import { useContactsSearch } from '@/hooks/useContactsSearch';
 
 interface Contact {
   id: string;
@@ -134,47 +138,19 @@ const SORT_OPTIONS = [
   { value: 'updated_desc', label: 'Atualizado recentemente' },
 ];
 
+
 export function ContactsView() {
   
   const { profile } = useAuth();
   const feedback = useActionFeedback();
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
   const [showSuccess, setShowSuccess] = useState<{ name: string; protocol: string } | null>(null);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchInput(value);
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearch(value);
-    }, 400);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    };
-  }, []);
-
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  
-  const [activeTab, setActiveTab] = useState<string>('all');
-  const [filterCompany, setFilterCompany] = useState<string>('');
-  const [filterJobTitle, setFilterJobTitle] = useState<string>('');
-  const [filterTag, setFilterTag] = useState<string>('');
-  const [filterDateRange, setFilterDateRange] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('name_asc');
-  
+
   const [newContact, setNewContact] = useState({
     name: '',
     nickname: '',
@@ -186,107 +162,41 @@ export function ContactsView() {
     contact_type: 'cliente',
   });
 
-  // Extract unique values for filters
-  const uniqueCompanies = [...new Set(contacts.map(c => c.company).filter(Boolean))] as string[];
-  const uniqueJobTitles = [...new Set(contacts.map(c => c.job_title).filter(Boolean))] as string[];
-  const uniqueTags = [...new Set(contacts.flatMap(c => c.tags || []))] as string[];
-
-  // Count contacts by type
-  const contactCountByType = CONTACT_TYPES.reduce((acc, type) => {
-    acc[type.value] = contacts.filter(c => (c.contact_type || 'cliente') === type.value).length;
-    return acc;
-  }, {} as Record<string, number>);
-
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const fetchContacts = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('contacts')
-      .select('*')
-      .order('name', { ascending: true });
-
-    if (error) {
-      toast.error('Erro ao carregar contatos');
-      log.error('Error fetching contacts:', error);
-    } else {
-      setContacts(data || []);
-    }
-    setLoading(false);
-  };
-
-  // Apply date filter
-  const getDateFilterDate = (filterValue: string): Date | null => {
-    const now = new Date();
-    switch (filterValue) {
-      case 'today':
-        return subDays(now, 1);
-      case 'week':
-        return subDays(now, 7);
-      case 'month':
-        return subMonths(now, 1);
-      case 'quarter':
-        return subMonths(now, 3);
-      case 'year':
-        return subMonths(now, 12);
-      default:
-        return null;
-    }
-  };
-
-  // Sort contacts
-  const sortContacts = (contactsList: Contact[]): Contact[] => {
-    return [...contactsList].sort((a, b) => {
-      switch (sortBy) {
-        case 'name_asc':
-          return a.name.localeCompare(b.name);
-        case 'name_desc':
-          return b.name.localeCompare(a.name);
-        case 'created_desc':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'created_asc':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'updated_desc':
-          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-        default:
-          return 0;
-      }
-    });
-  };
-
-  const filteredContacts = sortContacts(contacts.filter((contact) => {
-    const matchesSearch =
-      contact.name.toLowerCase().includes(search.toLowerCase()) ||
-      contact.nickname?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.surname?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.phone.includes(search) ||
-      contact.email?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.job_title?.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesTab = activeTab === 'all' || (contact.contact_type || 'cliente') === activeTab;
-    const matchesCompany = !filterCompany || contact.company === filterCompany;
-    const matchesJobTitle = !filterJobTitle || contact.job_title === filterJobTitle;
-    const matchesTag = !filterTag || contact.tags?.includes(filterTag);
-    
-    // Date filter
-    const dateFilterDate = getDateFilterDate(filterDateRange);
-    const matchesDate = !dateFilterDate || isAfter(new Date(contact.created_at), dateFilterDate);
-    
-    return matchesSearch && matchesTab && matchesCompany && matchesJobTitle && matchesTag && matchesDate;
-  }));
-
-  const activeFiltersCount = [filterCompany, filterJobTitle, filterTag, filterDateRange !== 'all' ? filterDateRange : ''].filter(Boolean).length;
-
-  const clearFilters = () => {
-    setFilterCompany('');
-    setFilterJobTitle('');
-    setFilterTag('');
-    setFilterDateRange('all');
-    setSortBy('name_asc');
-  };
+  // Server-side search hook
+  const {
+    contacts: filteredContacts,
+    totalCount,
+    loading,
+    hasMore,
+    contactCountByType,
+    uniqueCompanies,
+    uniqueJobTitles,
+    uniqueTags,
+    searchInput,
+    debouncedSearch: search,
+    handleSearchChange,
+    clearSearch,
+    activeTab,
+    setActiveTab,
+    filterCompany,
+    setFilterCompany,
+    filterJobTitle,
+    setFilterJobTitle,
+    filterTag,
+    setFilterTag,
+    filterDateRange,
+    setFilterDateRange,
+    sortBy,
+    setSortBy,
+    activeFiltersCount,
+    clearFilters,
+    page,
+    setPage,
+    pageSize,
+    loadMore,
+    loadPrevious,
+    refetch,
+  } = useContactsSearch();
 
   const generateProtocol = useCallback(() => {
     const now = new Date();
@@ -329,7 +239,7 @@ export function ContactsView() {
           setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
           setIsAddDialogOpen(false);
           setShowSuccess({ name: contactName, protocol });
-          fetchContacts();
+          refetch();
         },
       }
     );
@@ -368,7 +278,7 @@ export function ContactsView() {
         onSuccess: () => {
           setIsEditDialogOpen(false);
           setEditingContact(null);
-          fetchContacts();
+          refetch();
         },
       }
     );
@@ -387,7 +297,7 @@ export function ContactsView() {
         errorMessage: 'Erro ao excluir contato',
         onSuccess: () => {
           setDeleteTarget(null);
-          fetchContacts();
+          refetch();
         },
       }
     );
@@ -421,14 +331,14 @@ export function ContactsView() {
       {/* Header with Breadcrumbs */}
       <PageHeader
         title="Contatos"
-        subtitle={`Base de clientes e leads (${contacts.length} contatos)`}
+        subtitle={`Base de clientes e leads (${totalCount} contatos)`}
         breadcrumbs={[
           { label: 'Gestão' },
           { label: 'Contatos' },
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchContacts} disabled={loading}>
+            <Button variant="outline" onClick={() => refetch()} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
@@ -564,7 +474,7 @@ export function ContactsView() {
               <Users className="w-4 h-4" />
               Todos
               <Badge variant="secondary" className="ml-1 text-xs">
-                {contacts.length}
+                {contactCountByType['all'] || 0}
               </Badge>
             </TabsTrigger>
             {CONTACT_TYPES.map((type) => (
@@ -753,10 +663,10 @@ export function ContactsView() {
           <div className="flex items-center gap-2">
             <span>
               Exibindo <span className="font-semibold text-foreground">{filteredContacts.length}</span>
-              {filteredContacts.length !== contacts.length && (
-                <> de <span className="font-semibold text-foreground">{contacts.length}</span></>
+              {filteredContacts.length < totalCount && (
+                <> de <span className="font-semibold text-foreground">{totalCount}</span></>
               )}
-              {' '}contato{contacts.length !== 1 ? 's' : ''}
+              {' '}contato{totalCount !== 1 ? 's' : ''}
             </span>
             {activeFiltersCount > 0 && (
               <Badge variant="outline" className="text-xs gap-1">
@@ -799,7 +709,7 @@ export function ContactsView() {
               actionLabel={!search ? "Novo Contato" : undefined}
               onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
               secondaryActionLabel={search ? "Limpar Busca" : undefined}
-              onSecondaryAction={search ? () => { setSearch(''); setSearchInput(''); } : undefined}
+              onSecondaryAction={search ? () => { clearSearch(); } : undefined}
             />
           ) : (
             <div className="overflow-x-auto">
@@ -979,6 +889,35 @@ export function ContactsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalCount > pageSize && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            Página {page + 1} de {Math.ceil(totalCount / pageSize)}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadPrevious}
+              disabled={page === 0 || loading}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMore}
+              disabled={!hasMore || loading}
+            >
+              Próxima
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

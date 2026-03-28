@@ -4368,6 +4368,13 @@ export type Database = {
       calculate_level: { Args: { xp_amount: number }; Returns: number }
       cleanup_expired_challenges: { Args: never; Returns: undefined }
       clear_login_attempts: { Args: { p_email: string }; Returns: undefined }
+      contacts_count_by_type: {
+        Args: never
+        Returns: {
+          contact_type: string
+          count: number
+        }[]
+      }
       get_team_profiles: {
         Args: never
         Returns: {
@@ -4423,6 +4430,37 @@ export type Database = {
           locked_until: string
         }[]
       }
+      search_contacts: {
+        Args: {
+          company_filter?: string
+          contact_type_filter?: string
+          date_from?: string
+          job_title_filter?: string
+          page_offset?: number
+          page_size?: number
+          search_term?: string
+          sort_direction?: string
+          sort_field?: string
+          tag_filter?: string
+        }
+        Returns: {
+          avatar_url: string
+          company: string
+          contact_type: string
+          created_at: string
+          email: string
+          id: string
+          job_title: string
+          name: string
+          nickname: string
+          notes: string
+          phone: string
+          surname: string
+          tags: string[]
+          total_count: number
+          updated_at: string
+        }[]
+      }
       search_knowledge_base: {
         Args: { max_results?: number; search_query: string }
         Returns: {
@@ -4434,6 +4472,8 @@ export type Database = {
           title: string
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       skill_based_assign: { Args: { p_queue_id: string }; Returns: string }
       user_has_permission: {
         Args: { _permission_name: string; _user_id: string }
