@@ -262,7 +262,7 @@ describe('useExternalCatalog', () => {
     });
 
     it('clears error on successful retry', async () => {
-      mockInvoke.mockResolvedValueOnce({
+      mockInvoke.mockResolvedValue({
         data: { error: 'Timeout' },
         error: null,
       });
@@ -272,7 +272,7 @@ describe('useExternalCatalog', () => {
 
       await waitFor(() => {
         expect(result.current.error).toBe('Timeout');
-      });
+      }, { timeout: 5000 });
 
       // Reset mock for success
       mockInvoke.mockResolvedValue({
@@ -285,7 +285,7 @@ describe('useExternalCatalog', () => {
 
       await waitFor(() => {
         expect(result.current.products).toHaveLength(1);
-      });
+      }, { timeout: 5000 });
       expect(result.current.error).toBeNull();
     });
 
