@@ -331,7 +331,7 @@ export function ContactsView() {
       {/* Header with Breadcrumbs */}
       <PageHeader
         title="Contatos"
-        subtitle={`Base de clientes e leads (${contacts.length} contatos)`}
+        subtitle={`Base de clientes e leads (${totalCount} contatos)`}
         breadcrumbs={[
           { label: 'Gestão' },
           { label: 'Contatos' },
