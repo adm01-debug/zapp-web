@@ -147,7 +147,7 @@ describe('useExternalCatalog', () => {
       });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchProducts(); });
+      act(() => { result.current.fetchProducts(); });
 
       expect(result.current.products).toHaveLength(2);
       expect(result.current.totalProducts).toBe(100);
@@ -176,7 +176,7 @@ describe('useExternalCatalog', () => {
       });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchProducts(); });
+      act(() => { result.current.fetchProducts(); });
 
       expect(result.current.products).toEqual([]);
       expect(result.current.totalProducts).toBe(0);
@@ -188,7 +188,7 @@ describe('useExternalCatalog', () => {
       });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchProducts(); });
+      act(() => { result.current.fetchProducts(); });
 
       expect(result.current.products).toEqual([]);
       expect(result.current.totalProducts).toBe(0);
@@ -211,7 +211,7 @@ describe('useExternalCatalog', () => {
         order_by: 'sale_price',
         ascending: false,
       };
-      await act(async () => { await result.current.fetchProducts(filters); });
+      act(() => { result.current.fetchProducts(filters); });
 
       expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', {
         body: {
@@ -238,7 +238,7 @@ describe('useExternalCatalog', () => {
       });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchProducts(); });
+      act(() => { result.current.fetchProducts(); });
 
       expect(result.current.error).toBe('Network error');
       expect(result.current.products).toEqual([]);
@@ -252,7 +252,7 @@ describe('useExternalCatalog', () => {
       });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchProducts(); });
+      act(() => { result.current.fetchProducts(); });
 
       expect(result.current.error).toBe('External DB not configured');
     });
@@ -265,7 +265,7 @@ describe('useExternalCatalog', () => {
       });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchProducts(); });
+      act(() => { result.current.fetchProducts(); });
       expect(result.current.error).toBe('Timeout');
 
       // Second call: success
@@ -273,7 +273,7 @@ describe('useExternalCatalog', () => {
         data: { data: [mockProduct()], meta: { total: 1 } },
         error: null,
       });
-      await act(async () => { await result.current.fetchProducts(); });
+      act(() => { result.current.fetchProducts(); });
       expect(result.current.error).toBeNull();
       expect(result.current.products).toHaveLength(1);
     });
@@ -303,7 +303,7 @@ describe('useExternalCatalog', () => {
       });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchProducts({ limit: 50 }); });
+      act(() => { result.current.fetchProducts({ limit: 50 }); });
 
       expect(result.current.products).toHaveLength(50);
       expect(result.current.totalProducts).toBe(6123);
@@ -392,7 +392,7 @@ describe('useExternalCatalog', () => {
       setupMockInvoke({ list_categories: { data: cats } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchCategories(); });
+      act(() => { result.current.fetchCategories(); });
 
       expect(result.current.categories).toHaveLength(3);
     });
@@ -401,7 +401,7 @@ describe('useExternalCatalog', () => {
       setupMockInvoke({ list_categories: { data: [] } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchCategories(); });
+      act(() => { result.current.fetchCategories(); });
 
       expect(result.current.categories).toEqual([]);
     });
@@ -410,7 +410,7 @@ describe('useExternalCatalog', () => {
       mockInvoke.mockResolvedValue({ data: null, error: { message: 'Server error' } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchCategories(); });
+      act(() => { result.current.fetchCategories(); });
 
       expect(result.current.categories).toEqual([]); // Stays empty, no crash
     });
@@ -428,7 +428,7 @@ describe('useExternalCatalog', () => {
       setupMockInvoke({ list_suppliers: { data: sups } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchSuppliers(); });
+      act(() => { result.current.fetchSuppliers(); });
 
       expect(result.current.suppliers).toHaveLength(2);
     });
@@ -437,7 +437,7 @@ describe('useExternalCatalog', () => {
       mockInvoke.mockResolvedValue({ data: null, error: { message: 'DB error' } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-      await act(async () => { await result.current.fetchSuppliers(); });
+      act(() => { result.current.fetchSuppliers(); });
 
       expect(result.current.suppliers).toEqual([]);
     });
@@ -516,7 +516,7 @@ describe('Edge Function Contract', () => {
     setupMockInvoke({ list_products: { data: [], meta: { total: 0 } } });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchProducts(); });
+    act(() => { result.current.fetchProducts(); });
 
     expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', expect.any(Object));
   });
@@ -525,7 +525,7 @@ describe('Edge Function Contract', () => {
     setupMockInvoke({ list_products: { data: [], meta: { total: 0 } } });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchProducts(); });
+    act(() => { result.current.fetchProducts(); });
 
     const call = mockInvoke.mock.calls[0];
     expect(call[1].body.action).toBe('list_products');
@@ -546,7 +546,7 @@ describe('Edge Function Contract', () => {
     setupMockInvoke({ list_categories: { data: [] } });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchCategories(); });
+    act(() => { result.current.fetchCategories(); });
 
     expect(mockInvoke.mock.calls[0][1].body.action).toBe('list_categories');
   });
@@ -555,7 +555,7 @@ describe('Edge Function Contract', () => {
     setupMockInvoke({ list_suppliers: { data: [] } });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchSuppliers(); });
+    act(() => { result.current.fetchSuppliers(); });
 
     expect(mockInvoke.mock.calls[0][1].body.action).toBe('list_suppliers');
   });
@@ -572,7 +572,7 @@ describe('Data Integrity', () => {
     });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchProducts(); });
+    act(() => { result.current.fetchProducts(); });
 
     expect(result.current.products[0].sale_price).toBe(38.49);
     expect(result.current.products[0].suggested_price).toBe(44.75);
@@ -585,7 +585,7 @@ describe('Data Integrity', () => {
     });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchProducts(); });
+    act(() => { result.current.fetchProducts(); });
 
     expect(result.current.products[0].colors).toHaveLength(5);
     expect(result.current.products[0].colors).toContain('Azul');
@@ -605,7 +605,7 @@ describe('Data Integrity', () => {
     });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchProducts(); });
+    act(() => { result.current.fetchProducts(); });
 
     expect(result.current.products[0].name).toBeDefined();
     expect(result.current.products[0].categories).toBeNull();
@@ -620,7 +620,7 @@ describe('Data Integrity', () => {
     });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => { await result.current.fetchProducts(); });
+    act(() => { result.current.fetchProducts(); });
 
     expect(result.current.products[0].categories?.parent_id).toBe('cat-parent');
     expect(result.current.products[0].categories?.name).toBe('Tábua | Plástico');
@@ -717,11 +717,9 @@ describe('Edge Cases & Boundaries', () => {
     });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
-    await act(async () => {
-      await Promise.all([
-        result.current.fetchProducts(),
-        result.current.fetchCategories(),
-      ]);
+    act(() => {
+      result.current.fetchProducts();
+      result.current.fetchCategories();
     });
 
     expect(result.current.products).toHaveLength(1);
