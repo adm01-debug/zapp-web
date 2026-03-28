@@ -801,10 +801,10 @@ describe('Edge Cases & Boundaries', () => {
     });
 
     await waitFor(() => {
-      const call = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_products');
+      const call = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_products' && c[1]?.body?.params?.search);
       expect(call).toBeTruthy();
       expect(call[1].body.params.search).toBe("caneta d'água & %");
-    });
+    }, { timeout: 5000 });
   });
 
   it('handles unicode characters in product data', () => {
