@@ -795,6 +795,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme}
           onSendCustomEmoji={handleSendCustomEmoji}
+          onOpenCatalog={() => setShowCatalogDirect(true)}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef}
@@ -828,6 +829,15 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           {showForwardDialog && <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />}
           {showLocationPicker && <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />}
         </Suspense>
+
+        {/* Catalog Dialog (direct access) */}
+        {showCatalogDirect && (
+          <ExternalProductCatalog
+            onSendProduct={handleSendProduct}
+            open={showCatalogDirect}
+            onOpenChange={setShowCatalogDirect}
+          />
+        )}
       </div>
 
       {/* AI Conversation Assistant - lazy */}
