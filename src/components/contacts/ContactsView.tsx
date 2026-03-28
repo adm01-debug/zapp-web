@@ -138,96 +138,65 @@ const SORT_OPTIONS = [
   { value: 'updated_desc', label: 'Atualizado recentemente' },
 ];
 
-  useEffect(() => {
-    fetchContacts();
-  }, []);
 
-  const fetchContacts = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('contacts')
-      .select('*')
-      .order('name', { ascending: true });
+export function ContactsView() {
+  
+  const { profile } = useAuth();
+  const feedback = useActionFeedback();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
+  const [showSuccess, setShowSuccess] = useState<{ name: string; protocol: string } | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
-    if (error) {
-      toast.error('Erro ao carregar contatos');
-      log.error('Error fetching contacts:', error);
-    } else {
-      setContacts(data || []);
-    }
-    setLoading(false);
-  };
+  const [newContact, setNewContact] = useState({
+    name: '',
+    nickname: '',
+    surname: '',
+    job_title: '',
+    company: '',
+    phone: '',
+    email: '',
+    contact_type: 'cliente',
+  });
 
-  // Apply date filter
-  const getDateFilterDate = (filterValue: string): Date | null => {
-    const now = new Date();
-    switch (filterValue) {
-      case 'today':
-        return subDays(now, 1);
-      case 'week':
-        return subDays(now, 7);
-      case 'month':
-        return subMonths(now, 1);
-      case 'quarter':
-        return subMonths(now, 3);
-      case 'year':
-        return subMonths(now, 12);
-      default:
-        return null;
-    }
-  };
-
-  // Sort contacts
-  const sortContacts = (contactsList: Contact[]): Contact[] => {
-    return [...contactsList].sort((a, b) => {
-      switch (sortBy) {
-        case 'name_asc':
-          return a.name.localeCompare(b.name);
-        case 'name_desc':
-          return b.name.localeCompare(a.name);
-        case 'created_desc':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'created_asc':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'updated_desc':
-          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-        default:
-          return 0;
-      }
-    });
-  };
-
-  const filteredContacts = sortContacts(contacts.filter((contact) => {
-    const matchesSearch =
-      contact.name.toLowerCase().includes(search.toLowerCase()) ||
-      contact.nickname?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.surname?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.phone.includes(search) ||
-      contact.email?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(search.toLowerCase()) ||
-      contact.job_title?.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesTab = activeTab === 'all' || (contact.contact_type || 'cliente') === activeTab;
-    const matchesCompany = !filterCompany || contact.company === filterCompany;
-    const matchesJobTitle = !filterJobTitle || contact.job_title === filterJobTitle;
-    const matchesTag = !filterTag || contact.tags?.includes(filterTag);
-    
-    // Date filter
-    const dateFilterDate = getDateFilterDate(filterDateRange);
-    const matchesDate = !dateFilterDate || isAfter(new Date(contact.created_at), dateFilterDate);
-    
-    return matchesSearch && matchesTab && matchesCompany && matchesJobTitle && matchesTag && matchesDate;
-  }));
-
-  const activeFiltersCount = [filterCompany, filterJobTitle, filterTag, filterDateRange !== 'all' ? filterDateRange : ''].filter(Boolean).length;
-
-  const clearFilters = () => {
-    setFilterCompany('');
-    setFilterJobTitle('');
-    setFilterTag('');
-    setFilterDateRange('all');
-    setSortBy('name_asc');
-  };
+  // Server-side search hook
+  const {
+    contacts: filteredContacts,
+    totalCount,
+    loading,
+    hasMore,
+    contactCountByType,
+    uniqueCompanies,
+    uniqueJobTitles,
+    uniqueTags,
+    searchInput,
+    debouncedSearch: search,
+    handleSearchChange,
+    clearSearch,
+    activeTab,
+    setActiveTab,
+    filterCompany,
+    setFilterCompany,
+    filterJobTitle,
+    setFilterJobTitle,
+    filterTag,
+    setFilterTag,
+    filterDateRange,
+    setFilterDateRange,
+    sortBy,
+    setSortBy,
+    activeFiltersCount,
+    clearFilters,
+    page,
+    setPage,
+    pageSize,
+    loadMore,
+    loadPrevious,
+    refetch,
+  } = useContactsSearch();
 
   const generateProtocol = useCallback(() => {
     const now = new Date();
