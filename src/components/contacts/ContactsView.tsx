@@ -278,7 +278,7 @@ export function ContactsView() {
         onSuccess: () => {
           setIsEditDialogOpen(false);
           setEditingContact(null);
-          fetchContacts();
+          refetch();
         },
       }
     );
