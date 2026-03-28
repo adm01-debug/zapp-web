@@ -338,7 +338,7 @@ export function ContactsView() {
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchContacts} disabled={loading}>
+            <Button variant="outline" onClick={() => refetch()} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
