@@ -183,6 +183,16 @@ const SLASH_COMMANDS: SlashCommand[] = [
     color: 'text-violet-500',
     shortcut: 'I',
   },
+  {
+    id: 'produto',
+    command: '/produto',
+    label: 'Catálogo',
+    description: 'Buscar e enviar produto do catálogo',
+    icon: Package,
+    category: 'actions',
+    color: 'text-emerald-500',
+    shortcut: 'C',
+  },
 ];
 
 interface SlashCommandsProps {

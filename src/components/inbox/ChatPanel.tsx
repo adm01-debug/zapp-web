@@ -336,6 +336,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       case 'remind': toast({ title: '🔔 Lembrete Criado', description: 'Um lembrete foi criado para esta conversa.' }); break;
       case 'quick': toast({ title: '⚡ Resposta Rápida', description: 'Use / seguido do atalho para respostas rápidas.' }); break;
       case 'summary': setShowAIAssistant(true); break;
+      case 'produto': setShowCatalogDirect(true); break;
       default: toast({ title: `Comando: ${command.label}`, description: command.description }); break;
     }
   };
