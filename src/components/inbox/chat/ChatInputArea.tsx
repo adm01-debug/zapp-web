@@ -86,6 +86,7 @@ interface ChatInputAreaProps {
   onSendSticker: (stickerUrl: string) => void;
   onSendAudioMeme: (audioUrl: string) => void;
   onSendCustomEmoji: (emojiUrl: string) => void;
+  onOpenCatalog?: () => void;
   onSelectSuggestion: (text: string) => void;
   onSelectTemplate: (text: string) => void;
   onExternalFiles?: (files: File[]) => void;
@@ -129,6 +130,7 @@ export function ChatInputArea({
   onSendSticker,
   onSendAudioMeme,
   onSendCustomEmoji,
+  onOpenCatalog,
   onSelectSuggestion,
   onSelectTemplate,
   onPasteFiles,
@@ -545,6 +547,22 @@ export function ChatInputArea({
               <StickerPicker onSendSticker={onSendSticker} />
               <AudioMemePicker onSendAudio={onSendAudioMeme} />
               <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
+              {onOpenCatalog && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 text-muted-foreground hover:text-primary transition-colors"
+                      onClick={onOpenCatalog}
+                      aria-label="Catálogo de produtos"
+                    >
+                      <Package className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
+                </Tooltip>
+              )}
             </div>
           )}
 

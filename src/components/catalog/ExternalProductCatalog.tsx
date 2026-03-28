@@ -29,6 +29,8 @@ import { ExternalProductCard } from './ExternalProductCard';
 interface ExternalProductCatalogProps {
   onSendProduct: (product: ExternalProduct) => void;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const PAGE_SIZE = 24;
@@ -36,6 +38,8 @@ const PAGE_SIZE = 24;
 export const ExternalProductCatalog: React.FC<ExternalProductCatalogProps> = ({
   onSendProduct,
   trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }) => {
   const {
     products,
@@ -49,7 +53,12 @@ export const ExternalProductCatalog: React.FC<ExternalProductCatalogProps> = ({
     fetchSuppliers,
   } = useExternalCatalog();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = (v: boolean) => {
+    setInternalOpen(v);
+    controlledOnOpenChange?.(v);
+  };
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string>('all');
   const [supplierId, setSupplierId] = useState<string>('all');

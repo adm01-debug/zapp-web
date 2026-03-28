@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Search,
   X,
+  Package,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -182,6 +183,16 @@ const SLASH_COMMANDS: SlashCommand[] = [
     category: 'actions',
     color: 'text-violet-500',
     shortcut: 'I',
+  },
+  {
+    id: 'produto',
+    command: '/produto',
+    label: 'Catálogo',
+    description: 'Buscar e enviar produto do catálogo',
+    icon: Package,
+    category: 'actions',
+    color: 'text-emerald-500',
+    shortcut: 'C',
   },
 ];
 

@@ -7,6 +7,7 @@ import { normalizeMediaUrl } from '@/utils/normalizeMediaUrl';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
 import { ExternalProduct } from '@/hooks/useExternalCatalog';
+import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
@@ -63,6 +64,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [showCatalogDirect, setShowCatalogDirect] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -336,6 +338,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       case 'remind': toast({ title: '🔔 Lembrete Criado', description: 'Um lembrete foi criado para esta conversa.' }); break;
       case 'quick': toast({ title: '⚡ Resposta Rápida', description: 'Use / seguido do atalho para respostas rápidas.' }); break;
       case 'summary': setShowAIAssistant(true); break;
+      case 'produto': setShowCatalogDirect(true); break;
       default: toast({ title: `Comando: ${command.label}`, description: command.description }); break;
     }
   };
@@ -793,6 +796,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme}
           onSendCustomEmoji={handleSendCustomEmoji}
+          onOpenCatalog={() => setShowCatalogDirect(true)}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef}
@@ -826,6 +830,15 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           {showForwardDialog && <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />}
           {showLocationPicker && <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />}
         </Suspense>
+
+        {/* Catalog Dialog (direct access) */}
+        {showCatalogDirect && (
+          <ExternalProductCatalog
+            onSendProduct={handleSendProduct}
+            open={showCatalogDirect}
+            onOpenChange={setShowCatalogDirect}
+          />
+        )}
       </div>
 
       {/* AI Conversation Assistant - lazy */}
