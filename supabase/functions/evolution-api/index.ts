@@ -382,12 +382,20 @@ serve(async (req) => {
       const audioSource = typeof rawAudioSource === 'string'
         ? rawAudioSource.trim().replace(/^"+|"+$/g, '').replace(/\.supabase\.co"\//, '.supabase.co/')
         : rawAudioSource;
+      const audioSourceString = String(audioSource || '');
+      const isRemoteAudio = audioSourceString.startsWith('http');
+      const shouldEncode = body.encoding ?? isRemoteAudio;
 
       return await proxy(`/message/sendWhatsAppAudio/${instance}`, 'POST', {
         number: body.number,
-        audio: audioSource,
-        encoding: body.encoding ?? !String(audioSource || '').startsWith('http'),
-        delay: body.delay,
+        options: {
+          delay: body.delay,
+          encoding: shouldEncode,
+          presence: body.presence || 'recording',
+        },
+        audioMessage: {
+          audio: audioSource,
+        },
       });
     }
 
