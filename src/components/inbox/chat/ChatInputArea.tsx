@@ -314,6 +314,8 @@ export function ChatInputArea({
       <AdvancedMessageMenu
         instanceName={instanceName || ''}
         recipientNumber={contactPhone}
+        onPollSent={onPollSent}
+        onContactSent={onContactSent}
       />
       <AISuggestions
         messages={messages.map(m => ({
