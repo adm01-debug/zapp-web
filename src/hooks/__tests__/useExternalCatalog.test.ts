@@ -407,57 +407,70 @@ describe('useExternalCatalog', () => {
         mockCategory({ id: 'cat2', name: 'Garrafas', slug: 'garrafas' }),
         mockCategory({ id: 'cat3', name: 'Garrafas | Inox', slug: 'garrafas-inox', parent_id: 'cat2' }),
       ];
-      setupMockInvoke({ list_categories: { data: cats } });
+      setupMockInvoke({ list_categories: { data: cats }, list_products: { data: [], meta: { total: 0 } }, list_suppliers: { data: [] } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       act(() => { result.current.fetchCategories(); });
 
-      expect(result.current.categories).toHaveLength(3);
+      await waitFor(() => {
+        expect(result.current.categories).toHaveLength(3);
+      });
     });
 
     it('handles empty categories', async () => {
-      setupMockInvoke({ list_categories: { data: [] } });
+      setupMockInvoke({ list_categories: { data: [] }, list_products: { data: [], meta: { total: 0 } }, list_suppliers: { data: [] } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       act(() => { result.current.fetchCategories(); });
 
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
       expect(result.current.categories).toEqual([]);
     });
 
     it('handles error silently', async () => {
-      mockInvoke.mockResolvedValue({ data: null, error: { message: 'Server error' } });
+      mockInvoke.mockRejectedValue(new Error('Server error'));
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       act(() => { result.current.fetchCategories(); });
 
-      expect(result.current.categories).toEqual([]); // Stays empty, no crash
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
+      expect(result.current.categories).toEqual([]);
     });
   });
 
-  // ═══════════════════════════════════════════════════════════════
-  // 5. FETCH SUPPLIERS
-  // ═══════════════════════════════════════════════════════════════
   describe('fetchSuppliers', () => {
     it('fetches suppliers successfully', async () => {
       const sups = [
         mockSupplier(),
         mockSupplier({ id: 'sup2', name: 'XBZ Brindes' }),
       ];
-      setupMockInvoke({ list_suppliers: { data: sups } });
+      setupMockInvoke({ list_suppliers: { data: sups }, list_products: { data: [], meta: { total: 0 } }, list_categories: { data: [] } });
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       act(() => { result.current.fetchSuppliers(); });
 
-      expect(result.current.suppliers).toHaveLength(2);
+      await waitFor(() => {
+        expect(result.current.suppliers).toHaveLength(2);
+      });
     });
 
     it('handles error silently', async () => {
-      mockInvoke.mockResolvedValue({ data: null, error: { message: 'DB error' } });
+      mockInvoke.mockRejectedValue(new Error('DB error'));
 
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       act(() => { result.current.fetchSuppliers(); });
 
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
       expect(result.current.suppliers).toEqual([]);
+    });
+  });
+});
     });
   });
 });
