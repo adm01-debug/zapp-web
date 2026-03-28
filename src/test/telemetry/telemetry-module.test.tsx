@@ -90,12 +90,12 @@ describe('TelemetryCharts', () => {
 
   it('renders timeline card with data', () => {
     render(<TelemetryCharts rows={makeRows(10)} timeFilter="24h" />);
-    expect(screen.getByText('Alertas ao Longo do Tempo')).toBeInTheDocument();
+    expect(screen.getByText('Alertas por Severidade')).toBeInTheDocument();
   });
 
   it('renders severity pie chart', () => {
     render(<TelemetryCharts rows={makeDiverseRows(20)} timeFilter="24h" />);
-    expect(screen.getByText('Por Severidade')).toBeInTheDocument();
+    expect(screen.getByText('Duração Média / Máxima (ms)')).toBeInTheDocument();
   });
 
   it('renders top tables bar chart', () => {
