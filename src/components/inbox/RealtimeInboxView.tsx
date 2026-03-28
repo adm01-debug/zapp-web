@@ -14,7 +14,7 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus, Users, Truck, Wrench, UserCheck } from 'lucide-react';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus, Users, Truck, Wrench, UserCheck, UsersRound } from 'lucide-react';
 import { TicketTabs, MainTab, SubTab } from './TicketTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -272,8 +273,16 @@ export function RealtimeInboxView() {
     }
 
     // Contact type filter
-    if (selectedContactType) {
-      result = result.filter((c) => (c.contact.contact_type || 'cliente') === selectedContactType);
+    if (selectedContactType === 'grupo') {
+      result = result.filter((c) => /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
+    } else if (selectedContactType === 'individual') {
+      result = result.filter((c) => !/^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
+    } else if (selectedContactType) {
+      result = result.filter((c) => {
+        const isGroup = /^\d+-\d+$/.test(c.contact.phone || '');
+        if (isGroup) return false;
+        return (c.contact.contact_type || 'cliente') === selectedContactType;
+      });
     }
 
     return result;
@@ -863,6 +872,19 @@ export function RealtimeInboxView() {
                   Todos os tipos
                 </span>
               </SelectItem>
+              <SelectItem value="individual">
+                <span className="flex items-center gap-2">
+                  <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                  Chats Individuais
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo">
+                <span className="flex items-center gap-2">
+                  <UsersRound className="w-3.5 h-3.5 text-amber-500" />
+                  Grupos
+                </span>
+              </SelectItem>
+              <SelectSeparator />
               <SelectItem value="cliente">
                 <span className="flex items-center gap-2">
                   <Users className="w-3.5 h-3.5 text-blue-500" />
