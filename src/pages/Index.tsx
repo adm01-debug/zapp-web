@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import { ViewRouter } from './ViewRouter';
 import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui/skeleton';
 import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indicator';
+import { EvolutionDisconnectBanner } from '@/components/alerts/EvolutionDisconnectBanner';
 
 function ViewLoadingFallback() {
   return (
@@ -297,6 +298,7 @@ function IndexContent() {
         {/* Network status indicators */}
         <OfflineIndicator />
         <ConnectionToast />
+        <EvolutionDisconnectBanner />
 
         <WelcomeModal
           isOpen={showWelcome}
