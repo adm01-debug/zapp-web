@@ -117,6 +117,7 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber, onPollSent,
         organization: contactCard.organization || undefined,
         email: contactCard.email || undefined,
       }]);
+      onContactSent?.(contactCard.fullName);
       toast.success('Cartão de contato enviado!');
       setContactCard({ fullName: '', phoneNumber: '', organization: '', email: '' });
       setContactDialog(false);
