@@ -253,8 +253,11 @@ export function RealtimeInboxView() {
     if (filters.status.length > 0) {
       result = result.filter((c) => {
         const hasUnread = c.unreadCount > 0;
+        const isAssigned = !!c.contact.assigned_to;
         if (filters.status.includes('unread') && hasUnread) return true;
-        if (filters.status.includes('read') && !hasUnread) return true;
+        if (filters.status.includes('read') && !hasUnread && isAssigned) return true;
+        if (filters.status.includes('pending') && !isAssigned && c.messages.length > 0) return true;
+        if (filters.status.includes('resolved') && c.messages.length === 0) return true;
         return false;
       });
     }
