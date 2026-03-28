@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('useFeatureFlags');
 
 export interface FeatureFlag {
   id: string;
@@ -25,7 +28,7 @@ export function useFeatureFlags() {
         .eq('is_enabled', true);
 
       if (error) {
-        console.warn('Failed to load feature flags:', error.message);
+        log.warn('Failed to load feature flags:', error.message);
         return [] as FeatureFlag[];
       }
 

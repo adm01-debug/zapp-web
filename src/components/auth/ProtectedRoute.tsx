@@ -3,6 +3,9 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('ProtectedRoute');
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -29,7 +32,7 @@ export function ProtectedRoute({
       let cancelled = false;
       const timeoutId = setTimeout(() => {
         if (!cancelled && hasPermission === null) {
-          console.error('ProtectedRoute: permission check timed out after 10s');
+          log.error('ProtectedRoute: permission check timed out after 10s');
           setHasPermission(false);
         }
       }, 10000);
@@ -45,7 +48,7 @@ export function ProtectedRoute({
           }
         });
       }).catch((err) => {
-        console.error('ProtectedRoute: permission check failed:', err);
+        log.error('ProtectedRoute: permission check failed:', err);
         if (!cancelled) {
           setHasPermission(false);
         }

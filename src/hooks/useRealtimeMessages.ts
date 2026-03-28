@@ -87,7 +87,7 @@ export function useRealtimeMessages() {
 
       contactsWithMessages?.forEach((contact) => {
         const rawMessages = contact.messages || [];
-        const contactMessages = rawMessages.map((m: any) => ({
+        const contactMessages = rawMessages.map((m: Record<string, unknown>) => ({
           ...m,
           status: (m.status as RealtimeMessage['status']) || 'sent',
           status_updated_at: m.status_updated_at || null,

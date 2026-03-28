@@ -45,14 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.warn('Profile fetch failed:', error.message);
+        log.warn('Profile fetch failed:', error.message);
       } else if (data) {
         if (!mountedRef.current) return;
         setProfile(data as Profile);
       }
     } catch (err: unknown) {
       // Profile may not exist yet for new users - log but don't break flow
-      console.warn('Profile fetch error:', err instanceof Error ? err.message : err);
+      log.warn('Profile fetch error:', err instanceof Error ? err.message : err);
     } finally {
       fetchingRef.current = false;
     }

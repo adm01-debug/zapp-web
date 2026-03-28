@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('KnowledgeBaseView');
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -68,7 +71,7 @@ export function KnowledgeBaseView() {
     ]);
     const queryError = articlesRes.error || filesRes.error;
     if (queryError) {
-      console.error('Error fetching knowledge base data:', queryError);
+      log.error('Error fetching knowledge base data:', queryError);
       toast({ title: 'Erro ao carregar base de conhecimento', description: queryError.message, variant: 'destructive' });
       setLoading(false);
       return;

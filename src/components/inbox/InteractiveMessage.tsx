@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Phone, MessageSquare, ChevronRight, List, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('InteractiveMessage');
 import { InteractiveMessage as InteractiveMessageType, InteractiveButton, InteractiveListSection } from '@/types/chat';
 import {
   Dialog,
@@ -38,10 +41,10 @@ export function InteractiveMessageDisplay({
         if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
           window.open(button.url, '_blank', 'noopener,noreferrer');
         } else {
-          console.warn('Blocked opening URL with disallowed protocol:', button.url);
+          log.warn('Blocked opening URL with disallowed protocol:', button.url);
         }
       } catch {
-        console.warn('Blocked opening invalid URL:', button.url);
+        log.warn('Blocked opening invalid URL:', button.url);
       }
     } else if (button.type === 'phone' && button.phoneNumber) {
       window.open(`tel:${button.phoneNumber}`, '_self');

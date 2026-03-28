@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SalesPipelineView');
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -78,7 +81,7 @@ export function SalesPipelineView() {
 
     const queryError = stagesRes.error || dealsRes.error || contactsRes.error || agentsRes.error;
     if (queryError) {
-      console.error('Error fetching pipeline data:', queryError);
+      log.error('Error fetching pipeline data:', queryError);
       toast({ title: 'Erro ao carregar pipeline', description: queryError.message, variant: 'destructive' });
       setLoading(false);
       return;

@@ -333,10 +333,10 @@ export function CommandPalette({
           if (url.origin === window.location.origin) {
             window.location.href = href;
           } else {
-            console.warn('Blocked redirect to untrusted URL:', href);
+            log.warn('Blocked redirect to untrusted URL:', href);
           }
         } catch {
-          console.warn('Blocked redirect to invalid URL:', href);
+          log.warn('Blocked redirect to invalid URL:', href);
         }
       }
     } else if (item.id.startsWith('nav-')) {

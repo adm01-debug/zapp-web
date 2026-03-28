@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('SubscriptionManager');
@@ -11,7 +11,7 @@ interface SubscriptionConfig {
   schema?: string;
   event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
   filter?: string;
-  callback: (payload: any) => void;
+  callback: (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => void;
 }
 
 /**
@@ -43,7 +43,7 @@ export function useSubscriptionManager(maxChannels = 10) {
       }
     }
 
-    const channelConfig: any = {
+    const channelConfig: Record<string, string> = {
       event,
       schema,
       table,
