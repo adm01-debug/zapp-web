@@ -4,6 +4,7 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const logger = createStructuredLogger('detect-new-device');
@@ -26,17 +27,27 @@ const handler = async (req: Request): Promise<Response> => {
     return handleHealthCheck(req, 'detect-new-device', getCorsHeaders(req));
   }
 
+  const corsHeaders = getCorsHeaders(req);
+
+  // Rate limit: 10 requests per minute per IP
+  const ip = getClientIP(req);
+  const rl = checkRateLimit(`detect-new-device:${ip}`, { maxRequests: 10, windowSeconds: 60 });
+  if (!rl.allowed) {
+    logger.warn('Rate limit exceeded', { ip });
+    return rateLimitResponse(rl, corsHeaders);
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+
     // Get auth header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       logger.error("No authorization header");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

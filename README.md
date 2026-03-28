@@ -1,73 +1,119 @@
-# Welcome to your Lovable project
+# Zapp Web — WhatsApp Business Platform
 
-## Project info
+Multi-tenant WhatsApp business communication platform built with React, TypeScript, Supabase, and Evolution API.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- **Multi-channel WhatsApp messaging** — Send and receive messages via Evolution API
+- **Contact management** — Import, organize, and segment contacts with tags
+- **Campaign engine** — Schedule and execute bulk messaging campaigns with rate limiting
+- **Conversation queues** — Route and distribute conversations across agents
+- **CRM pipeline** — Sales deals, activities, and pipeline management
+- **Chatbot builder** — Visual flow builder with AI-powered responses
+- **Quick replies** — Reusable message templates with shortcuts
+- **Reports & analytics** — SLA tracking, agent performance, campaign metrics
+- **Knowledge base** — Searchable articles and files for agent support
+- **Multi-language** — Portuguese, English, and Spanish (i18n)
+- **WebAuthn/Passkeys** — Passwordless authentication support
+- **Feature flags** — Runtime feature toggling per organization
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript (strict), Vite |
+| UI | shadcn/ui, Radix UI, Tailwind CSS |
+| State | React Query (TanStack Query) |
+| Backend | Supabase (Auth, Database, Edge Functions, Realtime) |
+| Edge Functions | Deno runtime, 28 functions, 14 shared utilities |
+| Messaging API | Evolution API (WhatsApp) |
+| AI | OpenAI GPT integration for chatbot |
+| CI/CD | GitHub Actions (lint, typecheck, test, security audit, build) |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js 18+ (recommended: use [nvm](https://github.com/nvm-sh/nvm))
+- npm 9+
+- Supabase CLI (for edge functions development)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Installation
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Clone the repository
+git clone <repository-url>
+cd zapp-web
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env.local` file with:
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+For edge functions, configure in Supabase Dashboard:
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `EVOLUTION_API_URL`, `EVOLUTION_API_KEY`
+- `OPENAI_API_KEY` (for AI chatbot features)
 
-## What technologies are used for this project?
+## Project Structure
 
-This project is built with:
+```
+src/
+  components/     # React components organized by feature
+  hooks/          # Custom React hooks (data fetching, UI logic)
+  pages/          # Route pages
+  services/       # API service layer
+  utils/          # Utility functions
+  validations/    # Shared Zod schemas
+  constants/      # Centralized constants (timing, pagination)
+  i18n/           # Internationalization (pt, en, es)
+  types/          # TypeScript type definitions
+  integrations/   # Supabase client and type definitions
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+supabase/
+  functions/      # 28 Deno edge functions
+    _shared/      # 14 shared utilities (CORS, auth, logging, etc.)
+  migrations/     # Database migrations
+```
 
-## How can I deploy this project?
+## Scripts
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint check |
+| `npm run preview` | Preview production build |
 
-## Can I connect a custom domain to my Lovable project?
+## Security
 
-Yes, you can!
+- Row Level Security (RLS) on all tables
+- JWT verification on edge functions
+- SSRF guard for external API calls
+- Rate limiting on auth endpoints
+- HMAC webhook signature verification
+- PII masking in structured logs
+- Automated security audit in CI pipeline
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Contributing
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, branch naming, commit conventions, and code standards.
+
+## Deployment
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full deployment runbook including rollback procedures and health checks.
+
+## License
+
+Private — All rights reserved.

@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const logger = createStructuredLogger('approve-password-reset');
 
@@ -19,6 +20,16 @@ serve(async (req) => {
 
   if (isHealthCheck(req)) {
     return handleHealthCheck(req, 'approve-password-reset', getCorsHeaders(req));
+  }
+
+  const corsHeaders = getCorsHeaders(req);
+
+  // Rate limit: 5 requests per minute per IP
+  const ip = getClientIP(req);
+  const rl = checkRateLimit(`approve-password-reset:${ip}`, { maxRequests: 5, windowSeconds: 60 });
+  if (!rl.allowed) {
+    logger.warn('Rate limit exceeded', { ip });
+    return rateLimitResponse(rl, corsHeaders);
   }
 
   try {

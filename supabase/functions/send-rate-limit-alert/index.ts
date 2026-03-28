@@ -4,6 +4,7 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { checkIdempotency, completeIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 
 const logger = createStructuredLogger('send-rate-limit-alert');
 
@@ -38,6 +39,18 @@ serve(async (req) => {
     );
 
     const { ip_address, endpoint, request_count, blocked }: RateLimitAlertRequest = await req.json();
+
+    // Idempotency — prevent duplicate alerts for the same IP/endpoint/minute
+    const minuteKey = new Date().toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+    const idempotencyKey = await generateIdempotencyKey('rate-limit-alert', ip_address, endpoint, minuteKey);
+    const { isDuplicate, cachedResponse } = await checkIdempotency(supabaseClient, idempotencyKey, 'send-rate-limit-alert');
+    if (isDuplicate && cachedResponse) {
+      logger.info('Duplicate rate limit alert deduplicated', { ip_address, endpoint });
+      return new Response(JSON.stringify(cachedResponse.body), {
+        status: cachedResponse.status,
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+      });
+    }
 
     logger.info(`Rate limit alert: IP ${ip_address} hit ${endpoint} ${request_count} times. Blocked: ${blocked}`);
 
@@ -107,8 +120,11 @@ serve(async (req) => {
       await supabaseClient.from("notifications").insert(notifications);
     }
 
+    const responseBody = { success: true, message: "Alert processed" };
+    await completeIdempotency(supabaseClient, idempotencyKey, 200, responseBody);
+
     return new Response(
-      JSON.stringify({ success: true, message: "Alert processed" }),
+      JSON.stringify(responseBody),
       { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {

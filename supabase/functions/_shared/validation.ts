@@ -49,6 +49,78 @@ export function validateEnum(value: string, fieldName: string, allowed: string[]
   }
 }
 
+export function validateCPF(value: string, fieldName: string): void {
+  const clean = value.replace(/\D/g, '');
+  if (clean.length !== 11) {
+    throw new ValidationError(`Invalid CPF for ${fieldName}: must have 11 digits`);
+  }
+  // Reject all-same-digit CPFs
+  if (/^(\d)\1{10}$/.test(clean)) {
+    throw new ValidationError(`Invalid CPF for ${fieldName}`);
+  }
+  // Mod11 digit 1
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(clean[i]) * (10 - i);
+  let d1 = 11 - (sum % 11);
+  if (d1 >= 10) d1 = 0;
+  if (parseInt(clean[9]) !== d1) {
+    throw new ValidationError(`Invalid CPF for ${fieldName}`);
+  }
+  // Mod11 digit 2
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(clean[i]) * (11 - i);
+  let d2 = 11 - (sum % 11);
+  if (d2 >= 10) d2 = 0;
+  if (parseInt(clean[10]) !== d2) {
+    throw new ValidationError(`Invalid CPF for ${fieldName}`);
+  }
+}
+
+export function validateCNPJ(value: string, fieldName: string): void {
+  const clean = value.replace(/\D/g, '');
+  if (clean.length !== 14) {
+    throw new ValidationError(`Invalid CNPJ for ${fieldName}: must have 14 digits`);
+  }
+  if (/^(\d)\1{13}$/.test(clean)) {
+    throw new ValidationError(`Invalid CNPJ for ${fieldName}`);
+  }
+  const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += parseInt(clean[i]) * weights1[i];
+  let d1 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (parseInt(clean[12]) !== d1) {
+    throw new ValidationError(`Invalid CNPJ for ${fieldName}`);
+  }
+  sum = 0;
+  for (let i = 0; i < 13; i++) sum += parseInt(clean[i]) * weights2[i];
+  let d2 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (parseInt(clean[13]) !== d2) {
+    throw new ValidationError(`Invalid CNPJ for ${fieldName}`);
+  }
+}
+
+export function validateURL(value: string, fieldName: string): void {
+  try {
+    new URL(value);
+  } catch {
+    throw new ValidationError(`Invalid URL for ${fieldName}: ${value}`);
+  }
+}
+
+export function validateDateISO(value: string, fieldName: string): void {
+  const date = new Date(value);
+  if (isNaN(date.getTime())) {
+    throw new ValidationError(`Invalid date for ${fieldName}: ${value}`);
+  }
+}
+
+export function validateNumberRange(value: number, fieldName: string, min: number, max: number): void {
+  if (typeof value !== 'number' || isNaN(value) || value < min || value > max) {
+    throw new ValidationError(`${fieldName} must be between ${min} and ${max}`);
+  }
+}
+
 export function validationErrorResponse(error: ValidationError, corsHeaders: Record<string, string>): Response {
   return new Response(
     JSON.stringify({ error: error.message }),

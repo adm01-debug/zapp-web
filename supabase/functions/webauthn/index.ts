@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 
 const logger = createStructuredLogger('webauthn');
 
@@ -52,6 +53,16 @@ serve(async (req) => {
 
   if (isHealthCheck(req)) {
     return handleHealthCheck(req, 'webauthn', getCorsHeaders(req));
+  }
+
+  const corsHeaders = getCorsHeaders(req);
+
+  // Rate limit: 5 requests per minute per IP (auth-sensitive)
+  const ip = getClientIP(req);
+  const rl = checkRateLimit(`webauthn:${ip}`, { maxRequests: 5, windowSeconds: 60 });
+  if (!rl.allowed) {
+    logger.warn('Rate limit exceeded for webauthn', { ip });
+    return rateLimitResponse(rl, corsHeaders);
   }
 
   try {

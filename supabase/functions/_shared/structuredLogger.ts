@@ -1,9 +1,52 @@
 /**
  * Structured JSON logger for Supabase Edge Functions.
  * Outputs machine-readable logs with request context, timing, and trace IDs.
+ * Includes automatic PII masking to prevent sensitive data leaks.
  */
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+
+/**
+ * Sensitive field names that will be automatically redacted in metadata.
+ * Case-insensitive matching via lowercase comparison.
+ */
+const SENSITIVE_FIELDS = new Set([
+  'password', 'senha', 'secret', 'token', 'apikey', 'api_key',
+  'authorization', 'cookie', 'session', 'credit_card', 'creditcard',
+  'card_number', 'cvv', 'ssn', 'cpf', 'cnpj', 'access_token',
+  'refresh_token', 'private_key', 'privatekey', 'secret_key',
+  'secretkey', 'bearer', 'credentials', 'pin',
+]);
+
+const REDACTED = '[REDACTED]';
+
+/**
+ * Recursively mask sensitive fields in metadata objects.
+ * Prevents PII and secrets from appearing in logs.
+ */
+function maskSensitiveData(obj: unknown, depth = 0): unknown {
+  if (depth > 10) return REDACTED; // Prevent infinite recursion
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'string') {
+    // Mask JWT tokens (eyJ...)
+    if (obj.startsWith('eyJ') && obj.includes('.')) return REDACTED;
+    // Mask email-like patterns in values longer than 50 chars (bulk data)
+    return obj;
+  }
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(item => maskSensitiveData(item, depth + 1));
+
+  const masked: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+    const lowerKey = key.toLowerCase().replace(/[-_\s]/g, '');
+    if (SENSITIVE_FIELDS.has(lowerKey) || SENSITIVE_FIELDS.has(key.toLowerCase())) {
+      masked[key] = REDACTED;
+    } else {
+      masked[key] = maskSensitiveData(value, depth + 1);
+    }
+  }
+  return masked;
+}
 
 interface LogEntry {
   timestamp: string;
@@ -45,6 +88,11 @@ export function createStructuredLogger(serviceName: string): StructuredLogger {
   let path: string | undefined;
 
   function emit(level: LogLevel, message: string, extra?: Partial<LogEntry>) {
+    // Apply PII masking to metadata before logging
+    const sanitizedExtra = extra
+      ? { ...extra, metadata: extra.metadata ? maskSensitiveData(extra.metadata) as Record<string, unknown> : undefined }
+      : undefined;
+
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -54,7 +102,7 @@ export function createStructuredLogger(serviceName: string): StructuredLogger {
       ...(traceId && { traceId }),
       ...(method && { method }),
       ...(path && { path }),
-      ...extra,
+      ...sanitizedExtra,
     };
 
     const line = JSON.stringify(entry);

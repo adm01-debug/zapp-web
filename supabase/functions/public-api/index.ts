@@ -4,6 +4,7 @@ import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateL
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { validateRequired, validatePhoneE164, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
+import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 
 const logger = createStructuredLogger('public-api');
 
@@ -70,6 +71,18 @@ Deno.serve(async (req) => {
             return validationErrorResponse(e, getCorsHeaders(req));
           }
           throw e;
+        }
+
+        // Idempotency check — deduplicate identical send requests
+        const idempotencyKey = req.headers.get('x-idempotency-key')
+          || await generateIdempotencyKey('public-api', 'send', number, message, connectionId || '');
+        const { isDuplicate, cachedResponse } = await checkIdempotency(supabase, idempotencyKey, 'public-api');
+        if (isDuplicate && cachedResponse) {
+          logger.info('Duplicate send request deduplicated', { number });
+          return new Response(JSON.stringify(cachedResponse.body), {
+            status: cachedResponse.status,
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+          });
         }
 
         // Find or use specified connection
@@ -181,11 +194,14 @@ Deno.serve(async (req) => {
             .eq('id', msg.id);
         }
 
-        return new Response(JSON.stringify({
+        const responseBody = {
           success: true,
           messageId: msg.id,
           contactId: contact.id,
-        }), {
+        };
+        await completeIdempotency(supabase, idempotencyKey, 200, responseBody);
+
+        return new Response(JSON.stringify(responseBody), {
           headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
         });
       }
