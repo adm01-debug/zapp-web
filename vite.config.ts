@@ -46,6 +46,8 @@ export default defineConfig(({ mode }) => ({
           "vendor-xlsx": ["xlsx"],
           // PDF
           "vendor-pdf": ["jspdf", "jspdf-autotable"],
+          // Screenshot export (heavy)
+          "vendor-html2canvas": ["html2canvas"],
         },
       },
     },
