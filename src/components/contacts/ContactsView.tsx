@@ -474,7 +474,7 @@ export function ContactsView() {
               <Users className="w-4 h-4" />
               Todos
               <Badge variant="secondary" className="ml-1 text-xs">
-                {contacts.length}
+                {contactCountByType['all'] || 0}
               </Badge>
             </TabsTrigger>
             {CONTACT_TYPES.map((type) => (
