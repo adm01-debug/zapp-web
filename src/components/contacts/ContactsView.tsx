@@ -889,6 +889,35 @@ export function ContactsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalCount > pageSize && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            Página {page + 1} de {Math.ceil(totalCount / pageSize)}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadPrevious}
+              disabled={page === 0 || loading}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMore}
+              disabled={!hasMore || loading}
+            >
+              Próxima
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
