@@ -383,12 +383,15 @@ serve(async (req) => {
         ? rawAudioSource.trim().replace(/^"+|"+$/g, '').replace(/\.supabase\.co"\//, '.supabase.co/')
         : rawAudioSource;
 
-      return await proxy(`/message/sendWhatsAppAudio/${instance}`, 'POST', {
+      const audioPayload: Record<string, unknown> = {
         number: body.number,
         audio: audioSource,
-        encoding: body.encoding ?? String(audioSource || '').startsWith('http'),
-        delay: body.delay,
-      });
+      };
+      if (body.delay) audioPayload.delay = body.delay;
+
+      console.log('[send-audio] payload:', JSON.stringify(audioPayload));
+
+      return await proxy(`/message/sendWhatsAppAudio/${instance}`, 'POST', audioPayload);
     }
 
     // POST /message/sendSticker/{instance}
