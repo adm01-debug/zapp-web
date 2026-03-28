@@ -545,6 +545,20 @@ export function ChatInputArea({
               <StickerPicker onSendSticker={onSendSticker} />
               <AudioMemePicker onSendAudio={onSendAudioMeme} />
               <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-8 h-8 text-muted-foreground hover:text-emerald-500 transition-colors"
+                    onClick={() => onSendProduct({} as any)}
+                    aria-label="Catálogo de produtos"
+                  >
+                    <Package className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
+              </Tooltip>
             </div>
           )}
 
