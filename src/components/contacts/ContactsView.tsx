@@ -663,10 +663,10 @@ export function ContactsView() {
           <div className="flex items-center gap-2">
             <span>
               Exibindo <span className="font-semibold text-foreground">{filteredContacts.length}</span>
-              {filteredContacts.length !== contacts.length && (
-                <> de <span className="font-semibold text-foreground">{contacts.length}</span></>
+              {filteredContacts.length < totalCount && (
+                <> de <span className="font-semibold text-foreground">{totalCount}</span></>
               )}
-              {' '}contato{contacts.length !== 1 ? 's' : ''}
+              {' '}contato{totalCount !== 1 ? 's' : ''}
             </span>
             {activeFiltersCount > 0 && (
               <Badge variant="outline" className="text-xs gap-1">
