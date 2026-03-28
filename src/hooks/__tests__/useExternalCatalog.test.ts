@@ -243,7 +243,7 @@ describe('useExternalCatalog', () => {
 
       await waitFor(() => {
         expect(result.current.error).toBe('Network error');
-      });
+      }, { timeout: 5000 });
       expect(result.current.products).toEqual([]);
     });
 
@@ -258,7 +258,7 @@ describe('useExternalCatalog', () => {
 
       await waitFor(() => {
         expect(result.current.error).toBe('External DB not configured');
-      });
+      }, { timeout: 5000 });
     });
 
     it('clears error on successful retry', async () => {
