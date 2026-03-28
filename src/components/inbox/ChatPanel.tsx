@@ -7,6 +7,7 @@ import { normalizeMediaUrl } from '@/utils/normalizeMediaUrl';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
 import { ExternalProduct } from '@/hooks/useExternalCatalog';
+import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
