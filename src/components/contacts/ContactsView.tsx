@@ -297,7 +297,7 @@ export function ContactsView() {
         errorMessage: 'Erro ao excluir contato',
         onSuccess: () => {
           setDeleteTarget(null);
-          fetchContacts();
+          refetch();
         },
       }
     );
