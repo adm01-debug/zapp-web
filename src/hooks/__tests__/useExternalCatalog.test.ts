@@ -149,7 +149,9 @@ describe('useExternalCatalog', () => {
       const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       act(() => { result.current.fetchProducts(); });
 
-      expect(result.current.products).toHaveLength(2);
+      await waitFor(() => {
+        expect(result.current.products).toHaveLength(2);
+      });
       expect(result.current.totalProducts).toBe(100);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
