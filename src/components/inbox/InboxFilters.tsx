@@ -136,7 +136,7 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" align="start">
+          <PopoverContent className="w-80 p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
             <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-foreground">Filtros Avançados</h4>
@@ -226,10 +226,13 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
                     value={filters.agentId || 'all'} 
                     onValueChange={setAgent}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger onPointerDown={(e) => e.stopPropagation()}>
                       <SelectValue placeholder="Todos os atendentes" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      onPointerDownOutside={(e) => e.stopPropagation()}
+                      onEscapeKeyDown={(e) => e.stopPropagation()}
+                    >
                       <SelectItem value="all">Todos os atendentes</SelectItem>
                       {agents.map(agent => (
                         <SelectItem key={agent.id} value={agent.id}>
