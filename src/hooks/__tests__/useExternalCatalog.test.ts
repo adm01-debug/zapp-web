@@ -615,6 +615,9 @@ describe('Data Integrity', () => {
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].sale_price).toBe(38.49);
     expect(result.current.products[0].suggested_price).toBe(44.75);
   });
@@ -628,6 +631,9 @@ describe('Data Integrity', () => {
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].colors).toHaveLength(5);
     expect(result.current.products[0].colors).toContain('Azul');
   });
@@ -648,6 +654,9 @@ describe('Data Integrity', () => {
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].name).toBeDefined();
     expect(result.current.products[0].categories).toBeNull();
   });
@@ -663,6 +672,9 @@ describe('Data Integrity', () => {
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].categories?.parent_id).toBe('cat-parent');
     expect(result.current.products[0].categories?.name).toBe('Tábua | Plástico');
   });
