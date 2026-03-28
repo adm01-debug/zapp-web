@@ -64,6 +64,8 @@ interface ChatInputAreaProps {
   contactPhone: string;
   contactName: string;
   instanceName?: string;
+  onPollSent?: (poll: { name: string; options: string[]; selectableCount: number }) => void;
+  onContactSent?: (contactName: string) => void;
   messages: Message[];
   quickReplies: QuickReplyItem[];
   isSending?: boolean;
