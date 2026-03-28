@@ -546,7 +546,9 @@ describe('Edge Function Contract', () => {
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchProducts(); });
 
-    expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', expect.any(Object));
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', expect.any(Object));
+    });
   });
 
   it('sends action in body', async () => {
@@ -555,8 +557,12 @@ describe('Edge Function Contract', () => {
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchProducts(); });
 
-    const call = mockInvoke.mock.calls[0];
-    expect(call[1].body.action).toBe('list_products');
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalled();
+    });
+    const productCall = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_products');
+    expect(productCall).toBeTruthy();
+    expect(productCall[1].body.action).toBe('list_products');
   });
 
   it('sends get_product action for single product', async () => {
@@ -565,27 +571,34 @@ describe('Edge Function Contract', () => {
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     await act(async () => { await result.current.fetchProduct('p1'); });
 
-    const call = mockInvoke.mock.calls[0];
+    const call = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'get_product');
+    expect(call).toBeTruthy();
     expect(call[1].body.action).toBe('get_product');
     expect(call[1].body.params.product_id).toBe('p1');
   });
 
   it('sends list_categories action', async () => {
-    setupMockInvoke({ list_categories: { data: [] } });
+    setupMockInvoke({ list_categories: { data: [] }, list_products: { data: [], meta: { total: 0 } }, list_suppliers: { data: [] } });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchCategories(); });
 
-    expect(mockInvoke.mock.calls[0][1].body.action).toBe('list_categories');
+    await waitFor(() => {
+      const catCall = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_categories');
+      expect(catCall).toBeTruthy();
+    });
   });
 
   it('sends list_suppliers action', async () => {
-    setupMockInvoke({ list_suppliers: { data: [] } });
+    setupMockInvoke({ list_suppliers: { data: [] }, list_products: { data: [], meta: { total: 0 } }, list_categories: { data: [] } });
 
     const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     act(() => { result.current.fetchSuppliers(); });
 
-    expect(mockInvoke.mock.calls[0][1].body.action).toBe('list_suppliers');
+    await waitFor(() => {
+      const supCall = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_suppliers');
+      expect(supCall).toBeTruthy();
+    });
   });
 });
 
