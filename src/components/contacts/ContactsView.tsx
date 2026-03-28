@@ -239,7 +239,7 @@ export function ContactsView() {
           setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
           setIsAddDialogOpen(false);
           setShowSuccess({ name: contactName, protocol });
-          fetchContacts();
+          refetch();
         },
       }
     );
