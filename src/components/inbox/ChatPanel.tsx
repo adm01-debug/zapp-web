@@ -599,8 +599,17 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       const normalizedAudioUrl = normalizeMediaUrl(audioUrl);
       
       // Send via API + save to DB in parallel
+      const fileName = normalizedAudioUrl.split('/').pop()?.split('?')[0] || 'audio-meme.mp3';
       const apiPromise = supabase.functions.invoke('evolution-api', {
-        body: { action: 'send-audio', instanceName: resolvedInstance, number: phone, mediaUrl: normalizedAudioUrl },
+        body: {
+          action: 'send-media',
+          instanceName: resolvedInstance,
+          number: phone,
+          mediaType: 'audio',
+          mimetype: 'audio/mpeg',
+          mediaUrl: normalizedAudioUrl,
+          fileName,
+        },
       });
       
       const dbPromise = supabase.from('messages').insert({

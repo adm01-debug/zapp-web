@@ -386,7 +386,7 @@ serve(async (req) => {
       return await proxy(`/message/sendWhatsAppAudio/${instance}`, 'POST', {
         number: body.number,
         audio: audioSource,
-        encoding: body.encoding ?? !String(audioSource || '').startsWith('http'),
+        encoding: body.encoding ?? String(audioSource || '').startsWith('http'),
         delay: body.delay,
       });
     }
