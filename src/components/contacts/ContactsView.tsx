@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
@@ -79,6 +79,9 @@ import {
   CheckCircle2,
   Copy,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -86,6 +89,7 @@ import { format, subDays, subMonths, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
+import { useContactsSearch } from '@/hooks/useContactsSearch';
 
 interface Contact {
   id: string;
@@ -133,69 +137,6 @@ const SORT_OPTIONS = [
   { value: 'created_asc', label: 'Mais antigos' },
   { value: 'updated_desc', label: 'Atualizado recentemente' },
 ];
-
-export function ContactsView() {
-  
-  const { profile } = useAuth();
-  const feedback = useActionFeedback();
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
-  const [showSuccess, setShowSuccess] = useState<{ name: string; protocol: string } | null>(null);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchInput(value);
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearch(value);
-    }, 400);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    };
-  }, []);
-
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  
-  const [activeTab, setActiveTab] = useState<string>('all');
-  const [filterCompany, setFilterCompany] = useState<string>('');
-  const [filterJobTitle, setFilterJobTitle] = useState<string>('');
-  const [filterTag, setFilterTag] = useState<string>('');
-  const [filterDateRange, setFilterDateRange] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('name_asc');
-  
-  const [newContact, setNewContact] = useState({
-    name: '',
-    nickname: '',
-    surname: '',
-    job_title: '',
-    company: '',
-    phone: '',
-    email: '',
-    contact_type: 'cliente',
-  });
-
-  // Extract unique values for filters
-  const uniqueCompanies = [...new Set(contacts.map(c => c.company).filter(Boolean))] as string[];
-  const uniqueJobTitles = [...new Set(contacts.map(c => c.job_title).filter(Boolean))] as string[];
-  const uniqueTags = [...new Set(contacts.flatMap(c => c.tags || []))] as string[];
-
-  // Count contacts by type
-  const contactCountByType = CONTACT_TYPES.reduce((acc, type) => {
-    acc[type.value] = contacts.filter(c => (c.contact_type || 'cliente') === type.value).length;
-    return acc;
-  }, {} as Record<string, number>);
 
   useEffect(() => {
     fetchContacts();
