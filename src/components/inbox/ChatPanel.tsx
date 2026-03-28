@@ -806,6 +806,26 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme}
           onSendCustomEmoji={handleSendCustomEmoji}
+          onPollSent={async (poll) => {
+            await supabase.from('messages').insert({
+              contact_id: conversation.contact.id,
+              whatsapp_connection_id: whatsappConnectionId,
+              content: `📊 *Enquete:* ${poll.name}\n${poll.options.map((o, i) => `${i + 1}. ${o}`).join('\n')}`,
+              message_type: 'text',
+              sender: 'agent',
+              status: 'sent',
+            });
+          }}
+          onContactSent={async (contactName) => {
+            await supabase.from('messages').insert({
+              contact_id: conversation.contact.id,
+              whatsapp_connection_id: whatsappConnectionId,
+              content: `📇 Cartão de contato: ${contactName}`,
+              message_type: 'text',
+              sender: 'agent',
+              status: 'sent',
+            });
+          }}
           onOpenCatalog={() => setShowCatalogDirect(true)}
           onSelectSuggestion={(text) => setInputValue(text)}
           onSelectTemplate={(text) => setInputValue(text)}

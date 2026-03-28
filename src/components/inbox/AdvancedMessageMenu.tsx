@@ -27,12 +27,20 @@ import {
   Send,
 } from 'lucide-react';
 
+interface PollData {
+  name: string;
+  options: string[];
+  selectableCount: number;
+}
+
 interface AdvancedMessageMenuProps {
   instanceName: string;
   recipientNumber: string;
+  onPollSent?: (poll: PollData) => void;
+  onContactSent?: (contactName: string) => void;
 }
 
-export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedMessageMenuProps) {
+export function AdvancedMessageMenu({ instanceName, recipientNumber, onPollSent, onContactSent }: AdvancedMessageMenuProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [stickerDialog, setStickerDialog] = useState(false);
   const [pollDialog, setPollDialog] = useState(false);
@@ -86,6 +94,7 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedM
         selectableCount: pollSelectableCount,
         values: validOptions,
       });
+      onPollSent?.({ name: pollName, options: validOptions, selectableCount: pollSelectableCount });
       toast.success('Enquete enviada!');
       setPollName('');
       setPollOptions(['', '']);
@@ -108,6 +117,7 @@ export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedM
         organization: contactCard.organization || undefined,
         email: contactCard.email || undefined,
       }]);
+      onContactSent?.(contactCard.fullName);
       toast.success('Cartão de contato enviado!');
       setContactCard({ fullName: '', phoneNumber: '', organization: '', email: '' });
       setContactDialog(false);

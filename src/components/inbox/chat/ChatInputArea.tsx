@@ -64,6 +64,8 @@ interface ChatInputAreaProps {
   contactPhone: string;
   contactName: string;
   instanceName?: string;
+  onPollSent?: (poll: { name: string; options: string[]; selectableCount: number }) => void;
+  onContactSent?: (contactName: string) => void;
   messages: Message[];
   quickReplies: QuickReplyItem[];
   isSending?: boolean;
@@ -108,6 +110,8 @@ export function ChatInputArea({
   contactPhone,
   contactName,
   instanceName,
+  onPollSent,
+  onContactSent,
   messages,
   quickReplies,
   isSending = false,
@@ -312,6 +316,8 @@ export function ChatInputArea({
       <AdvancedMessageMenu
         instanceName={instanceName || ''}
         recipientNumber={contactPhone}
+        onPollSent={onPollSent}
+        onContactSent={onContactSent}
       />
       <AISuggestions
         messages={messages.map(m => ({
