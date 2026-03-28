@@ -153,6 +153,24 @@ export function RealtimeInboxView() {
 
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
+
+  // Load contact_tags mapping for tag-based filtering
+  const { data: contactTagsMap = {} } = useQuery({
+    queryKey: ['contact-tags-map'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contact_tags')
+        .select('contact_id, tag_id');
+      if (error) throw error;
+      const map: Record<string, string[]> = {};
+      (data || []).forEach(ct => {
+        if (!map[ct.contact_id]) map[ct.contact_id] = [];
+        map[ct.contact_id].push(ct.tag_id);
+      });
+      return map;
+    },
+    staleTime: 30_000,
+  });
   
   // Undoable action hook for bulk operations
   const { execute: executeUndoable } = useUndoableAction();
