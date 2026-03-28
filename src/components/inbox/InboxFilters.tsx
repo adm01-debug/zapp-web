@@ -136,7 +136,7 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" align="start">
+          <PopoverContent className="w-80 p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
             <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-foreground">Filtros Avançados</h4>
