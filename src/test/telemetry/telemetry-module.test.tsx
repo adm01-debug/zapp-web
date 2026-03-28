@@ -120,7 +120,7 @@ describe('TelemetryCharts', () => {
   it('handles all rows having same severity', () => {
     const rows = makeRows(15, { severity: 'very_slow', duration_ms: 10000 });
     render(<TelemetryCharts rows={rows} timeFilter="24h" />);
-    expect(screen.getByText('Por Severidade')).toBeInTheDocument();
+    expect(screen.getByText('Alertas por Severidade')).toBeInTheDocument();
   });
 
   it('handles rows with only rpc_name (no table_name)', () => {
