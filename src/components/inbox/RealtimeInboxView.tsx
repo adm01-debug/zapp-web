@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useOfflineCache } from '@/hooks/useOfflineCache';
@@ -152,6 +153,24 @@ export function RealtimeInboxView() {
 
   // URL-persisted filters
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
+
+  // Load contact_tags mapping for tag-based filtering
+  const { data: contactTagsMap = {} } = useQuery({
+    queryKey: ['contact-tags-map'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contact_tags')
+        .select('contact_id, tag_id');
+      if (error) throw error;
+      const map: Record<string, string[]> = {};
+      (data || []).forEach(ct => {
+        if (!map[ct.contact_id]) map[ct.contact_id] = [];
+        map[ct.contact_id].push(ct.tag_id);
+      });
+      return map;
+    },
+    staleTime: 30_000,
+  });
   
   // Undoable action hook for bulk operations
   const { execute: executeUndoable } = useUndoableAction();
@@ -234,19 +253,20 @@ export function RealtimeInboxView() {
     if (filters.status.length > 0) {
       result = result.filter((c) => {
         const hasUnread = c.unreadCount > 0;
+        const isAssigned = !!c.contact.assigned_to;
         if (filters.status.includes('unread') && hasUnread) return true;
-        if (filters.status.includes('read') && !hasUnread) return true;
+        if (filters.status.includes('read') && !hasUnread && isAssigned) return true;
+        if (filters.status.includes('pending') && !isAssigned && c.messages.length > 0) return true;
+        if (filters.status.includes('resolved') && c.messages.length === 0) return true;
         return false;
       });
     }
 
-    // Tags filter
+    // Tags filter (uses contact_tags junction table)
     if (filters.tags.length > 0) {
       result = result.filter((c) => {
-        const contactTags = c.contact.tags || [];
-        return filters.tags.some(tagId => 
-          contactTags.some(t => t.toLowerCase().includes(tagId.toLowerCase()))
-        );
+        const tagIds = contactTagsMap[c.contact.id] || [];
+        return filters.tags.some(filterTagId => tagIds.includes(filterTagId));
       });
     }
 
@@ -286,7 +306,7 @@ export function RealtimeInboxView() {
     }
 
     return result;
-  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id]);
+  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id, contactTagsMap]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
