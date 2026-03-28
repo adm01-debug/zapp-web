@@ -543,25 +543,36 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
     try {
       const phone = conversation.contact.phone.replace(/\D/g, '');
-      
-      // Send as image via Evolution API
-      const apiPromise = supabase.functions.invoke('evolution-api', {
-        method: 'POST',
-        body: {
-          action: 'send-media',
-          instanceName: resolvedInstance,
-          number: phone,
-          mediaUrl: emojiUrl,
-          mediaType: 'image',
-        },
-      });
+      const isUrl = emojiUrl.startsWith('http');
+
+      // Native emoji → send as text; Custom emoji → send as image
+      const apiPromise = isUrl
+        ? supabase.functions.invoke('evolution-api', {
+            method: 'POST',
+            body: {
+              action: 'send-media',
+              instanceName: resolvedInstance,
+              number: phone,
+              mediaUrl: emojiUrl,
+              mediaType: 'image',
+            },
+          })
+        : supabase.functions.invoke('evolution-api', {
+            method: 'POST',
+            body: {
+              action: 'send-text',
+              instanceName: resolvedInstance,
+              number: phone,
+              text: emojiUrl,
+            },
+          });
 
       const dbPromise = supabase.from('messages').insert({
         contact_id: conversation.contact.id,
         whatsapp_connection_id: whatsappConnectionId,
-        content: '[Emoji]',
-        message_type: 'image',
-        media_url: emojiUrl,
+        content: isUrl ? '[Emoji]' : emojiUrl,
+        message_type: isUrl ? 'image' : 'text',
+        media_url: isUrl ? emojiUrl : null,
         sender: 'agent',
         status: 'sending',
       }).select('id').single();
