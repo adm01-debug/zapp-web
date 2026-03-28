@@ -259,13 +259,11 @@ export function RealtimeInboxView() {
       });
     }
 
-    // Tags filter
+    // Tags filter (uses contact_tags junction table)
     if (filters.tags.length > 0) {
       result = result.filter((c) => {
-        const contactTags = c.contact.tags || [];
-        return filters.tags.some(tagId => 
-          contactTags.some(t => t.toLowerCase().includes(tagId.toLowerCase()))
-        );
+        const tagIds = contactTagsMap[c.contact.id] || [];
+        return filters.tags.some(filterTagId => tagIds.includes(filterTagId));
       });
     }
 
