@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Search,
   X,
+  Package,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
