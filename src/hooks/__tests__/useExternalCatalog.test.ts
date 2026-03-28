@@ -95,12 +95,18 @@ const mockVariant = (overrides: Partial<ExternalProductVariant> = {}): ExternalP
 
 // ─── Helper ───────────────────────────────────────────────────
 function setupMockInvoke(responses: Record<string, any>) {
+  const defaults: Record<string, any> = {
+    list_products: { data: [], meta: { total: 0, duration_ms: 1 } },
+    list_categories: { data: [] },
+    list_suppliers: { data: [] },
+  };
+  const merged = { ...defaults, ...responses };
   mockInvoke.mockImplementation(async (fnName: string, opts: any) => {
     const action = opts?.body?.action;
-    if (responses[action]) {
-      return { data: responses[action], error: null };
+    if (merged[action]) {
+      return { data: merged[action], error: null };
     }
-    return { data: { error: `Unknown action: ${action}` }, error: null };
+    return { data: { data: [], meta: { total: 0 } }, error: null };
   });
 }
 
