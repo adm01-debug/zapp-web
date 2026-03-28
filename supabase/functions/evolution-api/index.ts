@@ -378,7 +378,7 @@ serve(async (req) => {
 
     // POST /message/sendWhatsAppAudio/{instance}
     if (action === 'send-audio') {
-      const rawAudioSource = body.audio || body.mediaUrl;
+      const rawAudioSource = body.audio || body.audioUrl || body.mediaUrl;
       const audioSource = typeof rawAudioSource === 'string'
         ? rawAudioSource.trim().replace(/^"+|"+$/g, '').replace(/\.supabase\.co"\//, '.supabase.co/')
         : rawAudioSource;
