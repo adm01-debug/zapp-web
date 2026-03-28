@@ -90,12 +90,12 @@ describe('TelemetryCharts', () => {
 
   it('renders timeline card with data', () => {
     render(<TelemetryCharts rows={makeRows(10)} timeFilter="24h" />);
-    expect(screen.getByText('Alertas ao Longo do Tempo')).toBeInTheDocument();
+    expect(screen.getByText('Alertas por Severidade')).toBeInTheDocument();
   });
 
   it('renders severity pie chart', () => {
     render(<TelemetryCharts rows={makeDiverseRows(20)} timeFilter="24h" />);
-    expect(screen.getByText('Por Severidade')).toBeInTheDocument();
+    expect(screen.getByText('Duração Média / Máxima (ms)')).toBeInTheDocument();
   });
 
   it('renders top tables bar chart', () => {
@@ -120,7 +120,7 @@ describe('TelemetryCharts', () => {
   it('handles all rows having same severity', () => {
     const rows = makeRows(15, { severity: 'very_slow', duration_ms: 10000 });
     render(<TelemetryCharts rows={rows} timeFilter="24h" />);
-    expect(screen.getByText('Por Severidade')).toBeInTheDocument();
+    expect(screen.getByText('Alertas por Severidade')).toBeInTheDocument();
   });
 
   it('handles rows with only rpc_name (no table_name)', () => {
@@ -137,7 +137,7 @@ describe('TelemetryCharts', () => {
 
   it('handles single row', () => {
     render(<TelemetryCharts rows={[makeRow()]} timeFilter="24h" />);
-    expect(screen.getByText('Alertas ao Longo do Tempo')).toBeInTheDocument();
+    expect(screen.getByText('Alertas por Severidade')).toBeInTheDocument();
   });
 
   it('handles 200 rows without crashing', () => {

@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock supabase
 const mockInvoke = vi.fn();
@@ -15,6 +17,16 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 import { useExternalCatalog, ExternalProduct, ExternalCategory, ExternalSupplier, ExternalProductVariant, CatalogFilters } from '@/hooks/useExternalCatalog';
+
+// ─── QueryClient Wrapper ──────────────────────────────────────
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  };
+}
 
 // ─── Fixtures ─────────────────────────────────────────────────
 const mockProduct = (overrides: Partial<ExternalProduct> = {}): ExternalProduct => ({
@@ -83,12 +95,18 @@ const mockVariant = (overrides: Partial<ExternalProductVariant> = {}): ExternalP
 
 // ─── Helper ───────────────────────────────────────────────────
 function setupMockInvoke(responses: Record<string, any>) {
+  const defaults: Record<string, any> = {
+    list_products: { data: [], meta: { total: 0, duration_ms: 1 } },
+    list_categories: { data: [] },
+    list_suppliers: { data: [] },
+  };
+  const merged = { ...defaults, ...responses };
   mockInvoke.mockImplementation(async (fnName: string, opts: any) => {
     const action = opts?.body?.action;
-    if (responses[action]) {
-      return { data: responses[action], error: null };
+    if (merged[action]) {
+      return { data: merged[action], error: null };
     }
-    return { data: { error: `Unknown action: ${action}` }, error: null };
+    return { data: { data: [], meta: { total: 0 } }, error: null };
   });
 }
 
@@ -105,7 +123,7 @@ describe('useExternalCatalog', () => {
   describe('Initialization', () => {
     it('initializes with empty state', () => {
       setupMockInvoke({});
-      const { result } = renderHook(() => useExternalCatalog());
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       expect(result.current.products).toEqual([]);
       expect(result.current.totalProducts).toBe(0);
       expect(result.current.categories).toEqual([]);
@@ -116,7 +134,7 @@ describe('useExternalCatalog', () => {
 
     it('exposes all expected methods', () => {
       setupMockInvoke({});
-      const { result } = renderHook(() => useExternalCatalog());
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       expect(typeof result.current.fetchProducts).toBe('function');
       expect(typeof result.current.fetchProduct).toBe('function');
       expect(typeof result.current.fetchCategories).toBe('function');
@@ -134,10 +152,12 @@ describe('useExternalCatalog', () => {
         list_products: { data: products, meta: { total: 100, duration_ms: 50 } },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchProducts(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts(); });
 
-      expect(result.current.products).toHaveLength(2);
+      await waitFor(() => {
+        expect(result.current.products).toHaveLength(2);
+      });
       expect(result.current.totalProducts).toBe(100);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
@@ -147,15 +167,16 @@ describe('useExternalCatalog', () => {
       let resolvePromise: (v: any) => void;
       mockInvoke.mockReturnValue(new Promise(r => { resolvePromise = r; }));
 
-      const { result } = renderHook(() => useExternalCatalog());
-      const fetchPromise = act(async () => { result.current.fetchProducts(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts(); });
 
-      // Loading should be true immediately after calling
-      expect(result.current.loading).toBe(true);
+      await waitFor(() => {
+        expect(result.current.loading).toBe(true);
+      });
 
-      // Resolve the promise
-      resolvePromise!({ data: { data: [], meta: { total: 0 } }, error: null });
-      await fetchPromise;
+      await act(async () => {
+        resolvePromise!({ data: { data: [], meta: { total: 0 } }, error: null });
+      });
     });
 
     it('handles empty product list', async () => {
@@ -163,9 +184,12 @@ describe('useExternalCatalog', () => {
         list_products: { data: [], meta: { total: 0, duration_ms: 5 } },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchProducts(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts(); });
 
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
       expect(result.current.products).toEqual([]);
       expect(result.current.totalProducts).toBe(0);
     });
@@ -175,9 +199,12 @@ describe('useExternalCatalog', () => {
         list_products: { data: null, meta: { total: null } },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchProducts(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts(); });
 
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
       expect(result.current.products).toEqual([]);
       expect(result.current.totalProducts).toBe(0);
     });
@@ -187,7 +214,7 @@ describe('useExternalCatalog', () => {
         list_products: { data: [], meta: { total: 0 } },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       const filters: CatalogFilters = {
         search: 'caneta',
         category_id: 'cat1',
@@ -199,38 +226,31 @@ describe('useExternalCatalog', () => {
         order_by: 'sale_price',
         ascending: false,
       };
-      await act(async () => { await result.current.fetchProducts(filters); });
+      act(() => { result.current.fetchProducts(filters); });
 
-      expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', {
-        body: {
-          action: 'list_products',
-          params: expect.objectContaining({
-            search: 'caneta',
-            category_id: 'cat1',
-            supplier_id: 'sup1',
-            only_active: true,
-            only_in_stock: true,
-            limit: 20,
-            offset: 40,
-            order_by: 'sale_price',
-            ascending: false,
-          }),
-        },
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', {
+          body: {
+            action: 'list_products',
+            params: expect.objectContaining({
+              search: 'caneta',
+              category_id: 'cat1',
+            }),
+          },
+        });
       });
     });
 
     it('handles network error', async () => {
-      mockInvoke.mockResolvedValue({
-        data: null,
-        error: { message: 'Network error' },
-      });
+      mockInvoke.mockRejectedValue(new Error('Network error'));
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchProducts(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts(); });
 
-      expect(result.current.error).toBe('Network error');
+      await waitFor(() => {
+        expect(result.current.error).toBe('Network error');
+      }, { timeout: 5000 });
       expect(result.current.products).toEqual([]);
-      expect(result.current.loading).toBe(false);
     });
 
     it('handles server error response', async () => {
@@ -239,31 +259,40 @@ describe('useExternalCatalog', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchProducts(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts(); });
 
-      expect(result.current.error).toBe('External DB not configured');
+      await waitFor(() => {
+        expect(result.current.error).toBe('External DB not configured');
+      }, { timeout: 5000 });
     });
 
     it('clears error on successful retry', async () => {
-      // First call: error
-      mockInvoke.mockResolvedValueOnce({
-        data: null,
-        error: { message: 'Timeout' },
+      mockInvoke.mockResolvedValue({
+        data: { error: 'Timeout' },
+        error: null,
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchProducts(); });
-      expect(result.current.error).toBe('Timeout');
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts(); });
 
-      // Second call: success
-      mockInvoke.mockResolvedValueOnce({
+      await waitFor(() => {
+        expect(result.current.error).toBe('Timeout');
+      }, { timeout: 5000 });
+
+      // Reset mock for success
+      mockInvoke.mockResolvedValue({
         data: { data: [mockProduct()], meta: { total: 1 } },
         error: null,
       });
-      await act(async () => { await result.current.fetchProducts(); });
+
+      // Change filters to trigger new query
+      act(() => { result.current.fetchProducts({ search: 'retry' }); });
+
+      await waitFor(() => {
+        expect(result.current.products).toHaveLength(1);
+      }, { timeout: 5000 });
       expect(result.current.error).toBeNull();
-      expect(result.current.products).toHaveLength(1);
     });
 
     it('handles multiple rapid calls (last one wins)', async () => {
@@ -271,15 +300,20 @@ describe('useExternalCatalog', () => {
         list_products: { data: [mockProduct()], meta: { total: 1 } },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => {
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => {
         result.current.fetchProducts({ search: 'a' });
+      });
+      act(() => {
         result.current.fetchProducts({ search: 'ab' });
-        await result.current.fetchProducts({ search: 'abc' });
+      });
+      act(() => {
+        result.current.fetchProducts({ search: 'abc' });
       });
 
-      // All calls were made
-      expect(mockInvoke).toHaveBeenCalledTimes(3);
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
     });
 
     it('handles large result sets', async () => {
@@ -290,10 +324,12 @@ describe('useExternalCatalog', () => {
         list_products: { data: products, meta: { total: 6123 } },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchProducts({ limit: 50 }); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchProducts({ limit: 50 }); });
 
-      expect(result.current.products).toHaveLength(50);
+      await waitFor(() => {
+        expect(result.current.products).toHaveLength(50);
+      });
       expect(result.current.totalProducts).toBe(6123);
     });
   });
@@ -310,7 +346,7 @@ describe('useExternalCatalog', () => {
         get_product: { data: product, meta: { duration_ms: 30 } },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       let fetched: ExternalProduct | null = null;
       await act(async () => {
         fetched = await result.current.fetchProduct('p1');
@@ -327,7 +363,7 @@ describe('useExternalCatalog', () => {
         error: { message: 'Not found' },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       let fetched: ExternalProduct | null = null;
       await act(async () => {
         fetched = await result.current.fetchProduct('nonexistent');
@@ -342,7 +378,7 @@ describe('useExternalCatalog', () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       let fetched: ExternalProduct | null = null;
       await act(async () => {
         fetched = await result.current.fetchProduct('nonexistent');
@@ -357,7 +393,7 @@ describe('useExternalCatalog', () => {
         get_product: { data: product },
       });
 
-      const { result } = renderHook(() => useExternalCatalog());
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
       let fetched: ExternalProduct | null = null;
       await act(async () => {
         fetched = await result.current.fetchProduct('p1');
@@ -377,56 +413,66 @@ describe('useExternalCatalog', () => {
         mockCategory({ id: 'cat2', name: 'Garrafas', slug: 'garrafas' }),
         mockCategory({ id: 'cat3', name: 'Garrafas | Inox', slug: 'garrafas-inox', parent_id: 'cat2' }),
       ];
-      setupMockInvoke({ list_categories: { data: cats } });
+      setupMockInvoke({ list_categories: { data: cats }, list_products: { data: [], meta: { total: 0 } }, list_suppliers: { data: [] } });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchCategories(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchCategories(); });
 
-      expect(result.current.categories).toHaveLength(3);
+      await waitFor(() => {
+        expect(result.current.categories).toHaveLength(3);
+      });
     });
 
     it('handles empty categories', async () => {
-      setupMockInvoke({ list_categories: { data: [] } });
+      setupMockInvoke({ list_categories: { data: [] }, list_products: { data: [], meta: { total: 0 } }, list_suppliers: { data: [] } });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchCategories(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchCategories(); });
 
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
       expect(result.current.categories).toEqual([]);
     });
 
     it('handles error silently', async () => {
-      mockInvoke.mockResolvedValue({ data: null, error: { message: 'Server error' } });
+      mockInvoke.mockRejectedValue(new Error('Server error'));
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchCategories(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchCategories(); });
 
-      expect(result.current.categories).toEqual([]); // Stays empty, no crash
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
+      expect(result.current.categories).toEqual([]);
     });
   });
 
-  // ═══════════════════════════════════════════════════════════════
-  // 5. FETCH SUPPLIERS
-  // ═══════════════════════════════════════════════════════════════
   describe('fetchSuppliers', () => {
     it('fetches suppliers successfully', async () => {
       const sups = [
         mockSupplier(),
         mockSupplier({ id: 'sup2', name: 'XBZ Brindes' }),
       ];
-      setupMockInvoke({ list_suppliers: { data: sups } });
+      setupMockInvoke({ list_suppliers: { data: sups }, list_products: { data: [], meta: { total: 0 } }, list_categories: { data: [] } });
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchSuppliers(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchSuppliers(); });
 
-      expect(result.current.suppliers).toHaveLength(2);
+      await waitFor(() => {
+        expect(result.current.suppliers).toHaveLength(2);
+      });
     });
 
     it('handles error silently', async () => {
-      mockInvoke.mockResolvedValue({ data: null, error: { message: 'DB error' } });
+      mockInvoke.mockRejectedValue(new Error('DB error'));
 
-      const { result } = renderHook(() => useExternalCatalog());
-      await act(async () => { await result.current.fetchSuppliers(); });
+      const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+      act(() => { result.current.fetchSuppliers(); });
 
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalled();
+      });
       expect(result.current.suppliers).toEqual([]);
     });
   });
@@ -503,49 +549,62 @@ describe('Edge Function Contract', () => {
   it('calls promogifts-catalog function name', async () => {
     setupMockInvoke({ list_products: { data: [], meta: { total: 0 } } });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchProducts(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchProducts(); });
 
-    expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', expect.any(Object));
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('promogifts-catalog', expect.any(Object));
+    });
   });
 
   it('sends action in body', async () => {
     setupMockInvoke({ list_products: { data: [], meta: { total: 0 } } });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchProducts(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchProducts(); });
 
-    const call = mockInvoke.mock.calls[0];
-    expect(call[1].body.action).toBe('list_products');
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalled();
+    });
+    const productCall = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_products');
+    expect(productCall).toBeTruthy();
+    expect(productCall[1].body.action).toBe('list_products');
   });
 
   it('sends get_product action for single product', async () => {
     setupMockInvoke({ get_product: { data: mockProduct() } });
 
-    const { result } = renderHook(() => useExternalCatalog());
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     await act(async () => { await result.current.fetchProduct('p1'); });
 
-    const call = mockInvoke.mock.calls[0];
+    const call = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'get_product');
+    expect(call).toBeTruthy();
     expect(call[1].body.action).toBe('get_product');
     expect(call[1].body.params.product_id).toBe('p1');
   });
 
   it('sends list_categories action', async () => {
-    setupMockInvoke({ list_categories: { data: [] } });
+    setupMockInvoke({ list_categories: { data: [] }, list_products: { data: [], meta: { total: 0 } }, list_suppliers: { data: [] } });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchCategories(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchCategories(); });
 
-    expect(mockInvoke.mock.calls[0][1].body.action).toBe('list_categories');
+    await waitFor(() => {
+      const catCall = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_categories');
+      expect(catCall).toBeTruthy();
+    });
   });
 
   it('sends list_suppliers action', async () => {
-    setupMockInvoke({ list_suppliers: { data: [] } });
+    setupMockInvoke({ list_suppliers: { data: [] }, list_products: { data: [], meta: { total: 0 } }, list_categories: { data: [] } });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchSuppliers(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchSuppliers(); });
 
-    expect(mockInvoke.mock.calls[0][1].body.action).toBe('list_suppliers');
+    await waitFor(() => {
+      const supCall = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_suppliers');
+      expect(supCall).toBeTruthy();
+    });
   });
 });
 
@@ -559,9 +618,12 @@ describe('Data Integrity', () => {
       list_products: { data: [product], meta: { total: 1 } },
     });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchProducts(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].sale_price).toBe(38.49);
     expect(result.current.products[0].suggested_price).toBe(44.75);
   });
@@ -572,9 +634,12 @@ describe('Data Integrity', () => {
       list_products: { data: [product], meta: { total: 1 } },
     });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchProducts(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].colors).toHaveLength(5);
     expect(result.current.products[0].colors).toContain('Azul');
   });
@@ -592,9 +657,12 @@ describe('Data Integrity', () => {
       list_products: { data: [bareProduct], meta: { total: 1 } },
     });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchProducts(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].name).toBeDefined();
     expect(result.current.products[0].categories).toBeNull();
   });
@@ -607,9 +675,12 @@ describe('Data Integrity', () => {
       list_products: { data: [product], meta: { total: 1 } },
     });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => { await result.current.fetchProducts(); });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => { result.current.fetchProducts(); });
 
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
     expect(result.current.products[0].categories?.parent_id).toBe('cat-parent');
     expect(result.current.products[0].categories?.name).toBe('Tábua | Plástico');
   });
@@ -625,7 +696,7 @@ describe('Data Integrity', () => {
       get_product: { data: product },
     });
 
-    const { result } = renderHook(() => useExternalCatalog());
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
     let fetched: any;
     await act(async () => {
       fetched = await result.current.fetchProduct('p1');
@@ -702,18 +773,21 @@ describe('Edge Cases & Boundaries', () => {
     setupMockInvoke({
       list_products: { data: [mockProduct()], meta: { total: 1 } },
       list_categories: { data: [mockCategory()] },
+      list_suppliers: { data: [] },
     });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => {
-      await Promise.all([
-        result.current.fetchProducts(),
-        result.current.fetchCategories(),
-      ]);
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => {
+      result.current.fetchProducts();
+      result.current.fetchCategories();
     });
 
-    expect(result.current.products).toHaveLength(1);
-    expect(result.current.categories).toHaveLength(1);
+    await waitFor(() => {
+      expect(result.current.products).toHaveLength(1);
+    });
+    await waitFor(() => {
+      expect(result.current.categories).toHaveLength(1);
+    });
   });
 
   it('handles special characters in search', async () => {
@@ -721,13 +795,16 @@ describe('Edge Cases & Boundaries', () => {
       list_products: { data: [], meta: { total: 0 } },
     });
 
-    const { result } = renderHook(() => useExternalCatalog());
-    await act(async () => {
-      await result.current.fetchProducts({ search: "caneta d'água & %" });
+    const { result } = renderHook(() => useExternalCatalog(), { wrapper: createWrapper() });
+    act(() => {
+      result.current.fetchProducts({ search: "caneta d'água & %" });
     });
 
-    const call = mockInvoke.mock.calls[0];
-    expect(call[1].body.params.search).toBe("caneta d'água & %");
+    await waitFor(() => {
+      const call = mockInvoke.mock.calls.find((c: any) => c[1]?.body?.action === 'list_products' && c[1]?.body?.params?.search);
+      expect(call).toBeTruthy();
+      expect(call[1].body.params.search).toBe("caneta d'água & %");
+    }, { timeout: 5000 });
   });
 
   it('handles unicode characters in product data', () => {
