@@ -370,12 +370,44 @@ serve(async (req) => {
       const status = (baseData.status as string) === 'open' ? 'connected' :
         (baseData.status as string) === 'close' ? 'disconnected' : 'pending';
 
+      // Get previous status before updating
+      const { data: prevConn } = await supabase
+        .from('whatsapp_connections')
+        .select('status, phone_number')
+        .eq('instance_id', instance)
+        .single();
+
       await supabase
         .from('whatsapp_connections')
         .update({ status, qr_code: null, updated_at: new Date().toISOString() })
         .eq('instance_id', instance);
 
       console.log(`Connection ${instance} status: ${status}`);
+
+      // Create critical alert when a connection disconnects
+      if (status === 'disconnected' && prevConn?.status === 'connected') {
+        const phone = prevConn.phone_number ? ` (${prevConn.phone_number})` : '';
+        await supabase.from('warroom_alerts').insert({
+          alert_type: 'critical',
+          title: `🔴 Conexão ${instance} desconectou`,
+          message: `A instância ${instance}${phone} perdeu conexão com o WhatsApp. Reconecte imediatamente para evitar perda de mensagens.`,
+          source: 'evolution-webhook',
+        }).then(({ error: alertErr }) => {
+          if (alertErr) console.error('Failed to create disconnect alert:', alertErr);
+        });
+        console.warn(`ALERT: Connection ${instance} DISCONNECTED - warroom alert created`);
+      }
+
+      // Alert when connection is restored
+      if (status === 'connected' && prevConn?.status !== 'connected') {
+        await supabase.from('warroom_alerts').insert({
+          alert_type: 'info',
+          title: `🟢 Conexão ${instance} restaurada`,
+          message: `A instância ${instance} reconectou com sucesso ao WhatsApp.`,
+          source: 'evolution-webhook',
+        });
+        console.log(`Connection ${instance} RESTORED - warroom alert created`);
+      }
     }
 
     if (event === 'qrcode.updated') {
