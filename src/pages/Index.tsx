@@ -298,6 +298,7 @@ function IndexContent() {
         {/* Network status indicators */}
         <OfflineIndicator />
         <ConnectionToast />
+        <EvolutionDisconnectBanner />
 
         <WelcomeModal
           isOpen={showWelcome}
