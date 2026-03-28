@@ -272,8 +272,16 @@ export function RealtimeInboxView() {
     }
 
     // Contact type filter
-    if (selectedContactType) {
-      result = result.filter((c) => (c.contact.contact_type || 'cliente') === selectedContactType);
+    if (selectedContactType === 'grupo') {
+      result = result.filter((c) => /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
+    } else if (selectedContactType === 'individual') {
+      result = result.filter((c) => !/^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
+    } else if (selectedContactType) {
+      result = result.filter((c) => {
+        const isGroup = /^\d+-\d+$/.test(c.contact.phone || '');
+        if (isGroup) return false;
+        return (c.contact.contact_type || 'cliente') === selectedContactType;
+      });
     }
 
     return result;
