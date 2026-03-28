@@ -27,12 +27,20 @@ import {
   Send,
 } from 'lucide-react';
 
+interface PollData {
+  name: string;
+  options: string[];
+  selectableCount: number;
+}
+
 interface AdvancedMessageMenuProps {
   instanceName: string;
   recipientNumber: string;
+  onPollSent?: (poll: PollData) => void;
+  onContactSent?: (contactName: string) => void;
 }
 
-export function AdvancedMessageMenu({ instanceName, recipientNumber }: AdvancedMessageMenuProps) {
+export function AdvancedMessageMenu({ instanceName, recipientNumber, onPollSent, onContactSent }: AdvancedMessageMenuProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [stickerDialog, setStickerDialog] = useState(false);
   const [pollDialog, setPollDialog] = useState(false);
