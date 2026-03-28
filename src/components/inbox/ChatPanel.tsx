@@ -601,17 +601,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       const phone = conversation.contact.phone.replace(/\D/g, '');
       const normalizedAudioUrl = normalizeMediaUrl(audioUrl);
       
-      // Send via API + save to DB in parallel
-      const fileName = normalizedAudioUrl.split('/').pop()?.split('?')[0] || 'audio-meme.mp3';
+      // Send as native audio (PTT) via send-audio action
       const apiPromise = supabase.functions.invoke('evolution-api', {
         body: {
-          action: 'send-media',
+          action: 'send-audio',
           instanceName: resolvedInstance,
           number: phone,
-          mediaType: 'audio',
-          mimetype: 'audio/mpeg',
-          mediaUrl: normalizedAudioUrl,
-          fileName,
+          audioUrl: normalizedAudioUrl,
         },
       });
       
