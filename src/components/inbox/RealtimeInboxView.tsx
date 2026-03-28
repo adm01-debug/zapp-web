@@ -303,7 +303,7 @@ export function RealtimeInboxView() {
     }
 
     return result;
-  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id]);
+  }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id, contactTagsMap]);
 
   // Get selected conversation
   const selectedConversation = useMemo(
