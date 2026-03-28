@@ -871,6 +871,19 @@ export function RealtimeInboxView() {
                   Todos os tipos
                 </span>
               </SelectItem>
+              <SelectItem value="individual">
+                <span className="flex items-center gap-2">
+                  <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                  Chats Individuais
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo">
+                <span className="flex items-center gap-2">
+                  <UsersRound className="w-3.5 h-3.5 text-amber-500" />
+                  Grupos
+                </span>
+              </SelectItem>
+              <SelectSeparator />
               <SelectItem value="cliente">
                 <span className="flex items-center gap-2">
                   <Users className="w-3.5 h-3.5 text-blue-500" />
