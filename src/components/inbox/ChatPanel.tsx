@@ -546,10 +546,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       
       // Send as image via Evolution API
       const apiPromise = supabase.functions.invoke('evolution-api', {
+        method: 'POST',
         body: {
-          action: 'sendMedia',
-          instance: resolvedInstance,
-          data: { number: phone, mediatype: 'image', media: emojiUrl },
+          action: 'send-media',
+          instanceName: resolvedInstance,
+          number: phone,
+          mediaUrl: emojiUrl,
+          mediaType: 'image',
         },
       });
 
