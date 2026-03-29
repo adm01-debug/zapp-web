@@ -1,45 +1,65 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  handleCors, errorResponse, jsonResponse,
+  sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv,
+} from "../_shared/validation.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+const ALLOWED_LANGUAGES = new Set([
+  'por', 'eng', 'spa', 'fra', 'deu', 'ita', 'jpn', 'kor', 'zho', 'ara', 'hin', 'rus',
+]);
+
+const MAX_AUDIO_SIZE = 25 * 1024 * 1024; // 25MB
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const cors = handleCors(req);
+  if (cors) return cors;
 
   try {
-    const { audioUrl, messageId, languageCode, enableDiarization, tagAudioEvents } = await req.json();
+    // Rate limiting
+    const ip = getClientIP(req);
+    const { allowed } = checkRateLimit(`transcribe:${ip}`, 10, 60_000);
+    if (!allowed) {
+      return errorResponse("Limite de transcrições excedido. Tente novamente em 1 minuto.", 429);
+    }
+
+    const body = await req.json();
+    const audioUrl = sanitizeString(body.audioUrl, 2048);
+    const messageId = body.messageId ? sanitizeString(String(body.messageId), 100) : undefined;
+    const languageCode = typeof body.languageCode === 'string' && ALLOWED_LANGUAGES.has(body.languageCode)
+      ? body.languageCode : 'por';
+    const enableDiarization = body.enableDiarization === true;
+    const tagAudioEvents = body.tagAudioEvents !== false;
 
     if (!audioUrl) {
-      return new Response(
-        JSON.stringify({ error: 'Audio URL is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse("Audio URL is required");
+    }
+
+    // Validate URL format
+    try {
+      new URL(audioUrl);
+    } catch {
+      return errorResponse("Invalid audio URL format");
     }
 
     console.log('Starting ElevenLabs transcription (scribe_v2) for message:', messageId);
+    const ELEVENLABS_API_KEY = requireEnv('ELEVENLABS_API_KEY');
 
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-    if (!ELEVENLABS_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'ElevenLabs API key not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Download the audio file
+    // Download audio with size check
     const audioResponse = await fetch(audioUrl);
     if (!audioResponse.ok) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to download audio file' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse("Failed to download audio file");
+    }
+
+    const contentLength = audioResponse.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > MAX_AUDIO_SIZE) {
+      return errorResponse("Audio file too large (max 25MB)");
     }
 
     const audioBlob = await audioResponse.blob();
+    if (audioBlob.size > MAX_AUDIO_SIZE) {
+      return errorResponse("Audio file too large (max 25MB)");
+    }
+
     console.log('Audio downloaded, size:', audioBlob.size, 'type:', audioBlob.type);
 
     // Determine file extension
@@ -52,10 +72,10 @@ serve(async (req) => {
 
     const formData = new FormData();
     formData.append('file', audioBlob, fileName);
-    formData.append('model_id', 'scribe_v2'); // Upgraded from scribe_v1
-    formData.append('language_code', languageCode || 'por');
-    formData.append('tag_audio_events', String(tagAudioEvents ?? true));
-    formData.append('diarize', String(enableDiarization ?? false));
+    formData.append('model_id', 'scribe_v2');
+    formData.append('language_code', languageCode);
+    formData.append('tag_audio_events', String(tagAudioEvents));
+    formData.append('diarize', String(enableDiarization));
 
     console.log('Sending to ElevenLabs STT API (scribe_v2)...');
 
@@ -68,45 +88,24 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ElevenLabs STT error:', response.status, errorText);
-
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 401) {
-        return new Response(
-          JSON.stringify({ error: 'Invalid ElevenLabs API key.' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ error: 'Failed to transcribe audio', details: errorText }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429);
+      if (response.status === 401) return errorResponse("Invalid ElevenLabs API key.", 401);
+      return errorResponse("Failed to transcribe audio", 500);
     }
 
     const data = await response.json();
     const transcription = data.text || '';
     console.log('Transcription result:', transcription);
 
-    return new Response(
-      JSON.stringify({
-        transcription,
-        messageId,
-        words: data.words || [],
-        audio_events: data.audio_events || [],
-        speakers: data.speakers || [],
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({
+      transcription,
+      messageId,
+      words: data.words || [],
+      audio_events: data.audio_events || [],
+      speakers: data.speakers || [],
+    });
   } catch (error) {
     console.error('Transcription error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500);
   }
 });
