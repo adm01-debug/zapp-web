@@ -4,6 +4,7 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { unauthorized, serverError } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('elevenlabs-scribe-token');
 
@@ -20,9 +21,7 @@ serve(async (req) => {
   // Verify authentication
   const { user, error: authError } = await verifyJWT(req);
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
-      status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
-    });
+    return unauthorized(authError || "Authentication required", getCorsHeaders(req));
   }
 
   try {

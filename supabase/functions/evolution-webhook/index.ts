@@ -5,6 +5,7 @@ import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
+import { serverError } from '../_shared/errorResponse.ts';
 
 interface WebhookPayload {
   event: string;
@@ -488,10 +489,7 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return serverError('Webhook processing error', getCorsHeaders(req));
   }
 });
 

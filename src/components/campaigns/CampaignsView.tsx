@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useCampaigns, Campaign } from '@/hooks/useCampaigns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,18 +48,18 @@ export function CampaignsView() {
     send_interval_seconds: 5,
   });
 
-  const filtered = campaigns.filter(c => {
+  const filtered = useMemo(() => campaigns.filter(c => {
     if (filter !== 'all' && c.status !== filter) return false;
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  });
+  }), [campaigns, filter, search]);
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: campaigns.length,
     active: campaigns.filter(c => c.status === 'sending').length,
     completed: campaigns.filter(c => c.status === 'completed').length,
     totalSent: campaigns.reduce((sum, c) => sum + c.sent_count, 0),
-  };
+  }), [campaigns]);
 
   const handleCreate = useCallback(() => {
     createCampaign.mutate(form, {

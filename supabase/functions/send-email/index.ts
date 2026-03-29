@@ -11,6 +11,7 @@ import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
 
 import { requireEnv } from '../_shared/envValidator.ts';
+import { unauthorized, serverError } from '../_shared/errorResponse.ts';
 
 requireEnv({ required: ['RESEND_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] });
 
@@ -56,9 +57,7 @@ serve(async (req) => {
   const { user, error: authError } = await verifyJWT(req);
   if (authError || !user) {
     logger.warn('Authentication failed', { error: authError });
-    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
-      status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
-    });
+    return unauthorized(authError || "Authentication required", getCorsHeaders(req));
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

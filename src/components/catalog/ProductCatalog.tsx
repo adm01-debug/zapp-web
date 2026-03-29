@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { log } from '@/lib/logger';
 import { ProductCard, Product } from './ProductCard';
@@ -91,17 +91,20 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
   };
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.description?.toLowerCase().includes(search.toLowerCase()) ||
-      product.sku?.toLowerCase().includes(search.toLowerCase());
+  const filteredProducts = useMemo(() => {
+    const searchLower = search.toLowerCase();
+    return products.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description?.toLowerCase().includes(searchLower) ||
+        product.sku?.toLowerCase().includes(searchLower);
 
-    const matchesCategory =
-      category === 'all' || product.category === category;
+      const matchesCategory =
+        category === 'all' || product.category === category;
 
-    return matchesSearch && matchesCategory;
-  });
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, search, category]);
 
   const handleSendProduct = (product: Product) => {
     onSendProduct(product);

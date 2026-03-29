@@ -26,7 +26,7 @@ interface ProductCardProps {
   compact?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({
+export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   product,
   onSend,
   onAddToCart,
@@ -165,4 +165,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </Card>
     </motion.div>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';

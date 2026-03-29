@@ -5,6 +5,7 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { unauthorized, serverError } from '../_shared/errorResponse.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const logger = createStructuredLogger('detect-new-device');
@@ -45,10 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       logger.error("No authorization header");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return unauthorized('Authorization required', corsHeaders);
     }
 
     // Create client with user token to get user info
@@ -59,10 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
     if (userError || !user) {
       logger.error("User not found", { error: userError?.message });
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      });
+      return unauthorized('User not found', getCorsHeaders(req));
     }
 
     logger.info("User authenticated", { userId: user.id });

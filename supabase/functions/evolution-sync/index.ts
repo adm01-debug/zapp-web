@@ -4,6 +4,7 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { unauthorized, badRequest, serverError, errorResponse } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('evolution-sync');
 
@@ -19,9 +20,7 @@ serve(async (req) => {
   // Verify authentication
   const { user, error: authError } = await verifyJWT(req);
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
-      status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
-    });
+    return unauthorized(authError || "Authentication required", getCorsHeaders(req));
   }
 
   const evolutionApiUrl = (Deno.env.get('EVOLUTION_API_URL') || '').replace(/\/+$/, '');
@@ -30,9 +29,7 @@ serve(async (req) => {
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
   if (!evolutionApiUrl || !evolutionApiKey) {
-    return new Response(JSON.stringify({ error: 'Evolution API not configured' }), {
-      status: 503, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return errorResponse('Evolution API not configured', { status: 503, code: 'SERVICE_UNAVAILABLE', corsHeaders: getCorsHeaders(req) });
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -565,15 +562,11 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Unknown action', validActions: ['sync-contacts', 'sync-messages', 'setup-webhook', 'cleanup-mock', 'full-sync'] }), {
-      status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return badRequest('Unknown action. Valid: sync-contacts, sync-messages, setup-webhook, cleanup-mock, full-sync', getCorsHeaders(req));
 
   } catch (error: unknown) {
     logger.error('Sync error', { error: error instanceof Error ? error.message : 'Unknown error' });
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return serverError('Sync operation failed', getCorsHeaders(req));
   }
 });

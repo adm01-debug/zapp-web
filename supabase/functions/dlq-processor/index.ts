@@ -8,6 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { unauthorized, serverError } from '../_shared/errorResponse.ts';
 import { processDeadLetterQueue } from '../_shared/deadLetterQueue.ts';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
@@ -109,10 +110,7 @@ serve(async (req) => {
   const authHeader = req.headers.get('Authorization');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!authHeader?.includes(serviceKey || '__never_match__')) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return unauthorized('Unauthorized', getCorsHeaders(req));
   }
 
   try {
@@ -169,9 +167,6 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('DLQ processor error', { error: errorMessage });
     requestTimer.end({ error: true });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    });
+    return serverError('DLQ processor error', getCorsHeaders(req));
   }
 });

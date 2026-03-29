@@ -9,6 +9,7 @@ import { validateUUID, ValidationError, validationErrorResponse } from '../_shar
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
+import { unauthorized, serverError } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('ai-suggest-reply');
 
@@ -35,9 +36,7 @@ serve(async (req) => {
   const { user, error: authError } = await verifyJWT(req);
   if (authError || !user) {
     logger.warn('Authentication failed', { error: authError });
-    return new Response(JSON.stringify({ error: authError || 'Authentication required' }), {
-      status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
-    });
+    return unauthorized(authError || "Authentication required", getCorsHeaders(req));
   }
 
   try {
