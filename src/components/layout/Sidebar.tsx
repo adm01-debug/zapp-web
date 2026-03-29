@@ -37,7 +37,7 @@ interface SidebarProps {
   onStatusChange?: (status: 'online' | 'away' | 'offline') => void;
 }
 
-export function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inboxBadge, onStatusChange }: SidebarProps) {
+export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, currentAgent, onLogout, inboxBadge, onStatusChange }: SidebarProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const [statusOpen, setStatusOpen] = useState(false);
