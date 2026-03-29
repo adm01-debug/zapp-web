@@ -78,7 +78,23 @@ function IndexContent() {
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { startTour } = useTour();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
-  const { currentView, navigateTo: setCurrentView, goBack, goForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
+  const { currentView, navigateTo: rawNavigateTo, goBack: rawGoBack, goForward: rawGoForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
+  const navDirectionRef = useRef<'forward' | 'back'>('forward');
+  
+  const setCurrentView = useCallback((viewId: string) => {
+    navDirectionRef.current = 'forward';
+    rawNavigateTo(viewId);
+  }, [rawNavigateTo]);
+
+  const goBack = useCallback(() => {
+    navDirectionRef.current = 'back';
+    rawGoBack();
+  }, [rawGoBack]);
+
+  const goForward = useCallback(() => {
+    navDirectionRef.current = 'forward';
+    rawGoForward();
+  }, [rawGoForward]);
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
