@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ChatbotFlow, ChatbotNode, ChatbotEdge } from '@/hooks/useChatbotFlows';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { StepProgress, Step } from '@/components/ui/step-progress';
+
+const flowSteps: Step[] = [
+  { label: 'Início' },
+  { label: 'Nós' },
+  { label: 'Conexões' },
+  { label: 'Salvar' },
+];
 
 const nodeTypes: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
   start: { label: 'Início', icon: Zap, color: 'border-green-500 bg-success/10' },
@@ -48,6 +56,14 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
   const [selectedNode, setSelectedNode] = useState<ChatbotNode | null>(null);
   const [showAddNode, setShowAddNode] = useState(false);
   const [editingNode, setEditingNode] = useState<ChatbotNode | null>(null);
+
+  const currentFlowStep = useMemo(() => {
+    const hasStart = nodes.some(n => n.type === 'start');
+    if (!hasStart) return 0;
+    if (nodes.length < 2) return 1;
+    if (edges.length < 1) return 2;
+    return 3;
+  }, [nodes, edges]);
 
   const addNode = useCallback((type: ChatbotNode['type']) => {
     const newNode: ChatbotNode = {
@@ -105,27 +121,30 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
   return (
     <div className="h-full flex flex-col">
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 border-b border-secondary/30 bg-background">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h2 className="font-display font-bold text-foreground flex items-center gap-2">
-              <Bot className="w-5 h-5 text-primary" />
-              {flow.name}
-            </h2>
-            <p className="text-xs text-muted-foreground">{nodes.length} nós · {edges.length} conexões</p>
+      <div className="flex flex-col gap-2 p-4 border-b border-secondary/30 bg-background">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h2 className="font-display font-bold text-foreground flex items-center gap-2">
+                <Bot className="w-5 h-5 text-primary" />
+                {flow.name}
+              </h2>
+              <p className="text-xs text-muted-foreground">{nodes.length} nós · {edges.length} conexões</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowAddNode(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Adicionar Nó
+            </Button>
+            <Button onClick={() => onSave(nodes, edges)} className="gap-2">
+              <Save className="w-4 h-4" /> Salvar
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setShowAddNode(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Adicionar Nó
-          </Button>
-          <Button onClick={() => onSave(nodes, edges)} className="gap-2">
-            <Save className="w-4 h-4" /> Salvar
-          </Button>
-        </div>
+        <StepProgress steps={flowSteps} currentStep={currentFlowStep} className="px-2 pt-1" />
       </div>
 
       {/* Editor Area */}
