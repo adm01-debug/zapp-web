@@ -10,7 +10,7 @@ interface Permission {
 }
 
 interface RolePermission {
-  role: 'admin' | 'supervisor' | 'agent';
+  role: 'admin' | 'supervisor' | 'agent' | 'special_agent';
   permission_id: string;
   permission?: Permission;
 }
