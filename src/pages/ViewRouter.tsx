@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAriaAnnouncer } from '@/hooks/useAriaAnnouncer';
+import { ErrorBoundaryWithRetry } from '@/components/ui/error-boundary-retry';
 import { ViewHeader } from '@/components/layout/ViewHeader';
 import * as Views from './lazyViews';
 
