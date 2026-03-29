@@ -334,10 +334,36 @@ export function GroupsView() {
   };
 
   const filteredGroups = groups.filter(
-    (group) =>
-      group.name.toLowerCase().includes(search.toLowerCase()) ||
-      group.group_id.includes(search)
+    (group) => {
+      const matchesSearch = group.name.toLowerCase().includes(search.toLowerCase()) ||
+        group.group_id.includes(search);
+      const matchesCategory = !categoryFilter || 
+        (categoryFilter === 'sem_categoria' ? !group.category : group.category === categoryFilter);
+      return matchesSearch && matchesCategory;
+    }
   );
+
+  const handleCategoryChange = async (groupId: string, category: string | null) => {
+    const { error } = await supabase
+      .from('whatsapp_groups')
+      .update({ category })
+      .eq('id', groupId);
+
+    if (error) {
+      toast.error('Erro ao atualizar categoria');
+    } else {
+      toast.success('Categoria atualizada');
+      // Also update the corresponding contact's group_category
+      const group = groups.find(g => g.id === groupId);
+      if (group) {
+        await supabase
+          .from('contacts')
+          .update({ group_category: category })
+          .like('phone', `%${group.group_id.replace('@g.us', '')}%`);
+      }
+      setGroups(prev => prev.map(g => g.id === groupId ? { ...g, category } : g));
+    }
+  };
 
   const getConnectionName = (connectionId: string | null) => {
     if (!connectionId) return 'Não vinculado';
