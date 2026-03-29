@@ -114,7 +114,16 @@ function IndexContent() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [goBack, goForward]);
-  
+
+  // Swipe from edge for back/forward on mobile
+  useSwipeNavigation({
+    onSwipeBack: goBack,
+    onSwipeForward: goForward,
+    canGoBack,
+    canGoForward,
+    enabled: isMobile,
+  });
+
   useTranscriptionNotifications({ enabled: !!user });
 
   const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
