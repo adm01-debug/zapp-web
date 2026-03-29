@@ -68,7 +68,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
       onEndRef.current?.();
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.warn('Speech recognition error:', event.error);
       setIsListening(false);
     };

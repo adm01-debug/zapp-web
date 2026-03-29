@@ -53,7 +53,7 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
 
       if (fetchError) throw fetchError;
 
-      const mappedMessages = (data || []).map((m: any) => ({
+      const mappedMessages = (data || []).map((m) => ({
         ...m,
         isEdited: m.updated_at && m.created_at && new Date(m.updated_at).getTime() - new Date(m.created_at).getTime() > 1000,
       }));
