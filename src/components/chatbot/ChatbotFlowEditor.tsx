@@ -57,6 +57,14 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
   const [showAddNode, setShowAddNode] = useState(false);
   const [editingNode, setEditingNode] = useState<ChatbotNode | null>(null);
 
+  const currentFlowStep = useMemo(() => {
+    const hasStart = nodes.some(n => n.type === 'start');
+    if (!hasStart) return 0;
+    if (nodes.length < 2) return 1;
+    if (edges.length < 1) return 2;
+    return 3;
+  }, [nodes, edges]);
+
   const addNode = useCallback((type: ChatbotNode['type']) => {
     const newNode: ChatbotNode = {
       id: `node-${Date.now()}`,
