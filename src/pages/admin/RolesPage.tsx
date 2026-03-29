@@ -106,7 +106,7 @@ export default function RolesPage() {
       const mapped = data.map(u => ({
         id: u.id,
         user_id: u.user_id,
-        role: u.role as 'admin' | 'supervisor' | 'agent',
+        role: u.role as 'admin' | 'supervisor' | 'agent' | 'special_agent',
         profile: Array.isArray(u.profiles) ? u.profiles[0] : u.profiles
       }));
       setUsers(mapped);
