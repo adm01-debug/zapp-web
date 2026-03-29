@@ -81,6 +81,7 @@ export function GroupsView() {
   const [groups, setGroups] = useState<WhatsAppGroup[]>([]);
   const [connections, setConnections] = useState<WhatsAppConnection[]>([]);
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -93,6 +94,7 @@ export function GroupsView() {
     group_id: '',
     description: '',
     whatsapp_connection_id: '',
+    category: '',
   });
 
   useEffect(() => {
