@@ -116,20 +116,32 @@ function IndexContent() {
     return () => unregisterNavigationHandler();
   }, [registerNavigationHandler, unregisterNavigationHandler]);
 
-  // Alt+← / Alt+→ for back/forward navigation
+  // Enhanced keyboard navigation: Alt+←/→, Escape to go back, Home for inbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
       if (e.altKey && e.key === 'ArrowLeft') {
         e.preventDefault();
         goBack();
       } else if (e.altKey && e.key === 'ArrowRight') {
         e.preventDefault();
         goForward();
+      } else if (e.key === 'Escape' && !isInput) {
+        // Close any open modals first (handled by Radix), then go back
+        const hasOpenDialog = document.querySelector('[data-state="open"][role="dialog"]');
+        if (!hasOpenDialog && canGoBack) {
+          goBack();
+        }
+      } else if (e.altKey && e.key === 'Home') {
+        e.preventDefault();
+        setCurrentView('inbox');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goBack, goForward]);
+  }, [goBack, goForward, canGoBack, setCurrentView]);
 
   // Swipe from edge for back/forward on mobile
   useSwipeNavigation({
