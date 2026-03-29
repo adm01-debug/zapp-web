@@ -896,98 +896,11 @@ export function RealtimeInboxView() {
           </div>
 
           {/* Contact Type Filter */}
-          <Select
-            value={selectedContactType || 'all'}
-            onValueChange={(value) => setSelectedContactType(value === 'all' ? null : value)}
-          >
-            <SelectTrigger className="h-8 text-xs bg-muted/50 border-0 rounded-full focus:ring-1 focus:ring-primary/30">
-              <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                <SelectValue placeholder="Todos os tipos" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                <span className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5" />
-                  Todos os tipos
-                </span>
-              </SelectItem>
-              <SelectItem value="individual">
-                <span className="flex items-center gap-2">
-                  <MessageSquare className="w-3.5 h-3.5 text-primary" />
-                  Chats Individuais
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo">
-                <span className="flex items-center gap-2">
-                  <UsersRound className="w-3.5 h-3.5 text-amber-500" />
-                  Todos os Grupos
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_orcamentos">
-                <span className="flex items-center gap-2 pl-2">
-                  <FileText className="w-3.5 h-3.5 text-blue-500" />
-                  Orçamentos | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_aprovacao">
-                <span className="flex items-center gap-2 pl-2">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                  Aprovação | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_os">
-                <span className="flex items-center gap-2 pl-2">
-                  <ClipboardList className="w-3.5 h-3.5 text-orange-500" />
-                  O.S. | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_acerto">
-                <span className="flex items-center gap-2 pl-2">
-                  <Handshake className="w-3.5 h-3.5 text-purple-500" />
-                  Acerto | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_sem_categoria">
-                <span className="flex items-center gap-2 pl-2">
-                  <UsersRound className="w-3.5 h-3.5 text-muted-foreground" />
-                  Grupos sem categoria
-                </span>
-              </SelectItem>
-              <SelectSeparator />
-              <SelectItem value="cliente">
-                <span className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5 text-blue-500" />
-                  Clientes
-                </span>
-              </SelectItem>
-              <SelectItem value="colaborador">
-                <span className="flex items-center gap-2">
-                  <UserCheck className="w-3.5 h-3.5 text-green-500" />
-                  Colaboradores
-                </span>
-              </SelectItem>
-              <SelectItem value="fornecedor">
-                <span className="flex items-center gap-2">
-                  <Truck className="w-3.5 h-3.5 text-purple-500" />
-                  Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="prestador_servico">
-                <span className="flex items-center gap-2">
-                  <Wrench className="w-3.5 h-3.5 text-orange-500" />
-                  Prestadores de Serviço
-                </span>
-              </SelectItem>
-              <SelectItem value="transportadora">
-                <span className="flex items-center gap-2">
-                  <Truck className="w-3.5 h-3.5 text-cyan-500" />
-                  Transportadoras
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <ContactTypeFilter
+            value={selectedContactType}
+            onChange={handleContactTypeChange}
+            conversations={cachedConversations}
+          />
 
           {/* Whaticket-style Ticket Tabs */}
           <TicketTabs
