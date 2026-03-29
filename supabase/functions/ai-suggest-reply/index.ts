@@ -182,7 +182,6 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       }
       if (response.status === 402) {
         return errorResponse('Payment required. Please add credits.', { status: 402, code: 'PAYMENT_REQUIRED', corsHeaders: getCorsHeaders(req) });
-        });
       }
       throw new Error(`AI gateway error [${response.status}]: ${errorText}`);
     }
