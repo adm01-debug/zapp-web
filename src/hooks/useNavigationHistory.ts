@@ -5,6 +5,11 @@ export interface NavigationEntry {
   timestamp: number;
 }
 
+interface NavigationState {
+  entries: NavigationEntry[];
+  index: number;
+}
+
 interface NavigationHistoryReturn {
   currentView: string;
   navigateTo: (viewId: string) => void;
@@ -26,6 +31,9 @@ const BREADCRUMB_DEPTH = 4;
 /**
  * Navigation history with back/forward stacks, breadcrumb trail,
  * and URL hash sync for deep linking.
+ *
+ * Uses a single state atom for history+index to prevent race conditions
+ * between separate setState calls.
  */
 export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryReturn {
   const getInitialView = () => {
@@ -33,14 +41,15 @@ export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryRe
     return hash || defaultView;
   };
 
-  const [history, setHistory] = useState<NavigationEntry[]>([
-    { viewId: getInitialView(), timestamp: Date.now() },
-  ]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [state, setState] = useState<NavigationState>(() => ({
+    entries: [{ viewId: getInitialView(), timestamp: Date.now() }],
+    index: 0,
+  }));
+
   const previousViewRef = useRef<string | null>(null);
   const isInternalNav = useRef(false);
 
-  const currentView = history[currentIndex]?.viewId ?? defaultView;
+  const currentView = state.entries[state.index]?.viewId ?? defaultView;
 
   // Sync hash → state on browser back/forward
   useEffect(() => {
@@ -65,58 +74,61 @@ export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryRe
   }, []);
 
   const navigateTo = useCallback((viewId: string) => {
-    if (viewId === currentView) return;
+    setState(prev => {
+      const currentViewId = prev.entries[prev.index]?.viewId;
+      if (viewId === currentViewId) return prev;
 
-    previousViewRef.current = currentView;
+      previousViewRef.current = currentViewId ?? null;
 
-    setHistory(prev => {
       // Truncate forward history
-      const truncated = prev.slice(0, currentIndex + 1);
+      const truncated = prev.entries.slice(0, prev.index + 1);
       const newEntry: NavigationEntry = { viewId, timestamp: Date.now() };
-      const newHistory = [...truncated, newEntry].slice(-MAX_HISTORY);
-      return newHistory;
-    });
+      const newEntries = [...truncated, newEntry].slice(-MAX_HISTORY);
+      const newIndex = newEntries.length - 1;
 
-    setCurrentIndex(prev => {
-      const newIdx = Math.min(prev + 1, MAX_HISTORY - 1);
-      return newIdx;
-    });
+      syncHash(viewId);
 
-    syncHash(viewId);
-  }, [currentView, currentIndex, syncHash]);
+      return { entries: newEntries, index: newIndex };
+    });
+  }, [syncHash]);
 
   const goBack = useCallback(() => {
-    if (currentIndex <= 0) return;
-    previousViewRef.current = currentView;
-    const newIndex = currentIndex - 1;
-    setCurrentIndex(newIndex);
-    const targetView = history[newIndex]?.viewId;
-    if (targetView) syncHash(targetView);
-  }, [currentIndex, currentView, history, syncHash]);
+    setState(prev => {
+      if (prev.index <= 0) return prev;
+      previousViewRef.current = prev.entries[prev.index]?.viewId ?? null;
+      const newIndex = prev.index - 1;
+      const targetView = prev.entries[newIndex]?.viewId;
+      if (targetView) syncHash(targetView);
+      return { ...prev, index: newIndex };
+    });
+  }, [syncHash]);
 
   const goForward = useCallback(() => {
-    if (currentIndex >= history.length - 1) return;
-    previousViewRef.current = currentView;
-    const newIndex = currentIndex + 1;
-    setCurrentIndex(newIndex);
-    const targetView = history[newIndex]?.viewId;
-    if (targetView) syncHash(targetView);
-  }, [currentIndex, currentView, history, syncHash]);
+    setState(prev => {
+      if (prev.index >= prev.entries.length - 1) return prev;
+      previousViewRef.current = prev.entries[prev.index]?.viewId ?? null;
+      const newIndex = prev.index + 1;
+      const targetView = prev.entries[newIndex]?.viewId;
+      if (targetView) syncHash(targetView);
+      return { ...prev, index: newIndex };
+    });
+  }, [syncHash]);
 
-  const canGoBack = currentIndex > 0;
-  const canGoForward = currentIndex < history.length - 1;
+  const canGoBack = state.index > 0;
+  const canGoForward = state.index < state.entries.length - 1;
 
   const breadcrumbTrail = useMemo(() => {
     const trail: string[] = [];
-    // Walk backwards from current, deduplicate consecutive
-    for (let i = currentIndex; i >= 0 && trail.length < BREADCRUMB_DEPTH; i--) {
-      const viewId = history[i].viewId;
+    for (let i = state.index; i >= 0 && trail.length < BREADCRUMB_DEPTH; i--) {
+      const entry = state.entries[i];
+      if (!entry) break;
+      const viewId = entry.viewId;
       if (trail.length === 0 || trail[trail.length - 1] !== viewId) {
         trail.push(viewId);
       }
     }
     return trail.reverse();
-  }, [history, currentIndex]);
+  }, [state.entries, state.index]);
 
   return {
     currentView,
@@ -127,6 +139,6 @@ export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryRe
     canGoForward,
     breadcrumbTrail,
     previousView: previousViewRef.current,
-    history,
+    history: state.entries,
   };
 }
