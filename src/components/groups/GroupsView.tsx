@@ -457,6 +457,29 @@ export function GroupsView() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label>Categoria</Label>
+                    <Select
+                      value={newGroup.category}
+                      onValueChange={(value) =>
+                        setNewGroup({ ...newGroup, category: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria (opcional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GROUP_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            <span className="flex items-center gap-2">
+                              <span>{cat.icon}</span>
+                              {cat.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="flex justify-end gap-2 pt-4">
                     <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                       Cancelar
