@@ -39,7 +39,7 @@ import { toast } from 'sonner';
 interface UserWithRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'supervisor' | 'agent';
+  role: 'admin' | 'supervisor' | 'agent' | 'special_agent';
   profile?: {
     name: string;
     email: string | null;
@@ -59,6 +59,12 @@ const ROLE_CONFIG = {
     icon: Eye,
     color: 'bg-info/10 text-info dark:bg-info/20/30 dark:text-info',
     description: 'Gerencia equipes e relatórios'
+  },
+  special_agent: { 
+    label: 'Agente Especial', 
+    icon: Star,
+    color: 'bg-warning/10 text-warning dark:bg-warning/20/30 dark:text-warning',
+    description: 'Vê seus contatos + contatos de agentes designados'
   },
   agent: { 
     label: 'Agente', 
