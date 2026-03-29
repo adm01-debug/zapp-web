@@ -243,6 +243,10 @@ export default function RolesPage() {
             <Shield className="w-4 h-4 mr-2" />
             Permissões
           </TabsTrigger>
+          <TabsTrigger value="visibility">
+            <Star className="w-4 h-4 mr-2" />
+            Visibilidade
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4 mt-4">
