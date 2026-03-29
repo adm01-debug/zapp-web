@@ -477,9 +477,9 @@ export function GroupsView() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex items-center gap-4"
+        className="flex items-center gap-3 flex-wrap"
       >
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou ID do grupo..."
@@ -488,6 +488,23 @@ export function GroupsView() {
             className="pl-9"
           />
         </div>
+        <Select value={categoryFilter || 'all'} onValueChange={(v) => setCategoryFilter(v === 'all' ? null : v)}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Todas as categorias" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as categorias</SelectItem>
+            {GROUP_CATEGORIES.map(cat => (
+              <SelectItem key={cat.value} value={cat.value}>
+                <span className="flex items-center gap-2">
+                  <span>{cat.icon}</span>
+                  {cat.label}
+                </span>
+              </SelectItem>
+            ))}
+            <SelectItem value="sem_categoria">Sem categoria</SelectItem>
+          </SelectContent>
+        </Select>
         {filteredGroups.length > 0 && (
           <Button variant="outline" size="sm" onClick={selectAllGroups}>
             {selectedGroups.size === filteredGroups.length ? 'Desselecionar todos' : 'Selecionar todos'}
