@@ -1,29 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import {
+  handleCors, errorResponse, jsonResponse,
+  sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv,
+} from "../_shared/validation.ts";
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const cors = handleCors(req);
+  if (cors) return cors;
 
   try {
-    const { messages, contactName, context, contactId } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    const ip = getClientIP(req);
+    const { allowed } = checkRateLimit(`suggest:${ip}`, 15, 60_000);
+    if (!allowed) return errorResponse("Rate limit exceeded. Please try again later.", 429);
+
+    const body = await req.json();
+    const { messages, context } = body;
+    const contactName = sanitizeString(body.contactName, 200) || 'Cliente';
+    const contactId = body.contactId && isValidUUID(body.contactId) ? body.contactId : null;
+
+    const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
 
     // Fetch Knowledge Base articles for context
     let knowledgeContext = '';
     try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabaseUrl = requireEnv("SUPABASE_URL");
+      const supabaseKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
       const supabase = createClient(supabaseUrl, supabaseKey);
 
       const { data: articles } = await supabase
@@ -34,11 +36,12 @@ serve(async (req) => {
 
       if (articles && articles.length > 0) {
         knowledgeContext = `\n\nBASE DE CONHECIMENTO DA EMPRESA (use como referência para suas respostas):\n${
-          articles.map(a => `[${a.category || 'Geral'}] ${a.title}: ${a.content.substring(0, 500)}`).join('\n---\n')
+          articles.map((a: { category: string | null; title: string; content: string }) =>
+            `[${a.category || 'Geral'}] ${a.title}: ${a.content.substring(0, 500)}`
+          ).join('\n---\n')
         }`;
       }
 
-      // Fetch contact history/notes for more context
       if (contactId) {
         const { data: notes } = await supabase
           .from('contact_notes')
@@ -48,7 +51,7 @@ serve(async (req) => {
           .limit(5);
 
         if (notes && notes.length > 0) {
-          knowledgeContext += `\n\nNOTAS DO CONTATO:\n${notes.map(n => n.content).join('\n')}`;
+          knowledgeContext += `\n\nNOTAS DO CONTATO:\n${notes.map((n: { content: string }) => n.content).join('\n')}`;
         }
 
         const { data: customFields } = await supabase
@@ -57,7 +60,7 @@ serve(async (req) => {
           .eq('contact_id', contactId);
 
         if (customFields && customFields.length > 0) {
-          knowledgeContext += `\n\nDADOS DO CONTATO:\n${customFields.map(f => `${f.field_name}: ${f.field_value}`).join('\n')}`;
+          knowledgeContext += `\n\nDADOS DO CONTATO:\n${customFields.map((f: { field_name: string; field_value: string | null }) => `${f.field_name}: ${f.field_value}`).join('\n')}`;
         }
       }
     } catch (e) {
@@ -69,8 +72,8 @@ serve(async (req) => {
     const systemPrompt = `Você é um Copilot de IA especializado em atendimento ao cliente via WhatsApp.
 Seu papel é sugerir respostas profissionais, empáticas e CONTEXTUALIZADAS para agentes de suporte.
 
-Contexto do cliente: ${contactName || 'Cliente'}
-${context ? `Informações adicionais: ${context}` : ''}
+Contexto do cliente: ${contactName}
+${context ? `Informações adicionais: ${sanitizeString(String(context), 500)}` : ''}
 ${knowledgeContext}
 
 IMPORTANTE: Use as informações da Base de Conhecimento e dados do contato para personalizar suas sugestões.
@@ -90,10 +93,12 @@ Responda APENAS em formato JSON com a seguinte estrutura:
   ]
 }`;
 
-    const conversationHistory = messages?.map((m: any) => ({
-      role: m.sender === 'agent' ? 'assistant' : 'user',
-      content: m.content
-    })) || [];
+    const conversationHistory = Array.isArray(messages)
+      ? messages.slice(-20).map((m: { sender?: string; content?: string }) => ({
+          role: m.sender === 'agent' ? 'assistant' : 'user',
+          content: sanitizeString(String(m.content || ''), 2000) || '',
+        }))
+      : [];
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -115,19 +120,8 @@ Responda APENAS em formato JSON com a seguinte estrutura:
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429);
+      if (response.status === 402) return errorResponse("Payment required. Please add credits.", 402);
       throw new Error(`AI gateway error [${response.status}]: ${errorText}`);
     }
 
@@ -142,8 +136,8 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       } else {
         throw new Error("No JSON found in response");
       }
-    } catch (parseError) {
-      console.error("Parse error:", parseError);
+    } catch {
+      console.error("Parse error, using fallback suggestions");
       suggestions = {
         suggestions: [
           { type: "direct", text: "Entendi sua solicitação. Vou verificar isso para você.", emoji: "✓", source: null },
@@ -153,15 +147,10 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       };
     }
 
-    return new Response(JSON.stringify(suggestions), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(suggestions);
   } catch (error: unknown) {
     console.error("Error in ai-suggest-reply:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return errorResponse(errorMessage, 500);
   }
 });

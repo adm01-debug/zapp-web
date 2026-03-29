@@ -1,27 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import {
+  handleCors, errorResponse, jsonResponse,
+  sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv,
+} from "../_shared/validation.ts";
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const cors = handleCors(req);
+  if (cors) return cors;
 
   try {
-    const { contactId, messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ip = getClientIP(req);
+    const { allowed } = checkRateLimit(`autotag:${ip}`, 20, 60_000);
+    if (!allowed) return errorResponse("Rate limit exceeded", 429);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const body = await req.json();
+    const contactId = body.contactId && isValidUUID(body.contactId) ? body.contactId : null;
+
+    const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
+    const supabaseUrl = requireEnv("SUPABASE_URL");
+    const supabaseKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get recent messages if not provided
-    let conversationMessages = messages;
+    let conversationMessages = body.messages;
     if (!conversationMessages && contactId) {
       const { data } = await supabase
         .from('messages')
@@ -33,13 +35,13 @@ serve(async (req) => {
     }
 
     if (!conversationMessages || conversationMessages.length === 0) {
-      return new Response(JSON.stringify({ tags: [], priority: 'normal', sentiment: 'neutral' }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ tags: [], priority: 'normal', sentiment: 'neutral' });
     }
 
     const conversationText = conversationMessages
-      .map((m: any) => `${m.sender}: ${m.content}`)
+      .map((m: { sender?: string; content?: string }) =>
+        `${sanitizeString(String(m.sender || 'unknown'), 50)}: ${sanitizeString(String(m.content || ''), 1000)}`
+      )
       .join('\n');
 
     // Fetch available queues for routing suggestion
@@ -49,7 +51,9 @@ serve(async (req) => {
       .eq('is_active', true);
 
     const queueList = queues && queues.length > 0
-      ? queues.map(q => `- "${q.name}" (${q.id}): ${q.description || 'Sem descrição'}`).join('\n')
+      ? queues.map((q: { name: string; id: string; description: string | null }) =>
+          `- "${q.name}" (${q.id}): ${q.description || 'Sem descrição'}`
+        ).join('\n')
       : '';
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -92,16 +96,8 @@ Responda APENAS em JSON:
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required" }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      if (response.status === 429) return errorResponse("Rate limit exceeded", 429);
+      if (response.status === 402) return errorResponse("Payment required", 402);
       throw new Error(`AI error: ${response.status}`);
     }
 
@@ -116,15 +112,20 @@ Responda APENAS em JSON:
       result = { tags: [], sentiment: 'neutral', summary: '', priority: 'normal' };
     }
 
+    // Validate suggested_queue_id is a valid UUID before using it
+    if (result.suggested_queue_id && !isValidUUID(result.suggested_queue_id)) {
+      result.suggested_queue_id = null;
+    }
+
     // Save tags to database
     if (contactId && result.tags?.length > 0) {
       await supabase.from('ai_conversation_tags').delete().eq('contact_id', contactId);
-      
+
       await supabase.from('ai_conversation_tags').insert(
-        result.tags.map((t: any) => ({
+        result.tags.map((t: { name: string; confidence: number }) => ({
           contact_id: contactId,
-          tag_name: t.name,
-          confidence: t.confidence,
+          tag_name: sanitizeString(t.name, 100) || 'unknown',
+          confidence: Math.min(Math.max(Number(t.confidence) || 0, 0), 1),
           source: 'ai',
         }))
       );
@@ -132,12 +133,14 @@ Responda APENAS em JSON:
 
     // Update contact AI metadata
     if (contactId) {
+      const validSentiments = ['positive', 'neutral', 'negative', 'critical'];
+      const validPriorities = ['low', 'normal', 'high', 'urgent'];
+
       const updateData: Record<string, string> = {};
-      if (result.sentiment) updateData.ai_sentiment = result.sentiment;
-      if (result.priority) updateData.ai_priority = result.priority;
-      
-      // Auto-route to suggested queue if confidence is high
-      if (result.suggested_queue_id) {
+      if (validSentiments.includes(result.sentiment)) updateData.ai_sentiment = result.sentiment;
+      if (validPriorities.includes(result.priority)) updateData.ai_priority = result.priority;
+
+      if (result.suggested_queue_id && isValidUUID(result.suggested_queue_id)) {
         updateData.queue_id = result.suggested_queue_id;
       }
 
@@ -155,11 +158,11 @@ Responda APENAS em JSON:
 
         if (admins) {
           await supabase.from('notifications').insert(
-            admins.map((a: any) => ({
+            admins.map((a: { user_id: string }) => ({
               user_id: a.user_id,
               type: 'urgent_conversation',
               title: '🚨 Conversa Urgente Detectada',
-              message: `${result.summary || 'Conversa requer atenção imediata'}. Motivo: ${result.escalation_reason || result.priority_reason || 'Alta prioridade'}`,
+              message: `${sanitizeString(result.summary, 200) || 'Conversa requer atenção imediata'}. Motivo: ${sanitizeString(result.escalation_reason || result.priority_reason, 200) || 'Alta prioridade'}`,
               metadata: { contact_id: contactId, priority: result.priority, sentiment: result.sentiment },
             }))
           );
@@ -167,14 +170,10 @@ Responda APENAS em JSON:
       }
     }
 
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(result);
   } catch (error: unknown) {
     console.error("Error in ai-auto-tag:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return errorResponse(errorMessage, 500);
   }
 });
