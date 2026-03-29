@@ -144,47 +144,18 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
   );
 }
 
-/** Per-view error boundary to prevent one broken module from crashing the app */
+/** Per-view error boundary with automatic retry */
 function ErrorBoundaryView({ viewId, children }: { viewId: string; children: React.ReactNode }) {
+  const mod = useCurrentModule(viewId);
   return (
-    <ErrorBoundaryInline key={viewId}>
+    <ErrorBoundaryWithRetry
+      key={viewId}
+      moduleName={mod.label}
+      maxAutoRetries={2}
+    >
       {children}
-    </ErrorBoundaryInline>
+    </ErrorBoundaryWithRetry>
   );
-}
-
-class ErrorBoundaryInline extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error: Error | null }
-> {
-  state = { hasError: false, error: null as Error | null };
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex items-center justify-center h-full p-8">
-          <div className="text-center max-w-sm space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto">
-              <AlertCircle className="w-8 h-8 text-destructive" />
-            </div>
-            <h2 className="text-lg font-semibold text-foreground">Erro ao carregar módulo</h2>
-            <p className="text-sm text-muted-foreground">{this.state.error?.message}</p>
-            <button
-              onClick={() => this.setState({ hasError: false, error: null })}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
 }
 
 function FallbackView({ currentView }: { currentView: string }) {
