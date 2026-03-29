@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
+import { useState, useEffect, Suspense, useCallback, useRef, useTransition } from 'react';
 import { cn } from '@/lib/utils';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { useNavigate } from 'react-router-dom';
