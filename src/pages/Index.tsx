@@ -74,6 +74,7 @@ function IndexContent() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
+  const { startTour } = useTour();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
   const { currentView, navigateTo: setCurrentView, goBack, goForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
@@ -303,7 +304,11 @@ function IndexContent() {
         <WelcomeModal
           isOpen={showWelcome}
           onClose={() => { setShowWelcome(false); completeOnboarding(); }}
-          onStartTour={() => { setShowWelcome(false); completeOnboarding(); }}
+          onStartTour={() => {
+            setShowWelcome(false);
+            // Small delay to let modal close before tour spotlight renders
+            setTimeout(() => startTour(DEFAULT_ONBOARDING_STEPS), 400);
+          }}
           userName={profile?.name}
         />
       </GoalNotificationProvider>

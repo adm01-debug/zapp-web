@@ -105,55 +105,76 @@ function TourOverlay() {
   useEffect(() => {
     if (!isActive || !currentStepData) return;
 
+    let retries = 0;
+    const maxRetries = 10;
+    let rafId: number;
+    let retryTimeout: NodeJS.Timeout;
+
     const updatePosition = () => {
       const element = document.querySelector(currentStepData.target);
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        setTargetRect(rect);
-
-        // Calculate tooltip position
-        const padding = currentStepData.spotlightPadding || 8;
-        const tooltipWidth = 320;
-        const tooltipHeight = 200;
-        const position = currentStepData.position || 'bottom';
-
-        let x = rect.left + rect.width / 2 - tooltipWidth / 2;
-        let y = rect.bottom + padding + 12;
-
-        switch (position) {
-          case 'top':
-            y = rect.top - tooltipHeight - padding - 12;
-            break;
-          case 'left':
-            x = rect.left - tooltipWidth - padding - 12;
-            y = rect.top + rect.height / 2 - tooltipHeight / 2;
-            break;
-          case 'right':
-            x = rect.right + padding + 12;
-            y = rect.top + rect.height / 2 - tooltipHeight / 2;
-            break;
+      if (!element) {
+        // Element not found — retry a few times then skip to next step
+        retries++;
+        if (retries < maxRetries) {
+          retryTimeout = setTimeout(updatePosition, 200);
+        } else {
+          // Skip this step if element never appears
+          nextStep();
         }
-
-        // Keep tooltip in viewport
-        x = Math.max(16, Math.min(x, window.innerWidth - tooltipWidth - 16));
-        y = Math.max(16, Math.min(y, window.innerHeight - tooltipHeight - 16));
-
-        setTooltipPosition({ x, y });
-
-        // Scroll element into view
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
       }
+
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) {
+        nextStep();
+        return;
+      }
+      setTargetRect(rect);
+
+      const padding = currentStepData.spotlightPadding || 8;
+      const tooltipWidth = 320;
+      const tooltipHeight = 200;
+      const position = currentStepData.position || 'bottom';
+
+      let x = rect.left + rect.width / 2 - tooltipWidth / 2;
+      let y = rect.bottom + padding + 12;
+
+      switch (position) {
+        case 'top':
+          y = rect.top - tooltipHeight - padding - 12;
+          break;
+        case 'left':
+          x = rect.left - tooltipWidth - padding - 12;
+          y = rect.top + rect.height / 2 - tooltipHeight / 2;
+          break;
+        case 'right':
+          x = rect.right + padding + 12;
+          y = rect.top + rect.height / 2 - tooltipHeight / 2;
+          break;
+      }
+
+      x = Math.max(16, Math.min(x, window.innerWidth - tooltipWidth - 16));
+      y = Math.max(16, Math.min(y, window.innerHeight - tooltipHeight - 16));
+
+      setTooltipPosition({ x, y });
+
+      element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     };
 
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition);
+    // Small delay to let the DOM settle after step change
+    retryTimeout = setTimeout(updatePosition, 100);
+
+    const handleResize = () => {
+      rafId = requestAnimationFrame(updatePosition);
+    };
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition);
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(retryTimeout);
+      cancelAnimationFrame(rafId);
     };
-  }, [isActive, currentStep, currentStepData]);
+  }, [isActive, currentStep, currentStepData, nextStep]);
 
   // Handle keyboard navigation
   useEffect(() => {
