@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
+import { useState, useEffect, Suspense, useCallback, useRef, useTransition } from 'react';
 import { cn } from '@/lib/utils';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +31,7 @@ import { ViewRouter } from './ViewRouter';
 import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui/skeleton';
 import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indicator';
 import { EvolutionDisconnectBanner } from '@/components/alerts/EvolutionDisconnectBanner';
+import { RouteLoadingBar } from '@/components/ui/route-loading-bar';
 
 function ViewLoadingFallback() {
   return (
@@ -180,7 +181,9 @@ function IndexContent() {
   return (
     <SLANotificationProvider>
       <GoalNotificationProvider>
-        <div className="flex h-screen max-h-screen min-h-screen bg-background overflow-hidden">
+        <div className="flex h-screen max-h-screen min-h-screen bg-background overflow-hidden relative">
+          {/* Route loading bar */}
+          <RouteLoadingBar isLoading={loading} />
           {/* Skip to content — a11y */}
           <a
             href="#main-content"
