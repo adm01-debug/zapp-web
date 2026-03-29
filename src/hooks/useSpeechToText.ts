@@ -42,7 +42,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
     recognition.continuous = continuous;
     recognition.interimResults = true;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
       let interimTranscript = '';
 
