@@ -152,8 +152,27 @@ export function RealtimeInboxView() {
     enabled: Boolean(selectedContactId),
   });
 
-  // URL-persisted filters
+  // URL-persisted filters (including contactType)
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
+
+  // Sync selectedContactType with URL
+  useEffect(() => {
+    const typeFromUrl = new URLSearchParams(window.location.search).get('type');
+    if (typeFromUrl && typeFromUrl !== 'all') {
+      setSelectedContactType(typeFromUrl);
+    }
+  }, []);
+
+  const handleContactTypeChange = useCallback((value: string | null) => {
+    setSelectedContactType(value);
+    const params = new URLSearchParams(window.location.search);
+    if (value && value !== 'all') {
+      params.set('type', value);
+    } else {
+      params.delete('type');
+    }
+    window.history.replaceState(null, '', params.toString() ? `?${params}` : window.location.pathname + window.location.hash);
+  }, []);
 
   // Load contact_tags mapping for tag-based filtering
   const { data: contactTagsMap = {} } = useQuery({
