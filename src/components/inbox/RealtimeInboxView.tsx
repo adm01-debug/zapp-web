@@ -945,6 +945,13 @@ export function RealtimeInboxView() {
                   Grupos sem categoria
                 </span>
               </SelectItem>
+              <SelectSeparator />
+              <SelectItem value="cliente">
+                <span className="flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  Clientes
+                </span>
+              </SelectItem>
               <SelectItem value="colaborador">
                 <span className="flex items-center gap-2">
                   <UserCheck className="w-3.5 h-3.5 text-green-500" />
