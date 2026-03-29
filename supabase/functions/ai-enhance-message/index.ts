@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   handleCors, errorResponse, jsonResponse,
-  sanitizeString, checkRateLimit, getClientIP, requireEnv,
+  sanitizeString, checkRateLimit, getClientIP, requireEnv, Logger,
 } from "../_shared/validation.ts";
 
 const tonePrompts: Record<string, string> = {
