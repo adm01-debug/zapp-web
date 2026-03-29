@@ -74,6 +74,7 @@ function IndexContent() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
+  const { startTour } = useTour();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
   const { currentView, navigateTo: setCurrentView, goBack, goForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
   const [showWelcome, setShowWelcome] = useState(false);
