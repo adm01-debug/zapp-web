@@ -304,7 +304,11 @@ function IndexContent() {
         <WelcomeModal
           isOpen={showWelcome}
           onClose={() => { setShowWelcome(false); completeOnboarding(); }}
-          onStartTour={() => { setShowWelcome(false); completeOnboarding(); }}
+          onStartTour={() => {
+            setShowWelcome(false);
+            // Small delay to let modal close before tour spotlight renders
+            setTimeout(() => startTour(DEFAULT_ONBOARDING_STEPS), 400);
+          }}
           userName={profile?.name}
         />
       </GoalNotificationProvider>

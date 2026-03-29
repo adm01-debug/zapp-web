@@ -140,8 +140,8 @@ function TourOverlay() {
 
         setTooltipPosition({ x, y });
 
-        // Scroll element into view
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Scroll element into view gently without jarring jumps
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
       }
     };
 
