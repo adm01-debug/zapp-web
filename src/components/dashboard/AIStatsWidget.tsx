@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -324,7 +324,7 @@ export function AIStatsWidget() {
     );
   }
 
-  const metrics = [
+  const metrics = useMemo(() => [
     {
       label: 'Análises de IA',
       value: stats?.totalAnalyses || 0,
@@ -357,15 +357,15 @@ export function AIStatsWidget() {
       bgColor: 'bg-info/10',
       trend: stats?.trends.transcriptions,
     },
-  ];
+  ], [stats]);
 
-  const sentimentData = [
+  const sentimentData = useMemo(() => [
     { label: 'Positivo', value: stats?.positiveSentiment || 0, color: 'bg-success' },
     { label: 'Neutro', value: stats?.neutralSentiment || 0, color: 'bg-muted-foreground' },
     { label: 'Negativo', value: stats?.negativeSentiment || 0, color: 'bg-destructive' },
-  ];
+  ], [stats?.positiveSentiment, stats?.neutralSentiment, stats?.negativeSentiment]);
 
-  const total = sentimentData.reduce((acc, s) => acc + s.value, 0) || 1;
+  const total = useMemo(() => sentimentData.reduce((acc, s) => acc + s.value, 0) || 1, [sentimentData]);
 
   return (
     <motion.div

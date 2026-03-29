@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -64,14 +64,14 @@ export function DashboardView() {
     resetToDefaults,
   } = useDashboardWidgets();
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await refetch();
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
-  };
+  }, [refetch]);
 
   // Loading skeleton
   if (isLoading || !stats) {
@@ -106,7 +106,7 @@ export function DashboardView() {
     ? Math.round((stats.onlineAgents / stats.totalAgents) * 100) 
     : 0;
 
-  const statsCards = [
+  const statsCards = useMemo(() => [
     {
       title: 'Conversas Abertas',
       value: stats.openConversations,
@@ -146,9 +146,9 @@ export function DashboardView() {
       iconBg: 'bg-coins/15',
       achievement: { label: 'Meta Batida!', unlocked: stats.resolvedToday >= 5 },
     },
-  ];
+  ], [stats, openRate, resolvedRate, agentUtilization]);
 
-  const renderWidget = (widget: DashboardWidget) => {
+  const renderWidget = useCallback((widget: DashboardWidget) => {
     switch (widget.type) {
       case 'stats':
         return (
@@ -413,7 +413,7 @@ export function DashboardView() {
       default:
         return null;
     }
-  };
+  }, [statsCards, stats]);
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">

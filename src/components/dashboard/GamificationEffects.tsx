@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Trophy, Star, Flame, Zap, Crown, Target, Award, TrendingUp, TrendingDown, ArrowUp, ArrowDown, Minus } from 'lucide-react';
@@ -210,7 +211,7 @@ interface StatCardWithGamificationProps {
   index: number;
 }
 
-export function StatCardWithGamification({
+export const StatCardWithGamification = React.memo(function StatCardWithGamification({
   title,
   value,
   change,
@@ -364,7 +365,7 @@ export function StatCardWithGamification({
       </div>
     </motion.div>
   );
-}
+});
 
 interface LevelProgressProps {
   currentXP: number;
