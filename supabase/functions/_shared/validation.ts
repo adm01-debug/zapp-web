@@ -1,7 +1,59 @@
 /**
- * Shared validation and security utilities for Edge Functions.
- * Provides input sanitization, rate limiting helpers, and standard error responses.
+ * Shared validation, security, and logging utilities for Edge Functions.
+ * Provides input sanitization, rate limiting, structured logging, and standard error responses.
  */
+
+// ─── Structured Logger ───────────────────────────────────────────────────────
+
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+interface LogContext {
+  fn?: string;
+  requestId?: string;
+  [key: string]: unknown;
+}
+
+/** Structured logger for edge functions with context and timing */
+export class Logger {
+  private fn: string;
+  private requestId: string;
+  private startTime: number;
+
+  constructor(functionName: string) {
+    this.fn = functionName;
+    this.requestId = crypto.randomUUID().slice(0, 8);
+    this.startTime = Date.now();
+  }
+
+  private log(level: LogLevel, message: string, ctx?: Record<string, unknown>) {
+    const entry = {
+      level,
+      fn: this.fn,
+      rid: this.requestId,
+      ms: Date.now() - this.startTime,
+      msg: message,
+      ...ctx,
+    };
+    const serialized = JSON.stringify(entry);
+    if (level === 'error') console.error(serialized);
+    else if (level === 'warn') console.warn(serialized);
+    else console.log(serialized);
+  }
+
+  debug(msg: string, ctx?: Record<string, unknown>) { this.log('debug', msg, ctx); }
+  info(msg: string, ctx?: Record<string, unknown>) { this.log('info', msg, ctx); }
+  warn(msg: string, ctx?: Record<string, unknown>) { this.log('warn', msg, ctx); }
+  error(msg: string, ctx?: Record<string, unknown>) { this.log('error', msg, ctx); }
+
+  /** Log final response with duration */
+  done(status: number, ctx?: Record<string, unknown>) {
+    this.log(status >= 400 ? 'error' : 'info', `completed ${status}`, {
+      status,
+      durationMs: Date.now() - this.startTime,
+      ...ctx,
+    });
+  }
+}
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
