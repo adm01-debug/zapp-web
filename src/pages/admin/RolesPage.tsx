@@ -175,7 +175,7 @@ export default function RolesPage() {
     setUpdating(false);
   };
 
-  const handleChangeRole = async (userId: string, newRole: 'admin' | 'supervisor' | 'agent') => {
+  const handleChangeRole = async (userId: string, newRole: 'admin' | 'supervisor' | 'agent' | 'special_agent') => {
     setUpdating(true);
     const { error } = await supabase
       .from('user_roles')
