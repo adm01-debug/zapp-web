@@ -50,5 +50,5 @@ export function useUserRole() {
 
   const hasRole = (role: AppRole) => roles.includes(role);
 
-  return { roles, isAdmin, isSupervisor, hasRole, loading, refetch: fetchRoles };
+  return { roles, isAdmin, isSupervisor, isSpecialAgent, hasRole, loading, refetch: fetchRoles };
 }

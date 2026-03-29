@@ -7,7 +7,7 @@ interface PermissionGateProps {
   permission?: string;
   permissions?: string[];
   requireAll?: boolean;
-  roles?: ('admin' | 'supervisor' | 'agent')[];
+  roles?: ('admin' | 'supervisor' | 'agent' | 'special_agent')[];
   fallback?: ReactNode;
   showLoading?: boolean;
 }

@@ -116,7 +116,7 @@ export function usePermissions() {
     return !error;
   }, [fetchRolePermissions]);
 
-  const removePermissionFromRole = useCallback(async (role: 'admin' | 'supervisor' | 'agent', permissionId: string) => {
+  const removePermissionFromRole = useCallback(async (role: 'admin' | 'supervisor' | 'agent' | 'special_agent', permissionId: string) => {
     const { error } = await supabase
       .from('role_permissions')
       .delete()
