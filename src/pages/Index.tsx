@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense, useCallback, useRef, useTransition } from 'react';
 import { cn } from '@/lib/utils';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
