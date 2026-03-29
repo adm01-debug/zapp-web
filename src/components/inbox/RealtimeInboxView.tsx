@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -15,18 +16,11 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus, Users, Truck, Wrench, UserCheck, UsersRound, FileText, ShieldCheck, ClipboardList, Handshake } from 'lucide-react';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus } from 'lucide-react';
+import { ContactTypeFilter, filterByContactType, FILTER_OPTIONS } from './ContactTypeFilter';
 import { TicketTabs, MainTab, SubTab } from './TicketTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -151,8 +145,27 @@ export function RealtimeInboxView() {
     enabled: Boolean(selectedContactId),
   });
 
-  // URL-persisted filters
+  // URL-persisted filters (including contactType)
   const { filters: urlFilters, setFilters: setUrlFilters, clearFilters: clearUrlFilters } = useUrlFilters();
+
+  // Sync selectedContactType with URL
+  useEffect(() => {
+    const typeFromUrl = new URLSearchParams(window.location.search).get('type');
+    if (typeFromUrl && typeFromUrl !== 'all') {
+      setSelectedContactType(typeFromUrl);
+    }
+  }, []);
+
+  const handleContactTypeChange = useCallback((value: string | null) => {
+    setSelectedContactType(value);
+    const params = new URLSearchParams(window.location.search);
+    if (value && value !== 'all') {
+      params.set('type', value);
+    } else {
+      params.delete('type');
+    }
+    window.history.replaceState(null, '', params.toString() ? `?${params}` : window.location.pathname + window.location.hash);
+  }, []);
 
   // Load contact_tags mapping for tag-based filtering
   const { data: contactTagsMap = {} } = useQuery({
@@ -292,29 +305,19 @@ export function RealtimeInboxView() {
       });
     }
 
-    // Contact type filter
-    if (selectedContactType === 'grupo') {
-      result = result.filter((c) => /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
-    } else if (selectedContactType?.startsWith('grupo_')) {
-      const category = selectedContactType.replace('grupo_', '');
-      result = result.filter((c) => {
-        const isGroup = /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || '');
-        return isGroup && c.contact.group_category === category;
-      });
-    } else if (selectedContactType === 'grupo_sem_categoria') {
-      result = result.filter((c) => {
-        const isGroup = /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || '');
-        return isGroup && !c.contact.group_category;
-      });
-    } else if (selectedContactType === 'individual') {
-      result = result.filter((c) => !/^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
-    } else if (selectedContactType) {
-      result = result.filter((c) => {
-        const isGroup = /^\d+-\d+$/.test(c.contact.phone || '');
-        if (isGroup) return false;
-        return (c.contact.contact_type || 'cliente') === selectedContactType;
-      });
-    }
+    // Contact type filter (using centralized filter)
+    result = filterByContactType(result, selectedContactType);
+
+    // Smart sorting: unread first → most recent → oldest
+    result.sort((a, b) => {
+      // Unread first
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+      if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+      // Then by most recent message
+      const aTime = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : new Date(a.contact.updated_at).getTime();
+      const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : new Date(b.contact.updated_at).getTime();
+      return bTime - aTime;
+    });
 
     return result;
   }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id, contactTagsMap]);
@@ -886,98 +889,11 @@ export function RealtimeInboxView() {
           </div>
 
           {/* Contact Type Filter */}
-          <Select
-            value={selectedContactType || 'all'}
-            onValueChange={(value) => setSelectedContactType(value === 'all' ? null : value)}
-          >
-            <SelectTrigger className="h-8 text-xs bg-muted/50 border-0 rounded-full focus:ring-1 focus:ring-primary/30">
-              <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                <SelectValue placeholder="Todos os tipos" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                <span className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5" />
-                  Todos os tipos
-                </span>
-              </SelectItem>
-              <SelectItem value="individual">
-                <span className="flex items-center gap-2">
-                  <MessageSquare className="w-3.5 h-3.5 text-primary" />
-                  Chats Individuais
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo">
-                <span className="flex items-center gap-2">
-                  <UsersRound className="w-3.5 h-3.5 text-amber-500" />
-                  Todos os Grupos
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_orcamentos">
-                <span className="flex items-center gap-2 pl-2">
-                  <FileText className="w-3.5 h-3.5 text-blue-500" />
-                  Orçamentos | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_aprovacao">
-                <span className="flex items-center gap-2 pl-2">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                  Aprovação | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_os">
-                <span className="flex items-center gap-2 pl-2">
-                  <ClipboardList className="w-3.5 h-3.5 text-orange-500" />
-                  O.S. | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_acerto">
-                <span className="flex items-center gap-2 pl-2">
-                  <Handshake className="w-3.5 h-3.5 text-purple-500" />
-                  Acerto | Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="grupo_sem_categoria">
-                <span className="flex items-center gap-2 pl-2">
-                  <UsersRound className="w-3.5 h-3.5 text-muted-foreground" />
-                  Grupos sem categoria
-                </span>
-              </SelectItem>
-              <SelectSeparator />
-              <SelectItem value="cliente">
-                <span className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5 text-blue-500" />
-                  Clientes
-                </span>
-              </SelectItem>
-              <SelectItem value="colaborador">
-                <span className="flex items-center gap-2">
-                  <UserCheck className="w-3.5 h-3.5 text-green-500" />
-                  Colaboradores
-                </span>
-              </SelectItem>
-              <SelectItem value="fornecedor">
-                <span className="flex items-center gap-2">
-                  <Truck className="w-3.5 h-3.5 text-purple-500" />
-                  Fornecedores
-                </span>
-              </SelectItem>
-              <SelectItem value="prestador_servico">
-                <span className="flex items-center gap-2">
-                  <Wrench className="w-3.5 h-3.5 text-orange-500" />
-                  Prestadores de Serviço
-                </span>
-              </SelectItem>
-              <SelectItem value="transportadora">
-                <span className="flex items-center gap-2">
-                  <Truck className="w-3.5 h-3.5 text-cyan-500" />
-                  Transportadoras
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <ContactTypeFilter
+            value={selectedContactType}
+            onChange={handleContactTypeChange}
+            conversations={cachedConversations}
+          />
 
           {/* Whaticket-style Ticket Tabs */}
           <TicketTabs
@@ -1024,12 +940,38 @@ export function RealtimeInboxView() {
               ))}
             </div>
           ) : filteredConversations.length === 0 ? (
-            <div className="p-8 text-center">
-              <MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
-                {search ? 'Nenhuma conversa encontrada' : 'Sem conversas'}
-              </p>
-            </div>
+            (() => {
+              const activeOpt = FILTER_OPTIONS.find(o => o.value === (selectedContactType || 'all'));
+              const EmptyIcon = activeOpt?.icon || MessageSquare;
+              const emptyMessages: Record<string, string> = {
+                individual: 'Nenhum chat individual encontrado',
+                grupo: 'Nenhum grupo encontrado',
+                grupo_orcamentos: 'Nenhum orçamento em aberto',
+                grupo_aprovacao: 'Nenhuma aprovação pendente',
+                grupo_os: 'Nenhuma O.S. encontrada',
+                grupo_acerto: 'Nenhum acerto pendente',
+                grupo_sem_categoria: 'Nenhum grupo sem categoria',
+                cliente: 'Nenhum cliente encontrado',
+                colaborador: 'Nenhum colaborador encontrado',
+                fornecedor: 'Nenhum fornecedor encontrado',
+                prestador_servico: 'Nenhum prestador encontrado',
+                transportadora: 'Nenhuma transportadora encontrada',
+              };
+              const msg = search
+                ? 'Nenhuma conversa encontrada'
+                : emptyMessages[selectedContactType || ''] || 'Sem conversas';
+              return (
+                <motion.div
+                  key={selectedContactType || 'all'}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 text-center"
+                >
+                  <EmptyIcon className={cn('w-10 h-10 mx-auto mb-3', activeOpt?.iconColor || 'text-muted-foreground/30')} />
+                  <p className="text-sm text-muted-foreground">{msg}</p>
+                </motion.div>
+              );
+            })()
           ) : (
             <ErrorBoundary
               fallback={
