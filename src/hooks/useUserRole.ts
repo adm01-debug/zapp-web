@@ -43,6 +43,7 @@ export function useUserRole() {
       setRoles(userRoles);
       setIsAdmin(userRoles.includes('admin'));
       setIsSupervisor(userRoles.includes('supervisor') || userRoles.includes('admin'));
+      setIsSpecialAgent(userRoles.includes('special_agent'));
     }
     setLoading(false);
   };
