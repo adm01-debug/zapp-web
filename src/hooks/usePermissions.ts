@@ -50,7 +50,7 @@ export function usePermissions() {
 
     if (!error && data) {
       const mapped = data.map(rp => ({
-        role: rp.role as 'admin' | 'supervisor' | 'agent',
+        role: rp.role as 'admin' | 'supervisor' | 'agent' | 'special_agent',
         permission_id: rp.permission_id,
         permission: rp.permissions as unknown as Permission
       }));
