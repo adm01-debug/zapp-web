@@ -16,19 +16,11 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus, Users, Truck, Wrench, UserCheck, UsersRound, FileText, ShieldCheck, ClipboardList, Handshake } from 'lucide-react';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus } from 'lucide-react';
 import { ContactTypeFilter, filterByContactType, FILTER_OPTIONS } from './ContactTypeFilter';
 import { TicketTabs, MainTab, SubTab } from './TicketTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
