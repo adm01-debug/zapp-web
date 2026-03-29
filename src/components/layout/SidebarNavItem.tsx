@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePrefetchOnHover } from '@/hooks/usePrefetchOnHover';
 
 export interface NavItemConfig {
   id: string;
