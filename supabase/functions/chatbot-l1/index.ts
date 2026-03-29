@@ -220,8 +220,6 @@ Responda em JSON:
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     logger.error("Error in chatbot-l1", { error: errorMessage });
     requestTimer.end({ error: true });
-    return new Response(JSON.stringify({ handled: false, error: errorMessage }), {
-      status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return serverError('Chatbot processing failed', getCorsHeaders(req));
   }
 });

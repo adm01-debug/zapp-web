@@ -1,3 +1,4 @@
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from '@/components/ui/motion';
@@ -17,7 +18,7 @@ import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export function RealtimeMetricsPanel() {
+export const RealtimeMetricsPanel = React.memo(function RealtimeMetricsPanel() {
   const {
     messagesThisHour,
     messagesLastHour,
@@ -34,7 +35,7 @@ export function RealtimeMetricsPanel() {
     ? Math.round(((messagesThisHour - messagesLastHour) / messagesLastHour) * 100)
     : messagesThisHour > 0 ? 100 : 0;
 
-  const metrics = [
+  const metrics = useMemo(() => [
     {
       label: 'Msgs/Hora',
       value: messagesThisHour,
@@ -71,7 +72,7 @@ export function RealtimeMetricsPanel() {
       color: 'text-secondary',
       bg: 'bg-secondary/10',
     },
-  ];
+  ], [messagesThisHour, hourChange, messagesPerMinute, activeConversationsNow, unreadMessages, newContactsToday]);
 
   // Simple sparkline from last 10 data points
   const sparkData = metricsHistory.slice(-10).map(m => m.messagesPerMinute);
@@ -165,4 +166,4 @@ export function RealtimeMetricsPanel() {
       </CardContent>
     </Card>
   );
-}
+});

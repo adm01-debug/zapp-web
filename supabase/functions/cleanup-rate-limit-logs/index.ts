@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { serverError } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('cleanup-rate-limit-logs');
 
@@ -88,12 +89,6 @@ serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     logger.error("Error in cleanup-rate-limit-logs", { error: errorMessage });
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { 
-        status: 500, 
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } 
-      }
-    );
+    return serverError('Rate limit logs cleanup failed', getCorsHeaders(req));
   }
 });

@@ -4,6 +4,7 @@ import { cleanupExpiredCache, getCacheStats } from '../_shared/aiCache.ts';
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
+import { serverError } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('cleanup-ai-cache');
 
@@ -65,12 +66,6 @@ serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     logger.error("Error in cleanup-ai-cache", { error: errorMessage });
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" }
-      }
-    );
+    return serverError('AI cache cleanup failed', getCorsHeaders(req));
   }
 });

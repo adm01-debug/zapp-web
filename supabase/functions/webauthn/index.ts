@@ -4,6 +4,7 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
+import { badRequest, serverError, errorResponse } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('webauthn');
 
@@ -100,18 +101,12 @@ serve(async (req) => {
         const { userId, userEmail, userName } = params;
         
         if (!userId || !userEmail) {
-          return new Response(
-            JSON.stringify({ error: 'userId and userEmail are required' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('userId and userEmail are required', getCorsHeaders(req));
         }
 
         // SECURITY: Verify the caller IS the user they claim to be
         if (!authenticatedUserId || authenticatedUserId !== userId) {
-          return new Response(
-            JSON.stringify({ error: 'Unauthorized: you can only register passkeys for your own account' }),
-            { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return errorResponse('Unauthorized: you can only register passkeys for your own account', { status: 403, code: 'FORBIDDEN', corsHeaders: getCorsHeaders(req) });
         }
 
         // Get existing credentials to exclude
@@ -176,18 +171,12 @@ serve(async (req) => {
         const { userId, credential, friendlyName } = params;
 
         if (!userId || !credential) {
-          return new Response(
-            JSON.stringify({ error: 'userId and credential are required' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('userId and credential are required', getCorsHeaders(req));
         }
 
         // SECURITY: Verify the caller IS the user they claim to be
         if (!authenticatedUserId || authenticatedUserId !== userId) {
-          return new Response(
-            JSON.stringify({ error: 'Unauthorized: you can only verify passkeys for your own account' }),
-            { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return errorResponse('Unauthorized: you can only verify passkeys for your own account', { status: 403, code: 'FORBIDDEN', corsHeaders: getCorsHeaders(req) });
         }
 
         // Get stored challenge
@@ -202,20 +191,14 @@ serve(async (req) => {
 
         if (challengeError || !challengeData) {
           logger.error('Challenge not found', { error: challengeError?.message });
-          return new Response(
-            JSON.stringify({ error: 'Challenge not found or expired' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Challenge not found or expired', getCorsHeaders(req));
         }
 
         // Verify the credential
         const { id, rawId, response: credResponse, type, authenticatorAttachment } = credential;
 
         if (type !== 'public-key') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid credential type' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Invalid credential type', getCorsHeaders(req));
         }
 
         // Extract public key from attestation object
@@ -226,17 +209,11 @@ serve(async (req) => {
         const clientData = JSON.parse(new TextDecoder().decode(base64URLDecode(clientDataJSON)));
         
         if (clientData.type !== 'webauthn.create') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid client data type' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Invalid client data type', getCorsHeaders(req));
         }
 
         if (clientData.challenge !== challengeData.challenge) {
-          return new Response(
-            JSON.stringify({ error: 'Challenge mismatch' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Challenge mismatch', getCorsHeaders(req));
         }
 
         // Store the credential
@@ -255,10 +232,7 @@ serve(async (req) => {
 
         if (insertError) {
           logger.error('Failed to store credential', { error: insertError.message });
-          return new Response(
-            JSON.stringify({ error: 'Failed to store credential' }),
-            { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return serverError('Failed to store credential', getCorsHeaders(req));
         }
 
         // Delete used challenge
@@ -335,10 +309,7 @@ serve(async (req) => {
         const { credential } = params;
 
         if (!credential) {
-          return new Response(
-            JSON.stringify({ error: 'credential is required' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('credential is required', getCorsHeaders(req));
         }
 
         const { id, response: credResponse } = credential;
@@ -352,10 +323,7 @@ serve(async (req) => {
 
         if (credError || !storedCred) {
           logger.error('Credential not found', { error: credError?.message });
-          return new Response(
-            JSON.stringify({ error: 'Credential not found' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Credential not found', getCorsHeaders(req));
         }
 
         // Get the most recent challenge for this user
@@ -369,27 +337,18 @@ serve(async (req) => {
           .single();
 
         if (!challengeData) {
-          return new Response(
-            JSON.stringify({ error: 'Challenge not found or expired' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Challenge not found or expired', getCorsHeaders(req));
         }
 
         // Verify clientDataJSON
         const clientData = JSON.parse(new TextDecoder().decode(base64URLDecode(credResponse.clientDataJSON)));
         
         if (clientData.type !== 'webauthn.get') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid client data type' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Invalid client data type', getCorsHeaders(req));
         }
 
         if (clientData.challenge !== challengeData.challenge) {
-          return new Response(
-            JSON.stringify({ error: 'Challenge mismatch' }),
-            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          );
+          return badRequest('Challenge mismatch', getCorsHeaders(req));
         }
 
         // Update last used and counter
@@ -424,17 +383,10 @@ serve(async (req) => {
       }
 
       default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        );
+        return badRequest('Invalid action', getCorsHeaders(req));
     }
   } catch (error: unknown) {
     logger.error('WebAuthn error', { error: error instanceof Error ? error.message : String(error) });
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    );
+    return serverError('WebAuthn processing failed', getCorsHeaders(req));
   }
 });
