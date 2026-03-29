@@ -135,13 +135,14 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
               <p className="text-xs text-muted-foreground">{nodes.length} nós · {edges.length} conexões</p>
             </div>
           </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setShowAddNode(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Adicionar Nó
-          </Button>
-          <Button onClick={() => onSave(nodes, edges)} className="gap-2">
-            <Save className="w-4 h-4" /> Salvar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowAddNode(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Adicionar Nó
+            </Button>
+            <Button onClick={() => onSave(nodes, edges)} className="gap-2">
+              <Save className="w-4 h-4" /> Salvar
+            </Button>
+          </div>
         </div>
         <StepProgress steps={flowSteps} currentStep={currentFlowStep} className="px-2 pt-1" />
       </div>
