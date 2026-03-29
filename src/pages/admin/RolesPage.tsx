@@ -339,6 +339,10 @@ export default function RolesPage() {
         <TabsContent value="permissions" className="mt-4">
           <PermissionMatrix />
         </TabsContent>
+
+        <TabsContent value="visibility" className="mt-4">
+          <VisibilityGrantsManager />
+        </TabsContent>
       </Tabs>
 
       {/* Add Role Dialog */}
