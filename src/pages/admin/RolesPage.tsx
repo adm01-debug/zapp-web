@@ -81,7 +81,7 @@ export default function RolesPage() {
   const [search, setSearch] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>('');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'supervisor' | 'agent'>('agent');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'supervisor' | 'agent' | 'special_agent'>('agent');
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [userToRemove, setUserToRemove] = useState<UserWithRole | null>(null);
   const [updating, setUpdating] = useState(false);
