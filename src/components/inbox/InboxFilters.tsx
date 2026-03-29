@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Filter, X, Calendar, User, Tag, MessageCircle, ChevronDown } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Filter, X, Calendar, User, Tag, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,17 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { format, subDays, startOfDay, endOfDay, isAfter, isBefore } from 'date-fns';
+import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAgents } from '@/hooks/useAgents';
 import { useTags } from '@/hooks/useTags';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export interface InboxFiltersState {
   status: string[];
@@ -42,17 +38,17 @@ interface InboxFiltersProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'unread', label: 'Não lidas', color: 'bg-primary' },
-  { value: 'read', label: 'Lidas', color: 'bg-muted-foreground' },
-  { value: 'pending', label: 'Pendentes', color: 'bg-warning' },
-  { value: 'resolved', label: 'Resolvidas', color: 'bg-success' },
+  { value: 'unread', label: 'Não lidas', icon: '🔵' },
+  { value: 'read', label: 'Lidas', icon: '✓' },
+  { value: 'pending', label: 'Pendentes', icon: '⏳' },
+  { value: 'resolved', label: 'Resolvidas', icon: '✅' },
 ];
 
 const DATE_PRESETS = [
   { label: 'Hoje', getValue: () => ({ from: startOfDay(new Date()), to: endOfDay(new Date()) }) },
-  { label: 'Últimos 7 dias', getValue: () => ({ from: startOfDay(subDays(new Date(), 7)), to: endOfDay(new Date()) }) },
-  { label: 'Últimos 30 dias', getValue: () => ({ from: startOfDay(subDays(new Date(), 30)), to: endOfDay(new Date()) }) },
-  { label: 'Este mês', getValue: () => ({ from: startOfDay(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), to: endOfDay(new Date()) }) },
+  { label: '7 dias', getValue: () => ({ from: startOfDay(subDays(new Date(), 7)), to: endOfDay(new Date()) }) },
+  { label: '30 dias', getValue: () => ({ from: startOfDay(subDays(new Date(), 30)), to: endOfDay(new Date()) }) },
+  { label: 'Mês', getValue: () => ({ from: startOfDay(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), to: endOfDay(new Date()) }) },
 ];
 
 export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
@@ -60,44 +56,44 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
   const { agents } = useAgents();
   const { tags } = useTags();
 
-  const activeFiltersCount = 
-    filters.status.length + 
-    filters.tags.length + 
-    (filters.agentId ? 1 : 0) + 
+  const activeFiltersCount =
+    filters.status.length +
+    filters.tags.length +
+    (filters.agentId ? 1 : 0) +
     (filters.dateRange.from ? 1 : 0);
 
-  const toggleStatus = (status: string) => {
+  const toggleStatus = useCallback((status: string) => {
     const newStatus = filters.status.includes(status)
       ? filters.status.filter(s => s !== status)
       : [...filters.status, status];
     onFiltersChange({ ...filters, status: newStatus });
-  };
+  }, [filters, onFiltersChange]);
 
-  const toggleTag = (tagId: string) => {
+  const toggleTag = useCallback((tagId: string) => {
     const newTags = filters.tags.includes(tagId)
       ? filters.tags.filter(t => t !== tagId)
       : [...filters.tags, tagId];
     onFiltersChange({ ...filters, tags: newTags });
-  };
+  }, [filters, onFiltersChange]);
 
-  const setAgent = (agentId: string | null) => {
+  const setAgent = useCallback((agentId: string | null) => {
     onFiltersChange({ ...filters, agentId: agentId === 'all' ? null : agentId });
-  };
+  }, [filters, onFiltersChange]);
 
-  const setDateRange = (range: { from: Date | null; to: Date | null }) => {
+  const setDateRange = useCallback((range: { from: Date | null; to: Date | null }) => {
     onFiltersChange({ ...filters, dateRange: range });
-  };
+  }, [filters, onFiltersChange]);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     onFiltersChange({
       status: [],
       tags: [],
       agentId: null,
       dateRange: { from: null, to: null },
     });
-  };
+  }, [onFiltersChange]);
 
-  const removeFilter = (type: 'status' | 'tag' | 'agent' | 'date', value?: string) => {
+  const removeFilter = useCallback((type: 'status' | 'tag' | 'agent' | 'date', value?: string) => {
     switch (type) {
       case 'status':
         onFiltersChange({ ...filters, status: filters.status.filter(s => s !== value) });
@@ -112,243 +108,223 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
         onFiltersChange({ ...filters, dateRange: { from: null, to: null } });
         break;
     }
-  };
+  }, [filters, onFiltersChange]);
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
-          <PopoverTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className={cn(
-                "gap-2",
-                activeFiltersCount > 0 && "border-primary text-primary"
-              )}
-            >
-              <Filter className="w-4 h-4" />
-              Filtros
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-foreground">Filtros Avançados</h4>
-                {activeFiltersCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs">
-                    Limpar tudo
-                  </Button>
-                )}
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              'h-6 px-2 gap-1 text-[11px] rounded-md',
+              activeFiltersCount > 0
+                ? 'text-primary bg-primary/10 hover:bg-primary/15'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Filter className="w-3 h-3" />
+            Filtros
+            {activeFiltersCount > 0 && (
+              <span className="ml-0.5 min-w-[14px] h-[14px] rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center font-bold">
+                {activeFiltersCount}
+              </span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
+          {/* Header */}
+          <div className="px-3 py-2.5 border-b border-border flex items-center justify-between">
+            <span className="text-xs font-semibold text-foreground">Filtros</span>
+            {activeFiltersCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+              >
+                Limpar tudo
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-[360px] overflow-y-auto p-3 pb-4 space-y-4">
+            {/* Status */}
+            <section className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <MessageCircle className="w-3 h-3 text-muted-foreground" />
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Status</Label>
               </div>
-            </div>
-
-            <div className="max-h-[400px] overflow-y-auto p-4 pb-6">
-              <div className="space-y-6">
-                {/* Status Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Status</Label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {STATUS_OPTIONS.map(status => (
-                      <button
-                        key={status.value}
-                        onClick={() => toggleStatus(status.value)}
-                        className={cn(
-                          "flex items-center gap-2 p-2 rounded-lg border text-sm transition-all",
-                          filters.status.includes(status.value)
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border hover:border-muted-foreground"
-                        )}
-                      >
-                        <div className={cn("w-2 h-2 rounded-full", status.color)} />
-                        {status.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Tags Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Tags</Label>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.length > 0 ? (
-                      tags.map(tag => (
-                        <button
-                          key={tag.id}
-                          onClick={() => toggleTag(tag.id)}
-                          className={cn(
-                            "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all",
-                            filters.tags.includes(tag.id)
-                              ? "ring-2 ring-primary ring-offset-1"
-                              : "hover:opacity-80"
-                          )}
-                          style={{ 
-                            backgroundColor: `${tag.color}20`,
-                            color: tag.color,
-                            borderColor: tag.color
-                          }}
-                        >
-                          <div 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: tag.color }}
-                          />
-                          {tag.name}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Nenhuma tag disponível</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {STATUS_OPTIONS.map(status => (
+                  <button
+                    key={status.value}
+                    onClick={() => toggleStatus(status.value)}
+                    className={cn(
+                      'flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] transition-all border',
+                      filters.status.includes(status.value)
+                        ? 'border-primary/40 bg-primary/10 text-primary font-medium'
+                        : 'border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Agent Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Atendente</Label>
-                  </div>
-                  <Select 
-                    value={filters.agentId || 'all'} 
-                    onValueChange={setAgent}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos os atendentes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os atendentes</SelectItem>
-                      {agents.map(agent => (
-                        <SelectItem key={agent.id} value={agent.id}>
-                          <div className="flex items-center gap-2">
-                            <div className={cn(
-                              "w-2 h-2 rounded-full",
-                              agent.status === 'online' && "bg-success",
-                              agent.status === 'away' && "bg-warning",
-                              agent.status === 'offline' && "bg-muted-foreground"
-                            )} />
-                            {agent.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Separator />
-
-                {/* Date Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Período</Label>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {DATE_PRESETS.map(preset => (
-                      <Button
-                        key={preset.label}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDateRange(preset.getValue())}
-                        className="text-xs h-7"
-                      >
-                        {preset.label}
-                      </Button>
-                    ))}
-                  </div>
-
-                  {filters.dateRange.from && (
-                    <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-2">
-                      {format(filters.dateRange.from, "dd/MM/yyyy", { locale: ptBR })}
-                      {filters.dateRange.to && ` - ${format(filters.dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`}
-                    </div>
-                  )}
-                </div>
+                    <span className="text-[10px]">{status.icon}</span>
+                    {status.label}
+                  </button>
+                ))}
               </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </section>
 
-        {/* Active Filters Badges */}
-        <AnimatePresence>
-          {activeFiltersCount > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="flex flex-wrap gap-1"
-            >
-              {filters.status.map(status => {
-                const statusOption = STATUS_OPTIONS.find(s => s.value === status);
-                return (
-                  <Badge
-                    key={status}
-                    variant="secondary"
-                    className="gap-1 pr-1 cursor-pointer hover:bg-destructive/20"
-                    onClick={() => removeFilter('status', status)}
-                  >
-                    {statusOption?.label}
-                    <X className="w-3 h-3" />
-                  </Badge>
-                );
-              })}
+            <Separator className="opacity-50" />
 
-              {filters.tags.map(tagId => {
-                const tag = tags.find(t => t.id === tagId);
-                return tag ? (
-                  <Badge
-                    key={tagId}
-                    variant="secondary"
-                    className="gap-1 pr-1 cursor-pointer hover:bg-destructive/20"
-                    style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
-                    onClick={() => removeFilter('tag', tagId)}
-                  >
-                    {tag.name}
-                    <X className="w-3 h-3" />
-                  </Badge>
-                ) : null;
-              })}
-
-              {filters.agentId && (
-                <Badge
-                  variant="secondary"
-                  className="gap-1 pr-1 cursor-pointer hover:bg-destructive/20"
-                  onClick={() => removeFilter('agent')}
-                >
-                  {agents.find(a => a.id === filters.agentId)?.name || 'Atendente'}
-                  <X className="w-3 h-3" />
-                </Badge>
+            {/* Tags */}
+            <section className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Tag className="w-3 h-3 text-muted-foreground" />
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Etiquetas</Label>
+              </div>
+              {tags.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {tags.map(tag => (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleTag(tag.id)}
+                      className={cn(
+                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium transition-all',
+                        filters.tags.includes(tag.id)
+                          ? 'ring-1.5 ring-primary shadow-sm'
+                          : 'hover:opacity-80'
+                      )}
+                      style={{
+                        backgroundColor: `${tag.color}18`,
+                        color: tag.color,
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] text-muted-foreground/60 italic">Nenhuma etiqueta</p>
               )}
+            </section>
 
+            <Separator className="opacity-50" />
+
+            {/* Agent */}
+            <section className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <User className="w-3 h-3 text-muted-foreground" />
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Atendente</Label>
+              </div>
+              <Select
+                value={filters.agentId || 'all'}
+                onValueChange={setAgent}
+              >
+                <SelectTrigger className="h-7 text-[11px] bg-muted/40 border-0 rounded-md">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os atendentes</SelectItem>
+                  {agents.map(agent => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      <span className="flex items-center gap-1.5">
+                        <span className={cn(
+                          'w-1.5 h-1.5 rounded-full',
+                          agent.status === 'online' ? 'bg-emerald-500' :
+                          agent.status === 'away' ? 'bg-amber-500' : 'bg-muted-foreground/40'
+                        )} />
+                        {agent.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </section>
+
+            <Separator className="opacity-50" />
+
+            {/* Date */}
+            <section className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3 h-3 text-muted-foreground" />
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Período</Label>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {DATE_PRESETS.map(preset => (
+                  <button
+                    key={preset.label}
+                    onClick={() => setDateRange(preset.getValue())}
+                    className="px-2 py-1 rounded-md text-[10px] font-medium bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
               {filters.dateRange.from && (
-                <Badge
-                  variant="secondary"
-                  className="gap-1 pr-1 cursor-pointer hover:bg-destructive/20"
-                  onClick={() => removeFilter('date')}
-                >
-                  {format(filters.dateRange.from, "dd/MM", { locale: ptBR })}
-                  {filters.dateRange.to && ` - ${format(filters.dateRange.to, "dd/MM", { locale: ptBR })}`}
-                  <X className="w-3 h-3" />
-                </Badge>
+                <div className="text-[10px] text-muted-foreground bg-muted/30 rounded px-2 py-1">
+                  {format(filters.dateRange.from, "dd/MM/yyyy", { locale: ptBR })}
+                  {filters.dateRange.to && ` → ${format(filters.dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`}
+                </div>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </section>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      {/* Active filter chips — inline, compact */}
+      {filters.status.map(status => {
+        const opt = STATUS_OPTIONS.find(s => s.value === status);
+        return (
+          <Badge
+            key={status}
+            variant="secondary"
+            className="h-5 gap-0.5 px-1.5 text-[10px] cursor-pointer hover:bg-destructive/15 hover:text-destructive transition-colors"
+            onClick={() => removeFilter('status', status)}
+          >
+            {opt?.label}
+            <X className="w-2.5 h-2.5 ml-0.5" />
+          </Badge>
+        );
+      })}
+
+      {filters.tags.map(tagId => {
+        const tag = tags.find(t => t.id === tagId);
+        return tag ? (
+          <Badge
+            key={tagId}
+            variant="secondary"
+            className="h-5 gap-0.5 px-1.5 text-[10px] cursor-pointer hover:bg-destructive/15 transition-colors"
+            style={{ backgroundColor: `${tag.color}15`, color: tag.color }}
+            onClick={() => removeFilter('tag', tagId)}
+          >
+            {tag.name}
+            <X className="w-2.5 h-2.5 ml-0.5" />
+          </Badge>
+        ) : null;
+      })}
+
+      {filters.agentId && (
+        <Badge
+          variant="secondary"
+          className="h-5 gap-0.5 px-1.5 text-[10px] cursor-pointer hover:bg-destructive/15 hover:text-destructive transition-colors"
+          onClick={() => removeFilter('agent')}
+        >
+          {agents.find(a => a.id === filters.agentId)?.name || 'Atendente'}
+          <X className="w-2.5 h-2.5 ml-0.5" />
+        </Badge>
+      )}
+
+      {filters.dateRange.from && (
+        <Badge
+          variant="secondary"
+          className="h-5 gap-0.5 px-1.5 text-[10px] cursor-pointer hover:bg-destructive/15 hover:text-destructive transition-colors"
+          onClick={() => removeFilter('date')}
+        >
+          {format(filters.dateRange.from, "dd/MM", { locale: ptBR })}
+          {filters.dateRange.to && `–${format(filters.dateRange.to, "dd/MM", { locale: ptBR })}`}
+          <X className="w-2.5 h-2.5 ml-0.5" />
+        </Badge>
+      )}
     </div>
   );
 }
