@@ -315,6 +315,17 @@ export function RealtimeInboxView() {
     // Contact type filter (using centralized filter)
     result = filterByContactType(result, selectedContactType);
 
+    // Smart sorting: unread first → most recent → oldest
+    result.sort((a, b) => {
+      // Unread first
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+      if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+      // Then by most recent message
+      const aTime = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : new Date(a.contact.updated_at).getTime();
+      const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : new Date(b.contact.updated_at).getTime();
+      return bTime - aTime;
+    });
+
     return result;
   }, [cachedConversations, search, filters, mainTab, subTab, showAll, selectedQueueId, selectedContactType, profile?.id, contactTagsMap]);
 
