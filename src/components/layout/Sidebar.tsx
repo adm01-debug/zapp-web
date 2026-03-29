@@ -298,4 +298,4 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       </div>
     </aside>
   );
-}
+});
