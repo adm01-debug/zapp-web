@@ -652,6 +652,28 @@ export function GroupsView() {
                         </Badge>
                       )}
                     </div>
+                    {/* Category selector */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={group.category || 'none'}
+                        onValueChange={(v) => handleCategoryChange(group.id, v === 'none' ? null : v)}
+                      >
+                        <SelectTrigger className="h-7 text-xs">
+                          <SelectValue placeholder="Sem categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem categoria</SelectItem>
+                          {GROUP_CATEGORIES.map(cat => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              <span className="flex items-center gap-1.5">
+                                <span>{cat.icon}</span>
+                                {cat.label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <p className="text-xs text-muted-foreground truncate" title={group.group_id}>
                       ID: {group.group_id}
                     </p>
