@@ -84,6 +84,7 @@ const roleConfig: Record<AppRole, { label: string; icon: typeof Crown; color: st
   admin: { label: 'Administrador', icon: Crown, color: 'text-warning' },
   supervisor: { label: 'Supervisor', icon: UserCog, color: 'text-info' },
   agent: { label: 'Atendente', icon: User, color: 'text-muted-foreground' },
+  special_agent: { label: 'Agente Especial', icon: Eye, color: 'text-accent-foreground' },
 };
 
 const accessLevelConfig: Record<string, { label: string; description: string }> = {
