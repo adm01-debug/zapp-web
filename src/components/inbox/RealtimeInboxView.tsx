@@ -15,7 +15,7 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus, Users, Truck, Wrench, UserCheck, UsersRound } from 'lucide-react';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ImagePlus, Users, Truck, Wrench, UserCheck, UsersRound, FileText, ShieldCheck, ClipboardList, Handshake } from 'lucide-react';
 import { TicketTabs, MainTab, SubTab } from './TicketTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -295,6 +295,17 @@ export function RealtimeInboxView() {
     // Contact type filter
     if (selectedContactType === 'grupo') {
       result = result.filter((c) => /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
+    } else if (selectedContactType?.startsWith('grupo_')) {
+      const category = selectedContactType.replace('grupo_', '');
+      result = result.filter((c) => {
+        const isGroup = /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || '');
+        return isGroup && c.contact.group_category === category;
+      });
+    } else if (selectedContactType === 'grupo_sem_categoria') {
+      result = result.filter((c) => {
+        const isGroup = /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || '');
+        return isGroup && !c.contact.group_category;
+      });
     } else if (selectedContactType === 'individual') {
       result = result.filter((c) => !/^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
     } else if (selectedContactType) {
@@ -901,7 +912,37 @@ export function RealtimeInboxView() {
               <SelectItem value="grupo">
                 <span className="flex items-center gap-2">
                   <UsersRound className="w-3.5 h-3.5 text-amber-500" />
-                  Grupos
+                  Todos os Grupos
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_orcamentos">
+                <span className="flex items-center gap-2 pl-2">
+                  <FileText className="w-3.5 h-3.5 text-blue-500" />
+                  Orçamentos | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_aprovacao">
+                <span className="flex items-center gap-2 pl-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  Aprovação | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_os">
+                <span className="flex items-center gap-2 pl-2">
+                  <ClipboardList className="w-3.5 h-3.5 text-orange-500" />
+                  O.S. | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_acerto">
+                <span className="flex items-center gap-2 pl-2">
+                  <Handshake className="w-3.5 h-3.5 text-purple-500" />
+                  Acerto | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_sem_categoria">
+                <span className="flex items-center gap-2 pl-2">
+                  <UsersRound className="w-3.5 h-3.5 text-muted-foreground" />
+                  Grupos sem categoria
                 </span>
               </SelectItem>
               <SelectSeparator />

@@ -59,7 +59,15 @@ interface WhatsAppGroup {
   avatar_url: string | null;
   is_admin: boolean;
   created_at: string;
+  category: string | null;
 }
+
+const GROUP_CATEGORIES = [
+  { value: 'orcamentos', label: 'Orçamentos | Fornecedores', color: 'text-blue-500', icon: '📋' },
+  { value: 'aprovacao', label: 'Aprovação | Fornecedores', color: 'text-emerald-500', icon: '✅' },
+  { value: 'os', label: 'O.S. | Fornecedores', color: 'text-orange-500', icon: '🔧' },
+  { value: 'acerto', label: 'Acerto | Fornecedores', color: 'text-purple-500', icon: '🤝' },
+] as const;
 
 interface WhatsAppConnection {
   id: string;
@@ -73,6 +81,7 @@ export function GroupsView() {
   const [groups, setGroups] = useState<WhatsAppGroup[]>([]);
   const [connections, setConnections] = useState<WhatsAppConnection[]>([]);
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -85,6 +94,7 @@ export function GroupsView() {
     group_id: '',
     description: '',
     whatsapp_connection_id: '',
+    category: '',
   });
 
   useEffect(() => {
@@ -211,6 +221,7 @@ export function GroupsView() {
           group_id: newGroup.group_id,
           description: newGroup.description || null,
           whatsapp_connection_id: newGroup.whatsapp_connection_id || null,
+          category: newGroup.category || null,
         });
         if (error) throw error;
       },
@@ -219,7 +230,7 @@ export function GroupsView() {
         successMessage: 'Grupo adicionado com sucesso!',
         errorMessage: 'Erro ao adicionar grupo',
         onSuccess: () => {
-          setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '' });
+          setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '', category: '' });
           setIsAddDialogOpen(false);
           fetchGroups();
         },
@@ -323,10 +334,36 @@ export function GroupsView() {
   };
 
   const filteredGroups = groups.filter(
-    (group) =>
-      group.name.toLowerCase().includes(search.toLowerCase()) ||
-      group.group_id.includes(search)
+    (group) => {
+      const matchesSearch = group.name.toLowerCase().includes(search.toLowerCase()) ||
+        group.group_id.includes(search);
+      const matchesCategory = !categoryFilter || 
+        (categoryFilter === 'sem_categoria' ? !group.category : group.category === categoryFilter);
+      return matchesSearch && matchesCategory;
+    }
   );
+
+  const handleCategoryChange = async (groupId: string, category: string | null) => {
+    const { error } = await supabase
+      .from('whatsapp_groups')
+      .update({ category })
+      .eq('id', groupId);
+
+    if (error) {
+      toast.error('Erro ao atualizar categoria');
+    } else {
+      toast.success('Categoria atualizada');
+      // Also update the corresponding contact's group_category
+      const group = groups.find(g => g.id === groupId);
+      if (group) {
+        await supabase
+          .from('contacts')
+          .update({ group_category: category })
+          .like('phone', `%${group.group_id.replace('@g.us', '')}%`);
+      }
+      setGroups(prev => prev.map(g => g.id === groupId ? { ...g, category } : g));
+    }
+  };
 
   const getConnectionName = (connectionId: string | null) => {
     if (!connectionId) return 'Não vinculado';
@@ -420,6 +457,29 @@ export function GroupsView() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label>Categoria</Label>
+                    <Select
+                      value={newGroup.category}
+                      onValueChange={(value) =>
+                        setNewGroup({ ...newGroup, category: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria (opcional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GROUP_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            <span className="flex items-center gap-2">
+                              <span>{cat.icon}</span>
+                              {cat.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="flex justify-end gap-2 pt-4">
                     <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                       Cancelar
@@ -440,9 +500,9 @@ export function GroupsView() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex items-center gap-4"
+        className="flex items-center gap-3 flex-wrap"
       >
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou ID do grupo..."
@@ -451,6 +511,23 @@ export function GroupsView() {
             className="pl-9"
           />
         </div>
+        <Select value={categoryFilter || 'all'} onValueChange={(v) => setCategoryFilter(v === 'all' ? null : v)}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Todas as categorias" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as categorias</SelectItem>
+            {GROUP_CATEGORIES.map(cat => (
+              <SelectItem key={cat.value} value={cat.value}>
+                <span className="flex items-center gap-2">
+                  <span>{cat.icon}</span>
+                  {cat.label}
+                </span>
+              </SelectItem>
+            ))}
+            <SelectItem value="sem_categoria">Sem categoria</SelectItem>
+          </SelectContent>
+        </Select>
         {filteredGroups.length > 0 && (
           <Button variant="outline" size="sm" onClick={selectAllGroups}>
             {selectedGroups.size === filteredGroups.length ? 'Desselecionar todos' : 'Selecionar todos'}
@@ -574,6 +651,28 @@ export function GroupsView() {
                           Admin
                         </Badge>
                       )}
+                    </div>
+                    {/* Category selector */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={group.category || 'none'}
+                        onValueChange={(v) => handleCategoryChange(group.id, v === 'none' ? null : v)}
+                      >
+                        <SelectTrigger className="h-7 text-xs">
+                          <SelectValue placeholder="Sem categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem categoria</SelectItem>
+                          {GROUP_CATEGORIES.map(cat => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              <span className="flex items-center gap-1.5">
+                                <span>{cat.icon}</span>
+                                {cat.label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <p className="text-xs text-muted-foreground truncate" title={group.group_id}>
                       ID: {group.group_id}
