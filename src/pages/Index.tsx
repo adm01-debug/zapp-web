@@ -181,7 +181,9 @@ function IndexContent() {
   return (
     <SLANotificationProvider>
       <GoalNotificationProvider>
-        <div className="flex h-screen max-h-screen min-h-screen bg-background overflow-hidden">
+        <div className="flex h-screen max-h-screen min-h-screen bg-background overflow-hidden relative">
+          {/* Route loading bar */}
+          <RouteLoadingBar isLoading={loading} />
           {/* Skip to content — a11y */}
           <a
             href="#main-content"
