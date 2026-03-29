@@ -35,10 +35,13 @@ const BREADCRUMB_DEPTH = 4;
  * Uses a single state atom for history+index to prevent race conditions
  * between separate setState calls.
  */
+// Hashes that are NOT view IDs (e.g. skip-to-content anchors)
+const RESERVED_HASHES = new Set(['main-content']);
+
 export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryReturn {
   const getInitialView = () => {
     const hash = window.location.hash.replace('#', '');
-    return hash || defaultView;
+    return (hash && !RESERVED_HASHES.has(hash)) ? hash : defaultView;
   };
 
   const [state, setState] = useState<NavigationState>(() => ({
@@ -59,7 +62,7 @@ export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryRe
         return;
       }
       const hash = window.location.hash.replace('#', '');
-      if (hash && hash !== currentView) {
+      if (hash && hash !== currentView && !RESERVED_HASHES.has(hash)) {
         navigateTo(hash);
       }
     };
