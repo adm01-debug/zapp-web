@@ -210,7 +210,7 @@ describe('WelcomeModal', () => {
     render(
       <WelcomeModal isOpen={true} onClose={vi.fn()} onStartTour={onStartTour} />
     );
-    const tourButton = screen.getByText(/tour/i);
+    const tourButton = screen.getByText(/Iniciar Tour Guiado/i);
     fireEvent.click(tourButton);
     expect(onStartTour).toHaveBeenCalledTimes(1);
   });
