@@ -20,6 +20,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { StepProgress, Step } from '@/components/ui/step-progress';
+
+const flowSteps: Step[] = [
+  { label: 'Início' },
+  { label: 'Nós' },
+  { label: 'Conexões' },
+  { label: 'Salvar' },
+];
 
 const nodeTypes: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
   start: { label: 'Início', icon: Zap, color: 'border-green-500 bg-success/10' },
