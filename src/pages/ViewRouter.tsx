@@ -104,6 +104,12 @@ const SPECIAL_VIEWS: Record<string, (props: ViewRouterProps) => React.ReactNode>
 export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: ViewRouterProps) {
   const mod = useCurrentModule(currentView);
   useDocumentTitle(mod.label);
+  const { announce } = useAriaAnnouncer();
+
+  // Announce view changes for screen readers
+  useEffect(() => {
+    announce(`Navegou para ${mod.label}`);
+  }, [currentView, mod.label, announce]);
 
   const content = (() => {
     // Check special views first (those needing props)
