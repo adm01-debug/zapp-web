@@ -109,27 +109,31 @@ export const staggeredNeonItem: Variants = {
 
 // ============ MOTION COMPONENTS ============
 
-// Page transition wrapper
+// Page transition wrapper with directional slide support
 interface PageTransitionProps {
   children: ReactNode;
   className?: string;
+  /** 'forward' slides left→right, 'back' slides right→left */
+  direction?: 'forward' | 'back' | null;
 }
 
-export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className }, ref) => {
+export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className, direction }, ref) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const shouldReduce = useReducedMotion();
+  
+  const slideX = isMobile ? 24 : 12;
+  const enterX = direction === 'back' ? -slideX : slideX;
+  const exitX = direction === 'back' ? slideX : -slideX;
   
   return (
     <motion.div
       ref={ref}
-      initial={shouldReduce ? false : (isMobile ? { opacity: 0, x: 24 } : { opacity: 0 })}
-      animate={isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
-      exit={shouldReduce ? undefined : (isMobile ? { opacity: 0, x: -16 } : { opacity: 0 })}
+      initial={shouldReduce ? false : { opacity: 0, x: enterX }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={shouldReduce ? undefined : { opacity: 0, x: exitX }}
       transition={shouldReduce
         ? { duration: 0 }
-        : isMobile
-          ? { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
-          : { duration: 0.2, ease: 'easeOut' }
+        : { duration: isMobile ? 0.25 : 0.18, ease: [0.16, 1, 0.3, 1] }
       }
       className={cn('h-full min-h-0 overflow-hidden', className)}
     >

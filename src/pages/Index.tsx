@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense, useCallback, useRef, useTransition } from 'react';
 import { cn } from '@/lib/utils';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -77,7 +78,23 @@ function IndexContent() {
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { startTour } = useTour();
   const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
-  const { currentView, navigateTo: setCurrentView, goBack, goForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
+  const { currentView, navigateTo: rawNavigateTo, goBack: rawGoBack, goForward: rawGoForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
+  const navDirectionRef = useRef<'forward' | 'back'>('forward');
+  
+  const setCurrentView = useCallback((viewId: string) => {
+    navDirectionRef.current = 'forward';
+    rawNavigateTo(viewId);
+  }, [rawNavigateTo]);
+
+  const goBack = useCallback(() => {
+    navDirectionRef.current = 'back';
+    rawGoBack();
+  }, [rawGoBack]);
+
+  const goForward = useCallback(() => {
+    navDirectionRef.current = 'forward';
+    rawGoForward();
+  }, [rawGoForward]);
   const [showWelcome, setShowWelcome] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -99,21 +116,42 @@ function IndexContent() {
     return () => unregisterNavigationHandler();
   }, [registerNavigationHandler, unregisterNavigationHandler]);
 
-  // Alt+← / Alt+→ for back/forward navigation
+  // Enhanced keyboard navigation: Alt+←/→, Escape to go back, Home for inbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
       if (e.altKey && e.key === 'ArrowLeft') {
         e.preventDefault();
         goBack();
       } else if (e.altKey && e.key === 'ArrowRight') {
         e.preventDefault();
         goForward();
+      } else if (e.key === 'Escape' && !isInput) {
+        // Close any open modals first (handled by Radix), then go back
+        const hasOpenDialog = document.querySelector('[data-state="open"][role="dialog"]');
+        if (!hasOpenDialog && canGoBack) {
+          goBack();
+        }
+      } else if (e.altKey && e.key === 'Home') {
+        e.preventDefault();
+        setCurrentView('inbox');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goBack, goForward]);
-  
+  }, [goBack, goForward, canGoBack, setCurrentView]);
+
+  // Swipe from edge for back/forward on mobile
+  useSwipeNavigation({
+    onSwipeBack: goBack,
+    onSwipeForward: goForward,
+    canGoBack,
+    canGoForward,
+    enabled: isMobile,
+  });
+
   useTranscriptionNotifications({ enabled: !!user });
 
   const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
@@ -261,7 +299,7 @@ function IndexContent() {
             
             <Suspense fallback={<ViewLoadingFallback />}>
               <AnimatePresence mode="wait">
-                <PageTransition key={currentView} className="flex-1 h-full max-h-full min-h-0 overflow-hidden">
+                <PageTransition key={currentView} direction={navDirectionRef.current} className="flex-1 h-full max-h-full min-h-0 overflow-hidden">
                   <ViewRouter
                     currentView={currentView}
                     userId={user?.id}
