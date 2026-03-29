@@ -229,7 +229,7 @@ export function GroupsView() {
         successMessage: 'Grupo adicionado com sucesso!',
         errorMessage: 'Erro ao adicionar grupo',
         onSuccess: () => {
-          setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '' });
+          setNewGroup({ name: '', group_id: '', description: '', whatsapp_connection_id: '', category: '' });
           setIsAddDialogOpen(false);
           fetchGroups();
         },
