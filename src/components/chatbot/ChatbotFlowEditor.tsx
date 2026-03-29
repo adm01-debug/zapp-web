@@ -143,6 +143,7 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
             <Save className="w-4 h-4" /> Salvar
           </Button>
         </div>
+        <StepProgress steps={flowSteps} currentStep={currentFlowStep} className="px-2 pt-1" />
       </div>
 
       {/* Editor Area */}
