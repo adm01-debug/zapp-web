@@ -1,3 +1,4 @@
+import React from 'react';
 import { ChevronLeft, ChevronRight, Home, Search } from 'lucide-react';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { Button } from '@/components/ui/button';
