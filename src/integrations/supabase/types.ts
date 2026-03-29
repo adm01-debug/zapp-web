@@ -1307,6 +1307,7 @@ export type Database = {
           contact_type: string | null
           created_at: string
           email: string | null
+          group_category: string | null
           id: string
           job_title: string | null
           name: string
@@ -1330,6 +1331,7 @@ export type Database = {
           contact_type?: string | null
           created_at?: string
           email?: string | null
+          group_category?: string | null
           id?: string
           job_title?: string | null
           name: string
@@ -1353,6 +1355,7 @@ export type Database = {
           contact_type?: string | null
           created_at?: string
           email?: string | null
+          group_category?: string | null
           id?: string
           job_title?: string | null
           name?: string
@@ -4229,6 +4232,7 @@ export type Database = {
       whatsapp_groups: {
         Row: {
           avatar_url: string | null
+          category: string | null
           created_at: string
           description: string | null
           group_id: string
@@ -4241,6 +4245,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           group_id: string
@@ -4253,6 +4258,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           group_id?: string
