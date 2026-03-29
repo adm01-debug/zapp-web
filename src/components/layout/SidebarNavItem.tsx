@@ -90,4 +90,4 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
   }
 
   return button;
-}
+});
