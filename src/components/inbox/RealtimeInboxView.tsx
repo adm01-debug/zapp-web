@@ -788,85 +788,29 @@ export function RealtimeInboxView() {
           isLoading={bulkLoading}
         />
 
-        {/* Header — Compact DreamsChat style */}
-        <div className="px-4 pt-4 pb-3 border-b border-border space-y-3 shrink-0">
+        {/* Header — Clean & minimal */}
+        <div className="px-3 pt-3 pb-2 border-b border-border space-y-2 shrink-0">
+          {/* Row 1: Title + action buttons */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-foreground">Conversas</h2>
+              <h2 className="text-sm font-semibold text-foreground">Conversas</h2>
               <span className={cn(
-                'flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full',
-                isOnline 
-                  ? 'bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]' 
-                  : 'bg-destructive/15 text-destructive'
-              )}>
-                {isOnline ? <Wifi className="w-2.5 h-2.5" /> : <WifiOff className="w-2.5 h-2.5" />}
-                {isOnline ? 'Live' : 'Off'}
-              </span>
+                'w-1.5 h-1.5 rounded-full',
+                isOnline ? 'bg-emerald-500' : 'bg-destructive'
+              )} />
             </div>
             <div className="flex items-center gap-0.5">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleSelectionMode}
-                    className={cn(
-                      'w-7 h-7',
-                      selectionMode ? 'text-primary bg-primary/10' : 'text-muted-foreground'
-                    )}
-                    aria-label={selectionMode ? 'Sair do modo seleção' : 'Selecionar múltiplos'}
-                  >
-                    <CheckSquare className="w-3.5 h-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="text-xs">
-                  {selectionMode ? 'Sair seleção' : 'Selecionar'}
-                </TooltipContent>
-              </Tooltip>
-              
-              
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={refetch} 
-                    disabled={loading}
-                    className="w-7 h-7"
-                    aria-label="Atualizar"
-                  >
+                  <Button variant="ghost" size="icon" onClick={refetch} disabled={loading} className="w-7 h-7" aria-label="Atualizar">
                     <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="text-xs">Atualizar</TooltipContent>
               </Tooltip>
-
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={handleBatchFetchAvatars}
-                    disabled={fetchingAvatars}
-                    className="w-7 h-7"
-                    aria-label="Buscar avatares"
-                  >
-                    <ImagePlus className={cn('w-3.5 h-3.5', fetchingAvatars && 'animate-pulse text-primary')} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="text-xs">Buscar Avatares</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setShowNewConversation(true)}
-                    className="w-7 h-7 text-primary hover:bg-primary/10"
-                    aria-label="Nova conversa"
-                  >
+                  <Button variant="ghost" size="icon" onClick={() => setShowNewConversation(true)} className="w-7 h-7 text-primary hover:bg-primary/10" aria-label="Nova conversa">
                     <MessageSquarePlus className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
@@ -875,27 +819,29 @@ export function RealtimeInboxView() {
             </div>
           </div>
 
-          {/* Search bar — DreamsChat rounded pill */}
-          <div className="relative">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar conversas..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onClick={() => setGlobalSearchOpen(true)}
-              className="pl-9 bg-muted/50 border-0 rounded-full h-8 text-xs cursor-pointer placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/30"
-              readOnly
-            />
+          {/* Row 2: Search + Contact type side by side */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onClick={() => setGlobalSearchOpen(true)}
+                className="pl-8 bg-muted/50 border-0 rounded-lg h-7 text-xs cursor-pointer placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/30"
+                readOnly
+              />
+            </div>
+            <div className="w-[140px] shrink-0">
+              <ContactTypeFilter
+                value={selectedContactType}
+                onChange={handleContactTypeChange}
+                conversations={cachedConversations}
+              />
+            </div>
           </div>
 
-          {/* Contact Type Filter */}
-          <ContactTypeFilter
-            value={selectedContactType}
-            onChange={handleContactTypeChange}
-            conversations={cachedConversations}
-          />
-
-          {/* Whaticket-style Ticket Tabs */}
+          {/* Row 3: Ticket Tabs */}
           <TicketTabs
             conversations={conversations}
             mainTab={mainTab}
@@ -908,7 +854,7 @@ export function RealtimeInboxView() {
             onQueueChange={setSelectedQueueId}
           />
 
-          {/* Advanced Filters (below tabs) */}
+          {/* Row 4: Advanced Filters (compact) */}
           <InboxFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
