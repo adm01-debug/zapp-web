@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Select,
   SelectContent,
@@ -8,11 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   Users, MessageSquare, UsersRound, FileText, ShieldCheck,
-  ClipboardList, Handshake, UserCheck, Truck, Wrench, X,
+  ClipboardList, Handshake, UserCheck, Truck, Wrench,
 } from 'lucide-react';
 import { ConversationWithMessages } from '@/hooks/useRealtimeMessages';
 
@@ -178,75 +176,44 @@ export function ContactTypeFilter({ value, onChange, conversations }: ContactTyp
   const TriggerIcon = activeOption?.icon || Users;
 
   return (
-    <div className="space-y-1.5">
-      <Select
-        value={value || 'all'}
-        onValueChange={(v) => onChange(v === 'all' ? null : v)}
-      >
-        <SelectTrigger className="h-8 text-xs bg-muted/50 border-0 rounded-full focus:ring-1 focus:ring-primary/30">
-          <div className="flex items-center gap-1.5">
-            <TriggerIcon className={cn('w-3.5 h-3.5', activeOption?.iconColor || 'text-muted-foreground')} />
-            <SelectValue placeholder="Todos os tipos" />
-          </div>
-        </SelectTrigger>
-        <SelectContent>
-          {FILTER_OPTIONS.map((opt) => {
-            const Icon = opt.icon;
-            const st = stats[opt.value];
-            return (
-              <div key={opt.value}>
-                <SelectItem value={opt.value}>
-                  <span className={cn('flex items-center gap-2', opt.indent && 'pl-2')}>
-                    <Icon className={cn('w-3.5 h-3.5', opt.iconColor)} />
-                    <span className="flex-1">{opt.label}</span>
-                    {/* counter badge */}
-                    {st.count > 0 && (
-                      <span className="ml-auto flex items-center gap-1">
-                        <span className="text-[10px] text-muted-foreground font-medium tabular-nums">
-                          {st.count}
-                        </span>
-                        {/* unread dot */}
-                        {st.unread > 0 && (
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-                          </span>
-                        )}
+    <Select
+      value={value || 'all'}
+      onValueChange={(v) => onChange(v === 'all' ? null : v)}
+    >
+      <SelectTrigger className="h-7 text-xs bg-muted/50 border-0 rounded-lg focus:ring-1 focus:ring-primary/30 px-2">
+        <div className="flex items-center gap-1 truncate">
+          <TriggerIcon className={cn('w-3 h-3 shrink-0', activeOption?.iconColor || 'text-muted-foreground')} />
+          <span className="truncate">{activeOption?.label || 'Todos'}</span>
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        {FILTER_OPTIONS.map((opt) => {
+          const Icon = opt.icon;
+          const st = stats[opt.value];
+          return (
+            <div key={opt.value}>
+              <SelectItem value={opt.value}>
+                <span className={cn('flex items-center gap-2', opt.indent && 'pl-2')}>
+                  <Icon className={cn('w-3.5 h-3.5 shrink-0', opt.iconColor)} />
+                  <span className="flex-1 truncate">{opt.label}</span>
+                  {st.count > 0 && (
+                    <span className="ml-auto flex items-center gap-1 shrink-0">
+                      <span className="text-[10px] text-muted-foreground font-medium tabular-nums">
+                        {st.count}
                       </span>
-                    )}
-                  </span>
-                </SelectItem>
-                {SEPARATOR_AFTER.has(opt.value) && <SelectSeparator />}
-              </div>
-            );
-          })}
-        </SelectContent>
-      </Select>
-
-      {/* Active filter chip */}
-      <AnimatePresence>
-        {value && value !== 'all' && activeOption && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="flex flex-wrap gap-1">
-              <Badge
-                variant="secondary"
-                className="text-[10px] gap-1 pr-1 cursor-pointer hover:bg-destructive/10 transition-colors"
-                onClick={() => onChange(null)}
-              >
-                <activeOption.icon className={cn('w-3 h-3', activeOption.iconColor)} />
-                {activeOption.label}
-                <X className="w-3 h-3 ml-0.5 text-muted-foreground hover:text-destructive" />
-              </Badge>
+                      {st.unread > 0 && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                      )}
+                    </span>
+                  )}
+                </span>
+              </SelectItem>
+              {SEPARATOR_AFTER.has(opt.value) && <SelectSeparator />}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          );
+        })}
+      </SelectContent>
+    </Select>
   );
 }
 
