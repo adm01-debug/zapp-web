@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePrefetchOnHover } from '@/hooks/usePrefetchOnHover';
 
 export interface NavItemConfig {
   id: string;
@@ -29,11 +30,17 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
   const isActive = currentView === item.id;
   const shortcut = item.shortcut || SHORTCUT_MAP[item.id];
   const badgeCount = badge ?? item.badge;
+  const { prefetch } = usePrefetchOnHover();
+
+  const handleMouseEnter = useCallback(() => {
+    if (!isActive) prefetch(item.id);
+  }, [isActive, item.id, prefetch]);
 
   const button = (
     <button
       data-tour={item.id}
       onClick={() => onViewChange(item.id)}
+      onMouseEnter={handleMouseEnter}
       aria-label={badgeCount ? `${item.label} (${badgeCount} não lidas)` : item.label}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
