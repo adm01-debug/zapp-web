@@ -1,3 +1,4 @@
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -23,7 +24,7 @@ interface SidebarNavItemProps {
   collapsed?: boolean;
 }
 
-export function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true }: SidebarNavItemProps) {
+export const SidebarNavItem = React.memo(function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true }: SidebarNavItemProps) {
   const Icon = item.icon;
   const isActive = currentView === item.id;
   const shortcut = item.shortcut || SHORTCUT_MAP[item.id];
@@ -89,4 +90,4 @@ export function SidebarNavItem({ item, currentView, onViewChange, badge, collaps
   }
 
   return button;
-}
+});

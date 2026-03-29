@@ -1,3 +1,4 @@
+import React from 'react';
 import { ChevronLeft, ChevronRight, Home, Search } from 'lucide-react';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ function BreadcrumbLink({ viewId, onClick, isHome }: { viewId: string; onClick: 
 }
 
 /** Compact auto-contextual header with back/forward navigation and breadcrumbs */
-export function ViewHeader({
+export const ViewHeader = React.memo(function ViewHeader({
   viewId,
   canGoBack = false,
   canGoForward = false,
@@ -152,4 +153,4 @@ export function ViewHeader({
       </button>
     </div>
   );
-}
+});

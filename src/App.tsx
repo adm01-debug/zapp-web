@@ -63,7 +63,14 @@ function RouteLoadingFallback() {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,    // 5 min — avoid refetch for fresh data
+      gcTime: 1000 * 60 * 30,       // 30 min — keep cache longer for back navigation
+      retry: 2,                      // retry twice with exponential backoff
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+      refetchOnWindowFocus: false,   // avoid unnecessary refetches on alt-tab
+      refetchOnReconnect: 'always',  // always refetch after network recovery
+    },
+    mutations: {
       retry: 1,
     },
   },
