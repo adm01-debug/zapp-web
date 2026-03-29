@@ -221,6 +221,7 @@ export function GroupsView() {
           group_id: newGroup.group_id,
           description: newGroup.description || null,
           whatsapp_connection_id: newGroup.whatsapp_connection_id || null,
+          category: newGroup.category || null,
         });
         if (error) throw error;
       },
