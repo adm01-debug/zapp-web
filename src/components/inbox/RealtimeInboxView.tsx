@@ -947,12 +947,38 @@ export function RealtimeInboxView() {
               ))}
             </div>
           ) : filteredConversations.length === 0 ? (
-            <div className="p-8 text-center">
-              <MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
-                {search ? 'Nenhuma conversa encontrada' : 'Sem conversas'}
-              </p>
-            </div>
+            (() => {
+              const activeOpt = FILTER_OPTIONS.find(o => o.value === (selectedContactType || 'all'));
+              const EmptyIcon = activeOpt?.icon || MessageSquare;
+              const emptyMessages: Record<string, string> = {
+                individual: 'Nenhum chat individual encontrado',
+                grupo: 'Nenhum grupo encontrado',
+                grupo_orcamentos: 'Nenhum orçamento em aberto',
+                grupo_aprovacao: 'Nenhuma aprovação pendente',
+                grupo_os: 'Nenhuma O.S. encontrada',
+                grupo_acerto: 'Nenhum acerto pendente',
+                grupo_sem_categoria: 'Nenhum grupo sem categoria',
+                cliente: 'Nenhum cliente encontrado',
+                colaborador: 'Nenhum colaborador encontrado',
+                fornecedor: 'Nenhum fornecedor encontrado',
+                prestador_servico: 'Nenhum prestador encontrado',
+                transportadora: 'Nenhuma transportadora encontrada',
+              };
+              const msg = search
+                ? 'Nenhuma conversa encontrada'
+                : emptyMessages[selectedContactType || ''] || 'Sem conversas';
+              return (
+                <motion.div
+                  key={selectedContactType || 'all'}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 text-center"
+                >
+                  <EmptyIcon className={cn('w-10 h-10 mx-auto mb-3', activeOpt?.iconColor || 'text-muted-foreground/30')} />
+                  <p className="text-sm text-muted-foreground">{msg}</p>
+                </motion.div>
+              );
+            })()
           ) : (
             <ErrorBoundary
               fallback={
