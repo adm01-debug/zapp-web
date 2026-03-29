@@ -7,11 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   Users, MessageSquare, UsersRound, FileText, ShieldCheck,
-  ClipboardList, Handshake, UserCheck, Truck, Wrench, X,
+  ClipboardList, Handshake, UserCheck, Truck, Wrench,
 } from 'lucide-react';
 import { ConversationWithMessages } from '@/hooks/useRealtimeMessages';
 
