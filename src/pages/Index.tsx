@@ -31,6 +31,7 @@ import { ViewRouter } from './ViewRouter';
 import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui/skeleton';
 import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indicator';
 import { EvolutionDisconnectBanner } from '@/components/alerts/EvolutionDisconnectBanner';
+import { RouteLoadingBar } from '@/components/ui/route-loading-bar';
 
 function ViewLoadingFallback() {
   return (
