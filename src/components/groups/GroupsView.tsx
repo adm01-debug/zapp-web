@@ -59,7 +59,15 @@ interface WhatsAppGroup {
   avatar_url: string | null;
   is_admin: boolean;
   created_at: string;
+  category: string | null;
 }
+
+const GROUP_CATEGORIES = [
+  { value: 'orcamentos', label: 'Orçamentos | Fornecedores', color: 'text-blue-500', icon: '📋' },
+  { value: 'aprovacao', label: 'Aprovação | Fornecedores', color: 'text-emerald-500', icon: '✅' },
+  { value: 'os', label: 'O.S. | Fornecedores', color: 'text-orange-500', icon: '🔧' },
+  { value: 'acerto', label: 'Acerto | Fornecedores', color: 'text-purple-500', icon: '🤝' },
+] as const;
 
 interface WhatsAppConnection {
   id: string;
