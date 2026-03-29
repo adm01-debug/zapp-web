@@ -912,14 +912,37 @@ export function RealtimeInboxView() {
               <SelectItem value="grupo">
                 <span className="flex items-center gap-2">
                   <UsersRound className="w-3.5 h-3.5 text-amber-500" />
-                  Grupos
+                  Todos os Grupos
                 </span>
               </SelectItem>
-              <SelectSeparator />
-              <SelectItem value="cliente">
-                <span className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5 text-blue-500" />
-                  Clientes
+              <SelectItem value="grupo_orcamentos">
+                <span className="flex items-center gap-2 pl-2">
+                  <FileText className="w-3.5 h-3.5 text-blue-500" />
+                  Orçamentos | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_aprovacao">
+                <span className="flex items-center gap-2 pl-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  Aprovação | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_os">
+                <span className="flex items-center gap-2 pl-2">
+                  <ClipboardList className="w-3.5 h-3.5 text-orange-500" />
+                  O.S. | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_acerto">
+                <span className="flex items-center gap-2 pl-2">
+                  <Handshake className="w-3.5 h-3.5 text-purple-500" />
+                  Acerto | Fornecedores
+                </span>
+              </SelectItem>
+              <SelectItem value="grupo_sem_categoria">
+                <span className="flex items-center gap-2 pl-2">
+                  <UsersRound className="w-3.5 h-3.5 text-muted-foreground" />
+                  Grupos sem categoria
                 </span>
               </SelectItem>
               <SelectItem value="colaborador">
