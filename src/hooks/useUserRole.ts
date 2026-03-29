@@ -25,6 +25,7 @@ export function useUserRole() {
       setRoles([]);
       setIsAdmin(false);
       setIsSupervisor(false);
+      setIsSpecialAgent(false);
       setLoading(false);
     }
   }, [user]);
