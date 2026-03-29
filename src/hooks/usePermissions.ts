@@ -105,7 +105,7 @@ export function usePermissions() {
     return permissionNames.every(p => userPermissions.includes(p));
   }, [userPermissions]);
 
-  const addPermissionToRole = useCallback(async (role: 'admin' | 'supervisor' | 'agent', permissionId: string) => {
+  const addPermissionToRole = useCallback(async (role: 'admin' | 'supervisor' | 'agent' | 'special_agent', permissionId: string) => {
     const { error } = await supabase
       .from('role_permissions')
       .insert({ role, permission_id: permissionId });
