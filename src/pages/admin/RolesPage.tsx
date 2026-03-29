@@ -4,6 +4,7 @@ import { Shield, Users, UserPlus, Trash2, Search, Loader2, Crown, Eye, Headphone
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { PermissionMatrix } from '@/components/permissions/PermissionMatrix';
+import { VisibilityGrantsManager } from '@/components/admin/VisibilityGrantsManager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
