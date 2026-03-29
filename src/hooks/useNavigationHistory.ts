@@ -62,7 +62,7 @@ export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryRe
         return;
       }
       const hash = window.location.hash.replace('#', '');
-      if (hash && hash !== currentView) {
+      if (hash && hash !== currentView && !RESERVED_HASHES.has(hash)) {
         navigateTo(hash);
       }
     };
