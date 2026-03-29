@@ -295,6 +295,17 @@ export function RealtimeInboxView() {
     // Contact type filter
     if (selectedContactType === 'grupo') {
       result = result.filter((c) => /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
+    } else if (selectedContactType?.startsWith('grupo_')) {
+      const category = selectedContactType.replace('grupo_', '');
+      result = result.filter((c) => {
+        const isGroup = /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || '');
+        return isGroup && c.contact.group_category === category;
+      });
+    } else if (selectedContactType === 'grupo_sem_categoria') {
+      result = result.filter((c) => {
+        const isGroup = /^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || '');
+        return isGroup && !c.contact.group_category;
+      });
     } else if (selectedContactType === 'individual') {
       result = result.filter((c) => !/^\d+-\d+$/.test(c.contact.phone?.replace(/\D/g, '') || ''));
     } else if (selectedContactType) {
