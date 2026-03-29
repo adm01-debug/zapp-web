@@ -16,6 +16,7 @@ export function useUserRole() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
+  const [isSpecialAgent, setIsSpecialAgent] = useState(false);
 
   useEffect(() => {
     if (user) {
