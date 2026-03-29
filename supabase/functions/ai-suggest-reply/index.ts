@@ -9,7 +9,7 @@ import { validateUUID, ValidationError, validationErrorResponse } from '../_shar
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
-import { unauthorized, serverError } from '../_shared/errorResponse.ts';
+import { unauthorized, serverError, tooManyRequests, errorResponse } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('ai-suggest-reply');
 
@@ -178,15 +178,10 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       aiTimer.end({ status: response.status, error: true });
 
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-        });
+        return tooManyRequests(60, getCorsHeaders(req));
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required. Please add credits." }), {
-          status: 402,
-          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        return errorResponse('Payment required. Please add credits.', { status: 402, code: 'PAYMENT_REQUIRED', corsHeaders: getCorsHeaders(req) });
         });
       }
       throw new Error(`AI gateway error [${response.status}]: ${errorText}`);
@@ -234,9 +229,6 @@ Responda APENAS em formato JSON com a seguinte estrutura:
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     logger.error("Error in ai-suggest-reply", { error: errorMessage });
     requestTimer.end({ error: true });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return serverError('AI suggestion processing failed', getCorsHeaders(req));
   }
 });

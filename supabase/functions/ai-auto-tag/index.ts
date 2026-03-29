@@ -9,7 +9,7 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
-import { unauthorized, serverError } from '../_shared/errorResponse.ts';
+import { unauthorized, serverError, tooManyRequests, errorResponse } from '../_shared/errorResponse.ts';
 
 const logger = createStructuredLogger('ai-auto-tag');
 
@@ -144,14 +144,10 @@ Responda APENAS em JSON:
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
-          status: 429, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-        });
+        return tooManyRequests(60, getCorsHeaders(req));
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required" }), {
-          status: 402, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-        });
+        return errorResponse('Payment required', { status: 402, code: 'PAYMENT_REQUIRED', corsHeaders: getCorsHeaders(req) });
       }
       throw new Error(`AI error: ${response.status}`);
     }
@@ -202,8 +198,6 @@ Responda APENAS em JSON:
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     logger.error("Error in ai-auto-tag", { error: errorMessage });
     requestTimer.end({ error: true });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return serverError('AI auto-tag processing failed', getCorsHeaders(req));
   }
 });
