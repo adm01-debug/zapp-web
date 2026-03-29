@@ -788,12 +788,12 @@ export function RealtimeInboxView() {
           isLoading={bulkLoading}
         />
 
-        {/* Header — Clean & minimal */}
-        <div className="px-3 pt-3 pb-2 border-b border-border space-y-2 shrink-0">
-          {/* Row 1: Title + action buttons */}
+        {/* Header — Ultra-clean */}
+        <div className="px-3 pt-2.5 pb-1.5 border-b border-border space-y-1.5 shrink-0">
+          {/* Row 1: Title + actions */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-foreground">Conversas</h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-xs font-semibold text-foreground tracking-tight">Conversas</h2>
               <span className={cn(
                 'w-1.5 h-1.5 rounded-full',
                 isOnline ? 'bg-emerald-500' : 'bg-destructive'
@@ -802,37 +802,37 @@ export function RealtimeInboxView() {
             <div className="flex items-center gap-0.5">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={refetch} disabled={loading} className="w-7 h-7" aria-label="Atualizar">
-                    <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
+                  <Button variant="ghost" size="icon" onClick={refetch} disabled={loading} className="w-6 h-6" aria-label="Atualizar">
+                    <RefreshCw className={cn('w-3 h-3', loading && 'animate-spin')} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="text-xs">Atualizar</TooltipContent>
+                <TooltipContent className="text-[10px]">Atualizar</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => setShowNewConversation(true)} className="w-7 h-7 text-primary hover:bg-primary/10" aria-label="Nova conversa">
-                    <MessageSquarePlus className="w-3.5 h-3.5" />
+                  <Button variant="ghost" size="icon" onClick={() => setShowNewConversation(true)} className="w-6 h-6 text-primary hover:bg-primary/10" aria-label="Nova conversa">
+                    <MessageSquarePlus className="w-3 h-3" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="text-xs">Nova Conversa</TooltipContent>
+                <TooltipContent className="text-[10px]">Nova Conversa</TooltipContent>
               </Tooltip>
             </div>
           </div>
 
-          {/* Row 2: Search + Contact type side by side */}
-          <div className="flex items-center gap-2">
+          {/* Row 2: Search + Type filter */}
+          <div className="flex items-center gap-1.5">
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/60" />
               <Input
-                placeholder="Buscar..."
+                placeholder="Buscar... ⌘K"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onClick={() => setGlobalSearchOpen(true)}
-                className="pl-8 bg-muted/50 border-0 rounded-lg h-7 text-xs cursor-pointer placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/30"
+                className="pl-7 bg-muted/40 border-0 rounded-md h-7 text-[11px] cursor-pointer placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30"
                 readOnly
               />
             </div>
-            <div className="w-[140px] shrink-0">
+            <div className="w-[130px] shrink-0">
               <ContactTypeFilter
                 value={selectedContactType}
                 onChange={handleContactTypeChange}
@@ -841,7 +841,7 @@ export function RealtimeInboxView() {
             </div>
           </div>
 
-          {/* Row 3: Ticket Tabs */}
+          {/* Row 3: Tabs */}
           <TicketTabs
             conversations={conversations}
             mainTab={mainTab}
@@ -854,7 +854,7 @@ export function RealtimeInboxView() {
             onQueueChange={setSelectedQueueId}
           />
 
-          {/* Row 4: Advanced Filters (compact) */}
+          {/* Row 4: Filters */}
           <InboxFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
