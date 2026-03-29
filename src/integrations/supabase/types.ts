@@ -164,6 +164,73 @@ export type Database = {
           },
         ]
       }
+      agent_visibility_grants: {
+        Row: {
+          agent_id: string
+          can_see_agent_id: string
+          created_at: string
+          granted_by: string | null
+          id: string
+        }
+        Insert: {
+          agent_id: string
+          can_see_agent_id: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+        }
+        Update: {
+          agent_id?: string
+          can_see_agent_id?: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_visibility_grants_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_visibility_grants_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_visibility_grants_can_see_agent_id_fkey"
+            columns: ["can_see_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_visibility_grants_can_see_agent_id_fkey"
+            columns: ["can_see_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_visibility_grants_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_visibility_grants_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_conversation_tags: {
         Row: {
           confidence: number | null
@@ -4392,6 +4459,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_visible_agent_ids: { Args: { _user_id: string }; Returns: string[] }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4481,7 +4549,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "supervisor" | "agent"
+      app_role: "admin" | "supervisor" | "agent" | "special_agent"
       channel_type:
         | "whatsapp"
         | "instagram"
@@ -4616,7 +4684,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "supervisor", "agent"],
+      app_role: ["admin", "supervisor", "agent", "special_agent"],
       channel_type: [
         "whatsapp",
         "instagram",

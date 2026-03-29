@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Users, UserPlus, Trash2, Search, Loader2, Crown, Eye, Headphones } from 'lucide-react';
+import { Shield, Users, UserPlus, Trash2, Search, Loader2, Crown, Eye, Headphones, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { PermissionMatrix } from '@/components/permissions/PermissionMatrix';
+import { VisibilityGrantsManager } from '@/components/admin/VisibilityGrantsManager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +40,7 @@ import { toast } from 'sonner';
 interface UserWithRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'supervisor' | 'agent';
+  role: 'admin' | 'supervisor' | 'agent' | 'special_agent';
   profile?: {
     name: string;
     email: string | null;
@@ -60,6 +61,12 @@ const ROLE_CONFIG = {
     color: 'bg-info/10 text-info dark:bg-info/20/30 dark:text-info',
     description: 'Gerencia equipes e relatórios'
   },
+  special_agent: { 
+    label: 'Agente Especial', 
+    icon: Star,
+    color: 'bg-warning/10 text-warning dark:bg-warning/20/30 dark:text-warning',
+    description: 'Vê seus contatos + contatos de agentes designados'
+  },
   agent: { 
     label: 'Agente', 
     icon: Headphones,
@@ -75,7 +82,7 @@ export default function RolesPage() {
   const [search, setSearch] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>('');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'supervisor' | 'agent'>('agent');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'supervisor' | 'agent' | 'special_agent'>('agent');
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [userToRemove, setUserToRemove] = useState<UserWithRole | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -100,7 +107,7 @@ export default function RolesPage() {
       const mapped = data.map(u => ({
         id: u.id,
         user_id: u.user_id,
-        role: u.role as 'admin' | 'supervisor' | 'agent',
+        role: u.role as 'admin' | 'supervisor' | 'agent' | 'special_agent',
         profile: Array.isArray(u.profiles) ? u.profiles[0] : u.profiles
       }));
       setUsers(mapped);
@@ -169,7 +176,7 @@ export default function RolesPage() {
     setUpdating(false);
   };
 
-  const handleChangeRole = async (userId: string, newRole: 'admin' | 'supervisor' | 'agent') => {
+  const handleChangeRole = async (userId: string, newRole: 'admin' | 'supervisor' | 'agent' | 'special_agent') => {
     setUpdating(true);
     const { error } = await supabase
       .from('user_roles')
@@ -193,6 +200,7 @@ export default function RolesPage() {
   const groupedUsers = {
     admin: filteredUsers.filter(u => u.role === 'admin'),
     supervisor: filteredUsers.filter(u => u.role === 'supervisor'),
+    special_agent: filteredUsers.filter(u => u.role === 'special_agent'),
     agent: filteredUsers.filter(u => u.role === 'agent')
   };
 
@@ -234,6 +242,10 @@ export default function RolesPage() {
           <TabsTrigger value="permissions">
             <Shield className="w-4 h-4 mr-2" />
             Permissões
+          </TabsTrigger>
+          <TabsTrigger value="visibility">
+            <Star className="w-4 h-4 mr-2" />
+            Visibilidade
           </TabsTrigger>
         </TabsList>
 
@@ -326,6 +338,10 @@ export default function RolesPage() {
 
         <TabsContent value="permissions" className="mt-4">
           <PermissionMatrix />
+        </TabsContent>
+
+        <TabsContent value="visibility" className="mt-4">
+          <VisibilityGrantsManager />
         </TabsContent>
       </Tabs>
 

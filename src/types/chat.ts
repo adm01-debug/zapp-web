@@ -125,7 +125,7 @@ export interface Agent {
   name: string;
   email: string;
   avatar?: string;
-  role: 'admin' | 'supervisor' | 'agent';
+  role: 'admin' | 'supervisor' | 'agent' | 'special_agent';
   status: 'online' | 'away' | 'offline';
   activeChats: number;
   maxChats: number;

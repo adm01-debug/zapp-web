@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-export type AppRole = 'admin' | 'supervisor' | 'agent';
+export type AppRole = 'admin' | 'supervisor' | 'agent' | 'special_agent';
 
 interface UserRole {
   id: string;
@@ -16,6 +16,7 @@ export function useUserRole() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
+  const [isSpecialAgent, setIsSpecialAgent] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -24,6 +25,7 @@ export function useUserRole() {
       setRoles([]);
       setIsAdmin(false);
       setIsSupervisor(false);
+      setIsSpecialAgent(false);
       setLoading(false);
     }
   }, [user]);
@@ -41,11 +43,12 @@ export function useUserRole() {
       setRoles(userRoles);
       setIsAdmin(userRoles.includes('admin'));
       setIsSupervisor(userRoles.includes('supervisor') || userRoles.includes('admin'));
+      setIsSpecialAgent(userRoles.includes('special_agent'));
     }
     setLoading(false);
   };
 
   const hasRole = (role: AppRole) => roles.includes(role);
 
-  return { roles, isAdmin, isSupervisor, hasRole, loading, refetch: fetchRoles };
+  return { roles, isAdmin, isSupervisor, isSpecialAgent, hasRole, loading, refetch: fetchRoles };
 }
