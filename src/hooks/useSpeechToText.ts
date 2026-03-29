@@ -20,7 +20,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
   const { language = 'pt-BR', continuous = true, onResult, onEnd } = options;
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<InstanceType<typeof SpeechRecognition> | null>(null);
   const onResultRef = useRef(onResult);
   const onEndRef = useRef(onEnd);
 
