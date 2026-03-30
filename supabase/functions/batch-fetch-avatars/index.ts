@@ -91,7 +91,7 @@ serve(async (req) => {
       .not('phone', 'like', '%@lid')
       .or('avatar_url.is.null,avatar_url.like.%pps.whatsapp.net%')
       .order('created_at', { ascending: false })
-      .limit(200);
+      .limit(500);
 
     if (contactsError) throw contactsError;
     if (!contacts?.length) {
