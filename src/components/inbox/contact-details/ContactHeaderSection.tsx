@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
+import { EngagementScore } from './EngagementScore';
 
 // Channel icons mapping
 const channelIcons: Record<string, string> = {
@@ -135,8 +136,40 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
         )}
       </div>
 
+      {/* Engagement Score */}
+      <div className="mt-3">
+        <EngagementScore score={(() => {
+          let s = 50;
+          if (enrichedData?.ai_sentiment === 'positive') s += 25;
+          if (enrichedData?.ai_priority === 'high') s += 15;
+          if (enrichedData?.company) s += 5;
+          if (enrichedData?.contact_type === 'customer') s += 5;
+          return Math.min(s, 100);
+        })()} />
+      </div>
+
       {/* Action buttons */}
       <div className="flex items-center gap-2 mt-4">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border/30 hover:border-success/50 hover:bg-success/10 transition-all"
+                onClick={() => {
+                  const cleanPhone = contact.phone.replace(/\D/g, '');
+                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                }}
+              >
+                <MessageSquare className="w-4 h-4 mr-1 text-success" />
+                WhatsApp
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Abrir conversa no WhatsApp</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
