@@ -77,6 +77,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 100, opacity: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
+      ref={panelRef}
       className="w-80 h-full min-h-0 shrink-0 bg-card border-l border-border flex flex-col overflow-hidden"
     >
       {/* Header */}
