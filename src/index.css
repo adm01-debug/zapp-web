@@ -280,7 +280,7 @@ html, body, #root {
     
     /* ===== POPOVER/DIALOG ===== */
     --popover: 240 5% 13%;
-    --popover-foreground: 220 25% 92%;
+    --popover-foreground: 220 20% 95%;
     
     /* ===== PRIMARY — Vibrant Purple ===== */
     --primary: 254 92% 62%;
