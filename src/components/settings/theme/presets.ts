@@ -228,7 +228,7 @@ const buildPreset = (p: PresetParams): ThemePreset => {
     xp: `${h} ${s}% ${l}%`,
     unread: `${h} ${s}% ${l}%`,
     'sidebar-background': `240 6% 9%`,
-    'sidebar-foreground': `${h} 15% 92%`,
+    'sidebar-foreground': `${h} 12% 95%`,
     'sidebar-primary': `${h} ${s}% ${l}%`,
     'sidebar-primary-foreground': '0 0% 100%',
     'sidebar-accent': `${h} 45% 18%`,
