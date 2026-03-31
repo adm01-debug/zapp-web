@@ -28,7 +28,9 @@ import {
   Search,
   Brain,
   Info,
+  ExternalLink,
 } from 'lucide-react';
+import { openChatPopup } from '@/lib/popupManager';
 
 interface ChatPanelHeaderProps {
   conversation: Conversation;
