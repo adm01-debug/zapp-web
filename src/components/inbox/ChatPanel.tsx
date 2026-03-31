@@ -101,6 +101,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   });
 
   const { scheduleMessage } = useScheduledMessages(conversation.contact.id);
+  const { signatureEnabled, agentName, toggleSignature, applySignature } = useMessageSignature();
 
   // ── Resolve WhatsApp instance name from contact ──
   const [instanceName, setInstanceName] = useState<string>('');
