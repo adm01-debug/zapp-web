@@ -42,6 +42,7 @@ import {
   Plus,
   Zap,
   Loader2,
+  PenTool,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -93,6 +94,9 @@ interface ChatInputAreaProps {
   onSelectTemplate: (text: string) => void;
   onExternalFiles?: (files: File[]) => void;
   onPasteFiles?: (files: File[]) => void;
+  signatureEnabled?: boolean;
+  signatureName?: string;
+  onToggleSignature?: () => void;
   fileUploaderRef: React.RefObject<FileUploaderRef | null>;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
 }
@@ -137,9 +141,12 @@ export function ChatInputArea({
   onOpenCatalog,
   onSelectSuggestion,
   onSelectTemplate,
-  onPasteFiles,
-  fileUploaderRef,
-  inputRef,
+   onPasteFiles,
+   signatureEnabled,
+   signatureName,
+   onToggleSignature,
+   fileUploaderRef,
+   inputRef,
 }: ChatInputAreaProps) {
   const [showRichToolbar, setShowRichToolbar] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
@@ -346,8 +353,27 @@ export function ChatInputArea({
           </div>
         </PopoverContent>
       </Popover>
+      {onToggleSignature && (
+        <>
+          <div className="border-t border-border/50 my-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "justify-start gap-2 w-full",
+              signatureEnabled ? "text-primary hover:text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={onToggleSignature}
+            aria-label={signatureEnabled ? "Desativar assinatura" : "Ativar assinatura"}
+          >
+            <PenTool className="w-4 h-4" />
+            {signatureEnabled ? `Assinatura: ${signatureName || 'Ativa'}` : 'Assinar mensagens'}
+            {signatureEnabled && <Check className="w-3.5 h-3.5 ml-auto" />}
+          </Button>
+        </>
+      )}
     </div>
-  ), [instanceName, contactPhone, contactName, messages, quickRepliesList, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate]);
+  ), [instanceName, contactPhone, contactName, messages, quickRepliesList, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate, signatureEnabled, signatureName, onToggleSignature]);
 
   return (
     <>

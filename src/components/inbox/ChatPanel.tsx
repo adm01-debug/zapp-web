@@ -15,6 +15,7 @@ import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
 import { useScheduledMessages } from '@/hooks/useScheduledMessages';
+import { useMessageSignature } from '@/hooks/useMessageSignature';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
@@ -100,6 +101,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   });
 
   const { scheduleMessage } = useScheduledMessages(conversation.contact.id);
+  const { signatureEnabled, agentName, toggleSignature, applySignature } = useMessageSignature();
 
   // ── Resolve WhatsApp instance name from contact ──
   const [instanceName, setInstanceName] = useState<string>('');
@@ -220,7 +222,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
 
     // Normal send with undo support
-    const messageContent = inputValue.trim();
+    const messageContent = applySignature(inputValue.trim());
     const wasReply = replyToMessage;
 
     setIsSending(true);
@@ -806,6 +808,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme}
           onSendCustomEmoji={handleSendCustomEmoji}
+          signatureEnabled={signatureEnabled}
+          signatureName={agentName}
+          onToggleSignature={toggleSignature}
           onPollSent={async (poll) => {
             await supabase.from('messages').insert({
               contact_id: conversation.contact.id,
