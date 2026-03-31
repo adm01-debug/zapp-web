@@ -353,8 +353,27 @@ export function ChatInputArea({
           </div>
         </PopoverContent>
       </Popover>
+      {onToggleSignature && (
+        <>
+          <div className="border-t border-border/50 my-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "justify-start gap-2 w-full",
+              signatureEnabled ? "text-primary hover:text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={onToggleSignature}
+            aria-label={signatureEnabled ? "Desativar assinatura" : "Ativar assinatura"}
+          >
+            <PenTool className="w-4 h-4" />
+            {signatureEnabled ? `Assinatura: ${signatureName || 'Ativa'}` : 'Assinar mensagens'}
+            {signatureEnabled && <Check className="w-3.5 h-3.5 ml-auto" />}
+          </Button>
+        </>
+      )}
     </div>
-  ), [instanceName, contactPhone, contactName, messages, quickRepliesList, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate]);
+  ), [instanceName, contactPhone, contactName, messages, quickRepliesList, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate, signatureEnabled, signatureName, onToggleSignature]);
 
   return (
     <>
