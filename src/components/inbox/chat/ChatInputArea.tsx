@@ -141,9 +141,12 @@ export function ChatInputArea({
   onOpenCatalog,
   onSelectSuggestion,
   onSelectTemplate,
-  onPasteFiles,
-  fileUploaderRef,
-  inputRef,
+   onPasteFiles,
+   signatureEnabled,
+   signatureName,
+   onToggleSignature,
+   fileUploaderRef,
+   inputRef,
 }: ChatInputAreaProps) {
   const [showRichToolbar, setShowRichToolbar] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
