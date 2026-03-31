@@ -222,7 +222,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
                         openChatPopup(conversation.contact.id, conversation.contact.name);
