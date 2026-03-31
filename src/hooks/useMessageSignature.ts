@@ -20,11 +20,11 @@ export function useMessageSignature() {
       if (!user) return;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, display_name')
+        .select('name')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (profile) {
-        setAgentName(profile.display_name || profile.full_name || '');
+      if (profile?.name) {
+        setAgentName(profile.name);
       }
     };
     fetchName();
