@@ -11,20 +11,24 @@ export function useMessageSignature() {
       return true;
     }
   });
-  const [agentName, setAgentName] = useState('');
+  const [agentSignature, setAgentSignature] = useState('');
 
-  // Fetch agent name from profile
+  // Fetch agent name + job_title from profile
   useEffect(() => {
     const fetchName = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('name')
+        .select('name, job_title')
         .eq('user_id', user.id)
         .maybeSingle();
       if (profile?.name) {
-        setAgentName(profile.name);
+        const firstName = profile.name.split(' ')[0];
+        const sig = profile.job_title
+          ? `${firstName} - ${profile.job_title}`
+          : firstName;
+        setAgentSignature(sig);
       }
     };
     fetchName();
@@ -39,9 +43,9 @@ export function useMessageSignature() {
   }, []);
 
   const applySignature = useCallback((content: string): string => {
-    if (!signatureEnabled || !agentName) return content;
-    return `*${agentName}:*\n${content}`;
-  }, [signatureEnabled, agentName]);
+    if (!signatureEnabled || !agentSignature) return content;
+    return `*${agentSignature}:*\n${content}`;
+  }, [signatureEnabled, agentSignature]);
 
-  return { signatureEnabled, agentName, toggleSignature, applySignature };
+  return { signatureEnabled, agentName: agentSignature, toggleSignature, applySignature };
 }
