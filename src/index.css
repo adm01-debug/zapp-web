@@ -271,16 +271,16 @@ html, body, #root {
   .dark {
     /* ===== BASE — deep dark ===== */
     --background: 240 6% 6%;
-    --foreground: 220 25% 92%;
+    --foreground: 220 20% 95%;
     
     /* ===== CARDS ===== */
     --card: 240 5% 10%;
-    --card-foreground: 220 25% 92%;
+    --card-foreground: 220 20% 95%;
     --card-elevated: 240 5% 15%;
     
     /* ===== POPOVER/DIALOG ===== */
     --popover: 240 5% 13%;
-    --popover-foreground: 220 25% 92%;
+    --popover-foreground: 220 20% 95%;
     
     /* ===== PRIMARY — Vibrant Purple ===== */
     --primary: 254 92% 62%;
@@ -293,7 +293,7 @@ html, body, #root {
     
     /* ===== MUTED ===== */
     --muted: 240 5% 15%;
-    --muted-foreground: 223 8% 52%;
+    --muted-foreground: 223 10% 65%;
     
     /* ===== ACCENT ===== */
     --accent: 254 55% 20%;
@@ -342,7 +342,7 @@ html, body, #root {
 
     /* ===== Sidebar ===== */
     --sidebar-background: 240 6% 9%;
-    --sidebar-foreground: 220 25% 92%;
+    --sidebar-foreground: 220 20% 95%;
     --sidebar-primary: 254 92% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 254 45% 18%;
@@ -354,7 +354,7 @@ html, body, #root {
     --chat-bubble-sent: 254 92% 62%;
     --chat-bubble-sent-foreground: 0 0% 100%;
     --chat-bubble-received: 240 5% 15%;
-    --chat-bubble-received-foreground: 220 25% 92%;
+    --chat-bubble-received-foreground: 220 20% 95%;
     --chat-header: 240 5% 10%;
     --chat-input-bg: 240 5% 13%;
 
