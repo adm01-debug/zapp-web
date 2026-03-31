@@ -18,7 +18,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
+import { openChatPopup } from '@/lib/popupManager';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
