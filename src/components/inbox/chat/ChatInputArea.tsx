@@ -94,6 +94,9 @@ interface ChatInputAreaProps {
   onSelectTemplate: (text: string) => void;
   onExternalFiles?: (files: File[]) => void;
   onPasteFiles?: (files: File[]) => void;
+  signatureEnabled?: boolean;
+  signatureName?: string;
+  onToggleSignature?: () => void;
   fileUploaderRef: React.RefObject<FileUploaderRef | null>;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
 }
