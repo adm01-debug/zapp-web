@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, RotateCcw, Download, Upload, Sun, Moon } from 'lucide-react';
+import { Palette, RotateCcw, Download, Upload, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { PRESETS } from './theme/presets';
 import { useThemePreset } from './theme/useThemePreset';
@@ -63,6 +63,13 @@ export function ThemeCustomizer() {
               onClick={() => setTheme('dark')}
             >
               <Moon className="w-4 h-4 mr-1" /> Escuro
+            </Button>
+            <Button
+              variant={theme === 'system' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTheme('system')}
+            >
+              <Monitor className="w-4 h-4 mr-1" /> Sistema
             </Button>
           </div>
         </CardContent>

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { PRESETS, CSS_VARS_TO_APPLY, STORAGE_KEY } from './presets';
-import type { ThemePreset } from './presets';
+import type { ThemePreset, ThemeModeColors } from './presets';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ThemeConfig {
   preset: string;
@@ -9,8 +10,36 @@ interface ThemeConfig {
 }
 
 export function useThemePreset() {
+  const { resolvedTheme } = useTheme();
   const [activePreset, setActivePreset] = useState<string>('default');
   const [borderRadius, setBorderRadius] = useState<number>(8);
+
+  const save = useCallback((presetId: string, radius: number) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ preset: presetId, borderRadius: radius }));
+  }, []);
+
+  const applyPresetColors = useCallback((preset: ThemePreset, mode: 'light' | 'dark') => {
+    const colors: ThemeModeColors = mode === 'dark' ? preset.dark : preset.light;
+    const root = document.documentElement;
+    for (const key of CSS_VARS_TO_APPLY) {
+      root.style.setProperty(`--${key}`, colors[key]);
+    }
+  }, []);
+
+  const applyPresetById = useCallback((presetId: string, notify = true) => {
+    const preset = PRESETS.find(p => p.id === presetId);
+    if (!preset) return;
+    applyPresetColors(preset, resolvedTheme);
+    setActivePreset(presetId);
+    if (notify) {
+      save(presetId, borderRadius);
+      toast.success(`Tema "${preset.name}" aplicado!`);
+    }
+  }, [applyPresetColors, resolvedTheme, borderRadius, save]);
+
+  const applyBorderRadius = useCallback((radius: number) => {
+    document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);
+  }, []);
 
   // Restore saved theme on mount
   useEffect(() => {
@@ -20,7 +49,8 @@ export function useThemePreset() {
         const parsed: ThemeConfig = JSON.parse(saved);
         if (parsed.preset) {
           setActivePreset(parsed.preset);
-          applyPresetById(parsed.preset, false);
+          const preset = PRESETS.find(p => p.id === parsed.preset);
+          if (preset) applyPresetColors(preset, resolvedTheme);
         }
         if (parsed.borderRadius != null) {
           setBorderRadius(parsed.borderRadius);
@@ -28,33 +58,23 @@ export function useThemePreset() {
         }
       } catch { /* corrupted storage */ }
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const save = useCallback((presetId: string, radius: number) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ preset: presetId, borderRadius: radius }));
-  }, []);
-
-  const applyPresetColors = useCallback((preset: ThemePreset) => {
-    const root = document.documentElement;
-    for (const key of CSS_VARS_TO_APPLY) {
-      root.style.setProperty(`--${key}`, preset.colors[key]);
+  // Re-apply when light/dark mode changes
+  useEffect(() => {
+    const preset = PRESETS.find(p => p.id === activePreset);
+    if (preset && activePreset !== 'default') {
+      applyPresetColors(preset, resolvedTheme);
     }
-  }, []);
-
-  const applyPresetById = useCallback((presetId: string, notify = true) => {
-    const preset = PRESETS.find(p => p.id === presetId);
-    if (!preset) return;
-    applyPresetColors(preset);
-    setActivePreset(presetId);
-    if (notify) {
-      save(presetId, borderRadius);
-      toast.success(`Tema "${preset.name}" aplicado!`);
+    // Also re-apply default if it was explicitly chosen
+    if (preset && activePreset === 'default') {
+      // Remove overrides so CSS defaults take over
+      const root = document.documentElement;
+      for (const key of CSS_VARS_TO_APPLY) {
+        root.style.removeProperty(`--${key}`);
+      }
     }
-  }, [applyPresetColors, borderRadius, save]);
-
-  const applyBorderRadius = useCallback((radius: number) => {
-    document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);
-  }, []);
+  }, [resolvedTheme, activePreset, applyPresetColors]);
 
   const handleBorderRadiusChange = useCallback((value: number[]) => {
     const radius = value[0];
@@ -81,7 +101,7 @@ export function useThemePreset() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tema-${activePreset}.json`;
+    a.download = `skin-${activePreset}.json`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Tema exportado!');

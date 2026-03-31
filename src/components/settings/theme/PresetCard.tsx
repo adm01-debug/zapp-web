@@ -25,7 +25,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
       >
         <CardContent className="p-3">
           {/* Color bar preview */}
-          <div className="flex h-6 rounded-md overflow-hidden mb-2.5 ring-1 ring-border/30">
+          <div className="flex h-7 rounded-md overflow-hidden mb-2.5 ring-1 ring-border/30">
             {preset.swatches.map((swatch, i) => (
               <div
                 key={i}
@@ -35,10 +35,13 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
             ))}
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">{preset.name}</p>
-              <p className="text-xs text-muted-foreground leading-tight">{preset.description}</p>
+          <div className="flex items-center justify-between gap-1">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <span>{preset.emoji}</span>
+                <span className="truncate">{preset.name}</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-tight truncate">{preset.description}</p>
             </div>
             {isActive && (
               <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
