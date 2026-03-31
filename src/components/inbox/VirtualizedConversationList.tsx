@@ -18,7 +18,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
+import { openChatPopup } from '@/lib/popupManager';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -208,12 +211,31 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
                 <SentimentEmoji sentiment={sentiment} animated={false} />
               )}
             </div>
-            <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
-              {formatDistanceToNow(conversation.updatedAt, {
-                addSuffix: false,
-                locale: ptBR,
-              })}
-            </span>
+            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+              <span className="text-xs text-muted-foreground">
+                {formatDistanceToNow(conversation.updatedAt, {
+                  addSuffix: false,
+                  locale: ptBR,
+                })}
+              </span>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openChatPopup(conversation.contact.id, conversation.contact.name);
+                      }}
+                      title="Abrir em popup"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="text-xs">Abrir em popup</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">

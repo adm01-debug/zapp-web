@@ -28,7 +28,9 @@ import {
   Search,
   Brain,
   Info,
+  ExternalLink,
 } from 'lucide-react';
+import { openChatPopup } from '@/lib/popupManager';
 
 interface ChatPanelHeaderProps {
   conversation: Conversation;
@@ -187,6 +189,11 @@ export function ChatPanelHeader({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
+            <DropdownMenuItem onClick={() => openChatPopup(conversation.contact.id, conversation.contact.name)}>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Abrir em popup
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Tag className="w-4 h-4 mr-2" />
               Adicionar tag

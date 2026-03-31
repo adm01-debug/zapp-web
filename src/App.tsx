@@ -41,6 +41,7 @@ const SLAHistory = lazy(() => import("./pages/SLAHistory"));
 const RolesPage = lazy(() => import("./pages/admin/RolesPage"));
 const RateLimitDashboard = lazy(() => import("./pages/admin/RateLimitDashboard"));
 const Install = lazy(() => import("./pages/Install"));
+const ChatPopup = lazy(() => import("./pages/ChatPopup"));
 
 // Route loading fallback component
 function RouteLoadingFallback() {
@@ -123,6 +124,7 @@ function AppContent() {
             <Route path="/auth/callback" element={<SSOCallback />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/chat-popup/:contactId" element={<ProtectedRoute><ChatPopup /></ProtectedRoute>} />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
