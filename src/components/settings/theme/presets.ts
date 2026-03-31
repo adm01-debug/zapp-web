@@ -238,7 +238,7 @@ const buildPreset = (p: PresetParams): ThemePreset => {
     'chat-bubble-sent': `${h} ${s}% ${l}%`,
     'chat-bubble-sent-foreground': '0 0% 100%',
     'chat-bubble-received': `240 5% 15%`,
-    'chat-bubble-received-foreground': `${h} 15% 92%`,
+    'chat-bubble-received-foreground': `${h} 12% 95%`,
     'chat-header': `240 5% 10%`,
     'chat-input-bg': `240 5% 13%`,
     'status-open': `${h} ${s}% ${l}%`,
