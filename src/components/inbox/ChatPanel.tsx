@@ -222,7 +222,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
 
     // Normal send with undo support
-    const messageContent = inputValue.trim();
+    const messageContent = applySignature(inputValue.trim());
     const wasReply = replyToMessage;
 
     setIsSending(true);
