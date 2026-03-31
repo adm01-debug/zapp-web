@@ -42,6 +42,7 @@ import {
   Plus,
   Zap,
   Loader2,
+  PenTool,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
