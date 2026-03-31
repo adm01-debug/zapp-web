@@ -43,9 +43,9 @@ export function useMessageSignature() {
   }, []);
 
   const applySignature = useCallback((content: string): string => {
-    if (!signatureEnabled || !agentName) return content;
-    return `*${agentName}:*\n${content}`;
-  }, [signatureEnabled, agentName]);
+    if (!signatureEnabled || !agentSignature) return content;
+    return `*${agentSignature}:*\n${content}`;
+  }, [signatureEnabled, agentSignature]);
 
-  return { signatureEnabled, agentName, toggleSignature, applySignature };
+  return { signatureEnabled, agentName: agentSignature, toggleSignature, applySignature };
 }
