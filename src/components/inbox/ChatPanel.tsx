@@ -808,6 +808,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme}
           onSendCustomEmoji={handleSendCustomEmoji}
+          signatureEnabled={signatureEnabled}
+          signatureName={agentName}
+          onToggleSignature={toggleSignature}
           onPollSent={async (poll) => {
             await supabase.from('messages').insert({
               contact_id: conversation.contact.id,
