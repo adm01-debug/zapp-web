@@ -165,14 +165,25 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
               {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
             </AvatarFallback>
           </Avatar>
-          <span
-            className={cn(
-              'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-sidebar',
-              statusColors[conversation.status]
-            )}
-          >
-            <StatusIcon className="w-2.5 h-2.5 text-primary-foreground" />
-          </span>
+          {/* Agent mini avatar */}
+          {conversation.assignedTo && (
+            <Avatar className="absolute -bottom-1 -right-1 w-5 h-5 ring-2 ring-sidebar">
+              <AvatarImage src={conversation.assignedTo.avatar} />
+              <AvatarFallback className="bg-secondary text-secondary-foreground text-[8px] font-bold">
+                {conversation.assignedTo.name[0]}
+              </AvatarFallback>
+            </Avatar>
+          )}
+          {!conversation.assignedTo && (
+            <span
+              className={cn(
+                'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-sidebar',
+                statusColors[conversation.status]
+              )}
+            >
+              <StatusIcon className="w-2.5 h-2.5 text-primary-foreground" />
+            </span>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
