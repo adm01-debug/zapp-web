@@ -9,99 +9,115 @@ import { toast } from 'sonner';
 import { Palette, RotateCcw, Download, Upload, Check, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 
+interface PresetColors {
+  primary: string;
+  'primary-glow': string;
+  secondary: string;
+  accent: string;
+  'accent-foreground': string;
+  ring: string;
+  'sidebar-primary': string;
+  'sidebar-accent': string;
+  'sidebar-accent-foreground': string;
+  'sidebar-ring': string;
+  'chat-bubble-sent': string;
+  'status-open': string;
+  unread: string;
+  xp: string;
+  'gradient-primary': string;
+  'gradient-secondary': string;
+  'gradient-xp': string;
+  'gradient-vibrant': string;
+  'gradient-purple-green': string;
+  'shadow-glow-primary': string;
+  'shadow-glow-secondary': string;
+  'shadow-glow-accent': string;
+  'shadow-glow-purple': string;
+  'glass-border': string;
+  'chart-1': string;
+  'chart-9': string;
+  'chart-status-open': string;
+}
+
 interface ThemePreset {
   id: string;
   name: string;
   description: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-    background: string;
-    foreground: string;
-    muted: string;
-  };
+  hue: number;
+  colors: PresetColors;
+  swatches: [string, string, string];
 }
 
+const makePreset = (
+  id: string,
+  name: string,
+  description: string,
+  hue: number,
+  sat: number,
+  light: number,
+  glowHue: number,
+  secHue: number,
+  secSat: number,
+): ThemePreset => ({
+  id,
+  name,
+  description,
+  hue,
+  swatches: [
+    `hsl(${hue} ${sat}% ${light}%)`,
+    `hsl(${secHue} ${secSat}% 50%)`,
+    `hsl(240 6% 6%)`,
+  ],
+  colors: {
+    primary: `${hue} ${sat}% ${light}%`,
+    'primary-glow': `${glowHue} ${sat + 3}% ${light + 6}%`,
+    secondary: `${secHue} ${secSat}% 67%`,
+    accent: `${hue} 55% 20%`,
+    'accent-foreground': `${hue} ${sat}% 78%`,
+    ring: `${hue} ${sat}% ${light}%`,
+    'sidebar-primary': `${hue} ${sat}% ${light}%`,
+    'sidebar-accent': `${hue} 45% 18%`,
+    'sidebar-accent-foreground': `${hue} ${sat}% 78%`,
+    'sidebar-ring': `${hue} ${sat}% ${light}%`,
+    'chat-bubble-sent': `${hue} ${sat}% ${light}%`,
+    'status-open': `${hue} ${sat}% ${light}%`,
+    unread: `${hue} ${sat}% ${light}%`,
+    xp: `${hue} ${sat}% ${light}%`,
+    'gradient-primary': `linear-gradient(135deg, hsl(${hue} ${sat}% ${light}%), hsl(${glowHue} ${sat - 7}% ${light - 2}%))`,
+    'gradient-secondary': `linear-gradient(135deg, hsl(${secHue} ${secSat}% 67%), hsl(${glowHue} ${secSat - 10}% 65%))`,
+    'gradient-xp': `linear-gradient(90deg, hsl(${hue} ${sat}% ${light}%), hsl(${glowHue} ${sat - 7}% ${light + 4}%))`,
+    'gradient-vibrant': `linear-gradient(135deg, hsl(${hue} ${sat}% ${light}%), hsl(210 90% 62%), hsl(${glowHue} ${sat - 7}% ${light + 4}%))`,
+    'gradient-purple-green': `linear-gradient(135deg, hsl(${hue} ${sat}% ${light}%), hsl(155 75% 48%))`,
+    'shadow-glow-primary': `0 4px 24px hsl(${hue} ${sat}% ${light}% / 0.35)`,
+    'shadow-glow-secondary': `0 4px 24px hsl(${secHue} ${secSat}% 67% / 0.3)`,
+    'shadow-glow-accent': `0 4px 24px hsl(${glowHue} ${sat - 7}% ${light + 4}% / 0.3)`,
+    'shadow-glow-purple': `0 4px 24px hsl(${hue} ${sat}% ${light}% / 0.4)`,
+    'glass-border': `${hue} 45% 28% / 0.35`,
+    'chart-1': `${hue} ${sat}% ${light}%`,
+    'chart-9': `${glowHue} ${sat - 7}% 65%`,
+    'chart-status-open': `${hue} ${sat}% ${light}%`,
+  },
+});
+
 const PRESETS: ThemePreset[] = [
-  {
-    id: 'default',
-    name: 'Padrão',
-    description: 'Tema original do sistema',
-    colors: {
-      primary: '262 83% 58%',
-      secondary: '240 4% 16%',
-      accent: '262 83% 58%',
-      background: '240 10% 4%',
-      foreground: '0 0% 98%',
-      muted: '240 4% 16%',
-    },
-  },
-  {
-    id: 'corporate',
-    name: 'Corporativo',
-    description: 'Profissional e sóbrio',
-    colors: {
-      primary: '221 83% 53%',
-      secondary: '215 20% 16%',
-      accent: '221 83% 53%',
-      background: '222 47% 6%',
-      foreground: '210 40% 98%',
-      muted: '217 19% 16%',
-    },
-  },
-  {
-    id: 'emerald',
-    name: 'Esmeralda',
-    description: 'Verde sofisticado',
-    colors: {
-      primary: '160 84% 39%',
-      secondary: '160 20% 14%',
-      accent: '160 84% 39%',
-      background: '160 30% 4%',
-      foreground: '0 0% 98%',
-      muted: '160 10% 16%',
-    },
-  },
-  {
-    id: 'sunset',
-    name: 'Pôr do Sol',
-    description: 'Quente e acolhedor',
-    colors: {
-      primary: '25 95% 53%',
-      secondary: '20 15% 16%',
-      accent: '25 95% 53%',
-      background: '20 14% 4%',
-      foreground: '0 0% 98%',
-      muted: '20 10% 16%',
-    },
-  },
-  {
-    id: 'rose',
-    name: 'Rosé',
-    description: 'Elegante e moderno',
-    colors: {
-      primary: '346 77% 50%',
-      secondary: '340 15% 16%',
-      accent: '346 77% 50%',
-      background: '340 20% 4%',
-      foreground: '0 0% 98%',
-      muted: '340 10% 16%',
-    },
-  },
-  {
-    id: 'minimal',
-    name: 'Minimal',
-    description: 'Clean e neutro',
-    colors: {
-      primary: '0 0% 45%',
-      secondary: '0 0% 14%',
-      accent: '0 0% 50%',
-      background: '0 0% 4%',
-      foreground: '0 0% 95%',
-      muted: '0 0% 14%',
-    },
-  },
+  makePreset('default', 'Padrão', 'Roxo vibrante original', 254, 92, 62, 260, 260, 90),
+  makePreset('corporate', 'Corporativo', 'Azul profissional', 221, 83, 53, 230, 215, 70),
+  makePreset('emerald', 'Esmeralda', 'Verde sofisticado', 160, 84, 45, 170, 145, 70),
+  makePreset('sunset', 'Pôr do Sol', 'Quente e acolhedor', 25, 95, 53, 35, 15, 80),
+  makePreset('rose', 'Rosé', 'Elegante e moderno', 346, 77, 50, 355, 330, 70),
+  makePreset('minimal', 'Minimal', 'Clean e neutro', 220, 15, 50, 220, 220, 10),
+  makePreset('ocean', 'Oceano', 'Azul profundo', 200, 85, 55, 210, 190, 75),
+  makePreset('amber', 'Âmbar', 'Dourado e premium', 38, 92, 50, 45, 30, 80),
+];
+
+const CSS_VARS_TO_APPLY: (keyof PresetColors)[] = [
+  'primary', 'primary-glow', 'secondary', 'accent', 'accent-foreground',
+  'ring', 'sidebar-primary', 'sidebar-accent', 'sidebar-accent-foreground',
+  'sidebar-ring', 'chat-bubble-sent', 'status-open', 'unread', 'xp',
+  'gradient-primary', 'gradient-secondary', 'gradient-xp', 'gradient-vibrant',
+  'gradient-purple-green', 'shadow-glow-primary', 'shadow-glow-secondary',
+  'shadow-glow-accent', 'shadow-glow-purple', 'glass-border',
+  'chart-1', 'chart-9', 'chart-status-open',
 ];
 
 const STORAGE_KEY = 'theme-custom-colors';
@@ -129,8 +145,11 @@ export function ThemeCustomizer() {
     if (!preset) return;
 
     const root = document.documentElement;
-    root.style.setProperty('--primary', preset.colors.primary);
-    root.style.setProperty('--accent', preset.colors.accent);
+
+    // Apply ALL CSS variables from the preset
+    for (const key of CSS_VARS_TO_APPLY) {
+      root.style.setProperty(`--${key}`, preset.colors[key]);
+    }
 
     setActivePreset(presetId);
     if (save) {
@@ -152,9 +171,11 @@ export function ThemeCustomizer() {
 
   const resetTheme = () => {
     localStorage.removeItem(STORAGE_KEY);
-    document.documentElement.style.removeProperty('--primary');
-    document.documentElement.style.removeProperty('--accent');
-    document.documentElement.style.removeProperty('--radius');
+    const root = document.documentElement;
+    for (const key of CSS_VARS_TO_APPLY) {
+      root.style.removeProperty(`--${key}`);
+    }
+    root.style.removeProperty('--radius');
     setActivePreset('default');
     setBorderRadius(8);
     toast.success('Tema restaurado ao padrão!');
@@ -176,9 +197,7 @@ export function ThemeCustomizer() {
       try {
         const text = await file.text();
         const config = JSON.parse(text);
-        if (config.preset) {
-          applyPreset(config.preset);
-        }
+        if (config.preset) applyPreset(config.preset);
         if (config.borderRadius) {
           setBorderRadius(config.borderRadius);
           applyBorderRadius(config.borderRadius);
@@ -241,7 +260,7 @@ export function ThemeCustomizer() {
       </Card>
 
       {/* Presets Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {PRESETS.map((preset) => (
           <motion.div
             key={preset.id}
@@ -258,20 +277,14 @@ export function ThemeCustomizer() {
             >
               <CardContent className="p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  {/* Color swatches */}
                   <div className="flex -space-x-1">
-                    <div
-                      className="w-5 h-5 rounded-full border-2 border-background"
-                      style={{ backgroundColor: `hsl(${preset.colors.primary})` }}
-                    />
-                    <div
-                      className="w-5 h-5 rounded-full border-2 border-background"
-                      style={{ backgroundColor: `hsl(${preset.colors.secondary})` }}
-                    />
-                    <div
-                      className="w-5 h-5 rounded-full border-2 border-background"
-                      style={{ backgroundColor: `hsl(${preset.colors.background})` }}
-                    />
+                    {preset.swatches.map((swatch, i) => (
+                      <div
+                        key={i}
+                        className="w-5 h-5 rounded-full border-2 border-background"
+                        style={{ backgroundColor: swatch }}
+                      />
+                    ))}
                   </div>
                   {activePreset === preset.id && (
                     <Check className="w-4 h-4 text-primary ml-auto" />
@@ -289,7 +302,7 @@ export function ThemeCustomizer() {
       <Card className="border-secondary/30">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm">Raio da Borda</CardTitle>
-          <CardDescription className="text-xs">Ajuste a arredondamento dos elementos</CardDescription>
+          <CardDescription className="text-xs">Ajuste o arredondamento dos elementos</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
@@ -303,7 +316,6 @@ export function ThemeCustomizer() {
             />
             <Badge variant="outline" className="min-w-[3rem] justify-center">{borderRadius}px</Badge>
           </div>
-          {/* Preview */}
           <div className="flex gap-3 mt-4">
             <div
               className="w-16 h-10 bg-primary flex items-center justify-center text-primary-foreground text-xs"
