@@ -83,7 +83,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
     >
       {/* Avatar with channel badge */}
       <div className="relative mb-3">
-        <Avatar className="w-20 h-20 ring-2 ring-border/30 ring-offset-2 ring-offset-background">
+        <Avatar className="w-24 h-24 ring-2 ring-border/30 ring-offset-2 ring-offset-background">
           <AvatarImage src={contact.avatar} />
           <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
             {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
