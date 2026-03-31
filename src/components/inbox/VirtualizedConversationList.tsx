@@ -91,12 +91,21 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
                 {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
             </Avatar>
-            <span
-              className={cn(
-                'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-1 ring-sidebar',
-                statusColors[conversation.status]
-              )}
-            />
+            {conversation.assignedTo ? (
+              <Avatar className="absolute -bottom-0.5 -right-0.5 w-4 h-4 ring-1 ring-sidebar">
+                <AvatarImage src={conversation.assignedTo.avatar} />
+                <AvatarFallback className="bg-secondary text-secondary-foreground text-[7px] font-bold">
+                  {conversation.assignedTo.name[0]}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <span
+                className={cn(
+                  'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-1 ring-sidebar',
+                  statusColors[conversation.status]
+                )}
+              />
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
