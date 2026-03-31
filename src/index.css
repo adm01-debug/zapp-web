@@ -293,7 +293,7 @@ html, body, #root {
     
     /* ===== MUTED ===== */
     --muted: 240 5% 15%;
-    --muted-foreground: 223 8% 52%;
+    --muted-foreground: 223 10% 65%;
     
     /* ===== ACCENT ===== */
     --accent: 254 55% 20%;
