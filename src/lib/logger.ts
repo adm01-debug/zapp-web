@@ -1,5 +1,5 @@
-// Centralized logging utility for development and production
-// Logs are automatically stripped in production builds
+// Centralized logging utility with correlation IDs and structured output
+// Logs are automatically filtered in production builds
 
 const isDev = import.meta.env.DEV;
 
@@ -7,7 +7,21 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogContext {
   module?: string;
+  correlationId?: string;
   [key: string]: unknown;
+}
+
+// Session-level correlation ID for tracing across the app lifetime
+const sessionId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+// Per-request correlation ID generator
+let requestCounter = 0;
+export function generateCorrelationId(prefix = 'req'): string {
+  return `${prefix}_${++requestCounter}_${Date.now().toString(36)}`;
+}
+
+export function getSessionId(): string {
+  return sessionId;
 }
 
 class Logger {
@@ -17,13 +31,12 @@ class Logger {
     this.module = module;
   }
 
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
+  private formatMessage(level: LogLevel, message: string): string {
     const timestamp = new Date().toISOString();
-    return `[${timestamp}] [${level.toUpperCase()}] [${this.module}] ${message}`;
+    return `[${timestamp}] [${level.toUpperCase()}] [${this.module}] [sid:${sessionId.slice(0, 8)}] ${message}`;
   }
 
   private shouldLog(level: LogLevel): boolean {
-    // In production, only log warnings and errors
     if (!isDev && (level === 'debug' || level === 'info')) {
       return false;
     }
@@ -48,6 +61,17 @@ class Logger {
   error(message: string, ...args: unknown[]): void {
     if (!this.shouldLog('error')) return;
     console.error(this.formatMessage('error', message), ...args);
+  }
+
+  /** Log with explicit correlation ID for request tracing */
+  withCorrelation(correlationId: string) {
+    const self = this;
+    return {
+      debug: (msg: string, ...a: unknown[]) => self.debug(`[cid:${correlationId}] ${msg}`, ...a),
+      info: (msg: string, ...a: unknown[]) => self.info(`[cid:${correlationId}] ${msg}`, ...a),
+      warn: (msg: string, ...a: unknown[]) => self.warn(`[cid:${correlationId}] ${msg}`, ...a),
+      error: (msg: string, ...a: unknown[]) => self.error(`[cid:${correlationId}] ${msg}`, ...a),
+    };
   }
 }
 
@@ -80,7 +104,7 @@ export function logPerformance(label: string, fn: () => void): void {
   const start = performance.now();
   fn();
   const end = performance.now();
-  console.debug(`[PERF] ${label}: ${(end - start).toFixed(2)}ms`);
+  console.debug(`[PERF] [sid:${sessionId.slice(0, 8)}] ${label}: ${(end - start).toFixed(2)}ms`);
 }
 
 // Async performance logging
@@ -92,6 +116,6 @@ export async function logAsyncPerformance<T>(label: string, fn: () => Promise<T>
   const start = performance.now();
   const result = await fn();
   const end = performance.now();
-  console.debug(`[PERF] ${label}: ${(end - start).toFixed(2)}ms`);
+  console.debug(`[PERF] [sid:${sessionId.slice(0, 8)}] ${label}: ${(end - start).toFixed(2)}ms`);
   return result;
 }
