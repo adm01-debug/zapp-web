@@ -138,7 +138,14 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
 
       {/* Engagement Score */}
       <div className="mt-3">
-        <EngagementScore score={enrichedData?.engagement_score ?? 65} />
+        <EngagementScore score={(() => {
+          let s = 50;
+          if (enrichedData?.ai_sentiment === 'positive') s += 25;
+          if (enrichedData?.ai_priority === 'high') s += 15;
+          if (enrichedData?.company) s += 5;
+          if (enrichedData?.contact_type === 'customer') s += 5;
+          return Math.min(s, 100);
+        })()} />
       </div>
 
       {/* Action buttons */}
