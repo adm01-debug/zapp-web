@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { log } from '@/lib/logger';
 import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
@@ -29,6 +30,32 @@ interface ContactDetailsProps {
 export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
   const { contact } = conversation;
   const { enrichedData, aiTags, slaInfo } = useContactEnrichedData(contact.id);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Esc to close (only if not typing in an input)
+      if (e.key === 'Escape' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        onClose();
+      }
+      // Ctrl+N → focus notes accordion
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && panelRef.current) {
+        e.preventDefault();
+        const notesArea = panelRef.current.querySelector('textarea');
+        notesArea?.focus();
+        toast.info('📝 Notas Privadas');
+      }
+      // Ctrl+T → focus tags section  
+      if ((e.ctrlKey || e.metaKey) && e.key === 't' && panelRef.current) {
+        e.preventDefault();
+        toast.info('🏷️ Seção de Tags');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   const handleQuickAction = (action: string) => {
     switch (action) {

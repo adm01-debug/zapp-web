@@ -143,6 +143,26 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
               <Button
                 variant="outline"
                 size="sm"
+                className="border-border/30 hover:border-success/50 hover:bg-success/10 transition-all"
+                onClick={() => {
+                  const cleanPhone = contact.phone.replace(/\D/g, '');
+                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                }}
+              >
+                <MessageSquare className="w-4 h-4 mr-1 text-success" />
+                WhatsApp
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Abrir conversa no WhatsApp</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
                 className="border-border/30 hover:border-primary/50 hover:bg-primary/10 transition-all"
                 onClick={() => copyToClipboard(contact.phone, 'Telefone')}
               >
