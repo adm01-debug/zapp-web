@@ -136,6 +136,11 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
         )}
       </div>
 
+      {/* Engagement Score */}
+      <div className="mt-3">
+        <EngagementScore score={enrichedData?.engagement_score ?? 65} />
+      </div>
+
       {/* Action buttons */}
       <div className="flex items-center gap-2 mt-4">
         <TooltipProvider>
