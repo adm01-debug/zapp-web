@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
+import { EngagementScore } from './EngagementScore';
 
 // Channel icons mapping
 const channelIcons: Record<string, string> = {
