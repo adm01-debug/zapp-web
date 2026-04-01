@@ -367,6 +367,73 @@ function AddressLine({ address }: { address: Contact360Data['company_address'] }
   );
 }
 
+function BehaviorRadar({ decisionPower, formalityLevel, discProfile }: {
+  decisionPower: number;
+  formalityLevel: number;
+  discProfile?: string | null;
+}) {
+  // Normalize to 0-1 scale
+  const dp = decisionPower / 10;
+  const fl = formalityLevel / 5;
+  // DISC maps to a "dominance" visual axis
+  const discMap: Record<string, number> = { D: 1, I: 0.8, S: 0.5, C: 0.7 };
+  const ds = discProfile ? (discMap[discProfile.charAt(0)] ?? 0.5) : 0.5;
+
+  const cx = 48, cy = 48, r = 36;
+  const axes = [
+    { angle: -90, value: dp, label: 'D' },
+    { angle: 30, value: fl, label: 'F' },
+    { angle: 150, value: ds, label: 'P' },
+  ];
+
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const getPoint = (angle: number, val: number) => ({
+    x: cx + Math.cos(toRad(angle)) * r * val,
+    y: cy + Math.sin(toRad(angle)) * r * val,
+  });
+
+  const points = axes.map(a => getPoint(a.angle, a.value));
+  const poly = points.map(p => `${p.x},${p.y}`).join(' ');
+  const gridPoints = axes.map(a => getPoint(a.angle, 1));
+  const gridPoly = gridPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+  return (
+    <svg viewBox="0 0 96 96" className="w-full h-full">
+      {/* Grid */}
+      <polygon points={gridPoly} fill="none" stroke="hsl(var(--muted))" strokeWidth="0.5" opacity="0.4" />
+      {axes.map((a, i) => {
+        const ep = getPoint(a.angle, 1);
+        return <line key={i} x1={cx} y1={cy} x2={ep.x} y2={ep.y} stroke="hsl(var(--muted))" strokeWidth="0.5" opacity="0.3" />;
+      })}
+      {/* Filled area */}
+      <motion.polygon
+        points={poly}
+        fill="hsl(var(--primary))"
+        fillOpacity="0.15"
+        stroke="hsl(var(--primary))"
+        strokeWidth="1.5"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      />
+      {/* Points */}
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="hsl(var(--primary))" />
+      ))}
+      {/* Labels */}
+      {axes.map((a, i) => {
+        const lp = getPoint(a.angle, 1.25);
+        return (
+          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="central"
+            className="text-[8px] fill-muted-foreground font-medium">
+            {a.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
 // ========================
 // Main Component
 // ========================
