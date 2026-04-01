@@ -10,6 +10,7 @@ import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
 import { SpeedSelector } from '../SpeedSelector';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { useContactIntelligence } from '@/hooks/useContactIntelligence';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   DropdownMenu,
@@ -75,6 +76,12 @@ export function ChatHeader({
   const crmCustomer = crmData?.found ? crmData.customer : null;
   const crmRfm = crmData?.found ? crmData.rfm : null;
 
+  // Intelligence briefing
+  const { data: intel } = useContactIntelligence(
+    isExternalConfigured ? conversation.contact.phone : undefined
+  );
+  const briefing = intel?.found ? intel.briefing : null;
+
   const rfmSegmentColors: Record<string, string> = {
     Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
     'Loyal Customers': 'bg-blue-500/15 text-blue-600 border-blue-500/30',
@@ -106,9 +113,43 @@ export function ChatHeader({
         </motion.div>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-foreground">
-              {conversation.contact.name}
-            </h3>
+            {briefing ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h3 className="font-semibold text-foreground cursor-help border-b border-dashed border-primary/30">
+                    {conversation.contact.name}
+                  </h3>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="start" className="max-w-[300px] p-3">
+                  <div className="space-y-2 text-xs">
+                    <p className="font-medium text-foreground">{briefing.opening_tip}</p>
+                    {briefing.risk_alert && (
+                      <p className="text-destructive font-medium">{briefing.risk_alert}</p>
+                    )}
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                      <span>Score: <strong className="text-foreground">{briefing.relationship_score ?? '—'}</strong></span>
+                      <span>Etapa: <strong className="text-foreground">{briefing.relationship_stage ?? '—'}</strong></span>
+                      <span>Último: <strong className="text-foreground">{briefing.days_since_last_contact != null ? `${briefing.days_since_last_contact}d` : '—'}</strong></span>
+                      <span>Interações: <strong className="text-foreground">{briefing.total_interactions}</strong></span>
+                      {briefing.vendedor && <span>Vendedor: <strong className="text-foreground">{briefing.vendedor.split(' ').slice(0,2).join(' ')}</strong></span>}
+                      {briefing.rfm_segment && <span>RFM: <strong className="text-foreground">{briefing.rfm_segment}</strong></span>}
+                    </div>
+                    {intel?.rapport?.suggestions && intel.rapport.suggestions.length > 0 && (
+                      <div className="border-t border-border/30 pt-1.5 mt-1">
+                        <p className="text-[10px] text-muted-foreground mb-0.5">Rapport:</p>
+                        {intel.rapport.suggestions.slice(0, 2).map((s, i) => (
+                          <p key={i} className="text-success text-[11px]">{s}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <h3 className="font-semibold text-foreground">
+                {conversation.contact.name}
+              </h3>
+            )}
             <Badge
               variant="outline"
               className={cn(
