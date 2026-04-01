@@ -14,6 +14,7 @@ import { MediaLibraryAdmin } from '@/components/settings/MediaLibraryAdmin';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
 import { GlobalSettingsSection } from '@/components/settings/GlobalSettingsSection';
+import { IntegrationKeysSection } from '@/components/settings/IntegrationKeysSection';
 import { ScheduleSettings } from '@/components/settings/ScheduleSettings';
 import { MessagesSettings } from '@/components/settings/MessagesSettings';
 import { AutomationSettings } from '@/components/settings/AutomationSettings';
