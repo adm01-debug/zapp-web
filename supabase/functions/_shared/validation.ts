@@ -78,26 +78,28 @@ export const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-/** Standard JSON error response */
-export function errorResponse(message: string, status = 400) {
+/** Standard JSON error response (with origin-validated CORS) */
+export function errorResponse(message: string, status = 400, req?: Request) {
+  const headers = req ? getCorsHeaders(req) : corsHeaders;
   return new Response(
     JSON.stringify({ error: message }),
-    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    { status, headers: { ...headers, 'Content-Type': 'application/json' } }
   );
 }
 
-/** Standard JSON success response */
-export function jsonResponse(data: unknown, status = 200) {
+/** Standard JSON success response (with origin-validated CORS) */
+export function jsonResponse(data: unknown, status = 200, req?: Request) {
+  const headers = req ? getCorsHeaders(req) : corsHeaders;
   return new Response(
     JSON.stringify(data),
-    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    { status, headers: { ...headers, 'Content-Type': 'application/json' } }
   );
 }
 
-/** Handle CORS preflight */
+/** Handle CORS preflight with origin validation */
 export function handleCors(req: Request): Response | null {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
   return null;
 }
