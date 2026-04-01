@@ -142,6 +142,27 @@ const SORT_OPTIONS = [
 export function ContactsView() {
   
   const { profile } = useAuth();
+
+  const openContactChat = useCallback((contactId: string) => {
+    const appWindow = window as Window & { __pendingOpenContactId?: string };
+    appWindow.__pendingOpenContactId = contactId;
+
+    if (window.location.hash !== '#inbox') {
+      window.location.hash = 'inbox';
+    } else {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    }
+
+    let attempts = 0;
+    const tryDispatch = () => {
+      attempts++;
+      window.dispatchEvent(new CustomEvent('open-contact-chat', { detail: { contactId } }));
+      if (attempts < 15) {
+        setTimeout(tryDispatch, 200);
+      }
+    };
+    setTimeout(tryDispatch, 150);
+  }, []);
   const feedback = useActionFeedback();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
@@ -735,7 +756,8 @@ export function ContactsView() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.02 }}
-                        className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors"
+                        className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors cursor-pointer"
+                        onClick={() => openContactChat(contact.id)}
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-3">
@@ -818,34 +840,13 @@ export function ContactsView() {
                           </div>
                         </td>
                         <td className="p-4 text-right">
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="w-8 h-8"
-                                onClick={() => {
-                                  const appWindow = window as Window & { __pendingOpenContactId?: string };
-                                  appWindow.__pendingOpenContactId = contact.id;
-
-                                  if (window.location.hash !== '#inbox') {
-                                    window.location.hash = 'inbox';
-                                  } else {
-                                    window.dispatchEvent(new HashChangeEvent('hashchange'));
-                                  }
-
-                                  // Retry dispatching until Inbox mounts and starts listening
-                                  let attempts = 0;
-                                  const tryDispatch = () => {
-                                    attempts++;
-                                    window.dispatchEvent(new CustomEvent('open-contact-chat', { detail: { contactId: contact.id } }));
-                                    if (attempts < 15) {
-                                      setTimeout(tryDispatch, 200);
-                                    }
-                                  };
-
-                                  setTimeout(tryDispatch, 150);
-                                }}
+                                onClick={() => openContactChat(contact.id)}
                                 title="Iniciar conversa"
                               >
                                 <MessageSquare className="w-4 h-4" />
