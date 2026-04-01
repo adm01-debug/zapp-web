@@ -240,7 +240,10 @@ export function ConversationList({
                           )}
                         </div>
 
-                        {/* SLA Indicator */}
+                        {/* CRM company indicator */}
+                        {isExternalConfigured && (
+                          <CRMConversationBadge phone={conversation.contact.phone} />
+                        )}
                         <div className="mt-2">
                           <SLAIndicator
                             firstMessageAt={conversation.createdAt}
