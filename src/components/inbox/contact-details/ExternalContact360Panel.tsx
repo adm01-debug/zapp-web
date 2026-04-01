@@ -79,10 +79,20 @@ function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
     "Can't Lose Them": 'bg-rose-500/15 text-rose-600 border-rose-500/30',
   };
 
+  const barColors: Record<string, string> = {
+    Champions: 'bg-emerald-500', 'Loyal Customers': 'bg-blue-500',
+    'Potential Loyalist': 'bg-sky-500', 'Recent Customers': 'bg-violet-500',
+    Promising: 'bg-indigo-500', 'Need Attention': 'bg-amber-500',
+    'About to Sleep': 'bg-orange-500', 'At Risk': 'bg-red-500',
+    Hibernating: 'bg-gray-500', Lost: 'bg-gray-400',
+    "Can't Lose Them": 'bg-rose-500',
+  };
+
   const color = segmentColors[rfm.segment_code || ''] || 'bg-muted/30 text-muted-foreground border-border/30';
+  const barColor = barColors[rfm.segment_code || ''] || 'bg-primary';
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between">
         <Badge variant="outline" className={cn('text-xs', color)}>
           {rfm.segment_code || 'Sem segmento'}
@@ -93,19 +103,24 @@ function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
           </span>
         )}
       </div>
-      <div className="grid grid-cols-3 gap-1.5">
+      {/* RFM Progress bars */}
+      <div className="space-y-1.5">
         {[
-          { label: 'R', value: rfm.recency_score, tip: 'Recência' },
-          { label: 'F', value: rfm.frequency_score, tip: 'Frequência' },
-          { label: 'M', value: rfm.monetary_score, tip: 'Monetário' },
-        ].map(({ label, value, tip }) => (
-          <div
-            key={label}
-            title={tip}
-            className="flex flex-col items-center bg-muted/20 rounded-lg p-1.5"
-          >
-            <span className="text-[10px] text-muted-foreground uppercase">{label}</span>
-            <span className="text-sm font-medium">{value ?? '—'}</span>
+          { label: 'Recência', abbr: 'R', value: rfm.recency_score },
+          { label: 'Frequência', abbr: 'F', value: rfm.frequency_score },
+          { label: 'Monetário', abbr: 'M', value: rfm.monetary_score },
+        ].map(({ label, abbr, value }) => (
+          <div key={abbr} className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground w-3 font-semibold">{abbr}</span>
+            <div className="flex-1 h-2 bg-muted/30 rounded-full overflow-hidden">
+              <motion.div
+                className={cn('h-full rounded-full', barColor)}
+                initial={{ width: 0 }}
+                animate={{ width: `${((value ?? 0) / 5) * 100}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' as const }}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground w-4 text-right font-medium">{value ?? '—'}</span>
           </div>
         ))}
       </div>
