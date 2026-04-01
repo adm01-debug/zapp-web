@@ -184,11 +184,20 @@ function ContactResultCard({
             {formatCurrency(contact.valor_total_compras)}
           </span>
         )}
-        {contact.rfm_segment && (
-          <Badge variant="outline" className="text-[9px] py-0 px-1">
-            {contact.rfm_segment}
-          </Badge>
-        )}
+        {contact.rfm_segment && (() => {
+          const rfmColors: Record<string, string> = {
+            Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+            'At Risk': 'bg-red-500/15 text-red-600 border-red-500/30',
+            Hibernating: 'bg-gray-500/15 text-gray-500 border-gray-500/30',
+            'Need Attention': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+            Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',
+          };
+          return (
+            <Badge variant="outline" className={cn('text-[9px] py-0 px-1', rfmColors[contact.rfm_segment] || '')}>
+              {contact.rfm_segment}
+            </Badge>
+          );
+        })()}
       </div>
 
       {/* Row 4: Contact info */}
