@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { SLAIndicator } from './SLAIndicator';
-import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { useExternalContact360Batch, CRMBatchResult } from '@/hooks/useExternalContact360Batch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   Search,
@@ -23,21 +23,15 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-/** Small sub-component that enriches a single conversation item with CRM data.
- *  Uses useExternalContact360 which shares React Query cache (10min staleTime).
- *  Only fires when isExternalConfigured is true. */
-function CRMConversationBadge({ phone }: { phone: string }) {
-  const { data } = useExternalContact360(isExternalConfigured ? phone : undefined);
-  if (!data?.found) return null;
-  const companyName = data.company?.nome_fantasia || data.company?.nome_crm;
+/** Renders CRM company badge from pre-fetched batch data (no individual RPC call). */
+function CRMConversationBadge({ crmInfo }: { crmInfo: CRMBatchResult | undefined }) {
+  if (!crmInfo?.company_name) return null;
   return (
     <div className="flex items-center gap-1 mt-0.5">
       <Sparkles className="w-3 h-3 text-primary/60 shrink-0" />
-      {companyName && (
-        <span className="text-[10px] text-primary/70 truncate max-w-[140px]">
-          {companyName}
-        </span>
-      )}
+      <span className="text-[10px] text-primary/70 truncate max-w-[140px]">
+        {crmInfo.company_name}
+      </span>
     </div>
   );
 }
@@ -69,6 +63,13 @@ export function ConversationList({
 }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+
+  // Batch CRM lookup: collect all phones, make 1 single RPC call
+  const allPhones = useMemo(
+    () => conversations.map((c) => c.contact.phone),
+    [conversations]
+  );
+  const { lookup: crmLookup } = useExternalContact360Batch(allPhones);
 
   const filteredConversations = conversations.filter((conv) => {
     const matchesSearch = conv.contact.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -240,9 +241,9 @@ export function ConversationList({
                           )}
                         </div>
 
-                        {/* CRM company indicator */}
+                        {/* CRM company indicator (from batch — 1 RPC for all conversations) */}
                         {isExternalConfigured && (
-                          <CRMConversationBadge phone={conversation.contact.phone} />
+                          <CRMConversationBadge crmInfo={crmLookup(conversation.contact.phone)} />
                         )}
                         <div className="mt-2">
                           <SLAIndicator
