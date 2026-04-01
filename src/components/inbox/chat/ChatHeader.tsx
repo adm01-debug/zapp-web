@@ -167,12 +167,22 @@ export function ChatHeader({
               variant="outline"
               className={cn(
                 'text-[10px] capitalize border',
-                conversation.status === 'open' && 'border-success/50 text-success bg-success/10',
-                conversation.status === 'pending' && 'border-warning/50 text-warning bg-warning/10',
-                conversation.status === 'resolved' && 'border-muted-foreground/50 text-muted-foreground',
-                conversation.status === 'waiting' && 'border-info/50 text-info bg-info/10'
+                // Sentiment-based color override when intel is available
+                briefing?.sentiment === 'positive' && 'border-success/50 text-success bg-success/10',
+                briefing?.sentiment === 'negative' && 'border-destructive/50 text-destructive bg-destructive/10',
+                !briefing?.sentiment && conversation.status === 'open' && 'border-success/50 text-success bg-success/10',
+                !briefing?.sentiment && conversation.status === 'pending' && 'border-warning/50 text-warning bg-warning/10',
+                !briefing?.sentiment && conversation.status === 'resolved' && 'border-muted-foreground/50 text-muted-foreground',
+                !briefing?.sentiment && conversation.status === 'waiting' && 'border-info/50 text-info bg-info/10',
+                briefing?.sentiment === 'neutral' && conversation.status === 'open' && 'border-success/50 text-success bg-success/10',
+                briefing?.sentiment === 'neutral' && conversation.status === 'pending' && 'border-warning/50 text-warning bg-warning/10',
+                briefing?.sentiment === 'neutral' && conversation.status === 'resolved' && 'border-muted-foreground/50 text-muted-foreground',
+                briefing?.sentiment === 'neutral' && conversation.status === 'waiting' && 'border-info/50 text-info bg-info/10',
               )}
             >
+              {briefing?.sentiment && briefing.sentiment !== 'neutral' && (
+                <span className="mr-0.5">{briefing.sentiment === 'positive' ? '😊' : '😟'}</span>
+              )}
               {conversation.status === 'open' ? 'Aberto' : 
                conversation.status === 'pending' ? 'Pendente' :
                conversation.status === 'resolved' ? 'Resolvido' : 'Aguardando'}
