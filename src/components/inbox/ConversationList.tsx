@@ -219,19 +219,10 @@ export function ConversationList({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className={cn(
-                            "font-medium text-sm truncate transition-colors flex items-center gap-1",
+                            "font-medium text-sm truncate transition-colors",
                             isSelected ? "text-primary" : "text-foreground"
                           )}>
                             {conversation.contact.name}
-                            {(() => {
-                              const crm = crmLookup(conversation.contact.phone);
-                              const sentiment = crm?.sentiment;
-                              return sentiment && sentimentEmojis[sentiment] ? (
-                                <span className="text-xs" title={`Sentimento: ${sentiment}`}>
-                                  {sentimentEmojis[sentiment]}
-                                </span>
-                              ) : null;
-                            })()}
                           </span>
                           <span className="text-xs text-muted-foreground flex-shrink-0">
                             {formatDistanceToNow(conversation.updatedAt, {
