@@ -158,6 +158,11 @@ export function VirtualizedRealtimeList({
                           return company ? `${firstName} · ${company}` : firstName;
                         })()}
                       </span>
+                      {conversation.contact.ai_sentiment && conversation.contact.ai_sentiment !== 'neutral' && (
+                        <span className="text-xs flex-shrink-0" title={`Sentimento: ${conversation.contact.ai_sentiment}`}>
+                          {conversation.contact.ai_sentiment === 'positive' ? '😊' : conversation.contact.ai_sentiment === 'negative' ? '😟' : ''}
+                        </span>
+                      )}
                       {conversation.contact.contact_type === 'sicoob_gifts' && (
                         <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 border-teal-600/40 text-teal-600 bg-teal-600/10 flex-shrink-0">
                           Sicoob Gifts
