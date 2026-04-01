@@ -452,31 +452,44 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
         </div>
       )}
 
-      {/* Contact enrichment — cargo, behavior highlights */}
+      {/* Contact enrichment — cargo, behavior with radial chart */}
       {data.contact?.behavior && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
             <Heart className="w-3.5 h-3.5 text-primary" />
             Perfil comportamental
           </h5>
-          <div className="grid grid-cols-2 gap-1.5 text-xs">
-            {data.contact.behavior.discProfile && (
-              <div className="bg-muted/20 rounded-md p-1.5 text-center">
-                <p className="text-[10px] text-muted-foreground">DISC</p>
-                <p className="font-medium">{data.contact.behavior.discProfile}</p>
+          <div className="flex items-center gap-3">
+            {/* Mini radar/radial chart */}
+            <div className="relative w-24 h-24 shrink-0">
+              <BehaviorRadar
+                decisionPower={data.contact.behavior.decisionPower ?? 0}
+                formalityLevel={data.contact.behavior.formalityLevel ?? 0}
+                discProfile={data.contact.behavior.discProfile}
+              />
+            </div>
+            {/* Labels */}
+            <div className="flex-1 space-y-1.5 text-xs">
+              {data.contact.behavior.discProfile && (
+                <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                  <span className="text-muted-foreground">DISC</span>
+                  <Badge variant="outline" className="text-[10px] font-semibold bg-primary/10 text-primary border-primary/20">
+                    {data.contact.behavior.discProfile}
+                  </Badge>
+                </div>
+              )}
+              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                <span className="text-muted-foreground">Canal</span>
+                <span className="font-medium capitalize">{data.contact.behavior.preferredChannel}</span>
               </div>
-            )}
-            <div className="bg-muted/20 rounded-md p-1.5 text-center">
-              <p className="text-[10px] text-muted-foreground">Canal preferido</p>
-              <p className="font-medium capitalize">{data.contact.behavior.preferredChannel}</p>
-            </div>
-            <div className="bg-muted/20 rounded-md p-1.5 text-center">
-              <p className="text-[10px] text-muted-foreground">Poder decisão</p>
-              <p className="font-medium">{data.contact.behavior.decisionPower}/10</p>
-            </div>
-            <div className="bg-muted/20 rounded-md p-1.5 text-center">
-              <p className="text-[10px] text-muted-foreground">Formalidade</p>
-              <p className="font-medium">{data.contact.behavior.formalityLevel}/5</p>
+              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                <span className="text-muted-foreground">Decisão</span>
+                <span className="font-medium">{data.contact.behavior.decisionPower}/10</span>
+              </div>
+              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                <span className="text-muted-foreground">Formalidade</span>
+                <span className="font-medium">{data.contact.behavior.formalityLevel}/5</span>
+              </div>
             </div>
           </div>
         </div>
