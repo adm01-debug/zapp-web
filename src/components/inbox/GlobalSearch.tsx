@@ -616,6 +616,11 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                     <Toggle pressed={activeTypes.has('contact')} onPressedChange={() => toggleType('contact')} size="sm" className="gap-1.5 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
                       <User className="h-3.5 w-3.5" /> Contatos
                     </Toggle>
+                    {isExternalConfigured && (
+                      <Toggle pressed={activeTypes.has('crm')} onPressedChange={() => toggleType('crm')} size="sm" className="gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                        <Sparkles className="h-3.5 w-3.5" /> CRM
+                      </Toggle>
+                    )}
                   </div>
                 </div>
 
