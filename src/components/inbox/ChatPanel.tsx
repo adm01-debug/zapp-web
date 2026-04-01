@@ -16,6 +16,7 @@ import { useUserSettings } from '@/hooks/useUserSettings';
 import { toast } from '@/hooks/use-toast';
 import { useScheduledMessages } from '@/hooks/useScheduledMessages';
 import { useMessageSignature } from '@/hooks/useMessageSignature';
+import { CRMAutoSync } from './CRMAutoSync';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
@@ -713,6 +714,12 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       onDrop={handleDrop}
     >
       <ChatDragOverlay isDraggingOver={isDraggingOver} />
+
+      {/* Auto-sync conversations to CRM when resolved */}
+      <CRMAutoSync
+        conversation={conversation}
+        messageCount={messages.length}
+      />
 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         {!hideHeader && (

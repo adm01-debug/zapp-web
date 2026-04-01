@@ -15,6 +15,7 @@ import { ContactStatsSection } from './contact-details/ContactStatsSection';
 import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
+import { CRMSyncButton } from '../CRMAutoSync';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   Accordion,
@@ -127,14 +128,19 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <div className="w-1 h-5 rounded-full bg-primary" />
           <h3 className="font-semibold text-foreground text-sm">Detalhes do Contato</h3>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="w-7 h-7 hover:bg-destructive/10 hover:text-destructive transition-colors"
-        >
-          <X className="w-3.5 h-3.5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {isExternalConfigured && (
+            <CRMSyncButton conversation={conversation} />
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="w-7 h-7 hover:bg-destructive/10 hover:text-destructive transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </div>
 
       {/* Compact sticky header (appears on scroll) */}
