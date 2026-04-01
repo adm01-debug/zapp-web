@@ -138,8 +138,13 @@ export function SalesPipelineView() {
     setShowDealDialog(true);
   };
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const saveDeal = async () => {
-    if (!formTitle.trim()) return;
+    const errors: Record<string, string> = {};
+    if (!formTitle.trim()) errors.title = 'Título é obrigatório';
+    if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
+    setFormErrors({});
     const payload = {
       title: formTitle,
       value: parseFloat(formValue) || 0,
@@ -409,7 +414,8 @@ export function SalesPipelineView() {
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <Label>Título *</Label>
-              <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Nome do deal" />
+              <Input value={formTitle} onChange={(e) => { setFormTitle(e.target.value); if (formErrors.title) setFormErrors(prev => ({ ...prev, title: '' })); }} placeholder="Nome do deal" className={formErrors.title ? 'border-destructive' : ''} aria-invalid={!!formErrors.title} />
+              {formErrors.title && <p className="text-xs text-destructive mt-1">{formErrors.title}</p>}
             </div>
             <div>
               <Label>Valor (R$)</Label>

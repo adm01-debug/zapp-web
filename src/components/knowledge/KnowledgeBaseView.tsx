@@ -100,8 +100,14 @@ export function KnowledgeBaseView() {
     setShowEditor(true);
   };
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const save = async () => {
-    if (!formTitle.trim() || !formContent.trim()) return;
+    const errors: Record<string, string> = {};
+    if (!formTitle.trim()) errors.title = 'Título é obrigatório';
+    if (!formContent.trim()) errors.content = 'Conteúdo é obrigatório';
+    if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
+    setFormErrors({});
     const payload = {
       title: formTitle,
       content: formContent,
@@ -345,7 +351,8 @@ export function KnowledgeBaseView() {
           <div className="space-y-4">
             <div>
               <Label>Título *</Label>
-              <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Título do artigo" />
+              <Input value={formTitle} onChange={(e) => { setFormTitle(e.target.value); if (formErrors.title) setFormErrors(prev => ({ ...prev, title: '' })); }} placeholder="Título do artigo" className={formErrors.title ? 'border-destructive' : ''} aria-invalid={!!formErrors.title} />
+              {formErrors.title && <p className="text-xs text-destructive mt-1">{formErrors.title}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -364,7 +371,8 @@ export function KnowledgeBaseView() {
             </div>
             <div>
               <Label>Conteúdo *</Label>
-              <Textarea value={formContent} onChange={(e) => setFormContent(e.target.value)} rows={12} placeholder="Escreva o conteúdo do artigo..." className="font-mono text-sm" />
+              <Textarea value={formContent} onChange={(e) => { setFormContent(e.target.value); if (formErrors.content) setFormErrors(prev => ({ ...prev, content: '' })); }} rows={12} placeholder="Escreva o conteúdo do artigo..." className={`font-mono text-sm ${formErrors.content ? 'border-destructive' : ''}`} aria-invalid={!!formErrors.content} />
+              {formErrors.content && <p className="text-xs text-destructive mt-1">{formErrors.content}</p>}
             </div>
           </div>
           <DialogFooter>

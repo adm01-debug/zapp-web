@@ -60,13 +60,23 @@ export function PaymentLinksView() {
     return () => { supabase.removeChannel(channel); };
   }, [fetchData]);
 
-  const createLink = async () => {
-    if (!formTitle.trim() || !formAmount) return;
-    const amount = parseFloat(formAmount);
-    if (isNaN(amount) || amount <= 0) return;
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    // Generate a simple payment URL (in production would integrate with Stripe/payment provider)
-    const paymentUrl = `${window.location.origin}/pay/${crypto.randomUUID().slice(0, 8)}`;
+  const createLink = async () => {
+    const errors: Record<string, string> = {};
+    if (!formTitle.trim()) errors.title = 'Título é obrigatório';
+    if (!formAmount) {
+      errors.amount = 'Valor é obrigatório';
+    } else {
+      const parsed = parseFloat(formAmount);
+      if (isNaN(parsed) || parsed <= 0) errors.amount = 'Valor deve ser maior que zero';
+    }
+    if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
+    setFormErrors({});
+    const amount = parseFloat(formAmount);
+
+    // Generate a secure payment URL token
+    const paymentUrl = `${window.location.origin}/pay/${crypto.randomUUID()}`;
 
     const { error } = await supabase.from('payment_links').insert({
       title: formTitle,
@@ -220,7 +230,8 @@ export function PaymentLinksView() {
           <div className="space-y-4">
             <div>
               <Label>Título *</Label>
-              <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Ex: Plano Mensal" />
+              <Input value={formTitle} onChange={(e) => { setFormTitle(e.target.value); if (formErrors.title) setFormErrors(prev => ({ ...prev, title: '' })); }} placeholder="Ex: Plano Mensal" className={formErrors.title ? 'border-destructive' : ''} aria-invalid={!!formErrors.title} />
+              {formErrors.title && <p className="text-xs text-destructive mt-1">{formErrors.title}</p>}
             </div>
             <div>
               <Label>Descrição</Label>
@@ -229,7 +240,8 @@ export function PaymentLinksView() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Valor (R$) *</Label>
-                <Input type="number" value={formAmount} onChange={(e) => setFormAmount(e.target.value)} placeholder="0,00" />
+                <Input type="number" value={formAmount} onChange={(e) => { setFormAmount(e.target.value); if (formErrors.amount) setFormErrors(prev => ({ ...prev, amount: '' })); }} placeholder="0,00" className={formErrors.amount ? 'border-destructive' : ''} aria-invalid={!!formErrors.amount} />
+                {formErrors.amount && <p className="text-xs text-destructive mt-1">{formErrors.amount}</p>}
               </div>
               <div>
                 <Label>Método</Label>
