@@ -26,6 +26,7 @@ import {
 import { format, subDays, subMonths, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
+import { externalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
 
