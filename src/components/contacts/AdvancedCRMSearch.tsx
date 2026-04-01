@@ -92,7 +92,7 @@ function ContactResultCard({
       )}
       onClick={() => onSelect?.(contact)}
     >
-      {/* Row 1: Name + Score + Sentiment */}
+      {/* Row 1: Name + Score + Sentiment + Status */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
