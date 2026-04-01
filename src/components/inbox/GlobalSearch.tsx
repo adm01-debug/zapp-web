@@ -501,6 +501,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return 'Transcrição';
       case 'message': return 'Texto';
       case 'contact': return 'Contato';
+      case 'crm': return 'CRM';
       case 'action': return 'Ação';
     }
   };
