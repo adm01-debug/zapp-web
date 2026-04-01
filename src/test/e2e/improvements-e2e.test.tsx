@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
-// @ts-expect-error — screen/fireEvent/within come from @testing-library/dom re-exported at runtime
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const { screen, fireEvent, within } = await import('@testing-library/react') as any;
 import { TooltipProvider } from '@/components/ui/tooltip';
 import {
