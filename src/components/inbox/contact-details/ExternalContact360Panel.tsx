@@ -494,17 +494,35 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
       {(data.company_phones?.length > 0 || data.company_emails?.length > 0) && (
         <div className="space-y-1 text-xs">
           {data.company_phones?.slice(0, 3).map((p, i) => (
-            <div key={i} className="flex items-center gap-1.5 text-muted-foreground">
+            <div
+              key={i}
+              className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => {
+                navigator.clipboard.writeText(p.numero_e164 || p.numero);
+                toast.success('Telefone copiado!');
+              }}
+              title="Clique para copiar"
+            >
               <Phone className="w-3 h-3" />
               <span>{p.numero_e164 || p.numero}</span>
               {p.is_whatsapp && <Badge variant="outline" className="text-[9px] py-0 px-1">WhatsApp</Badge>}
               {p.departamento && <span className="text-[10px]">({p.departamento})</span>}
+              <Copy className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />
             </div>
           ))}
           {data.company_emails?.slice(0, 3).map((e, i) => (
-            <div key={i} className="flex items-center gap-1.5 text-muted-foreground">
+            <div
+              key={i}
+              className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => {
+                navigator.clipboard.writeText(e.email);
+                toast.success('Email copiado!');
+              }}
+              title="Clique para copiar"
+            >
               <Mail className="w-3 h-3" />
               <span className="truncate">{e.email}</span>
+              <Copy className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />
             </div>
           ))}
         </div>
