@@ -218,20 +218,12 @@ export function ConversationList({
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-1 min-w-0">
-                            <span className={cn(
-                              "font-medium text-sm truncate transition-colors",
-                              isSelected ? "text-primary" : "text-foreground"
-                            )}>
-                              {conversation.contact.name}
-                            </span>
-                            {(() => {
-                              const crm = crmLookup(conversation.contact.phone);
-                              const sentiment = conversation.contact.ai_sentiment;
-                              const emoji = sentiment ? sentimentEmojis[sentiment] : undefined;
-                              return emoji ? <span className="text-xs shrink-0">{emoji}</span> : null;
-                            })()}
-                          </div>
+                          <span className={cn(
+                            "font-medium text-sm truncate transition-colors",
+                            isSelected ? "text-primary" : "text-foreground"
+                          )}>
+                            {conversation.contact.name}
+                          </span>
                           <span className="text-xs text-muted-foreground flex-shrink-0">
                             {formatDistanceToNow(conversation.updatedAt, {
                               addSuffix: false,
