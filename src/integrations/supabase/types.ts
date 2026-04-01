@@ -4532,36 +4532,6 @@ export type Database = {
       }
     }
     Views: {
-      login_attempts_safe: {
-        Row: {
-          attempt_count: number | null
-          created_at: string | null
-          email: string | null
-          id: string | null
-          last_attempt_at: string | null
-          locked_until: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          attempt_count?: number | null
-          created_at?: string | null
-          email?: string | null
-          id?: string | null
-          last_attempt_at?: string | null
-          locked_until?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          attempt_count?: number | null
-          created_at?: string | null
-          email?: string | null
-          id?: string | null
-          last_attempt_at?: string | null
-          locked_until?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       profiles_public: {
         Row: {
           avatar_url: string | null
@@ -4636,6 +4606,13 @@ export type Database = {
       get_connection_qr_code: {
         Args: { _connection_id: string }
         Returns: string
+      }
+      get_own_lockout_status: {
+        Args: { p_email: string }
+        Returns: {
+          attempt_count: number
+          locked_until: string
+        }[]
       }
       get_own_reset_requests: {
         Args: never
