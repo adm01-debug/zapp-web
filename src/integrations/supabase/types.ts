@@ -4598,6 +4598,7 @@ export type Database = {
           count: number
         }[]
       }
+      get_profile_id_for_user: { Args: { _user_id: string }; Returns: string }
       get_team_profiles: {
         Args: never
         Returns: {
