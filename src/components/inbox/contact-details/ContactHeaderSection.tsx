@@ -248,7 +248,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
       {enrichedData?.job_title && companyName && (
         <p className="text-[10px] text-muted-foreground mt-0.5">{enrichedData.job_title}</p>
       )}
-      <p className="text-xs text-muted-foreground mt-0.5 font-mono">{contact.phone}</p>
+      <p className="text-xs text-muted-foreground mt-0.5 font-mono tracking-tight">{contact.phone}</p>
 
       {/* Badges row */}
       <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
