@@ -4598,6 +4598,10 @@ export type Database = {
           count: number
         }[]
       }
+      get_channel_credentials: {
+        Args: { _connection_id: string }
+        Returns: Json
+      }
       get_connection_instance: {
         Args: { _connection_id: string }
         Returns: string
