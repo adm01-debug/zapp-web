@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Conversation } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { SLAIndicator } from './SLAIndicator';
+import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   Search,
   Filter,
@@ -15,9 +17,30 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  Sparkles,
+  Building,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+/** Small sub-component that enriches a single conversation item with CRM data.
+ *  Uses useExternalContact360 which shares React Query cache (10min staleTime).
+ *  Only fires when isExternalConfigured is true. */
+function CRMConversationBadge({ phone }: { phone: string }) {
+  const { data } = useExternalContact360(isExternalConfigured ? phone : undefined);
+  if (!data?.found) return null;
+  const companyName = data.company?.nome_fantasia || data.company?.nome_crm;
+  return (
+    <div className="flex items-center gap-1 mt-0.5">
+      <Sparkles className="w-3 h-3 text-primary/60 shrink-0" />
+      {companyName && (
+        <span className="text-[10px] text-primary/70 truncate max-w-[140px]">
+          {companyName}
+        </span>
+      )}
+    </div>
+  );
+}
 
 interface ConversationListProps {
   conversations: Conversation[];
