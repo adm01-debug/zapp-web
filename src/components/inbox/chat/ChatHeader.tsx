@@ -116,12 +116,25 @@ export function ChatHeader({
             {briefing ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <h3 className="font-semibold text-foreground cursor-help border-b border-dashed border-primary/30">
+                  <h3 className="font-semibold text-foreground cursor-help border-b border-dashed border-primary/30 flex items-center gap-1.5">
                     {conversation.contact.name}
+                    <Brain className="w-3.5 h-3.5 text-primary/60" />
                   </h3>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" align="start" className="max-w-[300px] p-3">
-                  <div className="space-y-2 text-xs">
+                <TooltipContent
+                  side="bottom"
+                  align="start"
+                  className={cn(
+                    'max-w-[320px] p-3',
+                    briefing.risk_alert && 'border-destructive/50 ring-1 ring-destructive/20'
+                  )}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-2 text-xs"
+                  >
                     <p className="font-medium text-foreground">{briefing.opening_tip}</p>
                     {briefing.risk_alert && (
                       <p className="text-destructive font-medium">{briefing.risk_alert}</p>
@@ -142,7 +155,7 @@ export function ChatHeader({
                         ))}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 </TooltipContent>
               </Tooltip>
             ) : (

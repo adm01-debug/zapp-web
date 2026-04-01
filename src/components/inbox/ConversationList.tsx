@@ -24,6 +24,13 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 /** Renders CRM company badge from pre-fetched batch data (no individual RPC call). */
+const sentimentEmojis: Record<string, string> = {
+  positive: '😊',
+  neutral: '😐',
+  negative: '😟',
+  critical: '🔴',
+};
+
 function CRMConversationBadge({ crmInfo }: { crmInfo: CRMBatchResult | undefined }) {
   if (!crmInfo?.company_name) return null;
   return (
