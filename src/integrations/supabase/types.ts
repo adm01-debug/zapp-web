@@ -4532,6 +4532,36 @@ export type Database = {
       }
     }
     Views: {
+      login_attempts_safe: {
+        Row: {
+          attempt_count: number | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_attempt_at: string | null
+          locked_until: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          last_attempt_at?: string | null
+          locked_until?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          last_attempt_at?: string | null
+          locked_until?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           avatar_url: string | null
