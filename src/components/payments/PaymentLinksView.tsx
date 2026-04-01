@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -134,8 +135,20 @@ export function PaymentLinksView() {
         }
       />
 
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="px-6 pb-4 space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 px-6 pb-4">
+      {!loading && <div className="grid grid-cols-2 md:grid-cols-3 gap-3 px-6 pb-4">
         <Card className="bg-card/50 border-border/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -164,9 +177,10 @@ export function PaymentLinksView() {
             <p className="text-lg font-bold">{links.length}</p>
           </CardContent>
         </Card>
-      </div>
+      </div>}
 
       {/* Links List */}
+      {!loading &&
       <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-3">
         <AnimatePresence>
           {links.map((link) => {
@@ -219,7 +233,7 @@ export function PaymentLinksView() {
             <p className="text-sm">Crie links para enviar aos contatos no chat</p>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Create Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>

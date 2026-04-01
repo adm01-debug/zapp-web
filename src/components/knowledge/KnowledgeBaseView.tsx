@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getLogger } from '@/lib/logger';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const log = getLogger('KnowledgeBaseView');
 import { motion, AnimatePresence } from 'framer-motion';
@@ -199,8 +200,21 @@ export function KnowledgeBaseView() {
         }
       />
 
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="px-6 pb-4 space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+          </div>
+          <Skeleton className="h-10 w-64" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 w-full" />)}
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6 pb-4">
+      {!loading && <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6 pb-4">
         <Card className="bg-card/50 border-border/30">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -245,9 +259,9 @@ export function KnowledgeBaseView() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div>}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 px-6">
+      {!loading && <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 px-6">
         <TabsList>
           <TabsTrigger value="articles">Artigos</TabsTrigger>
           <TabsTrigger value="files">Arquivos</TabsTrigger>
@@ -340,7 +354,7 @@ export function KnowledgeBaseView() {
             )}
           </div>
         </TabsContent>
-      </Tabs>
+      </Tabs>}
 
       {/* Editor Dialog */}
       <Dialog open={showEditor} onOpenChange={setShowEditor}>

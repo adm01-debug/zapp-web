@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getLogger } from '@/lib/logger';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const log = getLogger('SalesPipelineView');
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
@@ -222,8 +223,20 @@ export function SalesPipelineView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-pulse text-muted-foreground">Carregando pipeline...</div>
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+        </div>
+        <div className="flex gap-4 overflow-hidden">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="flex-shrink-0 w-72 space-y-3">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
