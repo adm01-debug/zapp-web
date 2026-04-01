@@ -5,7 +5,7 @@ import {
   Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText, 
   Filter, Clock, History, Tag, Trash2, Command, Plus, UserPlus, 
   Send, Settings, LayoutDashboard, Inbox, Zap, ArrowRight,
-  Image, Video, FileDown, Link2
+  Image, Video, FileDown, Link2, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,12 +26,13 @@ import {
 import { format, subDays, subMonths, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
+import { externalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
 
 interface SearchResult {
   id: string;
-  type: 'message' | 'contact' | 'transcription' | 'action';
+  type: 'message' | 'contact' | 'transcription' | 'action' | 'crm';
   title: string;
   preview: string;
   timestamp: Date;
@@ -40,6 +41,7 @@ interface SearchResult {
   messageType?: string;
   tags?: string[];
   action?: () => void;
+  crmPhone?: string;
 }
 
 interface QuickAction {
@@ -51,7 +53,7 @@ interface QuickAction {
   keywords: string[];
 }
 
-type ResultType = 'message' | 'contact' | 'transcription' | 'action';
+type ResultType = 'message' | 'contact' | 'transcription' | 'action' | 'crm';
 type DateFilter = 'all' | 'today' | '7days' | '30days' | '90days';
 type MediaTypeFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
 
@@ -78,7 +80,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   // Filters
-  const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action']));
+  const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action', 'crm']));
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>('all');
 
@@ -337,6 +339,44 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
         }
       }
 
+      // Search CRM external database
+      if (types.has('crm') && isExternalConfigured && cleanQuery.length >= 3) {
+        try {
+          const { data: crmData } = await externalSupabase.rpc('search_contacts_advanced', {
+            p_search: cleanQuery,
+            p_vendedor: null,
+            p_ramo: null,
+            p_rfm_segment: null,
+            p_estado: null,
+            p_cliente_ativado: null,
+            p_ja_comprou: null,
+            p_sort_by: 'relevance',
+            p_page: 0,
+            p_page_size: 8,
+          });
+          if (crmData?.results) {
+            // Get local contact phones for deduplication
+            const localPhones = new Set(
+              searchResults.filter(r => r.type === 'contact').map(r => r.preview.replace(/\D/g, ''))
+            );
+            crmData.results.forEach((cr: any) => {
+              const phone = cr.phone_primary?.replace(/\D/g, '') || '';
+              if (phone && localPhones.has(phone)) return; // skip duplicates
+              searchResults.push({
+                id: `crm-${cr.contact_id}`,
+                type: 'crm' as const,
+                title: cr.full_name || cr.nome_tratamento || 'Sem nome',
+                preview: [cr.company_name, cr.phone_primary, cr.rfm_segment].filter(Boolean).join(' • '),
+                timestamp: new Date(),
+                crmPhone: cr.phone_primary,
+              });
+            });
+          }
+        } catch (err) {
+          // Silently fail CRM search
+        }
+      }
+
       searchResults.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       setResults(searchResults);
       
@@ -433,6 +473,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return <Mic className="h-4 w-4" />;
       case 'message': return <MessageSquare className="h-4 w-4" />;
       case 'contact': return <User className="h-4 w-4" />;
+      case 'crm': return <Sparkles className="h-4 w-4" />;
       case 'action': return <Zap className="h-4 w-4" />;
     }
   };
@@ -442,6 +483,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return 'bg-warning/10 text-warning';
       case 'message': return 'bg-primary/10 text-primary';
       case 'contact': return 'bg-secondary/10 text-secondary';
+      case 'crm': return 'bg-primary/10 text-primary';
       case 'action': return 'bg-accent/10 text-accent';
     }
   };
@@ -459,6 +501,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return 'Transcrição';
       case 'message': return 'Texto';
       case 'contact': return 'Contato';
+      case 'crm': return 'CRM';
       case 'action': return 'Ação';
     }
   };
@@ -573,6 +616,11 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
                     <Toggle pressed={activeTypes.has('contact')} onPressedChange={() => toggleType('contact')} size="sm" className="gap-1.5 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
                       <User className="h-3.5 w-3.5" /> Contatos
                     </Toggle>
+                    {isExternalConfigured && (
+                      <Toggle pressed={activeTypes.has('crm')} onPressedChange={() => toggleType('crm')} size="sm" className="gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                        <Sparkles className="h-3.5 w-3.5" /> CRM
+                      </Toggle>
+                    )}
                   </div>
                 </div>
 

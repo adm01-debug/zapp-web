@@ -949,10 +949,45 @@ export function ContactsView() {
             </DialogHeader>
             <div className="flex-1 min-h-0">
               <AdvancedCRMSearch
-                onSelectContact={(contact) => {
-                  if (contact.phone_primary) {
+                onSelectContact={async (crmContact) => {
+                  if (!crmContact.phone_primary) return;
+                  
+                  // Check if contact exists locally by phone
+                  const cleanPhone = crmContact.phone_primary.replace(/\D/g, '');
+                  const { data: existing } = await supabase
+                    .from('contacts')
+                    .select('id')
+                    .or(`phone.eq.${crmContact.phone_primary},phone.eq.${cleanPhone}`)
+                    .limit(1);
+                  
+                  if (existing && existing.length > 0) {
+                    // Contact exists locally — open chat
                     setIsCRMSearchOpen(false);
-                    openContactChat(contact.contact_id);
+                    openContactChat(existing[0].id);
+                  } else {
+                    // Import contact from CRM
+                    const { data: newContact, error } = await supabase
+                      .from('contacts')
+                      .insert({
+                        name: crmContact.full_name || crmContact.nome_tratamento || 'Contato CRM',
+                        phone: crmContact.phone_primary,
+                        email: crmContact.email_primary || undefined,
+                        company: crmContact.company_name || undefined,
+                        job_title: crmContact.cargo || undefined,
+                        contact_type: 'cliente',
+                      })
+                      .select('id')
+                      .single();
+                    
+                    if (error) {
+                      toast.error('Erro ao importar contato');
+                      return;
+                    }
+                    toast.success('Contato importado do CRM!');
+                    setIsCRMSearchOpen(false);
+                    if (newContact) {
+                      openContactChat(newContact.id);
+                    }
                   }
                 }}
               />

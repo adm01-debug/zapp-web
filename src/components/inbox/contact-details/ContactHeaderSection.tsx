@@ -13,11 +13,15 @@ import {
   Star,
   Archive,
   MessageSquare,
+  Crown,
+  User,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
 import { EngagementScore } from './EngagementScore';
+import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 
 // Channel icons mapping
 const channelIcons: Record<string, string> = {
@@ -68,6 +72,14 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
     toast.success(`${label} copiado!`);
   };
 
+  // CRM 360° data
+  const { data: crmData } = useExternalContact360(isExternalConfigured ? contact.phone : undefined);
+  const crmContact = crmData?.found ? crmData.contact : null;
+  const crmCompany = crmData?.found ? crmData.company : null;
+  const crmCustomer = crmData?.found ? crmData.customer : null;
+  const isVip = crmContact && crmContact.relationship_score >= 70;
+  const nomeTratamento = crmContact?.nome_tratamento || crmContact?.apelido;
+
   const channelType = enrichedData?.channel_type;
   const channelEmoji = channelType ? channelIcons[channelType] || '💬' : null;
   const sentiment = enrichedData?.ai_sentiment;
@@ -81,23 +93,35 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
       transition={{ delay: 0.1 }}
       className="p-4 flex flex-col items-center text-center border-b border-border"
     >
-      {/* Avatar with channel badge */}
+      {/* Avatar with channel badge and company logo */}
       <div className="relative mb-3">
-        <Avatar className="w-24 h-24 ring-2 ring-border/30 ring-offset-2 ring-offset-background">
-          <AvatarImage src={contact.avatar} />
-          <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
-            {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-          </AvatarFallback>
-        </Avatar>
-        {channelEmoji && (
-          <span className="absolute -bottom-1 -right-1 text-lg bg-card rounded-full p-0.5 ring-2 ring-background">
-            {channelEmoji}
-          </span>
-        )}
+        <div className="relative inline-block">
+          <Avatar className="w-24 h-24 ring-2 ring-border/30 ring-offset-2 ring-offset-background">
+            <AvatarImage src={contact.avatar} />
+            <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
+              {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          {channelEmoji && (
+            <span className="absolute -bottom-1 -right-1 text-lg bg-card rounded-full p-0.5 ring-2 ring-background">
+              {channelEmoji}
+            </span>
+          )}
+          {crmCompany?.logo_url && (
+            <img
+              src={crmCompany.logo_url}
+              alt={crmCompany.nome_fantasia || ''}
+              className="absolute -top-1 -left-1 w-8 h-8 rounded-md object-contain bg-white border border-border/30 ring-2 ring-background"
+            />
+          )}
+        </div>
       </div>
 
-      {/* Name + subtitle */}
+      {/* Name + CRM nome_tratamento */}
       <h4 className="font-semibold text-lg text-foreground">{contact.name}</h4>
+      {nomeTratamento && (
+        <p className="text-xs text-primary/70 italic mt-0.5">"{nomeTratamento}"</p>
+      )}
       {(enrichedData?.job_title || enrichedData?.company) && (
         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
           {enrichedData.job_title && (
@@ -117,8 +141,14 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
       )}
       <p className="text-sm text-muted-foreground mt-0.5">{contact.phone}</p>
 
-      {/* Badges row: type, sentiment, priority */}
+      {/* Badges row: type, sentiment, priority, VIP */}
       <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3">
+        {isVip && (
+          <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30">
+            <Crown className="w-3 h-3 mr-0.5" />
+            Cliente VIP
+          </Badge>
+        )}
         {contactType && contactTypeConfig[contactType] && (
           <Badge variant="outline" className={`text-[10px] ${contactTypeConfig[contactType].color}`}>
             {contactTypeConfig[contactType].label}
@@ -135,6 +165,16 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
           </Badge>
         )}
       </div>
+
+      {/* CRM Vendedor responsável */}
+      {crmCustomer?.vendedor_nome && (
+        <div className="flex items-center gap-1 mt-2">
+          <Badge variant="secondary" className="text-[10px] bg-muted/30 text-muted-foreground">
+            <User className="w-3 h-3 mr-0.5" />
+            {crmCustomer.vendedor_nome}
+          </Badge>
+        </div>
+      )}
 
       {/* Engagement Score */}
       <div className="mt-3">

@@ -8,6 +8,8 @@
  * Can be used standalone or embedded in a Dialog.
  */
 import { useState, useCallback, memo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useAdvancedContactSearch } from '@/hooks/useAdvancedContactSearch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,6 +51,8 @@ import {
   Loader2,
   Filter,
   ArrowUpDown,
+  Download,
+  CheckCircle2,
 } from 'lucide-react';
 import type { SearchContactResult } from '@/types/contactSearch';
 
@@ -88,7 +92,7 @@ function ContactResultCard({
       )}
       onClick={() => onSelect?.(contact)}
     >
-      {/* Row 1: Name + Score + Sentiment */}
+      {/* Row 1: Name + Score + Sentiment + Status */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -104,6 +108,19 @@ function ContactResultCard({
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
+          {contact.cliente_ativado !== null && (
+            <Badge
+              variant="outline"
+              className={cn(
+                'text-[9px] py-0',
+                contact.cliente_ativado
+                  ? 'bg-success/10 text-success border-success/30'
+                  : 'bg-destructive/10 text-destructive border-destructive/30'
+              )}
+            >
+              {contact.cliente_ativado ? 'Ativo' : 'Inativo'}
+            </Badge>
+          )}
           {contact.relationship_score > 0 && (
             <Badge
               variant="outline"
@@ -120,7 +137,9 @@ function ContactResultCard({
             </Badge>
           )}
           {contact.is_whatsapp && (
-            <span className="text-xs" title="WhatsApp disponível">💬</span>
+            <Badge variant="outline" className="text-[9px] py-0 bg-success/10 text-success border-success/30">
+              💬 WhatsApp
+            </Badge>
           )}
         </div>
       </div>
@@ -165,11 +184,20 @@ function ContactResultCard({
             {formatCurrency(contact.valor_total_compras)}
           </span>
         )}
-        {contact.rfm_segment && (
-          <Badge variant="outline" className="text-[9px] py-0 px-1">
-            {contact.rfm_segment}
-          </Badge>
-        )}
+        {contact.rfm_segment && (() => {
+          const rfmColors: Record<string, string> = {
+            Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+            'At Risk': 'bg-red-500/15 text-red-600 border-red-500/30',
+            Hibernating: 'bg-gray-500/15 text-gray-500 border-gray-500/30',
+            'Need Attention': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+            Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',
+          };
+          return (
+            <Badge variant="outline" className={cn('text-[9px] py-0 px-1', rfmColors[contact.rfm_segment] || '')}>
+              {contact.rfm_segment}
+            </Badge>
+          );
+        })()}
       </div>
 
       {/* Row 4: Contact info */}

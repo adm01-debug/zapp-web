@@ -9,6 +9,8 @@ import { TypingIndicatorCompact } from '../TypingIndicator';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
 import { SpeedSelector } from '../SpeedSelector';
+import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +30,8 @@ import {
   Search,
   Brain,
   Info,
+  Building,
+  User,
 } from 'lucide-react';
 
 interface ChatHeaderProps {
@@ -63,6 +67,28 @@ export function ChatHeader({
   onVoiceChange,
   onSpeedChange,
 }: ChatHeaderProps) {
+  // CRM 360° data
+  const { data: crmData } = useExternalContact360(
+    isExternalConfigured ? conversation.contact.phone : undefined
+  );
+  const crmCompany = crmData?.found ? crmData.company : null;
+  const crmCustomer = crmData?.found ? crmData.customer : null;
+  const crmRfm = crmData?.found ? crmData.rfm : null;
+
+  const rfmSegmentColors: Record<string, string> = {
+    Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+    'Loyal Customers': 'bg-blue-500/15 text-blue-600 border-blue-500/30',
+    'At Risk': 'bg-red-500/15 text-red-600 border-red-500/30',
+    Hibernating: 'bg-gray-500/15 text-gray-500 border-gray-500/30',
+    Lost: 'bg-gray-400/15 text-gray-400 border-gray-400/30',
+    "Can't Lose Them": 'bg-rose-500/15 text-rose-600 border-rose-500/30',
+    'Need Attention': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+    Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',
+  };
+
+  const formatCurrency = (v: number | null) =>
+    v != null ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—';
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
@@ -79,7 +105,7 @@ export function ChatHeader({
           </Avatar>
         </motion.div>
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-foreground">
               {conversation.contact.name}
             </h3>
@@ -104,6 +130,51 @@ export function ChatHeader({
               firstResponseMinutes={conversation.priority === 'high' ? 2 : 5}
               resolutionMinutes={conversation.priority === 'high' ? 30 : 60}
             />
+            {/* CRM Badges */}
+            {crmCompany && (
+              <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary">
+                <Building className="w-3 h-3 mr-0.5" />
+                {crmCompany.nome_fantasia || crmCompany.nome_crm}
+              </Badge>
+            )}
+            {crmCustomer?.vendedor_nome && (
+              <Badge variant="outline" className="text-[10px] bg-muted/20 border-border/30">
+                <User className="w-3 h-3 mr-0.5" />
+                {crmCustomer.vendedor_nome.split(' ').slice(0, 2).join(' ')}
+              </Badge>
+            )}
+            {crmRfm?.segment_code && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge
+                    variant="outline"
+                    className={cn('text-[10px]', rfmSegmentColors[crmRfm.segment_code] || 'bg-muted/20')}
+                  >
+                    {crmRfm.segment_code}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  <div className="space-y-1">
+                    <p>Pedidos: {crmCustomer?.total_pedidos ?? 0}</p>
+                    <p>Ticket médio: {formatCurrency(crmCustomer?.ticket_medio ?? null)}</p>
+                    <p>Total compras: {formatCurrency(crmCustomer?.valor_total_compras ?? null)}</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {crmCustomer && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-[10px]',
+                  crmCustomer.cliente_ativado
+                    ? 'bg-success/10 text-success border-success/30'
+                    : 'bg-destructive/10 text-destructive border-destructive/30'
+                )}
+              >
+                {crmCustomer.cliente_ativado ? 'Ativo' : 'Inativo'}
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             {isContactTyping ? (
