@@ -8,7 +8,8 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { verifyJWT } from '../_shared/jwtVerifier.ts';
-import { unauthorized, serverError } from '../_shared/errorResponse.ts';
+import { unauthorized, badRequest, serverError } from '../_shared/errorResponse.ts';
+import { validateRequired, validateStringLength, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const logger = createStructuredLogger('ai-conversation-analysis');
 
@@ -39,13 +40,19 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, contactName } = await req.json();
+    const body = await req.json();
 
-    if (!messages || messages.length < 5) {
-      return new Response(
-        JSON.stringify({ error: 'Conversation must have at least 5 messages for analysis' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      );
+    try {
+      validateRequired(body, ['messages']);
+    } catch (e) {
+      if (e instanceof ValidationError) return validationErrorResponse(e, getCorsHeaders(req));
+      throw e;
+    }
+
+    const { messages, contactName } = body;
+
+    if (!Array.isArray(messages) || messages.length < 5) {
+      return badRequest('Conversation must have at least 5 messages for analysis', getCorsHeaders(req));
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');

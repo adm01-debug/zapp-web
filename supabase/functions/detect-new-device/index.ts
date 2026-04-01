@@ -5,7 +5,8 @@ import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
-import { unauthorized, serverError } from '../_shared/errorResponse.ts';
+import { unauthorized, badRequest, serverError } from '../_shared/errorResponse.ts';
+import { validateRequired, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const logger = createStructuredLogger('detect-new-device');
@@ -62,8 +63,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     logger.info("User authenticated", { userId: user.id });
 
-    // Parse request body
-    const { device_fingerprint, browser, os, device_name }: DeviceCheckRequest = await req.json();
+    // Parse and validate request body
+    const body = await req.json();
+    try {
+      validateRequired(body, ['device_fingerprint', 'browser', 'os', 'device_name']);
+    } catch (e) {
+      if (e instanceof ValidationError) return validationErrorResponse(e, corsHeaders);
+      throw e;
+    }
+    const { device_fingerprint, browser, os, device_name }: DeviceCheckRequest = body;
     
     // Get client IP
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 

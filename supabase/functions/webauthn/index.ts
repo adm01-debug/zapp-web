@@ -5,6 +5,7 @@ import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { badRequest, serverError, errorResponse } from '../_shared/errorResponse.ts';
+import { validateRequired, validateEnum, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const logger = createStructuredLogger('webauthn');
 
@@ -74,7 +75,15 @@ serve(async (req) => {
     // Service role client for DB operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, ...params } = await req.json();
+    const body = await req.json();
+    try {
+      validateRequired(body, ['action']);
+      validateEnum(body.action, 'action', ['register-options', 'register-verify', 'login-options', 'login-verify', 'list-credentials', 'delete-credential']);
+    } catch (e) {
+      if (e instanceof ValidationError) return validationErrorResponse(e, corsHeaders);
+      throw e;
+    }
+    const { action, ...params } = body;
     const origin = req.headers.get('origin') || 'https://localhost';
     const rpId = getRpId(origin);
     const rpName = 'WhatsApp Platform';

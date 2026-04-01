@@ -5,6 +5,7 @@ import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { checkRateLimit, getClientIP, rateLimitResponse } from '../_shared/rateLimiter.ts';
 import { unauthorized, badRequest, notFound, serverError } from '../_shared/errorResponse.ts';
+import { validateRequired, validateUUID, validateEnum, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 const logger = createStructuredLogger('approve-password-reset');
 
@@ -64,7 +65,16 @@ serve(async (req) => {
     // Create admin client for operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { requestId, action, rejectionReason }: ApproveResetRequest = await req.json();
+    const body = await req.json();
+    try {
+      validateRequired(body, ['requestId', 'action']);
+      validateUUID(body.requestId, 'requestId');
+      validateEnum(body.action, 'action', ['approve', 'reject']);
+    } catch (e) {
+      if (e instanceof ValidationError) return validationErrorResponse(e, corsHeaders);
+      throw e;
+    }
+    const { requestId, action, rejectionReason }: ApproveResetRequest = body;
 
     logger.info(`Processing ${action} for request`, { requestId });
 
