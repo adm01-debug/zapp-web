@@ -13,7 +13,8 @@
  * 6. Social media links
  * 7. Company address
  */
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
