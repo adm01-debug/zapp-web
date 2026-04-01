@@ -5,33 +5,31 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import {
   Phone,
   Mail,
-  Copy,
   Building,
   Briefcase,
-  Shield,
   Ban,
   Star,
   Archive,
   MessageSquare,
   Crown,
   User,
+  MoreHorizontal,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
-import { EngagementScore } from './EngagementScore';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-// Channel icons mapping
 const channelIcons: Record<string, string> = {
-  whatsapp: '💬',
-  instagram: '📸',
-  facebook: '📘',
-  telegram: '✈️',
-  email: '📧',
-  sms: '📱',
-  webchat: '🌐',
+  whatsapp: '💬', instagram: '📸', facebook: '📘', telegram: '✈️',
+  email: '📧', sms: '📱', webchat: '🌐',
 };
 
 const sentimentConfig: Record<string, { label: string; color: string; emoji: string }> = {
@@ -64,15 +62,15 @@ interface ContactHeaderSectionProps {
   };
   enrichedData: EnrichedContactData | null | undefined;
   onQuickAction?: (action: string) => void;
+  isCompact?: boolean;
 }
 
-export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: ContactHeaderSectionProps) {
+export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isCompact = false }: ContactHeaderSectionProps) {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
   };
 
-  // CRM 360° data
   const { data: crmData } = useExternalContact360(isExternalConfigured ? contact.phone : undefined);
   const crmContact = crmData?.found ? crmData.contact : null;
   const crmCompany = crmData?.found ? crmData.company : null;
@@ -86,6 +84,88 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
   const priority = enrichedData?.ai_priority;
   const contactType = enrichedData?.contact_type;
 
+  // Engagement score
+  const engagementScore = (() => {
+    let s = 50;
+    if (enrichedData?.ai_sentiment === 'positive') s += 25;
+    if (enrichedData?.ai_priority === 'high') s += 15;
+    if (enrichedData?.company) s += 5;
+    if (enrichedData?.contact_type === 'customer') s += 5;
+    return Math.min(s, 100);
+  })();
+
+  const getScoreColor = (s: number) => {
+    if (s >= 80) return 'hsl(var(--success))';
+    if (s >= 50) return 'hsl(var(--warning))';
+    return 'hsl(var(--destructive))';
+  };
+
+  // First name for display
+  const firstName = contact.name.split(' ')[0];
+  const companyName = crmCompany?.nome_fantasia || enrichedData?.company;
+
+  // =============================================
+  // COMPACT HEADER (shown when scrolled)
+  // =============================================
+  if (isCompact) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card"
+      >
+        <div className="relative">
+          <Avatar className="w-9 h-9 ring-1 ring-border/20">
+            <AvatarImage src={contact.avatar} />
+            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+              {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          {isVip && (
+            <Crown className="w-3 h-3 text-warning absolute -top-0.5 -right-0.5" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-semibold text-foreground truncate">{firstName}</span>
+            {companyName && (
+              <>
+                <span className="text-muted-foreground text-xs">•</span>
+                <span className="text-xs text-muted-foreground truncate">{companyName}</span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-success/10" onClick={() => {
+                  const cleanPhone = contact.phone.replace(/\D/g, '');
+                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                }}>
+                  <MessageSquare className="w-3.5 h-3.5 text-success" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>WhatsApp</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-primary/10" onClick={() => copyToClipboard(contact.phone, 'Telefone')}>
+                  <Phone className="w-3.5 h-3.5 text-primary" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Copiar telefone</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // =============================================
+  // FULL HEADER
+  // =============================================
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -93,15 +173,46 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
       transition={{ delay: 0.1 }}
       className="p-4 flex flex-col items-center text-center border-b border-border"
     >
-      {/* Avatar with channel badge and company logo */}
+      {/* Avatar with channel badge, company logo, and engagement ring */}
       <div className="relative mb-3">
         <div className="relative inline-block">
-          <Avatar className="w-24 h-24 ring-2 ring-border/30 ring-offset-2 ring-offset-background">
+          {/* Engagement ring SVG behind avatar */}
+          <svg className="absolute -inset-1.5 w-[calc(100%+12px)] h-[calc(100%+12px)] -rotate-90" viewBox="0 0 108 108">
+            <circle cx="54" cy="54" r="50" fill="none" stroke="hsl(var(--muted))" strokeWidth="2.5" opacity="0.3" />
+            <motion.circle
+              cx="54" cy="54" r="50"
+              fill="none"
+              stroke={getScoreColor(engagementScore)}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 50}
+              initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
+              animate={{ strokeDashoffset: ((100 - engagementScore) / 100) * 2 * Math.PI * 50 }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            />
+          </svg>
+          <Avatar className="w-24 h-24 ring-2 ring-background">
             <AvatarImage src={contact.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
               {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </AvatarFallback>
           </Avatar>
+          {/* Engagement score badge */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="absolute -bottom-1 -left-1 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ring-2 ring-background"
+                  style={{ backgroundColor: getScoreColor(engagementScore), color: 'white' }}
+                >
+                  {engagementScore}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                Engajamento: {engagementScore >= 80 ? 'Alto' : engagementScore >= 50 ? 'Médio' : 'Baixo'} ({engagementScore}/100)
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {channelEmoji && (
             <span className="absolute -bottom-1 -right-1 text-lg bg-card rounded-full p-0.5 ring-2 ring-background">
               {channelEmoji}
@@ -117,36 +228,34 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
         </div>
       </div>
 
-      {/* Name + CRM nome_tratamento */}
-      <h4 className="font-semibold text-lg text-foreground">{contact.name}</h4>
-      {nomeTratamento && (
-        <p className="text-xs text-primary/70 italic mt-0.5">"{nomeTratamento}"</p>
-      )}
-      {(enrichedData?.job_title || enrichedData?.company) && (
+      {/* Name + Company in a single line hierarchy */}
+      <h4 className="font-semibold text-lg text-foreground leading-tight">{firstName}</h4>
+      {companyName && (
         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-          {enrichedData.job_title && (
-            <>
-              <Briefcase className="w-3 h-3" />
-              {enrichedData.job_title}
-            </>
-          )}
-          {enrichedData.job_title && enrichedData.company && <span>•</span>}
-          {enrichedData.company && (
-            <>
-              <Building className="w-3 h-3" />
-              {enrichedData.company}
-            </>
-          )}
+          <Building className="w-3 h-3" />
+          {companyName}
         </p>
       )}
-      <p className="text-sm text-muted-foreground mt-0.5">{contact.phone}</p>
+      {nomeTratamento && (
+        <p className="text-[10px] text-primary/70 italic mt-0.5">"{nomeTratamento}"</p>
+      )}
+      {(enrichedData?.job_title && !companyName) && (
+        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+          <Briefcase className="w-3 h-3" />
+          {enrichedData.job_title}
+        </p>
+      )}
+      {enrichedData?.job_title && companyName && (
+        <p className="text-[10px] text-muted-foreground mt-0.5">{enrichedData.job_title}</p>
+      )}
+      <p className="text-xs text-muted-foreground mt-0.5 font-mono">{contact.phone}</p>
 
-      {/* Badges row: type, sentiment, priority, VIP */}
-      <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3">
+      {/* Badges row */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
         {isVip && (
           <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30">
             <Crown className="w-3 h-3 mr-0.5" />
-            Cliente VIP
+            VIP
           </Badge>
         )}
         {contactType && contactTypeConfig[contactType] && (
@@ -161,133 +270,90 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
         )}
         {priority && priorityConfig[priority] && (
           <Badge variant="outline" className={`text-[10px] ${priorityConfig[priority].color}`}>
-            {priorityConfig[priority].label} Prioridade
+            {priorityConfig[priority].label}
           </Badge>
         )}
       </div>
 
-      {/* CRM Vendedor responsável */}
+      {/* Vendedor responsável */}
       {crmCustomer?.vendedor_nome && (
-        <div className="flex items-center gap-1 mt-2">
-          <Badge variant="secondary" className="text-[10px] bg-muted/30 text-muted-foreground">
-            <User className="w-3 h-3 mr-0.5" />
-            {crmCustomer.vendedor_nome}
-          </Badge>
-        </div>
+        <Badge variant="secondary" className="text-[10px] bg-muted/30 text-muted-foreground mt-1.5">
+          <User className="w-3 h-3 mr-0.5" />
+          {crmCustomer.vendedor_nome}
+        </Badge>
       )}
 
-      {/* Engagement Score */}
-      <div className="mt-3">
-        <EngagementScore score={(() => {
-          let s = 50;
-          if (enrichedData?.ai_sentiment === 'positive') s += 25;
-          if (enrichedData?.ai_priority === 'high') s += 15;
-          if (enrichedData?.company) s += 5;
-          if (enrichedData?.contact_type === 'customer') s += 5;
-          return Math.min(s, 100);
-        })()} />
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex items-center gap-2 mt-4">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-border/30 hover:border-success/50 hover:bg-success/10 transition-all"
-                onClick={() => {
-                  const cleanPhone = contact.phone.replace(/\D/g, '');
-                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
-                }}
-              >
-                <MessageSquare className="w-4 h-4 mr-1 text-success" />
-                WhatsApp
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Abrir conversa no WhatsApp</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-border/30 hover:border-primary/50 hover:bg-primary/10 transition-all"
-                onClick={() => copyToClipboard(contact.phone, 'Telefone')}
-              >
-                <Phone className="w-4 h-4 mr-1 text-primary" />
-                Ligar
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Copiar telefone</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-border/30 hover:border-primary/50 hover:bg-primary/10 transition-all"
-                onClick={() => contact.email && copyToClipboard(contact.email, 'Email')}
-                disabled={!contact.email}
-              >
-                <Mail className="w-4 h-4 mr-1 text-primary" />
-                Email
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{contact.email || 'Sem email'}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-
-      {/* Quick actions row */}
+      {/* Action icons row - compact */}
       <div className="flex items-center gap-1 mt-3">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="w-8 h-8 hover:bg-warning/10 hover:text-warning"
-                onClick={() => onQuickAction?.('vip')}
+                className="w-9 h-9 border-border/30 hover:border-success/50 hover:bg-success/10"
+                onClick={() => {
+                  const cleanPhone = contact.phone.replace(/\D/g, '');
+                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                }}
               >
-                <Star className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4 text-success" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Marcar VIP</TooltipContent>
+            <TooltipContent>WhatsApp</TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="w-8 h-8 hover:bg-muted hover:text-muted-foreground"
-                onClick={() => onQuickAction?.('archive')}
+                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                onClick={() => copyToClipboard(contact.phone, 'Telefone')}
               >
-                <Archive className="w-4 h-4" />
+                <Phone className="w-4 h-4 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Arquivar contato</TooltipContent>
+            <TooltipContent>Copiar telefone</TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="w-8 h-8 hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => onQuickAction?.('block')}
+                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                onClick={() => contact.email && copyToClipboard(contact.email, 'Email')}
+                disabled={!contact.email}
               >
-                <Ban className="w-4 h-4" />
+                <Mail className="w-4 h-4 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Bloquear contato</TooltipContent>
+            <TooltipContent>{contact.email || 'Sem email'}</TooltipContent>
           </Tooltip>
+
+          {/* More actions dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30">
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="min-w-[140px]">
+              <DropdownMenuItem onClick={() => onQuickAction?.('vip')} className="gap-2 text-xs">
+                <Star className="w-3.5 h-3.5 text-warning" />
+                Marcar VIP
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onQuickAction?.('archive')} className="gap-2 text-xs">
+                <Archive className="w-3.5 h-3.5 text-muted-foreground" />
+                Arquivar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onQuickAction?.('block')} className="gap-2 text-xs text-destructive">
+                <Ban className="w-3.5 h-3.5" />
+                Bloquear
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TooltipProvider>
       </div>
     </motion.div>
