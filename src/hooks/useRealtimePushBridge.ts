@@ -22,8 +22,8 @@ export function useRealtimePushBridge() {
   };
 
   useEffect(() => {
-    // Respect app notification settings
-    if (permission !== 'granted' || !notifSettings.browserNotifications || isQuietHours()) return;
+    // Respect app notification settings — also check isSubscribed so toggling off actually stops notifications
+    if (permission !== 'granted' || !isSubscribed || !notifSettings.browserNotifications || isQuietHours()) return;
 
     const channel = supabase
       .channel('push-bridge')
@@ -88,7 +88,7 @@ export function useRealtimePushBridge() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [permission, showNotification, notifSettings.browserNotifications, isQuietHours]);
+  }, [permission, isSubscribed, showNotification, notifSettings.browserNotifications, isQuietHours]);
 
   return { setActiveConversation };
 }
