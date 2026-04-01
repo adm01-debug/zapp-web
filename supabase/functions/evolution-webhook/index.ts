@@ -1109,6 +1109,7 @@ async function handleOutgoingWhatsAppMessage(
 }
 
 
+async function handleIncomingMessage(
   supabase: ReturnType<typeof createClient>,
   instance: string,
   data: Record<string, unknown>,
