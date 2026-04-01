@@ -483,6 +483,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return 'bg-warning/10 text-warning';
       case 'message': return 'bg-primary/10 text-primary';
       case 'contact': return 'bg-secondary/10 text-secondary';
+      case 'crm': return 'bg-primary/10 text-primary';
       case 'action': return 'bg-accent/10 text-accent';
     }
   };
