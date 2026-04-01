@@ -45,18 +45,14 @@ export function CustomFieldsSection({ contactId }: CustomFieldsSectionProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-          <FileText className="w-4 h-4 text-primary" />
-          Campos Personalizados
-        </h5>
+      <div className="flex items-center justify-end">
         <Button
           variant="ghost"
           size="icon"
           className="w-6 h-6 hover:bg-primary/10 hover:text-primary"
           onClick={() => setIsAdding(!isAdding)}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
         </Button>
       </div>
 
