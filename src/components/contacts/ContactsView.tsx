@@ -364,7 +364,7 @@ export function ContactsView() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto h-full relative bg-background">
       <AuroraBorealis />
       <FloatingParticles />
       {/* Header with Breadcrumbs */}
@@ -376,24 +376,24 @@ export function ContactsView() {
           { label: 'Contatos' },
         ]}
         actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchContacts} disabled={loading}>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchContacts} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Sincronizar
+              <span className="hidden sm:inline">Sincronizar</span>
             </Button>
-            <Button variant="outline">
-              <Upload className="w-4 h-4 mr-2" />
-              Importar
+            <Button variant="outline" size="sm">
+              <Upload className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Importar</span>
             </Button>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
+            <Button variant="outline" size="sm">
+              <Download className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Exportar</span>
             </Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-whatsapp hover:bg-whatsapp-dark text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Contato
+                <Button size="sm" className="bg-whatsapp hover:bg-whatsapp-dark text-white">
+                  <Plus className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Novo Contato</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
@@ -644,18 +644,18 @@ export function ContactsView() {
               onSecondaryAction={search ? () => { setSearch(''); setSearchInput(''); } : undefined}
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="border-b border-secondary/20 bg-secondary/5">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Etiquetas</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Criado em</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">Ações</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground">Contato</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground">Tipo</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground">Telefone</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden lg:table-cell">Email</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden xl:table-cell">Empresa/Cargo</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden lg:table-cell">Etiquetas</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden md:table-cell">Criado em</th>
+                    <th className="text-right p-3 md:p-4 font-medium text-muted-foreground">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -669,7 +669,7 @@ export function ContactsView() {
                         transition={{ delay: index * 0.02 }}
                         className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors"
                       >
-                        <td className="p-4">
+                        <td className="p-3 md:p-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10">
                               <AvatarImage src={contact.avatar_url || undefined} />
@@ -685,9 +685,9 @@ export function ContactsView() {
                             </div>
                           </div>
                         </td>
-                        <td className="p-4">
-                          <Badge 
-                            variant="outline" 
+                        <td className="p-3 md:p-4">
+                          <Badge
+                            variant="outline"
                             className={cn(
                               "flex items-center gap-1.5 w-fit",
                               typeInfo.color.replace('bg-', 'border-'),
@@ -698,13 +698,13 @@ export function ContactsView() {
                             {typeInfo.label}
                           </Badge>
                         </td>
-                        <td className="p-4">
+                        <td className="p-3 md:p-4">
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Phone className="w-4 h-4" />
                             {contact.phone}
                           </div>
                         </td>
-                        <td className="p-4">
+                        <td className="p-3 md:p-4 hidden lg:table-cell">
                           {contact.email ? (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <Mail className="w-4 h-4" />
@@ -714,7 +714,7 @@ export function ContactsView() {
                             <span className="text-muted-foreground/50">-</span>
                           )}
                         </td>
-                        <td className="p-4">
+                        <td className="p-3 md:p-4 hidden xl:table-cell">
                           {(contact.company || contact.job_title) ? (
                             <div className="space-y-1">
                               {contact.company && (
@@ -734,7 +734,7 @@ export function ContactsView() {
                             <span className="text-muted-foreground/50">-</span>
                           )}
                         </td>
-                        <td className="p-4">
+                        <td className="p-3 md:p-4 hidden lg:table-cell">
                           <div className="flex flex-wrap gap-1">
                             {contact.tags?.map((tag) => (
                               <Badge key={tag} variant="secondary" className="text-xs">
@@ -743,13 +743,13 @@ export function ContactsView() {
                             ))}
                           </div>
                         </td>
-                        <td className="p-4 text-muted-foreground">
+                        <td className="p-3 md:p-4 text-muted-foreground hidden md:table-cell">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             {format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}
                           </div>
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="p-3 md:p-4 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                               <Button variant="ghost" size="icon" className="w-8 h-8">

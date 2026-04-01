@@ -8,7 +8,8 @@ import { InboxFilters, InboxFiltersState } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useUndoableAction } from '@/hooks/useUndoableAction';
-import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MessageSquare, RefreshCw, Wifi, WifiOff, Volume2, VolumeX, CheckSquare, Search as SearchIcon, MessageSquarePlus, Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,7 +57,9 @@ export function RealtimeInboxView() {
     setSelectedContact,
     setSoundEnabled,
   } = useRealtimeMessages();
+  const isMobile = useIsMobile();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [mobileShowChat, setMobileShowChat] = useState(false);
   const [showDetails, setShowDetails] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
@@ -177,6 +180,13 @@ export function RealtimeInboxView() {
     setSelectedContactId(contactId);
     setSelectedContact(contactId);
     markAsRead(contactId);
+    if (isMobile) {
+      setMobileShowChat(true);
+    }
+  };
+
+  const handleMobileBack = () => {
+    setMobileShowChat(false);
   };
 
   // Handle global search result
@@ -516,8 +526,13 @@ export function RealtimeInboxView() {
         </Suspense>
       )}
 
-      {/* Conversation List — DreamsChat: 320px fixed */}
-      <div className="w-[320px] min-w-[320px] max-w-[320px] flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col">
+      {/* Conversation List — full-width on mobile, 320px on desktop */}
+      <div className={cn(
+        "relative z-10 border-r border-border bg-card flex flex-col",
+        isMobile
+          ? cn("w-full", mobileShowChat && "hidden")
+          : "w-[320px] min-w-[320px] max-w-[320px] flex-shrink-0"
+      )}>
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
@@ -675,21 +690,36 @@ export function RealtimeInboxView() {
         </div>
       </div>
 
-      {/* Chat Panel — flexible remaining space */}
-      <div className="flex-1 flex min-w-0 relative z-10 bg-background">
+      {/* Chat Panel — flexible remaining space; full-width on mobile */}
+      <div className={cn(
+        "flex-1 flex min-w-0 relative z-10 bg-background",
+        isMobile && !mobileShowChat && "hidden"
+      )}>
         {legacyConversation ? (
           <Suspense fallback={<ChatFallback />}>
             <>
               <div className="flex-1 min-w-0 relative">
+                {/* Mobile back button overlay */}
+                {isMobile && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleMobileBack}
+                    className="absolute top-2 left-2 z-30 w-9 h-9 bg-background/80 backdrop-blur-sm rounded-full shadow-sm border border-border/50"
+                    aria-label="Voltar para conversas"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                )}
                 <ChatPanel
                   conversation={legacyConversation}
                   messages={legacyMessages}
                   onSendMessage={handleSendMessage}
-                  showDetails={showDetails}
+                  showDetails={showDetails && !isMobile}
                   onToggleDetails={() => setShowDetails(!showDetails)}
                 />
               </div>
-              {showDetails && (
+              {showDetails && !isMobile && (
                 <ContactDetails
                   conversation={legacyConversation}
                   onClose={() => setShowDetails(false)}

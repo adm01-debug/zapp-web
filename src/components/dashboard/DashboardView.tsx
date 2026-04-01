@@ -76,10 +76,10 @@ export function DashboardView() {
   // Loading skeleton
   if (isLoading || !stats) {
     return (
-      <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto h-full relative bg-background">
         <AuroraBorealis />
         <FloatingParticles />
-        <div className="space-y-6 relative z-10">
+        <div className="space-y-4 md:space-y-6 relative z-10">
           <Skeleton className="h-16 w-full" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
@@ -416,7 +416,7 @@ export function DashboardView() {
   }, [statsCards, stats]);
 
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto h-full relative bg-background">
       {/* Aurora Borealis Effect */}
       <AuroraBorealis />
       
