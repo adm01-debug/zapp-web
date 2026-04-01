@@ -425,7 +425,9 @@ serve(async (req) => {
       for (const entry of toEventRecords(data, ['messages'])) {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
         const key = keySource as { remoteJid: string; fromMe: boolean; id: string } | null;
-        if (key && !key.fromMe) {
+        if (!key) continue;
+
+        if (!key.fromMe) {
           await handleIncomingMessage(
             supabase,
             instance,
@@ -433,6 +435,14 @@ serve(async (req) => {
             key,
             supabaseUrl,
             supabaseServiceKey,
+          );
+        } else {
+          // Messages sent directly from WhatsApp phone (not from our system)
+          await handleOutgoingWhatsAppMessage(
+            supabase,
+            instance,
+            { ...baseData, ...entry },
+            key,
           );
         }
       }
