@@ -4,7 +4,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles } from 'lucide-react';
+import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -169,7 +169,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <motion.div custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="info" className="border-border/30">
               <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
-                Informações
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-primary" />
+                  Informações
+                </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <ContactInfoSection contact={contact} enrichedData={enrichedData} />
@@ -182,7 +185,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
             <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
               <AccordionItem value="sla-ai" className="border-border/30">
                 <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
-                  SLA & Inteligência
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-primary" />
+                    SLA & Inteligência
+                  </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <SLAAndAITagsSection slaInfo={slaInfo} aiTags={aiTags} />
@@ -240,7 +246,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
                     </Badge>
                   ))}
                   {contact.tags.length === 0 && conversation.tags.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic">Nenhuma tag</p>
+                    <div className="flex flex-col items-center gap-1.5 w-full py-3 text-center">
+                      <TagsIcon className="w-6 h-6 text-muted-foreground/30" />
+                      <p className="text-xs text-muted-foreground/60 italic">Nenhuma tag</p>
+                    </div>
                   )}
                   <Button
                     variant="ghost"
@@ -259,7 +268,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <motion.div custom={4} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="assignment" className="border-border/30">
               <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
-                Atribuição
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-primary" />
+                  Atribuição
+                </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <AssignmentSection conversation={conversation} />
@@ -271,7 +283,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <motion.div custom={5} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="custom-fields" className="border-border/30">
               <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
-                Campos Personalizados
+                <div className="flex items-center gap-2">
+                  <Settings2 className="w-4 h-4 text-primary" />
+                  Campos Personalizados
+                </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <CustomFieldsSection contactId={contact.id} />
@@ -283,7 +298,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <motion.div custom={6} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="notes" className="border-border/30">
               <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
-                Notas Privadas
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" />
+                  Notas Privadas
+                </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <PrivateNotes contactId={contact.id} />
@@ -295,7 +313,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <motion.div custom={7} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="history" className="border-border/30">
               <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
-                Histórico
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-primary" />
+                  Histórico
+                </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <ConversationHistory
@@ -311,7 +332,10 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <motion.div custom={8} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="stats" className="border-border/30">
               <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
-                Estatísticas
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-primary" />
+                  Estatísticas
+                </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <ContactStatsSection contactId={contact.id} />

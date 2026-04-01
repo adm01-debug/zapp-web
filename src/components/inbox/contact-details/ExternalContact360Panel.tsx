@@ -367,6 +367,73 @@ function AddressLine({ address }: { address: Contact360Data['company_address'] }
   );
 }
 
+function BehaviorRadar({ decisionPower, formalityLevel, discProfile }: {
+  decisionPower: number;
+  formalityLevel: number;
+  discProfile?: string | null;
+}) {
+  // Normalize to 0-1 scale
+  const dp = decisionPower / 10;
+  const fl = formalityLevel / 5;
+  // DISC maps to a "dominance" visual axis
+  const discMap: Record<string, number> = { D: 1, I: 0.8, S: 0.5, C: 0.7 };
+  const ds = discProfile ? (discMap[discProfile.charAt(0)] ?? 0.5) : 0.5;
+
+  const cx = 48, cy = 48, r = 36;
+  const axes = [
+    { angle: -90, value: dp, label: 'D' },
+    { angle: 30, value: fl, label: 'F' },
+    { angle: 150, value: ds, label: 'P' },
+  ];
+
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const getPoint = (angle: number, val: number) => ({
+    x: cx + Math.cos(toRad(angle)) * r * val,
+    y: cy + Math.sin(toRad(angle)) * r * val,
+  });
+
+  const points = axes.map(a => getPoint(a.angle, a.value));
+  const poly = points.map(p => `${p.x},${p.y}`).join(' ');
+  const gridPoints = axes.map(a => getPoint(a.angle, 1));
+  const gridPoly = gridPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+  return (
+    <svg viewBox="0 0 96 96" className="w-full h-full">
+      {/* Grid */}
+      <polygon points={gridPoly} fill="none" stroke="hsl(var(--muted))" strokeWidth="0.5" opacity="0.4" />
+      {axes.map((a, i) => {
+        const ep = getPoint(a.angle, 1);
+        return <line key={i} x1={cx} y1={cy} x2={ep.x} y2={ep.y} stroke="hsl(var(--muted))" strokeWidth="0.5" opacity="0.3" />;
+      })}
+      {/* Filled area */}
+      <motion.polygon
+        points={poly}
+        fill="hsl(var(--primary))"
+        fillOpacity="0.15"
+        stroke="hsl(var(--primary))"
+        strokeWidth="1.5"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      />
+      {/* Points */}
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="hsl(var(--primary))" />
+      ))}
+      {/* Labels */}
+      {axes.map((a, i) => {
+        const lp = getPoint(a.angle, 1.25);
+        return (
+          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="central"
+            className="text-[8px] fill-muted-foreground font-medium">
+            {a.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
 // ========================
 // Main Component
 // ========================
@@ -452,31 +519,44 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
         </div>
       )}
 
-      {/* Contact enrichment — cargo, behavior highlights */}
+      {/* Contact enrichment — cargo, behavior with radial chart */}
       {data.contact?.behavior && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
             <Heart className="w-3.5 h-3.5 text-primary" />
             Perfil comportamental
           </h5>
-          <div className="grid grid-cols-2 gap-1.5 text-xs">
-            {data.contact.behavior.discProfile && (
-              <div className="bg-muted/20 rounded-md p-1.5 text-center">
-                <p className="text-[10px] text-muted-foreground">DISC</p>
-                <p className="font-medium">{data.contact.behavior.discProfile}</p>
+          <div className="flex items-center gap-3">
+            {/* Mini radar/radial chart */}
+            <div className="relative w-24 h-24 shrink-0">
+              <BehaviorRadar
+                decisionPower={data.contact.behavior.decisionPower ?? 0}
+                formalityLevel={data.contact.behavior.formalityLevel ?? 0}
+                discProfile={data.contact.behavior.discProfile}
+              />
+            </div>
+            {/* Labels */}
+            <div className="flex-1 space-y-1.5 text-xs">
+              {data.contact.behavior.discProfile && (
+                <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                  <span className="text-muted-foreground">DISC</span>
+                  <Badge variant="outline" className="text-[10px] font-semibold bg-primary/10 text-primary border-primary/20">
+                    {data.contact.behavior.discProfile}
+                  </Badge>
+                </div>
+              )}
+              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                <span className="text-muted-foreground">Canal</span>
+                <span className="font-medium capitalize">{data.contact.behavior.preferredChannel}</span>
               </div>
-            )}
-            <div className="bg-muted/20 rounded-md p-1.5 text-center">
-              <p className="text-[10px] text-muted-foreground">Canal preferido</p>
-              <p className="font-medium capitalize">{data.contact.behavior.preferredChannel}</p>
-            </div>
-            <div className="bg-muted/20 rounded-md p-1.5 text-center">
-              <p className="text-[10px] text-muted-foreground">Poder decisão</p>
-              <p className="font-medium">{data.contact.behavior.decisionPower}/10</p>
-            </div>
-            <div className="bg-muted/20 rounded-md p-1.5 text-center">
-              <p className="text-[10px] text-muted-foreground">Formalidade</p>
-              <p className="font-medium">{data.contact.behavior.formalityLevel}/5</p>
+              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                <span className="text-muted-foreground">Decisão</span>
+                <span className="font-medium">{data.contact.behavior.decisionPower}/10</span>
+              </div>
+              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
+                <span className="text-muted-foreground">Formalidade</span>
+                <span className="font-medium">{data.contact.behavior.formalityLevel}/5</span>
+              </div>
             </div>
           </div>
         </div>
