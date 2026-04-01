@@ -940,7 +940,175 @@ serve(async (req) => {
   }
 });
 
-async function handleIncomingMessage(
+// Handle messages sent directly from WhatsApp phone (fromMe=true in messages.upsert)
+// These are messages the agent sent via the WhatsApp app, not through our system
+async function handleOutgoingWhatsAppMessage(
+  supabase: ReturnType<typeof createClient>,
+  instance: string,
+  data: Record<string, unknown>,
+  key: { remoteJid: string; fromMe: boolean; id: string },
+) {
+  const externalId = key.id;
+
+  // Check if we already have this message (sent from our system or already synced)
+  const { data: existingMessage } = await supabase
+    .from('messages')
+    .select('id')
+    .eq('external_id', externalId)
+    .maybeSingle();
+
+  if (existingMessage) {
+    // Already tracked — skip
+    return;
+  }
+
+  const phone = normalizePhone(key.remoteJid);
+  if (!phone) return;
+
+  // Skip group messages
+  if (key.remoteJid.includes('@g.us')) return;
+
+  const connection = await getConnectionByInstance(supabase, instance);
+  if (!connection) return;
+
+  const contact = await getContactByPhone(supabase, phone, connection.id);
+  if (!contact) {
+    // If no contact exists, we can't associate the message — skip for now
+    console.log(`[FROM_ME] No contact found for ${phone} on connection ${connection.id}, skipping outgoing message`);
+    return;
+  }
+
+  // Parse message content (same logic as incoming)
+  const message = data.message as Record<string, unknown> | undefined;
+  let content = '';
+  let messageType = 'text';
+  let mediaUrl: string | null = null;
+
+  if (message?.conversation) {
+    content = message.conversation as string;
+  } else if ((message?.extendedTextMessage as Record<string, unknown>)?.text) {
+    content = (message.extendedTextMessage as Record<string, unknown>).text as string;
+  } else if (message?.imageMessage) {
+    messageType = 'image';
+    const img = message.imageMessage as Record<string, unknown>;
+    content = (img.caption as string) || '[Imagem]';
+    mediaUrl = (img.url as string) || null;
+  } else if (message?.videoMessage) {
+    messageType = 'video';
+    const vid = message.videoMessage as Record<string, unknown>;
+    content = (vid.caption as string) || '[Vídeo]';
+    mediaUrl = (vid.url as string) || null;
+  } else if (message?.audioMessage) {
+    messageType = 'audio';
+    content = '[Áudio]';
+    mediaUrl = (message.audioMessage as Record<string, unknown>).url as string || null;
+  } else if (message?.documentMessage) {
+    messageType = 'document';
+    const doc = message.documentMessage as Record<string, unknown>;
+    content = (doc.fileName as string) || '[Documento]';
+    mediaUrl = (doc.url as string) || null;
+  } else if (message?.documentWithCaptionMessage) {
+    messageType = 'document';
+    const dwc = message.documentWithCaptionMessage as Record<string, unknown>;
+    const innerDoc = (dwc.message as Record<string, unknown>)?.documentMessage as Record<string, unknown>;
+    content = (innerDoc?.fileName as string) || (innerDoc?.caption as string) || '[Documento]';
+    mediaUrl = (innerDoc?.url as string) || null;
+  } else if (message?.locationMessage) {
+    messageType = 'location';
+    const loc = message.locationMessage as Record<string, unknown>;
+    content = JSON.stringify({ latitude: loc.degreesLatitude, longitude: loc.degreesLongitude });
+  } else if (message?.stickerMessage) {
+    messageType = 'sticker';
+    content = '[Sticker]';
+  } else if (message?.reactionMessage) {
+    // Skip reactions for outgoing — not critical
+    return;
+  } else if (message?.contactMessage || message?.contactsArrayMessage) {
+    messageType = 'contact';
+    content = '[Contato]';
+  } else if (message?.pollCreationMessage) {
+    messageType = 'poll';
+    content = (message.pollCreationMessage as Record<string, unknown>).name as string || '[Enquete]';
+  }
+
+  if (!content && messageType === 'text') {
+    // No meaningful content to store
+    return;
+  }
+
+  // Persist media if applicable
+  if (mediaUrl && ['image', 'video', 'audio', 'document'].includes(messageType)) {
+    const msgId = key.id.replace(/[^a-zA-Z0-9]/g, '');
+    const permanentUrl = await persistMediaToStorage(supabase, mediaUrl, messageType, msgId);
+    if (permanentUrl) {
+      mediaUrl = permanentUrl;
+    } else {
+      const apiUrl = await persistMediaViaApi(supabase, instance, data, messageType, msgId);
+      if (apiUrl) mediaUrl = apiUrl;
+    }
+  }
+
+  const messageCreatedAt = (data.messageTimestamp as number)
+    ? new Date((data.messageTimestamp as number) * 1000).toISOString()
+    : new Date().toISOString();
+
+  // Also check if there's a pending message (sent from our system) waiting for confirmation
+  const recentCutoff = new Date(Date.now() - 60_000).toISOString();
+  const { data: pendingMessage } = await supabase
+    .from('messages')
+    .select('id')
+    .eq('contact_id', contact.id)
+    .eq('sender', 'agent')
+    .eq('message_type', messageType)
+    .is('external_id', null)
+    .gte('created_at', recentCutoff)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (pendingMessage?.id) {
+    // Link existing pending message to this external_id
+    await supabase
+      .from('messages')
+      .update({ status: 'sent', external_id: externalId, status_updated_at: new Date().toISOString() })
+      .eq('id', pendingMessage.id);
+    console.log(`[FROM_ME] Linked pending message ${pendingMessage.id} to external ${externalId}`);
+    return;
+  }
+
+  // Insert as a new agent message (sent from WhatsApp directly)
+  const { error: msgError } = await supabase
+    .from('messages')
+    .insert({
+      contact_id: contact.id,
+      whatsapp_connection_id: connection.id,
+      content,
+      message_type: messageType,
+      media_url: mediaUrl,
+      sender: 'agent',
+      external_id: externalId,
+      status: 'sent',
+      created_at: messageCreatedAt,
+      agent_id: contact.assigned_to || null,
+    })
+    .select('id')
+    .single();
+
+  if (msgError) {
+    console.error('[FROM_ME] Error inserting outgoing message:', msgError);
+    return;
+  }
+
+  // Update contact's updated_at to reorder inbox
+  await supabase
+    .from('contacts')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', contact.id);
+
+  console.log(`[FROM_ME] Synced outgoing message from WhatsApp phone to ${phone} (${messageType})`);
+}
+
+
   supabase: ReturnType<typeof createClient>,
   instance: string,
   data: Record<string, unknown>,
