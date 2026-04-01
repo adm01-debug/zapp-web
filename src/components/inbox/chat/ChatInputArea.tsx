@@ -147,7 +147,7 @@ export function ChatInputArea({
                 variant="ghost"
                 size="icon"
                 className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-                title="Opções"
+                aria-label="Opções"
               >
                 <Settings className="w-[18px] h-[18px]" />
               </Button>
@@ -279,20 +279,20 @@ export function ChatInputArea({
             variant="ghost"
             size="icon"
             className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-            title="Emoji"
+            aria-label="Emoji"
           >
             <Smile className="w-[18px] h-[18px]" />
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className={cn(
               "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0",
               isRecordingAudio && "text-destructive bg-destructive/10"
             )}
             onClick={onRecordToggle}
-            title="Gravar áudio"
+            aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
           >
             <Mic className="w-[18px] h-[18px]" />
           </Button>

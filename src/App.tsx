@@ -108,13 +108,13 @@ function AppContent() {
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
-            {/* Public routes */}
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/auth/callback" element={<SSOCallback />} />
-            <Route path="/2fa" element={<TwoFactorAuth />} />
+            {/* Public routes — wrapped in ErrorBoundary for resilience */}
+            <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
+            <Route path="/forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
+            <Route path="/reset-password" element={<ErrorBoundary><ResetPassword /></ErrorBoundary>} />
+            <Route path="/verify-email" element={<ErrorBoundary><VerifyEmail /></ErrorBoundary>} />
+            <Route path="/auth/callback" element={<ErrorBoundary><SSOCallback /></ErrorBoundary>} />
+            <Route path="/2fa" element={<ErrorBoundary><TwoFactorAuth /></ErrorBoundary>} />
             
             {/* Protected routes — each wrapped in ErrorBoundary for isolation */}
             <Route path="/" element={<ProtectedRoute><ErrorBoundary><Index /></ErrorBoundary></ProtectedRoute>} />

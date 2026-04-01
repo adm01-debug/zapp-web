@@ -175,25 +175,25 @@ describe('ChatInputArea', () => {
 
   it('renders emoji button', () => {
     render(<ChatInputArea {...baseProps} />);
-    const emojiBtn = screen.getByTitle('Emoji');
+    const emojiBtn = screen.getByLabelText('Emoji');
     expect(emojiBtn).toBeInTheDocument();
   });
 
   it('renders mic button', () => {
     render(<ChatInputArea {...baseProps} />);
-    const micBtn = screen.getByTitle('Gravar áudio');
+    const micBtn = screen.getByLabelText('Gravar áudio');
     expect(micBtn).toBeInTheDocument();
   });
 
   it('calls onRecordToggle when mic button clicked', () => {
     render(<ChatInputArea {...baseProps} />);
-    fireEvent.click(screen.getByTitle('Gravar áudio'));
+    fireEvent.click(screen.getByLabelText('Gravar áudio'));
     expect(baseProps.onRecordToggle).toHaveBeenCalled();
   });
 
   it('renders settings/options button', () => {
     render(<ChatInputArea {...baseProps} />);
-    const settingsBtn = screen.getByTitle('Opções');
+    const settingsBtn = screen.getByLabelText('Opções');
     expect(settingsBtn).toBeInTheDocument();
   });
 
