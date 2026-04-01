@@ -223,11 +223,15 @@ export function ConversationList({
                             isSelected ? "text-primary" : "text-foreground"
                           )}>
                             {conversation.contact.name}
-                            {conversation.contact.ai_sentiment && sentimentEmojis[conversation.contact.ai_sentiment] && (
-                              <span className="text-xs" title={`Sentimento: ${conversation.contact.ai_sentiment}`}>
-                                {sentimentEmojis[conversation.contact.ai_sentiment]}
-                              </span>
-                            )}
+                            {(() => {
+                              const crm = crmLookup(conversation.contact.phone);
+                              const sentiment = crm?.sentiment;
+                              return sentiment && sentimentEmojis[sentiment] ? (
+                                <span className="text-xs" title={`Sentimento: ${sentiment}`}>
+                                  {sentimentEmojis[sentiment]}
+                                </span>
+                              ) : null;
+                            })()}
                           </span>
                           <span className="text-xs text-muted-foreground flex-shrink-0">
                             {formatDistanceToNow(conversation.updatedAt, {
