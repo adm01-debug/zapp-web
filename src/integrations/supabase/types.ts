@@ -4607,6 +4607,31 @@ export type Database = {
         Args: { _connection_id: string }
         Returns: string
       }
+      get_own_reset_requests: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          reason: string | null
+          rejection_reason: string | null
+          reset_token: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "password_reset_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_profile_id_for_user: { Args: { _user_id: string }; Returns: string }
       get_team_profiles: {
         Args: never
