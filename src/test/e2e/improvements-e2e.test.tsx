@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render } from '@testing-library/react';
+// @ts-expect-error — screen/fireEvent/within come from @testing-library/dom re-exported at runtime
+const { screen, fireEvent, within } = await import('@testing-library/react') as any;
 import { TooltipProvider } from '@/components/ui/tooltip';
 import {
   primaryNav,
