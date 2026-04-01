@@ -43,9 +43,11 @@ interface ChatPanelProps {
   showDetails?: boolean;
   onToggleDetails?: () => void;
   onBack?: () => void;
+  /** When true, hides the built-in header (popup provides its own) */
+  hideHeader?: boolean;
 }
 
-export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack }: ChatPanelProps) {
+export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack, hideHeader = false }: ChatPanelProps) {
   // ── State ──
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
