@@ -2,6 +2,8 @@
   "compilerOptions": {
     "allowJs": true,
     "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
