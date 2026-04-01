@@ -124,12 +124,33 @@ describe('ContactForm', () => {
     expect(screen.getByText('Cancelar')).toBeInTheDocument();
   });
 
-  it('calls onSubmit when submit button clicked', () => {
+  it('does not call onSubmit when required fields are empty', () => {
     render(
       <ContactForm values={defaultValues} onChange={onChange} onSubmit={onSubmit} onCancel={onCancel} submitLabel="Add" />
     );
     fireEvent.click(screen.getByText('Add'));
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Nome é obrigatório')).toBeInTheDocument();
+    expect(screen.getByText('Telefone é obrigatório')).toBeInTheDocument();
+  });
+
+  it('calls onSubmit when required fields are filled', () => {
+    const filledValues = { ...defaultValues, name: 'John', phone: '+5511999999999' };
+    render(
+      <ContactForm values={filledValues} onChange={onChange} onSubmit={onSubmit} onCancel={onCancel} submitLabel="Add" />
+    );
+    fireEvent.click(screen.getByText('Add'));
     expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows email validation error for invalid email', () => {
+    const valuesWithBadEmail = { ...defaultValues, name: 'John', phone: '+5511999999999', email: 'invalid' };
+    render(
+      <ContactForm values={valuesWithBadEmail} onChange={onChange} onSubmit={onSubmit} onCancel={onCancel} submitLabel="Add" />
+    );
+    fireEvent.click(screen.getByText('Add'));
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Email inválido')).toBeInTheDocument();
   });
 
   it('calls onCancel when cancel button clicked', () => {

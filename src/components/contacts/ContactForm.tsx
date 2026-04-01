@@ -38,6 +38,31 @@ export const ContactForm = React.memo(function ContactForm({
   onCancel,
   submitLabel,
 }: ContactFormProps) {
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!values.name.trim()) {
+      newErrors.name = 'Nome é obrigatório';
+    }
+    if (!values.phone.trim()) {
+      newErrors.phone = 'Telefone é obrigatório';
+    } else if (!/^\+?\d[\d\s()-]{7,}$/.test(values.phone.trim())) {
+      newErrors.phone = 'Telefone inválido';
+    }
+    if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+      newErrors.email = 'Email inválido';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validate()) {
+      onSubmit();
+    }
+  };
+
   return (
     <div className="space-y-4 pt-4">
       <div className="grid grid-cols-2 gap-4">
@@ -47,8 +72,11 @@ export const ContactForm = React.memo(function ContactForm({
             id="name"
             placeholder="Nome"
             value={values.name}
-            onChange={(e) => onChange('name', e.target.value)}
+            onChange={(e) => { onChange('name', e.target.value); if (errors.name) setErrors(prev => ({ ...prev, name: '' })); }}
+            aria-invalid={!!errors.name}
+            className={cn(errors.name && 'border-destructive')}
           />
+          {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="surname">Sobrenome</Label>
@@ -118,8 +146,11 @@ export const ContactForm = React.memo(function ContactForm({
           id="phone"
           placeholder="+55 11 99999-9999"
           value={values.phone}
-          onChange={(e) => onChange('phone', e.target.value)}
+          onChange={(e) => { onChange('phone', e.target.value); if (errors.phone) setErrors(prev => ({ ...prev, phone: '' })); }}
+          aria-invalid={!!errors.phone}
+          className={cn(errors.phone && 'border-destructive')}
         />
+        {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
@@ -128,14 +159,17 @@ export const ContactForm = React.memo(function ContactForm({
           type="email"
           placeholder="email@exemplo.com"
           value={values.email || ''}
-          onChange={(e) => onChange('email', e.target.value)}
+          onChange={(e) => { onChange('email', e.target.value); if (errors.email) setErrors(prev => ({ ...prev, email: '' })); }}
+          aria-invalid={!!errors.email}
+          className={cn(errors.email && 'border-destructive')}
         />
+        {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
       </div>
       <div className="flex justify-end gap-2 pt-4">
         <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button onClick={onSubmit} className="bg-whatsapp hover:bg-whatsapp-dark">
+        <Button onClick={handleSubmit} className="bg-whatsapp hover:bg-whatsapp-dark">
           {submitLabel}
         </Button>
       </div>
