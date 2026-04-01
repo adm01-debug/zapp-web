@@ -4709,8 +4709,6 @@ export type Database = {
           title: string
         }[]
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       skill_based_assign: { Args: { p_queue_id: string }; Returns: string }
       user_has_permission: {
         Args: { _permission_name: string; _user_id: string }
