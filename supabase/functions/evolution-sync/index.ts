@@ -562,7 +562,164 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Unknown action', validActions: ['sync-contacts', 'sync-messages', 'setup-webhook', 'cleanup-mock', 'full-sync'] }), {
+    // =============================================
+    // 6. SYNC ALL MESSAGES (bulk history sync)
+    // =============================================
+    if (action === 'sync-all-messages') {
+      console.log(`[SyncAll] Starting bulk message sync for instance ${instanceName}`);
+
+      // Find connection
+      const { data: conn } = await supabase
+        .from('whatsapp_connections')
+        .select('id')
+        .eq('instance_id', instanceName)
+        .maybeSingle();
+
+      if (!conn) {
+        throw new Error('WhatsApp connection not found for instance ' + instanceName);
+      }
+
+      // Get all contacts for this connection
+      const { data: allContacts, error: contactsErr } = await supabase
+        .from('contacts')
+        .select('id, phone')
+        .eq('whatsapp_connection_id', conn.id)
+        .order('updated_at', { ascending: false })
+        .limit(500);
+
+      if (contactsErr) throw new Error('Failed to fetch contacts: ' + contactsErr.message);
+      if (!allContacts || allContacts.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: 'No contacts found', totalSynced: 0 }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log(`[SyncAll] Processing ${allContacts.length} contacts`);
+
+      let totalSynced = 0;
+      let totalSkipped = 0;
+      let totalErrors = 0;
+      const batchSize = 20;
+      const messagesPerContact = body.messagesPerContact || 200;
+
+      for (let batchStart = 0; batchStart < allContacts.length; batchStart += batchSize) {
+        const batch = allContacts.slice(batchStart, batchStart + batchSize);
+
+        for (const contact of batch) {
+          try {
+            const remoteJid = `${contact.phone}@s.whatsapp.net`;
+
+            const msgResponse = await fetch(
+              `${evolutionApiUrl}/chat/findMessages/${instanceName}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
+                body: JSON.stringify({
+                  where: { key: { remoteJid } },
+                  page: 1,
+                  offset: messagesPerContact,
+                }),
+              }
+            );
+
+            if (!msgResponse.ok) {
+              const errText = await msgResponse.text();
+              console.warn(`[SyncAll] API error for ${contact.phone}: ${errText}`);
+              totalErrors++;
+              continue;
+            }
+
+            const msgData = await msgResponse.json();
+            const messages = Array.isArray(msgData) ? msgData : msgData.messages || [];
+
+            for (const msg of messages) {
+              const key = msg.key || {};
+              const externalId = key.id;
+              if (!externalId) continue;
+
+              // Skip if already exists
+              const { data: existing } = await supabase
+                .from('messages')
+                .select('id')
+                .eq('external_id', externalId)
+                .maybeSingle();
+
+              if (existing) { totalSkipped++; continue; }
+
+              // Parse message
+              const messageObj = msg.message || {};
+              let content = '';
+              let messageType = 'text';
+              let mediaUrl: string | null = null;
+
+              if (messageObj.conversation) {
+                content = messageObj.conversation;
+              } else if (messageObj.extendedTextMessage?.text) {
+                content = messageObj.extendedTextMessage.text;
+              } else if (messageObj.imageMessage) {
+                messageType = 'image';
+                content = messageObj.imageMessage.caption || '[Imagem]';
+              } else if (messageObj.videoMessage) {
+                messageType = 'video';
+                content = messageObj.videoMessage.caption || '[Vídeo]';
+              } else if (messageObj.audioMessage) {
+                messageType = 'audio';
+                content = '[Áudio]';
+              } else if (messageObj.documentMessage) {
+                messageType = 'document';
+                content = messageObj.documentMessage.fileName || '[Documento]';
+              } else if (messageObj.stickerMessage) {
+                messageType = 'sticker';
+                content = '[Sticker]';
+              } else if (messageObj.reactionMessage) {
+                continue;
+              } else {
+                content = '[Mensagem não suportada]';
+              }
+
+              const sender = key.fromMe ? 'agent' : 'contact';
+              const createdAt = msg.messageTimestamp
+                ? new Date(Number(msg.messageTimestamp) * 1000).toISOString()
+                : new Date().toISOString();
+
+              const { error: insertError } = await supabase
+                .from('messages')
+                .insert({
+                  contact_id: contact.id,
+                  whatsapp_connection_id: conn.id,
+                  content,
+                  message_type: messageType,
+                  media_url: mediaUrl,
+                  sender,
+                  external_id: externalId,
+                  is_read: true,
+                  status: 'read',
+                  created_at: createdAt,
+                });
+
+              if (!insertError) totalSynced++;
+            }
+          } catch (e) {
+            console.warn(`[SyncAll] Error syncing ${contact.phone}:`, e);
+            totalErrors++;
+          }
+        }
+      }
+
+      console.log(`[SyncAll] Done: synced=${totalSynced}, skipped=${totalSkipped}, errors=${totalErrors}`);
+
+      return new Response(JSON.stringify({
+        success: true,
+        totalSynced,
+        totalSkipped,
+        totalErrors,
+        totalContacts: allContacts.length,
+      }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unknown action', validActions: ['sync-contacts', 'sync-messages', 'sync-all-messages', 'setup-webhook', 'cleanup-mock', 'full-sync'] }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 

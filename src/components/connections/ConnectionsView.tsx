@@ -42,6 +42,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -129,6 +130,7 @@ export function ConnectionsView() {
     connectionName: string;
   }>({ open: false, instanceName: '', connectionName: '' });
   const [isCreating, setIsCreating] = useState(false);
+  const [syncingHistory, setSyncingHistory] = useState<string | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   const { 
@@ -849,6 +851,35 @@ export function ConnectionsView() {
                                   })}>
                                     <Boxes className="w-4 h-4 mr-2" />
                                     Integrações (IA/Bots)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    disabled={syncingHistory === connection.id}
+                                    onClick={async () => {
+                                      if (!connection.instance_id) return;
+                                      setSyncingHistory(connection.id);
+                                      toast({ title: 'Sincronizando histórico...', description: 'Isso pode levar alguns minutos.' });
+                                      try {
+                                        const { data, error } = await supabase.functions.invoke('evolution-sync', {
+                                          body: { action: 'sync-all-messages', instanceName: connection.instance_id },
+                                        });
+                                        if (error) throw error;
+                                        toast({
+                                          title: 'Sincronização concluída!',
+                                          description: `${data?.totalSynced || 0} mensagens sincronizadas de ${data?.totalContacts || 0} contatos.`,
+                                        });
+                                      } catch (e: any) {
+                                        toast({ title: 'Erro na sincronização', description: e.message, variant: 'destructive' });
+                                      } finally {
+                                        setSyncingHistory(null);
+                                      }
+                                    }}
+                                  >
+                                    {syncingHistory === connection.id ? (
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <History className="w-4 h-4 mr-2" />
+                                    )}
+                                    Sincronizar Histórico
                                   </DropdownMenuItem>
                                 </>
                               )}
