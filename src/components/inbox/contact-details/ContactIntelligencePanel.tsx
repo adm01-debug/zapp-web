@@ -109,7 +109,7 @@ function TriggersSection({ triggers }: { triggers: MentalTrigger[] }) {
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 max-h-[240px] overflow-y-auto scrollbar-thin">
       {triggers.slice(0, 4).map((trigger, i) => (
         <div key={i} className="bg-muted/10 rounded-md p-2 text-xs">
           <div className="flex items-center justify-between mb-1">
@@ -124,6 +124,9 @@ function TriggersSection({ triggers }: { triggers: MentalTrigger[] }) {
           )}
         </div>
       ))}
+      {triggers.length > 4 && (
+        <p className="text-[10px] text-muted-foreground text-center py-1">+{triggers.length - 4} gatilhos adicionais</p>
+      )}
     </div>
   );
 }
@@ -145,6 +148,14 @@ function RapportSection({ rapport }: { rapport: RapportData }) {
 
 function BestTimesSection({ times }: { times: BestTime[] }) {
   const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  if (!times.length) {
+    return (
+      <div className="bg-muted/10 rounded-md p-2 text-xs text-muted-foreground">
+        <p>Sem dados suficientes. Sugestão: Seg–Sex entre 9h e 11h costuma ter melhor resposta.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -307,15 +318,13 @@ function ContactIntelligencePanelInner({ phone }: ContactIntelligencePanelProps)
       )}
 
       {/* Best times */}
-      {data.best_times.length > 0 && (
-        <div className="space-y-1.5">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-primary" />
-            Melhores horários
-          </h5>
-          <BestTimesSection times={data.best_times} />
-        </div>
-      )}
+      <div className="space-y-1.5">
+        <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-primary" />
+          Melhores horários
+        </h5>
+        <BestTimesSection times={data.best_times} />
+      </div>
 
       {/* Churn */}
       {data.churn && (
