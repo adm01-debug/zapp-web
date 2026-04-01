@@ -188,7 +188,7 @@ export default function ChatPopup() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-card" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-success border-2 border-card" />
             </div>
             <div className="min-w-0">
               <h1 className="text-sm font-semibold text-foreground truncate leading-tight">
