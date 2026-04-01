@@ -4567,21 +4567,18 @@ export type Database = {
           id: string | null
           is_default: boolean | null
           name: string | null
-          phone_number: string | null
           status: string | null
         }
         Insert: {
           id?: string | null
           is_default?: boolean | null
           name?: string | null
-          phone_number?: string | null
           status?: string | null
         }
         Update: {
           id?: string | null
           is_default?: boolean | null
           name?: string | null
-          phone_number?: string | null
           status?: string | null
         }
         Relationships: []

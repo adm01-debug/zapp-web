@@ -118,11 +118,15 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
       throw error;
     }
     
-    const { data: { publicUrl } } = supabase.storage
+    const { data: signedData, error: signError } = await supabase.storage
       .from('audio-messages')
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 3600); // 1 hour expiry
     
-    return publicUrl;
+    if (signError || !signedData?.signedUrl) {
+      throw signError || new Error('Failed to create signed URL');
+    }
+    
+    return signedData.signedUrl;
   }, []);
 
   const formatDuration = useCallback((seconds: number) => {

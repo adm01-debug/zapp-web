@@ -437,12 +437,18 @@ export function RealtimeInboxView() {
         return;
       }
 
-      const { data: urlData } = supabase.storage
+      const { data: signedData, error: signError } = await supabase.storage
         .from('audio-messages')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600); // 1 hour expiry
 
-      // Send via public URL — Evolution API converts WebM to OGG/Opus automatically
-      await sendMessage(selectedContactId, '[Áudio]', 'audio', urlData.publicUrl);
+      if (signError || !signedData?.signedUrl) {
+        log.error('Error creating signed URL:', signError);
+        toast.error('Erro ao gerar URL do áudio');
+        return;
+      }
+
+      // Send via signed URL — Evolution API converts WebM to OGG/Opus automatically
+      await sendMessage(selectedContactId, '[Áudio]', 'audio', signedData.signedUrl);
     } catch (err) {
       log.error('Error in handleSendAudio:', err);
       toast.error('Erro ao enviar áudio. Tente novamente.');
