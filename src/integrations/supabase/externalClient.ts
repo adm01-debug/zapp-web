@@ -1,0 +1,32 @@
+/**
+ * External Supabase Client — bancodadosclientes (pgxfvjmuubtbowutlide)
+ * 
+ * Connects to the CRM database that holds the full 360° contact data:
+ * companies, customers, interactions, RFM scores, DISC profiles, etc.
+ * 
+ * Uses environment variables:
+ *   VITE_EXTERNAL_SUPABASE_URL
+ *   VITE_EXTERNAL_SUPABASE_ANON_KEY
+ */
+import { createClient } from '@supabase/supabase-js';
+
+const EXTERNAL_SUPABASE_URL = import.meta.env.VITE_EXTERNAL_SUPABASE_URL || '';
+const EXTERNAL_SUPABASE_ANON_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY || '';
+
+export const externalSupabase = createClient(
+  EXTERNAL_SUPABASE_URL,
+  EXTERNAL_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+    global: {
+      headers: {
+        'x-client-info': 'zapp-web-external-360',
+      },
+    },
+  }
+);
+
+export const isExternalConfigured = Boolean(EXTERNAL_SUPABASE_URL && EXTERNAL_SUPABASE_ANON_KEY);

@@ -4,7 +4,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag } from 'lucide-react';
+import { X, Plus, Tag, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -14,6 +14,8 @@ import { AssignmentSection } from './contact-details/AssignmentSection';
 import { ContactStatsSection } from './contact-details/ContactStatsSection';
 import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
+import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   Accordion,
   AccordionContent,
@@ -104,7 +106,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
         {/* Collapsible sections */}
         <Accordion
           type="multiple"
-          defaultValue={['info', 'tags', 'assignment', 'custom-fields', 'notes', 'history', 'stats']}
+          defaultValue={['info', 'crm-360', 'tags', 'assignment', 'custom-fields', 'notes', 'history', 'stats']}
           className="w-full"
         >
           {/* Informações */}
@@ -125,6 +127,21 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <SLAAndAITagsSection slaInfo={slaInfo} aiTags={aiTags} />
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {/* CRM 360° — External database enrichment */}
+          {isExternalConfigured && (
+            <AccordionItem value="crm-360" className="border-border/30">
+              <AccordionTrigger className="px-4 py-3 text-sm font-medium text-muted-foreground uppercase tracking-wide hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  CRM 360°
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ExternalContact360Panel phone={contact.phone} />
               </AccordionContent>
             </AccordionItem>
           )}
