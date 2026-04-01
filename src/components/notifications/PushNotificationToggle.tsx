@@ -5,30 +5,50 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { cn } from '@/lib/utils';
 
 /**
- * Compact push notification toggle button.
- * Drop anywhere in the UI for quick enable/disable.
+ * Compact notification toggle button.
+ * Toggles ALL notifications (sound + browser) on/off via the global settings.
  */
 export function PushNotificationToggle({ className }: { className?: string }) {
-  const {
-    isSupported,
-    permission,
-    isSubscribed,
-    isLoading,
-    toggleSubscription,
-  } = usePushNotifications();
+  const { settings, updateSettings, isSaving } = useNotificationSettings();
 
-  // Show the button even when not supported, but disable it
-  const notSupported = !isSupported;
+  // "enabled" means both sound and browser notifications are on
+  const isEnabled = settings.soundEnabled || settings.browserNotifications;
 
-  const disabled = isLoading || permission === 'denied' || notSupported;
+  const label = isEnabled
+    ? 'Desativar todas as notificações'
+    : 'Ativar todas as notificações';
 
-  const label = isSubscribed
-    ? 'Desativar notificações push'
-    : 'Ativar notificações push';
+  const handleToggle = () => {
+    if (isEnabled) {
+      // Disable everything
+      updateSettings({
+        soundEnabled: false,
+        browserNotifications: false,
+        newMessageSound: false,
+        mentionSound: false,
+        slaBreachSound: false,
+        desktopAlerts: false,
+        sentimentAlertEnabled: false,
+        transcriptionNotificationEnabled: false,
+      });
+    } else {
+      // Re-enable everything
+      updateSettings({
+        soundEnabled: true,
+        browserNotifications: true,
+        newMessageSound: true,
+        mentionSound: true,
+        slaBreachSound: true,
+        desktopAlerts: true,
+        sentimentAlertEnabled: true,
+        transcriptionNotificationEnabled: true,
+      });
+    }
+  };
 
   return (
     <Tooltip>
@@ -38,16 +58,16 @@ export function PushNotificationToggle({ className }: { className?: string }) {
           size="icon"
           className={cn(
             'relative h-9 w-9 rounded-lg transition-colors',
-            isSubscribed && 'text-primary',
+            isEnabled && 'text-primary',
             className,
           )}
-          onClick={() => toggleSubscription()}
-          disabled={disabled}
+          onClick={handleToggle}
+          disabled={isSaving}
           aria-label={label}
         >
-          {isLoading ? (
+          {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
-          ) : isSubscribed ? (
+          ) : isEnabled ? (
             <>
               <Bell className="h-4 w-4" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
@@ -58,7 +78,7 @@ export function PushNotificationToggle({ className }: { className?: string }) {
         </Button>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={8}>
-        <p>{notSupported ? 'Push não suportado neste navegador' : permission === 'denied' ? 'Permissão bloqueada no navegador' : label}</p>
+        <p>{label}</p>
       </TooltipContent>
     </Tooltip>
   );
