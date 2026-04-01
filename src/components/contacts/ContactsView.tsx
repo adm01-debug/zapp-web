@@ -142,6 +142,27 @@ const SORT_OPTIONS = [
 export function ContactsView() {
   
   const { profile } = useAuth();
+
+  const openContactChat = useCallback((contactId: string) => {
+    const appWindow = window as Window & { __pendingOpenContactId?: string };
+    appWindow.__pendingOpenContactId = contactId;
+
+    if (window.location.hash !== '#inbox') {
+      window.location.hash = 'inbox';
+    } else {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    }
+
+    let attempts = 0;
+    const tryDispatch = () => {
+      attempts++;
+      window.dispatchEvent(new CustomEvent('open-contact-chat', { detail: { contactId } }));
+      if (attempts < 15) {
+        setTimeout(tryDispatch, 200);
+      }
+    };
+    setTimeout(tryDispatch, 150);
+  }, []);
   const feedback = useActionFeedback();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
