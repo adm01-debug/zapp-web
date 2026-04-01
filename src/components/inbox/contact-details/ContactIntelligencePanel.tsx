@@ -318,15 +318,13 @@ function ContactIntelligencePanelInner({ phone }: ContactIntelligencePanelProps)
       )}
 
       {/* Best times */}
-      {data.best_times.length > 0 && (
-        <div className="space-y-1.5">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-primary" />
-            Melhores horários
-          </h5>
-          <BestTimesSection times={data.best_times} />
-        </div>
-      )}
+      <div className="space-y-1.5">
+        <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-primary" />
+          Melhores horários
+        </h5>
+        <BestTimesSection times={data.best_times} />
+      </div>
 
       {/* Churn */}
       {data.churn && (

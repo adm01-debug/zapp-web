@@ -7,7 +7,9 @@
  * 
  * Enhanced: auto-detect sentiment from messages, build richer summary.
  */
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useSyncToCRM } from '@/hooks/useSyncToCRM';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { Button } from '@/components/ui/button';
