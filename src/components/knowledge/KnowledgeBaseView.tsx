@@ -132,11 +132,12 @@ export function KnowledgeBaseView() {
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from('whatsapp-media').getPublicUrl(fileName);
+    const { data: signedData } = await supabase.storage.from('whatsapp-media').createSignedUrl(fileName, 86400);
+    const fileUrl = signedData?.signedUrl || '';
 
     await supabase.from('knowledge_base_files').insert({
       file_name: file.name,
-      file_url: publicUrl,
+      file_url: fileUrl,
       file_type: file.type,
       file_size: file.size,
     });

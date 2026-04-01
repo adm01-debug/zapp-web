@@ -243,11 +243,15 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       throw new Error(`Erro ao fazer upload: ${error.message}`);
     }
 
-    const { data: publicUrlData } = supabase.storage
+    const { data: signedData, error: signError } = await supabase.storage
       .from('whatsapp-media')
-      .getPublicUrl(filePath);
+      .createSignedUrl(filePath, 3600);
 
-    return publicUrlData.publicUrl;
+    if (signError || !signedData?.signedUrl) {
+      throw new Error('Erro ao gerar URL do arquivo');
+    }
+
+    return signedData.signedUrl;
   };
 
   const handleSendFile = async () => {

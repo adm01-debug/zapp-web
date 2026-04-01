@@ -369,8 +369,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           .from('whatsapp-media')
           .upload(fileName, attachment);
         if (!uploadError) {
-          const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(fileName);
-          mediaUrl = urlData.publicUrl;
+          const { data: signedData } = await supabase.storage.from('whatsapp-media').createSignedUrl(fileName, 3600);
+          mediaUrl = signedData?.signedUrl;
           messageType = attachment.type.startsWith('audio') ? 'audio' : 
                         attachment.type.startsWith('image') ? 'image' : 
                         attachment.type.startsWith('video') ? 'video' : 'document';
