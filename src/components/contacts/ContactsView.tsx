@@ -90,6 +90,9 @@ import { ptBR } from 'date-fns/locale';
 import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
 import { useContactsSearch } from '@/hooks/useContactsSearch';
+import { AdvancedCRMSearch } from '@/components/contacts/AdvancedCRMSearch';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
+import { Sparkles } from 'lucide-react';
 
 interface Contact {
   id: string;
@@ -171,6 +174,7 @@ export function ContactsView() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [isCRMSearchOpen, setIsCRMSearchOpen] = useState(false);
 
   const [newContact, setNewContact] = useState({
     name: '',
@@ -359,6 +363,16 @@ export function ContactsView() {
         ]}
         actions={
           <div className="flex items-center gap-2">
+            {isExternalConfigured && (
+              <Button
+                variant="outline"
+                onClick={() => setIsCRMSearchOpen(true)}
+                className="border-primary/30 text-primary hover:bg-primary/10"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                CRM 360°
+              </Button>
+            )}
             <Button variant="outline" onClick={() => refetch()} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
@@ -918,6 +932,33 @@ export function ContactsView() {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* CRM 360° Advanced Search Dialog */}
+      {isExternalConfigured && (
+        <Dialog open={isCRMSearchOpen} onOpenChange={setIsCRMSearchOpen}>
+          <DialogContent className="max-w-2xl h-[80vh] p-0 flex flex-col">
+            <DialogHeader className="px-4 pt-4 pb-0 shrink-0">
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Busca avançada — CRM 360°
+              </DialogTitle>
+              <DialogDescription>
+                Pesquise contatos no CRM com filtros por vendedor, empresa, ramo, estado e segmento
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0">
+              <AdvancedCRMSearch
+                onSelectContact={(contact) => {
+                  if (contact.phone_primary) {
+                    setIsCRMSearchOpen(false);
+                    openContactChat(contact.contact_id);
+                  }
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
