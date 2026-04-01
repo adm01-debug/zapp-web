@@ -55,32 +55,51 @@ export class Logger {
   }
 }
 
+const ALLOWED_ORIGINS = [
+  'https://pronto-talk-suite.lovable.app',
+  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
+];
+
+/** Build CORS headers with origin validation */
+export function getCorsHeaders(req?: Request): Record<string, string> {
+  const origin = req?.headers.get('origin') || '';
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers':
+      'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
+
+/** @deprecated Use getCorsHeaders(req) for origin-validated CORS */
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-/** Standard JSON error response */
-export function errorResponse(message: string, status = 400) {
+/** Standard JSON error response (with origin-validated CORS) */
+export function errorResponse(message: string, status = 400, req?: Request) {
+  const headers = req ? getCorsHeaders(req) : corsHeaders;
   return new Response(
     JSON.stringify({ error: message }),
-    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    { status, headers: { ...headers, 'Content-Type': 'application/json' } }
   );
 }
 
-/** Standard JSON success response */
-export function jsonResponse(data: unknown, status = 200) {
+/** Standard JSON success response (with origin-validated CORS) */
+export function jsonResponse(data: unknown, status = 200, req?: Request) {
+  const headers = req ? getCorsHeaders(req) : corsHeaders;
   return new Response(
     JSON.stringify(data),
-    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    { status, headers: { ...headers, 'Content-Type': 'application/json' } }
   );
 }
 
-/** Handle CORS preflight */
+/** Handle CORS preflight with origin validation */
 export function handleCors(req: Request): Response | null {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
   return null;
 }

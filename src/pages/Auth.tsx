@@ -20,15 +20,22 @@ import { HeroBenefits } from '@/components/auth/HeroBenefits';
 import { supabase } from '@/integrations/supabase/client';
 import { checkAccountLock, recordFailedLogin, clearLoginAttempts, formatLockTime } from '@/lib/loginAttempts';
 
+const passwordSchema = z.string()
+  .min(8, 'Senha deve ter no mínimo 8 caracteres')
+  .regex(/[A-Z]/, 'Deve conter pelo menos uma letra maiúscula')
+  .regex(/[a-z]/, 'Deve conter pelo menos uma letra minúscula')
+  .regex(/[0-9]/, 'Deve conter pelo menos um número')
+  .regex(/[^A-Za-z0-9]/, 'Deve conter pelo menos um caractere especial');
+
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  password: z.string().min(1, 'Senha é obrigatória'),
 });
 
 const signupSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(100, 'Nome muito longo'),
+  email: z.string().email('Email inválido').max(255, 'Email muito longo'),
+  password: passwordSchema,
 });
 
 export default function Auth() {
