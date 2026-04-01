@@ -152,7 +152,11 @@ export function VirtualizedRealtimeList({
                         <Gift className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
                       )}
                       <span className="font-medium text-foreground truncate text-sm">
-                        {conversation.contact.name || 'Sem nome'}
+                        {(() => {
+                          const firstName = (conversation.contact.name || 'Sem nome').split(' ')[0];
+                          const company = conversation.contact.company;
+                          return company ? `${firstName} · ${company}` : firstName;
+                        })()}
                       </span>
                       {conversation.contact.contact_type === 'sicoob_gifts' && (
                         <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 border-teal-600/40 text-teal-600 bg-teal-600/10 flex-shrink-0">
