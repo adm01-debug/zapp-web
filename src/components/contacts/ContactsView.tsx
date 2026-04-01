@@ -756,7 +756,8 @@ export function ContactsView() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.02 }}
-                        className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors"
+                        className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors cursor-pointer"
+                        onClick={() => openContactChat(contact.id)}
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-3">
