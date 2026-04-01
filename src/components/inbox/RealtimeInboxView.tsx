@@ -637,6 +637,7 @@ export function RealtimeInboxView() {
               onClick={() => setGlobalSearchOpen(true)}
               className="pl-9 bg-muted/50 border-0 rounded-full h-8 text-xs cursor-pointer placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/30"
               readOnly
+              aria-label="Buscar conversas"
             />
           </div>
 

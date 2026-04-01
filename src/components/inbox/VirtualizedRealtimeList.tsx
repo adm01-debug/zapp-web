@@ -79,7 +79,7 @@ export function VirtualizedRealtimeList({
   }
 
   return (
-    <div ref={parentRef} className="h-full overflow-auto scrollbar-thin">
+    <div ref={parentRef} className="h-full overflow-auto scrollbar-thin" role="listbox" aria-label="Lista de conversas">
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
@@ -110,6 +110,9 @@ export function VirtualizedRealtimeList({
             >
               <button
                 onClick={(e) => handleClick(contactId, e)}
+                aria-label={`Conversa com ${conversation.contact.name || 'Sem nome'}${conversation.unreadCount > 0 ? `, ${conversation.unreadCount} mensagens não lidas` : ''}${isPinned ? ', fixada' : ''}`}
+                aria-selected={selectedContactId === contactId}
+                role="option"
                 className={cn(
                   'w-full px-3 py-3 flex items-center gap-3 transition-all text-left border-b border-border/50',
                   'hover:bg-muted/50',

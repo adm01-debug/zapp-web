@@ -120,6 +120,7 @@ export function CampaignsView() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="max-w-xs"
+          aria-label="Buscar campanhas"
         />
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-40">

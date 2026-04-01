@@ -332,8 +332,10 @@ function IndexContent() {
             />
           )}
           
-          <main 
-            id="main-content" 
+          <main
+            id="main-content"
+            role="main"
+            aria-label={`Seção ${currentView}`}
             className={cn(
               'flex-1 overflow-hidden relative min-w-0',
               isMobile && 'pt-12 pb-14'

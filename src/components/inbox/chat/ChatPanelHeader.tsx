@@ -102,54 +102,56 @@ export function ChatPanelHeader({
 
       <div className="flex items-center gap-0.5">
         {/* Action buttons — DreamsChat style: Audio, Video, Chat, Search */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={onStartCall}
-          title="Chamada de voz"
+          aria-label="Chamada de voz"
         >
           <PhoneCall className="w-[18px] h-[18px]" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
-          title="Chamada de vídeo"
+          aria-label="Chamada de vídeo"
         >
           <Video className="w-[18px] h-[18px]" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={onOpenSearch}
-          title="Buscar (Ctrl+K)"
+          aria-label="Buscar mensagens"
         >
           <Search className="w-[18px] h-[18px]" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className={cn(
             "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
             showAIAssistant && "text-primary bg-primary/10"
           )}
           onClick={onToggleAIAssistant}
-          title="Assistente IA"
+          aria-label={showAIAssistant ? "Fechar assistente IA" : "Abrir assistente IA"}
+          aria-pressed={showAIAssistant}
         >
           <Brain className="w-[18px] h-[18px]" />
         </Button>
         {onToggleDetails && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className={cn(
               "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
               showDetails && "text-primary bg-primary/10"
             )}
             onClick={onToggleDetails}
-            title="Detalhes do contato"
+            aria-label={showDetails ? "Ocultar detalhes do contato" : "Ver detalhes do contato"}
+            aria-expanded={showDetails}
           >
             <Info className="w-[18px] h-[18px]" />
           </Button>
@@ -164,7 +166,7 @@ export function ChatPanelHeader({
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted">
+            <Button variant="ghost" size="icon" className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted" aria-label="Mais opções da conversa">
               <MoreVertical className="w-[18px] h-[18px]" />
             </Button>
           </DropdownMenuTrigger>

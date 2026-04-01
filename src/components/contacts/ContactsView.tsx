@@ -486,6 +486,7 @@ export function ContactsView() {
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-9"
+              aria-label="Buscar contatos"
             />
           </div>
           
