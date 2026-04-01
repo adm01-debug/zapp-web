@@ -80,7 +80,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   // Filters
-  const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action']));
+  const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action', 'crm']));
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>('all');
 
