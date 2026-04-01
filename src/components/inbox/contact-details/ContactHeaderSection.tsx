@@ -13,11 +13,15 @@ import {
   Star,
   Archive,
   MessageSquare,
+  Crown,
+  User,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
 import { EngagementScore } from './EngagementScore';
+import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 
 // Channel icons mapping
 const channelIcons: Record<string, string> = {
