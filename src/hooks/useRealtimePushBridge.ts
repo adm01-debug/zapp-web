@@ -88,7 +88,7 @@ export function useRealtimePushBridge() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [permission, showNotification, notifSettings.browserNotifications, isQuietHours]);
+  }, [permission, isSubscribed, showNotification, notifSettings.browserNotifications, isQuietHours]);
 
   return { setActiveConversation };
 }
