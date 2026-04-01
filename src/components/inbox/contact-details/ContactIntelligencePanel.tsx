@@ -109,7 +109,7 @@ function TriggersSection({ triggers }: { triggers: MentalTrigger[] }) {
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 max-h-[240px] overflow-y-auto scrollbar-thin">
       {triggers.slice(0, 4).map((trigger, i) => (
         <div key={i} className="bg-muted/10 rounded-md p-2 text-xs">
           <div className="flex items-center justify-between mb-1">
@@ -124,6 +124,9 @@ function TriggersSection({ triggers }: { triggers: MentalTrigger[] }) {
           )}
         </div>
       ))}
+      {triggers.length > 4 && (
+        <p className="text-[10px] text-muted-foreground text-center py-1">+{triggers.length - 4} gatilhos adicionais</p>
+      )}
     </div>
   );
 }
