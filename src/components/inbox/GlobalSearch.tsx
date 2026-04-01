@@ -339,6 +339,44 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
         }
       }
 
+      // Search CRM external database
+      if (types.has('crm') && isExternalConfigured && cleanQuery.length >= 3) {
+        try {
+          const { data: crmData } = await externalSupabase.rpc('search_contacts_advanced', {
+            p_search: cleanQuery,
+            p_vendedor: null,
+            p_ramo: null,
+            p_rfm_segment: null,
+            p_estado: null,
+            p_cliente_ativado: null,
+            p_ja_comprou: null,
+            p_sort_by: 'relevance',
+            p_page: 0,
+            p_page_size: 8,
+          });
+          if (crmData?.results) {
+            // Get local contact phones for deduplication
+            const localPhones = new Set(
+              searchResults.filter(r => r.type === 'contact').map(r => r.preview.replace(/\D/g, ''))
+            );
+            crmData.results.forEach((cr: any) => {
+              const phone = cr.phone_primary?.replace(/\D/g, '') || '';
+              if (phone && localPhones.has(phone)) return; // skip duplicates
+              searchResults.push({
+                id: `crm-${cr.contact_id}`,
+                type: 'crm' as const,
+                title: cr.full_name || cr.nome_tratamento || 'Sem nome',
+                preview: [cr.company_name, cr.phone_primary, cr.rfm_segment].filter(Boolean).join(' • '),
+                timestamp: new Date(),
+                crmPhone: cr.phone_primary,
+              });
+            });
+          }
+        } catch (err) {
+          // Silently fail CRM search
+        }
+      }
+
       searchResults.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       setResults(searchResults);
       
