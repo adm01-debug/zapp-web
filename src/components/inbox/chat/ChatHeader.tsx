@@ -9,6 +9,8 @@ import { TypingIndicatorCompact } from '../TypingIndicator';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
 import { SpeedSelector } from '../SpeedSelector';
+import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +30,8 @@ import {
   Search,
   Brain,
   Info,
+  Building,
+  User,
 } from 'lucide-react';
 
 interface ChatHeaderProps {
