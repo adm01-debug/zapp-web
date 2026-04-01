@@ -149,6 +149,14 @@ function RapportSection({ rapport }: { rapport: RapportData }) {
 function BestTimesSection({ times }: { times: BestTime[] }) {
   const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+  if (!times.length) {
+    return (
+      <div className="bg-muted/10 rounded-md p-2 text-xs text-muted-foreground">
+        <p>Sem dados suficientes. Sugestão: Seg–Sex entre 9h e 11h costuma ter melhor resposta.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap gap-1.5">
       {times.map((t, i) => (
