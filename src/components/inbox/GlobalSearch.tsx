@@ -53,7 +53,7 @@ interface QuickAction {
   keywords: string[];
 }
 
-type ResultType = 'message' | 'contact' | 'transcription' | 'action';
+type ResultType = 'message' | 'contact' | 'transcription' | 'action' | 'crm';
 type DateFilter = 'all' | 'today' | '7days' | '30days' | '90days';
 type MediaTypeFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
 
