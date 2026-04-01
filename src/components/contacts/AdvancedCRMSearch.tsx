@@ -108,6 +108,19 @@ function ContactResultCard({
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
+          {contact.cliente_ativado !== null && (
+            <Badge
+              variant="outline"
+              className={cn(
+                'text-[9px] py-0',
+                contact.cliente_ativado
+                  ? 'bg-success/10 text-success border-success/30'
+                  : 'bg-destructive/10 text-destructive border-destructive/30'
+              )}
+            >
+              {contact.cliente_ativado ? 'Ativo' : 'Inativo'}
+            </Badge>
+          )}
           {contact.relationship_score > 0 && (
             <Badge
               variant="outline"
@@ -124,7 +137,9 @@ function ContactResultCard({
             </Badge>
           )}
           {contact.is_whatsapp && (
-            <span className="text-xs" title="WhatsApp disponível">💬</span>
+            <Badge variant="outline" className="text-[9px] py-0 bg-success/10 text-success border-success/30">
+              💬 WhatsApp
+            </Badge>
           )}
         </div>
       </div>
