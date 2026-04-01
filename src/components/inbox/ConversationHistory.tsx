@@ -169,12 +169,6 @@ export function ConversationHistory({ contactId, contactPhone, onSelectConversat
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-          <History className="w-4 h-4 text-primary" />
-          Histórico
-        </h5>
-      </div>
 
       {/* Period Filter */}
       <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as PeriodFilter)}>
