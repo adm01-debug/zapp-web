@@ -74,6 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             onClick={() => onSend(product)}
             disabled={isOutOfStock}
             className="flex-shrink-0"
+            aria-label={`Enviar ${product.name}`}
           >
             <Send className="w-4 h-4" />
           </Button>
@@ -144,6 +145,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                 className="flex-1"
                 onClick={() => onAddToCart(product)}
                 disabled={isOutOfStock}
+                aria-label={`Adicionar ${product.name} ao carrinho`}
               >
                 <ShoppingCart className="w-4 h-4 mr-1" />
                 Carrinho
@@ -155,6 +157,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                 className="flex-1"
                 onClick={() => onSend(product)}
                 disabled={isOutOfStock}
+                aria-label={`Enviar ${product.name}`}
               >
                 <Send className="w-4 h-4 mr-1" />
                 Enviar

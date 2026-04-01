@@ -78,7 +78,7 @@ export function KnowledgeBaseView() {
       return;
     }
 
-    if (articlesRes.data) setArticles(articlesRes.data.map((a: Record<string, unknown>) => ({ ...a, tags: (a.tags as string[]) || [] })));
+    if (articlesRes.data) setArticles(articlesRes.data.map((a) => ({ ...a, tags: (a.tags as string[]) || [] } as Article)));
     if (filesRes.data) setFiles(filesRes.data);
     setLoading(false);
   }, []);

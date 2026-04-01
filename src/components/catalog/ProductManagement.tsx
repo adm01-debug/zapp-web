@@ -441,6 +441,7 @@ export const ProductManagement: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
+          aria-label="Buscar produtos"
         />
         {search && (
           <Button
@@ -448,6 +449,7 @@ export const ProductManagement: React.FC = () => {
             size="icon"
             className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
             onClick={() => setSearch('')}
+            aria-label="Limpar busca"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -592,6 +594,7 @@ export const ProductManagement: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="icon"
+                            aria-label={`Editar ${product.name}`}
                             onClick={() => {
                               setEditingProduct(product);
                               setShowForm(true);
@@ -603,6 +606,7 @@ export const ProductManagement: React.FC = () => {
                             variant="ghost"
                             size="icon"
                             className="text-destructive hover:text-destructive"
+                            aria-label={`Excluir ${product.name}`}
                             onClick={() => setDeleteProduct(product)}
                           >
                             <Trash2 className="w-4 h-4" />

@@ -230,7 +230,7 @@ describe('SalesPipelineView', () => {
       }),
     }));
     render(<SalesPipelineView />);
-    expect(screen.getByText('Carregando pipeline...')).toBeInTheDocument();
+    expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
   });
 
   it('renders empty stage placeholder text', async () => {

@@ -68,7 +68,6 @@ interface ChatInputAreaProps {
   onSendProduct: (product: Product) => void;
   onSelectSuggestion: (text: string) => void;
   onSelectTemplate: (text: string) => void;
-  onExternalFiles?: (files: File[]) => void;
   fileUploaderRef: React.RefObject<FileUploaderRef | null>;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }

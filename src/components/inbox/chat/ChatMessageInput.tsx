@@ -64,7 +64,6 @@ interface ChatMessageInputProps {
   onSendProduct: (product: Product) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
-  onExternalFiles?: (files: File[]) => void;
 }
 
 export interface ChatMessageInputRef {

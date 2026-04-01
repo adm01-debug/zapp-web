@@ -90,12 +90,12 @@ export function SalesPipelineView() {
 
     if (stagesRes.data) setStages(stagesRes.data);
     if (dealsRes.data) {
-      setDeals(dealsRes.data.map((d: Record<string, unknown>) => ({
+      setDeals(dealsRes.data.map((d) => ({
         ...d,
-        tags: d.tags || [],
+        tags: (d.tags as string[]) || [],
         contact: d.contacts,
         assignee: d.profiles,
-      })));
+      } as Deal)));
     }
     if (contactsRes.data) setContacts(contactsRes.data);
     if (agentsRes.data) setAgents(agentsRes.data);
