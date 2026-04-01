@@ -4633,6 +4633,14 @@ export type Database = {
         }
       }
       get_profile_id_for_user: { Args: { _user_id: string }; Returns: string }
+      get_profile_role_for_check: {
+        Args: { p_user_id: string }
+        Returns: {
+          access_level: string
+          permissions: Json
+          role: string
+        }[]
+      }
       get_team_profiles: {
         Args: never
         Returns: {
