@@ -52,7 +52,7 @@ const sentimentConfig = {
   negativo: { label: 'Negativo', icon: ThumbsDown, className: 'text-red-400' },
 };
 
-export function ConversationSummary({ messages, contactName }: ConversationSummaryProps) {
+export const ConversationSummary = React.memo(function ConversationSummary({ messages, contactName }: ConversationSummaryProps) {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -220,4 +220,4 @@ export function ConversationSummary({ messages, contactName }: ConversationSumma
       )}
     </div>
   );
-}
+});

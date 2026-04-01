@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Clock, AlertTriangle, CheckCircle, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -139,7 +139,7 @@ const statusStyles = {
   },
 };
 
-export function SLAIndicator({
+export const SLAIndicator = React.memo(function SLAIndicator({
   firstMessageAt,
   firstResponseAt,
   resolvedAt,
@@ -298,4 +298,4 @@ export function SLAIndicator({
       )}
     </div>
   );
-}
+});

@@ -83,7 +83,7 @@ const urgencyConfig = {
   alta: { label: 'Alta', className: 'bg-red-500/20 text-red-400' },
 };
 
-export function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
+export const AIConversationAssistant = React.memo(function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
@@ -585,4 +585,4 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       </motion.div>
     </AnimatePresence>
   );
-}
+});

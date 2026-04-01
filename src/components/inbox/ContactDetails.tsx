@@ -1,3 +1,4 @@
+import React from 'react';
 import { log } from '@/lib/logger';
 import { Conversation, Agent } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
@@ -39,7 +40,7 @@ interface ContactDetailsProps {
   onClose: () => void;
 }
 
-export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
+export const ContactDetails = React.memo(function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
   const { contact } = conversation;
   const { agents } = useAgents();
   const { queues } = useQueues();
@@ -318,4 +319,4 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       </div>
     </motion.div>
   );
-}
+});

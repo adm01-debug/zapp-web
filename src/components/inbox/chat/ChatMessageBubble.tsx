@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Message, MessageReaction, InteractiveButton } from '@/types/chat';
 import { motion } from '@/components/ui/motion';
@@ -58,7 +58,7 @@ function formatMessageTime(date: Date): string {
   return format(date, 'HH:mm');
 }
 
-export function ChatMessageBubble({
+export const ChatMessageBubble = React.memo(function ChatMessageBubble({
   message,
   reactions,
   ttsLoading,
@@ -267,4 +267,4 @@ export function ChatMessageBubble({
       </motion.div>
     </div>
   );
-}
+});
