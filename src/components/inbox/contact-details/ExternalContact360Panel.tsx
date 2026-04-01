@@ -132,7 +132,7 @@ function CompanyCard({ company }: { company: Contact360Company }) {
   const displayName = company.nome_fantasia || company.nome_crm || company.razao_social;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 bg-gradient-to-br from-primary/5 via-transparent to-primary/3 rounded-xl p-3 border border-primary/10">
       <div className="flex items-start gap-3">
         {company.logo_url ? (
           <img
