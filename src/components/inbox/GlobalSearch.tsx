@@ -473,6 +473,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
       case 'transcription': return <Mic className="h-4 w-4" />;
       case 'message': return <MessageSquare className="h-4 w-4" />;
       case 'contact': return <User className="h-4 w-4" />;
+      case 'crm': return <Sparkles className="h-4 w-4" />;
       case 'action': return <Zap className="h-4 w-4" />;
     }
   };
