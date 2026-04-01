@@ -36,6 +36,7 @@ import {
   Linkedin,
   Facebook,
   ExternalLink,
+  Copy,
   CircleDollarSign,
   Target,
   Heart,

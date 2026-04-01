@@ -141,8 +141,14 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
       )}
       <p className="text-sm text-muted-foreground mt-0.5">{contact.phone}</p>
 
-      {/* Badges row: type, sentiment, priority */}
+      {/* Badges row: type, sentiment, priority, VIP */}
       <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3">
+        {isVip && (
+          <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30">
+            <Crown className="w-3 h-3 mr-0.5" />
+            Cliente VIP
+          </Badge>
+        )}
         {contactType && contactTypeConfig[contactType] && (
           <Badge variant="outline" className={`text-[10px] ${contactTypeConfig[contactType].color}`}>
             {contactTypeConfig[contactType].label}
@@ -159,6 +165,16 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
           </Badge>
         )}
       </div>
+
+      {/* CRM Vendedor responsável */}
+      {crmCustomer?.vendedor_nome && (
+        <div className="flex items-center gap-1 mt-2">
+          <Badge variant="secondary" className="text-[10px] bg-muted/30 text-muted-foreground">
+            <User className="w-3 h-3 mr-0.5" />
+            {crmCustomer.vendedor_nome}
+          </Badge>
+        </div>
+      )}
 
       {/* Engagement Score */}
       <div className="mt-3">
