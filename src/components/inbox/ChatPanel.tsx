@@ -715,23 +715,25 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       <ChatDragOverlay isDraggingOver={isDraggingOver} />
 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
-        <ChatPanelHeader
-          conversation={conversation}
-          isContactTyping={isContactTyping}
-          showAIAssistant={showAIAssistant}
-          showDetails={showDetails}
-          voiceId={voiceId}
-          speed={speed}
-          onToggleAIAssistant={() => setShowAIAssistant(!showAIAssistant)}
-          onToggleDetails={onToggleDetails}
-          onStartCall={handleStartCall}
-          onOpenSearch={() => setShowGlobalSearch(true)}
-          onOpenTransfer={() => setShowTransferDialog(true)}
-          onOpenSchedule={() => setShowScheduleDialog(true)}
-          onVoiceChange={setVoiceId}
-          onSpeedChange={setSpeed}
-          onBack={onBack}
-        />
+        {!hideHeader && (
+          <ChatPanelHeader
+            conversation={conversation}
+            isContactTyping={isContactTyping}
+            showAIAssistant={showAIAssistant}
+            showDetails={showDetails}
+            voiceId={voiceId}
+            speed={speed}
+            onToggleAIAssistant={() => setShowAIAssistant(!showAIAssistant)}
+            onToggleDetails={onToggleDetails}
+            onStartCall={handleStartCall}
+            onOpenSearch={() => setShowGlobalSearch(true)}
+            onOpenTransfer={() => setShowTransferDialog(true)}
+            onOpenSchedule={() => setShowScheduleDialog(true)}
+            onVoiceChange={setVoiceId}
+            onSpeedChange={setSpeed}
+            onBack={onBack}
+          />
+        )}
 
         <ChatAssignedBar
           conversation={conversation}
