@@ -719,6 +719,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       <CRMAutoSync
         conversation={conversation}
         messageCount={messages.length}
+        messages={messages}
       />
 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">

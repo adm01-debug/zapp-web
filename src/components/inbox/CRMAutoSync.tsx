@@ -5,38 +5,93 @@
  * when a conversation status changes to 'resolved'. Also provides
  * a manual sync button for the contact details panel.
  * 
- * Drop this inside ChatPanel — it watches conversation.status and
- * triggers sync_interaction_from_zapp on the external CRM.
+ * Enhanced: auto-detect sentiment from messages, build richer summary.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useSyncToCRM } from '@/hooks/useSyncToCRM';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { log } from '@/lib/logger';
-import type { Conversation } from '@/types/chat';
+import type { Conversation, Message } from '@/types/chat';
 
 interface CRMAutoSyncProps {
   conversation: Conversation;
   messageCount?: number;
   agentName?: string;
+  messages?: Message[];
+}
+
+// Simple sentiment heuristic from message content
+function detectSentiment(messages: Message[] | undefined): string {
+  if (!messages || messages.length === 0) return 'neutral';
+
+  const lastMessages = messages.slice(-10);
+  const text = lastMessages.map(m => m.content?.toLowerCase() || '').join(' ');
+
+  const positiveWords = ['obrigad', 'perfeito', 'ótimo', 'excelente', 'maravilh', 'amei', 'adorei', 'top', 'parabéns', 'show', '👍', '😊', '❤', '🙏', 'fechado', 'aprovado'];
+  const negativeWords = ['reclam', 'péssim', 'horrível', 'absurd', 'descaso', 'nunca mais', 'cancelar', 'devolver', 'insatisf', 'raiva', '😡', '😤', 'atraso', 'demora'];
+
+  const posScore = positiveWords.filter(w => text.includes(w)).length;
+  const negScore = negativeWords.filter(w => text.includes(w)).length;
+
+  if (negScore >= 2) return 'negative';
+  if (negScore > posScore) return 'negative';
+  if (posScore >= 2) return 'positive';
+  if (posScore > negScore) return 'positive';
+  return 'neutral';
+}
+
+// Build a summary from the conversation
+function buildSummary(conversation: Conversation, messages: Message[] | undefined): string {
+  const parts: string[] = [];
+
+  // Contact info
+  parts.push(`Conversa com ${conversation.contact.name}`);
+
+  // Duration estimate
+  if (messages && messages.length > 1) {
+    const first = messages[0]?.timestamp;
+    const last = messages[messages.length - 1]?.timestamp;
+    if (first && last) {
+      const diffMin = Math.round((last.getTime() - first.getTime()) / 60000);
+      if (diffMin > 0) parts.push(`(${diffMin} min)`);
+    }
+  }
+
+  // Message count
+  if (messages) {
+    const agentMsgs = messages.filter(m => m.sender === 'agent').length;
+    const contactMsgs = messages.filter(m => m.sender === 'contact').length;
+    parts.push(`${contactMsgs} msgs cliente, ${agentMsgs} msgs agente`);
+  }
+
+  // Last messages as context
+  if (messages && messages.length > 0) {
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.content) {
+      parts.push('Última: ' + lastMsg.content.slice(0, 200));
+    }
+  }
+
+  return parts.join('. ');
 }
 
 /**
  * Auto-sync: watches conversation status and syncs to CRM when resolved.
- * Renders nothing visible — just the sync logic.
  */
-export function CRMAutoSync({ conversation, messageCount, agentName }: CRMAutoSyncProps) {
+export function CRMAutoSync({ conversation, messageCount, agentName, messages }: CRMAutoSyncProps) {
   const { syncConversation, isConfigured } = useSyncToCRM();
   const lastSyncedStatus = useRef<string>('');
   const lastSyncedId = useRef<string>('');
+
+  const sentiment = useMemo(() => detectSentiment(messages), [messages]);
 
   useEffect(() => {
     if (!isConfigured) return;
     if (!conversation.contact.phone) return;
 
-    // Only sync when status changes TO resolved AND we haven't already synced this one
     const shouldSync =
       conversation.status === 'resolved' &&
       (lastSyncedStatus.current !== 'resolved' || lastSyncedId.current !== conversation.id);
@@ -45,23 +100,25 @@ export function CRMAutoSync({ conversation, messageCount, agentName }: CRMAutoSy
       lastSyncedStatus.current = conversation.status;
       lastSyncedId.current = conversation.id;
 
+      const summary = buildSummary(conversation, messages);
+
       syncConversation({
         phone: conversation.contact.phone,
         channel: 'whatsapp',
         direction: 'inbound',
         assunto: `Conversa WhatsApp — ${conversation.contact.name}`,
-        resumo: conversation.lastMessage?.content?.slice(0, 500) || undefined,
-        sentiment: 'neutral',
-        messageCount: messageCount || 0,
+        resumo: summary,
+        sentiment,
+        messageCount: messageCount || messages?.length || 0,
         agentName: agentName || undefined,
         zappConversationId: conversation.id,
       });
 
-      log.info('CRM auto-sync triggered for conversation:', conversation.id);
+      log.info('CRM auto-sync triggered:', { id: conversation.id, sentiment });
     }
 
     lastSyncedStatus.current = conversation.status;
-  }, [conversation.status, conversation.id, conversation.contact.phone, isConfigured, syncConversation, messageCount, agentName, conversation.contact.name, conversation.lastMessage?.content]);
+  }, [conversation.status, conversation.id, conversation.contact.phone, isConfigured, syncConversation, messageCount, agentName, conversation.contact.name, messages, sentiment]);
 
   return null; // Invisible component
 }
