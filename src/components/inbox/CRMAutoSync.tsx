@@ -128,6 +128,8 @@ export function CRMAutoSync({ conversation, messageCount, agentName, messages }:
  */
 export function CRMSyncButton({ conversation, messageCount }: { conversation: Conversation; messageCount?: number }) {
   const { syncConversationAsync, isSyncing, isConfigured, lastResult } = useSyncToCRM();
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [contactNotFound, setContactNotFound] = useState(false);
 
   if (!isConfigured) return null;
 
@@ -145,14 +147,18 @@ export function CRMSyncButton({ conversation, messageCount }: { conversation: Co
       });
 
       if (result?.synced) {
+        setLastSyncTime(new Date());
+        setContactNotFound(false);
         toast.success('Sincronizado com o CRM!', {
           description: result.new_relationship_score
             ? `Score atualizado: ${result.new_relationship_score}`
             : undefined,
         });
       } else if (result?.reason === 'duplicate') {
+        setLastSyncTime(new Date());
         toast.info('Já sincronizado', { description: 'Esta conversa já foi enviada ao CRM.' });
       } else if (result?.reason === 'contact_not_found') {
+        setContactNotFound(true);
         toast.warning('Contato não encontrado no CRM');
       }
     } catch {
@@ -160,22 +166,38 @@ export function CRMSyncButton({ conversation, messageCount }: { conversation: Co
     }
   };
 
+  if (contactNotFound) {
+    return (
+      <Button variant="outline" size="sm" disabled className="text-xs gap-1.5 h-7 opacity-50">
+        <RefreshCw className="w-3 h-3 text-muted-foreground" />
+        Sem CRM
+      </Button>
+    );
+  }
+
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleSync}
-      disabled={isSyncing}
-      className="text-xs gap-1.5 h-7"
-    >
-      {isSyncing ? (
-        <Loader2 className="w-3 h-3 animate-spin" />
-      ) : lastResult?.synced ? (
-        <CheckCircle2 className="w-3 h-3 text-success" />
-      ) : (
-        <RefreshCw className="w-3 h-3" />
+    <div className="flex items-center gap-1.5">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleSync}
+        disabled={isSyncing}
+        className="text-xs gap-1.5 h-7"
+      >
+        {isSyncing ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : lastResult?.synced ? (
+          <CheckCircle2 className="w-3 h-3 text-success" />
+        ) : (
+          <RefreshCw className="w-3 h-3" />
+        )}
+        Sync CRM
+      </Button>
+      {lastSyncTime && (
+        <span className="text-[10px] text-muted-foreground">
+          {formatDistanceToNow(lastSyncTime, { addSuffix: true, locale: ptBR })}
+        </span>
       )}
-      Sync CRM
-    </Button>
+    </div>
   );
 }
