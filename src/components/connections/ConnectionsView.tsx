@@ -130,6 +130,7 @@ export function ConnectionsView() {
     connectionName: string;
   }>({ open: false, instanceName: '', connectionName: '' });
   const [isCreating, setIsCreating] = useState(false);
+  const [syncingHistory, setSyncingHistory] = useState<string | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   const { 
