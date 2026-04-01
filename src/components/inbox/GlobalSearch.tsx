@@ -5,7 +5,7 @@ import {
   Search, X, MessageSquare, User, Calendar, Loader2, Mic, FileText, 
   Filter, Clock, History, Tag, Trash2, Command, Plus, UserPlus, 
   Send, Settings, LayoutDashboard, Inbox, Zap, ArrowRight,
-  Image, Video, FileDown, Link2
+  Image, Video, FileDown, Link2, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
