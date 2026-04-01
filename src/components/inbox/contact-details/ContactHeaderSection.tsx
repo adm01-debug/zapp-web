@@ -72,6 +72,14 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction }: C
     toast.success(`${label} copiado!`);
   };
 
+  // CRM 360° data
+  const { data: crmData } = useExternalContact360(isExternalConfigured ? contact.phone : undefined);
+  const crmContact = crmData?.found ? crmData.contact : null;
+  const crmCompany = crmData?.found ? crmData.company : null;
+  const crmCustomer = crmData?.found ? crmData.customer : null;
+  const isVip = crmContact && crmContact.relationship_score >= 70;
+  const nomeTratamento = crmContact?.nome_tratamento || crmContact?.apelido;
+
   const channelType = enrichedData?.channel_type;
   const channelEmoji = channelType ? channelIcons[channelType] || '💬' : null;
   const sentiment = enrichedData?.ai_sentiment;
