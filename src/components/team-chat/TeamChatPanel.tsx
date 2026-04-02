@@ -474,7 +474,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                 inputValue={text}
                 cursorPosition={mentionCursorPos}
                 onSelect={handleMentionSelect}
-                onClose={() => setMentionOpen(false)}
+                onClose={closeMention}
                 isOpen={mentionOpen}
               />
             </div>
