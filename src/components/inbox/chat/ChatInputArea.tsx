@@ -608,7 +608,7 @@ export function ChatInputArea({
             </Tooltip>
           </div>
 
-          {/* Secondary icons: AI Rewrite, RichText, TTS, Sticker, AudioMeme, Emoji */}
+          {/* Secondary icons: 3-AI, 4-Stickers, 5-AudioMemes, 6-CustomEmoji, 7-Catalog, 8-Attach, 9-RichText, 10-Dictation, 11-TTS */}
           {!isMobile && (
             <div className="flex items-center gap-0.5 shrink-0">
               <AIRewriteButton
@@ -623,8 +623,6 @@ export function ChatInputArea({
                   }
                 }}
               />
-              <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
-              <TextToAudioButton inputValue={inputValue} onAudioReady={onAudioSend} />
               <StickerPicker onSendSticker={onSendSticker} />
               <AudioMemePicker onSendAudio={onSendAudioMeme} />
               <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
@@ -644,32 +642,55 @@ export function ChatInputArea({
                   <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
                 </Tooltip>
               )}
+              <FileUploader
+                ref={fileUploaderRef}
+                instanceName={instanceName || ''}
+                recipientNumber={contactPhone}
+                contactId={contactId}
+                connectionId={undefined}
+                onFileSelect={(file, category) => {
+                  toast({
+                    title: 'Arquivo selecionado',
+                    description: `${file.name} (${category}) será enviado.`,
+                  });
+                }}
+                onFileSent={() => {
+                  toast({
+                    title: 'Arquivo enviado!',
+                    description: 'O arquivo foi enviado com sucesso.',
+                  });
+                }}
+              />
+              <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
+              <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
+              <TextToAudioButton inputValue={inputValue} onAudioReady={onAudioSend} />
             </div>
           )}
 
-          {/* VoiceDictation + Attach */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
-            <FileUploader
-              ref={fileUploaderRef}
-              instanceName={instanceName || ''}
-              recipientNumber={contactPhone}
-              contactId={contactId}
-              connectionId={undefined}
-              onFileSelect={(file, category) => {
-                toast({
-                  title: 'Arquivo selecionado',
-                  description: `${file.name} (${category}) será enviado.`,
-                });
-              }}
-              onFileSent={() => {
-                toast({
-                  title: 'Arquivo enviado!',
-                  description: 'O arquivo foi enviado com sucesso.',
-                });
-              }}
-            />
-          </div>
+          {/* Mobile: attach */}
+          {isMobile && (
+            <div className="flex items-center gap-0.5 shrink-0">
+              <FileUploader
+                ref={fileUploaderRef}
+                instanceName={instanceName || ''}
+                recipientNumber={contactPhone}
+                contactId={contactId}
+                connectionId={undefined}
+                onFileSelect={(file, category) => {
+                  toast({
+                    title: 'Arquivo selecionado',
+                    description: `${file.name} (${category}) será enviado.`,
+                  });
+                }}
+                onFileSent={() => {
+                  toast({
+                    title: 'Arquivo enviado!',
+                    description: 'O arquivo foi enviado com sucesso.',
+                  });
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Mobile: compact secondary tools row */}
