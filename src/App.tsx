@@ -119,7 +119,7 @@ function AppContent() {
       <LiveRegion />
       <GlobalKeyboardProvider>
         {deferredReady && <DeferredProviders />}
-        {deferredReady && <DeferredHooks />}
+        {deferredReady && <Suspense fallback={null}><DeferredHooks /></Suspense>}
         <Toaster />
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>

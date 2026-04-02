@@ -458,7 +458,7 @@ export function ChatInputArea({
           isOpen={showSlashCommands}
         />
 
-        {/* Main input row: [+menu] [textarea] [secondary icons] [send/mic] */}
+        {/* Main input row: [+menu] [mic] [textarea] [secondary icons] [send/mic] */}
         <div className="flex items-end gap-1.5" role="toolbar" aria-label="Barra de mensagem">
           {/* Tertiary tools menu */}
           <Popover>
@@ -479,6 +479,27 @@ export function ChatInputArea({
               {tertiaryTools}
             </PopoverContent>
           </Popover>
+
+          {/* 🎙️ Prominent Audio Record button — always visible next to chat */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                className={cn(
+                  "shrink-0 touch-manipulation active:scale-95 rounded-full transition-all",
+                  isMobile ? "w-11 h-11" : "w-10 h-10",
+                  isRecordingAudio
+                    ? "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 hover:bg-destructive/90"
+                    : "bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30 shadow-sm"
+                )}
+                onClick={onRecordToggle}
+                aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
+              >
+                <Mic className={cn("w-5 h-5", isRecordingAudio && "animate-pulse")} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">{isRecordingAudio ? 'Parar gravação' : 'Gravar áudio'}</TooltipContent>
+          </Tooltip>
 
           {/* Textarea with mentions and markdown preview */}
           <div className="flex-1 min-w-0 relative">
