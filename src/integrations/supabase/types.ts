@@ -3970,6 +3970,8 @@ export type Database = {
           created_at: string
           id: string
           is_edited: boolean | null
+          media_type: string | null
+          media_url: string | null
           message_type: string
           reply_to_id: string | null
           sender_id: string
@@ -3981,6 +3983,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
           message_type?: string
           reply_to_id?: string | null
           sender_id: string
@@ -3992,6 +3996,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
           message_type?: string
           reply_to_id?: string | null
           sender_id?: string
