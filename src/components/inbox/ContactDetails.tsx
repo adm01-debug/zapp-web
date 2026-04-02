@@ -4,7 +4,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, ChevronsDownUp } from 'lucide-react';
+import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -133,17 +133,6 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           {isExternalConfigured && (
             <CRMSyncButton conversation={conversation} />
           )}
-          {accordionValue.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => { setAccordionValue([]); saveAccordionState([]); }}
-              className="w-7 h-7 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-              title="Recolher todas as seções"
-            >
-              <ChevronsDownUp className="w-3.5 h-3.5" />
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="icon"
@@ -177,6 +166,8 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           contact={contact}
           enrichedData={enrichedData}
           onQuickAction={handleQuickAction}
+          hasExpandedSections={accordionValue.length > 0}
+          onCollapseAll={() => { setAccordionValue([]); saveAccordionState([]); }}
         />
 
         {/* Collapsible sections with memory */}
