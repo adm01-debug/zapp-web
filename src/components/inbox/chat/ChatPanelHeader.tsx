@@ -126,62 +126,87 @@ export function ChatPanelHeader({
       </div>
 
       <div className="flex items-center gap-0.5">
-        {/* Action buttons — DreamsChat style: Audio, Video, Chat, Search */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
-          onClick={onStartCall}
-          title="Chamada de voz"
-        >
-          <PhoneCall className="w-[18px] h-[18px]" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
-          title="Chamada de vídeo"
-        >
-          <Video className="w-[18px] h-[18px]" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
-          onClick={onOpenSearch}
-          title="Buscar (Ctrl+K)"
-        >
-          <Search className="w-[18px] h-[18px]" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={cn(
-            "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
-            showAIAssistant && "text-primary bg-primary/10"
-          )}
-          onClick={onToggleAIAssistant}
-          title="Assistente IA"
-        >
-          <Brain className="w-[18px] h-[18px]" />
-        </Button>
+        {/* Action buttons with standardized tooltips */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+              onClick={onStartCall}
+            >
+              <PhoneCall className="w-[18px] h-[18px]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Chamada de voz</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <Video className="w-[18px] h-[18px]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Chamada de vídeo</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+              onClick={onOpenSearch}
+            >
+              <Search className="w-[18px] h-[18px]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Buscar (Ctrl+K)</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={cn(
+                "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+                showAIAssistant && "text-primary bg-primary/10"
+              )}
+              onClick={onToggleAIAssistant}
+            >
+              <Brain className="w-[18px] h-[18px]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Assistente IA</TooltipContent>
+        </Tooltip>
+
         {onToggleDetails && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={cn(
-              "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted relative",
-              showDetails && "text-primary bg-primary/10"
-            )}
-            onClick={onToggleDetails}
-            title="Detalhes do contato"
-          >
-            <Info className="w-[18px] h-[18px]" />
-            {!showDetails && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary animate-pulse" />
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={cn(
+                  "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted relative",
+                  showDetails && "text-primary bg-primary/10"
+                )}
+                onClick={onToggleDetails}
+              >
+                <Info className="w-[18px] h-[18px]" />
+                {!showDetails && (
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary animate-pulse" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Detalhes do contato</TooltipContent>
+          </Tooltip>
         )}
+
         <VoiceSelector
           selectedVoiceId={voiceId}
           onVoiceChange={onVoiceChange}
@@ -190,12 +215,18 @@ export function ChatPanelHeader({
           speed={speed}
           onSpeedChange={onSpeedChange}
         />
+
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted">
-              <MoreVertical className="w-[18px] h-[18px]" />
-            </Button>
-          </DropdownMenuTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted">
+                  <MoreVertical className="w-[18px] h-[18px]" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Mais ações</TooltipContent>
+          </Tooltip>
           <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
             <DropdownMenuItem onClick={() => openChatPopup(conversation.contact.id, conversation.contact.name)}>
               <ExternalLink className="w-4 h-4 mr-2" />
