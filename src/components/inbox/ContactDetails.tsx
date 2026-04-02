@@ -5,7 +5,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon } from 'lucide-react';
+import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -17,6 +17,7 @@ import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
 import { ContactIntelligencePanel } from './contact-details/ContactIntelligencePanel';
+import { WhatsAppStatusSection } from './contact-details/WhatsAppStatusSection';
 
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
@@ -196,7 +197,21 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
             </AccordionItem>
           </motion.div>
 
-          {/* SLA & AI Tags */}
+          {/* WhatsApp Status */}
+          <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="whatsapp-status" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-3.5 h-3.5 text-primary" />
+                  Status WhatsApp
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <WhatsAppStatusSection phone={contact.phone} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
           {(slaInfo || aiTags.length > 0) && (
             <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
               <AccordionItem value="sla-ai" className="border-border/30">
