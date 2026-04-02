@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
+import { supabase } from '@/integrations/supabase/client';
 import { Message } from '@/types/chat';
 import { toast } from 'sonner';
 import {
@@ -49,13 +50,19 @@ export function MessageContextActions({
   const externalId = (message as any).external_id;
 
   const handleDelete = useCallback(async () => {
-    if (!externalId) {
-      toast.error('Mensagem sem ID externo — não pode ser deletada via API');
-      return;
-    }
     try {
-      await deleteMessage(instanceName, externalId, contactJid, isSent);
-      toast.success('Mensagem deletada para todos');
+      // If message has external ID, also delete from WhatsApp
+      if (externalId) {
+        try {
+          await deleteMessage(instanceName, externalId, contactJid, isSent);
+        } catch {
+          // WhatsApp deletion failed, but still mark locally as deleted
+          console.warn('WhatsApp API delete failed, marking locally only');
+        }
+      }
+      // Always mark as deleted in local DB
+      await supabase.from('messages').update({ is_deleted: true, content: '[Mensagem apagada]' }).eq('id', message.id);
+      toast.success(externalId ? 'Mensagem deletada para todos' : 'Mensagem removida');
       onMessageDeleted?.(message.id);
     } catch {
       toast.error('Erro ao deletar mensagem');
@@ -137,12 +144,10 @@ export function MessageContextActions({
             Editar mensagem
           </DropdownMenuItem>
         )}
-        {isSent && (
-          <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-            <Trash2 className="w-4 h-4 mr-2" />
-            Apagar para todos
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+          <Trash2 className="w-4 h-4 mr-2" />
+          {isSent && externalId ? 'Apagar para todos' : 'Apagar mensagem'}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleMarkRead}>
           <CheckCheck className="w-4 h-4 mr-2" />

@@ -107,6 +107,14 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  const handleMessageDeleted = useCallback(async (messageId: string) => {
+    try {
+      await supabase.from('messages').update({ is_deleted: true, content: '[Mensagem apagada]' }).eq('id', messageId);
+    } catch {
+      console.error('Failed to mark message as deleted in DB');
+    }
+  }, []);
+
   useImperativeHandle(ref, () => ({
     scrollToBottom: () => {
       const container = scrollContainerRef.current;
@@ -261,6 +269,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             instanceName={instanceName}
                             contactJid={contactJid}
                             onEditStart={onEditStart}
+                            onMessageDeleted={handleMessageDeleted}
                           />
                         )}
                       </div>
