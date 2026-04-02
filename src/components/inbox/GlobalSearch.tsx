@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { 
@@ -74,6 +74,12 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
   const [tagSuggestions, setTagSuggestions] = useState<TagSuggestion[]>([]);
   const [allTags, setAllTags] = useState<TagSuggestion[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Stable refs for callbacks used in effects
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const onSelectResultRef = useRef(onSelectResult);
+  onSelectResultRef.current = onSelectResult;
   
   // Filters
   const [activeTypes, setActiveTypes] = useState<Set<ResultType>>(new Set(['message', 'transcription', 'contact', 'action']));
@@ -340,27 +346,26 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
     if (search.length >= 2 || selectedTags.length > 0) {
       performSearch(search, activeTypes, dateFilter, selectedTags);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- search has its own debounce handler; only re-search when filters change
   }, [activeTypes, dateFilter, selectedTags]);
 
-  const handleSelect = (result: SearchResult) => {
-    onSelectResult(result);
-    onOpenChange(false);
+  const handleSelect = useCallback((result: SearchResult) => {
+    onSelectResultRef.current(result);
+    onOpenChangeRef.current(false);
     setSearch('');
     setResults([]);
-  };
+  }, []);
 
   const handleHistorySelect = (query: string) => {
     setSearch(query);
     performSearch(query, activeTypes, dateFilter, selectedTags);
   };
 
-  const handleTagSelect = (tag: TagSuggestion) => {
-    setSelectedTags([...selectedTags, tag.id]);
-    // Remove tag syntax from search
-    setSearch(search.replace(/#\w*$/, '').trim());
+  const handleTagSelect = useCallback((tag: TagSuggestion) => {
+    setSelectedTags(prev => [...prev, tag.id]);
+    setSearch(prev => prev.replace(/#\w*$/, '').trim());
     setTagSuggestions([]);
-  };
+  }, []);
 
   const removeTag = (tagId: string) => {
     setSelectedTags(selectedTags.filter(t => t !== tagId));
@@ -387,14 +392,13 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
           handleSelect(results[selectedIndex]);
         }
       } else if (e.key === 'Escape') {
-        onOpenChange(false);
+        onOpenChangeRef.current(false);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, results, tagSuggestions, selectedIndex]);
+  }, [open, results, tagSuggestions, selectedIndex, handleTagSelect, handleSelect]);
 
   const getResultIcon = (type: SearchResult['type']) => {
     switch (type) {

@@ -50,7 +50,7 @@ export function VoipProvider({ children }: { children: React.ReactNode }) {
     return () => {
       voip.destroy();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- voip methods are stable; only re-initialize on auth changes
   }, [user, profile?.id]);
 
   // Show toast on incoming call

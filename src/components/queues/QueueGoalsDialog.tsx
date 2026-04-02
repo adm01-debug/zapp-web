@@ -48,7 +48,7 @@ export function QueueGoalsDialog({
         setFormData(getDefaultGoal());
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync form state from props when dialog opens; setFormData/getDefaultGoal are stable
   }, [open, queueId, goals]);
 
   const handleSave = async () => {

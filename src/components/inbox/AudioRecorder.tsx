@@ -30,7 +30,7 @@ export function AudioRecorder({ onSend, onCancel }: AudioRecorderProps) {
   useEffect(() => {
     startRecording();
     return () => cancelRecording();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect; startRecording/cancelRecording are stable hook callbacks
   }, []);
 
   const handlePlayPause = () => {

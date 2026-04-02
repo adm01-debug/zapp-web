@@ -108,7 +108,7 @@ export function LocationPicker({ open, onOpenChange, onSend }: LocationPickerPro
       map.current = null;
       setIsMapLoaded(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative map init; internal callbacks use refs/closures over mutable state
   }, [mapboxToken, open]);
 
   const updateMarker = (lng: number, lat: number) => {

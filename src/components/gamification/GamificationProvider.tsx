@@ -282,8 +282,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
         triggerLevelUp(calculatedLevel);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dbStats?.xp]);
+  }, [dbStats, triggerLevelUp]);
 
   return (
     <GamificationContext.Provider 

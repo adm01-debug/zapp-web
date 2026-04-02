@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Dialog,
@@ -62,6 +62,10 @@ export function CallDialog({
   const [localStatus, setLocalStatus] = useState<'idle' | 'calling' | 'active' | 'ended'>('idle');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasInitiatedRef = useRef(false);
+  const onEndRef = useRef(onEnd);
+  onEndRef.current = onEnd;
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
 
   // Initiate call when dialog opens
   useEffect(() => {
@@ -83,6 +87,15 @@ export function CallDialog({
       setLocalStatus('ended');
     }
   }, [activeCall?.status]);
+
+  // Stable close handler using refs
+  const handleClose = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    onEndRef.current();
+    onOpenChangeRef.current(false);
+  }, []);
 
   // Timer for call duration
   useEffect(() => {
@@ -107,8 +120,7 @@ export function CallDialog({
       }, 2000);
       return () => clearTimeout(timer);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localStatus]);
+  }, [localStatus, handleClose]);
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -135,14 +147,6 @@ export function CallDialog({
     }
     await hangUp();
     setLocalStatus('ended');
-  };
-
-  const handleClose = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    onEnd();
-    onOpenChange(false);
   };
 
   const handleToggleMute = async () => {
