@@ -111,7 +111,7 @@ export function IntegrationsPanel({
   const [evolutionBot, setEvolutionBot] = useState<Record<string, string | number | boolean>>({ enabled: false });
 
   const loadAll = useCallback(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic integration data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Evolution API integration endpoints return varying shapes
     const load = async (getter: (n: string) => Promise<any>, setter: (v: Record<string, string | number | boolean>) => void) => {
       try {
         const data = await getter(instanceName);

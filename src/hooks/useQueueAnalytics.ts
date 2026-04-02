@@ -50,10 +50,10 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
   const [loading, setLoading] = useState(true);
   const mountedRef = useRef(true);
 
-  // Memoize ISO strings to prevent infinite re-render loop
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Memoize ISO strings — use getTime() for stable primitive comparison since Date objects create new references
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- dateRange.from is a Date; .getTime() gives stable primitive
   const fromISO = useMemo(() => dateRange.from?.toISOString(), [dateRange.from?.getTime()]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- dateRange.to is a Date; .getTime() gives stable primitive
   const toISO = useMemo(() => dateRange.to?.toISOString(), [dateRange.to?.getTime()]);
 
   const fetchAnalytics = useCallback(async () => {
@@ -115,7 +115,7 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- supabase client and state setters are stable
   }, [queueId, fromISO, toISO]);
 
   useEffect(() => {
