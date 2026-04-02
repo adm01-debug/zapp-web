@@ -48,6 +48,17 @@ export function AppShell({
 }: AppShellProps) {
   const isMobile = useIsMobile();
 
+  // Mobile edge-swipe navigation
+  useSwipeNavigation({
+    onSwipeBack: goBack,
+    onSwipeForward: goForward,
+    canGoBack,
+    canGoForward,
+    enabled: isMobile,
+    edgeWidth: 20,
+    threshold: 60,
+  });
+
   return (
     <div className="flex h-screen max-h-screen min-h-screen bg-background overflow-hidden relative">
       <RouteLoadingBar isLoading={loading} />
