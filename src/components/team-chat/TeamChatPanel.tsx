@@ -16,12 +16,17 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StickerPicker } from '@/components/inbox/StickerPicker';
 import { AudioMemePicker } from '@/components/inbox/AudioMemePicker';
 import { CustomEmojiPicker } from '@/components/inbox/CustomEmojiPicker';
 import { AudioRecorder } from '@/components/inbox/AudioRecorder';
 import { MentionAutocomplete, useMentions } from '@/components/inbox/chat/MentionAutocomplete';
 import { MarkdownPreview } from '@/components/inbox/chat/MarkdownPreview';
+import { RichTextToolbar, RichTextToggle } from '@/components/inbox/chat/RichTextToolbar';
+import { AIRewriteButton } from '@/components/inbox/chat/AIRewriteButton';
+import { TextToAudioButton } from '@/components/inbox/TextToAudioButton';
+import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
 import { TeamFileUploader } from './TeamFileUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -113,6 +118,8 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [showRichToolbar, setShowRichToolbar] = useState(false);
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [replyTo, setReplyTo] = useState<TeamMessage | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -479,11 +486,43 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
               />
             </div>
 
+            {/* Markdown Preview */}
+            <AnimatePresence>
+              {showMarkdownPreview && text.trim() && showRichToolbar && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="px-3 py-2 border border-border/50 rounded-lg bg-muted/30 text-sm max-h-[100px] overflow-y-auto"
+                >
+                  <MarkdownPreview text={text} className="text-foreground leading-relaxed" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Rich Text Toolbar */}
+            {showRichToolbar && (
+              <RichTextToolbar
+                inputRef={textareaRef}
+                inputValue={text}
+                onInputChange={setText}
+                visible={showRichToolbar}
+                onToggle={() => setShowRichToolbar(!showRichToolbar)}
+              />
+            )}
+
             <div className="flex items-end gap-2">
+              {/* Left tools */}
               <div className="flex items-center gap-0.5 shrink-0">
                 <TeamFileUploader
                   conversationId={conversation.id}
                   onFileSent={handleFileSent}
+                />
+                <VoiceDictationButton
+                  onTranscript={(transcript) => {
+                    setText(prev => prev + (prev ? ' ' : '') + transcript);
+                  }}
+                  disabled={isRecordingAudio}
                 />
                 <Button
                   size="icon"
@@ -496,6 +535,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                 </Button>
               </div>
 
+              {/* Textarea */}
               <Textarea
                 ref={textareaRef}
                 value={text}
@@ -509,7 +549,22 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                 rows={1}
               />
 
+              {/* Right tools */}
               <div className="flex items-center gap-0.5 shrink-0">
+                <AIRewriteButton
+                  inputValue={text}
+                  onRewrite={(newText) => {
+                    const el = textareaRef.current;
+                    if (!el) return;
+                    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+                    if (nativeSetter) {
+                      nativeSetter.call(el, newText);
+                      el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                  }}
+                />
+                <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
+                <TextToAudioButton inputValue={text} onAudioReady={handleAudioSend} />
                 <CustomEmojiPicker onSendEmoji={handleSendCustomEmoji} />
                 <StickerPicker onSendSticker={handleSendSticker} />
                 <AudioMemePicker onSendAudio={handleSendAudioMeme} />
