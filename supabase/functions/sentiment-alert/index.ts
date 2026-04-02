@@ -8,6 +8,7 @@ import { verifyJWT } from '../_shared/jwtVerifier.ts';
 import { isHealthCheck, handleHealthCheck } from '../_shared/healthCheck.ts';
 import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { unauthorized, serverError } from '../_shared/errorResponse.ts';
+import { validateRequired, validateUUID, validateNumberRange, ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 interface AlertRequest {
   contactId: string;
@@ -53,6 +54,12 @@ serve(async (req) => {
       threshold = 30,
       consecutiveRequired = 2
     }: AlertRequest = await req.json();
+
+    // Validate required fields
+    validateRequired({ contactId, contactName, sentimentScore, analysisId }, ['contactId', 'contactName', 'sentimentScore', 'analysisId']);
+    validateUUID(contactId, 'contactId');
+    validateUUID(analysisId, 'analysisId');
+    validateNumberRange(sentimentScore, 'sentimentScore', 0, 100);
 
     logger.info('Sentiment alert triggered', { contactId, contactName, sentimentScore, previousScore, threshold, consecutiveRequired });
 
@@ -243,6 +250,11 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    if (error instanceof ValidationError) {
+      logger.warn('Validation failed', { error: error.message });
+      return validationErrorResponse(error, getCorsHeaders(req));
+    }
+
     logger.error('Error processing sentiment alert', { error: error instanceof Error ? error.message : 'Unknown error' });
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack || '' : '';

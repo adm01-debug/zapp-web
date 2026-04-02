@@ -6,6 +6,7 @@ import { createStructuredLogger } from '../_shared/structuredLogger.ts';
 import { serverError } from '../_shared/errorResponse.ts';
 import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempotencyKey } from '../_shared/idempotency.ts';
 import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
+import { ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 interface WhatsAppStatus {
   id: string;
@@ -95,7 +96,16 @@ serve(async (req) => {
       supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       const payload: WhatsAppWebhookPayload = await req.json();
-      logger.info('Webhook payload received', { entries: payload.entry?.length ?? 0 });
+
+      // Validate webhook payload structure
+      if (!payload || typeof payload !== 'object') {
+        throw new ValidationError('Invalid webhook payload: expected object');
+      }
+      if (!Array.isArray(payload.entry)) {
+        throw new ValidationError('Invalid webhook payload: missing entry array');
+      }
+
+      logger.info('Webhook payload received', { entries: payload.entry.length });
 
       // Generate idempotency key from message IDs or status IDs in the payload
       const keyParts: string[] = [];
@@ -168,6 +178,11 @@ serve(async (req) => {
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       });
     } catch (error) {
+      if (error instanceof ValidationError) {
+        logger.warn('Webhook validation failed', { error: error.message });
+        return validationErrorResponse(error, getCorsHeaders(req));
+      }
+
       const errorMsg = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack || '' : '';
       logger.error('Webhook processing error', { error: errorMsg });

@@ -6,6 +6,7 @@ import { checkIdempotency, completeIdempotency, failIdempotency, generateIdempot
 import { enqueueToDeadLetter } from '../_shared/deadLetterQueue.ts';
 import { getCorsHeaders, handleCorsPreflight } from '../_shared/corsHandler.ts';
 import { serverError } from '../_shared/errorResponse.ts';
+import { ValidationError, validationErrorResponse } from '../_shared/validation.ts';
 
 interface WebhookPayload {
   event: string;
@@ -56,6 +57,18 @@ serve(async (req) => {
     supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: WebhookPayload = await req.json();
+
+    // Validate required webhook fields
+    if (!payload || typeof payload !== 'object') {
+      throw new ValidationError('Invalid webhook payload: expected object');
+    }
+    if (!payload.event || typeof payload.event !== 'string') {
+      throw new ValidationError('Invalid webhook payload: missing event field');
+    }
+    if (!payload.instance || typeof payload.instance !== 'string') {
+      throw new ValidationError('Invalid webhook payload: missing instance field');
+    }
+
     logger.info('Webhook received', { event: payload.event, instance: payload.instance });
 
     const { event, instance, data } = payload;
@@ -501,6 +514,11 @@ serve(async (req) => {
     });
 
   } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      logger.warn('Webhook validation failed', { error: (error as Error).message });
+      return validationErrorResponse(error, getCorsHeaders(req));
+    }
+
     const message = error instanceof Error ? error.message : 'Unknown error';
     const stack = error instanceof Error ? error.stack || '' : '';
     logger.error('Evolution webhook error', { error: message });
