@@ -373,6 +373,10 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
               <TooltipContent side="top">Mais ações</TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="center" className="min-w-[140px]">
+              <DropdownMenuItem onClick={() => onQuickAction?.('edit')} className="gap-2 text-xs">
+                <Briefcase className="w-3.5 h-3.5 text-primary" />
+                Editar Contato
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onQuickAction?.('vip')} className="gap-2 text-xs">
                 <Star className="w-3.5 h-3.5 text-warning" />
                 Marcar VIP

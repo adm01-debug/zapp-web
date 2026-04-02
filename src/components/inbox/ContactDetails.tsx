@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { EditContactDialog } from './contact-details/EditContactDialog';
 import { log } from '@/lib/logger';
 import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
@@ -64,6 +65,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showCompactHeader, setShowCompactHeader] = useState(false);
   const [accordionValue, setAccordionValue] = useState<string[]>(getStoredAccordionState);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Detect scroll to toggle compact header
   const handleScroll = useCallback(() => {
@@ -102,6 +104,9 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
 
   const handleQuickAction = (action: string) => {
     switch (action) {
+      case 'edit':
+        setEditDialogOpen(true);
+        break;
       case 'vip':
         toast.success('Contato marcado como VIP');
         break;
@@ -379,6 +384,23 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           </motion.div>
         </Accordion>
       </div>
+
+      <EditContactDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        contact={{
+          id: contact.id,
+          name: contact.name,
+          phone: contact.phone,
+          avatar: contact.avatar,
+          email: contact.email,
+          nickname: enrichedData?.nickname ?? undefined,
+          surname: enrichedData?.surname ?? undefined,
+          job_title: enrichedData?.job_title ?? undefined,
+          company: enrichedData?.company ?? undefined,
+          contact_type: enrichedData?.contact_type,
+        }}
+      />
     </motion.div>
   );
 }
