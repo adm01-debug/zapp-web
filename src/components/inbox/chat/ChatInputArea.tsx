@@ -698,13 +698,13 @@ export function ChatInputArea({
           </div>
         </div>
 
-        {/* Mobile: secondary tools row */}
+        {/* Mobile: compact secondary tools row */}
         {isMobile && hasText && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-1 mt-2 overflow-x-auto"
+            className="flex items-center gap-1.5 mt-1.5 overflow-x-auto scrollbar-none pb-0.5"
           >
             <AIRewriteButton
               inputValue={inputValue}
@@ -720,6 +720,7 @@ export function ChatInputArea({
             />
             <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
             <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
+            <StickerPicker onSendSticker={onSendSticker} />
           </motion.div>
         )}
       </div>
