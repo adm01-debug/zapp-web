@@ -16,12 +16,17 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StickerPicker } from '@/components/inbox/StickerPicker';
 import { AudioMemePicker } from '@/components/inbox/AudioMemePicker';
 import { CustomEmojiPicker } from '@/components/inbox/CustomEmojiPicker';
 import { AudioRecorder } from '@/components/inbox/AudioRecorder';
 import { MentionAutocomplete, useMentions } from '@/components/inbox/chat/MentionAutocomplete';
 import { MarkdownPreview } from '@/components/inbox/chat/MarkdownPreview';
+import { RichTextToolbar, RichTextToggle } from '@/components/inbox/chat/RichTextToolbar';
+import { AIRewriteButton } from '@/components/inbox/chat/AIRewriteButton';
+import { TextToAudioButton } from '@/components/inbox/TextToAudioButton';
+import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
 import { TeamFileUploader } from './TeamFileUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
