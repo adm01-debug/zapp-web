@@ -165,13 +165,16 @@ export function ChatPanelHeader({
             variant="ghost" 
             size="icon" 
             className={cn(
-              "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+              "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted relative",
               showDetails && "text-primary bg-primary/10"
             )}
             onClick={onToggleDetails}
             title="Detalhes do contato"
           >
             <Info className="w-[18px] h-[18px]" />
+            {!showDetails && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary animate-pulse" />
+            )}
           </Button>
         )}
         <VoiceSelector
