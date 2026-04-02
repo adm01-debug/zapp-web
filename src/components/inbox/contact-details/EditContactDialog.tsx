@@ -48,18 +48,29 @@ export function EditContactDialog({ open, onOpenChange, contact }: EditContactDi
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+
+    const updatePayload = {
+      name: formValues.name,
+      nickname: formValues.nickname || null,
+      surname: formValues.surname || null,
+      job_title: formValues.job_title || null,
+      company: formValues.company || null,
+      email: formValues.email || null,
+      contact_type: formValues.contact_type || null,
+    };
+
+    // Optimistic update: update cache immediately for instant UI feedback
+    const enrichedKey = ['contact-enriched', contact.id];
+    const previousData = queryClient.getQueryData(enrichedKey);
+
+    queryClient.setQueryData(enrichedKey, (old: any) =>
+      old ? { ...old, ...updatePayload } : old
+    );
+
     try {
       const { error } = await supabase
         .from('contacts')
-        .update({
-          name: formValues.name,
-          nickname: formValues.nickname || null,
-          surname: formValues.surname || null,
-          job_title: formValues.job_title || null,
-          company: formValues.company || null,
-          email: formValues.email || null,
-          contact_type: formValues.contact_type || null,
-        })
+        .update(updatePayload)
         .eq('id', contact.id);
 
       if (error) throw error;
@@ -69,6 +80,10 @@ export function EditContactDialog({ open, onOpenChange, contact }: EditContactDi
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       onOpenChange(false);
     } catch (err) {
+      // Rollback optimistic update on error
+      if (previousData) {
+        queryClient.setQueryData(enrichedKey, previousData);
+      }
       console.error('Error updating contact:', err);
       toast.error('Erro ao atualizar contato');
     } finally {
