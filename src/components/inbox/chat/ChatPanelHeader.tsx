@@ -216,16 +216,6 @@ export function ChatPanelHeader({
           onSpeedChange={onSpeedChange}
         />
 
-        {isExternalConfigured && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <CRMSyncButton conversation={conversation} />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Sincronizar com CRM</TooltipContent>
-          </Tooltip>
-        )}
 
         <DropdownMenu>
           <Tooltip>
