@@ -117,8 +117,7 @@ function AppContent() {
       <LiveRegion />
       
       <GlobalKeyboardProvider>
-        <RealtimeSentimentAlertProvider />
-        <IncomingCallAlert />
+        {deferredReady && <DeferredProviders />}
         <Toaster />
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>
