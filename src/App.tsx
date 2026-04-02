@@ -11,8 +11,20 @@ import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProv
 import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
-import { IncomingCallAlert } from "@/components/calls/IncomingCallAlert";
 import { useScreenProtection } from "@/hooks/useScreenProtection";
+
+// Deferred non-critical providers loaded after first paint
+const RealtimeSentimentAlertProvider = lazy(() => import("@/components/notifications/RealtimeSentimentAlertProvider").then(m => ({ default: m.RealtimeSentimentAlertProvider })));
+const IncomingCallAlert = lazy(() => import("@/components/calls/IncomingCallAlert").then(m => ({ default: m.IncomingCallAlert })));
+
+function DeferredProviders() {
+  return (
+    <Suspense fallback={null}>
+      <RealtimeSentimentAlertProvider />
+      <IncomingCallAlert />
+    </Suspense>
+  );
+}
 import { SkipLinks } from "@/components/ui/skip-link";
 import { LiveRegion } from "@/components/ui/visually-hidden";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
