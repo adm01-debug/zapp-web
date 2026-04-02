@@ -123,23 +123,27 @@ export function TextToAudioButton({ inputValue, onAudioReady, disabled }: TextTo
   const hasText = inputValue.trim().length > 0;
 
   return (
-    <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) cleanup(); }}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "w-9 h-9 shrink-0 transition-colors",
-            hasText
-              ? "text-primary hover:text-primary hover:bg-primary/10"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          )}
-          disabled={disabled || !hasText}
-          title="Converter texto em áudio"
-        >
-          <AudioLines className="w-[18px] h-[18px]" />
-        </Button>
-      </PopoverTrigger>
+    <Tooltip>
+      <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) cleanup(); }}>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "w-9 h-9 shrink-0 transition-colors",
+                hasText
+                  ? "text-primary hover:text-primary hover:bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              disabled={disabled || !hasText}
+              aria-label="Texto para Áudio (TTS)"
+            >
+              <AudioLines className="w-[18px] h-[18px]" />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="top">Texto para Áudio (TTS)</TooltipContent>
       <PopoverContent
         className="w-[300px] p-0 bg-popover border-border"
         align="end"
