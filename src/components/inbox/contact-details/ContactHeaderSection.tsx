@@ -303,7 +303,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                 <MessageSquare className="w-4 h-4 text-success" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>WhatsApp</TooltipContent>
+            <TooltipContent side="top">WhatsApp</TooltipContent>
           </Tooltip>
 
           <Tooltip>
