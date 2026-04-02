@@ -111,7 +111,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
     const processed = files.slice(0, MAX_FILES).map((file, index) => {
       const validation = validateFile(file);
       let preview: string | undefined;
-      if (validation.valid && validation.category === 'image') {
+      if (validation.valid && (validation.category === 'image' || file.type === 'application/pdf')) {
         preview = URL.createObjectURL(file);
       }
       return {
@@ -138,7 +138,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       const validation = validateFile(file);
       
       let preview: string | undefined;
-      if (validation.valid && validation.category === 'image') {
+      if (validation.valid && (validation.category === 'image' || file.type === 'application/pdf')) {
         preview = URL.createObjectURL(file);
       }
 
@@ -158,7 +158,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
         const file = files[0];
         const validation = validateFile(file);
         let preview: string | undefined;
-        if (validation.valid && validation.category === 'image') {
+        if (validation.valid && (validation.category === 'image' || file.type === 'application/pdf')) {
           preview = URL.createObjectURL(file);
         }
         setFilePreview({ file, validation, preview });
@@ -198,9 +198,9 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
 
     const validation = validateFile(file);
 
-    // Create preview for images
+    // Create preview for images and PDFs
     let preview: string | undefined;
-    if (validation.valid && validation.category === 'image') {
+    if (validation.valid && (validation.category === 'image' || file.type === 'application/pdf')) {
       preview = URL.createObjectURL(file);
     }
 
@@ -609,12 +609,23 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
           {/* Single file mode */}
           {!isMultiMode && filePreview && (
             <div className="space-y-4">
+              {/* PDF Preview */}
+              {filePreview.preview && filePreview.file.type === 'application/pdf' && (
+                <div className="border rounded-lg overflow-hidden bg-muted/30">
+                  <iframe
+                    src={`${filePreview.preview}#toolbar=0&navpanes=0`}
+                    className="w-full h-[280px] border-0"
+                    title="PDF Preview"
+                  />
+                </div>
+              )}
+
               {/* File Preview */}
               <div className="relative border rounded-lg p-4 bg-muted/50">
                 <div className="flex items-start gap-4">
                   {/* Preview/Icon */}
                   <div className="flex-shrink-0">
-                    {filePreview.preview ? (
+                    {filePreview.preview && filePreview.file.type !== 'application/pdf' ? (
                       <img
                         src={filePreview.preview}
                         alt="Preview"
