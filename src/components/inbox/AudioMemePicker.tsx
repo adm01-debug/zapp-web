@@ -614,6 +614,7 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
           </Button>
         </div>
       </PopoverContent>
-    </Popover>
+      </Popover>
+    </Tooltip>
   );
 }

@@ -433,7 +433,8 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
             </div>
           </div>
         </PopoverContent>
-      </Popover>
+        </Popover>
+      </Tooltip>
     </TooltipProvider>
   );
 }
