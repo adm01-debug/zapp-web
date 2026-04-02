@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { EditContactDialog } from './contact-details/EditContactDialog';
 import { log } from '@/lib/logger';
 import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
