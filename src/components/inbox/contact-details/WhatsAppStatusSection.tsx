@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, Image, Video, Type, Clock, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatRelativeTime } from '@/lib/formatters';
 import { useState } from 'react';
 
 interface WhatsAppStatusSectionProps {
