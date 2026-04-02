@@ -335,6 +335,23 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
             <TooltipContent>{contact.email || 'Sem email'}</TooltipContent>
           </Tooltip>
 
+          {/* Collapse all sections */}
+          {hasExpandedSections && onCollapseAll && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="w-9 h-9 border-border/30 hover:border-muted-foreground/50 hover:bg-muted/20"
+                  onClick={onCollapseAll}
+                >
+                  <ChevronsDownUp className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Recolher todas as seções</TooltipContent>
+            </Tooltip>
+          )}
+
           {/* More actions dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
