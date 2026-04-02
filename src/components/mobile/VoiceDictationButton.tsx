@@ -71,7 +71,7 @@ export function VoiceDictationButton({ onTranscript, className, disabled }: Voic
           )}
         </Button>
       </TooltipTrigger>
-      <TooltipContent className="text-xs">
+      <TooltipContent side="top">
         {isListening ? 'Parar ditado por voz' : 'Ditar por voz'}
       </TooltipContent>
     </Tooltip>

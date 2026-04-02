@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Search, Plus, Star, Trash2, Loader2, Upload, X, Play, Pause, Volume2, Tag, Check, ChevronDown } from 'lucide-react';
@@ -374,6 +375,7 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
   });
 
   return (
+    <Tooltip>
     <Popover open={open} onOpenChange={(v) => {
       setOpen(v);
       if (!v) {
@@ -381,17 +383,20 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
         setPendingUpload(null);
       }
     }}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-          title="Áudios Meme"
-          disabled={disabled}
-        >
-          <Volume2 className="w-[18px] h-[18px]" />
-        </Button>
-      </PopoverTrigger>
+      <TooltipTrigger asChild>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+            disabled={disabled}
+            aria-label="Áudio Memes"
+          >
+            <Volume2 className="w-[18px] h-[18px]" />
+          </Button>
+        </PopoverTrigger>
+      </TooltipTrigger>
+      <TooltipContent side="top">Áudio Memes</TooltipContent>
       <PopoverContent
         className="w-[360px] p-0 bg-popover border-border"
         align="end"
@@ -611,6 +616,7 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
           </Button>
         </div>
       </PopoverContent>
-    </Popover>
+      </Popover>
+    </Tooltip>
   );
 }

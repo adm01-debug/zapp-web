@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -482,18 +483,23 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
         multiple
       />
       
-      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || uploading}
-          title="Anexar arquivo"
-        >
-          <Paperclip className="w-5 h-5" />
-        </Button>
-      </motion.div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || uploading}
+              aria-label="Anexar arquivo"
+            >
+              <Paperclip className="w-5 h-5" />
+            </Button>
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent side="top">Anexar arquivo</TooltipContent>
+      </Tooltip>
 
       <Dialog open={isDialogOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
