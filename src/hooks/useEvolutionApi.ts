@@ -1,7 +1,15 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { log } from '@/lib/logger';
+import { CircuitBreaker, CircuitOpenError } from '@/lib/circuitBreaker';
+
+// Shared circuit breaker instance across all hook consumers
+const evolutionCircuitBreaker = new CircuitBreaker({
+  name: 'EvolutionAPI',
+  failureThreshold: 5,
+  resetTimeout: 30_000,
+});
 
 // ============================================================
 // EVOLUTION API v2 — FULL REACT HOOK (60+ actions)
@@ -218,14 +226,21 @@ export function useEvolutionApi() {
   const callApi = useCallback(async (action: string, body?: object, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'POST') => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke(`evolution-api/${action}`, {
-        method,
-        body,
+      return await evolutionCircuitBreaker.execute(async () => {
+        const { data, error } = await supabase.functions.invoke(`evolution-api/${action}`, {
+          method,
+          body,
+        });
+        if (error) throw error;
+        return data;
       });
-      if (error) throw error;
-      return data;
     } catch (error) {
-      log.error(`Evolution API error (${action}):`, error);
+      if (error instanceof CircuitOpenError) {
+        log.warn(`Evolution API circuit open, skipping ${action}`);
+        toast.error('Serviço temporariamente indisponível. Tente novamente em alguns segundos.');
+      } else {
+        log.error(`Evolution API error (${action}):`, error);
+      }
       throw error;
     } finally {
       setIsLoading(false);
