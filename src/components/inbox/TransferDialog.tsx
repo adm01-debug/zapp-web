@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { log } from '@/lib/logger';
 import { motion } from 'framer-motion';
 import {
   Dialog,
@@ -51,7 +52,7 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
       .then(({ data }) => {
         setConnections(data || []);
       })
-      .catch(() => { /* connection fetch failed silently */ })
+      .catch((err) => log.error('Erro ao buscar conexões para transferência:', err))
       .finally(() => setLoadingConnections(false));
   }, [transferType, open]);
 

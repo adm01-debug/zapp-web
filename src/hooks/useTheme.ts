@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
@@ -30,6 +30,7 @@ export function useTheme(): UseThemeReturn {
     }
     return 'dark';
   });
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Apply theme to document with smooth transition
   const applyTheme = useCallback((newTheme: Theme, animate = true) => {
@@ -64,7 +65,8 @@ export function useTheme(): UseThemeReturn {
 
     // Remove transition class after animation
     if (animate) {
-      setTimeout(() => {
+      clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = setTimeout(() => {
         root.style.removeProperty('--theme-transition');
         body.classList.remove('theme-transitioning');
       }, 300);
@@ -120,6 +122,11 @@ export function useTheme(): UseThemeReturn {
     document.addEventListener('toggle-theme', handleToggle);
     return () => document.removeEventListener('toggle-theme', handleToggle);
   }, [toggleTheme]);
+
+  // Cleanup transition timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(transitionTimerRef.current);
+  }, []);
 
   return {
     theme,

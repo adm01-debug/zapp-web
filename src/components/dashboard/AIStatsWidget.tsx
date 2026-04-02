@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -173,7 +173,7 @@ const calculateTrend = (current: number, previous: number): TrendData => {
   };
 };
 
-export function AIStatsWidget() {
+export const AIStatsWidget = React.memo(function AIStatsWidget() {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
   const [visibleSentiments, setVisibleSentiments] = useState<Set<SentimentType>>(
     new Set(['positive', 'negative', 'neutral'])
@@ -609,4 +609,4 @@ export function AIStatsWidget() {
       </Card>
     </motion.div>
   );
-}
+});

@@ -87,6 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         fetchProfile(session.user.id);
       }
       setLoading(false);
+    }).catch((err) => {
+      if (!mountedRef.current) return;
+      log.error('Erro ao obter sessão:', err);
+      setLoading(false);
     });
 
     return () => {

@@ -77,7 +77,7 @@ interface AgentSentimentData {
   trend: number; // positive = improving, negative = declining
 }
 
-export function SentimentAlertsDashboard() {
+export const SentimentAlertsDashboard = React.memo(function SentimentAlertsDashboard() {
   const [alerts, setAlerts] = useState<SentimentAlert[]>([]);
   const [analyses, setAnalyses] = useState<ConversationAnalysis[]>([]);
   const [agents, setAgents] = useState<AgentProfile[]>([]);
@@ -979,4 +979,4 @@ export function SentimentAlertsDashboard() {
       </Tabs>
     </div>
   );
-}
+});

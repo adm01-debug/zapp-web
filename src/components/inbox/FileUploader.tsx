@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from '@/components/ui/motion';
 import { log } from '@/lib/logger';
 import { cn } from '@/lib/utils';
@@ -72,7 +72,7 @@ export interface FileUploaderRef {
   handleExternalFiles: (files: File[]) => void;
 }
 
-export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({ 
+export const FileUploader = React.memo(forwardRef<FileUploaderRef, FileUploaderProps>(({ 
   instanceName, 
   recipientNumber,
   contactId,
@@ -319,6 +319,7 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
 
         if (dbError) {
           log.error('Error saving message to database:', dbError);
+          toast.warning('Arquivo enviado, mas houve um erro ao salvar no histórico.');
         } else {
           log.debug('Media message saved to database');
         }
@@ -785,6 +786,6 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
       </Dialog>
     </>
   );
-});
+}));
 
 FileUploader.displayName = 'FileUploader';

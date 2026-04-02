@@ -43,6 +43,13 @@ export interface RecentActivity {
   unreadCount: number;
 }
 
+export interface UseDashboardDataReturn {
+  stats: DashboardStats | null;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => void;
+}
+
 const getDefaultFilters = (): DashboardFilters => ({
   dateRange: {
     from: startOfDay(new Date()),
@@ -52,7 +59,7 @@ const getDefaultFilters = (): DashboardFilters => ({
   agentId: null,
 });
 
-export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()) => {
+export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()): UseDashboardDataReturn => {
   const { dateRange, queueId, agentId } = { ...getDefaultFilters(), ...filters };
   // Fetch agents stats
   const agentsQuery = useQuery({

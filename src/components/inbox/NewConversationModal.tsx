@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { log } from '@/lib/logger';
 import {
   Dialog,
   DialogContent,
@@ -61,7 +62,7 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
           setConnections(data);
           setSelectedConnection(data[0].id);
         }
-      }).catch(() => { /* connection fetch failed */ });
+      }).catch((err) => log.error('Erro ao buscar conexões:', err));
   }, [open]);
 
   // Search contacts
