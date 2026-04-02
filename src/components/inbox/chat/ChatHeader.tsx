@@ -328,13 +328,16 @@ export function ChatHeader({
                 variant="ghost" 
                 size="icon" 
                 className={cn(
-                  "text-muted-foreground hover:text-primary hover:bg-primary/10",
+                  "text-muted-foreground hover:text-primary hover:bg-primary/10 relative",
                   showDetails && "text-primary bg-primary/10"
                 )}
                 onClick={onToggleDetails}
                 aria-label="Detalhes do contato"
               >
                 <Info className="w-4 h-4" />
+                {!showDetails && (
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary animate-pulse" />
+                )}
               </Button>
             </motion.div>
           </TooltipTrigger>
