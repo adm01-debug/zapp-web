@@ -1,5 +1,6 @@
 import {
   MessageSquare,
+  MessagesSquare,
   User,
   UsersRound,
   BarChart3,
@@ -47,6 +48,7 @@ import type { NavItemConfig } from './SidebarNavItem';
 // ── Primary (always visible) ──────────────────────────────
 export const primaryNav: readonly NavItemConfig[] = [
   { id: 'inbox', icon: MessageSquare, label: 'Chat' },
+  { id: 'team-chat', icon: MessagesSquare, label: 'Chat Interno' },
   { id: 'contacts', icon: User, label: 'Contatos' },
   { id: 'groups', icon: UsersRound, label: 'Grupos' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },

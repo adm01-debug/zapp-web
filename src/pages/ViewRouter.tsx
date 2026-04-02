@@ -20,7 +20,7 @@ interface ViewRouterProps {
 }
 
 // Views that manage their own full-screen layout (no header)
-const FULL_SCREEN_VIEWS = new Set(['inbox', 'pipeline', 'omni-inbox']);
+const FULL_SCREEN_VIEWS = new Set(['inbox', 'pipeline', 'omni-inbox', 'team-chat']);
 
 interface WithHeaderProps {
   viewId: string;
@@ -96,6 +96,7 @@ const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any
   'audit-logs': Views.AuditLogDashboard,
   'telemetry': Views.AdminTelemetriaPage,
   'nps': Views.NPSDashboard,
+  'team-chat': Views.TeamChatView,
 };
 
 // Views that need custom props
