@@ -133,17 +133,6 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           {isExternalConfigured && (
             <CRMSyncButton conversation={conversation} />
           )}
-          {accordionValue.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => { setAccordionValue([]); saveAccordionState([]); }}
-              className="w-7 h-7 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-              title="Recolher todas as seções"
-            >
-              <ChevronsDownUp className="w-3.5 h-3.5" />
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="icon"
