@@ -1,5 +1,6 @@
 import {
   MessageSquare,
+  MessagesSquare,
   User,
   UsersRound,
   BarChart3,
