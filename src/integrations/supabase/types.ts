@@ -2575,6 +2575,58 @@ export type Database = {
         }
         Relationships: []
       }
+      nps_surveys: {
+        Row: {
+          agent_id: string | null
+          contact_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          score: number
+          survey_type: string
+        }
+        Insert: {
+          agent_id?: string | null
+          contact_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score: number
+          survey_type?: string
+        }
+        Update: {
+          agent_id?: string | null
+          contact_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score?: number
+          survey_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nps_surveys_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_surveys_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_surveys_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       passkey_credentials: {
         Row: {
           backed_up: boolean | null
