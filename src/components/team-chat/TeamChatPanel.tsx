@@ -121,12 +121,12 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
 
   // Mentions
   const {
-    mentionOpen,
-    setMentionOpen,
-    mentionCursorPos,
-    handleMentionSelect,
-    handleMentionKeyDown,
-  } = useMentions(text, setText, textareaRef);
+    isOpen: mentionOpen,
+    cursorPos: mentionCursorPos,
+    checkForMention,
+    handleSelect: handleMentionSelect,
+    close: closeMention,
+  } = useMentions(textareaRef);
 
   const checkNearBottom = useCallback(() => {
     const el = scrollRef.current;
