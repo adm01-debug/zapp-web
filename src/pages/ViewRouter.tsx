@@ -113,7 +113,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
     announce(`Navegou para ${mod.label}`);
   }, [currentView, mod.label, announce]);
 
-  const content = (() => {
+  const content = useMemo(() => {
     // Check special views first (those needing props)
     if (SPECIAL_VIEWS[currentView]) {
       return SPECIAL_VIEWS[currentView]({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo });
@@ -128,7 +128,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
       );
     }
     return <FallbackView currentView={currentView} />;
-  })();
+  }, [currentView, userId]);
 
   return (
     <WithHeader
