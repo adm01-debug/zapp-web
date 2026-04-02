@@ -391,9 +391,29 @@ serve(async (req) => {
     // POST /message/sendWhatsAppAudio/{instance}
     if (action === 'send-audio') {
       const rawAudioSource = body.audio || body.audioUrl || body.mediaUrl;
-      const audioSource = typeof rawAudioSource === 'string'
+      let audioSource = typeof rawAudioSource === 'string'
         ? rawAudioSource.trim().replace(/^"+|"+$/g, '').replace(/\.supabase\.co"\//, '.supabase.co/')
         : rawAudioSource;
+
+      // If the URL is from a private bucket (whatsapp-media or audio-messages), generate a signed URL
+      if (typeof audioSource === 'string') {
+        const privateBuckets = ['whatsapp-media', 'audio-messages'];
+        for (const bucket of privateBuckets) {
+          if (audioSource.includes(`/storage/v1/object/public/${bucket}/`)) {
+            const storagePath = audioSource.split(`/storage/v1/object/public/${bucket}/`)[1];
+            if (storagePath) {
+              const { data: signedData } = await supabase.storage
+                .from(bucket)
+                .createSignedUrl(storagePath, 300);
+              if (signedData?.signedUrl) {
+                audioSource = signedData.signedUrl;
+                console.log(`[send-audio] Using signed URL for private bucket ${bucket}`);
+              }
+            }
+            break;
+          }
+        }
+      }
 
       const audioPayload: Record<string, unknown> = {
         number: body.number,
