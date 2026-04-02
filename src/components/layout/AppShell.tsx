@@ -125,6 +125,22 @@ export function AppShell({
               />
         </Suspense>
       </main>
+
+      {/* Accessible live region for screen reader announcements */}
+      <div
+        id="a11y-status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      />
+      <div
+        id="a11y-alert"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="sr-only"
+      />
     </div>
   );
 }
