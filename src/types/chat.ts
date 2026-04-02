@@ -10,6 +10,7 @@ export interface Contact {
   email?: string;
   tags: string[];
   createdAt: Date;
+  contact_type?: string | null;
 }
 
 // WhatsApp Interactive Message Types
