@@ -39,7 +39,7 @@ import { useUserSettings } from '@/hooks/useUserSettings';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { Globe, Phone } from 'lucide-react';
 import { toast } from 'sonner';
-import { WavoipSettings } from '@/components/settings/WavoipSettings';
+import { VoipSettings } from '@/components/settings/VoipSettings';
 
 export function SettingsView() {
   const { settings, isLoading, isSaving, updateSettings, saveSettings, toggleWorkDay } = useUserSettings();
@@ -560,13 +560,13 @@ export function SettingsView() {
           </motion.div>
         </TabsContent>
 
-        {/* VoIP / Wavoip Settings */}
+        {/* VoIP Settings */}
         <TabsContent value="voip">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <WavoipSettings />
+            <VoipSettings />
           </motion.div>
         </TabsContent>
       </Tabs>

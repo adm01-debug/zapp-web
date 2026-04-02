@@ -20,7 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { EasterEggsProvider } from "@/components/effects/EasterEggs";
 import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
-import { WavoipProvider } from "@/contexts/WavoipContext";
+import { VoipProvider } from "@/contexts/VoipContext";
 import { IncomingCallOverlay } from "@/components/calls/IncomingCallOverlay";
 
 const log = getLogger('App');
@@ -168,7 +168,7 @@ function AppWithErrorRecovery() {
     >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <WavoipProvider>
+          <VoipProvider>
             <HighContrastProvider>
               <GamificationProvider>
                 <EasterEggsProvider>
@@ -180,7 +180,7 @@ function AppWithErrorRecovery() {
                 </EasterEggsProvider>
               </GamificationProvider>
             </HighContrastProvider>
-          </WavoipProvider>
+          </VoipProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>

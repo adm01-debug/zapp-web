@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useWavoipContext } from '@/contexts/WavoipContext';
+import { useVoipContext } from '@/contexts/VoipContext';
 import { CallDialog } from './CallDialog';
 
 const log = getLogger('CallsView');
@@ -54,7 +54,7 @@ interface CallRecord {
 }
 
 export function CallsView() {
-  const { isConnected, makeCall, activeCall } = useWavoipContext();
+  const { isReady: isConnected, makeCall, activeCall } = useVoipContext();
   const [calls, setCalls] = useState<CallRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -197,7 +197,7 @@ export function CallsView() {
           <div className="flex items-center gap-2">
             <Badge variant={isConnected ? 'default' : 'secondary'} className="gap-1">
               {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-              {isConnected ? 'Wavoip Conectado' : 'Wavoip Offline'}
+              {isConnected ? 'VoIP Conectado' : 'VoIP Offline'}
             </Badge>
             <Button
               onClick={() => setShowDialer(true)}

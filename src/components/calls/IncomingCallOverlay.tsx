@@ -2,10 +2,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Phone, PhoneOff, PhoneIncoming } from 'lucide-react';
-import { useWavoipContext } from '@/contexts/WavoipContext';
+import { useVoipContext } from '@/contexts/VoipContext';
 
 export function IncomingCallOverlay() {
-  const { incomingOffer, answerIncoming, rejectIncoming, activeCall } = useWavoipContext();
+  const { incomingOffer, answerIncoming, rejectIncoming, activeCall } = useVoipContext();
 
   // Don't show overlay if there's already an active call or no offer
   if (!incomingOffer || activeCall) return null;

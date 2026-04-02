@@ -9,9 +9,9 @@ const mockRejectIncoming = vi.fn();
 const mockHangUp = vi.fn();
 const mockToggleMute = vi.fn();
 
-vi.mock('@/contexts/WavoipContext', () => ({
-  useWavoipContext: () => ({
-    isConnected: true,
+vi.mock('@/contexts/VoipContext', () => ({
+  useVoipContext: () => ({
+    isReady: true,
     activeCall: null,
     incomingOffer: null,
     makeCall: mockMakeCall,

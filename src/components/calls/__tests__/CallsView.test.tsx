@@ -3,15 +3,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import React from 'react';
 
-// Mock WavoipContext
-vi.mock('@/contexts/WavoipContext', () => ({
-  useWavoipContext: () => ({
-    isConnected: true,
+// Mock VoipContext
+vi.mock('@/contexts/VoipContext', () => ({
+  useVoipContext: () => ({
+    isReady: true,
     makeCall: vi.fn(),
     activeCall: null,
-    devices: [],
+    connections: [],
   }),
-  WavoipProvider: ({ children }: any) => <>{children}</>,
+  VoipProvider: ({ children }: any) => <>{children}</>,
 }));
 
 // Mock supabase — must use inline data, not external variables
@@ -106,10 +106,10 @@ describe('CallsView', () => {
     });
   });
 
-  it('shows Wavoip connected badge', async () => {
+  it('shows VoIP connected badge', async () => {
     render(<CallsView />);
     await waitFor(() => {
-      expect(screen.getByText('Wavoip Conectado')).toBeInTheDocument();
+      expect(screen.getByText('VoIP Conectado')).toBeInTheDocument();
     });
   });
 

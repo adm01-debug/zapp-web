@@ -19,7 +19,7 @@ import {
   PhoneIncoming,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useWavoipContext } from '@/contexts/WavoipContext';
+import { useVoipContext } from '@/contexts/VoipContext';
 
 interface CallDialogProps {
   open: boolean;
@@ -46,13 +46,13 @@ export function CallDialog({
 }: CallDialogProps) {
   const {
     activeCall,
-    isConnected,
+    isReady: isConnected,
     makeCall,
     answerIncoming,
     rejectIncoming,
     hangUp,
     toggleMute,
-  } = useWavoipContext();
+  } = useVoipContext();
 
   const [duration, setDuration] = useState(0);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
@@ -74,9 +74,9 @@ export function CallDialog({
 
   // Track active call status
   useEffect(() => {
-    if (activeCall?.status === 'ACTIVE') {
+    if (activeCall?.status === 'active') {
       setLocalStatus('active');
-    } else if (activeCall?.status === 'ENDED' || activeCall?.status === 'REJECTED' || activeCall?.status === 'NOT_ANSWERED') {
+    } else if (activeCall?.status === 'ended' || activeCall?.status === 'rejected' || activeCall?.status === 'missed') {
       setLocalStatus('ended');
     }
   }, [activeCall?.status]);
@@ -153,10 +153,10 @@ export function CallDialog({
   };
 
   const getStatusText = () => {
-    if (!isConnected) return 'Wavoip desconectado';
+    if (!isConnected) return 'VoIP desconectado';
     if (localStatus === 'ended') {
-      if (activeCall?.status === 'REJECTED') return 'Chamada rejeitada';
-      if (activeCall?.status === 'NOT_ANSWERED') return 'Não atendida';
+      if (activeCall?.status === 'rejected') return 'Chamada rejeitada';
+      if (activeCall?.status === 'missed') return 'Não atendida';
       return `Chamada encerrada - ${formatDuration(duration)}`;
     }
     if (localStatus === 'active') return null; // Show timer instead
@@ -313,7 +313,7 @@ export function CallDialog({
             {localStatus === 'calling' && direction === 'outbound'
               ? 'Aguardando resposta do contato...'
               : localStatus === 'active'
-              ? 'Chamada VoIP em andamento via Wavoip'
+              ? 'Chamada VoIP em andamento'
               : localStatus === 'ended'
               ? 'A janela fechará automaticamente'
               : null
