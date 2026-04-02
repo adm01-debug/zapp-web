@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
@@ -92,7 +92,9 @@ import { cn } from '@/lib/utils';
 import { useContactsSearch } from '@/hooks/useContactsSearch';
 import { AdvancedCRMSearch } from '@/components/contacts/AdvancedCRMSearch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CheckSquare } from 'lucide-react';
+import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Contact {
   id: string;
@@ -175,6 +177,7 @@ export function ContactsView() {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [isCRMSearchOpen, setIsCRMSearchOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [newContact, setNewContact] = useState({
     name: '',
@@ -751,15 +754,24 @@ export function ContactsView() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-secondary/20 bg-secondary/5">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Etiquetas</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Criado em</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">Ações</th>
-                  </tr>
+                     <th className="p-4 w-10">
+                       <Checkbox
+                         checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
+                         onCheckedChange={(checked) => {
+                           setSelectedIds(checked ? filteredContacts.map(c => c.id) : []);
+                         }}
+                         aria-label="Selecionar todos"
+                       />
+                     </th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Etiquetas</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Criado em</th>
+                     <th className="text-right p-4 font-medium text-muted-foreground">Ações</th>
+                   </tr>
                 </thead>
                 <tbody>
                   {filteredContacts.map((contact, index) => {
@@ -773,6 +785,17 @@ export function ContactsView() {
                         className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors cursor-pointer"
                         onClick={() => openContactChat(contact.id)}
                       >
+                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.includes(contact.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedIds(prev =>
+                                checked ? [...prev, contact.id] : prev.filter(id => id !== contact.id)
+                              );
+                            }}
+                            aria-label={`Selecionar ${contact.name}`}
+                          />
+                        </td>
                         <td className="p-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10">
@@ -995,6 +1018,14 @@ export function ContactsView() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Bulk Actions */}
+      <BulkActionsBar
+        selectedIds={selectedIds}
+        onClearSelection={() => setSelectedIds([])}
+        onActionComplete={() => { setSelectedIds([]); refetch(); }}
+        availableTags={uniqueTags}
+      />
     </div>
   );
 }

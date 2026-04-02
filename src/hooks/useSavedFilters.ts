@@ -18,6 +18,8 @@ export interface SavedFilter {
   name: string;
   filters: Record<string, unknown>;
   is_default: boolean;
+  is_shared: boolean;
+  user_id: string;
   created_at: string;
 }
 
@@ -25,6 +27,7 @@ interface SaveFilterInput {
   name: string;
   filters: Record<string, unknown>;
   is_default?: boolean;
+  is_shared?: boolean;
 }
 
 // ============================================
@@ -35,19 +38,19 @@ export function useSavedFilters(entityType: string) {
   const queryClient = useQueryClient();
   const queryKey = ['saved-filters', entityType];
 
-  // Listar filtros salvos
+  // Listar filtros salvos (próprios + compartilhados)
   const { data: filters = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Use any to work around Supabase's dynamic table typing
+      // Fetch own filters + shared filters from others
       const { data, error } = await (supabase as any)
         .from('saved_filters')
         .select('*')
-        .eq('user_id', user.id)
         .eq('entity_type', entityType)
+        .or(`user_id.eq.${user.id},is_shared.eq.true`)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -81,6 +84,7 @@ export function useSavedFilters(entityType: string) {
           name: input.name,
           filters: input.filters,
           is_default: input.is_default ?? false,
+          is_shared: input.is_shared ?? false,
         })
         .select()
         .single();
@@ -159,6 +163,22 @@ export function useSavedFilters(entityType: string) {
     },
   });
 
+  // Alternar compartilhamento
+  const shareMutation = useMutation({
+    mutationFn: async ({ id, is_shared }: { id: string; is_shared: boolean }) => {
+      const { error } = await (supabase as any)
+        .from('saved_filters')
+        .update({ is_shared })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey });
+      toast.success(variables.is_shared ? 'Filtro compartilhado com a equipe!' : 'Filtro deixou de ser compartilhado');
+    },
+  });
+
   return {
     filters,
     isLoading,
@@ -167,6 +187,7 @@ export function useSavedFilters(entityType: string) {
     updateFilter: updateMutation.mutate,
     deleteFilter: deleteMutation.mutate,
     setDefault: setDefaultMutation.mutate,
+    toggleShare: shareMutation.mutate,
     isSaving: saveMutation.isPending,
   };
 }

@@ -1,4 +1,5 @@
 import { motion } from '@/components/ui/motion';
+import { NPSDashboard } from '@/components/nps/NPSDashboard';
 import { FollowUpSequences } from '@/components/settings/FollowUpSequences';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -7,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Clock, MessageSquare, Bell, Palette, Save, RefreshCw, Loader2,
-  Keyboard, Volume2, ArrowRight, Package, Globe,
+  Keyboard, Volume2, ArrowRight, Package, Globe, TrendingUp,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
 import { MediaLibraryAdmin } from '@/components/settings/MediaLibraryAdmin';
@@ -101,6 +102,7 @@ export function SettingsView() {
           <TabsTrigger value="global" className="gap-2"><Globe className="w-4 h-4" />Global</TabsTrigger>
           <TabsTrigger value="followup" className="gap-2"><ArrowRight className="w-4 h-4" />Follow-up</TabsTrigger>
           <TabsTrigger value="media" className="gap-2"><Package className="w-4 h-4" />Mídia</TabsTrigger>
+          <TabsTrigger value="nps" className="gap-2"><TrendingUp className="w-4 h-4" />NPS</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule">
@@ -153,6 +155,12 @@ export function SettingsView() {
         <TabsContent value="media">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <MediaLibraryAdmin />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="nps">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <NPSDashboard />
           </motion.div>
         </TabsContent>
       </Tabs>

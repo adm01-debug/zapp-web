@@ -102,6 +102,7 @@ export const analyticsNav: readonly NavItemConfig[] = [
   { id: 'diagnostics', icon: Compass, label: 'Diagnóstico' },
   { id: 'performance', icon: Cpu, label: 'Performance' },
   { id: 'telemetry', icon: Activity, label: 'Telemetria BD' },
+  { id: 'nps', icon: Gauge, label: 'NPS' },
 ] as const;
 
 // ── System & Admin ────────────────────────────────────────
