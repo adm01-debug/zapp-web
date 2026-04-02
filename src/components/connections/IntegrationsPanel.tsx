@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { log } from '@/lib/logger';
 import {
   Dialog,
@@ -59,17 +59,20 @@ function IntegrationForm({
         <>
           {fields.map(({ key, label, type = 'text', placeholder }) => (
             <div key={key}>
-              <Label className="text-sm">{label}</Label>
+              <Label htmlFor={`int-${key}`} className="text-sm">{label}</Label>
               {type === 'boolean' ? (
                 <div className="flex items-center gap-2 mt-1">
                   <Switch
+                    id={`int-${key}`}
                     checked={values[key] ?? false}
                     onCheckedChange={(checked) => onChange(key, checked)}
+                    aria-label={label}
                   />
                   <span className="text-sm text-muted-foreground">{values[key] ? 'Ativado' : 'Desativado'}</span>
                 </div>
               ) : (
                 <Input
+                  id={`int-${key}`}
                   type={type}
                   value={values[key] ?? ''}
                   onChange={(e) => onChange(key, type === 'number' ? Number(e.target.value) : e.target.value)}
@@ -95,7 +98,7 @@ function IntegrationForm({
   );
 }
 
-export function IntegrationsPanel({
+export const IntegrationsPanel = React.memo(function IntegrationsPanel({
   open,
   onOpenChange,
   instanceName,
@@ -323,4 +326,4 @@ export function IntegrationsPanel({
       </DialogContent>
     </Dialog>
   );
-}
+});

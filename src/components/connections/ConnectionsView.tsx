@@ -485,6 +485,7 @@ export function ConnectionsView() {
                 <div className="space-y-2">
                   <Label>Nome da Conexão</Label>
                   <Input
+                    autoFocus
                     placeholder="Ex: WhatsApp Vendas"
                     value={newConnection.name}
                     onChange={(e) => setNewConnection({ ...newConnection, name: e.target.value })}

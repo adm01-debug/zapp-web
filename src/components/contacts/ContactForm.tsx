@@ -73,6 +73,7 @@ export const ContactForm = React.memo(function ContactForm({
             placeholder="Nome"
             value={values.name}
             required
+            autoFocus
             autoComplete="given-name"
             onChange={(e) => { onChange('name', e.target.value); if (errors.name) setErrors(prev => ({ ...prev, name: '' })); }}
             aria-invalid={!!errors.name}

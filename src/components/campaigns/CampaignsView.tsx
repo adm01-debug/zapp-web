@@ -269,7 +269,7 @@ export function CampaignsView() {
           <div className="space-y-4">
             <div>
               <Label>Nome da campanha</Label>
-              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              <Input autoFocus value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="Ex: Black Friday 2024" />
             </div>
             <div>
