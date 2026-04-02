@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getLogger } from '@/lib/logger';
@@ -100,7 +100,7 @@ export function CallsView() {
     }
   }, [activeCall, fetchCalls]);
 
-  const filteredCalls = calls.filter((call) => {
+  const filteredCalls = useMemo(() => calls.filter((call) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -108,17 +108,17 @@ export function CallsView() {
       call.contact?.phone?.toLowerCase().includes(q) ||
       call.agent?.name?.toLowerCase().includes(q)
     );
-  });
+  }), [calls, search]);
 
-  const handleDial = () => {
+  const handleDial = useCallback(() => {
     if (!dialNumber.trim()) return;
     setCallContact({ name: dialNumber, phone: dialNumber });
     setShowDialer(false);
     setShowCallDialog(true);
     setDialNumber('');
-  };
+  }, [dialNumber]);
 
-  const handleCallFromHistory = (call: CallRecord) => {
+  const handleCallFromHistory = useCallback((call: CallRecord) => {
     const phone = call.contact?.phone || '';
     if (!phone) return;
     setCallContact({
@@ -126,7 +126,7 @@ export function CallsView() {
       phone,
     });
     setShowCallDialog(true);
-  };
+  }, []);
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '--:--';
@@ -177,15 +177,18 @@ export function CallsView() {
     }
   };
 
-  // Stats
-  const todayCalls = calls.filter(c => {
-    const d = new Date(c.started_at);
-    return d.toDateString() === new Date().toDateString();
-  });
-  const totalToday = todayCalls.length;
-  const answeredToday = todayCalls.filter(c => c.status === 'answered' || c.status === 'ended').length;
-  const missedToday = todayCalls.filter(c => c.status === 'missed').length;
-  const avgDuration = todayCalls.reduce((sum, c) => sum + (c.duration_seconds || 0), 0) / (answeredToday || 1);
+  // Stats — memoized to avoid recalculation on every render
+  const { totalToday, answeredToday, missedToday, avgDuration } = useMemo(() => {
+    const today = new Date().toDateString();
+    const todayCalls = calls.filter(c => new Date(c.started_at).toDateString() === today);
+    const answered = todayCalls.filter(c => c.status === 'answered' || c.status === 'ended').length;
+    return {
+      totalToday: todayCalls.length,
+      answeredToday: answered,
+      missedToday: todayCalls.filter(c => c.status === 'missed').length,
+      avgDuration: todayCalls.reduce((sum, c) => sum + (c.duration_seconds || 0), 0) / (answered || 1),
+    };
+  }, [calls]);
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto h-full">

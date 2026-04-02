@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -166,7 +169,15 @@ export function CallDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-gradient-to-b from-card to-background border-0">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-gradient-to-b from-card to-background border-0" aria-describedby="call-dialog-desc">
+        <VisuallyHidden>
+          <DialogTitle>
+            {direction === 'inbound' ? 'Chamada recebida' : 'Chamada em andamento'} — {contact.name}
+          </DialogTitle>
+          <DialogDescription id="call-dialog-desc">
+            Chamada de voz {direction === 'inbound' ? 'recebida de' : 'para'} {contact.name} ({contact.phone})
+          </DialogDescription>
+        </VisuallyHidden>
         <div className="p-8 flex flex-col items-center">
           {/* Connection status */}
           <div className="absolute top-3 right-3">
@@ -230,12 +241,16 @@ export function CallDialog({
             className="mt-4"
           >
             {localStatus === 'active' ? (
-              <p className="text-whatsapp font-mono text-lg">{formatDuration(duration)}</p>
+              <p className="text-whatsapp font-mono text-lg" role="timer" aria-live="off" aria-label={`Duração da chamada: ${formatDuration(duration)}`}>{formatDuration(duration)}</p>
             ) : (
-              <p className={cn(
-                'text-muted-foreground',
-                localStatus === 'ended' && 'text-destructive'
-              )}>
+              <p
+                role="status"
+                aria-live="polite"
+                className={cn(
+                  'text-muted-foreground',
+                  localStatus === 'ended' && 'text-destructive'
+                )}
+              >
                 {getStatusText()}
               </p>
             )}

@@ -77,8 +77,21 @@ export class VoipEngine {
   // Ringtone
   private ringtoneAudio: HTMLAudioElement | null = null;
 
+  // Page unload handler
+  private beforeUnloadHandler: (() => void) | null = null;
+
   constructor(config: VoipEngineConfig) {
     this.config = config;
+
+    // Register beforeunload to clean up active calls on tab close
+    this.beforeUnloadHandler = () => {
+      if (this.currentCall && this.currentCall.status !== 'ended') {
+        this.endCall();
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', this.beforeUnloadHandler);
+    }
   }
 
   // =========================================
@@ -472,6 +485,10 @@ export class VoipEngine {
 
   /** Destroy the engine and release all resources */
   destroy(): void {
+    if (this.beforeUnloadHandler && typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.beforeUnloadHandler = null;
+    }
     this.endCall();
     this.stopAudioCapture();
     this.stopRingtone();
