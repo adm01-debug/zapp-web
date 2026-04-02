@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
-import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { CommandPalette } from '@/components/CommandPalette';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
@@ -13,7 +11,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { logAudit } from '@/lib/audit';
 import { Sparkles } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
@@ -25,10 +22,13 @@ function IndexContent() {
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { startTour } = useTour();
-  const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist();
   const { currentView, navigateTo: rawNavigateTo, goBack: rawGoBack, goForward: rawGoForward, canGoBack, canGoForward, breadcrumbTrail } = useNavigationHistory('inbox');
   const navDirectionRef = useRef<'forward' | 'back'>('forward');
-  const isMobile = useIsMobile();
+
+  // Only run checklist queries when on dashboard view
+  const { isComplete: checklistComplete, isDismissed: checklistDismissed } = useOnboardingChecklist({
+    enabled: currentView === 'dashboard',
+  });
 
   const setCurrentView = useCallback((viewId: string) => {
     navDirectionRef.current = 'forward';
@@ -80,16 +80,13 @@ function IndexContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [goBack, goForward, canGoBack, setCurrentView]);
 
-  // Swipe navigation on mobile
-  useSwipeNavigation({
-    onSwipeBack: goBack,
-    onSwipeForward: goForward,
-    canGoBack,
-    canGoForward,
-    enabled: isMobile,
-  });
-
-  useTranscriptionNotifications({ enabled: !!user });
+  // Defer transcription notifications by 2s after mount to not block first paint
+  const [notifReady, setNotifReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setNotifReady(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
+  useTranscriptionNotifications({ enabled: !!user && notifReady });
 
   const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
 
@@ -139,7 +136,6 @@ function IndexContent() {
 
         <CommandPalette onNavigate={setCurrentView} />
 
-        {/* Network status indicators */}
         <OfflineIndicator />
         <ConnectionToast />
         <EvolutionDisconnectBanner />
@@ -170,23 +166,21 @@ function LoadingSplash() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary-glow/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
-      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center relative z-10">
-        <motion.div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 relative"
+      <div className="text-center relative z-10 animate-fade-in">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 relative animate-pulse"
           style={{ background: 'var(--gradient-primary)' }}
-          animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
         >
           <Sparkles className="w-8 h-8 text-primary-foreground" />
-        </motion.div>
+        </div>
         <h2 className="font-display text-xl font-semibold text-foreground mb-2">Carregando</h2>
         <p className="text-muted-foreground text-sm">Preparando sua experiência...</p>
         <div className="flex gap-1.5 justify-center mt-6" aria-hidden="true">
           {[0, 1, 2].map((i) => (
-            <motion.div key={i} className="w-2 h-2 rounded-full bg-primary" animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }} />
+            <div key={i} className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
           ))}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -198,12 +192,12 @@ const Index = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+        <div className="text-center animate-fade-in">
           <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
             <Sparkles className="w-8 h-8 text-primary animate-pulse" />
           </div>
           <p className="text-muted-foreground">Carregando...</p>
-        </motion.div>
+        </div>
       </div>
     );
   }

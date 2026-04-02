@@ -6,12 +6,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProvider";
 import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
-import { useServiceWorker } from "@/hooks/useServiceWorker";
-import { useScreenProtection } from "@/hooks/useScreenProtection";
+import { SkipLinks } from "@/components/ui/skip-link";
+import { LiveRegion } from "@/components/ui/visually-hidden";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Sparkles } from "lucide-react";
+import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
+import { ThemeSync } from "@/hooks/useTheme";
 
 // Deferred non-critical providers loaded after first paint
 const RealtimeSentimentAlertProvider = lazy(() => import("@/components/notifications/RealtimeSentimentAlertProvider").then(m => ({ default: m.RealtimeSentimentAlertProvider })));
@@ -25,21 +29,12 @@ function DeferredProviders() {
     </Suspense>
   );
 }
-import { SkipLinks } from "@/components/ui/skip-link";
-import { LiveRegion } from "@/components/ui/visually-hidden";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles } from "lucide-react";
-import { EasterEggsProvider } from "@/components/effects/EasterEggs";
-import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
-import { ThemeSync } from "@/hooks/useTheme";
 
 // Lazy-load ALL page routes for optimal initial bundle
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 import NotFound from "./pages/NotFound";
 
-// Lazy-loaded routes for better initial load performance
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
@@ -75,12 +70,12 @@ function RouteLoadingFallback() {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,    // 5 min — avoid refetch for fresh data
-      gcTime: 1000 * 60 * 30,       // 30 min — keep cache longer for back navigation
-      retry: 2,                      // retry twice with exponential backoff
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
+      retry: 2,
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
-      refetchOnWindowFocus: false,   // avoid unnecessary refetches on alt-tab
-      refetchOnReconnect: 'always',  // always refetch after network recovery
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: 'always',
     },
     mutations: {
       retry: 1,
@@ -88,20 +83,18 @@ const queryClient = new QueryClient({
   },
 });
 
+const log = getLogger('App');
+
 function AppContent() {
   const [deferredReady, setDeferredReady] = useState(false);
 
   // Defer non-critical features to after first paint
   useEffect(() => {
-    const timer = setTimeout(() => setDeferredReady(true), 1000);
-    return () => clearTimeout(timer);
+    const id = requestAnimationFrame(() => {
+      setTimeout(() => setDeferredReady(true), 800);
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
-
-  // Register service worker for push notifications (deferred)
-  useServiceWorker();
-  
-  // Anti-screenshot protection
-  useScreenProtection();
 
   // Global unhandled rejection handler
   useEffect(() => {
@@ -122,19 +115,15 @@ function AppContent() {
 
   return (
     <BrowserRouter>
-      {/* Enhanced skip links for accessibility */}
       <SkipLinks />
-      
-      {/* Live region for announcements */}
       <LiveRegion />
-      
       <GlobalKeyboardProvider>
         {deferredReady && <DeferredProviders />}
+        {deferredReady && <DeferredHooks />}
         <Toaster />
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
-            {/* Public routes */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -143,27 +132,13 @@ function AppContent() {
             <Route path="/2fa" element={<TwoFactorAuth />} />
             <Route path="/install" element={<Install />} />
             <Route path="/chat-popup/:contactId" element={<ProtectedRoute><ChatPopup /></ProtectedRoute>} />
-            
-            {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/queue/:id" element={<ProtectedRoute><QueueDetails /></ProtectedRoute>} />
             <Route path="/queues/comparison" element={<ProtectedRoute><QueuesComparison /></ProtectedRoute>} />
             <Route path="/sla" element={<ProtectedRoute><SLADashboard /></ProtectedRoute>} />
             <Route path="/sla/history" element={<ProtectedRoute><SLAHistory /></ProtectedRoute>} />
-            
-            {/* Admin routes */}
-            <Route path="/admin/roles" element={
-              <ProtectedRoute requiredRoles={['admin']}>
-                <RolesPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/rate-limit" element={
-              <ProtectedRoute requiredRoles={['admin']}>
-                <RateLimitDashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/admin/roles" element={<ProtectedRoute requiredRoles={['admin']}><RolesPage /></ProtectedRoute>} />
+            <Route path="/admin/rate-limit" element={<ProtectedRoute requiredRoles={['admin']}><RateLimitDashboard /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -172,12 +147,21 @@ function AppContent() {
   );
 }
 
+/** Hooks that don't need to run until after first paint */
+function DeferredHooks() {
+  // These are imported dynamically via the lazy component pattern
+  const { useServiceWorker } = require('@/hooks/useServiceWorker');
+  const { useScreenProtection } = require('@/hooks/useScreenProtection');
+  useServiceWorker();
+  useScreenProtection();
+  return null;
+}
+
 function AppWithErrorRecovery() {
   const [errorKey, setErrorKey] = useState(0);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 3;
 
-  // Auto-recover from stale errors on mount
   useEffect(() => {
     setErrorKey(prev => prev + 1);
     retryCountRef.current = 0;
@@ -188,7 +172,6 @@ function AppWithErrorRecovery() {
       resetKey={errorKey}
       onError={(error) => {
         log.error('ErrorBoundary caught:', error.message, error.stack);
-        // Auto-retry with limit to prevent infinite loops
         if (retryCountRef.current < MAX_RETRIES) {
           retryCountRef.current += 1;
           log.warn(`Auto-retry ${retryCountRef.current}/${MAX_RETRIES}`);
@@ -202,15 +185,11 @@ function AppWithErrorRecovery() {
         <AuthProvider>
           <ThemeSync />
           <HighContrastProvider>
-            <GamificationProvider>
-              <EasterEggsProvider>
-                <AccessibleToastProvider>
-                  <TooltipProvider delayDuration={300}>
-                    <AppContent />
-                  </TooltipProvider>
-                </AccessibleToastProvider>
-              </EasterEggsProvider>
-            </GamificationProvider>
+            <AccessibleToastProvider>
+              <TooltipProvider delayDuration={300}>
+                <AppContent />
+              </TooltipProvider>
+            </AccessibleToastProvider>
           </HighContrastProvider>
         </AuthProvider>
       </QueryClientProvider>
@@ -218,9 +197,6 @@ function AppWithErrorRecovery() {
   );
 }
 
-const log = getLogger('App');
-
 const App = () => <AppWithErrorRecovery />;
-
 
 export default App;
