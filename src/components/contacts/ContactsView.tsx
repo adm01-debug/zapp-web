@@ -92,7 +92,9 @@ import { cn } from '@/lib/utils';
 import { useContactsSearch } from '@/hooks/useContactsSearch';
 import { AdvancedCRMSearch } from '@/components/contacts/AdvancedCRMSearch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CheckSquare } from 'lucide-react';
+import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Contact {
   id: string;
