@@ -503,21 +503,11 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
             {/* Rich Text Toolbar */}
             {showRichToolbar && (
               <RichTextToolbar
-                onFormat={(prefix, suffix) => {
-                  const el = textareaRef.current;
-                  if (!el) return;
-                  const start = el.selectionStart;
-                  const end = el.selectionEnd;
-                  const selected = text.substring(start, end);
-                  const newText = text.substring(0, start) + prefix + selected + suffix + text.substring(end);
-                  setText(newText);
-                  setTimeout(() => {
-                    el.focus();
-                    el.setSelectionRange(start + prefix.length, end + prefix.length);
-                  }, 0);
-                }}
-                onTogglePreview={() => setShowMarkdownPreview(!showMarkdownPreview)}
-                showPreview={showMarkdownPreview}
+                inputRef={textareaRef}
+                inputValue={text}
+                onInputChange={setText}
+                visible={showRichToolbar}
+                onToggle={() => setShowRichToolbar(!showRichToolbar)}
               />
             )}
 
