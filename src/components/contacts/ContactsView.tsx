@@ -177,6 +177,7 @@ export function ContactsView() {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [isCRMSearchOpen, setIsCRMSearchOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [newContact, setNewContact] = useState({
     name: '',
