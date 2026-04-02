@@ -609,12 +609,23 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
           {/* Single file mode */}
           {!isMultiMode && filePreview && (
             <div className="space-y-4">
+              {/* PDF Preview */}
+              {filePreview.preview && filePreview.file.type === 'application/pdf' && (
+                <div className="border rounded-lg overflow-hidden bg-muted/30">
+                  <iframe
+                    src={`${filePreview.preview}#toolbar=0&navpanes=0`}
+                    className="w-full h-[280px] border-0"
+                    title="PDF Preview"
+                  />
+                </div>
+              )}
+
               {/* File Preview */}
               <div className="relative border rounded-lg p-4 bg-muted/50">
                 <div className="flex items-start gap-4">
                   {/* Preview/Icon */}
                   <div className="flex-shrink-0">
-                    {filePreview.preview ? (
+                    {filePreview.preview && filePreview.file.type !== 'application/pdf' ? (
                       <img
                         src={filePreview.preview}
                         alt="Preview"
