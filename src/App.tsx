@@ -93,8 +93,8 @@ function AppContent() {
 
   // Defer non-critical features to after first paint
   useEffect(() => {
-    const id = requestIdleCallback?.(() => setDeferredReady(true)) ?? setTimeout(() => setDeferredReady(true), 1500);
-    return () => { if (typeof id === 'number') cancelIdleCallback?.(id) ?? clearTimeout(id); };
+    const timer = setTimeout(() => setDeferredReady(true), 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   // Register service worker for push notifications (deferred)
