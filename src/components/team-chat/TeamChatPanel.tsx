@@ -260,7 +260,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
             {conversation.type === 'group' ? <Users className="w-4 h-4" /> : <User className="w-4 h-4" />}
           </AvatarFallback>
         </Avatar>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-sm text-foreground truncate">{conversation.name}</h3>
           <p className="text-xs text-muted-foreground">
             {conversation.type === 'group'
@@ -268,6 +268,21 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
               : 'Chat direto'}
           </p>
         </div>
+        {conversation.type === 'group' && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => setShowAddMembers(true)}
+              >
+                <UserPlus className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Adicionar membros</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Messages */}
