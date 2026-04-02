@@ -64,13 +64,14 @@ interface ContactHeaderSectionProps {
     email?: string;
   };
   enrichedData: EnrichedContactData | null | undefined;
+  conversation?: Conversation;
   onQuickAction?: (action: string) => void;
   isCompact?: boolean;
   hasExpandedSections?: boolean;
   onCollapseAll?: () => void;
 }
 
-export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
+export function ContactHeaderSection({ contact, enrichedData, conversation, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
