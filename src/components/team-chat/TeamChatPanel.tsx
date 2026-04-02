@@ -486,11 +486,53 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
               />
             </div>
 
+            {/* Markdown Preview */}
+            <AnimatePresence>
+              {showMarkdownPreview && text.trim() && showRichToolbar && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="px-3 py-2 border border-border/50 rounded-lg bg-muted/30 text-sm max-h-[100px] overflow-y-auto"
+                >
+                  <MarkdownPreview text={text} className="text-foreground leading-relaxed" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Rich Text Toolbar */}
+            {showRichToolbar && (
+              <RichTextToolbar
+                onFormat={(prefix, suffix) => {
+                  const el = textareaRef.current;
+                  if (!el) return;
+                  const start = el.selectionStart;
+                  const end = el.selectionEnd;
+                  const selected = text.substring(start, end);
+                  const newText = text.substring(0, start) + prefix + selected + suffix + text.substring(end);
+                  setText(newText);
+                  setTimeout(() => {
+                    el.focus();
+                    el.setSelectionRange(start + prefix.length, end + prefix.length);
+                  }, 0);
+                }}
+                onTogglePreview={() => setShowMarkdownPreview(!showMarkdownPreview)}
+                showPreview={showMarkdownPreview}
+              />
+            )}
+
             <div className="flex items-end gap-2">
+              {/* Left tools */}
               <div className="flex items-center gap-0.5 shrink-0">
                 <TeamFileUploader
                   conversationId={conversation.id}
                   onFileSent={handleFileSent}
+                />
+                <VoiceDictationButton
+                  onTranscript={(transcript) => {
+                    setText(prev => prev + (prev ? ' ' : '') + transcript);
+                  }}
+                  disabled={isRecordingAudio}
                 />
                 <Button
                   size="icon"
@@ -503,6 +545,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                 </Button>
               </div>
 
+              {/* Textarea */}
               <Textarea
                 ref={textareaRef}
                 value={text}
@@ -516,7 +559,22 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                 rows={1}
               />
 
+              {/* Right tools */}
               <div className="flex items-center gap-0.5 shrink-0">
+                <AIRewriteButton
+                  inputValue={text}
+                  onRewrite={(newText) => {
+                    const el = textareaRef.current;
+                    if (!el) return;
+                    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+                    if (nativeSetter) {
+                      nativeSetter.call(el, newText);
+                      el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                  }}
+                />
+                <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
+                <TextToAudioButton inputValue={text} onAudioReady={handleAudioSend} />
                 <CustomEmojiPicker onSendEmoji={handleSendCustomEmoji} />
                 <StickerPicker onSendSticker={handleSendSticker} />
                 <AudioMemePicker onSendAudio={handleSendAudioMeme} />
