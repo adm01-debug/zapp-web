@@ -163,6 +163,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
         <ContactHeaderSection
           contact={contact}
           enrichedData={enrichedData}
+          conversation={conversation}
           onQuickAction={handleQuickAction}
           hasExpandedSections={accordionValue.length > 0}
           onCollapseAll={() => { setAccordionValue([]); saveAccordionState([]); }}
