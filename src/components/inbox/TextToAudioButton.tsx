@@ -249,6 +249,7 @@ export function TextToAudioButton({ inputValue, onAudioReady, disabled }: TextTo
           )}
         </AnimatePresence>
       </PopoverContent>
-    </Popover>
+      </Popover>
+    </Tooltip>
   );
 }
