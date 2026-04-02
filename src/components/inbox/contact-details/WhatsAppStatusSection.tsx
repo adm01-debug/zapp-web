@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, Image, Video, Type, Clock, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatRelativeTime } from '@/lib/formatters';
 import { useState } from 'react';
 
 interface WhatsAppStatusSectionProps {
@@ -39,9 +38,9 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
   }
 
   const getStatusIcon = (msg: typeof statusMessages[0]) => {
-    if (msg.message?.imageMessage) return <Image className="w-3.5 h-3.5 text-blue-500" />;
-    if (msg.message?.videoMessage) return <Video className="w-3.5 h-3.5 text-purple-500" />;
-    return <Type className="w-3.5 h-3.5 text-green-500" />;
+    if (msg.message?.imageMessage) return <Image className="w-3.5 h-3.5 text-primary" />;
+    if (msg.message?.videoMessage) return <Video className="w-3.5 h-3.5 text-accent-foreground" />;
+    return <Type className="w-3.5 h-3.5 text-success" />;
   };
 
   const getStatusContent = (msg: typeof statusMessages[0]) => {
@@ -58,11 +57,11 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
     const ts = msg.messageTimestamp;
     if (!ts) return null;
     const date = new Date(typeof ts === 'string' ? parseInt(ts) * 1000 : ts * 1000);
-    return formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
+    return formatRelativeTime(date);
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="whatsapp-status-section">
       {/* Presence indicator */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
