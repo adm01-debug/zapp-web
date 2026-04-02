@@ -1,4 +1,4 @@
-import { Sparkles, Construction, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Construction } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
