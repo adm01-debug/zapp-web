@@ -501,7 +501,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                 value={text}
                 onChange={e => {
                   setText(e.target.value);
-                  if (e.target.value.includes('@')) setMentionOpen(true);
+                  checkForMention(e.target.value, e.target.selectionStart || 0);
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="Digite sua mensagem... (@mencionar)"
