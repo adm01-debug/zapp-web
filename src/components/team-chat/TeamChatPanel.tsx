@@ -123,6 +123,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [replyTo, setReplyTo] = useState<TeamMessage | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
+  const [showAddMembers, setShowAddMembers] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
