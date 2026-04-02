@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check, Mic, Reply, Image as ImageIcon, Music, FileText, Video } from 'lucide-react';
+import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check, Mic, Reply, Image as ImageIcon, Music, FileText, Video, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
