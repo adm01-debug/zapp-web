@@ -118,6 +118,8 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [showRichToolbar, setShowRichToolbar] = useState(false);
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [replyTo, setReplyTo] = useState<TeamMessage | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
