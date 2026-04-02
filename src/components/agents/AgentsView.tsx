@@ -140,6 +140,7 @@ export function AgentsView() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-muted/20 border-border/30 focus:border-primary/50"
+            aria-label="Buscar atendentes"
           />
         </div>
         <Button variant="outline" className="border-secondary/30 hover:border-secondary/50 hover:bg-secondary/10">
@@ -192,7 +193,7 @@ export function AgentsView() {
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30">
+                          <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30" aria-label={`Opções de ${agent.name}`}>
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
