@@ -332,7 +332,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                 <Mail className="w-4 h-4 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{contact.email || 'Sem email'}</TooltipContent>
+            <TooltipContent side="top">{contact.email || 'Sem email'}</TooltipContent>
           </Tooltip>
 
           {/* Collapse all sections */}
