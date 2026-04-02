@@ -1,6 +1,5 @@
-import { Sparkles, Construction, ArrowLeft, AlertCircle } from 'lucide-react';
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { Construction } from 'lucide-react';
+import React, { useEffect, useMemo } from 'react';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAriaAnnouncer } from '@/hooks/useAriaAnnouncer';
@@ -114,7 +113,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
     announce(`Navegou para ${mod.label}`);
   }, [currentView, mod.label, announce]);
 
-  const content = (() => {
+  const content = useMemo(() => {
     // Check special views first (those needing props)
     if (SPECIAL_VIEWS[currentView]) {
       return SPECIAL_VIEWS[currentView]({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo });
@@ -129,7 +128,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
       );
     }
     return <FallbackView currentView={currentView} />;
-  })();
+  }, [currentView, userId]);
 
   return (
     <WithHeader
@@ -166,20 +165,13 @@ function FallbackView({ currentView }: { currentView: string }) {
 
   return (
     <div className="flex items-center justify-center h-full bg-gradient-to-b from-background to-muted/20">
-      <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-        className="text-center max-w-sm px-6"
-      >
-        <motion.div
+      <div className="text-center max-w-sm px-6 animate-fade-in">
+        <div
           className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-primary/20"
           style={{ background: 'var(--gradient-primary)' }}
-          animate={{ rotate: [0, 2, -2, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         >
           <Icon className="w-9 h-9 text-primary-foreground" />
-        </motion.div>
+        </div>
 
         <h2 className="font-display text-2xl font-bold text-foreground mb-2">
           {mod.label}
@@ -199,7 +191,7 @@ function FallbackView({ currentView }: { currentView: string }) {
           <Construction className="w-3.5 h-3.5" />
           <span>Em construção</span>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

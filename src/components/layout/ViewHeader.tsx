@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight, Home, Search } from 'lucide-react';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -20,13 +19,7 @@ interface ViewHeaderProps {
 function BreadcrumbLink({ viewId, onClick, isHome }: { viewId: string; onClick: () => void; isHome?: boolean }) {
   const mod = useCurrentModule(viewId);
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -6 }}
-      transition={{ duration: 0.15 }}
-      className="flex items-center gap-1 shrink-0"
-    >
+    <div className="flex items-center gap-1 shrink-0">
       <button
         onClick={onClick}
         className="text-[11px] text-muted-foreground/50 hover:text-foreground font-medium transition-colors truncate max-w-[100px] rounded px-1 py-0.5 hover:bg-muted/40"
@@ -39,7 +32,7 @@ function BreadcrumbLink({ viewId, onClick, isHome }: { viewId: string; onClick: 
         )}
       </button>
       <ChevronRight className="w-2.5 h-2.5 text-muted-foreground/25 shrink-0" aria-hidden="true" />
-    </motion.div>
+    </div>
   );
 }
 
@@ -114,16 +107,14 @@ export const ViewHeader = React.memo(function ViewHeader({
 
       {/* Breadcrumb trail */}
       <nav aria-label="Trilha de navegação" className="flex items-center gap-0.5 min-w-0 overflow-hidden">
-        <AnimatePresence mode="popLayout">
-          {breadcrumbItems.map((trailViewId, idx) => (
-            <BreadcrumbLink
-              key={trailViewId}
-              viewId={trailViewId}
-              isHome={idx === 0 && breadcrumbItems.length > 1}
-              onClick={() => onNavigateTo?.(trailViewId)}
-            />
-          ))}
-        </AnimatePresence>
+        {breadcrumbItems.map((trailViewId, idx) => (
+          <BreadcrumbLink
+            key={trailViewId}
+            viewId={trailViewId}
+            isHome={idx === 0 && breadcrumbItems.length > 1}
+            onClick={() => onNavigateTo?.(trailViewId)}
+          />
+        ))}
 
         {/* Group label when no breadcrumb trail */}
         {mod.group && breadcrumbItems.length === 0 && (
@@ -134,17 +125,13 @@ export const ViewHeader = React.memo(function ViewHeader({
         )}
 
         {/* Current module */}
-        <motion.div
-          key={viewId}
-          initial={{ opacity: 0, y: 3 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
+        <div
           className="flex items-center gap-1.5 shrink-0"
           aria-current="page"
         >
           {Icon && <Icon className="w-3.5 h-3.5 text-primary/80" aria-hidden="true" />}
           <span className="text-[13px] font-semibold text-foreground tracking-tight">{mod.label}</span>
-        </motion.div>
+        </div>
       </nav>
 
       {/* Search trigger */}
