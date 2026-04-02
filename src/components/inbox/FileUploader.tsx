@@ -198,9 +198,9 @@ export const FileUploader = forwardRef<FileUploaderRef, FileUploaderProps>(({
 
     const validation = validateFile(file);
 
-    // Create preview for images
+    // Create preview for images and PDFs
     let preview: string | undefined;
-    if (validation.valid && validation.category === 'image') {
+    if (validation.valid && (validation.category === 'image' || file.type === 'application/pdf')) {
       preview = URL.createObjectURL(file);
     }
 
