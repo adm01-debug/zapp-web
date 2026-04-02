@@ -42,11 +42,13 @@ import {
   Edit,
   UserX,
   UserCheck,
+  UserPlus,
   Briefcase,
   Building,
   Phone,
   Lock,
   Eye,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -104,6 +106,12 @@ export function AdminView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
+  const [creatingUser, setCreatingUser] = useState(false);
 
   useEffect(() => {
     if (isSupervisor) {
@@ -231,6 +239,54 @@ export function AdminView() {
     setIsEditDialogOpen(true);
   };
 
+  const handleCreateUser = async () => {
+    if (!newUserName || !newUserEmail || !newUserPassword) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    if (newUserPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    setCreatingUser(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            name: newUserName,
+            email: newUserEmail,
+            password: newUserPassword,
+            role: newUserRole,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.error || 'Erro ao criar usuário');
+      } else {
+        toast.success('Usuário criado com sucesso!');
+        setIsAddDialogOpen(false);
+        setNewUserName('');
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserRole('agent');
+        fetchData();
+      }
+    } catch (err) {
+      toast.error('Erro ao criar usuário');
+    }
+    setCreatingUser(false);
+  };
+
   const filteredUsers = users.filter(user =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -283,10 +339,18 @@ export function AdminView() {
             Gerencie usuários, permissões e visualize logs de auditoria
           </p>
         </div>
-        <Button variant="outline" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Atualizar
-        </Button>
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-whatsapp hover:bg-whatsapp-dark">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Adicionar Usuário
+            </Button>
+          )}
+          <Button variant="outline" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
       </motion.div>
 
       {/* Tabs */}
@@ -424,6 +488,80 @@ export function AdminView() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add User Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="new_name">Nome *</Label>
+              <Input
+                id="new_name"
+                placeholder="Nome completo"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_email">Email *</Label>
+              <Input
+                id="new_email"
+                type="email"
+                placeholder="usuario@email.com"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_password">Senha *</Label>
+              <Input
+                id="new_password"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_role">Role</Label>
+              <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as AppRole)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(roleConfig).map(([key, config]) => {
+                    const RIcon = config.icon;
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center gap-2">
+                          <RIcon className={`w-4 h-4 ${config.color}`} />
+                          {config.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateUser}
+                disabled={creatingUser || !newUserName || !newUserEmail || !newUserPassword}
+                className="bg-whatsapp hover:bg-whatsapp-dark"
+              >
+                {creatingUser && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Criar Usuário
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
