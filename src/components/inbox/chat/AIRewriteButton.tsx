@@ -125,6 +125,7 @@ export function AIRewriteButton({ inputValue, onRewrite }: AIRewriteButtonProps)
           </p>
         )}
       </PopoverContent>
-    </Popover>
+      </Popover>
+    </Tooltip>
   );
 }
