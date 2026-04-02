@@ -33,7 +33,19 @@ import {
   Info,
   Building,
   User,
+  Users,
+  UserCheck,
+  Truck,
+  Wrench,
 } from 'lucide-react';
+
+const contactTypeConfig: Record<string, { label: string; icon: typeof Users; color: string }> = {
+  cliente: { label: 'Cliente', icon: Users, color: 'bg-blue-500/10 text-blue-600 border-blue-500/30' },
+  colaborador: { label: 'Colaborador', icon: UserCheck, color: 'bg-green-500/10 text-green-600 border-green-500/30' },
+  fornecedor: { label: 'Fornecedor', icon: Truck, color: 'bg-purple-500/10 text-purple-600 border-purple-500/30' },
+  prestador_servico: { label: 'Prestador', icon: Wrench, color: 'bg-orange-500/10 text-orange-600 border-orange-500/30' },
+  transportadora: { label: 'Transportadora', icon: Truck, color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/30' },
+};
 
 interface ChatHeaderProps {
   conversation: Conversation;
