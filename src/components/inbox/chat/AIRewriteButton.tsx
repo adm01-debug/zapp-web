@@ -61,27 +61,31 @@ export function AIRewriteButton({ inputValue, onRewrite }: AIRewriteButtonProps)
   const hasText = inputValue.trim().length > 0;
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "w-9 h-9 shrink-0 transition-colors",
-            hasText
-              ? "text-primary hover:text-primary hover:bg-primary/10"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          )}
-          title="Reescrever com IA"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="w-[18px] h-[18px] animate-spin" />
-          ) : (
-            <Sparkles className="w-[18px] h-[18px]" />
-          )}
-        </Button>
-      </PopoverTrigger>
+    <Tooltip>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "w-9 h-9 shrink-0 transition-colors",
+                hasText
+                  ? "text-primary hover:text-primary hover:bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              aria-label="Reescrever com IA"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="w-[18px] h-[18px] animate-spin" />
+              ) : (
+                <Sparkles className="w-[18px] h-[18px]" />
+              )}
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="top">Reescrever com IA</TooltipContent>
       <PopoverContent className="w-64 p-2 bg-popover border-border" align="end" side="top">
         <div className="px-2 py-1.5 mb-1">
           <h4 className="text-sm font-medium text-foreground">✨ Reescrever com IA</h4>
