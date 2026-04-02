@@ -9,6 +9,7 @@ import { ViewLoadingFallback } from '@/components/layout/ViewLoadingFallback';
 import { RouteLoadingBar } from '@/components/ui/route-loading-bar';
 import { MobileShell } from '@/components/mobile/MobileShell';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 
 interface AppShellProps {
   currentView: string;
