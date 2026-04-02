@@ -64,14 +64,14 @@ const sizeConfig = {
   },
 };
 
-export function AnimatedBadge({
+export const AnimatedBadge = React.forwardRef<HTMLDivElement, AnimatedBadgeProps>(function AnimatedBadge({
   value,
   label,
   variant = 'xp',
   size = 'md',
   showAnimation = true,
   className,
-}: AnimatedBadgeProps) {
+}, ref) {
   const config = variantConfig[variant];
   const sizeStyles = sizeConfig[size];
   const Icon = config.icon;
