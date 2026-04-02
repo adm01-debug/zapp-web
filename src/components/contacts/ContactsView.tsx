@@ -68,6 +68,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, subMonths, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
 
@@ -630,8 +631,42 @@ export function ContactsView() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center py-12">
-              <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full min-w-[640px]">
+                <thead>
+                  <tr className="border-b border-secondary/20 bg-secondary/5">
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground">Contato</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground">Tipo</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground">Telefone</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden lg:table-cell">Email</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden xl:table-cell">Empresa/Cargo</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden lg:table-cell">Etiquetas</th>
+                    <th className="text-left p-3 md:p-4 font-medium text-muted-foreground hidden md:table-cell">Criado em</th>
+                    <th className="text-right p-3 md:p-4 font-medium text-muted-foreground">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <SkeletonList count={6}>
+                    {(i) => (
+                      <tr key={i} className="border-b border-secondary/10">
+                        <td className="p-3 md:p-4">
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="w-10 h-10 rounded-full" delay={i * 80} />
+                            <Skeleton className="h-4 w-28" delay={i * 80 + 40} />
+                          </div>
+                        </td>
+                        <td className="p-3 md:p-4"><Skeleton className="h-5 w-16 rounded-full" delay={i * 80 + 60} /></td>
+                        <td className="p-3 md:p-4"><Skeleton className="h-3 w-28" delay={i * 80 + 80} /></td>
+                        <td className="p-3 md:p-4 hidden lg:table-cell"><Skeleton className="h-3 w-36" delay={i * 80 + 100} /></td>
+                        <td className="p-3 md:p-4 hidden xl:table-cell"><Skeleton className="h-3 w-24" delay={i * 80 + 120} /></td>
+                        <td className="p-3 md:p-4 hidden lg:table-cell"><Skeleton className="h-5 w-16 rounded-full" delay={i * 80 + 140} /></td>
+                        <td className="p-3 md:p-4 hidden md:table-cell"><Skeleton className="h-3 w-20" delay={i * 80 + 160} /></td>
+                        <td className="p-3 md:p-4 text-right"><Skeleton className="h-8 w-8 rounded-md ml-auto" delay={i * 80 + 180} /></td>
+                      </tr>
+                    )}
+                  </SkeletonList>
+                </tbody>
+              </table>
             </div>
           ) : filteredContacts.length === 0 ? (
             <EmptyState

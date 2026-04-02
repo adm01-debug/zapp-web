@@ -53,6 +53,7 @@ import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
 import { InstanceSettingsDialog } from './InstanceSettingsDialog';
 import { IntegrationsPanel } from './IntegrationsPanel';
 import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2, Settings, Boxes } from 'lucide-react';
+import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 
 interface WhatsAppConnection {
   id: string;
@@ -656,9 +657,28 @@ export function ConnectionsView() {
 
       {/* Connections List */}
       {loading ? (
-        <div className="flex items-center justify-center py-8 text-muted-foreground">
-          <Loader2 className="w-6 h-6 animate-spin mr-2" />
-          Carregando conexões...
+        <div className="space-y-4">
+          <SkeletonList count={3}>
+            {(i) => (
+              <Card key={i} className="border border-secondary/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="w-12 h-12 rounded-xl" delay={i * 100} />
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-4 w-32" delay={i * 100 + 50} />
+                          <Skeleton className="h-5 w-16 rounded-full" delay={i * 100 + 100} />
+                        </div>
+                        <Skeleton className="h-3 w-40" delay={i * 100 + 150} />
+                      </div>
+                    </div>
+                    <Skeleton className="h-8 w-8 rounded-md" delay={i * 100 + 200} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </SkeletonList>
         </div>
       ) : connections.length === 0 ? (
         <EmptyState

@@ -249,7 +249,7 @@ describe('CampaignsView', () => {
 describe('CampaignsView - loading', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('shows spinner when loading', async () => {
+  it('shows skeleton loaders when loading', async () => {
     const mod = await import('@/hooks/useCampaigns');
     vi.spyOn(mod, 'useCampaigns').mockReturnValue({
       campaigns: [],
@@ -266,6 +266,6 @@ describe('CampaignsView - loading', () => {
         <CampaignsView />
       </QueryClientProvider>,
     );
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+    expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
   });
 });

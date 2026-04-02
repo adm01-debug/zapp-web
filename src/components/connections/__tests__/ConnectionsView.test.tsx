@@ -317,14 +317,14 @@ describe('ConnectionsView', () => {
 
   // ---- Loading state ----
 
-  it('shows loading spinner initially', () => {
+  it('shows skeleton loaders while loading', () => {
     mockFrom.mockImplementation(() => ({
       select: vi.fn().mockReturnValue({
         order: vi.fn().mockReturnValue(new Promise(() => {})),
       }),
     }));
     renderView();
-    expect(screen.getByText(/Carregando conexões/)).toBeInTheDocument();
+    expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
   });
 });
 

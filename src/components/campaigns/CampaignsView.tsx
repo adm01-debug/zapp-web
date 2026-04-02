@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Rascunho', color: 'bg-muted text-muted-foreground', icon: Edit2 },
@@ -140,8 +141,29 @@ export function CampaignsView() {
       {/* Campaign List */}
       <ScrollArea className="flex-1">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="space-y-3 p-1">
+            <SkeletonList count={4}>
+              {(i) => (
+                <Card key={i} className="border-secondary/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-4 w-40" delay={i * 100} />
+                          <Skeleton className="h-5 w-20 rounded-full" delay={i * 100 + 50} />
+                        </div>
+                        <Skeleton className="h-3 w-56" delay={i * 100 + 100} />
+                        <div className="flex items-center gap-4 mt-2">
+                          <Skeleton className="h-3 w-24" delay={i * 100 + 150} />
+                          <Skeleton className="h-3 w-24" delay={i * 100 + 200} />
+                        </div>
+                      </div>
+                      <Skeleton className="h-8 w-8 rounded-md" delay={i * 100 + 250} />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </SkeletonList>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">

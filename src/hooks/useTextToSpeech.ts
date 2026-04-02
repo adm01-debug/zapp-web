@@ -21,43 +21,42 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
 
+  // Stable refs for callbacks to avoid stale closures
+  const onVoiceChangeRef = useRef(options.onVoiceChange);
+  onVoiceChangeRef.current = options.onVoiceChange;
+  const onSpeedChangeRef = useRef(options.onSpeedChange);
+  onSpeedChangeRef.current = options.onSpeedChange;
+
   // Sync with external voice ID changes
   useEffect(() => {
     if (options.initialVoiceId && options.initialVoiceId !== voiceId) {
       setVoiceIdState(options.initialVoiceId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options.initialVoiceId]);
+  }, [options.initialVoiceId, voiceId]);
 
   // Sync with external speed changes
   useEffect(() => {
     if (options.initialSpeed !== undefined && options.initialSpeed !== speed) {
       setSpeedState(options.initialSpeed);
-      // Update current audio playback rate if playing
       if (audioRef.current) {
         audioRef.current.playbackRate = options.initialSpeed;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options.initialSpeed]);
+  }, [options.initialSpeed, speed]);
 
   const setVoiceId = useCallback((newVoiceId: string) => {
     setVoiceIdState(newVoiceId);
-    options.onVoiceChange?.(newVoiceId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options.onVoiceChange]);
+    onVoiceChangeRef.current?.(newVoiceId);
+  }, []);
 
   const setSpeed = useCallback((newSpeed: number) => {
-    // Clamp speed between 0.5 and 2.0
     const clampedSpeed = Math.max(0.5, Math.min(2.0, newSpeed));
     setSpeedState(clampedSpeed);
-    // Update current audio playback rate if playing
     if (audioRef.current) {
       audioRef.current.playbackRate = clampedSpeed;
     }
-    options.onSpeedChange?.(clampedSpeed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options.onSpeedChange]);
+    onSpeedChangeRef.current?.(clampedSpeed);
+  }, []);
 
   const stop = useCallback(() => {
     if (audioRef.current) {
@@ -73,7 +72,6 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
   }, []);
 
   const speak = useCallback(async (text: string, messageId?: string) => {
-    // Stop any current playback
     stop();
 
     if (!text || text.trim() === '') {
@@ -81,10 +79,9 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
       return;
     }
 
-    // Clean text (remove emojis, special characters that don't make sense in speech)
     const cleanText = text
-      .replace(/\[.*?\]/g, '') // Remove [Imagem], [Áudio], etc.
-      .replace(/https?:\/\/\S+/g, 'link') // Replace URLs with "link"
+      .replace(/\[.*?\]/g, '')
+      .replace(/https?:\/\/\S+/g, 'link')
       .trim();
 
     if (!cleanText) {
@@ -105,7 +102,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             text: cleanText,
             voiceId
           }),
@@ -123,8 +120,7 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
 
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
-      
-      // Set playback rate
+
       audio.playbackRate = speed;
 
       audio.onplay = () => setIsPlaying(true);
