@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { MobileHeader } from '@/components/mobile/MobileHeader';
 import { MobileDrawerMenu } from '@/components/mobile/MobileDrawerMenu';
 import { NotificationsPanel, Notification } from '@/components/mobile/NotificationsPanel';
 import { MobileFAB } from '@/components/mobile/MobileFAB';
 import { BottomNavigation } from '@/components/ui/mobile-components';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { MessageSquare, BarChart3, Users, Phone, Menu } from 'lucide-react';
 
 interface MobileShellProps {
@@ -35,16 +36,17 @@ export function MobileShell({
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { isKeyboardOpen } = useKeyboardHeight();
 
   const handleMarkAllNotificationsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   }, []);
 
-  const navItemsWithBadge = mobileNavItems.map((item) =>
+  const navItemsWithBadge = useMemo(() => mobileNavItems.map((item) =>
     item.id === 'inbox' && unreadNotifications > 0
       ? { ...item, badge: unreadNotifications }
       : item
-  );
+  ), [unreadNotifications]);
 
   return (
     <>
@@ -81,20 +83,26 @@ export function MobileShell({
         onLogout={signOut}
       />
 
-      <MobileFAB
-        onNewConversation={() => setCurrentView('inbox')}
-        onNewContact={() => setCurrentView('contacts')}
-        onNewCampaign={() => setCurrentView('campaigns')}
-      />
+      {/* Hide FAB when keyboard is open to avoid overlap */}
+      {!isKeyboardOpen && (
+        <MobileFAB
+          onNewConversation={() => setCurrentView('inbox')}
+          onNewContact={() => setCurrentView('contacts')}
+          onNewCampaign={() => setCurrentView('campaigns')}
+        />
+      )}
 
-      <BottomNavigation
-        items={navItemsWithBadge}
-        activeId={currentView}
-        onChange={(id) => {
-          if (id === 'more') setMobileMenuOpen(true);
-          else setCurrentView(id);
-        }}
-      />
+      {/* Hide bottom nav when keyboard is open */}
+      {!isKeyboardOpen && (
+        <BottomNavigation
+          items={navItemsWithBadge}
+          activeId={currentView}
+          onChange={(id) => {
+            if (id === 'more') setMobileMenuOpen(true);
+            else setCurrentView(id);
+          }}
+        />
+      )}
     </>
   );
 }
