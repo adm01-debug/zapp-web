@@ -1,3 +1,4 @@
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,7 +27,7 @@ interface SpeedSelectorProps {
   className?: string;
 }
 
-export function SpeedSelector({ speed, onSpeedChange, className }: SpeedSelectorProps) {
+export const SpeedSelector = React.memo(function SpeedSelector({ speed, onSpeedChange, className }: SpeedSelectorProps) {
   const currentOption = SPEED_OPTIONS.find(o => o.value === speed) || SPEED_OPTIONS[2];
 
   return (
@@ -66,4 +67,4 @@ export function SpeedSelector({ speed, onSpeedChange, className }: SpeedSelector
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});

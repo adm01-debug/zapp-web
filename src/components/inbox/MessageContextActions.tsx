@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { Message } from '@/types/chat';
 import { toast } from 'sonner';
@@ -29,7 +29,7 @@ interface MessageContextActionsProps {
   onMessageDeleted?: (messageId: string) => void;
 }
 
-export function MessageContextActions({
+export const MessageContextActions = React.memo(function MessageContextActions({
   message,
   instanceName,
   contactJid,
@@ -172,4 +172,4 @@ export function MessageContextActions({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});

@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -10,8 +11,8 @@ interface TypingIndicatorProps {
   multipleUsers?: string[];
 }
 
-export function TypingIndicator({ 
-  isVisible = true, 
+export const TypingIndicator = React.memo(function TypingIndicator({
+  isVisible = true,
   userName = 'Contato',
   className,
   variant = 'default',
@@ -234,10 +235,10 @@ export function TypingIndicator({
       )}
     </AnimatePresence>
   );
-}
+});
 
 // Compact version for header
-export function TypingIndicatorCompact({ 
+export const TypingIndicatorCompact = React.memo(function TypingIndicatorCompact({ 
   isVisible = true,
   className 
 }: { 
@@ -274,10 +275,10 @@ export function TypingIndicatorCompact({
       )}
     </AnimatePresence>
   );
-}
+});
 
 // Inline version for chat header
-export function TypingIndicatorInline({
+export const TypingIndicatorInline = React.memo(function TypingIndicatorInline({
   isVisible = true,
   userName = 'Contato',
   className,
@@ -318,4 +319,4 @@ export function TypingIndicatorInline({
       )}
     </AnimatePresence>
   );
-}
+});

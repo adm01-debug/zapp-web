@@ -1,3 +1,4 @@
+import React from 'react';
 import { Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -5,7 +6,7 @@ interface DeletedMessagePlaceholderProps {
   isSent: boolean;
 }
 
-export function DeletedMessagePlaceholder({ isSent }: DeletedMessagePlaceholderProps) {
+export const DeletedMessagePlaceholder = React.memo(function DeletedMessagePlaceholder({ isSent }: DeletedMessagePlaceholderProps) {
   return (
     <div
       className={cn(
@@ -21,4 +22,4 @@ export function DeletedMessagePlaceholder({ isSent }: DeletedMessagePlaceholderP
       </div>
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { 
@@ -363,17 +363,17 @@ interface MediaMessageProps {
   isSent: boolean;
 }
 
-export function MediaMessage({ type, url, fileName, fileSize, caption, isSent }: MediaMessageProps) {
+export const MediaMessage = React.memo(function MediaMessage({ type, url, fileName, fileSize, caption, isSent }: MediaMessageProps) {
   switch (type) {
     case 'video':
       return <VideoPreview url={url} caption={caption} isSent={isSent} />;
     case 'document':
       return (
-        <DocumentPreview 
-          url={url} 
-          fileName={fileName || 'document'} 
+        <DocumentPreview
+          url={url}
+          fileName={fileName || 'document'}
           fileSize={fileSize}
-          isSent={isSent} 
+          isSent={isSent}
         />
       );
     case 'sticker':
@@ -381,4 +381,4 @@ export function MediaMessage({ type, url, fileName, fileSize, caption, isSent }:
     default:
       return null;
   }
-}
+});
