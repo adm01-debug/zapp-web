@@ -104,6 +104,9 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
 
   const handleQuickAction = (action: string) => {
     switch (action) {
+      case 'edit':
+        setEditDialogOpen(true);
+        break;
       case 'vip':
         toast.success('Contato marcado como VIP');
         break;
