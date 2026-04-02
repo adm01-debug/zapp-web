@@ -353,16 +353,17 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
           )}
 
           {/* More actions dropdown */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30">
-                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="top">Mais ações</TooltipContent>
-          </Tooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30">
+                    <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top">Mais ações</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="center" className="min-w-[140px]">
               <DropdownMenuItem onClick={() => onQuickAction?.('vip')} className="gap-2 text-xs">
                 <Star className="w-3.5 h-3.5 text-warning" />
