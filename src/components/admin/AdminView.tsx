@@ -42,11 +42,13 @@ import {
   Edit,
   UserX,
   UserCheck,
+  UserPlus,
   Briefcase,
   Building,
   Phone,
   Lock,
   Eye,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
