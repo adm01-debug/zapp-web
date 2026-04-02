@@ -95,6 +95,7 @@ const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any
   'omni-inbox': Views.OmnichannelInbox,
   'audit-logs': Views.AuditLogDashboard,
   'telemetry': Views.AdminTelemetriaPage,
+  'nps': Views.NPSDashboard,
 };
 
 // Views that need custom props
