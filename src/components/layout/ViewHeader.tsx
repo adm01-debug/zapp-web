@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ViewHeaderProps {
   viewId: string;
@@ -52,9 +53,13 @@ export const ViewHeader = React.memo(function ViewHeader({
   breadcrumbTrail = [],
   onNavigateTo,
 }: ViewHeaderProps) {
+  const isMobile = useIsMobile();
   const mod = useCurrentModule(viewId);
   const Icon = mod.icon;
   const breadcrumbItems = breadcrumbTrail.slice(0, -1);
+
+  // On mobile, the MobileHeader already provides navigation context
+  if (isMobile) return null;
 
   return (
     <div className="flex items-center gap-1 px-3 py-1 border-b border-border/40 bg-background/60 backdrop-blur-md shrink-0 min-h-[36px]">

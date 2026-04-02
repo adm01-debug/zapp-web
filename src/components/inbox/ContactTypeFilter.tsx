@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   Select,
   SelectContent,
@@ -165,7 +165,7 @@ interface ContactTypeFilterProps {
   conversations: ConversationWithMessages[];
 }
 
-export function ContactTypeFilter({ value, onChange, conversations }: ContactTypeFilterProps) {
+export const ContactTypeFilter = React.forwardRef<HTMLDivElement, ContactTypeFilterProps>(function ContactTypeFilter({ value, onChange, conversations }, ref) {
   const stats = useMemo(
     () => computeStats(conversations, FILTER_OPTIONS),
     [conversations],
@@ -214,7 +214,7 @@ export function ContactTypeFilter({ value, onChange, conversations }: ContactTyp
       </SelectContent>
     </Select>
   );
-}
+});
 
 // ---------- helper for filtering ----------
 

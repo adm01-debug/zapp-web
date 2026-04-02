@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Trophy, Star, Flame, Zap, Crown, Target, Award, TrendingUp, TrendingDown, ArrowUp, ArrowDown, Minus } from 'lucide-react';
@@ -63,14 +64,14 @@ const sizeConfig = {
   },
 };
 
-export function AnimatedBadge({
+export const AnimatedBadge = React.forwardRef<HTMLDivElement, AnimatedBadgeProps>(function AnimatedBadge({
   value,
   label,
   variant = 'xp',
   size = 'md',
   showAnimation = true,
   className,
-}: AnimatedBadgeProps) {
+}, ref) {
   const config = variantConfig[variant];
   const sizeStyles = sizeConfig[size];
   const Icon = config.icon;
@@ -130,7 +131,7 @@ export function AnimatedBadge({
       </span>
     </motion.div>
   );
-}
+});
 
 // Mini Sparkline component for stat cards
 interface MiniSparklineProps {
