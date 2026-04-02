@@ -21,12 +21,14 @@ import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
+import { CRMSyncButton } from '../CRMAutoSync';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { Conversation } from '@/types/chat';
 
 const channelIcons: Record<string, string> = {
   whatsapp: '💬', instagram: '📸', facebook: '📘', telegram: '✈️',
