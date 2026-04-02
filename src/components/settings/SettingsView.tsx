@@ -101,6 +101,7 @@ export function SettingsView() {
           <TabsTrigger value="global" className="gap-2"><Globe className="w-4 h-4" />Global</TabsTrigger>
           <TabsTrigger value="followup" className="gap-2"><ArrowRight className="w-4 h-4" />Follow-up</TabsTrigger>
           <TabsTrigger value="media" className="gap-2"><Package className="w-4 h-4" />Mídia</TabsTrigger>
+          <TabsTrigger value="nps" className="gap-2"><TrendingUp className="w-4 h-4" />NPS</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule">
