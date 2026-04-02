@@ -63,6 +63,8 @@ interface ContactHeaderSectionProps {
   enrichedData: EnrichedContactData | null | undefined;
   onQuickAction?: (action: string) => void;
   isCompact?: boolean;
+  hasExpandedSections?: boolean;
+  onCollapseAll?: () => void;
 }
 
 export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isCompact = false }: ContactHeaderSectionProps) {
