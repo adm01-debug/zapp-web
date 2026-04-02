@@ -118,20 +118,17 @@ describe('useWhatsAppStatus', () => {
 
   // ========== API ERROR HANDLING ==========
   it('handles API errors gracefully', async () => {
+    // When Promise.allSettled is used, individual rejections don't throw
+    // The error path is only hit if getInstanceForPhone or the try block itself throws
     mockMaybeSingle
-      .mockResolvedValueOnce({ data: { whatsapp_connection_id: 'conn1' } })
-      .mockResolvedValueOnce({ data: { instance_id: 'inst1' } });
-
-    mockInvoke
-      .mockRejectedValueOnce(new Error('API timeout'))
-      .mockRejectedValueOnce(new Error('API timeout'));
+      .mockRejectedValueOnce(new Error('DB connection failed'));
 
     const { result } = renderHook(() => useWhatsAppStatus('+5511999999999'));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
-    expect(result.current.error).toBe('API timeout');
+    expect(result.current.error).toBe('DB connection failed');
   });
 
   // ========== INITIAL STATE ==========

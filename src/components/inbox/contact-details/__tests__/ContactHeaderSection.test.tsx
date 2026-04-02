@@ -71,7 +71,7 @@ describe('ContactHeaderSection', () => {
   });
 
   // ========== EDIT ACTION ==========
-  it('has Editar Contato in dropdown menu', () => {
+  it('has Editar Contato in dropdown menu', async () => {
     const mockAction = vi.fn();
     render(
       <ContactHeaderSection
@@ -80,17 +80,15 @@ describe('ContactHeaderSection', () => {
         onQuickAction={mockAction}
       />
     );
-    // Open dropdown
-    const moreBtn = screen.getByText('Mais ações').closest('button') 
-      || screen.getAllByRole('button').find(b => b.querySelector('.lucide-more-horizontal'));
-    // The dropdown trigger has MoreHorizontal icon
+    // The dropdown trigger is the last button (MoreHorizontal icon)
     const buttons = screen.getAllByRole('button');
-    const dropdownTrigger = buttons[buttons.length - 1]; // last button is the dropdown
+    const dropdownTrigger = buttons[buttons.length - 1];
     fireEvent.click(dropdownTrigger);
     
-    const editItem = screen.getByText('Editar Contato');
-    expect(editItem).toBeInTheDocument();
-    fireEvent.click(editItem);
+    await waitFor(() => {
+      expect(screen.getByText('Editar Contato')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Editar Contato'));
     expect(mockAction).toHaveBeenCalledWith('edit');
   });
 
