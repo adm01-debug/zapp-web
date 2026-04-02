@@ -3437,6 +3437,7 @@ export type Database = {
           filters: Json
           id: string
           is_default: boolean | null
+          is_shared: boolean | null
           name: string
           updated_at: string
           user_id: string
@@ -3447,6 +3448,7 @@ export type Database = {
           filters?: Json
           id?: string
           is_default?: boolean | null
+          is_shared?: boolean | null
           name: string
           updated_at?: string
           user_id: string
@@ -3457,6 +3459,7 @@ export type Database = {
           filters?: Json
           id?: string
           is_default?: boolean | null
+          is_shared?: boolean | null
           name?: string
           updated_at?: string
           user_id?: string
