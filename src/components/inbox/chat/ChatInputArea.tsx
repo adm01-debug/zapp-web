@@ -559,71 +559,8 @@ export function ChatInputArea({
             )}
           </div>
 
-          {/* Secondary icons (always visible): AI Rewrite, RichText, Emoji, Sticker, Audio Meme */}
-          {!isMobile && (
-            <div className="flex items-center gap-0.5 shrink-0">
-              <AIRewriteButton
-                inputValue={inputValue}
-                onRewrite={(newText) => {
-                  const el = inputRef.current;
-                  if (!el) return;
-                  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-                  if (nativeSetter) {
-                    nativeSetter.call(el, newText);
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                  }
-                }}
-              />
-              <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
-              <TextToAudioButton inputValue={inputValue} onAudioReady={onAudioSend} />
-              <StickerPicker onSendSticker={onSendSticker} />
-              <AudioMemePicker onSendAudio={onSendAudioMeme} />
-              <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
-              {onOpenCatalog && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 text-muted-foreground hover:text-primary transition-colors"
-                      onClick={onOpenCatalog}
-                      aria-label="Catálogo de produtos"
-                    >
-                      <Package className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          )}
-
-          {/* Secondary action icons: VoiceDictation, Attach */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
-            <FileUploader
-              ref={fileUploaderRef}
-              instanceName={instanceName || ''}
-              recipientNumber={contactPhone}
-              contactId={contactId}
-              connectionId={undefined}
-              onFileSelect={(file, category) => {
-                toast({
-                  title: 'Arquivo selecionado',
-                  description: `${file.name} (${category}) será enviado.`,
-                });
-              }}
-              onFileSent={() => {
-                toast({
-                  title: 'Arquivo enviado!',
-                  description: 'O arquivo foi enviado com sucesso.',
-                });
-              }}
-            />
-          </div>
-
-          {/* Primary action: Send + Mic (far right) */}
-          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          {/* Primary action: Send + Mic (immediately after textarea) */}
+          <div className="flex items-center gap-1.5 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -669,6 +606,69 @@ export function ChatInputArea({
               </TooltipTrigger>
               <TooltipContent side="top">{isRecordingAudio ? 'Parar gravação' : 'Gravar áudio'}</TooltipContent>
             </Tooltip>
+          </div>
+
+          {/* Secondary icons: AI Rewrite, RichText, TTS, Sticker, AudioMeme, Emoji */}
+          {!isMobile && (
+            <div className="flex items-center gap-0.5 shrink-0">
+              <AIRewriteButton
+                inputValue={inputValue}
+                onRewrite={(newText) => {
+                  const el = inputRef.current;
+                  if (!el) return;
+                  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+                  if (nativeSetter) {
+                    nativeSetter.call(el, newText);
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                  }
+                }}
+              />
+              <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
+              <TextToAudioButton inputValue={inputValue} onAudioReady={onAudioSend} />
+              <StickerPicker onSendSticker={onSendSticker} />
+              <AudioMemePicker onSendAudio={onSendAudioMeme} />
+              <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
+              {onOpenCatalog && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 text-muted-foreground hover:text-primary transition-colors"
+                      onClick={onOpenCatalog}
+                      aria-label="Catálogo de produtos"
+                    >
+                      <Package className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          )}
+
+          {/* VoiceDictation + Attach */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
+            <FileUploader
+              ref={fileUploaderRef}
+              instanceName={instanceName || ''}
+              recipientNumber={contactPhone}
+              contactId={contactId}
+              connectionId={undefined}
+              onFileSelect={(file, category) => {
+                toast({
+                  title: 'Arquivo selecionado',
+                  description: `${file.name} (${category}) será enviado.`,
+                });
+              }}
+              onFileSent={() => {
+                toast({
+                  title: 'Arquivo enviado!',
+                  description: 'O arquivo foi enviado com sucesso.',
+                });
+              }}
+            />
           </div>
         </div>
 
