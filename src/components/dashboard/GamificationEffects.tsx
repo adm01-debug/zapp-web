@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Trophy, Star, Flame, Zap, Crown, Target, Award, TrendingUp, TrendingDown, ArrowUp, ArrowDown, Minus } from 'lucide-react';
