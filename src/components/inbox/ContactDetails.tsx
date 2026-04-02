@@ -130,9 +130,6 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <h3 className="font-semibold text-foreground text-sm">Detalhes do Contato</h3>
         </div>
         <div className="flex items-center gap-1">
-          {isExternalConfigured && (
-            <CRMSyncButton conversation={conversation} />
-          )}
           <Button
             variant="ghost"
             size="icon"
