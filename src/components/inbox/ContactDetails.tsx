@@ -65,6 +65,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showCompactHeader, setShowCompactHeader] = useState(false);
   const [accordionValue, setAccordionValue] = useState<string[]>(getStoredAccordionState);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Detect scroll to toggle compact header
   const handleScroll = useCallback(() => {
