@@ -51,10 +51,8 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
       )}
     >
       {isActive && (
-        <motion.div
-          layoutId="sidebar-active-pill"
-          className="absolute inset-0 rounded-full bg-secondary/20 border border-secondary/30 shadow-[0_0_12px_hsl(var(--secondary)/0.3)]"
-          transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+        <div
+          className="absolute inset-0 rounded-full bg-secondary/20 border border-secondary/30 shadow-[0_0_12px_hsl(var(--secondary)/0.3)] transition-all duration-150"
         />
       )}
       <Icon className={cn(
