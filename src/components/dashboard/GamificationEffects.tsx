@@ -131,7 +131,7 @@ export const AnimatedBadge = React.forwardRef<HTMLDivElement, AnimatedBadgeProps
       </span>
     </motion.div>
   );
-}
+});
 
 // Mini Sparkline component for stat cards
 interface MiniSparklineProps {
