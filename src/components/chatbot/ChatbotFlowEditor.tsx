@@ -180,6 +180,7 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
                           </div>
                           <div className="flex items-center gap-1">
                             <Button size="icon" variant="ghost" className="h-6 w-6"
+                              aria-label="Editar nó"
                               onClick={e => { e.stopPropagation(); setEditingNode(node); }}>
                               <MessageSquare className="w-3 h-3" />
                             </Button>

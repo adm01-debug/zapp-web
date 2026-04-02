@@ -274,7 +274,7 @@ export function QueuesView() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30">
+                      <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-muted/30" aria-label="Opções da fila">
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>

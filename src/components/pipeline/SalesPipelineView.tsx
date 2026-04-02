@@ -324,7 +324,7 @@ export function SalesPipelineView() {
                       <span className="font-semibold text-sm text-foreground">{stage.name}</span>
                       <Badge variant="secondary" className="text-xs h-5">{stageDeals.length}</Badge>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openNewDeal(stage.id)}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openNewDeal(stage.id)} aria-label="Novo negócio">
                       <Plus className="w-3.5 h-3.5" />
                     </Button>
                   </div>

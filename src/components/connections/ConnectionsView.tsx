@@ -814,7 +814,7 @@ export function ConnectionsView() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label="Opções da conexão">
                                   <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </motion.div>
