@@ -38,9 +38,9 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
   }
 
   const getStatusIcon = (msg: typeof statusMessages[0]) => {
-    if (msg.message?.imageMessage) return <Image className="w-3.5 h-3.5 text-blue-500" />;
-    if (msg.message?.videoMessage) return <Video className="w-3.5 h-3.5 text-purple-500" />;
-    return <Type className="w-3.5 h-3.5 text-green-500" />;
+    if (msg.message?.imageMessage) return <Image className="w-3.5 h-3.5 text-primary" />;
+    if (msg.message?.videoMessage) return <Video className="w-3.5 h-3.5 text-accent-foreground" />;
+    return <Type className="w-3.5 h-3.5 text-success" />;
   };
 
   const getStatusContent = (msg: typeof statusMessages[0]) => {
