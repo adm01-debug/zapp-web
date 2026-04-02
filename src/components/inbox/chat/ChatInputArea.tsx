@@ -435,8 +435,8 @@ export function ChatInputArea({
 
       {/* Input Footer */}
       <div className={cn(
-        "px-4 py-3 border-t border-border bg-card safe-area-bottom",
-        isMobile && "px-3 py-2"
+        "px-4 py-3 border-t border-border bg-card",
+        isMobile && "px-2.5 py-2 safe-area-bottom"
       )}>
         {/* Audio Recorder overlay */}
         <AnimatePresence>
