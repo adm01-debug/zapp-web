@@ -6,11 +6,15 @@ import { NewConversationDialog } from './NewConversationDialog';
 import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
+import { useTeamChatNotifications } from '@/hooks/useTeamChatNotifications';
 
 export function TeamChatView() {
   const { data: conversations = [], isLoading } = useTeamConversations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
+
+  // Enable differentiated notifications for team chat
+  useTeamChatNotifications(selectedId);
 
   const selectedConversation = conversations.find(c => c.id === selectedId) || null;
 
