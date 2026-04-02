@@ -91,22 +91,24 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
   const [instanceName, setInstanceName] = useState<string>('');
 
   useEffect(() => {
+    let cancelled = false;
     const resolveInstance = async () => {
       try {
-        // Look up the contact's whatsapp_connection_id → instance_id
         const { data: contact } = await supabase
           .from('contacts')
           .select('whatsapp_connection_id')
           .eq('id', conversation.contact.id)
           .maybeSingle();
-        
+
+        if (cancelled) return;
+
         if (contact?.whatsapp_connection_id) {
-        const { data: conn } = await supabase
+          const { data: conn } = await supabase
             .from('whatsapp_connections')
             .select('instance_id')
             .eq('id', contact.whatsapp_connection_id)
             .maybeSingle();
-          if (conn?.instance_id) {
+          if (!cancelled && conn?.instance_id) {
             setInstanceName(conn.instance_id);
           }
         }
@@ -115,6 +117,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
       }
     };
     resolveInstance();
+    return () => { cancelled = true; };
   }, [conversation.contact.id]);
 
   // ── Effects ──

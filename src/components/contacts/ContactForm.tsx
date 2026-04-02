@@ -72,11 +72,14 @@ export const ContactForm = React.memo(function ContactForm({
             id="name"
             placeholder="Nome"
             value={values.name}
+            required
+            autoComplete="given-name"
             onChange={(e) => { onChange('name', e.target.value); if (errors.name) setErrors(prev => ({ ...prev, name: '' })); }}
             aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? 'name-error' : undefined}
             className={cn(errors.name && 'border-destructive')}
           />
-          {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+          {errors.name && <p id="name-error" className="text-xs text-destructive">{errors.name}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="surname">Sobrenome</Label>
@@ -146,11 +149,15 @@ export const ContactForm = React.memo(function ContactForm({
           id="phone"
           placeholder="+55 11 99999-9999"
           value={values.phone}
+          required
+          inputMode="tel"
+          autoComplete="tel"
           onChange={(e) => { onChange('phone', e.target.value); if (errors.phone) setErrors(prev => ({ ...prev, phone: '' })); }}
           aria-invalid={!!errors.phone}
+          aria-describedby={errors.phone ? 'phone-error' : undefined}
           className={cn(errors.phone && 'border-destructive')}
         />
-        {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+        {errors.phone && <p id="phone-error" className="text-xs text-destructive">{errors.phone}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
@@ -158,12 +165,15 @@ export const ContactForm = React.memo(function ContactForm({
           id="email"
           type="email"
           placeholder="email@exemplo.com"
+          inputMode="email"
+          autoComplete="email"
           value={values.email || ''}
           onChange={(e) => { onChange('email', e.target.value); if (errors.email) setErrors(prev => ({ ...prev, email: '' })); }}
           aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? 'email-error' : undefined}
           className={cn(errors.email && 'border-destructive')}
         />
-        {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+        {errors.email && <p id="email-error" className="text-xs text-destructive">{errors.email}</p>}
       </div>
       <div className="flex justify-end gap-2 pt-4">
         <Button variant="outline" onClick={onCancel}>
