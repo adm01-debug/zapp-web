@@ -348,7 +348,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                   <ChevronsDownUp className="w-4 h-4 text-muted-foreground" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Recolher todas as seções</TooltipContent>
+              <TooltipContent side="top">Recolher todas as seções</TooltipContent>
             </Tooltip>
           )}
 
