@@ -144,12 +144,10 @@ export function MessageContextActions({
             Editar mensagem
           </DropdownMenuItem>
         )}
-        {isSent && (
-          <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-            <Trash2 className="w-4 h-4 mr-2" />
-            Apagar para todos
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+          <Trash2 className="w-4 h-4 mr-2" />
+          {isSent && externalId ? 'Apagar para todos' : 'Apagar mensagem'}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleMarkRead}>
           <CheckCheck className="w-4 h-4 mr-2" />
