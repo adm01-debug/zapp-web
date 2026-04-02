@@ -754,15 +754,24 @@ export function ContactsView() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-secondary/20 bg-secondary/5">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Etiquetas</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Criado em</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">Ações</th>
-                  </tr>
+                     <th className="p-4 w-10">
+                       <Checkbox
+                         checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
+                         onCheckedChange={(checked) => {
+                           setSelectedIds(checked ? filteredContacts.map(c => c.id) : []);
+                         }}
+                         aria-label="Selecionar todos"
+                       />
+                     </th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Etiquetas</th>
+                     <th className="text-left p-4 font-medium text-muted-foreground">Criado em</th>
+                     <th className="text-right p-4 font-medium text-muted-foreground">Ações</th>
+                   </tr>
                 </thead>
                 <tbody>
                   {filteredContacts.map((contact, index) => {
