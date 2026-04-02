@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check, Mic, Reply, Image as ImageIcon, Music, FileText, Video } from 'lucide-react';
+import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check, Mic, Reply, Image as ImageIcon, Music, FileText, Video, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,6 +31,7 @@ import { TeamFileUploader } from './TeamFileUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
+import { AddMembersDialog } from './AddMembersDialog';
 
 interface Props {
   conversation: TeamConversation;
@@ -122,6 +123,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [replyTo, setReplyTo] = useState<TeamMessage | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
+  const [showAddMembers, setShowAddMembers] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -258,7 +260,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
             {conversation.type === 'group' ? <Users className="w-4 h-4" /> : <User className="w-4 h-4" />}
           </AvatarFallback>
         </Avatar>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-sm text-foreground truncate">{conversation.name}</h3>
           <p className="text-xs text-muted-foreground">
             {conversation.type === 'group'
@@ -266,6 +268,21 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
               : 'Chat direto'}
           </p>
         </div>
+        {conversation.type === 'group' && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => setShowAddMembers(true)}
+              >
+                <UserPlus className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Adicionar membros</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Messages */}
@@ -581,6 +598,13 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
           </>
         )}
       </div>
+
+      {/* Add Members Dialog */}
+      <AddMembersDialog
+        open={showAddMembers}
+        onOpenChange={setShowAddMembers}
+        conversation={conversation}
+      />
     </div>
   );
 }
