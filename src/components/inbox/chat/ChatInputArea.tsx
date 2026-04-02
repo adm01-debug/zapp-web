@@ -644,78 +644,32 @@ export function ChatInputArea({
               }}
             />
 
-            {/* Adaptive Send/Mic button */}
-            <AnimatePresence mode="wait">
-              {hasText || editingMessage ? (
-                <motion.div
-                  key="send"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
+            {/* Send button (mic is now always visible to the left of textarea) */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleSendWithAnimation}
+                  disabled={(!hasText && !editingMessage) || isOverLimit || isSending}
+                  size="icon"
+                  className={cn(
+                    "rounded-full shrink-0 disabled:opacity-40 touch-manipulation active:scale-95 transition-all",
+                    "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40",
+                    isMobile ? "w-11 h-11" : "w-10 h-10",
+                    sendAnimation && "animate-pulse"
+                  )}
+                  aria-label={editingMessage ? "Confirmar edição" : "Enviar mensagem"}
                 >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={handleSendWithAnimation}
-                        disabled={(!hasText && !editingMessage) || isOverLimit || isSending}
-                        size="icon"
-                        className={cn(
-                          "rounded-full shrink-0 disabled:opacity-40 touch-manipulation active:scale-95 transition-all",
-                          "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40",
-                          isMobile ? "w-11 h-11" : "w-10 h-10",
-                          sendAnimation && "animate-pulse"
-                        )}
-                        aria-label={editingMessage ? "Confirmar edição" : "Enviar mensagem"}
-                      >
-                        {isSending ? (
-                          <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                        ) : editingMessage ? (
-                          <Check className="w-[18px] h-[18px]" />
-                        ) : (
-                          <motion.div
-                            animate={sendAnimation ? { x: [0, 4, 0], y: [0, -2, 0] } : {}}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <Send className="w-[18px] h-[18px]" />
-                          </motion.div>
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">{editingMessage ? 'Confirmar edição' : 'Enviar (Enter)'}</TooltipContent>
-                  </Tooltip>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="mic"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "shrink-0 touch-manipulation active:scale-95 rounded-full",
-                          isMobile ? "w-11 h-11" : "w-10 h-10",
-                          isRecordingAudio
-                            ? "text-destructive bg-destructive/10 hover:bg-destructive/20"
-                            : "text-muted-foreground hover:text-primary hover:bg-primary/10"
-                        )}
-                        onClick={onRecordToggle}
-                        aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
-                      >
-                        <Mic className="w-[18px] h-[18px]" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">{isRecordingAudio ? 'Parar gravação' : 'Gravar áudio'}</TooltipContent>
-                  </Tooltip>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {isSending ? (
+                    <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                  ) : editingMessage ? (
+                    <Check className="w-[18px] h-[18px]" />
+                  ) : (
+                    <Send className="w-[18px] h-[18px]" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">{editingMessage ? 'Confirmar edição' : 'Enviar (Enter)'}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
