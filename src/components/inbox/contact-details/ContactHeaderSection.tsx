@@ -303,7 +303,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                 <MessageSquare className="w-4 h-4 text-success" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>WhatsApp</TooltipContent>
+            <TooltipContent side="top">WhatsApp</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -317,7 +317,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                 <Phone className="w-4 h-4 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Copiar telefone</TooltipContent>
+            <TooltipContent side="top">Copiar telefone</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -332,7 +332,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                 <Mail className="w-4 h-4 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{contact.email || 'Sem email'}</TooltipContent>
+            <TooltipContent side="top">{contact.email || 'Sem email'}</TooltipContent>
           </Tooltip>
 
           {/* Collapse all sections */}
@@ -348,17 +348,22 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                   <ChevronsDownUp className="w-4 h-4 text-muted-foreground" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Recolher todas as seções</TooltipContent>
+              <TooltipContent side="top">Recolher todas as seções</TooltipContent>
             </Tooltip>
           )}
 
           {/* More actions dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30">
-                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30">
+                    <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top">Mais ações</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="center" className="min-w-[140px]">
               <DropdownMenuItem onClick={() => onQuickAction?.('vip')} className="gap-2 text-xs">
                 <Star className="w-3.5 h-3.5 text-warning" />
