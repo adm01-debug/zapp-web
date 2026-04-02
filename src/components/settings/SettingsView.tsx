@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Clock, MessageSquare, Bell, Palette, Save, RefreshCw, Loader2,
-  Keyboard, Volume2, ArrowRight, Package, Globe,
+  Keyboard, Volume2, ArrowRight, Package, Globe, TrendingUp,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
 import { MediaLibraryAdmin } from '@/components/settings/MediaLibraryAdmin';
