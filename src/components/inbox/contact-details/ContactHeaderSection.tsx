@@ -317,7 +317,7 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
                 <Phone className="w-4 h-4 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Copiar telefone</TooltipContent>
+            <TooltipContent side="top">Copiar telefone</TooltipContent>
           </Tooltip>
 
           <Tooltip>
