@@ -25,7 +25,7 @@ interface SidebarNavItemProps {
   collapsed?: boolean;
 }
 
-export const SidebarNavItem = React.memo(function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true }: SidebarNavItemProps) {
+export const SidebarNavItem = React.memo(React.forwardRef<HTMLLIElement, SidebarNavItemProps>(function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true }, ref) {
   const Icon = item.icon;
   const isActive = currentView === item.id;
   const shortcut = item.shortcut || SHORTCUT_MAP[item.id];
