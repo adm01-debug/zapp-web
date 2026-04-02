@@ -797,6 +797,8 @@ export function ContactsView() {
                           />
                         </td>
                         <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
                               <AvatarImage src={contact.avatar_url || undefined} />
                               <AvatarFallback className="bg-primary/10 text-primary">
                                 {contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
