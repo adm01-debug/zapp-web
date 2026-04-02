@@ -17,6 +17,7 @@ import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
 import { ContactIntelligencePanel } from './contact-details/ContactIntelligencePanel';
+import { WhatsAppStatusSection } from './contact-details/WhatsAppStatusSection';
 
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
