@@ -18,6 +18,8 @@ export interface SavedFilter {
   name: string;
   filters: Record<string, unknown>;
   is_default: boolean;
+  is_shared: boolean;
+  user_id: string;
   created_at: string;
 }
 
@@ -25,6 +27,7 @@ interface SaveFilterInput {
   name: string;
   filters: Record<string, unknown>;
   is_default?: boolean;
+  is_shared?: boolean;
 }
 
 // ============================================
