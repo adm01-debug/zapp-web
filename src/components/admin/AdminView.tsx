@@ -239,6 +239,54 @@ export function AdminView() {
     setIsEditDialogOpen(true);
   };
 
+  const handleCreateUser = async () => {
+    if (!newUserName || !newUserEmail || !newUserPassword) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    if (newUserPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    setCreatingUser(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            name: newUserName,
+            email: newUserEmail,
+            password: newUserPassword,
+            role: newUserRole,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.error || 'Erro ao criar usuário');
+      } else {
+        toast.success('Usuário criado com sucesso!');
+        setIsAddDialogOpen(false);
+        setNewUserName('');
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserRole('agent');
+        fetchData();
+      }
+    } catch (err) {
+      toast.error('Erro ao criar usuário');
+    }
+    setCreatingUser(false);
+  };
+
   const filteredUsers = users.filter(user =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
