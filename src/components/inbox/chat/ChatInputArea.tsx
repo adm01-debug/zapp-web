@@ -598,12 +598,9 @@ export function ChatInputArea({
             </div>
           )}
 
-          {/* Primary icons: VoiceDictation, Attach, Send, Mic */}
+          {/* Secondary action icons: VoiceDictation, Attach */}
           <div className="flex items-center gap-0.5 shrink-0">
-
             <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
-
-            {/* File Uploader (single instance, no duplication) */}
             <FileUploader
               ref={fileUploaderRef}
               instanceName={instanceName || ''}
@@ -623,8 +620,10 @@ export function ChatInputArea({
                 });
               }}
             />
+          </div>
 
-            {/* Send button */}
+          {/* Primary action: Send + Mic (far right) */}
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -651,7 +650,6 @@ export function ChatInputArea({
               <TooltipContent side="top">{editingMessage ? 'Confirmar edição' : 'Enviar (Enter)'}</TooltipContent>
             </Tooltip>
 
-            {/* 🎙️ Mic button (green) - after send */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
