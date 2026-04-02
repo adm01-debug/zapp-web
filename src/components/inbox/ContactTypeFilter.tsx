@@ -214,7 +214,7 @@ export const ContactTypeFilter = React.forwardRef<HTMLDivElement, ContactTypeFil
       </SelectContent>
     </Select>
   );
-}
+});
 
 // ---------- helper for filtering ----------
 
