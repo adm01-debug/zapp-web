@@ -165,11 +165,6 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Let mention handle keys first
-    if (mentionOpen) {
-      handleMentionKeyDown(e as any);
-      return;
-    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
