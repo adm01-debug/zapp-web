@@ -16,3 +16,13 @@ supabase/functions/_shared/rateLimiter.ts @zapp-team @security-team
 
 # Edge Functions
 supabase/functions/ @zapp-team @backend-team
+
+# Authentication and authorization
+src/hooks/useAuth.tsx @zapp-team @security-team
+src/components/auth/ @zapp-team @security-team
+supabase/functions/webauthn/ @zapp-team @security-team
+supabase/functions/approve-password-reset/ @zapp-team @security-team
+
+# Validation schemas
+src/validations/ @zapp-team @backend-team
+supabase/functions/_shared/validation.ts @zapp-team @backend-team
