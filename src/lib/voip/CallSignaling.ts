@@ -93,7 +93,7 @@ export class CallSignaling {
     number?: string;
     isVideo?: boolean;
     callDuration?: number;
-  }): Promise<{ success: boolean; error?: string }> {
+  }): Promise<{ success: boolean; error?: string; callId?: string }> {
     try {
       const { data, error } = await supabase.functions.invoke('voip-call', {
         body: {

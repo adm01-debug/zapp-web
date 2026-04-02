@@ -51,7 +51,7 @@ const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
           animationDelay: delay ? `${delay}ms` : undefined,
         }}
         role="status"
-        aria-label="Loading..."
+        aria-label="Carregando..."
         {...props} 
       />
     );

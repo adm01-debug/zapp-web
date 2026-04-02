@@ -62,7 +62,7 @@ describe('Dialog', () => {
         </DialogContent>
       </Dialog>
     );
-    expect(screen.getByText('Close')).toBeInTheDocument(); // sr-only text
+    expect(screen.getByText('Fechar')).toBeInTheDocument(); // sr-only text
   });
 
   it('hides close button when showCloseButton is false', () => {
@@ -74,7 +74,7 @@ describe('Dialog', () => {
         </DialogContent>
       </Dialog>
     );
-    expect(screen.queryByText('Close')).not.toBeInTheDocument();
+    expect(screen.queryByText('Fechar')).not.toBeInTheDocument();
   });
 
   it('renders dialog header', () => {
@@ -129,7 +129,7 @@ describe('Dialog', () => {
       </Dialog>
     );
     // Click close button
-    fireEvent.click(screen.getByText('Close').closest('button')!);
+    fireEvent.click(screen.getByText('Fechar').closest('button')!);
     expect(handleOpenChange).toHaveBeenCalledWith(false);
   });
 

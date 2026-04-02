@@ -13,9 +13,9 @@ describe('Skeleton', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('has aria-label="Loading..." for accessibility', () => {
+  it('has aria-label="Carregando..." for accessibility', () => {
     render(<Skeleton />);
-    expect(screen.getByLabelText('Loading...')).toBeInTheDocument();
+    expect(screen.getByLabelText('Carregando...')).toBeInTheDocument();
   });
 
   it('applies default shimmer variant', () => {

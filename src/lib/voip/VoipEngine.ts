@@ -76,6 +76,8 @@ export class VoipEngine {
 
   // Ringtone
   private ringtoneAudio: HTMLAudioElement | null = null;
+  private ringtoneCtx: AudioContext | null = null;
+  private ringtoneOsc: OscillatorNode | null = null;
 
   // Page unload handler
   private beforeUnloadHandler: (() => void) | null = null;
@@ -416,8 +418,8 @@ export class VoipEngine {
       startRing();
 
       // Store reference for cleanup
-      (this.ringtoneAudio as unknown as Record<string, unknown>).__ctx = ctx;
-      (this.ringtoneAudio as unknown as Record<string, unknown>).__osc = osc;
+      this.ringtoneCtx = ctx;
+      this.ringtoneOsc = osc;
     } catch {
       // Silent fail — ringtone is not critical
     }
@@ -426,14 +428,14 @@ export class VoipEngine {
   private stopRingtone(): void {
     if (this.ringtoneAudio) {
       try {
-        const ctx = (this.ringtoneAudio as unknown as Record<string, unknown>).__ctx as AudioContext;
-        const osc = (this.ringtoneAudio as unknown as Record<string, unknown>).__osc as OscillatorNode;
-        if (osc) osc.stop();
-        if (ctx) ctx.close();
+        if (this.ringtoneOsc) this.ringtoneOsc.stop();
+        if (this.ringtoneCtx) this.ringtoneCtx.close();
       } catch {
         // Ignore
       }
       this.ringtoneAudio = null;
+      this.ringtoneCtx = null;
+      this.ringtoneOsc = null;
     }
   }
 

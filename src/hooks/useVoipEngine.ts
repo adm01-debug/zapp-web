@@ -200,7 +200,7 @@ export function useVoipEngine() {
     }
 
     // Store the DB call ID from the edge function response
-    const dbCallId = (result as Record<string, unknown>).callId as string;
+    const dbCallId = result.callId;
     if (dbCallId) {
       engine.setDbCallId(dbCallId);
     }
