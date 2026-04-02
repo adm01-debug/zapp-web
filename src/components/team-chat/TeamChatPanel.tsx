@@ -1,14 +1,21 @@
-import { useRef, useEffect, useState } from 'react';
-import { TeamConversation, useTeamMessages, useSendTeamMessage, TeamMessage } from '@/hooks/useTeamChat';
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { TeamConversation, useTeamMessages, useSendTeamMessage, useDeleteTeamMessage, useEditTeamMessage, TeamMessage } from '@/hooks/useTeamChat';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Users, User } from 'lucide-react';
+import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import { Input } from '@/components/ui/input';
 
 interface Props {
   conversation: TeamConversation;
@@ -30,14 +37,43 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   const { profile } = useAuth();
   const { data: messages = [], isLoading } = useTeamMessages(conversation.id);
   const sendMutation = useSendTeamMessage();
+  const deleteMutation = useDeleteTeamMessage();
+  const editMutation = useEditTeamMessage();
   const [text, setText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollDown, setShowScrollDown] = useState(false);
+  const isNearBottomRef = useRef(true);
 
+  const checkNearBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const threshold = 100;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+    isNearBottomRef.current = nearBottom;
+    setShowScrollDown(!nearBottom);
+  }, []);
+
+  // Auto-scroll only if user is near bottom
+  useEffect(() => {
+    if (isNearBottomRef.current && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages.length]);
+
+  // Initial scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages.length]);
+  }, [conversation.id]);
+
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  };
 
   const handleSend = () => {
     const trimmed = text.trim();
@@ -56,8 +92,33 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
     }
   };
 
-  // Group messages by date
-  let lastDate = '';
+  const handleDelete = (msgId: string) => {
+    deleteMutation.mutate({ messageId: msgId, conversationId: conversation.id });
+  };
+
+  const handleStartEdit = (msg: TeamMessage) => {
+    setEditingId(msg.id);
+    setEditText(msg.content);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingId || !editText.trim()) return;
+    editMutation.mutate({
+      messageId: editingId,
+      content: editText.trim(),
+      conversationId: conversation.id,
+    });
+    setEditingId(null);
+    setEditText('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
+  };
+
+  // Build date groups without mutable closure
+  const dateGroups = new Set<string>();
 
   return (
     <div className="flex flex-col h-full">
@@ -77,15 +138,17 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
           <p className="text-xs text-muted-foreground">
             {conversation.type === 'group'
               ? `${conversation.members?.length || 0} membros`
-              : conversation.members?.find(m => m.profile_id !== profile?.id)?.profile?.is_active
-                ? 'Online'
-                : 'Offline'}
+              : 'Chat direto'}
           </p>
         </div>
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5 relative"
+        onScroll={checkNearBottom}
+      >
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -101,14 +164,12 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
         ) : (
           messages.map((msg) => {
             const dateKey = format(new Date(msg.created_at), 'yyyy-MM-dd');
-            let showDate = false;
-            if (dateKey !== lastDate) {
-              lastDate = dateKey;
-              showDate = true;
-            }
+            const showDate = !dateGroups.has(dateKey);
+            if (showDate) dateGroups.add(dateKey);
             const isMine = msg.sender_id === profile?.id;
+            const isEditing = editingId === msg.id;
 
-            return (
+            const messageContent = (
               <div key={msg.id}>
                 {showDate && (
                   <div className="flex justify-center py-2">
@@ -117,7 +178,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                     </span>
                   </div>
                 )}
-                <div className={cn("flex gap-2 py-0.5", isMine ? "justify-end" : "justify-start")}>
+                <div className={cn("flex gap-2 py-0.5 group", isMine ? "justify-end" : "justify-start")}>
                   {!isMine && (
                     <Avatar className="w-7 h-7 mt-1 shrink-0">
                       <AvatarImage src={msg.sender?.avatar_url || undefined} />
@@ -135,21 +196,84 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                     {!isMine && conversation.type === 'group' && (
                       <p className="text-[10px] font-medium mb-0.5 opacity-70">{msg.sender?.name}</p>
                     )}
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
-                    <p className={cn(
-                      "text-[10px] mt-0.5 text-right",
-                      isMine ? "text-primary-foreground/60" : "text-muted-foreground"
-                    )}>
-                      {formatTime(msg.created_at)}
-                      {msg.is_edited && ' · editado'}
-                    </p>
+                    {isEditing ? (
+                      <div className="space-y-1.5">
+                        <Input
+                          value={editText}
+                          onChange={e => setEditText(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') handleSaveEdit();
+                            if (e.key === 'Escape') handleCancelEdit();
+                          }}
+                          className="h-7 text-sm bg-background text-foreground"
+                          autoFocus
+                        />
+                        <div className="flex gap-1 justify-end">
+                          <Button size="icon" variant="ghost" className="h-5 w-5" onClick={handleCancelEdit}>
+                            <X className="w-3 h-3" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-5 w-5" onClick={handleSaveEdit}>
+                            <Check className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                        <p className={cn(
+                          "text-[10px] mt-0.5 text-right",
+                          isMine ? "text-primary-foreground/60" : "text-muted-foreground"
+                        )}>
+                          {formatTime(msg.created_at)}
+                          {msg.is_edited && ' · editado'}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
             );
+
+            // Only wrap own messages with context menu for edit/delete
+            if (isMine && !isEditing) {
+              return (
+                <ContextMenu key={msg.id}>
+                  <ContextMenuTrigger asChild>
+                    {messageContent}
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuItem onClick={() => handleStartEdit(msg)} className="gap-2">
+                      <Pencil className="w-3.5 h-3.5" /> Editar
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      onClick={() => handleDelete(msg.id)}
+                      className="gap-2 text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Excluir
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
+              );
+            }
+
+            return messageContent;
           })
         )}
       </div>
+
+      {/* Scroll to bottom button */}
+      {showScrollDown && (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full shadow-lg h-8 w-8"
+            onClick={scrollToBottom}
+          >
+            <ArrowDown className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Input */}
       <div className="p-3 border-t border-border bg-card">
