@@ -166,6 +166,8 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           contact={contact}
           enrichedData={enrichedData}
           onQuickAction={handleQuickAction}
+          hasExpandedSections={accordionValue.length > 0}
+          onCollapseAll={() => { setAccordionValue([]); saveAccordionState([]); }}
         />
 
         {/* Collapsible sections with memory */}
