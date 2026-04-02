@@ -408,9 +408,28 @@ serve(async (req) => {
 
     // POST /message/sendSticker/{instance}
     if (action === 'send-sticker') {
+      const stickerUrl = body.sticker || body.mediaUrl;
+      
+      // If the URL is from a private bucket (whatsapp-media), generate a signed URL
+      let finalStickerUrl = stickerUrl;
+      if (typeof stickerUrl === 'string' && stickerUrl.includes('/storage/v1/object/public/whatsapp-media/')) {
+        const storagePath = stickerUrl.split('/storage/v1/object/public/whatsapp-media/')[1];
+        if (storagePath) {
+          const { data: signedData } = await supabase.storage
+            .from('whatsapp-media')
+            .createSignedUrl(storagePath, 300); // 5 min
+          if (signedData?.signedUrl) {
+            finalStickerUrl = signedData.signedUrl;
+            console.log('[send-sticker] Using signed URL for private bucket');
+          }
+        }
+      }
+      
+      console.log('[send-sticker] payload:', JSON.stringify({ number: body.number, sticker: finalStickerUrl }));
+      
       return await proxy(`/message/sendSticker/${instance}`, 'POST', {
         number: body.number,
-        sticker: body.sticker || body.mediaUrl,
+        sticker: finalStickerUrl,
       });
     }
 
