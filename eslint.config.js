@@ -28,6 +28,9 @@ export default tseslint.config(
       "no-var": "error",
       "eqeqeq": ["error", "always"],
       "no-duplicate-imports": "error",
+      "@typescript-eslint/no-non-null-assertion": "warn",
+      "no-eval": "error",
+      "no-implied-eval": "error",
     },
   },
 );
