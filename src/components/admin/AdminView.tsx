@@ -491,6 +491,80 @@ export function AdminView() {
         </DialogContent>
       </Dialog>
 
+      {/* Add User Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="new_name">Nome *</Label>
+              <Input
+                id="new_name"
+                placeholder="Nome completo"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_email">Email *</Label>
+              <Input
+                id="new_email"
+                type="email"
+                placeholder="usuario@email.com"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_password">Senha *</Label>
+              <Input
+                id="new_password"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_role">Role</Label>
+              <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as AppRole)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(roleConfig).map(([key, config]) => {
+                    const RIcon = config.icon;
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center gap-2">
+                          <RIcon className={`w-4 h-4 ${config.color}`} />
+                          {config.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateUser}
+                disabled={creatingUser || !newUserName || !newUserEmail || !newUserPassword}
+                className="bg-whatsapp hover:bg-whatsapp-dark"
+              >
+                {creatingUser && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Criar Usuário
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Content */}
       {loading ? (
         <div className="flex justify-center py-12">
