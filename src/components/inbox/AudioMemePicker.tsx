@@ -375,6 +375,7 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
   });
 
   return (
+    <Tooltip>
     <Popover open={open} onOpenChange={(v) => {
       setOpen(v);
       if (!v) {
