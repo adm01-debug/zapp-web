@@ -31,6 +31,7 @@ import { TeamFileUploader } from './TeamFileUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
+import { AddMembersDialog } from './AddMembersDialog';
 
 interface Props {
   conversation: TeamConversation;
