@@ -16,7 +16,7 @@ import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
 import { ContactIntelligencePanel } from './contact-details/ContactIntelligencePanel';
-import { CRMSyncButton } from './CRMAutoSync';
+
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   Accordion,
@@ -130,9 +130,6 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           <h3 className="font-semibold text-foreground text-sm">Detalhes do Contato</h3>
         </div>
         <div className="flex items-center gap-1">
-          {isExternalConfigured && (
-            <CRMSyncButton conversation={conversation} />
-          )}
           <Button
             variant="ghost"
             size="icon"

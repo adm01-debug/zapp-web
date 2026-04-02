@@ -219,7 +219,14 @@ export function ChatPanelHeader({
         />
 
         {isExternalConfigured && (
-          <CRMSyncButton conversation={conversation} />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <CRMSyncButton conversation={conversation} />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Sincronizar com CRM</TooltipContent>
+          </Tooltip>
         )}
 
         <DropdownMenu>
