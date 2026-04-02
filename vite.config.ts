@@ -48,6 +48,12 @@ export default defineConfig(({ mode }) => ({
           "vendor-pdf": ["jspdf", "jspdf-autotable"],
           // Screenshot export (heavy)
           "vendor-html2canvas": ["html2canvas"],
+          // DOMPurify
+          "vendor-dompurify": ["dompurify"],
+          // Maps (heavy)
+          "vendor-mapbox": ["mapbox-gl"],
+          // Date utilities
+          "vendor-date": ["date-fns"],
         },
       },
     },
