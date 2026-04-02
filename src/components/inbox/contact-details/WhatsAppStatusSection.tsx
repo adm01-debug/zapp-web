@@ -57,7 +57,7 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
     const ts = msg.messageTimestamp;
     if (!ts) return null;
     const date = new Date(typeof ts === 'string' ? parseInt(ts) * 1000 : ts * 1000);
-    return formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
+    return formatRelativeTime(date);
   };
 
   return (
