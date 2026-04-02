@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
-import { RealtimeSentimentAlertProvider } from "@/components/notifications/RealtimeSentimentAlertProvider";
 import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProvider";
 import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
