@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
+import { supabase } from '@/integrations/supabase/client';
 import { Message } from '@/types/chat';
 import { toast } from 'sonner';
 import {
