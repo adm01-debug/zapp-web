@@ -598,6 +598,13 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
           </>
         )}
       </div>
+
+      {/* Add Members Dialog */}
+      <AddMembersDialog
+        open={showAddMembers}
+        onOpenChange={setShowAddMembers}
+        conversation={conversation}
+      />
     </div>
   );
 }
