@@ -120,6 +120,7 @@ export function useTeamConversations() {
 
         enriched.push({
           ...conv,
+          type: conv.type as 'direct' | 'group',
           name: displayName,
           avatar_url: conv.type === 'direct' && !conv.avatar_url
             ? members.find(m => m.profile_id !== profile.id)?.profile?.avatar_url
