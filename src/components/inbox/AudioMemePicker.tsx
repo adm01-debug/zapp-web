@@ -381,17 +381,20 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
         setPendingUpload(null);
       }
     }}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-          title="Áudios Meme"
-          disabled={disabled}
-        >
-          <Volume2 className="w-[18px] h-[18px]" />
-        </Button>
-      </PopoverTrigger>
+      <TooltipTrigger asChild>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+            disabled={disabled}
+            aria-label="Áudio Memes"
+          >
+            <Volume2 className="w-[18px] h-[18px]" />
+          </Button>
+        </PopoverTrigger>
+      </TooltipTrigger>
+      <TooltipContent side="top">Áudio Memes</TooltipContent>
       <PopoverContent
         className="w-[360px] p-0 bg-popover border-border"
         align="end"

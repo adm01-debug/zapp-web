@@ -252,25 +252,28 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <Popover open={open} onOpenChange={(v) => {
-        setOpen(v);
-        if (!v) {
-          setPendingUpload(null);
-          setSearch('');
-        }
-      }}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-            title="Figurinhas (Ctrl+Shift+S)"
-            disabled={disabled}
-            aria-label="Abrir seletor de figurinhas"
-          >
-            <Sticker className="w-[18px] h-[18px]" />
-          </Button>
-        </PopoverTrigger>
+      <Tooltip>
+        <Popover open={open} onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) {
+            setPendingUpload(null);
+            setSearch('');
+          }
+        }}>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+                disabled={disabled}
+                aria-label="Figurinhas"
+              >
+                <Sticker className="w-[18px] h-[18px]" />
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="top">Figurinhas</TooltipContent>
         <PopoverContent
           className={cn(
             'w-[380px] p-0 bg-popover border-border',
