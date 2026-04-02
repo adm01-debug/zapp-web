@@ -67,7 +67,7 @@ interface ContactHeaderSectionProps {
   onCollapseAll?: () => void;
 }
 
-export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isCompact = false }: ContactHeaderSectionProps) {
+export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
