@@ -115,12 +115,6 @@ export function AppShell({
         )}
 
         <Suspense fallback={<ViewLoadingFallback />}>
-          <AnimatePresence mode="wait">
-            <PageTransition
-              key={currentView}
-              direction={navDirectionRef.current}
-              className="flex-1 h-full max-h-full min-h-0 overflow-hidden"
-            >
               <ViewRouter
                 currentView={currentView}
                 userId={userId}
@@ -131,8 +125,6 @@ export function AppShell({
                 breadcrumbTrail={breadcrumbTrail}
                 onNavigateTo={setCurrentView}
               />
-            </PageTransition>
-          </AnimatePresence>
         </Suspense>
       </main>
     </div>
