@@ -36,6 +36,8 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
+import { CRMSyncButton } from '../CRMAutoSync';
+import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 
 interface ChatPanelHeaderProps {
   conversation: Conversation;
