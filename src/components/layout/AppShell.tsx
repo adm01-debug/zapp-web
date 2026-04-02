@@ -1,8 +1,6 @@
 import { Suspense, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { PageTransition } from '@/components/ui/motion';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
 import { ViewRouter } from '@/pages/ViewRouter';
 import { ViewLoadingFallback } from '@/components/layout/ViewLoadingFallback';
