@@ -785,9 +785,18 @@ export function ContactsView() {
                         className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors cursor-pointer"
                         onClick={() => openContactChat(contact.id)}
                       >
+                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.includes(contact.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedIds(prev =>
+                                checked ? [...prev, contact.id] : prev.filter(id => id !== contact.id)
+                              );
+                            }}
+                            aria-label={`Selecionar ${contact.name}`}
+                          />
+                        </td>
                         <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
                               <AvatarImage src={contact.avatar_url || undefined} />
                               <AvatarFallback className="bg-primary/10 text-primary">
                                 {contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
