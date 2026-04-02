@@ -193,7 +193,7 @@ export function CRMSyncButton({ conversation, messageCount }: { conversation: Co
         ) : (
           <RefreshCw className="w-3 h-3" />
         )}
-        Sync CRM
+        CRM
       </Button>
       {lastSyncTime && (
         <span className="text-[10px] text-muted-foreground">
