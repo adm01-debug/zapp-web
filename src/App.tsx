@@ -119,7 +119,7 @@ function AppContent() {
       <LiveRegion />
       <GlobalKeyboardProvider>
         {deferredReady && <DeferredProviders />}
-        {deferredReady && <DeferredHooks />}
+        {deferredReady && <Suspense fallback={null}><DeferredHooks /></Suspense>}
         <Toaster />
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>
@@ -147,15 +147,18 @@ function AppContent() {
   );
 }
 
-/** Hooks that don't need to run until after first paint */
-function DeferredHooks() {
-  // These are imported dynamically via the lazy component pattern
-  const { useServiceWorker } = require('@/hooks/useServiceWorker');
-  const { useScreenProtection } = require('@/hooks/useScreenProtection');
-  useServiceWorker();
-  useScreenProtection();
-  return null;
-}
+/** Deferred hooks component — lazy-loaded so hooks don't run until after first paint */
+const DeferredHooks = lazy(() =>
+  import('@/hooks/useServiceWorker').then(swMod =>
+    import('@/hooks/useScreenProtection').then(spMod => ({
+      default: function DeferredHooksInner() {
+        swMod.useServiceWorker();
+        spMod.useScreenProtection();
+        return null;
+      }
+    }))
+  )
+);
 
 function AppWithErrorRecovery() {
   const [errorKey, setErrorKey] = useState(0);
