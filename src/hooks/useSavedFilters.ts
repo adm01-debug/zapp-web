@@ -38,19 +38,19 @@ export function useSavedFilters(entityType: string) {
   const queryClient = useQueryClient();
   const queryKey = ['saved-filters', entityType];
 
-  // Listar filtros salvos
+  // Listar filtros salvos (próprios + compartilhados)
   const { data: filters = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Use any to work around Supabase's dynamic table typing
+      // Fetch own filters + shared filters from others
       const { data, error } = await (supabase as any)
         .from('saved_filters')
         .select('*')
-        .eq('user_id', user.id)
         .eq('entity_type', entityType)
+        .or(`user_id.eq.${user.id},is_shared.eq.true`)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
