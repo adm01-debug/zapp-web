@@ -61,7 +61,7 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="whatsapp-status-section">
       {/* Presence indicator */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
