@@ -25,6 +25,7 @@ import {
   Sun,
   User,
   Shield,
+  PhoneCall,
   BookOpen,
   ChevronDown,
   ChevronUp,
@@ -46,6 +47,7 @@ interface SidebarProps {
 
 const primaryNav = [
   { id: 'inbox', icon: MessageSquare, label: 'Chat' },
+  { id: 'calls', icon: PhoneCall, label: 'Chamadas' },
   { id: 'contacts', icon: Users, label: 'Contatos' },
   { id: 'groups', icon: UsersRound, label: 'Grupos' },
   { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },

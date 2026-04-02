@@ -424,7 +424,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, showDetails =
         <CallDialog
           open={showCallDialog}
           onOpenChange={setShowCallDialog}
-          contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }}
+          contact={{ id: conversation.contact.id, name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }}
           direction={callDirection}
           onEnd={() => setShowCallDialog(false)}
         />

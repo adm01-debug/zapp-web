@@ -437,16 +437,53 @@ serve(async (req) => {
           }
 
           if (contact) {
-            // Log call in calls table
-            await supabase.from('calls').insert({
-              contact_id: contact.id,
-              whatsapp_connection_id: connection.id,
-              direction: 'inbound',
-              status: callStatus || 'ringing',
-              started_at: new Date().toISOString(),
-              notes: isVideo ? 'Chamada de vídeo' : 'Chamada de voz',
-            });
-            console.log(`Call registered from ${phone} (${isVideo ? 'video' : 'voice'})`);
+            // Map Evolution API call statuses to our schema
+            const statusMap: Record<string, string> = {
+              'ringing': 'ringing',
+              'offer': 'ringing',
+              'accept': 'answered',
+              'reject': 'missed',
+              'timeout': 'missed',
+              'end': 'ended',
+            };
+            const mappedStatus = statusMap[callStatus] || callStatus || 'ringing';
+
+            if (mappedStatus === 'ringing') {
+              // New incoming call - create record
+              await supabase.from('calls').insert({
+                contact_id: contact.id,
+                whatsapp_connection_id: connection.id,
+                direction: 'inbound',
+                status: 'ringing',
+                started_at: new Date().toISOString(),
+                notes: isVideo ? 'Chamada de vídeo' : 'Chamada de voz',
+              });
+              console.log(`Call registered from ${phone} (${isVideo ? 'video' : 'voice'})`);
+            } else {
+              // Status update — find latest ringing call from this contact and update
+              const { data: existingCall } = await supabase
+                .from('calls')
+                .select('id')
+                .eq('contact_id', contact.id)
+                .eq('whatsapp_connection_id', connection.id)
+                .eq('direction', 'inbound')
+                .in('status', ['ringing', 'answered'])
+                .order('started_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (existingCall) {
+                const updateData: Record<string, unknown> = { status: mappedStatus };
+                if (mappedStatus === 'answered') {
+                  updateData.answered_at = new Date().toISOString();
+                }
+                if (mappedStatus === 'ended' || mappedStatus === 'missed') {
+                  updateData.ended_at = new Date().toISOString();
+                }
+                await supabase.from('calls').update(updateData).eq('id', existingCall.id);
+                console.log(`Call ${existingCall.id} updated to ${mappedStatus}`);
+              }
+            }
           }
         }
       }

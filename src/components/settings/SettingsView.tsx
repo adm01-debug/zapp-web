@@ -37,8 +37,9 @@ import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcu
 import { GlobalSettingsSection } from '@/components/settings/GlobalSettingsSection';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { Globe } from 'lucide-react';
+import { Globe, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import { WavoipSettings } from '@/components/settings/WavoipSettings';
 
 export function SettingsView() {
   const { settings, isLoading, isSaving, updateSettings, saveSettings, toggleWorkDay } = useUserSettings();
@@ -148,6 +149,10 @@ export function SettingsView() {
           <TabsTrigger value="global" className="gap-2">
             <Globe className="w-4 h-4" />
             Global
+          </TabsTrigger>
+          <TabsTrigger value="voip" className="gap-2">
+            <Phone className="w-4 h-4" />
+            Chamadas
           </TabsTrigger>
         </TabsList>
 
@@ -552,6 +557,16 @@ export function SettingsView() {
             animate={{ opacity: 1, y: 0 }}
           >
             <GlobalSettingsSection />
+          </motion.div>
+        </TabsContent>
+
+        {/* VoIP / Wavoip Settings */}
+        <TabsContent value="voip">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <WavoipSettings />
           </motion.div>
         </TabsContent>
       </Tabs>

@@ -20,6 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { EasterEggsProvider } from "@/components/effects/EasterEggs";
 import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
+import { WavoipProvider } from "@/contexts/WavoipContext";
+import { IncomingCallOverlay } from "@/components/calls/IncomingCallOverlay";
 
 const log = getLogger('App');
 
@@ -104,6 +106,7 @@ function AppContent() {
       
       <GlobalKeyboardProvider>
         <RealtimeSentimentAlertProvider />
+        <IncomingCallOverlay />
         <Toaster />
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>
@@ -165,17 +168,19 @@ function AppWithErrorRecovery() {
     >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <HighContrastProvider>
-            <GamificationProvider>
-              <EasterEggsProvider>
-                <AccessibleToastProvider>
-                  <TooltipProvider delayDuration={300}>
-                    <AppContent />
-                  </TooltipProvider>
-                </AccessibleToastProvider>
-              </EasterEggsProvider>
-            </GamificationProvider>
-          </HighContrastProvider>
+          <WavoipProvider>
+            <HighContrastProvider>
+              <GamificationProvider>
+                <EasterEggsProvider>
+                  <AccessibleToastProvider>
+                    <TooltipProvider delayDuration={300}>
+                      <AppContent />
+                    </TooltipProvider>
+                  </AccessibleToastProvider>
+                </EasterEggsProvider>
+              </GamificationProvider>
+            </HighContrastProvider>
+          </WavoipProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>

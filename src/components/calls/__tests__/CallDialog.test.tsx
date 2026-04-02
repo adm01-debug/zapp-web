@@ -1,26 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const mockStartCall = vi.fn().mockResolvedValue('call-123');
-const mockAnswerCall = vi.fn().mockResolvedValue(true);
-const mockEndCall = vi.fn().mockResolvedValue(true);
-const mockMissCall = vi.fn().mockResolvedValue(true);
+const mockMakeCall = vi.fn();
+const mockAnswerIncoming = vi.fn();
+const mockRejectIncoming = vi.fn();
+const mockHangUp = vi.fn();
+const mockToggleMute = vi.fn();
 
-vi.mock('@/hooks/useCalls', () => ({
-  useCalls: () => ({
-    startCall: mockStartCall,
-    answerCall: mockAnswerCall,
-    endCall: mockEndCall,
-    missCall: mockMissCall,
-    currentCallId: null,
-    isLoading: false,
+vi.mock('@/contexts/WavoipContext', () => ({
+  useWavoipContext: () => ({
+    isConnected: true,
+    activeCall: null,
+    incomingOffer: null,
+    makeCall: mockMakeCall,
+    answerIncoming: mockAnswerIncoming,
+    rejectIncoming: mockRejectIncoming,
+    hangUp: mockHangUp,
+    toggleMute: mockToggleMute,
   }),
-}));
-
-vi.mock('@/lib/audit', () => ({
-  logAudit: vi.fn(),
 }));
 
 vi.mock('framer-motion', () => ({
@@ -44,14 +43,9 @@ const defaultContact = {
 describe('CallDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('renders contact name when open', () => {
+  it('renders contact info when open', () => {
     render(
       <CallDialog
         open={true}
@@ -61,23 +55,12 @@ describe('CallDialog', () => {
         onEnd={vi.fn()}
       />
     );
+
     expect(screen.getByText('Maria Silva')).toBeInTheDocument();
-  });
-
-  it('renders contact phone', () => {
-    render(
-      <CallDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        contact={defaultContact}
-        direction="outbound"
-        onEnd={vi.fn()}
-      />
-    );
     expect(screen.getByText('+5511999999999')).toBeInTheDocument();
   });
 
-  it('shows "Chamando..." for outbound ringing', () => {
+  it('shows VoIP badge when connected', () => {
     render(
       <CallDialog
         open={true}
@@ -87,10 +70,25 @@ describe('CallDialog', () => {
         onEnd={vi.fn()}
       />
     );
+
+    expect(screen.getByText('VoIP')).toBeInTheDocument();
+  });
+
+  it('shows calling status for outbound', () => {
+    render(
+      <CallDialog
+        open={true}
+        onOpenChange={vi.fn()}
+        contact={defaultContact}
+        direction="outbound"
+        onEnd={vi.fn()}
+      />
+    );
+
     expect(screen.getByText('Chamando...')).toBeInTheDocument();
   });
 
-  it('shows "Chamada recebida..." for inbound ringing', () => {
+  it('shows incoming call status for inbound', () => {
     render(
       <CallDialog
         open={true}
@@ -100,6 +98,7 @@ describe('CallDialog', () => {
         onEnd={vi.fn()}
       />
     );
+
     expect(screen.getByText('Chamada recebida...')).toBeInTheDocument();
   });
 
@@ -113,29 +112,11 @@ describe('CallDialog', () => {
         onEnd={vi.fn()}
       />
     );
-    // Answer button has bg-whatsapp class
-    const buttons = screen.getAllByRole('button');
-    // Should have answer (green) and end (red) buttons
-    expect(buttons.length).toBeGreaterThanOrEqual(2);
+
+    expect(screen.getByLabelText('Atender chamada')).toBeInTheDocument();
   });
 
-  it('does not show answer button for outbound calls', () => {
-    render(
-      <CallDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        contact={defaultContact}
-        direction="outbound"
-        onEnd={vi.fn()}
-      />
-    );
-    // Only the end call button
-    const buttons = screen.getAllByRole('button');
-    // One end button + dialog close button
-    expect(buttons.filter(b => b.className.includes('destructive')).length).toBe(1);
-  });
-
-  it('starts call when dialog opens', async () => {
+  it('shows end/reject button', () => {
     render(
       <CallDialog
         open={true}
@@ -146,47 +127,11 @@ describe('CallDialog', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(mockStartCall).toHaveBeenCalledWith(expect.objectContaining({
-        contactId: 'contact-1',
-        contactPhone: '+5511999999999',
-        direction: 'outbound',
-      }));
-    });
+    expect(screen.getByLabelText('Encerrar chamada')).toBeInTheDocument();
   });
 
-  it('calls endCall and onEnd when end button is clicked', async () => {
-    vi.useRealTimers();
-    const onEnd = vi.fn();
-    const onOpenChange = vi.fn();
-
-    render(
-      <CallDialog
-        open={true}
-        onOpenChange={onOpenChange}
-        contact={defaultContact}
-        direction="outbound"
-        onEnd={onEnd}
-      />
-    );
-
-    await waitFor(() => {
-      expect(mockStartCall).toHaveBeenCalled();
-    });
-
-    const endButton = screen.getAllByRole('button').find(
-      b => b.className.includes('destructive')
-    );
-    if (endButton) {
-      await userEvent.click(endButton);
-      await waitFor(() => {
-        expect(onEnd).toHaveBeenCalled();
-        expect(onOpenChange).toHaveBeenCalledWith(false);
-      });
-    }
-  });
-
-  it('shows avatar fallback with initials', () => {
+  it('calls hangUp when end button is clicked on outbound', async () => {
+    const user = userEvent.setup();
     render(
       <CallDialog
         open={true}
@@ -196,7 +141,39 @@ describe('CallDialog', () => {
         onEnd={vi.fn()}
       />
     );
-    expect(screen.getByText('MS')).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText('Encerrar chamada'));
+    expect(mockHangUp).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls rejectIncoming when reject button is clicked on inbound', async () => {
+    const user = userEvent.setup();
+    render(
+      <CallDialog
+        open={true}
+        onOpenChange={vi.fn()}
+        contact={defaultContact}
+        direction="inbound"
+        onEnd={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByLabelText('Rejeitar chamada'));
+    expect(mockRejectIncoming).toHaveBeenCalledTimes(1);
+  });
+
+  it('initiates outbound call via makeCall', () => {
+    render(
+      <CallDialog
+        open={true}
+        onOpenChange={vi.fn()}
+        contact={defaultContact}
+        direction="outbound"
+        onEnd={vi.fn()}
+      />
+    );
+
+    expect(mockMakeCall).toHaveBeenCalledWith('+5511999999999', 'contact-1', 'Maria Silva');
   });
 
   it('does not render when closed', () => {
@@ -209,106 +186,7 @@ describe('CallDialog', () => {
         onEnd={vi.fn()}
       />
     );
+
     expect(screen.queryByText('Maria Silva')).not.toBeInTheDocument();
-  });
-
-  it('calls answerCall when answer button is clicked for inbound', async () => {
-    vi.useRealTimers();
-    render(
-      <CallDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        contact={defaultContact}
-        direction="inbound"
-        onEnd={vi.fn()}
-        onAnswer={vi.fn()}
-      />
-    );
-
-    await waitFor(() => {
-      expect(mockStartCall).toHaveBeenCalled();
-    });
-
-    // Find the green answer button (bg-whatsapp)
-    const answerBtn = screen.getAllByRole('button').find(
-      b => b.className.includes('whatsapp')
-    );
-    if (answerBtn) {
-      await userEvent.click(answerBtn);
-      await waitFor(() => {
-        expect(mockAnswerCall).toHaveBeenCalledWith('call-123');
-      });
-    }
-  });
-
-  it('shows duration timer when answered', async () => {
-    vi.useRealTimers();
-    render(
-      <CallDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        contact={defaultContact}
-        direction="inbound"
-        onEnd={vi.fn()}
-        onAnswer={vi.fn()}
-      />
-    );
-
-    await waitFor(() => {
-      expect(mockStartCall).toHaveBeenCalled();
-    });
-
-    const answerBtn = screen.getAllByRole('button').find(
-      b => b.className.includes('whatsapp')
-    );
-    if (answerBtn) {
-      await userEvent.click(answerBtn);
-      await waitFor(() => {
-        expect(screen.getByText('00:00')).toBeInTheDocument();
-      });
-    }
-  });
-
-  it('shows mute and speaker buttons when answered', async () => {
-    vi.useRealTimers();
-    render(
-      <CallDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        contact={defaultContact}
-        direction="inbound"
-        onEnd={vi.fn()}
-        onAnswer={vi.fn()}
-      />
-    );
-
-    await waitFor(() => {
-      expect(mockStartCall).toHaveBeenCalled();
-    });
-
-    const answerBtn = screen.getAllByRole('button').find(
-      b => b.className.includes('whatsapp')
-    );
-    if (answerBtn) {
-      await userEvent.click(answerBtn);
-      await waitFor(() => {
-        // After answering, mute + speaker + end = at least 3 buttons
-        const buttons = screen.getAllByRole('button');
-        expect(buttons.length).toBeGreaterThanOrEqual(3);
-      });
-    }
-  });
-
-  it('shows waiting text for outbound ringing', () => {
-    render(
-      <CallDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        contact={defaultContact}
-        direction="outbound"
-        onEnd={vi.fn()}
-      />
-    );
-    expect(screen.getByText('Aguardando resposta do contato...')).toBeInTheDocument();
   });
 });
