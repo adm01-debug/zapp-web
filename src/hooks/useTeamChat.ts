@@ -39,6 +39,8 @@ export interface TeamMessage {
   sender_id: string;
   content: string;
   message_type: string;
+  media_url: string | null;
+  media_type: string | null;
   reply_to_id: string | null;
   is_edited: boolean;
   created_at: string;
