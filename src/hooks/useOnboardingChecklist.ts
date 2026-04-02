@@ -12,16 +12,18 @@ export interface ChecklistStatus {
   theme: boolean;
 }
 
-export function useOnboardingChecklist() {
+const DEFAULT_STATUS: ChecklistStatus = {
+  profile: false,
+  connection: false,
+  hours: false,
+  templates: false,
+  notifications: false,
+  theme: false,
+};
+
+export function useOnboardingChecklist({ enabled = true }: { enabled?: boolean } = {}) {
   const { user } = useAuth();
-  const [status, setStatus] = useState<ChecklistStatus>({
-    profile: false,
-    connection: false,
-    hours: false,
-    templates: false,
-    notifications: false,
-    theme: false,
-  });
+  const [status, setStatus] = useState<ChecklistStatus>(DEFAULT_STATUS);
   const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 
@@ -29,14 +31,7 @@ export function useOnboardingChecklist() {
     if (!user) return;
 
     setIsLoading(true);
-    const newStatus: ChecklistStatus = {
-      profile: false,
-      connection: false,
-      hours: false,
-      templates: false,
-      notifications: false,
-      theme: false,
-    };
+    const newStatus: ChecklistStatus = { ...DEFAULT_STATUS };
 
     try {
       // Check profile
@@ -47,7 +42,7 @@ export function useOnboardingChecklist() {
         .maybeSingle();
       newStatus.profile = !!(profile?.name && profile.name.length > 2);
 
-      // Check WhatsApp connection - may fail for non-admin users due to RLS
+      // Check WhatsApp connection
       try {
         const { data: connections } = await supabase
           .from('whatsapp_connections')
@@ -89,13 +84,24 @@ export function useOnboardingChecklist() {
   }, [user]);
 
   useEffect(() => {
-    if (user) {
-      let dismissed = false;
-      try { dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true'; } catch { /* ignore */ }
-      setIsDismissed(dismissed);
-      checkStatus();
+    // Skip all DB queries when not enabled (e.g. not on dashboard view)
+    if (!enabled || !user) {
+      setIsLoading(false);
+      return;
     }
-  }, [user, checkStatus]);
+
+    let dismissed = false;
+    try { dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true'; } catch { /* ignore */ }
+    setIsDismissed(dismissed);
+
+    // Don't run queries if already dismissed
+    if (dismissed) {
+      setIsLoading(false);
+      return;
+    }
+
+    checkStatus();
+  }, [user, enabled, checkStatus]);
 
   const dismiss = useCallback(() => {
     if (user) {
