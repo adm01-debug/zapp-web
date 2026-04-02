@@ -65,7 +65,15 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       gcTime: 1000 * 60 * 30, // 30 minutes
-      retry: 1,
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as { status: number }).status;
+          if (status >= 400 && status < 500) return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
   },
 });
@@ -79,22 +87,8 @@ function AppContent() {
     initRUM();
   }, []);
 
-  // Global unhandled rejection handler
-  useEffect(() => {
-    const handler = (event: PromiseRejectionEvent) => {
-      log.error("Unhandled promise rejection:", event.reason);
-      event.preventDefault();
-    };
-    const errorHandler = (event: ErrorEvent) => {
-      log.error("Uncaught error:", event.error);
-    };
-    window.addEventListener("unhandledrejection", handler);
-    window.addEventListener("error", errorHandler);
-    return () => {
-      window.removeEventListener("unhandledrejection", handler);
-      window.removeEventListener("error", errorHandler);
-    };
-  }, []);
+  // NOTE: Global error handlers (window.onerror, unhandledrejection)
+  // are registered in main.tsx before React mounts, covering all errors.
 
   return (
     <BrowserRouter>
