@@ -78,7 +78,7 @@ export function EditContactDialog({ open, onOpenChange, contact }: EditContactDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Editar Contato</DialogTitle>
         </DialogHeader>
