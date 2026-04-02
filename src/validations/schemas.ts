@@ -42,11 +42,11 @@ export const cnpjSchema = z.string().transform((v) => v.replace(/\D/g, '')).refi
     const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     let sum = 0;
     for (let i = 0; i < 12; i++) sum += parseInt(v[i]) * w1[i];
-    let d1 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    const d1 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
     if (parseInt(v[12]) !== d1) return false;
     sum = 0;
     for (let i = 0; i < 13; i++) sum += parseInt(v[i]) * w2[i];
-    let d2 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    const d2 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
     return parseInt(v[13]) === d2;
   },
   'CNPJ inv\u00e1lido'
@@ -106,6 +106,39 @@ export const quickReplySchema = z.object({
   shortcut: z.string().max(20).optional(),
 });
 
+// --- API Response Schemas ---
+
+export const messageSchema = z.object({
+  id: uuidSchema,
+  contact_id: uuidSchema,
+  content: z.string(),
+  sender: z.enum(['agent', 'contact', 'system']),
+  message_type: z.enum(['text', 'image', 'video', 'audio', 'document', 'location', 'contact', 'sticker', 'poll']),
+  status: z.enum(['sending', 'sent', 'delivered', 'read', 'failed']).nullable(),
+  created_at: z.string().datetime(),
+  is_read: z.boolean().optional(),
+  agent_id: uuidSchema.nullable().optional(),
+  whatsapp_connection_id: uuidSchema.nullable().optional(),
+});
+
+export const connectionSchema = z.object({
+  id: uuidSchema,
+  name: z.string().min(1),
+  instance_name: z.string().min(1),
+  status: z.enum(['connected', 'disconnected', 'connecting', 'qrcode']),
+  phone_number: z.string().nullable().optional(),
+  created_at: z.string().datetime(),
+});
+
+export const profileSchema = z.object({
+  id: uuidSchema,
+  name: z.string(),
+  email: emailSchema.optional(),
+  role: z.enum(['admin', 'agent', 'supervisor']).optional(),
+  is_active: z.boolean().optional(),
+  avatar_url: z.string().url().nullable().optional(),
+});
+
 // --- Type Exports ---
 
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -114,3 +147,6 @@ export type ContactInput = z.infer<typeof contactSchema>;
 export type CampaignInput = z.infer<typeof campaignSchema>;
 export type QueueInput = z.infer<typeof queueSchema>;
 export type QuickReplyInput = z.infer<typeof quickReplySchema>;
+export type MessageRecord = z.infer<typeof messageSchema>;
+export type ConnectionRecord = z.infer<typeof connectionSchema>;
+export type ProfileRecord = z.infer<typeof profileSchema>;
