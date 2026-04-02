@@ -156,6 +156,12 @@ export function SettingsView() {
             <MediaLibraryAdmin />
           </motion.div>
         </TabsContent>
+
+        <TabsContent value="nps">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <NPSDashboard />
+          </motion.div>
+        </TabsContent>
       </Tabs>
     </div>
   );
