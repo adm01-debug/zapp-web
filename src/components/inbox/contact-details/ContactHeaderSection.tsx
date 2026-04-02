@@ -21,12 +21,14 @@ import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
+import { CRMSyncButton } from '../CRMAutoSync';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { Conversation } from '@/types/chat';
 
 const channelIcons: Record<string, string> = {
   whatsapp: '💬', instagram: '📸', facebook: '📘', telegram: '✈️',
@@ -62,13 +64,14 @@ interface ContactHeaderSectionProps {
     email?: string;
   };
   enrichedData: EnrichedContactData | null | undefined;
+  conversation?: Conversation;
   onQuickAction?: (action: string) => void;
   isCompact?: boolean;
   hasExpandedSections?: boolean;
   onCollapseAll?: () => void;
 }
 
-export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
+export function ContactHeaderSection({ contact, enrichedData, conversation, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -334,6 +337,11 @@ export function ContactHeaderSection({ contact, enrichedData, onQuickAction, isC
             </TooltipTrigger>
             <TooltipContent side="top">{contact.email || 'Sem email'}</TooltipContent>
           </Tooltip>
+
+          {/* Sync CRM */}
+          {isExternalConfigured && conversation && (
+            <CRMSyncButton conversation={conversation} />
+          )}
 
           {/* Collapse all sections */}
           {hasExpandedSections && onCollapseAll && (

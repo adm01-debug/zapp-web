@@ -36,8 +36,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
-import { CRMSyncButton } from '../CRMAutoSync';
-import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 
 interface ChatPanelHeaderProps {
   conversation: Conversation;
@@ -218,16 +216,6 @@ export function ChatPanelHeader({
           onSpeedChange={onSpeedChange}
         />
 
-        {isExternalConfigured && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <CRMSyncButton conversation={conversation} />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Sincronizar com CRM</TooltipContent>
-          </Tooltip>
-        )}
 
         <DropdownMenu>
           <Tooltip>
