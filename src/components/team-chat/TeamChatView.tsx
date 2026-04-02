@@ -1,0 +1,66 @@
+import { useState } from 'react';
+import { useTeamConversations } from '@/hooks/useTeamChat';
+import { TeamConversationList } from './TeamConversationList';
+import { TeamChatPanel } from './TeamChatPanel';
+import { NewConversationDialog } from './NewConversationDialog';
+import { MessageSquare } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { cn } from '@/lib/utils';
+
+export function TeamChatView() {
+  const { data: conversations = [], isLoading } = useTeamConversations();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showNewDialog, setShowNewDialog] = useState(false);
+
+  const selectedConversation = conversations.find(c => c.id === selectedId) || null;
+
+  return (
+    <div className="flex h-full bg-background">
+      {/* Sidebar */}
+      <div className={cn(
+        "w-80 border-r border-border flex flex-col shrink-0",
+        selectedId && "hidden md:flex"
+      )}>
+        <TeamConversationList
+          conversations={conversations}
+          isLoading={isLoading}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          onNewConversation={() => setShowNewDialog(true)}
+        />
+      </div>
+
+      {/* Chat area */}
+      <div className={cn(
+        "flex-1 flex flex-col min-w-0",
+        !selectedId && "hidden md:flex"
+      )}>
+        {selectedConversation ? (
+          <TeamChatPanel
+            conversation={selectedConversation}
+            onBack={() => setSelectedId(null)}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <EmptyState
+              icon={MessageSquare}
+              title="Chat da Equipe"
+              description="Selecione uma conversa ou inicie uma nova para conversar com seus colegas"
+              illustration="messages"
+              size="sm"
+            />
+          </div>
+        )}
+      </div>
+
+      <NewConversationDialog
+        open={showNewDialog}
+        onOpenChange={setShowNewDialog}
+        onCreated={(id) => {
+          setSelectedId(id);
+          setShowNewDialog(false);
+        }}
+      />
+    </div>
+  );
+}
