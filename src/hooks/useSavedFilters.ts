@@ -163,6 +163,22 @@ export function useSavedFilters(entityType: string) {
     },
   });
 
+  // Alternar compartilhamento
+  const shareMutation = useMutation({
+    mutationFn: async ({ id, is_shared }: { id: string; is_shared: boolean }) => {
+      const { error } = await (supabase as any)
+        .from('saved_filters')
+        .update({ is_shared })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey });
+      toast.success(variables.is_shared ? 'Filtro compartilhado com a equipe!' : 'Filtro deixou de ser compartilhado');
+    },
+  });
+
   return {
     filters,
     isLoading,
@@ -171,6 +187,7 @@ export function useSavedFilters(entityType: string) {
     updateFilter: updateMutation.mutate,
     deleteFilter: deleteMutation.mutate,
     setDefault: setDefaultMutation.mutate,
+    toggleShare: shareMutation.mutate,
     isSaving: saveMutation.isPending,
   };
 }
