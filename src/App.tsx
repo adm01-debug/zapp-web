@@ -77,7 +77,15 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  // Register service worker for push notifications
+  const [deferredReady, setDeferredReady] = useState(false);
+
+  // Defer non-critical features to after first paint
+  useEffect(() => {
+    const id = requestIdleCallback?.(() => setDeferredReady(true)) ?? setTimeout(() => setDeferredReady(true), 1500);
+    return () => { if (typeof id === 'number') cancelIdleCallback?.(id) ?? clearTimeout(id); };
+  }, []);
+
+  // Register service worker for push notifications (deferred)
   useServiceWorker();
   
   // Anti-screenshot protection
