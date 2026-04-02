@@ -559,29 +559,9 @@ export function ChatInputArea({
             )}
           </div>
 
-          {/* Secondary icons (always visible): Mic, AI Rewrite, RichText, Emoji, Sticker, Audio Meme */}
+          {/* Secondary icons (always visible): AI Rewrite, RichText, Emoji, Sticker, Audio Meme */}
           {!isMobile && (
             <div className="flex items-center gap-0.5 shrink-0">
-              {/* 🎙️ Prominent Audio Record button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    className={cn(
-                      "shrink-0 touch-manipulation active:scale-95 rounded-full transition-all",
-                      isMobile ? "w-11 h-11" : "w-10 h-10",
-                      isRecordingAudio
-                        ? "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 hover:bg-destructive/90"
-                        : "bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30 shadow-sm"
-                    )}
-                    onClick={onRecordToggle}
-                    aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
-                  >
-                    <Mic className={cn("w-5 h-5", isRecordingAudio && "animate-pulse")} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">{isRecordingAudio ? 'Parar gravação' : 'Gravar áudio'}</TooltipContent>
-              </Tooltip>
               <AIRewriteButton
                 inputValue={inputValue}
                 onRewrite={(newText) => {
@@ -618,7 +598,7 @@ export function ChatInputArea({
             </div>
           )}
 
-          {/* Primary icons: VoiceDictation, Attach, Send */}
+          {/* Primary icons: VoiceDictation, Attach, Send, Mic */}
           <div className="flex items-center gap-0.5 shrink-0">
 
             <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
@@ -644,7 +624,7 @@ export function ChatInputArea({
               }}
             />
 
-            {/* Send button (mic is now always visible to the left of textarea) */}
+            {/* Send button */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -669,6 +649,27 @@ export function ChatInputArea({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">{editingMessage ? 'Confirmar edição' : 'Enviar (Enter)'}</TooltipContent>
+            </Tooltip>
+
+            {/* 🎙️ Mic button (green) - after send */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className={cn(
+                    "shrink-0 touch-manipulation active:scale-95 rounded-full transition-all",
+                    isMobile ? "w-11 h-11" : "w-10 h-10",
+                    isRecordingAudio
+                      ? "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 hover:bg-destructive/90"
+                      : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/30"
+                  )}
+                  onClick={onRecordToggle}
+                  aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
+                >
+                  <Mic className={cn("w-5 h-5", isRecordingAudio && "animate-pulse")} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">{isRecordingAudio ? 'Parar gravação' : 'Gravar áudio'}</TooltipContent>
             </Tooltip>
           </div>
         </div>
