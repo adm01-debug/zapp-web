@@ -16,7 +16,7 @@ import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
 import { ContactIntelligencePanel } from './contact-details/ContactIntelligencePanel';
-import { CRMSyncButton } from './CRMAutoSync';
+
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   Accordion,
