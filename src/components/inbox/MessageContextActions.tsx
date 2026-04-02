@@ -47,7 +47,7 @@ export const MessageContextActions = React.memo(function MessageContextActions({
   } = useEvolutionApi();
 
   const isSent = message.sender === 'agent';
-  const externalId = (message as Record<string, unknown>).external_id as string | undefined;
+  const externalId = message.external_id;
 
   const handleDelete = useCallback(async () => {
     if (!externalId) {

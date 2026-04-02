@@ -712,19 +712,38 @@ export function RealtimeInboxView() {
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
                 )}
-                <ChatPanel
-                  conversation={legacyConversation}
-                  messages={legacyMessages}
-                  onSendMessage={handleSendMessage}
-                  showDetails={showDetails && !isMobile}
-                  onToggleDetails={() => setShowDetails(!showDetails)}
-                />
+                <ErrorBoundary
+                  fallback={
+                    <div className="flex-1 flex items-center justify-center p-8 text-center">
+                      <div>
+                        <MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-sm text-muted-foreground">Erro ao carregar o chat. Tente recarregar a página.</p>
+                      </div>
+                    </div>
+                  }
+                >
+                  <ChatPanel
+                    conversation={legacyConversation}
+                    messages={legacyMessages}
+                    onSendMessage={handleSendMessage}
+                    showDetails={showDetails && !isMobile}
+                    onToggleDetails={() => setShowDetails(!showDetails)}
+                  />
+                </ErrorBoundary>
               </div>
               {showDetails && !isMobile && (
-                <ContactDetails
-                  conversation={legacyConversation}
-                  onClose={() => setShowDetails(false)}
-                />
+                <ErrorBoundary
+                  fallback={
+                    <div className="w-[320px] flex items-center justify-center p-8 text-center border-l border-border">
+                      <p className="text-sm text-muted-foreground">Erro ao carregar detalhes do contato.</p>
+                    </div>
+                  }
+                >
+                  <ContactDetails
+                    conversation={legacyConversation}
+                    onClose={() => setShowDetails(false)}
+                  />
+                </ErrorBoundary>
               )}
             </>
           </Suspense>

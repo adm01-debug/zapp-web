@@ -1,3 +1,4 @@
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { Conversation } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -45,7 +46,7 @@ interface ChatPanelHeaderProps {
   onSpeedChange: (speed: number) => void;
 }
 
-export function ChatPanelHeader({
+export const ChatPanelHeader = React.memo(function ChatPanelHeader({
   conversation,
   isContactTyping,
   showAIAssistant,
@@ -197,4 +198,4 @@ export function ChatPanelHeader({
       </div>
     </div>
   );
-}
+});

@@ -99,6 +99,11 @@ export interface Message {
   // Audio transcription
   transcription?: string | null;
   transcriptionStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
+  // DB-level fields populated by joins
+  senderName?: string;
+  senderAvatar?: string;
+  is_deleted?: boolean;
+  external_id?: string;
 }
 
 export interface Conversation {

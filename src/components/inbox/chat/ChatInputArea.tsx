@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
@@ -72,7 +72,7 @@ interface ChatInputAreaProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
-export function ChatInputArea({
+export const ChatInputArea = React.memo(function ChatInputArea({
   inputValue,
   replyToMessage,
   isRecordingAudio,
@@ -153,26 +153,7 @@ export function ChatInputArea({
             </PopoverTrigger>
             <PopoverContent className="w-56 p-2 bg-popover border-border" align="start" side="top">
               <div className="flex flex-col gap-1">
-                <FileUploader
-                  ref={fileUploaderRef}
-                  instanceName={instanceName || ''}
-                  recipientNumber={contactPhone}
-                  contactId={contactId}
-                  connectionId={undefined}
-                  onFileSelect={(file, category) => {
-                    toast({
-                      title: 'Arquivo selecionado',
-                      description: `${file.name} (${category}) será enviado.`,
-                    });
-                  }}
-                  onFileSent={(result) => {
-                    toast({
-                      title: 'Arquivo enviado!',
-                      description: 'O arquivo foi enviado com sucesso via WhatsApp.',
-                    });
-                  }}
-                />
-                <Button 
+                <Button
                   variant="ghost" 
                   size="sm" 
                   className="justify-start gap-2 text-muted-foreground hover:text-foreground"
@@ -268,7 +249,7 @@ export function ChatInputArea({
               onChange={onInputChange}
               onKeyDown={onKeyDown}
               onBlur={onBlur}
-              placeholder={replyToMessage ? "Digite sua resposta..." : "Type Your Message"}
+              placeholder={replyToMessage ? "Digite sua resposta..." : "Digite sua mensagem..."}
               className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground h-10 px-2"
             />
           </div>
@@ -329,4 +310,4 @@ export function ChatInputArea({
       </div>
     </>
   );
-}
+});

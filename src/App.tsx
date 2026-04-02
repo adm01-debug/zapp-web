@@ -148,6 +148,7 @@ function AppContent() {
 }
 
 const MAX_ERROR_RETRIES = 3;
+const ERROR_RETRY_DELAY_MS = 2000;
 
 function AppWithErrorRecovery() {
   const [errorKey, setErrorKey] = useState(0);
@@ -160,7 +161,7 @@ function AppWithErrorRecovery() {
         log.error('ErrorBoundary caught:', error.message, error.stack);
         if (retryCountRef.current < MAX_ERROR_RETRIES) {
           retryCountRef.current += 1;
-          setTimeout(() => setErrorKey(prev => prev + 1), 2000);
+          setTimeout(() => setErrorKey(prev => prev + 1), ERROR_RETRY_DELAY_MS);
         } else {
           log.error('Max error retries reached, stopping auto-recovery');
         }

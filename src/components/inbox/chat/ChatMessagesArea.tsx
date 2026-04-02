@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
 import { MessageContextActions } from '../MessageContextActions';
 import { cn } from '@/lib/utils';
@@ -76,7 +76,7 @@ export interface ChatMessagesAreaRef {
   scrollToMessage: (messageId: string) => void;
 }
 
-export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(( {
+export const ChatMessagesArea = React.memo(forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(( {
   messages,
   isContactTyping,
   typingUserName,
@@ -140,7 +140,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
           <StaggeredList className="space-y-5">
             {dayMessages.map((message) => {
               const isSent = message.sender === 'agent';
-              const senderName = isSent ? 'You' : (message as Record<string, unknown>).senderName as string || 'Contato';
+              const senderName = isSent ? 'Você' : message.senderName || 'Contato';
 
               return (
                 <StaggeredItem key={message.id}>
@@ -151,7 +151,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                     {/* Avatar — received messages (left) */}
                     {!isSent && (
                       <Avatar className="w-9 h-9 shrink-0 mt-6">
-                        <AvatarImage src={(message as Record<string, unknown>).senderAvatar as string | undefined} />
+                        <AvatarImage src={message.senderAvatar} />
                         <AvatarFallback className="bg-muted text-muted-foreground text-xs">
                           {senderName.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
@@ -169,7 +169,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                             <MessageStatusIcon status={message.status} />
                             <span>{formatMessageTime(message.timestamp)}</span>
                             <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                            <span className="font-medium text-foreground">You</span>
+                            <span className="font-medium text-foreground">Você</span>
                           </>
                         ) : (
                           <>
@@ -189,21 +189,21 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         <button
                           onClick={() => onReply(message)}
                           className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                          title="Responder"
+                          aria-label="Responder"
                         >
                           <Reply className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => onForward(message)}
                           className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                          title="Encaminhar"
+                          aria-label="Encaminhar"
                         >
                           <Forward className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => onCopy(message.content)}
                           className="p-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                          title="Copiar"
+                          aria-label="Copiar"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -229,7 +229,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       </div>
 
                       {/* Message bubble */}
-                      {(message as Record<string, unknown>).is_deleted ? (
+                      {message.is_deleted ? (
                         <DeletedMessagePlaceholder isSent={isSent} />
                       ) : (
                       <div
@@ -348,6 +348,6 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
       <div ref={messagesEndRef} />
     </div>
   );
-});
+}));
 
 ChatMessagesArea.displayName = 'ChatMessagesArea';

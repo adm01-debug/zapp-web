@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   MessageSquare,
@@ -75,9 +75,9 @@ const systemNav = [
   { id: 'settings', icon: Settings, label: 'Configurações' },
 ] as const;
 
-function NavIcon({ item, currentView, onViewChange }: { 
+const NavIcon = React.memo(function NavIcon({ item, currentView, onViewChange }: {
   item: { id: string; icon: React.ComponentType<{ className?: string }>; label: string };
-  currentView: string; 
+  currentView: string;
   onViewChange: (v: string) => void;
 }) {
   const Icon = item.icon;
@@ -106,7 +106,7 @@ function NavIcon({ item, currentView, onViewChange }: {
       </TooltipContent>
     </Tooltip>
   );
-}
+});
 
 export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: SidebarProps) {
   const { theme, setTheme } = useTheme();

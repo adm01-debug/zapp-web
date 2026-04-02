@@ -90,7 +90,7 @@ describe('ChatInputArea', () => {
 
   it('renders the text input with default placeholder', () => {
     render(<ChatInputArea {...baseProps} />);
-    expect(screen.getByPlaceholderText('Type Your Message')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Digite sua mensagem...')).toBeInTheDocument();
   });
 
   it('renders reply placeholder when replying', () => {
@@ -129,14 +129,14 @@ describe('ChatInputArea', () => {
 
   it('calls onInputChange when typing', () => {
     render(<ChatInputArea {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type Your Message');
+    const input = screen.getByPlaceholderText('Digite sua mensagem...');
     fireEvent.change(input, { target: { value: 'Test' } });
     expect(baseProps.onInputChange).toHaveBeenCalled();
   });
 
   it('calls onKeyDown when pressing a key', () => {
     render(<ChatInputArea {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type Your Message');
+    const input = screen.getByPlaceholderText('Digite sua mensagem...');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(baseProps.onKeyDown).toHaveBeenCalled();
   });
@@ -205,7 +205,7 @@ describe('ChatInputArea', () => {
 
   it('calls onBlur when input loses focus', () => {
     render(<ChatInputArea {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type Your Message');
+    const input = screen.getByPlaceholderText('Digite sua mensagem...');
     fireEvent.blur(input);
     expect(baseProps.onBlur).toHaveBeenCalled();
   });
