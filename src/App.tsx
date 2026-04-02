@@ -7,13 +7,24 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
-import { RealtimeSentimentAlertProvider } from "@/components/notifications/RealtimeSentimentAlertProvider";
 import { GlobalKeyboardProvider } from "@/components/keyboard/GlobalKeyboardProvider";
 import { AccessibleToastProvider } from "@/components/ui/accessible-toast";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
-import { IncomingCallAlert } from "@/components/calls/IncomingCallAlert";
 import { useScreenProtection } from "@/hooks/useScreenProtection";
+
+// Deferred non-critical providers loaded after first paint
+const RealtimeSentimentAlertProvider = lazy(() => import("@/components/notifications/RealtimeSentimentAlertProvider").then(m => ({ default: m.RealtimeSentimentAlertProvider })));
+const IncomingCallAlert = lazy(() => import("@/components/calls/IncomingCallAlert").then(m => ({ default: m.IncomingCallAlert })));
+
+function DeferredProviders() {
+  return (
+    <Suspense fallback={null}>
+      <RealtimeSentimentAlertProvider />
+      <IncomingCallAlert />
+    </Suspense>
+  );
+}
 import { SkipLinks } from "@/components/ui/skip-link";
 import { LiveRegion } from "@/components/ui/visually-hidden";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -78,7 +89,15 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  // Register service worker for push notifications
+  const [deferredReady, setDeferredReady] = useState(false);
+
+  // Defer non-critical features to after first paint
+  useEffect(() => {
+    const timer = setTimeout(() => setDeferredReady(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Register service worker for push notifications (deferred)
   useServiceWorker();
   
   // Anti-screenshot protection
@@ -110,8 +129,7 @@ function AppContent() {
       <LiveRegion />
       
       <GlobalKeyboardProvider>
-        <RealtimeSentimentAlertProvider />
-        <IncomingCallAlert />
+        {deferredReady && <DeferredProviders />}
         <Toaster />
         <Sonner />
         <Suspense fallback={<RouteLoadingFallback />}>

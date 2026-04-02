@@ -1,8 +1,6 @@
 import { Suspense, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { PageTransition } from '@/components/ui/motion';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
 import { ViewRouter } from '@/pages/ViewRouter';
 import { ViewLoadingFallback } from '@/components/layout/ViewLoadingFallback';
@@ -115,12 +113,6 @@ export function AppShell({
         )}
 
         <Suspense fallback={<ViewLoadingFallback />}>
-          <AnimatePresence mode="wait">
-            <PageTransition
-              key={currentView}
-              direction={navDirectionRef.current}
-              className="flex-1 h-full max-h-full min-h-0 overflow-hidden"
-            >
               <ViewRouter
                 currentView={currentView}
                 userId={userId}
@@ -131,8 +123,6 @@ export function AppShell({
                 breadcrumbTrail={breadcrumbTrail}
                 onNavigateTo={setCurrentView}
               />
-            </PageTransition>
-          </AnimatePresence>
         </Suspense>
       </main>
     </div>
