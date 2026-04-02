@@ -1018,6 +1018,14 @@ export function ContactsView() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Bulk Actions */}
+      <BulkActionsBar
+        selectedIds={selectedIds}
+        onClearSelection={() => setSelectedIds([])}
+        onActionComplete={() => { setSelectedIds([]); refetch(); }}
+        availableTags={uniqueTags}
+      />
     </div>
   );
 }
