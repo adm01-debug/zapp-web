@@ -3,6 +3,7 @@ import App from "./App.tsx";
 import "./index.css";
 import "./i18n"; // Initialize i18n
 import { getLogger } from "./lib/logger";
+import { reportWebVitals } from "./lib/performanceMonitor";
 
 const log = getLogger('Main');
 log.info('Initialized at', new Date().toISOString());
@@ -22,3 +23,6 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Report Web Vitals for performance observability
+reportWebVitals();
