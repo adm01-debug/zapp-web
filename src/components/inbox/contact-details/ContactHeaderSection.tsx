@@ -338,6 +338,11 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
             <TooltipContent side="top">{contact.email || 'Sem email'}</TooltipContent>
           </Tooltip>
 
+          {/* Sync CRM */}
+          {isExternalConfigured && conversation && (
+            <CRMSyncButton conversation={conversation} />
+          )}
+
           {/* Collapse all sections */}
           {hasExpandedSections && onCollapseAll && (
             <Tooltip>
