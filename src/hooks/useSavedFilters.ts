@@ -84,6 +84,7 @@ export function useSavedFilters(entityType: string) {
           name: input.name,
           filters: input.filters,
           is_default: input.is_default ?? false,
+          is_shared: input.is_shared ?? false,
         })
         .select()
         .single();
