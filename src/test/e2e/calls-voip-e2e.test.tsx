@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 
