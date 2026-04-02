@@ -97,4 +97,4 @@ export const SidebarNavItem = React.memo(React.forwardRef<HTMLLIElement, Sidebar
   }
 
   return button;
-});
+}));
