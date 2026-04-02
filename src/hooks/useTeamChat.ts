@@ -39,6 +39,8 @@ export interface TeamMessage {
   sender_id: string;
   content: string;
   message_type: string;
+  media_url: string | null;
+  media_type: string | null;
   reply_to_id: string | null;
   is_edited: boolean;
   created_at: string;
@@ -258,10 +260,12 @@ export function useSendTeamMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ conversationId, content, replyToId }: {
+    mutationFn: async ({ conversationId, content, replyToId, mediaUrl, mediaType }: {
       conversationId: string;
       content: string;
       replyToId?: string;
+      mediaUrl?: string;
+      mediaType?: string;
     }) => {
       if (!profile) throw new Error('Not authenticated');
 
@@ -272,6 +276,8 @@ export function useSendTeamMessage() {
           sender_id: profile.id,
           content,
           reply_to_id: replyToId || null,
+          media_url: mediaUrl || null,
+          media_type: mediaType || null,
         })
         .select()
         .single();

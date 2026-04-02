@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check } from 'lucide-react';
+import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check, Mic, Reply, Image as ImageIcon, Music, FileText, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -16,6 +16,16 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { Input } from '@/components/ui/input';
+import { StickerPicker } from '@/components/inbox/StickerPicker';
+import { AudioMemePicker } from '@/components/inbox/AudioMemePicker';
+import { CustomEmojiPicker } from '@/components/inbox/CustomEmojiPicker';
+import { AudioRecorder } from '@/components/inbox/AudioRecorder';
+import { MentionAutocomplete, useMentions } from '@/components/inbox/chat/MentionAutocomplete';
+import { MarkdownPreview } from '@/components/inbox/chat/MarkdownPreview';
+import { TeamFileUploader } from './TeamFileUploader';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface Props {
   conversation: TeamConversation;
@@ -33,6 +43,66 @@ function formatDateSep(dateStr: string) {
   return format(d, "d 'de' MMMM", { locale: ptBR });
 }
 
+function MediaContent({ msg }: { msg: TeamMessage }) {
+  if (!msg.media_url) return null;
+
+  switch (msg.media_type) {
+    case 'image':
+    case 'sticker':
+    case 'emoji':
+      return (
+        <img
+          src={msg.media_url}
+          alt="media"
+          className={cn(
+            "rounded-lg max-h-48 object-contain cursor-pointer",
+            msg.media_type === 'sticker' || msg.media_type === 'emoji' ? 'w-24 h-24' : 'max-w-full'
+          )}
+          onClick={() => window.open(msg.media_url!, '_blank')}
+        />
+      );
+    case 'video':
+      return (
+        <video
+          src={msg.media_url}
+          controls
+          className="rounded-lg max-h-48 max-w-full"
+        />
+      );
+    case 'audio':
+    case 'audio_meme':
+      return (
+        <audio src={msg.media_url} controls className="max-w-full" />
+      );
+    case 'document':
+      return (
+        <a
+          href={msg.media_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+        >
+          <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+          <span className="text-sm text-foreground underline truncate">{msg.content || 'Documento'}</span>
+        </a>
+      );
+    default:
+      return null;
+  }
+}
+
+function MediaTypeIcon({ type }: { type: string | null }) {
+  switch (type) {
+    case 'image': return <ImageIcon className="w-3 h-3" />;
+    case 'video': return <Video className="w-3 h-3" />;
+    case 'audio':
+    case 'audio_meme': return <Music className="w-3 h-3" />;
+    case 'document': return <FileText className="w-3 h-3" />;
+    case 'sticker': return <ImageIcon className="w-3 h-3" />;
+    default: return null;
+  }
+}
+
 export function TeamChatPanel({ conversation, onBack }: Props) {
   const { profile } = useAuth();
   const { data: messages = [], isLoading } = useTeamMessages(conversation.id);
@@ -42,27 +112,36 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   const [text, setText] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [replyTo, setReplyTo] = useState<TeamMessage | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Mentions
+  const {
+    isOpen: mentionOpen,
+    cursorPos: mentionCursorPos,
+    checkForMention,
+    handleSelect: handleMentionSelect,
+    close: closeMention,
+  } = useMentions(textareaRef);
 
   const checkNearBottom = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const threshold = 100;
-    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
     isNearBottomRef.current = nearBottom;
     setShowScrollDown(!nearBottom);
   }, []);
 
-  // Auto-scroll only if user is near bottom
   useEffect(() => {
     if (isNearBottomRef.current && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages.length]);
 
-  // Initial scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -70,9 +149,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   }, [conversation.id]);
 
   const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    }
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   };
 
   const handleSend = () => {
@@ -81,14 +158,56 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
     sendMutation.mutate({
       conversationId: conversation.id,
       content: trimmed,
+      replyToId: replyTo?.id,
     });
     setText('');
+    setReplyTo(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const handleSendMedia = (mediaUrl: string, mediaType: string, content?: string) => {
+    sendMutation.mutate({
+      conversationId: conversation.id,
+      content: content || '',
+      mediaUrl,
+      mediaType,
+      replyToId: replyTo?.id,
+    });
+    setReplyTo(null);
+  };
+
+  const handleSendSticker = (stickerUrl: string) => handleSendMedia(stickerUrl, 'sticker', '🎨 Figurinha');
+  const handleSendAudioMeme = (audioUrl: string) => handleSendMedia(audioUrl, 'audio_meme', '🎵 Áudio meme');
+  const handleSendCustomEmoji = (emojiUrl: string) => handleSendMedia(emojiUrl, 'emoji', '😀 Emoji');
+
+  const handleFileSent = (mediaUrl: string, mediaType: string, fileName: string) => {
+    handleSendMedia(mediaUrl, mediaType, fileName);
+  };
+
+  const handleAudioSend = async (blob: Blob) => {
+    setIsRecordingAudio(false);
+    try {
+      const ext = 'webm';
+      const path = `${profile?.id}/${conversation.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from('team-chat-files')
+        .upload(path, blob, { contentType: 'audio/webm' });
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('team-chat-files')
+        .getPublicUrl(path);
+
+      handleSendMedia(urlData.publicUrl, 'audio', '🎤 Mensagem de áudio');
+    } catch (err) {
+      toast.error('Erro ao enviar áudio');
+      console.error(err);
     }
   };
 
@@ -117,11 +236,10 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
     setEditText('');
   };
 
-  // Build date groups without mutable closure
   const dateGroups = new Set<string>();
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Header */}
       <div className="flex items-center gap-3 p-3 border-b border-border bg-card">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={onBack}>
@@ -146,7 +264,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5 relative"
+        className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5"
         onScroll={checkNearBottom}
       >
         {isLoading ? (
@@ -168,6 +286,10 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
             if (showDate) dateGroups.add(dateKey);
             const isMine = msg.sender_id === profile?.id;
             const isEditing = editingId === msg.id;
+            const hasMedia = !!msg.media_url;
+
+            // Find the replied message
+            const repliedMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
 
             const messageContent = (
               <div key={msg.id}>
@@ -196,6 +318,23 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                     {!isMine && conversation.type === 'group' && (
                       <p className="text-[10px] font-medium mb-0.5 opacity-70">{msg.sender?.name}</p>
                     )}
+
+                    {/* Reply reference */}
+                    {repliedMsg && (
+                      <div className={cn(
+                        "text-[10px] mb-1.5 px-2 py-1 rounded border-l-2",
+                        isMine
+                          ? "bg-primary-foreground/10 border-primary-foreground/30"
+                          : "bg-muted/50 border-muted-foreground/30"
+                      )}>
+                        <span className="font-medium">{repliedMsg.sender?.name}</span>
+                        <p className="truncate opacity-80 flex items-center gap-1">
+                          {repliedMsg.media_type && <MediaTypeIcon type={repliedMsg.media_type} />}
+                          {repliedMsg.content || 'Mídia'}
+                        </p>
+                      </div>
+                    )}
+
                     {isEditing ? (
                       <div className="space-y-1.5">
                         <Input
@@ -219,7 +358,15 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                       </div>
                     ) : (
                       <>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                        {hasMedia && <MediaContent msg={msg} />}
+                        {msg.content && (!hasMedia || msg.media_type === 'document') && (
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                            <MarkdownPreview text={msg.content} className="inline" />
+                          </p>
+                        )}
+                        {msg.content && hasMedia && msg.media_type !== 'document' && msg.content !== '🎨 Figurinha' && msg.content !== '🎵 Áudio meme' && msg.content !== '😀 Emoji' && msg.content !== '🎤 Mensagem de áudio' && (
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words mt-1">{msg.content}</p>
+                        )}
                         <p className={cn(
                           "text-[10px] mt-0.5 text-right",
                           isMine ? "text-primary-foreground/60" : "text-muted-foreground"
@@ -234,7 +381,6 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
               </div>
             );
 
-            // Only wrap own messages with context menu for edit/delete
             if (isMine && !isEditing) {
               return (
                 <ContextMenu key={msg.id}>
@@ -242,9 +388,14 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
                     {messageContent}
                   </ContextMenuTrigger>
                   <ContextMenuContent>
-                    <ContextMenuItem onClick={() => handleStartEdit(msg)} className="gap-2">
-                      <Pencil className="w-3.5 h-3.5" /> Editar
+                    <ContextMenuItem onClick={() => setReplyTo(msg)} className="gap-2">
+                      <Reply className="w-3.5 h-3.5" /> Responder
                     </ContextMenuItem>
+                    {!hasMedia && (
+                      <ContextMenuItem onClick={() => handleStartEdit(msg)} className="gap-2">
+                        <Pencil className="w-3.5 h-3.5" /> Editar
+                      </ContextMenuItem>
+                    )}
                     <ContextMenuItem
                       onClick={() => handleDelete(msg.id)}
                       className="gap-2 text-destructive focus:text-destructive"
@@ -256,45 +407,124 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
               );
             }
 
-            return messageContent;
+            // Other user's messages — allow reply via context menu
+            return (
+              <ContextMenu key={msg.id}>
+                <ContextMenuTrigger asChild>
+                  {messageContent}
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onClick={() => setReplyTo(msg)} className="gap-2">
+                    <Reply className="w-3.5 h-3.5" /> Responder
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            );
           })
         )}
       </div>
 
-      {/* Scroll to bottom button */}
+      {/* Scroll to bottom */}
       {showScrollDown && (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
-          <Button
-            size="icon"
-            variant="secondary"
-            className="rounded-full shadow-lg h-8 w-8"
-            onClick={scrollToBottom}
-          >
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
+          <Button size="icon" variant="secondary" className="rounded-full shadow-lg h-8 w-8" onClick={scrollToBottom}>
             <ArrowDown className="w-4 h-4" />
           </Button>
         </div>
       )}
 
-      {/* Input */}
-      <div className="p-3 border-t border-border bg-card">
-        <div className="flex items-end gap-2">
-          <Textarea
-            value={text}
-            onChange={e => setText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Digite sua mensagem..."
-            className="min-h-[40px] max-h-[120px] resize-none"
-            rows={1}
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!text.trim() || sendMutation.isPending}
-            className="shrink-0 h-10 w-10"
+      {/* Reply preview */}
+      <AnimatePresence>
+        {replyTo && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-3 pt-2 bg-card border-t border-border"
           >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border-l-2 border-primary">
+              <Reply className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium text-primary">{replyTo.sender?.name || 'Você'}</p>
+                <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                  {replyTo.media_type && <MediaTypeIcon type={replyTo.media_type} />}
+                  {replyTo.content || 'Mídia'}
+                </p>
+              </div>
+              <Button size="icon" variant="ghost" className="h-5 w-5 shrink-0" onClick={() => setReplyTo(null)}>
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Input area */}
+      <div className="p-3 border-t border-border bg-card space-y-2">
+        {isRecordingAudio ? (
+          <AudioRecorder
+            onSend={handleAudioSend}
+            onCancel={() => setIsRecordingAudio(false)}
+          />
+        ) : (
+          <>
+            {/* Mention autocomplete */}
+            <div className="relative">
+              <MentionAutocomplete
+                inputValue={text}
+                cursorPosition={mentionCursorPos}
+                onSelect={handleMentionSelect}
+                onClose={closeMention}
+                isOpen={mentionOpen}
+              />
+            </div>
+
+            <div className="flex items-end gap-2">
+              <div className="flex items-center gap-0.5 shrink-0">
+                <TeamFileUploader
+                  conversationId={conversation.id}
+                  onFileSent={handleFileSent}
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => setIsRecordingAudio(true)}
+                  title="Gravar áudio"
+                >
+                  <Mic className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Textarea
+                ref={textareaRef}
+                value={text}
+                onChange={e => {
+                  setText(e.target.value);
+                  checkForMention(e.target.value, e.target.selectionStart || 0);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Digite sua mensagem... (@mencionar)"
+                className="min-h-[40px] max-h-[120px] resize-none flex-1"
+                rows={1}
+              />
+
+              <div className="flex items-center gap-0.5 shrink-0">
+                <CustomEmojiPicker onSendEmoji={handleSendCustomEmoji} />
+                <StickerPicker onSendSticker={handleSendSticker} />
+                <AudioMemePicker onSendAudio={handleSendAudioMeme} />
+                <Button
+                  size="icon"
+                  onClick={handleSend}
+                  disabled={!text.trim() || sendMutation.isPending}
+                  className="h-10 w-10"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
