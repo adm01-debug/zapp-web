@@ -107,6 +107,15 @@ export function ChatbotFlowsView() {
         </Button>
       </div>
 
+      <Tabs defaultValue="flows" className="flex-1 flex flex-col min-h-0">
+        <TabsList className="bg-muted/50 w-fit">
+          <TabsTrigger value="flows" className="gap-2"><Bot className="w-4 h-4" />Fluxos</TabsTrigger>
+          <TabsTrigger value="executions" className="gap-2"><Activity className="w-4 h-4" />Execuções</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="flows" className="flex-1 min-h-0 space-y-6 mt-4">
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
