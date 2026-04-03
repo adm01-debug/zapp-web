@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useWhatsAppStatus, type WhatsAppStatusMessage } from '@/hooks/useWhatsAppStatus';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, Image as ImageIcon, Video, Type, Clock, WifiOff, ExternalLink } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Loader2, RefreshCw, Image as ImageIcon, Video, Type, Clock, WifiOff, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelativeTime } from '@/lib/formatters';
@@ -11,6 +12,8 @@ interface WhatsAppStatusSectionProps {
   phone: string;
 }
 
+/* ── helpers ── */
+
 const getStatusIcon = (msg: WhatsAppStatusMessage) => {
   if (msg.message?.imageMessage) return <ImageIcon className="w-3.5 h-3.5 text-primary" />;
   if (msg.message?.videoMessage) return <Video className="w-3.5 h-3.5 text-accent-foreground" />;
@@ -18,20 +21,12 @@ const getStatusIcon = (msg: WhatsAppStatusMessage) => {
 };
 
 const getStatusLabel = (msg: WhatsAppStatusMessage) => {
-  if (msg.message?.imageMessage) return 'Foto';
-  if (msg.message?.videoMessage) return 'Vídeo';
-  if (msg.message?.extendedTextMessage?.text || msg.message?.conversation) return 'Texto';
-  if (msg.status) return `Status ${msg.status}`;
-  return 'Status';
-};
-
-const getStatusContent = (msg: WhatsAppStatusMessage) => {
   if (msg.message?.imageMessage?.caption) return msg.message.imageMessage.caption;
   if (msg.message?.videoMessage?.caption) return msg.message.videoMessage.caption;
   if (msg.message?.extendedTextMessage?.text) return msg.message.extendedTextMessage.text;
   if (msg.message?.conversation) return msg.message.conversation;
-  if (msg.message?.imageMessage) return 'Foto';
-  if (msg.message?.videoMessage) return 'Vídeo';
+  if (msg.message?.imageMessage) return '📷 Foto';
+  if (msg.message?.videoMessage) return '🎥 Vídeo';
   if (msg.status) return `Status: ${msg.status}`;
   return 'Status';
 };
@@ -43,15 +38,197 @@ const getStatusTime = (msg: WhatsAppStatusMessage) => {
   return formatRelativeTime(date);
 };
 
-const getMediaUrl = (msg: WhatsAppStatusMessage) => {
-  return msg.message?.imageMessage?.url || msg.message?.videoMessage?.url || null;
+const getMediaType = (msg: WhatsAppStatusMessage): 'image' | 'video' | 'text' => {
+  if (msg.message?.imageMessage) return 'image';
+  if (msg.message?.videoMessage) return 'video';
+  return 'text';
 };
 
-const hasReadableContent = (content: string) => !['Foto', 'Vídeo', 'Status'].includes(content) && !content.startsWith('Status:');
+const getMediaUrl = (msg: WhatsAppStatusMessage) =>
+  msg.message?.imageMessage?.url || msg.message?.videoMessage?.url || null;
+
+const getTextContent = (msg: WhatsAppStatusMessage) => {
+  if (msg.message?.imageMessage?.caption) return msg.message.imageMessage.caption;
+  if (msg.message?.videoMessage?.caption) return msg.message.videoMessage.caption;
+  if (msg.message?.extendedTextMessage?.text) return msg.message.extendedTextMessage.text;
+  if (msg.message?.conversation) return msg.message.conversation;
+  return null;
+};
+
+const getBgColor = (msg: WhatsAppStatusMessage) => {
+  const bg = msg.message?.extendedTextMessage?.backgroundColor;
+  if (typeof bg === 'number') {
+    const hex = (bg >>> 0).toString(16).padStart(8, '0');
+    return `#${hex.slice(2)}`;
+  }
+  return null;
+};
+
+/* ── Story Viewer (modal) ── */
+
+function StoryViewer({
+  messages,
+  initialIndex,
+  open,
+  onClose,
+  pushName,
+}: {
+  messages: WhatsAppStatusMessage[];
+  initialIndex: number;
+  open: boolean;
+  onClose: () => void;
+  pushName?: string;
+}) {
+  const [index, setIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    if (open) setIndex(initialIndex);
+  }, [open, initialIndex]);
+
+  const goNext = useCallback(() => setIndex((i) => Math.min(i + 1, messages.length - 1)), [messages.length]);
+  const goPrev = useCallback(() => setIndex((i) => Math.max(i - 1, 0)), []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') goNext();
+      else if (e.key === 'ArrowLeft') goPrev();
+      else if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, goNext, goPrev, onClose]);
+
+  if (!open || !messages.length) return null;
+
+  const current = messages[index];
+  const mediaType = getMediaType(current);
+  const mediaUrl = getMediaUrl(current);
+  const textContent = getTextContent(current);
+  const bgColor = getBgColor(current);
+  const time = getStatusTime(current);
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 bg-black/95 border-border/20 overflow-hidden [&>button]:hidden">
+        {/* Progress bar */}
+        <div className="flex gap-0.5 px-3 pt-3">
+          {messages.map((_, i) => (
+            <div key={i} className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/20">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all duration-300',
+                  i < index ? 'bg-white w-full' : i === index ? 'bg-primary w-full' : 'w-0',
+                )}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+              {(pushName || '?')[0]?.toUpperCase()}
+            </div>
+            <div>
+              <p className="text-xs font-medium text-white/90">{pushName || 'Contato'}</p>
+              {time && <p className="text-[10px] text-white/50">{time}</p>}
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-white/40 mr-2">
+              {index + 1}/{messages.length}
+            </span>
+            <Button variant="ghost" size="icon" onClick={onClose} className="w-8 h-8 text-white/70 hover:text-white hover:bg-white/10">
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Content area */}
+        <div className="relative flex items-center justify-center min-h-[50vh] max-h-[70vh]">
+          {/* Navigation buttons */}
+          {index > 0 && (
+            <button
+              onClick={goPrev}
+              className="absolute left-2 z-10 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          {index < messages.length - 1 && (
+            <button
+              onClick={goNext}
+              className="absolute right-2 z-10 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Media / Text */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="w-full h-full flex items-center justify-center px-14"
+            >
+              {mediaType === 'image' && mediaUrl ? (
+                <img
+                  src={mediaUrl}
+                  alt="Status"
+                  className="max-w-full max-h-[65vh] object-contain rounded-lg"
+                  loading="eager"
+                />
+              ) : mediaType === 'video' && mediaUrl ? (
+                <video
+                  src={mediaUrl}
+                  controls
+                  autoPlay
+                  className="max-w-full max-h-[65vh] object-contain rounded-lg"
+                />
+              ) : (
+                <div
+                  className="w-full max-w-md p-8 rounded-2xl flex items-center justify-center text-center"
+                  style={{ backgroundColor: bgColor || 'hsl(var(--primary) / 0.15)' }}
+                >
+                  <p className="text-lg font-medium text-white leading-relaxed whitespace-pre-wrap break-words">
+                    {textContent || 'Status'}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Caption overlay */}
+        {mediaType !== 'text' && textContent && (
+          <div className="px-6 py-4 bg-gradient-to-t from-black/80 to-transparent">
+            <p className="text-sm text-white/90 whitespace-pre-wrap break-words text-center">{textContent}</p>
+          </div>
+        )}
+
+        {/* Bottom padding */}
+        {(mediaType === 'text' || !textContent) && <div className="h-4" />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Main Section ── */
 
 export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
   const { statusMessages, presence, loading, error, refresh } = useWhatsAppStatus(phone);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  const openViewer = (index: number) => {
+    setViewerIndex(index);
+    setViewerOpen(true);
+  };
 
   if (loading) {
     return (
@@ -77,12 +254,17 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
 
   return (
     <div className="space-y-3" data-testid="whatsapp-status-section">
+      {/* Presence indicator */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div
             className={cn(
               'w-2.5 h-2.5 rounded-full',
-              presence.loading ? 'bg-muted-foreground/30 animate-pulse' : presence.isOnline ? 'bg-success' : 'bg-muted-foreground/40',
+              presence.loading
+                ? 'bg-muted-foreground/30 animate-pulse'
+                : presence.isOnline
+                  ? 'bg-success'
+                  : 'bg-muted-foreground/40',
             )}
           />
           <span className="text-xs text-muted-foreground">
@@ -102,6 +284,7 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
         </Button>
       </div>
 
+      {/* Status list */}
       {statusMessages.length === 0 ? (
         <div className="flex flex-col items-center gap-1.5 py-4 text-center">
           <div className="w-10 h-10 rounded-full bg-muted/20 flex items-center justify-center">
@@ -111,106 +294,43 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
           <p className="text-[10px] text-muted-foreground/40">Os status desaparecem após 24h</p>
         </div>
       ) : (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           <div className="flex items-center gap-1.5 mb-2">
             <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary">
               {statusMessages.length} status
             </Badge>
           </div>
 
-          <AnimatePresence initial={false}>
-            {statusMessages.map((msg, index) => {
-              const isSelected = selectedIndex === index;
-              const content = getStatusContent(msg);
-              const label = getStatusLabel(msg);
-              const time = getStatusTime(msg);
-              const mediaUrl = getMediaUrl(msg);
-              const showBodyText = hasReadableContent(content);
-              const isImageStatus = Boolean(msg.message?.imageMessage);
-              const isVideoStatus = Boolean(msg.message?.videoMessage);
-
-              return (
-                <motion.div
-                  key={msg.key?.id || msg.id || index}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="space-y-2"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedIndex(isSelected ? null : index)}
-                    className={cn(
-                      'w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg transition-all',
-                      'hover:bg-muted/30 border border-transparent',
-                      isSelected && 'bg-muted/30 border-primary/20',
-                    )}
-                  >
-                    <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center shrink-0">
-                      {getStatusIcon(msg)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-medium text-foreground">{label}</p>
-                      </div>
-                      <p className="text-xs text-foreground/80 line-clamp-2">{content}</p>
-                      {time && <p className="text-[10px] text-muted-foreground mt-0.5">{time}</p>}
-                    </div>
-                  </button>
-
-                  <AnimatePresence initial={false}>
-                    {isSelected && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="ml-10 rounded-lg border border-border/60 bg-muted/20 p-3 space-y-3">
-                          {(isImageStatus || isVideoStatus) && mediaUrl ? (
-                            <div className="overflow-hidden rounded-md border border-border/60 bg-background/60">
-                              {isImageStatus ? (
-                                <img
-                                  src={mediaUrl}
-                                  alt={`Prévia do status de ${phone}`}
-                                  loading="lazy"
-                                  className="w-full max-h-72 object-cover"
-                                />
-                              ) : (
-                                <video src={mediaUrl} controls preload="metadata" className="w-full max-h-72" />
-                              )}
-                            </div>
-                          ) : null}
-
-                          {showBodyText ? (
-                            <div className="rounded-md border border-border/60 bg-background/60 p-3">
-                              <p className="text-xs text-foreground whitespace-pre-wrap break-words">{content}</p>
-                            </div>
-                          ) : null}
-
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="text-[10px] text-muted-foreground">
-                              {time ? `Publicado ${time}` : 'Status sem horário disponível'}
-                            </div>
-                            {mediaUrl ? (
-                              <Button asChild variant="outline" size="sm" className="h-7 text-xs">
-                                <a href={mediaUrl} target="_blank" rel="noreferrer">
-                                  <ExternalLink className="w-3 h-3 mr-1" />
-                                  Abrir mídia
-                                </a>
-                              </Button>
-                            ) : null}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+          {statusMessages.map((msg, index) => (
+            <button
+              key={msg.key?.id || msg.id || index}
+              type="button"
+              onClick={() => openViewer(index)}
+              className={cn(
+                'w-full text-left flex items-start gap-2.5 p-2 rounded-lg transition-all',
+                'hover:bg-muted/30 border border-transparent hover:border-primary/10',
+              )}
+            >
+              <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center shrink-0">
+                {getStatusIcon(msg)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-foreground line-clamp-1">{getStatusLabel(msg)}</p>
+                {getStatusTime(msg) && <p className="text-[10px] text-muted-foreground mt-0.5">{getStatusTime(msg)}</p>}
+              </div>
+            </button>
+          ))}
         </div>
       )}
+
+      {/* Story Viewer Modal */}
+      <StoryViewer
+        messages={statusMessages}
+        initialIndex={viewerIndex}
+        open={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        pushName={statusMessages[0]?.pushName}
+      />
     </div>
   );
 }
