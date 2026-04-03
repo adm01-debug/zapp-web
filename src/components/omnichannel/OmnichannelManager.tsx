@@ -225,6 +225,11 @@ export function OmnichannelManager() {
           );
         })}
       </div>
+
+      {/* Channel Routing Rules */}
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <ChannelRoutingRules />
+      </Suspense>
     </div>
   );
 }
