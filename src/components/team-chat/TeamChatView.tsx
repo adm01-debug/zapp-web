@@ -36,7 +36,7 @@ export function TeamChatView() {
 
       {/* Chat area */}
       <div className={cn(
-        "flex-1 flex flex-col min-w-0",
+        "flex-1 flex flex-col min-w-0 w-0",
         !selectedId && "hidden md:flex"
       )}>
         {selectedConversation ? (

@@ -248,7 +248,7 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
   const dateGroups = new Set<string>();
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full w-full relative">
       {/* Header */}
       <div className="flex items-center gap-3 p-3 border-b border-border bg-card">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={onBack}>
