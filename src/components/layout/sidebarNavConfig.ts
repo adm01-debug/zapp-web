@@ -43,6 +43,8 @@ import {
   LayoutDashboard,
   Lock,
   Mail,
+  HardDrive,
+  Building2,
 } from 'lucide-react';
 import type { NavItemConfig } from './SidebarNavItem';
 
