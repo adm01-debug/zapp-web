@@ -18,10 +18,11 @@ import {
 import {
   Bot, Plus, Edit2, Trash2, Play, Pause, Copy, Zap, MessageSquare,
   GitBranch, Clock, ArrowRight, Loader2, Settings, BarChart3,
-  HelpCircle, Tag, Users, Send, ChevronRight,
+  HelpCircle, Tag, Users, Send, ChevronRight, Activity,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChatbotFlowEditor } from './ChatbotFlowEditor';
