@@ -517,6 +517,8 @@ export function ScheduledReportsManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ScheduledReportConfigs />
     </div>
   );
 }
