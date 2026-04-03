@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { Star } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { usePrefetchOnHover } from '@/hooks/usePrefetchOnHover';
 
@@ -22,9 +23,11 @@ interface SidebarNavItemProps {
   onViewChange: (v: string) => void;
   badge?: number;
   collapsed?: boolean;
+  onToggleFavorite?: (id: string) => void;
+  isFavorite?: boolean;
 }
 
-export const SidebarNavItem = React.memo(function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true }: SidebarNavItemProps) {
+export const SidebarNavItem = React.memo(function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true, onToggleFavorite, isFavorite }: SidebarNavItemProps) {
   const Icon = item.icon;
   const isActive = currentView === item.id;
   const shortcut = item.shortcut || SHORTCUT_MAP[item.id];
@@ -62,11 +65,24 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
       {!collapsed && (
         <span className="relative z-10 text-[13px] font-medium truncate">{item.label}</span>
       )}
+      {!collapsed && onToggleFavorite && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.id); }}
+          className={cn(
+            'relative z-20 ml-auto w-5 h-5 rounded flex items-center justify-center transition-all opacity-0 group-hover/item:opacity-100',
+            isFavorite ? 'opacity-100 text-warning' : 'text-muted-foreground/30 hover:text-warning'
+          )}
+          aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        >
+          <Star className={cn('w-3 h-3', isFavorite && 'fill-warning')} />
+        </button>
+      )}
       {badgeCount != null && badgeCount > 0 && (
         <span
           className={cn(
             'z-20 min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center leading-none shadow-sm animate-scale-in',
-            collapsed ? 'absolute -top-0.5 -right-0.5' : 'relative ml-auto'
+            collapsed ? 'absolute -top-0.5 -right-0.5' : 'relative',
+            !collapsed && !onToggleFavorite && 'ml-auto'
           )}
         >
           {badgeCount > 99 ? '99+' : badgeCount}

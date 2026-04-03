@@ -11,18 +11,20 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
+  Star,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTheme } from '@/hooks/useTheme';
 import { useSidebarCollapse } from '@/hooks/useSidebarCollapse';
+import { useSidebarFavorites } from '@/hooks/useSidebarFavorites';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
 import { SoundMuteToggle } from '@/components/notifications/SoundMuteToggle';
 import { SidebarNavItem } from './SidebarNavItem';
 import { SidebarNavGroup } from './SidebarNavGroup';
-import { primaryNav, sidebarGroups } from './sidebarNavConfig';
+import { primaryNav, sidebarGroups, communicationNav, automationNav, salesNav, connectionsNav, analyticsNav, systemNav } from './sidebarNavConfig';
 
 interface SidebarProps {
   currentView: string;
@@ -42,6 +44,11 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
   const isDark = resolvedTheme === 'dark';
   const [statusOpen, setStatusOpen] = useState(false);
   const { collapsed, toggle } = useSidebarCollapse();
+  const { favorites, toggleFavorite, isFavorite } = useSidebarFavorites();
+
+  // Build favorite items from all nav configs
+  const allNavItems = [...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav];
+  const favoriteItems = favorites.map(id => allNavItems.find(item => item.id === id)).filter(Boolean) as typeof allNavItems;
 
   return (
     <aside
@@ -145,6 +152,33 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
         </Tooltip>
       </div>
 
+      {/* ─── Favorites Section ─── */}
+      {favoriteItems.length > 0 && (
+        <>
+          <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
+          {!collapsed && (
+            <div className="px-3 flex items-center gap-1.5">
+              <Star className="w-[10px] h-[10px] text-warning fill-warning" />
+              <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">Favoritos</span>
+            </div>
+          )}
+          <nav className={cn('flex flex-col gap-0.5', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Favoritos">
+            <ul role="list" className={cn('flex flex-col gap-0.5 w-full list-none p-0 m-0', collapsed && 'items-center')}>
+              {favoriteItems.map((item) => (
+                <li key={item.id}>
+                  <SidebarNavItem
+                    item={item}
+                    currentView={currentView}
+                    onViewChange={onViewChange}
+                    collapsed={collapsed}
+                  />
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </>
+      )}
+
       {/* ─── Section Divider ─── */}
       <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
 
@@ -160,6 +194,8 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
               currentView={currentView}
               onViewChange={onViewChange}
               collapsed={collapsed}
+              onToggleFavorite={toggleFavorite}
+              isFavorite={isFavorite}
             />
           ))}
         </div>

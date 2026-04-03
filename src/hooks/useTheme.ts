@@ -160,7 +160,10 @@ export function useTheme(): UseThemeReturn {
   }, []);
 
   const setTheme = useCallback((nextTheme: Theme) => {
+    // Add transition class for smooth theme switching
+    document.documentElement.classList.add('theme-transitioning');
     updateThemeState(nextTheme);
+    setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 350);
   }, []);
 
   const toggleTheme = useCallback(() => {

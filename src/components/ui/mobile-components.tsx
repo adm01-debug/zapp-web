@@ -120,14 +120,14 @@ export function BottomNavigation({
     <nav
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50',
-        'bg-card/95 backdrop-blur-xl border-t border-border/40',
-        'safe-area-bottom',
+        'bg-card/98 backdrop-blur-2xl border-t border-border/30',
+        'safe-area-bottom shadow-[0_-4px_20px_hsl(var(--foreground)/0.05)]',
         className
       )}
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around h-[56px] px-1">
+      <div className="flex items-center justify-around h-[60px] px-1">
         {items.map((item) => {
           const isActive = item.id === activeId;
           return (
@@ -138,7 +138,7 @@ export function BottomNavigation({
                 onChange(item.id);
               }}
               className={cn(
-                'flex flex-col items-center justify-center gap-0.5 flex-1 h-full',
+                'flex flex-col items-center justify-center gap-1 flex-1 h-full',
                 'transition-colors duration-150 relative touch-manipulation',
                 'active:scale-95 active:transition-transform',
                 isActive ? 'text-primary' : 'text-muted-foreground'
@@ -149,26 +149,26 @@ export function BottomNavigation({
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[3px] rounded-b-full bg-primary"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-b-full bg-primary shadow-[0_2px_8px_hsl(var(--primary)/0.4)]"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
               <div className="relative">
                 <motion.div
-                  animate={isActive ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
+                  animate={isActive ? { scale: 1.15, y: -2 } : { scale: 1, y: 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 >
                   {item.icon}
                 </motion.div>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-2.5 min-w-[16px] h-[16px] px-0.5 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold shadow-sm">
+                  <span className="absolute -top-1.5 -right-3 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold shadow-md animate-scale-in">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>
               <span className={cn(
                 'text-[10px] leading-none transition-all',
-                isActive ? 'text-primary font-semibold' : 'text-muted-foreground font-medium'
+                isActive ? 'text-primary font-bold' : 'text-muted-foreground font-medium'
               )}>
                 {item.label}
               </span>

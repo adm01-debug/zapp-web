@@ -154,7 +154,7 @@ html, body, #root {
     
     /* ===== MUTED ===== */
     --muted: 230 20% 92%;
-    --muted-foreground: 230 15% 45%;
+    --muted-foreground: 230 15% 36%;
     
     /* ===== ACCENT (Purple Light) ===== */
     --accent: 258 60% 95%;
@@ -231,7 +231,7 @@ html, body, #root {
     /* ===== Priority ===== */
     --priority-high: 0 84% 60%;
     --priority-medium: 38 92% 50%;
-    --priority-low: 210 20% 55%;
+    --priority-low: 210 25% 48%;
 
     /* ===== GRADIENTS ===== */
     --gradient-primary: linear-gradient(135deg, hsl(258 75% 58%), hsl(240 50% 50%));
@@ -320,7 +320,7 @@ html, body, #root {
     
     /* ===== MUTED ===== */
     --muted: 240 5% 15%;
-    --muted-foreground: 223 10% 65%;
+    --muted-foreground: 223 10% 68%;
     
     /* ===== ACCENT ===== */
     --accent: 254 55% 20%;
@@ -462,14 +462,33 @@ html, body, #root {
     text-size-adjust: 100%;
   }
 
+  /* Theme transition — smooth color changes */
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    transition: background-color 0.25s ease, color 0.25s ease;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ===== FOCUS VISIBLE — Consistent ring across all interactive elements ===== */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+
+  /* Remove default outline for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
   }
 
   /* ===== TYPOGRAPHY ===== */
