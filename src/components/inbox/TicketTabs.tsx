@@ -120,7 +120,7 @@ export function TicketTabs({
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {/* Main Tabs */}
       <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-1">
         {mainTabs.map(tab => {
