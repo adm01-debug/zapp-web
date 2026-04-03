@@ -151,7 +151,7 @@ export function SlideOverPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/50 z-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/70 z-50"
           />
 
           {/* Panel */}
