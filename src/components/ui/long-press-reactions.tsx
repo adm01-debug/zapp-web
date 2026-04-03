@@ -176,7 +176,7 @@ export function LongPressReactions({
               }}
             >
               <motion.div
-                className="flex items-center gap-1 px-3 py-2 bg-card/95 backdrop-blur-xl rounded-full shadow-2xl border border-border"
+                className="flex items-center gap-1 px-3 py-2 bg-card rounded-full shadow-2xl border border-border"
                 style={{
                   boxShadow: '0 10px 40px -10px rgba(0,0,0,0.3), 0 4px 20px -5px rgba(0,0,0,0.2)',
                 }}
