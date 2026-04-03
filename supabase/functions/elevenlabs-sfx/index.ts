@@ -1,33 +1,20 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("elevenlabs-sfx");
 
   try {
     const { prompt, duration, mode } = await req.json();
 
     if (!prompt) {
-      return new Response(JSON.stringify({ error: "Prompt is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("Prompt is required", 400, req);
     }
 
-    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
-    if (!ELEVENLABS_API_KEY) {
-      return new Response(JSON.stringify({ error: "ELEVENLABS_API_KEY not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const ELEVENLABS_API_KEY = requireEnv("ELEVENLABS_API_KEY");
 
     // mode: 'sfx' (sound effects) or 'music'
     const isMusic = mode === "music";
@@ -39,7 +26,7 @@ serve(async (req) => {
       ? { prompt, duration_seconds: duration || 15 }
       : { text: prompt, duration_seconds: duration || 5, prompt_influence: 0.3 };
 
-    console.log(`[ELEVENLABS-SFX] Generating ${isMusic ? "music" : "sfx"}: "${prompt}" (${duration || (isMusic ? 15 : 5)}s)`);
+    log.info(`Generating ${isMusic ? "music" : "sfx"}: "${prompt}" (${duration || (isMusic ? 15 : 5)}s)`);
 
     const response = await fetch(url, {
       method: "POST",
@@ -52,26 +39,17 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error(`[ELEVENLABS-SFX] API error ${response.status}:`, errText.substring(0, 300));
-      return new Response(JSON.stringify({ error: `ElevenLabs API error: ${response.status}` }), {
-        status: response.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.error(`API error ${response.status}`, { detail: errText.substring(0, 300) });
+      return errorResponse(`ElevenLabs API error: ${response.status}`, response.status, req);
     }
 
     const audioBuffer = await response.arrayBuffer();
     const audioBase64 = base64Encode(audioBuffer);
 
-    console.log(`[ELEVENLABS-SFX] Generated ${audioBuffer.byteLength} bytes`);
-
-    return new Response(JSON.stringify({ audioContent: audioBase64 }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    console.error("[ELEVENLABS-SFX] Error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    log.done(200, { bytes: audioBuffer.byteLength });
+    return jsonResponse({ audioContent: audioBase64 }, 200, req);
+  } catch (err: unknown) {
+    log.error("Unhandled error", { error: err instanceof Error ? err.message : String(err) });
+    return errorResponse("Internal server error", 500, req);
   }
 });

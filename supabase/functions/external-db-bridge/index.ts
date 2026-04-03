@@ -55,7 +55,7 @@ function emitStructuredLog(payload: TelemetryPayload) {
 }
 
 export async function emitTelemetry(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: any, // deno-lint-ignore no-explicit-any
   payload: TelemetryPayload,
 ): Promise<{ success: boolean; error?: string }> {
   // Always emit structured log

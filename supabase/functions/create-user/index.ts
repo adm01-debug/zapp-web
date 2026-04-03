@@ -1,38 +1,32 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { z } from "https://esm.sh/zod@3.23.8";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, sanitizeString } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  const cors = handleCors(req);
+  if (cors) return cors;
+
+  const log = new Logger("create-user");
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = requireEnv("SUPABASE_URL");
+    const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
     // Verify the caller is authenticated and is admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.warn("Missing auth header");
+      return errorResponse("Não autorizado", 401, req);
     }
 
-    const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const callerClient = createClient(supabaseUrl, requireEnv("SUPABASE_ANON_KEY"), {
       global: { headers: { Authorization: authHeader } },
     });
 
     const { data: { user: caller } } = await callerClient.auth.getUser();
     if (!caller) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.warn("Invalid auth token");
+      return errorResponse("Não autorizado", 401, req);
     }
 
     // Check if caller is admin
@@ -44,34 +38,37 @@ Deno.serve(async (req) => {
       .single();
 
     if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Apenas administradores podem criar usuários" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.warn("Non-admin attempted user creation", { callerId: caller.id });
+      return errorResponse("Apenas administradores podem criar usuários", 403, req);
     }
 
-    const { email, password, name, role } = await req.json();
+    const bodySchema = z.object({
+      email: z.string().email("Email inválido").max(255),
+      password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres").max(128),
+      name: z.string().min(1, "Nome é obrigatório").max(255),
+      role: z.enum(["admin", "supervisor", "agent", "special_agent"]).optional().default("agent"),
+    });
 
-    if (!email || !password || !name) {
-      return new Response(JSON.stringify({ error: "Email, senha e nome são obrigatórios" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const parsed = bodySchema.safeParse(await req.json());
+    if (!parsed.success) {
+      const errors = parsed.error.flatten().fieldErrors;
+      return errorResponse(Object.values(errors).flat().join("; "), 400, req);
     }
+
+    const { email, password, name, role } = parsed.data;
+    const sanitizedName = sanitizeString(name) || name;
 
     // Create user via admin API
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { name },
+      user_metadata: { name: sanitizedName },
     });
 
     if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.error("User creation failed", { error: createError.message });
+      return errorResponse(createError.message, 400, req);
     }
 
     // If a specific role was provided (not default 'agent'), update it
@@ -82,14 +79,10 @@ Deno.serve(async (req) => {
         .eq("user_id", newUser.user.id);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, user_id: newUser.user?.id }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    log.done(200, { userId: newUser.user?.id });
+    return jsonResponse({ success: true, user_id: newUser.user?.id }, 200, req);
   } catch (err: unknown) {
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    log.error("Unhandled error", { error: err instanceof Error ? err.message : String(err) });
+    return errorResponse(err instanceof Error ? err.message : "Erro interno", 500, req);
   }
 });

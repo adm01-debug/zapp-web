@@ -208,7 +208,7 @@ async function persistMediaToStorage(
 
 // Persist media via Evolution API getBase64 fallback
 async function persistMediaViaApi(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   messageType: string,
@@ -947,7 +947,7 @@ serve(async (req) => {
 // Handle messages sent directly from WhatsApp phone (fromMe=true in messages.upsert)
 // These are messages the agent sent via the WhatsApp app, not through our system
 async function handleOutgoingWhatsAppMessage(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   key: { remoteJid: string; fromMe: boolean; id: string },
@@ -1114,7 +1114,7 @@ async function handleOutgoingWhatsAppMessage(
 
 
 async function handleIncomingMessage(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   key: { remoteJid: string; fromMe: boolean; id: string },
@@ -1448,7 +1448,7 @@ async function handleIncomingMessage(
 }
 
 async function handleAudioTranscription(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   contactId: string,
   messageId: string,
   mediaUrl: string,

@@ -117,9 +117,9 @@ serve(async (req) => {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Migration error:', err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -127,7 +127,7 @@ serve(async (req) => {
 });
 
 async function downloadAndUpload(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   cdnUrl: string,
   messageType: string,
   messageId: string,
@@ -156,7 +156,7 @@ async function downloadAndUpload(
 }
 
 async function getBase64Fallback(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   evolutionUrl: string,
   evolutionKey: string,
   instance: string,
@@ -219,7 +219,7 @@ function detectExtension(contentType: string, messageType: string): string {
 }
 
 async function uploadToStorage(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   bytes: Uint8Array,
   contentType: string,
   messageType: string,
@@ -245,7 +245,7 @@ async function uploadToStorage(
 }
 
 async function migrateSimple(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
   const { data: messages, error } = await supabase
