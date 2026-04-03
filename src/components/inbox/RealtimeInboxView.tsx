@@ -895,15 +895,24 @@ export function RealtimeInboxView() {
           {...(isMobile ? pullToRefresh.handlers : {})}
         >
           {loading ? (
-            <div className="p-3 space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg">
+            <div className="p-3 space-y-1">
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center gap-3 p-2.5 rounded-lg"
+                >
                   <Skeleton className="w-10 h-10 rounded-full shrink-0" />
                   <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3.5 w-28" />
-                    <Skeleton className="h-3 w-40" />
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-3.5 w-24" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                    <Skeleton className="h-3 w-36" />
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           ) : filteredConversations.length === 0 ? (
