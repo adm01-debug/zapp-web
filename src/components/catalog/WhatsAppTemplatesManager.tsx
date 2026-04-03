@@ -251,12 +251,12 @@ export function WhatsAppTemplatesManager() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Templates WhatsApp</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-lg md:text-xl font-bold text-foreground">Templates WhatsApp</h2>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Gerencie templates oficiais aprovados pelo WhatsApp Business API
           </p>
         </div>
@@ -265,7 +265,7 @@ export function WhatsAppTemplatesManager() {
             setEditingTemplate(EMPTY_TEMPLATE);
             setIsDialogOpen(true);
           }}
-          className="gap-2 bg-primary hover:bg-primary/90"
+          className="gap-2 bg-primary hover:bg-primary/90 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           Novo Template
@@ -310,7 +310,7 @@ export function WhatsAppTemplatesManager() {
 
       {/* Templates Table */}
       <Card className="border-secondary/20">
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Carregando templates...</div>
           ) : filteredTemplates.length === 0 ? (
