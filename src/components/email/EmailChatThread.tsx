@@ -47,7 +47,7 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
     trashMessage, setSelectedThreadId, activeAccount
   } = useGmail();
 
-  const [replyMode, setReplyMode] = useState<'reply' | 'forward' | 'new'>('reply');
+  const [replyMode, setReplyMode] = useState<'reply' | 'reply-all' | 'forward' | 'new'>('reply');
   const [showComposer, setShowComposer] = useState(false);
   const [composerMode, setComposerMode] = useState<'reply' | 'forward'>('reply');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -92,7 +92,10 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
 
   const handleBubbleReply = useCallback(() => {
     setReplyMode('reply');
-    // Focus will be handled by the reply bar
+  }, []);
+
+  const handleBubbleReplyAll = useCallback(() => {
+    setReplyMode('reply-all');
   }, []);
 
   const handleBubbleForward = useCallback((msg: EmailMessage) => {
@@ -173,6 +176,7 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
                     message={item.message}
                     isLast={item.isLast}
                     onReply={handleBubbleReply}
+                    onReplyAll={handleBubbleReplyAll}
                     onForward={handleBubbleForward}
                   />
                 );

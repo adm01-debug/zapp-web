@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Mail, Search, RefreshCw, Pencil, Inbox, Star,
-  Loader2, MailOpen, Paperclip, Clock
+  Loader2, MailOpen, Paperclip, Clock, AlertCircle, MailX
 } from 'lucide-react';
 import { useGmail, type EmailThread } from '@/hooks/useGmail';
 import { EmailChatThread } from './EmailChatThread';
@@ -96,23 +97,36 @@ function ThreadItem({ thread, isSelected, onClick }: { thread: EmailThread; isSe
 export function EmailChatInbox() {
   const {
     activeAccount, threads, threadsLoading,
-    labels, syncInbox, unreadCount, subscribeToThreads
+    labels, syncInbox, syncLabels, unreadCount, subscribeToThreads
   } = useGmail();
 
   const [selectedThread, setSelectedThread] = useState<EmailThread | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showComposer, setShowComposer] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [labelFilter, setLabelFilter] = useState('all');
 
   useEffect(() => {
     const unsub = subscribeToThreads();
     return unsub;
   }, [subscribeToThreads]);
 
+  // Sync labels on mount
+  useEffect(() => {
+    if (activeAccount && labels.length === 0) {
+      syncLabels.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAccount?.id]);
+
   const filteredThreads = useMemo(() => {
     let result = threads;
     if (filter === 'unread') result = result.filter(t => t.is_unread);
     if (filter === 'starred') result = result.filter(t => t.is_starred);
+    if (filter === 'has_attachment') result = result.filter(t => t.label_ids?.includes('HAS_ATTACHMENT'));
+    if (labelFilter !== 'all') {
+      result = result.filter(t => t.label_ids?.includes(labelFilter));
+    }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(t =>
@@ -123,7 +137,7 @@ export function EmailChatInbox() {
       );
     }
     return result;
-  }, [threads, filter, searchQuery]);
+  }, [threads, filter, labelFilter, searchQuery]);
 
   // No account
   if (!activeAccount) {
@@ -187,21 +201,83 @@ export function EmailChatInbox() {
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="unread">Não lidos</SelectItem>
                 <SelectItem value="starred">Favoritos</SelectItem>
+                <SelectItem value="has_attachment">Com anexo</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* Label filter chips */}
+          {labels.length > 0 && (
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-thin">
+              <Badge
+                variant={labelFilter === 'all' ? 'default' : 'outline'}
+                className="text-[10px] px-2 py-0.5 cursor-pointer shrink-0 hover:bg-primary/10"
+                onClick={() => setLabelFilter('all')}
+              >
+                Todos
+              </Badge>
+              {labels.filter(l => l.label_type === 'user' || ['INBOX', 'SENT', 'IMPORTANT', 'DRAFT'].includes(l.gmail_label_id)).map(label => (
+                <Badge
+                  key={label.id}
+                  variant={labelFilter === label.gmail_label_id ? 'default' : 'outline'}
+                  className="text-[10px] px-2 py-0.5 cursor-pointer shrink-0 hover:bg-primary/10"
+                  onClick={() => setLabelFilter(label.gmail_label_id)}
+                >
+                  {label.name}
+                  {label.unread_count > 0 && (
+                    <span className="ml-1 text-[9px] opacity-70">{label.unread_count}</span>
+                  )}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Thread list */}
         <ScrollArea className="flex-1">
           {threadsLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="p-3 space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 animate-pulse">
+                  <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-3.5 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                    <Skeleton className="h-2.5 w-full" />
+                  </div>
+                  <Skeleton className="h-3 w-10" />
+                </div>
+              ))}
             </div>
           ) : filteredThreads.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <Inbox className="w-10 h-10 mb-2 opacity-20" />
-              <p className="text-xs">{searchQuery ? 'Nenhum resultado' : 'Inbox vazio'}</p>
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground px-6">
+              {searchQuery ? (
+                <>
+                  <MailX className="w-12 h-12 mb-3 opacity-20" />
+                  <p className="text-sm font-medium mb-1">Nenhum resultado</p>
+                  <p className="text-xs text-center">Tente buscar por outro termo ou remova os filtros.</p>
+                  <Button variant="outline" size="sm" className="mt-3 text-xs" onClick={() => { setSearchQuery(''); setFilter('all'); setLabelFilter('all'); }}>
+                    Limpar filtros
+                  </Button>
+                </>
+              ) : filter !== 'all' || labelFilter !== 'all' ? (
+                <>
+                  <Inbox className="w-12 h-12 mb-3 opacity-20" />
+                  <p className="text-sm font-medium mb-1">Nenhum email neste filtro</p>
+                  <Button variant="outline" size="sm" className="mt-2 text-xs" onClick={() => { setFilter('all'); setLabelFilter('all'); }}>
+                    Ver todos
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Inbox className="w-12 h-12 mb-3 opacity-20" />
+                  <p className="text-sm font-medium mb-1">Inbox vazio</p>
+                  <p className="text-xs text-center">Sincronize seus emails para começar.</p>
+                  <Button variant="outline" size="sm" className="mt-3 text-xs" onClick={() => syncInbox.mutate({})}>
+                    <RefreshCw className="w-3 h-3 mr-1" /> Sincronizar agora
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             filteredThreads.map(thread => (
