@@ -1,134 +1,65 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Activity, Cpu, HardDrive, Wifi, RefreshCw, TrendingUp, Clock, Zap, Database } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Activity, RefreshCw, TrendingUp, Database, Trash2, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { usePerformanceSnapshots } from '@/hooks/usePerformanceSnapshots';
+import { formatRelativeTime } from '@/lib/formatters';
 
 interface PerformanceMetric {
   name: string;
   value: number;
   unit: string;
   status: 'good' | 'warning' | 'critical';
-  trend: 'up' | 'down' | 'stable';
-}
-
-interface HistoryPoint {
-  time: string;
-  fcp: number;
-  lcp: number;
-  memory: number;
-  fps: number;
 }
 
 export function PerformanceMonitor() {
   const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
-  const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const [localHistory, setLocalHistory] = useState<Array<{ time: string; fcp: number; memory: number }>>([]);
   const [cacheStats, setCacheStats] = useState({ hits: 0, misses: 0, size: 0 });
   const [loading, setLoading] = useState(false);
+  const [period, setPeriod] = useState('24');
+  const { history: dbHistory, loading: dbLoading, saveSnapshot, loadHistory, clearOldSnapshots } = usePerformanceSnapshots();
 
-  const collectMetrics = useCallback(() => {
+  const collectMetrics = useCallback(async () => {
     setLoading(true);
     const perf = performance;
     const nav = perf.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    
-    // Core Web Vitals
     const fcp = perf.getEntriesByName('first-contentful-paint')[0];
     const fcpValue = fcp ? Math.round(fcp.startTime) : 0;
-    
-    // Memory usage (if available)
+
     const memInfo = (performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory;
     const memoryUsed = memInfo ? Math.round(memInfo.usedJSHeapSize / 1048576) : 0;
     const memoryTotal = memInfo ? Math.round(memInfo.totalJSHeapSize / 1048576) : 256;
     const memoryPercent = memInfo ? Math.round((memInfo.usedJSHeapSize / memInfo.totalJSHeapSize) * 100) : 0;
 
-    // DOM metrics
     const domNodes = document.querySelectorAll('*').length;
-
-    // Network info
-    const conn = (navigator as unknown as { connection?: { effectiveType: string; downlink: number; rtt: number } }).connection;
+    const conn = (navigator as unknown as { connection?: { effectiveType: string; rtt: number } }).connection;
     const networkType = conn?.effectiveType || '4g';
     const rtt = conn?.rtt || 0;
 
-    // Navigation timing
     const pageLoadTime = nav ? Math.round(nav.loadEventEnd - nav.startTime) : 0;
     const domReady = nav ? Math.round(nav.domContentLoadedEventEnd - nav.startTime) : 0;
     const ttfb = nav ? Math.round(nav.responseStart - nav.requestStart) : 0;
 
     const newMetrics: PerformanceMetric[] = [
-      {
-        name: 'FCP (First Contentful Paint)',
-        value: fcpValue,
-        unit: 'ms',
-        status: fcpValue < 1800 ? 'good' : fcpValue < 3000 ? 'warning' : 'critical',
-        trend: 'stable',
-      },
-      {
-        name: 'Page Load Time',
-        value: pageLoadTime,
-        unit: 'ms',
-        status: pageLoadTime < 3000 ? 'good' : pageLoadTime < 5000 ? 'warning' : 'critical',
-        trend: 'stable',
-      },
-      {
-        name: 'DOM Ready',
-        value: domReady,
-        unit: 'ms',
-        status: domReady < 2000 ? 'good' : domReady < 4000 ? 'warning' : 'critical',
-        trend: 'stable',
-      },
-      {
-        name: 'TTFB',
-        value: ttfb,
-        unit: 'ms',
-        status: ttfb < 200 ? 'good' : ttfb < 500 ? 'warning' : 'critical',
-        trend: 'stable',
-      },
-      {
-        name: 'Memória JS',
-        value: memoryUsed,
-        unit: `MB / ${memoryTotal}MB`,
-        status: memoryPercent < 60 ? 'good' : memoryPercent < 80 ? 'warning' : 'critical',
-        trend: memoryPercent > 70 ? 'up' : 'stable',
-      },
-      {
-        name: 'DOM Nodes',
-        value: domNodes,
-        unit: 'nós',
-        status: domNodes < 1500 ? 'good' : domNodes < 3000 ? 'warning' : 'critical',
-        trend: 'stable',
-      },
-      {
-        name: 'RTT (Latência)',
-        value: rtt,
-        unit: 'ms',
-        status: rtt < 100 ? 'good' : rtt < 300 ? 'warning' : 'critical',
-        trend: 'stable',
-      },
-      {
-        name: 'Conexão',
-        value: networkType === '4g' ? 100 : networkType === '3g' ? 60 : 30,
-        unit: networkType,
-        status: networkType === '4g' ? 'good' : networkType === '3g' ? 'warning' : 'critical',
-        trend: 'stable',
-      },
+      { name: 'FCP', value: fcpValue, unit: 'ms', status: fcpValue < 1800 ? 'good' : fcpValue < 3000 ? 'warning' : 'critical' },
+      { name: 'Page Load', value: pageLoadTime, unit: 'ms', status: pageLoadTime < 3000 ? 'good' : pageLoadTime < 5000 ? 'warning' : 'critical' },
+      { name: 'DOM Ready', value: domReady, unit: 'ms', status: domReady < 2000 ? 'good' : domReady < 4000 ? 'warning' : 'critical' },
+      { name: 'TTFB', value: ttfb, unit: 'ms', status: ttfb < 200 ? 'good' : ttfb < 500 ? 'warning' : 'critical' },
+      { name: 'Memória JS', value: memoryUsed, unit: `MB / ${memoryTotal}MB`, status: memoryPercent < 60 ? 'good' : memoryPercent < 80 ? 'warning' : 'critical' },
+      { name: 'DOM Nodes', value: domNodes, unit: 'nós', status: domNodes < 1500 ? 'good' : domNodes < 3000 ? 'warning' : 'critical' },
+      { name: 'RTT', value: rtt, unit: 'ms', status: rtt < 100 ? 'good' : rtt < 300 ? 'warning' : 'critical' },
+      { name: 'Conexão', value: networkType === '4g' ? 100 : networkType === '3g' ? 60 : 30, unit: networkType, status: networkType === '4g' ? 'good' : networkType === '3g' ? 'warning' : 'critical' },
     ];
 
     setMetrics(newMetrics);
 
-    // Add to history
     const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setHistory(prev => [...prev.slice(-20), {
-      time: now,
-      fcp: fcpValue,
-      lcp: pageLoadTime,
-      memory: memoryUsed,
-      fps: 60,
-    }]);
+    setLocalHistory(prev => [...prev.slice(-20), { time: now, fcp: fcpValue, memory: memoryUsed }]);
 
-    // Cache stats from localStorage
     const cacheKeys = Object.keys(localStorage).filter(k => k.startsWith('cache_') || k.startsWith('tanstack'));
     setCacheStats({
       hits: parseInt(localStorage.getItem('cache_hits') || '0'),
@@ -136,14 +67,45 @@ export function PerformanceMonitor() {
       size: cacheKeys.length,
     });
 
+    // Persist to Supabase
+    const overallScore = Math.round((newMetrics.filter(m => m.status === 'good').length / Math.max(newMetrics.length, 1)) * 100);
+    await saveSnapshot({
+      fcp: fcpValue,
+      page_load: pageLoadTime,
+      dom_ready: domReady,
+      ttfb,
+      memory_used: memoryUsed,
+      memory_total: memoryTotal,
+      dom_nodes: domNodes,
+      network_type: networkType,
+      rtt,
+      overall_score: overallScore,
+    });
+
     setLoading(false);
-  }, []);
+  }, [saveSnapshot]);
 
   useEffect(() => {
     collectMetrics();
-    const interval = setInterval(collectMetrics, 10000); // every 10s
+    const interval = setInterval(collectMetrics, 30000); // every 30s (less aggressive for DB)
     return () => clearInterval(interval);
   }, [collectMetrics]);
+
+  // Load DB history on mount and when period changes
+  useEffect(() => {
+    loadHistory(parseInt(period));
+  }, [loadHistory, period]);
+
+  const overallScore = Math.round((metrics.filter(m => m.status === 'good').length / Math.max(metrics.length, 1)) * 100);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'good': return <Badge className="bg-green-500/10 text-green-500 border-green-500/30 text-[10px]">Bom</Badge>;
+      case 'warning': return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 text-[10px]">Atenção</Badge>;
+      case 'critical': return <Badge variant="destructive" className="text-[10px]">Crítico</Badge>;
+      default: return null;
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -154,18 +116,14 @@ export function PerformanceMonitor() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'good': return <Badge className="bg-green-500/10 text-green-500 border-green-500/30">Bom</Badge>;
-      case 'warning': return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30">Atenção</Badge>;
-      case 'critical': return <Badge variant="destructive">Crítico</Badge>;
-      default: return null;
-    }
-  };
-
-  const overallScore = Math.round(
-    (metrics.filter(m => m.status === 'good').length / Math.max(metrics.length, 1)) * 100
-  );
+  // Format DB history for chart
+  const dbChartData = dbHistory.map(s => ({
+    time: new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    fcp: s.fcp,
+    page_load: s.page_load,
+    memory: s.memory_used,
+    score: s.overall_score,
+  }));
 
   return (
     <div className="space-y-6">
@@ -177,13 +135,31 @@ export function PerformanceMonitor() {
           </div>
           <div>
             <h2 className="text-xl font-bold">Monitor de Performance</h2>
-            <p className="text-sm text-muted-foreground">Métricas em tempo real da aplicação</p>
+            <p className="text-sm text-muted-foreground">Métricas em tempo real + histórico persistido</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={collectMetrics} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-[130px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Última hora</SelectItem>
+              <SelectItem value="6">6 horas</SelectItem>
+              <SelectItem value="24">24 horas</SelectItem>
+              <SelectItem value="72">3 dias</SelectItem>
+              <SelectItem value="168">7 dias</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" onClick={() => clearOldSnapshots()} className="h-8 text-xs">
+            <Trash2 className="w-3 h-3 mr-1" />
+            Limpar antigos
+          </Button>
+          <Button variant="outline" size="sm" onClick={collectMetrics} disabled={loading} className="h-8 text-xs">
+            <RefreshCw className={`w-3 h-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {/* Overall Score */}
@@ -192,19 +168,8 @@ export function PerformanceMonitor() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <svg className="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
-                <path
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none"
-                  stroke="hsl(var(--muted))"
-                  strokeWidth="3"
-                />
-                <path
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none"
-                  stroke={overallScore >= 80 ? 'hsl(var(--primary))' : overallScore >= 50 ? 'hsl(40, 100%, 50%)' : 'hsl(var(--destructive))'}
-                  strokeWidth="3"
-                  strokeDasharray={`${overallScore}, 100`}
-                />
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={overallScore >= 80 ? 'hsl(var(--primary))' : overallScore >= 50 ? 'hsl(40, 100%, 50%)' : 'hsl(var(--destructive))'} strokeWidth="3" strokeDasharray={`${overallScore}, 100`} />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-2xl font-bold">{overallScore}</span>
@@ -213,9 +178,13 @@ export function PerformanceMonitor() {
             <div>
               <p className="text-lg font-semibold">Score de Performance</p>
               <p className="text-sm text-muted-foreground">
-                {overallScore >= 80 ? 'Excelente! Aplicação performando bem.' : 
+                {overallScore >= 80 ? 'Excelente! Aplicação performando bem.' :
                  overallScore >= 50 ? 'Razoável. Há oportunidades de otimização.' :
                  'Atenção! Performance precisa de melhorias.'}
+              </p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                <Clock className="w-3 h-3 inline mr-1" />
+                {dbHistory.length} snapshots no período selecionado
               </p>
             </div>
           </div>
@@ -242,23 +211,49 @@ export function PerformanceMonitor() {
         ))}
       </div>
 
-      {/* Performance Chart */}
-      {history.length > 1 && (
+      {/* Persistent History Chart (from DB) */}
+      {dbChartData.length > 1 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="w-5 h-5" />
-              Histórico de Performance
+              Histórico Persistido
+              <Badge variant="secondary" className="text-[10px] ml-auto">{dbChartData.length} pontos</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={history}>
+              <AreaChart data={dbChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                 <XAxis dataKey="time" fontSize={10} stroke="hsl(var(--muted-foreground))" />
                 <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip />
-                <Area type="monotone" dataKey="fcp" name="FCP" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                <Area type="monotone" dataKey="score" name="Score (%)" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" />
+                <Area type="monotone" dataKey="fcp" name="FCP (ms)" stroke="hsl(160, 70%, 42%)" fill="hsl(160, 70%, 42%, 0.1)" />
+                <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(40, 100%, 50%)" fill="hsl(40, 100%, 50%, 0.1)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Session History (in-memory) */}
+      {localHistory.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Activity className="w-5 h-5" />
+              Sessão Atual (tempo real)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={localHistory}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                <XAxis dataKey="time" fontSize={10} stroke="hsl(var(--muted-foreground))" />
+                <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                <Area type="monotone" dataKey="fcp" name="FCP (ms)" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" />
                 <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(40, 100%, 50%)" fill="hsl(40, 100%, 50%, 0.1)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -269,7 +264,7 @@ export function PerformanceMonitor() {
       {/* Cache Stats */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-base">
             <Database className="w-5 h-5" />
             Cache Inteligente
           </CardTitle>
