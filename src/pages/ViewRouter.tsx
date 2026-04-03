@@ -146,7 +146,18 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
       breadcrumbTrail={breadcrumbTrail}
       onNavigateTo={onNavigateTo}
     >
-      {content}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentView}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+          className="h-full w-full"
+        >
+          {content}
+        </motion.div>
+      </AnimatePresence>
     </WithHeader>
   );
 }
