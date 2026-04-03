@@ -116,7 +116,7 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
             {thread.contact && <span className="truncate">{thread.contact.name}</span>}
             <span>•</span>
             <span>{thread.message_count} msg</span>
-            {thread.is_starred && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+            {thread.is_starred && <Star className="w-3 h-3 text-warning fill-warning" />}
           </div>
         </div>
 

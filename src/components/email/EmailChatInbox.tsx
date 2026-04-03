@@ -149,7 +149,7 @@ export function EmailChatInbox() {
         {/* Toolbar */}
         <div className="p-3 border-b space-y-2">
           <div className="flex items-center gap-2">
-            <Mail className="w-5 h-5 text-red-500 shrink-0" />
+            <Mail className="w-5 h-5 text-destructive shrink-0" />
             <h2 className="text-sm font-semibold flex-1">Email Chat</h2>
             {unreadCount > 0 && (
               <Badge variant="default" className="text-[10px] px-1.5 py-0">

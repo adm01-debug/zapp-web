@@ -162,7 +162,7 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
       {/* Avatar for outbound */}
       {isSent && (
         <Avatar className="h-8 w-8 shrink-0 mt-1">
-          <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+          <AvatarFallback className="text-[10px] bg-primary/10 text-primary-foreground">
             Eu
           </AvatarFallback>
         </Avatar>
