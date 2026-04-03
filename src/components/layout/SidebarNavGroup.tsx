@@ -17,7 +17,7 @@ interface SidebarNavGroupProps {
   isFavorite?: (id: string) => boolean;
 }
 
-export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, onViewChange, defaultOpen = false, collapsed = true }: SidebarNavGroupProps) {
+export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, onViewChange, defaultOpen = false, collapsed = true, onToggleFavorite, isFavorite }: SidebarNavGroupProps) {
   const hasActiveItem = items.some(item => item.id === currentView);
   const [isOpen, setIsOpen] = useState(defaultOpen || hasActiveItem);
 
