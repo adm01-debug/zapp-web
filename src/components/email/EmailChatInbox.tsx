@@ -96,23 +96,36 @@ function ThreadItem({ thread, isSelected, onClick }: { thread: EmailThread; isSe
 export function EmailChatInbox() {
   const {
     activeAccount, threads, threadsLoading,
-    labels, syncInbox, unreadCount, subscribeToThreads
+    labels, syncInbox, syncLabels, unreadCount, subscribeToThreads
   } = useGmail();
 
   const [selectedThread, setSelectedThread] = useState<EmailThread | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showComposer, setShowComposer] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [labelFilter, setLabelFilter] = useState('all');
 
   useEffect(() => {
     const unsub = subscribeToThreads();
     return unsub;
   }, [subscribeToThreads]);
 
+  // Sync labels on mount
+  useEffect(() => {
+    if (activeAccount && labels.length === 0) {
+      syncLabels.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAccount?.id]);
+
   const filteredThreads = useMemo(() => {
     let result = threads;
     if (filter === 'unread') result = result.filter(t => t.is_unread);
     if (filter === 'starred') result = result.filter(t => t.is_starred);
+    if (filter === 'has_attachment') result = result.filter(t => t.label_ids?.includes('HAS_ATTACHMENT'));
+    if (labelFilter !== 'all') {
+      result = result.filter(t => t.label_ids?.includes(labelFilter));
+    }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(t =>
@@ -123,7 +136,7 @@ export function EmailChatInbox() {
       );
     }
     return result;
-  }, [threads, filter, searchQuery]);
+  }, [threads, filter, labelFilter, searchQuery]);
 
   // No account
   if (!activeAccount) {
