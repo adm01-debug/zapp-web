@@ -291,8 +291,9 @@ async function getConnectionByInstance(
 }
 
 // Helper to safely get contact by phone + connection
+// deno-lint-ignore no-explicit-any
 async function getContactByPhone(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   phone: string,
   connectionId: string
 ): Promise<{ id: string; avatar_url: string | null; assigned_to: string | null; name: string | null } | null> {
