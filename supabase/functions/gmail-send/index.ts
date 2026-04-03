@@ -16,6 +16,31 @@ function encodeBase64Url(str: string): string {
     .replace(/=+$/, "");
 }
 
+/** Sanitize a header value to prevent MIME header injection via \r\n */
+function sanitizeHeaderValue(value: string): string {
+  return value.replace(/[\r\n]/g, "").trim();
+}
+
+/** Sanitize filename for MIME Content-Disposition */
+function sanitizeFilename(name: string): string {
+  return name.replace(/[\r\n"]/g, "").replace(/[^\x20-\x7E]/g, "_").trim() || "attachment";
+}
+
+/** Validate email address format */
+function isValidEmail(email: string): boolean {
+  const cleaned = email.replace(/.*</, "").replace(/>.*/, "").trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned);
+}
+
+/** Validate Gmail message ID format */
+function isValidGmailId(id: string): boolean {
+  return /^[a-zA-Z0-9_-]+$/.test(id);
+}
+
+const MAX_RECIPIENTS = 100;
+const MAX_ATTACHMENTS = 25;
+const MAX_ATTACHMENT_TOTAL_SIZE = 35 * 1024 * 1024; // 35MB
+
 function buildMimeMessage(options: {
   from: string;
   to: string[];
@@ -33,12 +58,12 @@ function buildMimeMessage(options: {
   const hasHtml = !!options.htmlBody;
 
   const headers = [
-    `From: ${options.from}`,
-    `To: ${options.to.join(", ")}`,
+    `From: ${sanitizeHeaderValue(options.from)}`,
+    `To: ${options.to.map(sanitizeHeaderValue).join(", ")}`,
   ];
 
-  if (options.cc?.length) headers.push(`Cc: ${options.cc.join(", ")}`);
-  if (options.bcc?.length) headers.push(`Bcc: ${options.bcc.join(", ")}`);
+  if (options.cc?.length) headers.push(`Cc: ${options.cc.map(sanitizeHeaderValue).join(", ")}`);
+  if (options.bcc?.length) headers.push(`Bcc: ${options.bcc.map(sanitizeHeaderValue).join(", ")}`);
   headers.push(`Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(options.subject)))}?=`);
   headers.push(`Date: ${new Date().toUTCString()}`);
   headers.push("MIME-Version: 1.0");
@@ -80,8 +105,8 @@ function buildMimeMessage(options: {
 
     for (const att of options.attachments!) {
       body += `--${boundary}\r\n`;
-      body += `Content-Type: ${att.mimeType}; name="${att.filename}"\r\n`;
-      body += `Content-Disposition: attachment; filename="${att.filename}"\r\n`;
+      body += `Content-Type: ${sanitizeHeaderValue(att.mimeType)}; name="${sanitizeFilename(att.filename)}"\r\n`;
+      body += `Content-Disposition: attachment; filename="${sanitizeFilename(att.filename)}"\r\n`;
       body += "Content-Transfer-Encoding: base64\r\n\r\n";
       body += att.content + "\r\n";
     }
@@ -187,6 +212,24 @@ serve(async (req) => {
         const { to, cc, bcc, subject, text_body, html_body, attachments } = body;
         if (!to || !subject) throw new Error("Missing required fields: to, subject");
 
+        // Validate recipients
+        const allRecipients = [
+          ...(Array.isArray(to) ? to : [to]),
+          ...(cc || []),
+          ...(bcc || []),
+        ];
+        if (allRecipients.length > MAX_RECIPIENTS) {
+          throw new Error(`Too many recipients (max ${MAX_RECIPIENTS})`);
+        }
+        for (const email of allRecipients) {
+          if (!isValidEmail(email)) throw new Error(`Invalid email address: ${email}`);
+        }
+
+        // Validate attachments
+        if (attachments?.length > MAX_ATTACHMENTS) {
+          throw new Error(`Too many attachments (max ${MAX_ATTACHMENTS})`);
+        }
+
         const raw = buildMimeMessage({
           from: account.email_address,
           to: Array.isArray(to) ? to : [to],
@@ -289,6 +332,21 @@ serve(async (req) => {
 
         const sentMessage = await response.json();
 
+        // Save reply to local DB (was missing — inconsistent with send action)
+        await supabase.from("email_messages").insert({
+          gmail_message_id: sentMessage.id,
+          gmail_account_id: account.id,
+          thread_id: null, // Will be linked on next sync
+          from_address: account.email_address,
+          to_addresses: Array.isArray(to) ? to : [to],
+          cc_addresses: cc || [],
+          subject: replySubject,
+          body_text: text_body || "",
+          direction: "outbound",
+          is_read: true,
+          internal_date: new Date().toISOString(),
+        }).then(() => {}).catch((err: any) => console.warn("Failed to save reply locally:", err.message));
+
         return new Response(JSON.stringify({
           success: true,
           message_id: sentMessage.id,
@@ -342,6 +400,7 @@ serve(async (req) => {
       case "modify-labels": {
         const { message_id: gmailMsgId, add_labels, remove_labels } = body;
         if (!gmailMsgId) throw new Error("Missing message_id");
+        if (!isValidGmailId(gmailMsgId)) throw new Error("Invalid message_id format");
 
         const response = await fetch(`${GMAIL_API}/messages/${gmailMsgId}/modify`, {
           method: "POST",
@@ -369,6 +428,11 @@ serve(async (req) => {
         const { message_ids } = body;
         if (!message_ids?.length) throw new Error("Missing message_ids");
 
+        // Validate message ID format to prevent path traversal
+        for (const msgId of message_ids) {
+          if (!isValidGmailId(msgId)) throw new Error(`Invalid message ID format: ${msgId}`);
+        }
+
         for (const msgId of message_ids) {
           await fetch(`${GMAIL_API}/messages/${msgId}/modify`, {
             method: "POST",
@@ -380,9 +444,10 @@ serve(async (req) => {
           });
         }
 
-        // Update local DB
+        // Update local DB — scoped to this account to prevent cross-user modification
         await supabase.from("email_messages")
           .update({ is_read: true })
+          .eq("gmail_account_id", account.id)
           .in("gmail_message_id", message_ids);
 
         return new Response(JSON.stringify({ success: true }), {
@@ -393,6 +458,7 @@ serve(async (req) => {
       case "trash": {
         const { message_id: trashMsgId } = body;
         if (!trashMsgId) throw new Error("Missing message_id");
+        if (!isValidGmailId(trashMsgId)) throw new Error("Invalid message_id format");
 
         const response = await fetch(`${GMAIL_API}/messages/${trashMsgId}/trash`, {
           method: "POST",
@@ -412,8 +478,12 @@ serve(async (req) => {
         });
     }
   } catch (error) {
-    console.error("Gmail Send error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Gmail Send error:", msg);
+    const safeMsg = msg.includes("Missing") || msg.includes("Invalid") || msg.includes("Too many")
+      ? msg
+      : "Failed to process email operation";
+    return new Response(JSON.stringify({ error: safeMsg }), {
       status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }

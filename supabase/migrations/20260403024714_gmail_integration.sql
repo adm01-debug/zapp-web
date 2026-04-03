@@ -138,11 +138,12 @@ CREATE TABLE public.email_attachments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email_message_id uuid NOT NULL REFERENCES public.email_messages(id) ON DELETE CASCADE,
   gmail_attachment_id text,
-  filename text NOT NULL,
+  filename text NOT NULL CHECK (length(filename) <= 500),
   mime_type text,
   size_bytes integer,
   storage_path text,
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(email_message_id, gmail_attachment_id)
 );
 
 ALTER TABLE public.email_attachments ENABLE ROW LEVEL SECURITY;

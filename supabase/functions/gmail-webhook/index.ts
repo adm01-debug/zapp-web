@@ -142,10 +142,11 @@ serve(async (req) => {
       });
     }
 
-    // Ensure valid access token
+    // Ensure valid access token (with 5-min buffer to prevent mid-request expiry)
     let accessToken = account.access_token;
     const now = new Date();
-    if (now >= new Date(account.token_expires_at)) {
+    const expiresAt = new Date(account.token_expires_at);
+    if (now >= new Date(expiresAt.getTime() - 5 * 60 * 1000)) {
       accessToken = await refreshToken(supabase, account);
     }
 

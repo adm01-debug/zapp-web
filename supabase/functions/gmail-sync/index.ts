@@ -254,7 +254,7 @@ async function syncMessages(
             filename: att.filename,
             mime_type: att.mimeType,
             size_bytes: att.size,
-          }, { onConflict: "email_message_id" }).select();
+          }, { onConflict: "email_message_id,gmail_attachment_id" }).select();
         }
       }
 
@@ -463,8 +463,9 @@ serve(async (req) => {
         });
     }
   } catch (error) {
-    console.error("Gmail Sync error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Gmail Sync error:", msg);
+    return new Response(JSON.stringify({ error: "Sync operation failed" }), {
       status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }

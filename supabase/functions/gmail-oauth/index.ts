@@ -24,7 +24,7 @@ interface TokenResponse {
   scope: string;
 }
 
-async function getAuthUrl(): Promise<string> {
+async function getAuthUrl(state: string): Promise<string> {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID!,
     redirect_uri: GOOGLE_REDIRECT_URI!,
@@ -33,6 +33,7 @@ async function getAuthUrl(): Promise<string> {
     access_type: "offline",
     prompt: "consent",
     include_granted_scopes: "true",
+    state, // CSRF protection
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
@@ -139,8 +140,10 @@ serve(async (req) => {
 
     switch (action) {
       case "get-auth-url": {
-        const url = await getAuthUrl();
-        return new Response(JSON.stringify({ url }), {
+        // Generate CSRF state token
+        const state = crypto.randomUUID();
+        const url = await getAuthUrl(state);
+        return new Response(JSON.stringify({ url, state }), {
           headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
@@ -154,14 +157,28 @@ serve(async (req) => {
 
         const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-        // Upsert gmail account
+        // Check if account already exists to preserve refresh_token
+        const { data: existingAccount } = await supabase
+          .from("gmail_accounts")
+          .select("id, refresh_token")
+          .eq("profile_id", profile.id)
+          .eq("email_address", gmailProfile.emailAddress)
+          .maybeSingle();
+
+        // CRITICAL: Never overwrite refresh_token with empty string.
+        // Google only sends refresh_token on first consent.
+        const refreshToken = tokens.refresh_token || existingAccount?.refresh_token || "";
+        if (!refreshToken) {
+          console.warn("No refresh_token received and none stored. User may need to re-authorize with prompt=consent.");
+        }
+
         const { data: account, error: upsertError } = await supabase
           .from("gmail_accounts")
           .upsert({
             profile_id: profile.id,
             email_address: gmailProfile.emailAddress,
             access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token || "",
+            refresh_token: refreshToken,
             token_expires_at: expiresAt,
             scopes: tokens.scope.split(" "),
             is_active: true,
@@ -211,9 +228,9 @@ serve(async (req) => {
           })
           .eq("id", account_id);
 
+        // Do NOT return access_token to client — it stays server-side
         return new Response(JSON.stringify({
           success: true,
-          access_token: tokens.access_token,
           expires_at: expiresAt,
         }), {
           headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
@@ -262,8 +279,13 @@ serve(async (req) => {
         });
     }
   } catch (error) {
-    console.error("Gmail OAuth error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Gmail OAuth error:", msg);
+    // Return generic message to client to avoid leaking internal details
+    const safeMsg = msg.includes("Missing") || msg.includes("not found") || msg.includes("not configured")
+      ? msg
+      : "An error occurred processing your request";
+    return new Response(JSON.stringify({ error: safeMsg }), {
       status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
