@@ -44,7 +44,7 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
       {/* Avatar for inbound */}
       {!isSent && (
         <Avatar className="h-8 w-8 shrink-0 mt-1">
-          <AvatarFallback className="text-[10px] bg-blue-500/10 text-blue-600">
+          <AvatarFallback className="text-[10px] bg-accent text-accent-foreground">
             {getInitials(message.from_name, message.from_address)}
           </AvatarFallback>
         </Avatar>
