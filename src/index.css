@@ -231,7 +231,7 @@ html, body, #root {
     /* ===== Priority ===== */
     --priority-high: 0 84% 60%;
     --priority-medium: 38 92% 50%;
-    --priority-low: 210 20% 55%;
+    --priority-low: 210 25% 48%;
 
     /* ===== GRADIENTS ===== */
     --gradient-primary: linear-gradient(135deg, hsl(258 75% 58%), hsl(240 50% 50%));
