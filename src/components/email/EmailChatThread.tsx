@@ -176,6 +176,7 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
                     message={item.message}
                     isLast={item.isLast}
                     onReply={handleBubbleReply}
+                    onReplyAll={handleBubbleReplyAll}
                     onForward={handleBubbleForward}
                   />
                 );
