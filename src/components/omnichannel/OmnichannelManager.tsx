@@ -14,6 +14,8 @@ import {
   MessageSquare, Plus, Settings, Trash2, CheckCircle, XCircle, 
   Globe, Send, Instagram, MessagesSquare
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+const ChannelRoutingRules = lazy(() => import('./ChannelRoutingRules').then(m => ({ default: m.ChannelRoutingRules })));
 
 const channelConfig = {
   whatsapp: { label: 'WhatsApp', icon: MessageSquare, color: 'text-green-500', bg: 'bg-green-500/10' },
