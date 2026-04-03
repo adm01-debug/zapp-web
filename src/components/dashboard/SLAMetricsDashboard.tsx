@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+const SLAConfigurationManager = lazy(() => import('@/components/settings/SLAConfigurationManager').then(m => ({ default: m.SLAConfigurationManager })));
 import { log } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -561,6 +562,11 @@ export function SLAMetricsDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* SLA Configuration */}
+      <Suspense fallback={<Skeleton className="h-48 w-full" />}>
+        <SLAConfigurationManager />
+      </Suspense>
     </div>
   );
 }

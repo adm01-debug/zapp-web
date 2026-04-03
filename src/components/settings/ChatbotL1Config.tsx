@@ -223,9 +223,27 @@ export function ChatbotL1Config() {
             </div>
           </div>
 
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full">
-            {saveMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="flex-1">
+              {saveMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const { data, error } = await supabase.functions.invoke('chatbot-l1', {
+                    body: { contactId: 'test', message: 'Olá, teste de conexão', connectionId: 'test' },
+                  });
+                  if (error) throw error;
+                  toast({ title: '✅ Conexão OK', description: 'Edge Function chatbot-l1 está acessível.' });
+                } catch (err: any) {
+                  toast({ title: 'Status', description: err.message || 'Verificação concluída', variant: 'destructive' });
+                }
+              }}
+            >
+              Testar Conexão
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
