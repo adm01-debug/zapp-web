@@ -11,18 +11,20 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
+  Star,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTheme } from '@/hooks/useTheme';
 import { useSidebarCollapse } from '@/hooks/useSidebarCollapse';
+import { useSidebarFavorites } from '@/hooks/useSidebarFavorites';
 import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtectionToggle';
 import { SoundMuteToggle } from '@/components/notifications/SoundMuteToggle';
 import { SidebarNavItem } from './SidebarNavItem';
 import { SidebarNavGroup } from './SidebarNavGroup';
-import { primaryNav, sidebarGroups } from './sidebarNavConfig';
+import { primaryNav, sidebarGroups, communicationNav, automationNav, salesNav, connectionsNav, analyticsNav, systemNav } from './sidebarNavConfig';
 
 interface SidebarProps {
   currentView: string;
