@@ -999,17 +999,31 @@ export function RealtimeInboxView() {
           </Suspense>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-background min-h-0 overflow-hidden">
-            <div className="text-center p-8">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-7 h-7 text-primary/60" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="text-center p-8 max-w-xs"
+            >
+              <div className="relative w-20 h-20 mx-auto mb-5">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <MessageSquare className="w-9 h-9 text-primary/70" />
+                </div>
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center"
+                >
+                  <MessageSquarePlus className="w-4 h-4 text-accent-foreground/60" />
+                </motion.div>
               </div>
-              <h3 className="text-base font-semibold text-foreground mb-1">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Selecione uma conversa
               </h3>
-              <p className="text-muted-foreground text-xs max-w-[200px]">
-                Escolha uma conversa na lista ao lado para começar
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Escolha uma conversa na lista ao lado para visualizar e responder mensagens
               </p>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>
