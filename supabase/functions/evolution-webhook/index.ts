@@ -947,7 +947,7 @@ serve(async (req) => {
 // Handle messages sent directly from WhatsApp phone (fromMe=true in messages.upsert)
 // These are messages the agent sent via the WhatsApp app, not through our system
 async function handleOutgoingWhatsAppMessage(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   key: { remoteJid: string; fromMe: boolean; id: string },
