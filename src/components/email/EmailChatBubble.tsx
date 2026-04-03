@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Paperclip, ChevronDown, ChevronUp, Reply, Forward, Star } from 'lucide-react';
+import { Paperclip, ChevronDown, ChevronUp, Reply, ReplyAll, Forward, Star, Check, CheckCheck } from 'lucide-react';
 import type { EmailMessage } from '@/hooks/useGmail';
 
 interface EmailChatBubbleProps {
   message: EmailMessage;
   isLast: boolean;
   onReply?: (message: EmailMessage) => void;
+  onReplyAll?: (message: EmailMessage) => void;
   onForward?: (message: EmailMessage) => void;
 }
 
@@ -30,16 +31,21 @@ function formatFullDate(dateStr: string): string {
   });
 }
 
-export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailChatBubbleProps) {
+export const EmailChatBubble = memo(function EmailChatBubble({ message, isLast, onReply, onReplyAll, onForward }: EmailChatBubbleProps) {
   const [expanded, setExpanded] = useState(isLast);
   const isSent = message.direction === 'outbound';
+  const hasMultipleRecipients = (message.to_addresses?.length || 0) + (message.cc_addresses?.length || 0) > 1;
 
   const bodyPreview = message.body_text?.slice(0, 300) || message.snippet || '';
   const hasMore = (message.body_text?.length || 0) > 300;
 
   return (
     <TooltipProvider>
-      <div className={cn('flex group gap-2 mb-3', isSent ? 'justify-end' : 'justify-start')}>
+      <div
+        className={cn('flex group gap-2 mb-3', isSent ? 'justify-end' : 'justify-start')}
+        role="article"
+        aria-label={`Mensagem de ${message.from_name || message.from_address}`}
+      >
         {/* Avatar for inbound */}
         {!isSent && (
           <Avatar className="h-8 w-8 shrink-0 mt-1">
@@ -60,7 +66,7 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => onReply(message)}
-                    className="p-1 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                    className="p-1 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm transition-colors"
                     aria-label="Responder"
                   >
                     <Reply className="w-3 h-3" />
@@ -69,12 +75,26 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
                 <TooltipContent>Responder</TooltipContent>
               </Tooltip>
             )}
+            {onReplyAll && hasMultipleRecipients && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => onReplyAll(message)}
+                    className="p-1 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm transition-colors"
+                    aria-label="Responder a todos"
+                  >
+                    <ReplyAll className="w-3 h-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Responder a todos</TooltipContent>
+              </Tooltip>
+            )}
             {onForward && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => onForward(message)}
-                    className="p-1 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm"
+                    className="p-1 rounded-full bg-card border border-border/50 text-muted-foreground hover:text-primary hover:bg-primary/10 shadow-sm transition-colors"
                     aria-label="Encaminhar"
                   >
                     <Forward className="w-3 h-3" />
@@ -89,6 +109,9 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
           {!isSent && (
             <p className="text-[10px] text-muted-foreground ml-1 truncate">
               {message.from_name || message.from_address}
+              {hasMultipleRecipients && (
+                <span className="opacity-60"> → {message.to_addresses?.length || 0} destinatários</span>
+              )}
             </p>
           )}
 
@@ -124,9 +147,10 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
               <button
                 onClick={() => setExpanded(!expanded)}
                 className={cn(
-                  'text-[10px] mt-1 flex items-center gap-0.5',
+                  'text-[10px] mt-1 flex items-center gap-0.5 transition-colors',
                   isSent ? 'text-primary-foreground/70 hover:text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 )}
+                aria-label={expanded ? 'Ver menos' : 'Ver mais'}
               >
                 {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 {expanded ? 'Menos' : 'Mais'}
@@ -156,6 +180,11 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
                 </TooltipTrigger>
                 <TooltipContent>{formatFullDate(message.internal_date)}</TooltipContent>
               </Tooltip>
+              {isSent && (
+                message.is_read
+                  ? <CheckCheck className="w-3 h-3" />
+                  : <Check className="w-3 h-3" />
+              )}
             </div>
           </motion.div>
         </div>
@@ -163,7 +192,7 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
         {/* Avatar for outbound */}
         {isSent && (
           <Avatar className="h-8 w-8 shrink-0 mt-1">
-            <AvatarFallback className="text-[10px] bg-primary/10 text-primary-foreground">
+            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
               Eu
             </AvatarFallback>
           </Avatar>
@@ -171,4 +200,4 @@ export function EmailChatBubble({ message, isLast, onReply, onForward }: EmailCh
       </div>
     </TooltipProvider>
   );
-}
+});
