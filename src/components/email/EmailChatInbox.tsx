@@ -200,9 +200,36 @@ export function EmailChatInbox() {
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="unread">Não lidos</SelectItem>
                 <SelectItem value="starred">Favoritos</SelectItem>
+                <SelectItem value="has_attachment">Com anexo</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* Label filter chips */}
+          {labels.length > 0 && (
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-thin">
+              <Badge
+                variant={labelFilter === 'all' ? 'default' : 'outline'}
+                className="text-[10px] px-2 py-0.5 cursor-pointer shrink-0 hover:bg-primary/10"
+                onClick={() => setLabelFilter('all')}
+              >
+                Todos
+              </Badge>
+              {labels.filter(l => l.label_type === 'user' || ['INBOX', 'SENT', 'IMPORTANT', 'DRAFT'].includes(l.gmail_label_id)).map(label => (
+                <Badge
+                  key={label.id}
+                  variant={labelFilter === label.gmail_label_id ? 'default' : 'outline'}
+                  className="text-[10px] px-2 py-0.5 cursor-pointer shrink-0 hover:bg-primary/10"
+                  onClick={() => setLabelFilter(label.gmail_label_id)}
+                >
+                  {label.name}
+                  {label.unread_count > 0 && (
+                    <span className="ml-1 text-[9px] opacity-70">{label.unread_count}</span>
+                  )}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Thread list */}
