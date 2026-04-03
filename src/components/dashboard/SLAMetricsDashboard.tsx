@@ -562,6 +562,11 @@ export function SLAMetricsDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* SLA Configuration */}
+      <Suspense fallback={<Skeleton className="h-48 w-full" />}>
+        <SLAConfigurationManager />
+      </Suspense>
     </div>
   );
 }
