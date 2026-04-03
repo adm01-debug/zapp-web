@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
