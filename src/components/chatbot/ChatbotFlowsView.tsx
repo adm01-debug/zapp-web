@@ -114,7 +114,6 @@ export function ChatbotFlowsView() {
         </TabsList>
 
         <TabsContent value="flows" className="flex-1 min-h-0 space-y-6 mt-4">
-      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
