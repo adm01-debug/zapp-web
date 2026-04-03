@@ -3,13 +3,14 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, FileSpreadsheet, Bug, ArrowRight, Calendar } from 'lucide-react';
+import { Zap, FileSpreadsheet, Bug, ArrowRight, Calendar, Mail } from 'lucide-react';
 import { N8nIntegrationView } from './N8nIntegrationView';
 import { GoogleSheetsIntegrationView } from './GoogleSheetsIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
 import { GoogleCalendarIntegration } from './GoogleCalendarIntegration';
+import { GmailIntegration } from './GmailIntegration';
 
-type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry' | 'google-calendar';
+type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry' | 'google-calendar' | 'gmail';
 
 const integrations = [
   {
@@ -42,6 +43,14 @@ const integrations = [
     description: 'Sincronize agendamentos e follow-ups com o Google Calendar.',
     icon: Calendar,
     color: 'bg-[#4285F4]',
+    status: 'available' as const,
+  },
+  {
+    id: 'gmail' as const,
+    name: 'Gmail',
+    description: 'Receba e envie emails diretamente do Zapp. Inbox unificado com OAuth seguro.',
+    icon: Mail,
+    color: 'bg-[#EA4335]',
     status: 'available' as const,
   },
 ];
@@ -82,6 +91,15 @@ export function IntegrationsHub() {
         <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
       </div>
       <GoogleCalendarIntegration />
+    </div>
+  );
+
+  if (currentView === 'gmail') return (
+    <div>
+      <div className="p-4 pb-0">
+        <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
+      </div>
+      <GmailIntegration />
     </div>
   );
 

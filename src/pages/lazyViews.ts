@@ -45,6 +45,7 @@ export const AuditLogDashboard = lazy(() => import('@/components/security/AuditL
 export const AdminTelemetriaPage = lazy(() => import('@/pages/AdminTelemetriaPage'));
 export const NPSDashboard = lazy(() => import('@/components/nps/NPSDashboard').then(m => ({ default: m.NPSDashboard })));
 export const TeamChatView = lazy(() => import('@/components/team-chat/TeamChatView').then(m => ({ default: m.TeamChatView })));
+export const GmailInboxView = lazy(() => import('@/components/gmail/GmailInboxView'));
 
 export const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');

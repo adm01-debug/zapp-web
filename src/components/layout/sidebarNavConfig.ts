@@ -42,6 +42,7 @@ import {
   Compass,
   LayoutDashboard,
   Lock,
+  Mail,
 } from 'lucide-react';
 import type { NavItemConfig } from './SidebarNavItem';
 
@@ -59,6 +60,7 @@ export const primaryNav: readonly NavItemConfig[] = [
 export const communicationNav: readonly NavItemConfig[] = [
   { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
   { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
+  { id: 'gmail', icon: Mail, label: 'Gmail' },
   { id: 'omnichannel', icon: Globe, label: 'Omnichannel' },
   { id: 'omni-inbox', icon: Inbox, label: 'Inbox Omni' },
   { id: 'voip', icon: PhoneCall, label: 'VoIP' },

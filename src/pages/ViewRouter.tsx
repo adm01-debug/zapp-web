@@ -96,6 +96,7 @@ const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any
   'telemetry': Views.AdminTelemetriaPage,
   'nps': Views.NPSDashboard,
   'team-chat': Views.TeamChatView,
+  'gmail': Views.GmailInboxView,
 };
 
 // Views that need custom props
