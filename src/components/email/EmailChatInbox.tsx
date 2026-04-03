@@ -52,7 +52,7 @@ function ThreadItem({ thread, isSelected, onClick }: { thread: EmailThread; isSe
         <Avatar className="h-10 w-10 shrink-0">
           <AvatarFallback className={cn(
             'text-xs',
-            thread.is_unread ? 'bg-primary/10 text-primary font-bold' : 'bg-muted'
+            thread.is_unread ? 'bg-primary/10 text-primary-foreground font-bold' : 'bg-muted'
           )}>
             {getInitials(thread.contact?.name, thread.contact?.email)}
           </AvatarFallback>
