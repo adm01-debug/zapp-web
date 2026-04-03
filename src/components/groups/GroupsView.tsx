@@ -383,7 +383,7 @@ export function GroupsView() {
           { label: 'Grupos' },
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {selectedGroups.size > 0 && (
               <Button
                 variant="default"
