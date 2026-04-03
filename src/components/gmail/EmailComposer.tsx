@@ -75,37 +75,82 @@ export function EmailComposer({
 
   const isSending = sendEmail.isPending || replyEmail.isPending;
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove the data:mime;base64, prefix
+        const base64 = result.split(',')[1] || '';
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const validateEmails = (emails: string[]): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emails.every(e => emailRegex.test(e.replace(/.*</, '').replace(/>.*/, '').trim()));
+  };
+
   const handleSend = async () => {
-    if (!to.trim()) return;
+    if (!to.trim() || !subject.trim()) return;
 
     const toList = to.split(',').map(e => e.trim()).filter(Boolean);
     const ccList = cc ? cc.split(',').map(e => e.trim()).filter(Boolean) : [];
     const bccList = bcc ? bcc.split(',').map(e => e.trim()).filter(Boolean) : [];
 
-    if (mode === 'reply' || mode === 'reply-all') {
-      await replyEmail.mutateAsync({
-        thread_id: threadId || replyTo?.gmail_message_id || '',
-        message_id: replyTo?.gmail_message_id || '',
-        to: toList,
-        cc: ccList,
-        bcc: bccList,
-        subject,
-        text_body: body,
-        html_body: isUsingHtml ? body : undefined,
-      });
-    } else {
-      await sendEmail.mutateAsync({
-        to: toList,
-        cc: ccList,
-        bcc: bccList,
-        subject,
-        text_body: body,
-        html_body: isUsingHtml ? body : undefined,
-      });
+    // Validate email addresses
+    if (!validateEmails(toList)) {
+      const { toast } = await import('sonner');
+      toast.error('Endereco de email invalido no campo "Para"');
+      return;
+    }
+    if (ccList.length > 0 && !validateEmails(ccList)) {
+      const { toast } = await import('sonner');
+      toast.error('Endereco de email invalido no campo "Cc"');
+      return;
     }
 
-    onSent?.();
-    onClose();
+    // Convert attachments to base64
+    const encodedAttachments = await Promise.all(
+      attachments.map(async (file) => ({
+        filename: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        content: await fileToBase64(file),
+      }))
+    );
+
+    try {
+      if (mode === 'reply' || mode === 'reply-all') {
+        await replyEmail.mutateAsync({
+          thread_id: threadId || replyTo?.gmail_message_id || '',
+          message_id: replyTo?.gmail_message_id || '',
+          to: toList,
+          cc: ccList,
+          bcc: bccList,
+          subject,
+          text_body: body,
+          html_body: isUsingHtml ? body : undefined,
+        });
+      } else {
+        await sendEmail.mutateAsync({
+          to: toList,
+          cc: ccList,
+          bcc: bccList,
+          subject,
+          text_body: body,
+          html_body: isUsingHtml ? body : undefined,
+          attachments: encodedAttachments.length > 0 ? encodedAttachments : undefined,
+        });
+      }
+
+      onSent?.();
+      onClose();
+    } catch {
+      // Error toast is already handled by the mutation
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

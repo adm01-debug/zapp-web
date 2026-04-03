@@ -1,15 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { getCorsHeaders, handleCors, errorResponse, jsonResponse } from "../_shared/validation.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
 const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 const GMAIL_API = "https://gmail.googleapis.com/gmail/v1/users/me";
 
@@ -138,15 +134,26 @@ async function ensureValidToken(supabase: any, account: any): Promise<string> {
   return tokens.access_token;
 }
 
-async function gmailFetch(accessToken: string, path: string): Promise<any> {
-  const response = await fetch(`${GMAIL_API}${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!response.ok) {
+async function gmailFetch(accessToken: string, path: string, retries = 3): Promise<any> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const response = await fetch(`${GMAIL_API}${path}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (response.ok) return response.json();
+
+    // Retry on rate limit (429) and server errors (5xx) with exponential backoff
+    if ((response.status === 429 || response.status >= 500) && attempt < retries) {
+      const delay = Math.min(1000 * Math.pow(2, attempt), 16000);
+      console.warn(`Gmail API ${response.status} on ${path}, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
+
     const error = await response.text();
     throw new Error(`Gmail API error (${response.status}): ${error}`);
   }
-  return response.json();
+  throw new Error("Max retries exceeded");
 }
 
 async function syncLabels(supabase: any, accountId: string, accessToken: string) {
@@ -168,6 +175,7 @@ async function syncLabels(supabase: any, accountId: string, accessToken: string)
 async function syncMessages(
   supabase: any,
   accountId: string,
+  accountEmail: string,
   accessToken: string,
   query: string = "",
   maxResults: number = 50
@@ -203,21 +211,15 @@ async function syncMessages(
         gmail_thread_id: msg.threadId,
         subject: getHeader(headers, "Subject"),
         snippet: msg.snippet,
-        label_ids: msg.labelIds,
-        is_unread: msg.labelIds.includes("UNREAD"),
-        is_starred: msg.labelIds.includes("STARRED"),
-        is_important: msg.labelIds.includes("IMPORTANT"),
+        label_ids: msg.labelIds || [],
+        is_unread: (msg.labelIds || []).includes("UNREAD"),
+        is_starred: (msg.labelIds || []).includes("STARRED"),
+        is_important: (msg.labelIds || []).includes("IMPORTANT"),
         last_message_at: new Date(parseInt(msg.internalDate)).toISOString(),
       }, { onConflict: "gmail_account_id,gmail_thread_id" }).select().single();
 
-      // Determine direction
-      const { data: gmailAccount } = await supabase
-        .from("gmail_accounts")
-        .select("email_address")
-        .eq("id", accountId)
-        .single();
-
-      const isOutbound = fromAddress.toLowerCase() === gmailAccount?.email_address?.toLowerCase();
+      // Direction check uses pre-fetched accountEmail (no N+1)
+      const isOutbound = fromAddress.toLowerCase() === accountEmail.toLowerCase();
 
       // Upsert message
       const { data: emailMsg } = await supabase.from("email_messages").upsert({
@@ -297,15 +299,14 @@ async function syncMessages(
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -339,7 +340,7 @@ serve(async (req) => {
       case "sync-labels": {
         await syncLabels(supabase, account.id, accessToken);
         return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -348,7 +349,7 @@ serve(async (req) => {
         await supabase.from("gmail_accounts").update({ sync_status: "syncing" }).eq("id", account.id);
 
         try {
-          const result = await syncMessages(supabase, account.id, accessToken, query || "in:inbox", maxResults || 50);
+          const result = await syncMessages(supabase, account.id, account.email_address, accessToken, query || "in:inbox", maxResults || 50);
 
           // Get current historyId
           const profileData = await gmailFetch(accessToken, "/profile");
@@ -361,7 +362,7 @@ serve(async (req) => {
           }).eq("id", account.id);
 
           return new Response(JSON.stringify({ success: true, ...result }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           });
         } catch (err) {
           await supabase.from("gmail_accounts").update({
@@ -375,7 +376,7 @@ serve(async (req) => {
       case "sync-incremental": {
         if (!account.history_id) {
           return new Response(JSON.stringify({ error: "No history_id. Run full sync first." }), {
-            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           });
         }
 
@@ -409,7 +410,7 @@ serve(async (req) => {
         }).eq("id", account.id);
 
         return new Response(JSON.stringify({ success: true, new_messages: newMessageIds.size }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -419,7 +420,7 @@ serve(async (req) => {
 
         const threadData = await gmailFetch(accessToken, `/threads/${thread_id}?format=full`);
         return new Response(JSON.stringify(threadData), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -452,19 +453,19 @@ serve(async (req) => {
         }).eq("id", account.id);
 
         return new Response(JSON.stringify({ success: true, ...watchData }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
       default:
         return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
     }
   } catch (error) {
     console.error("Gmail Sync error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

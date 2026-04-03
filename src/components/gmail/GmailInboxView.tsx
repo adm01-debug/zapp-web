@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,8 @@ function ThreadListItem({
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       onClick={onClick}
+      aria-label={`${thread.is_unread ? 'Nao lido: ' : ''}${thread.subject || 'Sem assunto'} - ${displayName} - ${thread.message_count} mensagens`}
+      role="row"
       className={`w-full text-left p-3 flex items-start gap-3 transition-colors border-b border-secondary/10 ${
         isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-secondary/5'
       } ${thread.is_unread ? '' : 'opacity-80'}`}

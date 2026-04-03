@@ -356,11 +356,18 @@ export function useGmail(accountId?: string) {
 
   // ── Realtime subscription ───────────────────────────────────────────────
 
+  // Use a stable channel name per account to avoid duplicate subscriptions
   const subscribeToThreads = useCallback(() => {
     if (!activeAccount) return () => {};
 
+    const channelName = `gmail-rt-${activeAccount.id}`;
+
+    // Remove any existing channel with same name to prevent duplicates
+    const existing = supabase.getChannels().find(c => c.topic === channelName);
+    if (existing) supabase.removeChannel(existing);
+
     const channel = supabase
-      .channel('gmail-threads-realtime')
+      .channel(channelName)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -382,7 +389,7 @@ export function useGmail(accountId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeAccount, queryClient]);
+  }, [activeAccount?.id, queryClient]);
 
   // ── Stats ───────────────────────────────────────────────────────────────
 

@@ -1,14 +1,18 @@
 -- Gmail Integration: accounts, email threads, and message enhancements
 -- =====================================================================
+-- SECURITY NOTE: access_token and refresh_token are stored as text.
+-- In production, consider using Supabase Vault (pgsodium) for encryption at rest:
+--   SELECT vault.create_secret('token_value', 'gmail_token_name');
+-- The current approach relies on Supabase's disk-level encryption and RLS policies.
 
 -- 1. Gmail accounts table (stores OAuth tokens and sync state per user)
 CREATE TABLE public.gmail_accounts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  email_address text NOT NULL,
-  access_token text NOT NULL,
-  refresh_token text NOT NULL,
-  token_expires_at timestamptz NOT NULL,
+  email_address text NOT NULL CHECK (email_address ~* '^[^@]+@[^@]+\.[^@]+$'),
+  access_token text NOT NULL DEFAULT '',
+  refresh_token text NOT NULL DEFAULT '',
+  token_expires_at timestamptz NOT NULL DEFAULT now(),
   history_id text,
   watch_expiration timestamptz,
   scopes text[] DEFAULT '{}',
@@ -87,13 +91,13 @@ CREATE TABLE public.email_messages (
   thread_id uuid NOT NULL REFERENCES public.email_threads(id) ON DELETE CASCADE,
   gmail_message_id text NOT NULL UNIQUE,
   gmail_account_id uuid NOT NULL REFERENCES public.gmail_accounts(id) ON DELETE CASCADE,
-  from_address text NOT NULL,
-  from_name text,
+  from_address text NOT NULL CHECK (length(from_address) <= 500),
+  from_name text CHECK (length(from_name) <= 500),
   to_addresses text[] DEFAULT '{}',
   cc_addresses text[] DEFAULT '{}',
   bcc_addresses text[] DEFAULT '{}',
-  reply_to_address text,
-  subject text,
+  reply_to_address text CHECK (length(reply_to_address) <= 500),
+  subject text CHECK (length(subject) <= 2000),
   body_text text,
   body_html text,
   snippet text,

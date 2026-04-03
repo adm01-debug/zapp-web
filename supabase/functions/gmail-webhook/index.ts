@@ -1,15 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { getCorsHeaders, handleCors } from "../_shared/validation.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
 const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 const GMAIL_API = "https://gmail.googleapis.com/gmail/v1/users/me";
 
@@ -99,16 +95,26 @@ function extractBody(payload: any): { text: string; html: string } {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Parse Pub/Sub push notification
-    const pubsubMessage: PubSubMessage = await req.json();
-    const decodedData = JSON.parse(atob(pubsubMessage.message.data));
+    // Parse Pub/Sub push notification with validation
+    let pubsubMessage: PubSubMessage;
+    let decodedData: { emailAddress: string; historyId: string | number };
+    try {
+      pubsubMessage = await req.json();
+      if (!pubsubMessage?.message?.data) throw new Error("Invalid Pub/Sub message format");
+      decodedData = JSON.parse(atob(pubsubMessage.message.data));
+      if (!decodedData?.emailAddress) throw new Error("Missing emailAddress in notification");
+    } catch (parseErr) {
+      console.error("Invalid webhook payload:", parseErr.message);
+      return new Response(JSON.stringify({ acknowledged: true, error: "Invalid payload" }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      });
+    }
     const { emailAddress, historyId: newHistoryId } = decodedData;
 
     console.log(`Gmail webhook: New notification for ${emailAddress}, historyId: ${newHistoryId}`);
@@ -125,14 +131,14 @@ serve(async (req) => {
       console.log(`No active Gmail account found for ${emailAddress}`);
       // Return 200 to acknowledge the message (prevent retries)
       return new Response(JSON.stringify({ acknowledged: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
     if (!account.history_id) {
       console.log("No history_id stored. Skipping incremental sync.");
       return new Response(JSON.stringify({ acknowledged: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -160,7 +166,7 @@ serve(async (req) => {
         }).eq("id", account.id);
 
         return new Response(JSON.stringify({ acknowledged: true, resync_needed: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
       throw new Error(`History fetch failed: ${historyResponse.status}`);
@@ -284,13 +290,13 @@ serve(async (req) => {
       acknowledged: true,
       processed: newMessageIds.size,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Gmail Webhook error:", error.message);
     // Return 200 to prevent Pub/Sub retries on application errors
     return new Response(JSON.stringify({ acknowledged: true, error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,12 +8,36 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Reply, ReplyAll, Forward, Star, Trash2, Archive,
   Paperclip, ChevronDown, ChevronUp, MoreHorizontal,
   Mail, MailOpen, Tag, Clock, Loader2, ArrowLeft
 } from 'lucide-react';
 import { useGmail, type EmailThread, type EmailMessage } from '@/hooks/useGmail';
 import { EmailComposer } from './EmailComposer';
+
+/**
+ * Sanitize HTML to prevent XSS attacks from email content.
+ * Removes script tags, event handlers, javascript: URIs, and dangerous elements.
+ */
+function sanitizeHtml(html: string): string {
+  // Remove script tags and their content
+  let clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove event handlers (onclick, onerror, onload, etc.)
+  clean = clean.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+  // Remove javascript: and data: URIs in href/src/action attributes
+  clean = clean.replace(/(href|src|action)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, '$1=""');
+  clean = clean.replace(/(href|src|action)\s*=\s*(?:"data:[^"]*"|'data:[^']*')/gi, '$1=""');
+  // Remove <object>, <embed>, <applet>, <form>, <iframe>, <link>, <meta>, <base> tags
+  clean = clean.replace(/<\/?(object|embed|applet|form|iframe|link|meta|base|svg)\b[^>]*>/gi, '');
+  // Remove style attributes that could contain expressions
+  clean = clean.replace(/style\s*=\s*"[^"]*expression\s*\([^"]*"/gi, '');
+  clean = clean.replace(/style\s*=\s*'[^']*expression\s*\([^']*'/gi, '');
+  return clean;
+}
 
 interface EmailThreadViewProps {
   thread: EmailThread;
@@ -107,9 +131,12 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
 
                 {/* Body */}
                 {message.body_html && showHtml ? (
-                  <div
-                    className="prose prose-sm max-w-none dark:prose-invert text-sm overflow-auto max-h-[400px] rounded border p-3 bg-background"
-                    dangerouslySetInnerHTML={{ __html: message.body_html }}
+                  <iframe
+                    sandbox=""
+                    srcDoc={sanitizeHtml(message.body_html)}
+                    className="w-full min-h-[200px] max-h-[400px] rounded border bg-background"
+                    title={`Email: ${message.subject || 'sem assunto'}`}
+                    style={{ border: 'none' }}
                   />
                 ) : (
                   <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
@@ -154,17 +181,18 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
     return () => setSelectedThreadId(null);
   }, [thread.id, setSelectedThreadId]);
 
-  // Mark as read
+  // Mark as read — only once when thread first opens with unread messages
+  const hasMarkedRead = useRef(false);
   useEffect(() => {
-    if (thread.is_unread && threadMessages.length > 0) {
-      const unreadIds = threadMessages
-        .filter(m => !m.is_read)
-        .map(m => m.gmail_message_id);
-      if (unreadIds.length > 0) {
-        markAsRead.mutate(unreadIds);
-      }
+    if (hasMarkedRead.current || !thread.is_unread || threadMessages.length === 0) return;
+    const unreadIds = threadMessages
+      .filter(m => !m.is_read)
+      .map(m => m.gmail_message_id);
+    if (unreadIds.length > 0) {
+      hasMarkedRead.current = true;
+      markAsRead.mutate(unreadIds);
     }
-  }, [threadMessages, thread.is_unread]);
+  }, [threadMessages, thread.is_unread, markAsRead]);
 
   const lastMessage = useMemo(() => {
     return threadMessages[threadMessages.length - 1];
@@ -207,19 +235,35 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
               </TooltipTrigger>
               <TooltipContent>Arquivar</TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive"
-                  onClick={() => lastMessage && trashMessage.mutate(lastMessage.gmail_message_id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Excluir</TooltipContent>
-            </Tooltip>
+            <AlertDialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Excluir</TooltipContent>
+              </Tooltip>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Mover para lixeira?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta conversa sera movida para a lixeira do Gmail. Voce pode recupera-la dentro de 30 dias.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => lastMessage && trashMessage.mutate(lastMessage.gmail_message_id)}
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </TooltipProvider>
       </div>
