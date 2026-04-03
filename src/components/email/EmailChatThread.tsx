@@ -92,7 +92,10 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
 
   const handleBubbleReply = useCallback(() => {
     setReplyMode('reply');
-    // Focus will be handled by the reply bar
+  }, []);
+
+  const handleBubbleReplyAll = useCallback(() => {
+    setReplyMode('reply-all');
   }, []);
 
   const handleBubbleForward = useCallback((msg: EmailMessage) => {
