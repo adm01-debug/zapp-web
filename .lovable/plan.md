@@ -1,50 +1,25 @@
+## Plano: Frontend para 5 Edge Functions backend-only
 
+### 1. **Public API Dashboard** (nova view `api-dashboard`)
+- Painel de gerenciamento de API keys
+- Logs de requisições recentes (método, path, status, latência)
+- Métricas de uso (requests/hora, erros, top endpoints)
 
-# Plano: Sincronização em Massa de Mensagens Antigas do WhatsApp
+### 2. **Gmail Webhook Monitor** (dentro de `gmail` ou `integrations`)
+- Status do webhook (ativo/inativo)
+- Últimos eventos recebidos (timestamp, tipo, status)
+- Contador de emails processados
 
-## O que existe hoje
+### 3. **Media Migration Tool** (dentro de `admin`)
+- Botão para disparar migração de storage
+- Progress bar com status da migração
+- Log de arquivos migrados/erros
 
-A Edge Function `evolution-sync` ja possui a action `sync-messages` que usa a Evolution API (`/chat/findMessages/{instance}`) para buscar historico. Porem:
-- Funciona para **1 contato por vez** (exige `contactPhone`)
-- Busca apenas **50 mensagens** por contato
-- Nao ha botao na UI para disparar a sincronizacao
-- O `full-sync` atual sincroniza apenas **contatos**, nao mensagens
+### 4. **Sicoob Bridge Dashboard** (dentro de `integrations`)
+- Status da conexão com Sicoob
+- Últimas mensagens processadas (bridge + reply)
+- Métricas: mensagens enviadas/recebidas, erros
 
-## O que sera feito
+### 5. Registrar novas rotas no ViewRouter/Sidebar
 
-### 1. Criar action `sync-all-messages` na Edge Function `evolution-sync`
-
-Nova action que:
-- Busca todos os contatos do banco vinculados a instancia
-- Para cada contato, chama `/chat/findMessages/{instance}` com `offset: 200` (mais mensagens)
-- Deduplica por `external_id` (ja existente)
-- Processa mensagens enviadas (`fromMe: true` -> sender `agent`) e recebidas
-- Retorna progresso (total processado, sincronizado, pulados)
-- Processa em lotes de 20 contatos para evitar timeout
-
-### 2. Adicionar botao "Sincronizar Historico" na UI
-
-Adicionar na tela de conexoes WhatsApp (ou no inbox) um botao que:
-- Chama `supabase.functions.invoke('evolution-sync', { body: { action: 'sync-all-messages', instanceName } })`
-- Mostra progresso com toast/loading
-- Permite re-executar para buscar mais contatos
-
-### 3. Incluir mensagens no `full-sync`
-
-Apos sincronizar contatos no `full-sync`, tambem sincronizar as ultimas 50 mensagens de cada contato importado.
-
-## Arquivos afetados
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `supabase/functions/evolution-sync/index.ts` | Nova action `sync-all-messages` + incluir sync de mensagens no `full-sync` |
-| Componente de conexoes WhatsApp (a identificar) | Botao "Sincronizar Historico" |
-
-## Detalhes tecnicos
-
-- A Evolution API endpoint `/chat/findMessages/{instance}` aceita `page` e `offset` para paginacao
-- Deduplicacao via `external_id` (campo unico por mensagem do WhatsApp)
-- Timeout da Edge Function: ~60s — processamento em lotes com resposta parcial
-- Mensagens com `key.fromMe = true` serao salvas como `sender: 'agent'`
-- Tipos suportados: text, image, video, audio, document, sticker (ja implementados no sync existente)
-
+Cada painel será um componente focado, conectado aos logs reais das Edge Functions via `supabase.functions.invoke()` ou queries na tabela `query_telemetry`/`audit_logs`.
