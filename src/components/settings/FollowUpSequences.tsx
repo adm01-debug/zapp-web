@@ -256,6 +256,9 @@ export function FollowUpSequences() {
           ))}
         </div>
       )}
+
+      {/* Execution History */}
+      <FollowUpExecutionsHistory />
     </div>
   );
 }
