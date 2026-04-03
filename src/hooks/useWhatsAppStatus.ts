@@ -6,13 +6,17 @@ export interface WhatsAppStatusMessage {
   id: string;
   fromMe: boolean;
   remoteJid: string;
-  participant?: string;
+  remoteJidAlt?: string | null;
+  participant?: string | null;
   status?: string;
   messageId?: string;
   keyId?: string;
-  // When it contains actual message content
+  messageType?: string;
+  source?: string;
   key?: {
     remoteJid: string;
+    remoteJidAlt?: string | null;
+    participant?: string | null;
     fromMe: boolean;
     id: string;
   };
@@ -51,6 +55,69 @@ export interface WhatsAppStatusData {
   refresh: () => void;
 }
 
+interface ContactConnectionInfo {
+  contactName: string | null;
+  instanceName: string | null;
+}
+
+const normalizeDigits = (value?: string | null) => (value ?? '').replace(/\D/g, '');
+
+const toTimestampNumber = (value?: number | string) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+const buildPhoneNeedles = (phone: string) => {
+  const digits = normalizeDigits(phone);
+  if (!digits) return [];
+
+  const values = new Set<string>([digits]);
+  const withoutCountry = digits.startsWith('55') ? digits.slice(2) : digits;
+
+  values.add(withoutCountry);
+
+  if (withoutCountry.length >= 10) {
+    const areaCode = withoutCountry.slice(0, 2);
+    const localNumber = withoutCountry.slice(2);
+
+    values.add(localNumber);
+
+    if (localNumber.length === 9 && localNumber.startsWith('9')) {
+      values.add(localNumber.slice(1));
+      values.add(`${areaCode}${localNumber.slice(1)}`);
+      values.add(`55${areaCode}${localNumber.slice(1)}`);
+    }
+  }
+
+  return Array.from(values).filter((value) => value.length >= 8);
+};
+
+const matchesPhone = (candidate: string | null | undefined, phoneNeedles: string[]) => {
+  const digits = normalizeDigits(candidate);
+  if (!digits) return false;
+
+  return phoneNeedles.some((needle) => digits.endsWith(needle) || needle.endsWith(digits));
+};
+
+const extractStatusRecords = (data: unknown): WhatsAppStatusMessage[] => {
+  if (Array.isArray(data)) {
+    return data as WhatsAppStatusMessage[];
+  }
+
+  if (data && typeof data === 'object') {
+    const maybeMessages = (data as { messages?: { records?: unknown[] } }).messages;
+    if (Array.isArray(maybeMessages?.records)) {
+      return maybeMessages.records as WhatsAppStatusMessage[];
+    }
+  }
+
+  return [];
+};
+
 /**
  * Hook to fetch WhatsApp status (stories) and presence for a contact
  */
@@ -63,34 +130,51 @@ export function useWhatsAppStatus(phone: string | undefined): WhatsAppStatusData
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
-  const getInstanceForPhone = useCallback(async (contactPhone: string) => {
-    // Get the contact's whatsapp_connection_id
-    const { data: contact } = await supabase
+  const getConnectionInfo = useCallback(async (contactPhone: string): Promise<ContactConnectionInfo> => {
+    const cleanPhone = normalizeDigits(contactPhone);
+
+    let contactQuery = supabase
       .from('contacts')
-      .select('whatsapp_connection_id')
+      .select('name, whatsapp_connection_id')
       .eq('phone', contactPhone)
       .maybeSingle();
+
+    let { data: contact } = await contactQuery;
+
+    if (!contact && cleanPhone && cleanPhone !== contactPhone) {
+      const fallback = await supabase
+        .from('contacts')
+        .select('name, whatsapp_connection_id')
+        .eq('phone', cleanPhone)
+        .maybeSingle();
+
+      contact = fallback.data;
+    }
 
     let connectionId = contact?.whatsapp_connection_id;
 
     if (!connectionId) {
-      // Fallback: get first connected instance
-      const { data: conn } = await supabase
+      const { data: connection } = await supabase
         .from('whatsapp_connections')
-        .select('id, instance_id')
+        .select('id')
         .eq('status', 'connected')
         .limit(1)
         .maybeSingle();
-      
-      if (conn) {
-        connectionId = conn.id;
-      }
+
+      connectionId = connection?.id;
     }
 
-    if (!connectionId) return null;
+    if (!connectionId) {
+      return {
+        contactName: contact?.name ?? null,
+        instanceName: null,
+      };
+    }
 
     const { data: connection } = await supabase
       .from('whatsapp_connections')
@@ -98,7 +182,10 @@ export function useWhatsAppStatus(phone: string | undefined): WhatsAppStatusData
       .eq('id', connectionId)
       .maybeSingle();
 
-    return connection?.instance_id || null;
+    return {
+      contactName: contact?.name ?? null,
+      instanceName: connection?.instance_id ?? null,
+    };
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -108,17 +195,17 @@ export function useWhatsAppStatus(phone: string | undefined): WhatsAppStatusData
     setError(null);
 
     try {
-      const instanceName = await getInstanceForPhone(phone);
+      const { instanceName, contactName } = await getConnectionInfo(phone);
+
       if (!instanceName) {
         setError('Sem conexão WhatsApp disponível');
         return;
       }
 
-      // Fetch status messages (stories) and presence in parallel
       const [statusResult, presenceResult] = await Promise.allSettled([
         supabase.functions.invoke('evolution-api/find-status-messages', {
           method: 'POST',
-          body: { instanceName },
+          body: { instanceName, page: 1, offset: 200 },
         }),
         supabase.functions.invoke('evolution-api/send-chat-presence', {
           method: 'POST',
@@ -126,40 +213,54 @@ export function useWhatsAppStatus(phone: string | undefined): WhatsAppStatusData
         }),
       ]);
 
-      if (mountedRef.current) {
-        // Process status messages
-        if (statusResult.status === 'fulfilled' && statusResult.value.data) {
-          const allStatuses = Array.isArray(statusResult.value.data) 
-            ? statusResult.value.data 
-            : [];
-          
-          // Filter statuses from this contact's phone (not fromMe)
-          const cleanPhone = phone.replace(/\D/g, '');
-          const contactStatuses = allStatuses.filter((s: any) => {
-            // Check both flat and nested remoteJid formats
-            const remoteJid = s.remoteJid || s.key?.remoteJid || '';
-            const isFromMe = s.fromMe ?? s.key?.fromMe ?? true;
-            const participant = s.participant || '';
-            
-            // We want stories FROM this contact (not our own)
-            const matchesPhone = remoteJid.includes(cleanPhone) || participant.includes(cleanPhone);
-            
-            // Also include status@broadcast entries that have this contact as participant
-            const isBroadcast = remoteJid === 'status@broadcast';
-            const broadcastMatch = isBroadcast && participant.includes(cleanPhone);
-            
-            return (!isFromMe && matchesPhone) || broadcastMatch;
-          });
-          
-          setStatusMessages(contactStatuses);
-        }
+      if (!mountedRef.current) return;
 
-        // Presence
-        if (presenceResult.status === 'fulfilled') {
-          setPresence({ isOnline: false, lastSeen: null, loading: false });
-        } else {
-          setPresence({ isOnline: false, lastSeen: null, loading: false });
-        }
+      if (statusResult.status === 'fulfilled') {
+        const allStatuses = extractStatusRecords(statusResult.value.data);
+        const phoneNeedles = buildPhoneNeedles(phone);
+        const normalizedContactName = contactName?.trim().toLowerCase() ?? null;
+
+        const contactStatuses = allStatuses
+          .filter((status) => {
+            const key = status.key ?? {
+              remoteJid: status.remoteJid,
+              fromMe: status.fromMe,
+              id: status.id,
+            };
+
+            const isFromMe = status.fromMe ?? key.fromMe ?? false;
+            if (isFromMe) return false;
+
+            const candidateFields = [
+              status.remoteJid,
+              status.remoteJidAlt,
+              status.participant,
+              key.remoteJid,
+              key.remoteJidAlt,
+              key.participant,
+              status.pushName,
+            ];
+
+            const phoneMatch = candidateFields.some((value) => matchesPhone(value, phoneNeedles));
+            const nameMatch = Boolean(
+              normalizedContactName &&
+                typeof status.pushName === 'string' &&
+                status.pushName.trim().toLowerCase() === normalizedContactName,
+            );
+
+            return phoneMatch || nameMatch;
+          })
+          .sort((left, right) => toTimestampNumber(right.messageTimestamp) - toTimestampNumber(left.messageTimestamp));
+
+        setStatusMessages(contactStatuses);
+      } else {
+        setStatusMessages([]);
+      }
+
+      if (presenceResult.status === 'fulfilled') {
+        setPresence({ isOnline: false, lastSeen: null, loading: false });
+      } else {
+        setPresence({ isOnline: false, lastSeen: null, loading: false });
       }
     } catch (err) {
       log.error('WhatsApp status fetch error:', err);
@@ -171,7 +272,7 @@ export function useWhatsAppStatus(phone: string | undefined): WhatsAppStatusData
         setLoading(false);
       }
     }
-  }, [phone, getInstanceForPhone]);
+  }, [phone, getConnectionInfo]);
 
   useEffect(() => {
     fetchData();
