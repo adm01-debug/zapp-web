@@ -794,36 +794,38 @@ export function RealtimeInboxView() {
           isLoading={bulkLoading}
         />
 
-        {/* Header — Ultra-clean */}
-        <div className="px-3 pt-2.5 pb-1.5 border-b border-border space-y-1.5 shrink-0">
-          {/* Row 1: Title + actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-xs font-semibold text-foreground tracking-tight">Conversas</h2>
-              <span className={cn(
-                'w-1.5 h-1.5 rounded-full',
-                isOnline ? 'bg-emerald-500' : 'bg-destructive'
-              )} />
+        {/* Header — Ultra-clean, hidden title on mobile (MobileHeader already shows it) */}
+        <div className={cn("px-3 border-b border-border space-y-1.5 shrink-0", isMobile ? "pt-1.5 pb-1.5" : "pt-2.5 pb-1.5")}>
+          {/* Row 1: Title + actions — title hidden on mobile */}
+          {!isMobile && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-xs font-semibold text-foreground tracking-tight">Conversas</h2>
+                <span className={cn(
+                  'w-1.5 h-1.5 rounded-full',
+                  isOnline ? 'bg-emerald-500' : 'bg-destructive'
+                )} />
+              </div>
+              <div className="flex items-center gap-0.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={refetch} disabled={loading} className="w-6 h-6" aria-label="Atualizar">
+                      <RefreshCw className={cn('w-3 h-3', loading && 'animate-spin')} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="text-[10px]">Atualizar</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => setShowNewConversation(true)} className="w-6 h-6 text-primary hover:bg-primary/10" aria-label="Nova conversa">
+                      <MessageSquarePlus className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="text-[10px]">Nova Conversa</TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-            <div className="flex items-center gap-0.5">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={refetch} disabled={loading} className="w-6 h-6" aria-label="Atualizar">
-                    <RefreshCw className={cn('w-3 h-3', loading && 'animate-spin')} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="text-[10px]">Atualizar</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => setShowNewConversation(true)} className="w-6 h-6 text-primary hover:bg-primary/10" aria-label="Nova conversa">
-                    <MessageSquarePlus className="w-3 h-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="text-[10px]">Nova Conversa</TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
+          )}
 
           {/* Row 2: Search + Type filter */}
           <div className="flex items-center gap-1.5">
