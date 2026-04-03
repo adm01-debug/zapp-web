@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check, Mic, Reply, Image as ImageIcon, Music, FileText, Video, UserPlus } from 'lucide-react';
+import { ArrowLeft, Send, Users, User, ArrowDown, Pencil, Trash2, X, Check, Mic, Reply, Image as ImageIcon, Music, FileText, Video, UserPlus, PanelRightOpen, PanelRightClose } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,6 +36,8 @@ import { AddMembersDialog } from './AddMembersDialog';
 interface Props {
   conversation: TeamConversation;
   onBack: () => void;
+  onToggleDetails?: () => void;
+  showDetails?: boolean;
 }
 
 function formatTime(dateStr: string) {
@@ -109,7 +111,7 @@ function MediaTypeIcon({ type }: { type: string | null }) {
   }
 }
 
-export function TeamChatPanel({ conversation, onBack }: Props) {
+export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetails }: Props) {
   const { profile } = useAuth();
   const { data: messages = [], isLoading } = useTeamMessages(conversation.id);
   const sendMutation = useSendTeamMessage();
@@ -281,6 +283,21 @@ export function TeamChatPanel({ conversation, onBack }: Props) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>Adicionar membros</TooltipContent>
+          </Tooltip>
+        )}
+        {onToggleDetails && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={onToggleDetails}
+              >
+                {showDetails ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{showDetails ? 'Fechar detalhes' : 'Ver detalhes'}</TooltipContent>
           </Tooltip>
         )}
       </div>
