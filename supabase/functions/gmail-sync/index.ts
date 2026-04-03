@@ -288,8 +288,8 @@ async function syncMessages(
       }
 
       results.push({ id: msg.id, threadId: msg.threadId, subject: getHeader(headers, "Subject") });
-    } catch (err) {
-      console.error(`Error syncing message ${msgId}:`, err.message);
+    } catch (err: unknown) {
+      console.error(`Error syncing message ${msgId}:`, err instanceof Error ? err.message : err);
     }
   }
 
