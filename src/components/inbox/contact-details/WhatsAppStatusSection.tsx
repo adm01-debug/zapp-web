@@ -366,33 +366,18 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
           <p className="text-[10px] text-muted-foreground/40">Os status desaparecem após 24h</p>
         </div>
       ) : (
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary">
-              {statusMessages.length} status
-            </Badge>
-          </div>
-
-          {statusMessages.map((msg, index) => (
-            <button
-              key={msg.key?.id || msg.id || index}
-              type="button"
-              onClick={() => openViewer(index)}
-              className={cn(
-                'w-full text-left flex items-start gap-2.5 p-2 rounded-lg transition-all',
-                'hover:bg-muted/30 border border-transparent hover:border-primary/10',
-              )}
-            >
-              <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center shrink-0">
-                {getStatusIcon(msg)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-foreground line-clamp-1">{getStatusLabel(msg)}</p>
-                {getStatusTime(msg) && <p className="text-[10px] text-muted-foreground mt-0.5">{getStatusTime(msg)}</p>}
-              </div>
-            </button>
-          ))}
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => openViewer(0)}
+          className="w-full h-9 text-xs gap-2 border-primary/20 hover:bg-primary/10 hover:border-primary/30"
+        >
+          <ImageIcon className="w-3.5 h-3.5 text-primary" />
+          Ver Status
+          <Badge variant="secondary" className="text-[10px] ml-auto px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
+            {statusMessages.length}
+          </Badge>
+        </Button>
       )}
 
       <StoryViewer
