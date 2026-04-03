@@ -1,5 +1,6 @@
 import { Construction } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAriaAnnouncer } from '@/hooks/useAriaAnnouncer';
