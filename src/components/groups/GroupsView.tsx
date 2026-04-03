@@ -500,9 +500,9 @@ export function GroupsView() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex items-center gap-3 flex-wrap"
+        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
       >
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou ID do grupo..."
@@ -512,7 +512,7 @@ export function GroupsView() {
           />
         </div>
         <Select value={categoryFilter || 'all'} onValueChange={(v) => setCategoryFilter(v === 'all' ? null : v)}>
-          <SelectTrigger className="w-[220px]">
+          <SelectTrigger className="w-full sm:w-[220px]">
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
