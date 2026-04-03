@@ -13,6 +13,8 @@ interface SidebarNavGroupProps {
   onViewChange: (v: string) => void;
   defaultOpen?: boolean;
   collapsed?: boolean;
+  onToggleFavorite?: (id: string) => void;
+  isFavorite?: (id: string) => boolean;
 }
 
 export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, onViewChange, defaultOpen = false, collapsed = true }: SidebarNavGroupProps) {
