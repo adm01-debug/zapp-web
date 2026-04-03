@@ -258,8 +258,8 @@ html, body, #root {
     --shadow-header: 0 1px 3px hsl(230 25% 12% / 0.06);
 
     /* ===== GLASS ===== */
-    --glass-bg: 0 0% 100% / 0.8;
-    --glass-border: 230 20% 88% / 0.5;
+    --glass-bg: 0 0% 100% / 0.95;
+    --glass-border: 230 20% 88% / 0.7;
 
     /* ===== ELEVAÇÃO ===== */
     --elevated: 0 0% 100%;
