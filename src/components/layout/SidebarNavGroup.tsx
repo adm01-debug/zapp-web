@@ -95,7 +95,6 @@ export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, on
                   />
                 </li>
               ))}
-              ))}
             </ul>
           </motion.nav>
         )}
