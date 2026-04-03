@@ -11,7 +11,7 @@ import {
 import { useGmail, type EmailThread, type EmailMessage } from '@/hooks/useGmail';
 import { EmailChatBubble } from './EmailChatBubble';
 import { EmailChatReplyBar } from './EmailChatReplyBar';
-import { EmailComposer } from './EmailComposer';
+import { EmailComposer } from '@/components/gmail/EmailComposer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 

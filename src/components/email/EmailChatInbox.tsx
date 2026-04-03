@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useGmail, type EmailThread } from '@/hooks/useGmail';
 import { EmailChatThread } from './EmailChatThread';
-import { EmailComposer } from './EmailComposer';
+import { EmailComposer } from '@/components/gmail/EmailComposer';
 import { cn } from '@/lib/utils';
 
 function getInitials(name?: string | null, email?: string): string {
