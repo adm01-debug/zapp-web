@@ -82,14 +82,14 @@ export function MobileFAB({ onNewConversation, onNewContact, onNewCampaign, clas
         )}
       </AnimatePresence>
 
-      {/* Main FAB */}
+      {/* Main FAB with contextual icon */}
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => {
           if (navigator.vibrate) navigator.vibrate(5);
           setIsOpen(!isOpen);
         }}
-        className="relative z-40 w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-primary-foreground touch-manipulation"
+        className="relative z-40 h-14 rounded-full shadow-xl flex items-center justify-center text-primary-foreground touch-manipulation gap-2 px-5"
         style={{ background: 'var(--gradient-primary)' }}
         aria-label="Ações rápidas"
       >
@@ -97,8 +97,20 @@ export function MobileFAB({ onNewConversation, onNewContact, onNewCampaign, clas
           animate={{ rotate: isOpen ? 45 : 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
-          <Plus className="w-6 h-6" />
+          {isOpen ? <Plus className="w-6 h-6" /> : <MessageSquarePlus className="w-5 h-5" />}
         </motion.div>
+        <AnimatePresence>
+          {!isOpen && (
+            <motion.span
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 'auto', opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              className="text-sm font-semibold whitespace-nowrap overflow-hidden"
+            >
+              Novo
+            </motion.span>
+          )}
+        </AnimatePresence>
       </motion.button>
     </div>
   );

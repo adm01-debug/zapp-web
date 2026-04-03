@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -45,6 +46,7 @@ export function TicketTabs({
   const { user } = useAuth();
   const { isAdmin, isSupervisor } = useUserRole();
   const { queues } = useQueues();
+  const isMobile = useIsMobile();
   const canShowAll = isAdmin || isSupervisor;
 
   // Count conversations by category
@@ -120,9 +122,9 @@ export function TicketTabs({
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {/* Main Tabs */}
-      <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-1">
+      <div className="flex items-center gap-0.5 bg-muted/40 rounded-lg p-0.5">
         {mainTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = mainTab === tab.id;
@@ -131,22 +133,22 @@ export function TicketTabs({
               key={tab.id}
               onClick={() => onMainTabChange(tab.id)}
               className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200',
+                'flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all duration-200',
                 isActive
                   ? tab.activeColor + ' shadow-sm'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
               )}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-3 h-3" />
               <span>{tab.label}</span>
               {tab.count !== null && (
                 <Badge 
-                  variant="secondary"
+                  variant="outline"
                   className={cn(
-                    'h-4 min-w-[16px] px-1 text-[9px] font-bold leading-none',
+                    'h-4 min-w-[16px] px-1 text-[9px] font-bold leading-none border',
                     isActive 
-                      ? 'bg-white/25 text-inherit border-0' 
-                      : 'bg-muted text-muted-foreground'
+                      ? 'bg-white/15 text-inherit border-white/25' 
+                      : 'bg-transparent text-muted-foreground border-border/60'
                   )}
                 >
                   {tab.count}
@@ -159,7 +161,7 @@ export function TicketTabs({
 
       {/* Sub-tabs for "Abertos" */}
       {mainTab === 'open' && (
-        <div className="flex items-center gap-1 px-1">
+        <div className="flex items-center gap-0.5 px-0.5 flex-wrap">
           {subTabs.map(tab => {
             const Icon = tab.icon;
             const isActive = subTab === tab.id;
@@ -195,11 +197,11 @@ export function TicketTabs({
               value={selectedQueueId || 'all'} 
               onValueChange={(v) => onQueueChange(v === 'all' ? null : v)}
             >
-              <SelectTrigger className="h-6 w-auto min-w-[80px] max-w-[120px] text-[10px] border-border/40 bg-transparent px-2 gap-1">
+              <SelectTrigger className={cn("h-6 w-auto text-[10px] border-border/40 bg-transparent px-2 gap-1", isMobile ? "min-w-[60px] max-w-[90px]" : "min-w-[80px] max-w-[120px]")}>
                 <SelectValue placeholder="Fila" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" className="text-xs">Todas filas</SelectItem>
+                <SelectItem value="all" className="text-xs">{isMobile ? 'Todas' : 'Todas filas'}</SelectItem>
                 {queues.map(q => (
                   <SelectItem key={q.id} value={q.id} className="text-xs">
                     <div className="flex items-center gap-1.5">

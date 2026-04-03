@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Pin, Gift } from 'lucide-react';
@@ -133,15 +134,26 @@ export function VirtualizedRealtimeList({
                 <div className="relative flex-shrink-0">
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
-                      {(conversation.contact.name || '??')
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
+                    <AvatarFallback className={cn(
+                      'text-xs font-semibold',
+                      getAvatarColor(conversation.contact.name || '?').bg,
+                      getAvatarColor(conversation.contact.name || '?').text
+                    )}>
+                      {getInitials(conversation.contact.name || '?')}
                     </AvatarFallback>
                   </Avatar>
+                  {/* Sentiment indicator dot */}
+                  {conversation.contact.ai_sentiment && (
+                    <span
+                      className={cn(
+                        'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card',
+                        conversation.contact.ai_sentiment === 'positive' && 'bg-[hsl(var(--success))]',
+                        conversation.contact.ai_sentiment === 'negative' && 'bg-destructive',
+                        conversation.contact.ai_sentiment === 'neutral' && 'bg-[hsl(var(--warning))]'
+                      )}
+                      title={`Sentimento: ${conversation.contact.ai_sentiment}`}
+                    />
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0 overflow-hidden">
