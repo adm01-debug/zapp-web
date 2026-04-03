@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
-  Send, Paperclip, X, ChevronDown, ChevronUp, Loader2
+  Send, Paperclip, X, Loader2
 } from 'lucide-react';
 import { useGmail, type EmailMessage } from '@/hooks/useGmail';
+import { toast } from 'sonner';
 
 interface EmailChatReplyBarProps {
   threadId: string;
@@ -30,9 +30,9 @@ export function EmailChatReplyBar({
 
   const [body, setBody] = useState('');
   const [to, setTo] = useState('');
-  const [showDetails, setShowDetails] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isSending = sendEmail.isPending || replyEmail.isPending;
 
@@ -45,36 +45,43 @@ export function EmailChatReplyBar({
   const handleSend = async () => {
     if (!body.trim()) return;
     const target = resolvedTo || to;
-    if (!target.trim()) return;
-
-    if (mode === 'reply' && lastMessage) {
-      await replyEmail.mutateAsync({
-        thread_id: threadId,
-        message_id: lastMessage.gmail_message_id,
-        to: target,
-        text_body: body,
-      });
-    } else if (mode === 'forward') {
-      const fwdBody = lastMessage
-        ? `${body}\n\n---------- Mensagem encaminhada ----------\nDe: ${lastMessage.from_name || lastMessage.from_address}\n\n${lastMessage.body_text || lastMessage.snippet}`
-        : body;
-      await sendEmail.mutateAsync({
-        to: target,
-        subject: lastMessage ? `Fwd: ${lastMessage.subject}` : '',
-        text_body: fwdBody,
-      });
-    } else {
-      await sendEmail.mutateAsync({
-        to: target,
-        subject: '',
-        text_body: body,
-      });
+    if (!target.trim()) {
+      toast.error('Informe o destinatário');
+      return;
     }
 
-    setBody('');
-    setTo('');
-    setAttachments([]);
-    onSent?.();
+    try {
+      if (mode === 'reply' && lastMessage) {
+        await replyEmail.mutateAsync({
+          thread_id: threadId,
+          message_id: lastMessage.gmail_message_id,
+          to: target,
+          text_body: body,
+        });
+      } else if (mode === 'forward') {
+        const fwdBody = lastMessage
+          ? `${body}\n\n---------- Mensagem encaminhada ----------\nDe: ${lastMessage.from_name || lastMessage.from_address}\n\n${lastMessage.body_text || lastMessage.snippet}`
+          : body;
+        await sendEmail.mutateAsync({
+          to: target,
+          subject: lastMessage ? `Fwd: ${lastMessage.subject}` : '',
+          text_body: fwdBody,
+        });
+      } else {
+        await sendEmail.mutateAsync({
+          to: target,
+          subject: '',
+          text_body: body,
+        });
+      }
+
+      setBody('');
+      setTo('');
+      setAttachments([]);
+      onSent?.();
+    } catch (err) {
+      // Error toast already handled by useGmail mutations
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -82,6 +89,11 @@ export function EmailChatReplyBar({
       e.preventDefault();
       handleSend();
     }
+  };
+
+  // Focus textarea when mode changes to reply
+  const handleFocus = () => {
+    textareaRef.current?.focus();
   };
 
   return (
@@ -107,13 +119,22 @@ export function EmailChatReplyBar({
         </div>
       )}
 
+      {/* No recipient warning */}
+      {mode === 'reply' && !resolvedTo && !lastMessage && (
+        <div className="text-[10px] text-muted-foreground italic">
+          Nenhuma mensagem na thread para responder
+        </div>
+      )}
+
       {/* Input area */}
       <div className="flex items-end gap-2">
         <div className="flex-1 relative">
           <Textarea
+            ref={textareaRef}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
             placeholder={mode === 'forward' ? 'Adicione uma mensagem...' : 'Digite sua resposta...'}
             className="min-h-[44px] max-h-[200px] text-sm resize-none pr-10"
             rows={1}
@@ -123,6 +144,7 @@ export function EmailChatReplyBar({
             size="icon"
             className="absolute right-1 bottom-1 h-7 w-7"
             onClick={() => fileRef.current?.click()}
+            aria-label="Anexar arquivo"
           >
             <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />
           </Button>
@@ -136,6 +158,7 @@ export function EmailChatReplyBar({
           className="h-10 w-10 rounded-full shrink-0"
           onClick={handleSend}
           disabled={!body.trim() || isSending || (!resolvedTo && !to.trim())}
+          aria-label="Enviar"
         >
           {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </Button>
@@ -148,7 +171,10 @@ export function EmailChatReplyBar({
             <Badge key={i} variant="secondary" className="text-[10px] gap-1">
               <Paperclip className="w-2.5 h-2.5" />
               {f.name}
-              <button onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}>
+              <button 
+                onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                aria-label={`Remover ${f.name}`}
+              >
                 <X className="w-2.5 h-2.5" />
               </button>
             </Badge>

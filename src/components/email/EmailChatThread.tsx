@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import {
-  ArrowLeft, Star, Archive, Trash2, Loader2, Mail,
-  Reply, Forward, Tag
+  ArrowLeft, Star, Archive, Trash2, Loader2, Mail
 } from 'lucide-react';
 import { useGmail, type EmailThread, type EmailMessage } from '@/hooks/useGmail';
 import { EmailChatBubble } from './EmailChatBubble';
@@ -52,7 +50,7 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
   const [replyMode, setReplyMode] = useState<'reply' | 'forward' | 'new'>('reply');
   const [showComposer, setShowComposer] = useState(false);
   const [composerMode, setComposerMode] = useState<'reply' | 'forward'>('reply');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSelectedThreadId(thread.id);
@@ -65,13 +63,12 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
       const unreadIds = threadMessages.filter(m => !m.is_read).map(m => m.gmail_message_id);
       if (unreadIds.length > 0) markAsRead.mutate(unreadIds);
     }
-  }, [threadMessages, thread.is_unread]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadMessages.length, thread.is_unread]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [threadMessages.length]);
 
   const lastMessage = useMemo(() => threadMessages[threadMessages.length - 1], [threadMessages]);
@@ -93,110 +90,119 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
     return result;
   }, [threadMessages]);
 
-  const handleBubbleReply = (msg: EmailMessage) => {
+  const handleBubbleReply = useCallback(() => {
     setReplyMode('reply');
-  };
+    // Focus will be handled by the reply bar
+  }, []);
 
-  const handleBubbleForward = (msg: EmailMessage) => {
+  const handleBubbleForward = useCallback((msg: EmailMessage) => {
     setComposerMode('forward');
     setShowComposer(true);
-  };
+  }, []);
+
+  const handleReplySent = useCallback(() => {
+    // Refresh will happen via react-query invalidation
+  }, []);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-3 border-b flex items-center gap-3 bg-card/50">
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
+    <TooltipProvider>
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="p-3 border-b flex items-center gap-3 bg-card/50">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack} aria-label="Voltar">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold truncate">{thread.subject || '(Sem assunto)'}</h3>
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            {thread.contact && <span className="truncate">{thread.contact.name}</span>}
-            <span>•</span>
-            <span>{thread.message_count} msg</span>
-            {thread.is_starred && <Star className="w-3 h-3 text-warning fill-warning" />}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold truncate">{thread.subject || '(Sem assunto)'}</h3>
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              {thread.contact && <span className="truncate">{thread.contact.name}</span>}
+              <span>•</span>
+              <span>{thread.message_count} msg</span>
+              {thread.is_starred && <Star className="w-3 h-3 text-accent-foreground fill-current" />}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {thread.tags.map(tag => (
+              <Badge key={tag} variant="outline" className="text-[9px] px-1 py-0">{tag}</Badge>
+            ))}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Arquivar">
+                  <Archive className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Arquivar</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost" size="icon" className="h-8 w-8 text-destructive"
+                  onClick={() => lastMessage && trashMessage.mutate(lastMessage.gmail_message_id)}
+                  aria-label="Excluir"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Excluir</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          {thread.tags.map(tag => (
-            <Badge key={tag} variant="outline" className="text-[9px] px-1 py-0">{tag}</Badge>
-          ))}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Archive className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Arquivar</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost" size="icon" className="h-8 w-8 text-destructive"
-                onClick={() => lastMessage && trashMessage.mutate(lastMessage.gmail_message_id)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Excluir</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
+        {/* Messages as chat bubbles */}
+        <ScrollArea className="flex-1">
+          <div className="p-4">
+            {messagesLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : threadMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <Mail className="w-12 h-12 mb-3 opacity-20" />
+                <p className="text-sm">Nenhuma mensagem</p>
+              </div>
+            ) : (
+              messagesWithDates.map((item, i) => {
+                if (item.type === 'date') {
+                  return <DateSeparator key={`date-${i}`} date={item.date} />;
+                }
+                return (
+                  <EmailChatBubble
+                    key={item.message.id}
+                    message={item.message}
+                    isLast={item.isLast}
+                    onReply={handleBubbleReply}
+                    onForward={handleBubbleForward}
+                  />
+                );
+              })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
 
-      {/* Messages as chat bubbles */}
-      <ScrollArea className="flex-1">
-        <div ref={scrollRef} className="p-4">
-          {messagesLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : threadMessages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <Mail className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm">Nenhuma mensagem</p>
-            </div>
-          ) : (
-            messagesWithDates.map((item, i) => {
-              if (item.type === 'date') {
-                return <DateSeparator key={`date-${i}`} date={item.date} />;
-              }
-              return (
-                <EmailChatBubble
-                  key={item.message.id}
-                  message={item.message}
-                  isLast={item.isLast}
-                  onReply={handleBubbleReply}
-                  onForward={handleBubbleForward}
-                />
-              );
-            })
-          )}
-        </div>
-      </ScrollArea>
-
-      {/* Reply bar */}
-      <EmailChatReplyBar
-        threadId={thread.gmail_thread_id}
-        lastMessage={lastMessage}
-        accountEmail={activeAccount?.email_address}
-        mode={replyMode}
-        onModeChange={setReplyMode}
-        onSent={() => {}}
-      />
-
-      {/* Full composer for forward */}
-      {showComposer && lastMessage && (
-        <EmailComposer
-          mode={composerMode}
-          replyTo={lastMessage}
+        {/* Reply bar */}
+        <EmailChatReplyBar
           threadId={thread.gmail_thread_id}
-          onClose={() => setShowComposer(false)}
-          onSent={() => setShowComposer(false)}
+          lastMessage={lastMessage}
+          accountEmail={activeAccount?.email_address}
+          mode={replyMode}
+          onModeChange={setReplyMode}
+          onSent={handleReplySent}
         />
-      )}
-    </div>
+
+        {/* Full composer for forward */}
+        {showComposer && lastMessage && (
+          <EmailComposer
+            mode={composerMode}
+            replyTo={lastMessage}
+            threadId={thread.gmail_thread_id}
+            onClose={() => setShowComposer(false)}
+            onSent={() => setShowComposer(false)}
+          />
+        )}
+      </div>
+    </TooltipProvider>
   );
 }
