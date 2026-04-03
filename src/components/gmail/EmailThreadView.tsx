@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -66,7 +66,7 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: boolean }) {
+function EmailMessageCard({ message, isLast, onToggleStar }: { message: EmailMessage; isLast: boolean; onToggleStar: (msgId: string, isStarred: boolean) => void }) {
   const [expanded, setExpanded] = useState(isLast);
   const [showHtml, setShowHtml] = useState(false);
 
@@ -95,7 +95,13 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
               <span className="text-sm font-medium truncate">
                 {message.from_name || message.from_address}
               </span>
-              {message.is_starred && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 shrink-0" />}
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleStar(message.gmail_message_id, message.is_starred); }}
+                className="shrink-0 hover:scale-110 transition-transform"
+                aria-label={message.is_starred ? 'Remover favorito' : 'Favoritar'}
+              >
+                <Star className={`w-3 h-3 ${message.is_starred ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground/30 hover:text-yellow-400'}`} />
+              </button>
               {message.has_attachments && <Paperclip className="w-3 h-3 text-muted-foreground shrink-0" />}
               <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
                 {formatDate(message.internal_date)}
@@ -181,7 +187,7 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
 }
 
 export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
-  const { threadMessages, messagesLoading, markAsRead, trashMessage, modifyLabels, setSelectedThreadId } = useGmailContext();
+  const { threadMessages, messagesLoading, markAsRead, trashMessage, modifyLabels, toggleStar, updateThread, setSelectedThreadId } = useGmailContext();
   const [composerMode, setComposerMode] = useState<'reply' | 'reply-all' | 'forward' | null>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -331,6 +337,45 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
         </TooltipProvider>
       </div>
 
+      {/* Thread management bar */}
+      <div className="px-3 py-1.5 border-b flex items-center gap-2 text-xs bg-secondary/5 overflow-x-auto">
+        <Select
+          value={thread.status}
+          onValueChange={(v) => updateThread.mutate({ threadId: thread.id, updates: { status: v } })}
+        >
+          <SelectTrigger className="h-6 w-[100px] text-[10px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="open">Aberto</SelectItem>
+            <SelectItem value="pending">Pendente</SelectItem>
+            <SelectItem value="resolved">Resolvido</SelectItem>
+            <SelectItem value="archived">Arquivado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={thread.priority}
+          onValueChange={(v) => updateThread.mutate({ threadId: thread.id, updates: { priority: v } })}
+        >
+          <SelectTrigger className="h-6 w-[90px] text-[10px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="high">Alta</SelectItem>
+            <SelectItem value="medium">Média</SelectItem>
+            <SelectItem value="low">Baixa</SelectItem>
+          </SelectContent>
+        </Select>
+        {thread.tags.length > 0 && (
+          <div className="flex items-center gap-1 ml-1">
+            <Tag className="w-3 h-3 text-muted-foreground" />
+            {thread.tags.map(tag => (
+              <Badge key={tag} variant="secondary" className="text-[9px] px-1 py-0">{tag}</Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Messages */}
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-2">
@@ -349,6 +394,7 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
                 key={msg.id}
                 message={msg}
                 isLast={i === threadMessages.length - 1}
+                onToggleStar={(msgId, isStarred) => toggleStar.mutate({ messageId: msgId, isStarred })}
               />
             ))
           )}

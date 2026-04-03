@@ -11,6 +11,8 @@ export interface GmailAccount {
   is_active: boolean;
   sync_status: 'pending' | 'syncing' | 'synced' | 'error';
   last_sync_at: string | null;
+  last_error: string | null;
+  watch_expiration: string | null;
   created_at: string;
 }
 
@@ -379,6 +381,109 @@ export function useGmail(accountId?: string) {
     },
   });
 
+  // ── Star toggle ─────────────────────────────────────────────────────────
+
+  const toggleStar = useMutation({
+    mutationFn: async ({ messageId, isStarred }: { messageId: string; isStarred: boolean }) => {
+      if (!activeAccount) throw new Error('No active Gmail account');
+      return callGmailFunction('gmail-send', {
+        action: 'modify-labels',
+        account_id: activeAccount.id,
+        message_id: messageId,
+        add_labels: isStarred ? [] : ['STARRED'],
+        remove_labels: isStarred ? ['STARRED'] : [],
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gmail-threads'] });
+      queryClient.invalidateQueries({ queryKey: ['gmail-messages'] });
+    },
+  });
+
+  // ── Draft ──────────────────────────────────────────────────────────────
+
+  const saveDraft = useMutation({
+    mutationFn: async (params: {
+      to?: string | string[];
+      subject?: string;
+      text_body?: string;
+      html_body?: string;
+      cc?: string[];
+      bcc?: string[];
+      thread_id?: string;
+    }) => {
+      if (!activeAccount) throw new Error('No active Gmail account');
+      return callGmailFunction('gmail-send', {
+        action: 'create-draft',
+        account_id: activeAccount.id,
+        ...params,
+      });
+    },
+    onSuccess: () => {
+      toast.success('Rascunho salvo');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao salvar rascunho: ${error.message}`);
+    },
+  });
+
+  // ── Thread management ──────────────────────────────────────────────────
+
+  const updateThread = useMutation({
+    mutationFn: async (params: {
+      threadId: string;
+      updates: Partial<{ status: string; priority: string; assigned_to: string | null; tags: string[] }>;
+    }) => {
+      if (!activeAccount) throw new Error('No active Gmail account');
+      const { error } = await supabase
+        .from('email_threads')
+        .update(params.updates)
+        .eq('id', params.threadId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gmail-threads'] });
+    },
+  });
+
+  // ── Incremental sync ──────────────────────────────────────────────────
+
+  const syncIncremental = useMutation({
+    mutationFn: async () => {
+      if (!activeAccount) throw new Error('No active Gmail account');
+      return callGmailFunction('gmail-sync', {
+        action: 'sync-incremental',
+        account_id: activeAccount.id,
+      });
+    },
+    onSuccess: (data) => {
+      if (data.new_messages > 0) {
+        queryClient.invalidateQueries({ queryKey: ['gmail-threads'] });
+        toast.success(`${data.new_messages} novos emails`);
+      }
+    },
+  });
+
+  // ── Setup watch (Pub/Sub) ─────────────────────────────────────────────
+
+  const setupWatch = useMutation({
+    mutationFn: async (topicName: string) => {
+      if (!activeAccount) throw new Error('No active Gmail account');
+      return callGmailFunction('gmail-sync', {
+        action: 'setup-watch',
+        account_id: activeAccount.id,
+        topic_name: topicName,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gmail-accounts'] });
+      toast.success('Notificações push ativadas');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao configurar push: ${error.message}`);
+    },
+  });
+
   // ── Realtime subscription ───────────────────────────────────────────────
 
   // Use a stable channel name per account to avoid duplicate subscriptions
@@ -457,6 +562,17 @@ export function useGmail(accountId?: string) {
     markAsRead,
     trashMessage,
     modifyLabels,
+    toggleStar,
+
+    // Drafts
+    saveDraft,
+
+    // Thread management
+    updateThread,
+
+    // Advanced sync
+    syncIncremental,
+    setupWatch,
 
     // Realtime
     subscribeToThreads,

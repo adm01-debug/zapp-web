@@ -34,16 +34,21 @@ export function EmailComposer({
   onClose,
   onSent,
 }: EmailComposerProps) {
-  const { sendEmail, replyEmail, activeAccount } = useGmailContext();
+  const { sendEmail, replyEmail, saveDraft, activeAccount } = useGmailContext();
 
   const [to, setTo] = useState(() => {
     if (defaultTo) return defaultTo;
     if (mode === 'reply' && replyTo) {
-      return replyTo.direction === 'inbound' ? replyTo.from_address : replyTo.to_addresses[0] || '';
+      // Use reply_to_address if available (e.g. mailing lists), otherwise from_address
+      const replyAddr = replyTo.direction === 'inbound'
+        ? (replyTo.reply_to_address || replyTo.from_address)
+        : replyTo.to_addresses[0] || '';
+      return replyAddr;
     }
     if (mode === 'reply-all' && replyTo) {
+      const primaryReply = replyTo.reply_to_address || replyTo.from_address;
       const addrs = replyTo.direction === 'inbound'
-        ? [replyTo.from_address, ...replyTo.to_addresses.filter(a => a !== activeAccount?.email_address)]
+        ? [primaryReply, ...replyTo.to_addresses.filter(a => a !== activeAccount?.email_address)]
         : replyTo.to_addresses;
       return addrs.join(', ');
     }
@@ -335,18 +340,36 @@ export function EmailComposer({
                   ) : (
                     <Button variant="ghost" size="sm" onClick={onClose}>Descartar</Button>
                   )}
-                  <Button
-                    onClick={handleSend}
-                    disabled={!to.trim() || !subject.trim() || isSending}
-                    size="sm"
-                  >
-                    {isSending ? (
-                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4 mr-1" />
-                    )}
-                    Enviar
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={saveDraft.isPending || (!to.trim() && !body.trim() && !subject.trim())}
+                      onClick={() => {
+                        const toList = to.split(',').map(e => e.trim()).filter(Boolean);
+                        saveDraft.mutate({
+                          to: toList.length > 0 ? toList : undefined,
+                          subject: subject || undefined,
+                          text_body: body || undefined,
+                          thread_id: threadId,
+                        });
+                      }}
+                    >
+                      {saveDraft.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Salvar rascunho'}
+                    </Button>
+                    <Button
+                      onClick={handleSend}
+                      disabled={!to.trim() || !subject.trim() || isSending}
+                      size="sm"
+                    >
+                      {isSending ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4 mr-1" />
+                      )}
+                      Enviar
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </motion.div>

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Mail, Search, RefreshCw, Pencil, Inbox, Star, Send as SendIcon,
-  Archive, Trash2, Tag, Filter, Loader2, MailOpen, AlertCircle,
+  Archive, Trash2, Tag, Loader2, MailOpen, AlertCircle,
   ChevronRight, Paperclip, Clock
 } from 'lucide-react';
 import { useGmail, type EmailThread } from '@/hooks/useGmail';
@@ -130,6 +130,7 @@ function GmailInboxContent() {
     [selectedThreadId, threads]
   );
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [showComposer, setShowComposer] = useState(false);
   const [activeTab, setActiveTab] = useState('inbox');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -173,6 +174,11 @@ function GmailInboxContent() {
     // Status filter
     if (statusFilter !== 'all') {
       result = result.filter(t => t.status === statusFilter);
+    }
+
+    // Label filter
+    if (selectedLabel) {
+      result = result.filter(t => t.label_ids?.includes(selectedLabel));
     }
 
     // Search
@@ -301,6 +307,32 @@ function GmailInboxContent() {
             Enviados
           </TabsTrigger>
         </TabsList>
+
+        {/* Labels filter bar */}
+        {labels.length > 0 && (
+          <div className="px-3 py-1 border-b flex items-center gap-1 overflow-x-auto">
+            <Tag className="w-3 h-3 text-muted-foreground shrink-0" />
+            <Badge
+              variant={selectedLabel === null ? 'default' : 'outline'}
+              className="text-[9px] px-1.5 py-0 cursor-pointer shrink-0"
+              onClick={() => setSelectedLabel(null)}
+            >
+              Todas
+            </Badge>
+            {labels.filter(l => l.label_type === 'user').map(label => (
+              <Badge
+                key={label.id}
+                variant={selectedLabel === label.gmail_label_id ? 'default' : 'outline'}
+                className="text-[9px] px-1.5 py-0 cursor-pointer shrink-0"
+                style={label.color ? { borderColor: label.color } : undefined}
+                onClick={() => setSelectedLabel(selectedLabel === label.gmail_label_id ? null : label.gmail_label_id)}
+              >
+                {label.name}
+                {label.unread_count > 0 && <span className="ml-0.5 text-[8px] opacity-60">({label.unread_count})</span>}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         <TabsContent value={activeTab} className="flex-1 mt-0 min-h-0">
           <ScrollArea className="h-full">

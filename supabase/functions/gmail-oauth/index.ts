@@ -264,7 +264,7 @@ serve(async (req) => {
       case "list-accounts": {
         const { data: accounts } = await supabase
           .from("gmail_accounts")
-          .select("id, email_address, is_active, sync_status, last_sync_at, created_at")
+          .select("id, email_address, is_active, sync_status, last_sync_at, last_error, watch_expiration, created_at")
           .eq("profile_id", profile.id)
           .eq("is_active", true);
 

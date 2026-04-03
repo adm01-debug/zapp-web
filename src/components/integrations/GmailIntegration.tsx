@@ -24,6 +24,7 @@ export function GmailIntegration() {
     disconnectGmail,
     syncInbox,
     syncLabels,
+    setupWatch,
   } = useGmail();
 
   // Listen for OAuth callback from popup
@@ -101,6 +102,11 @@ export function GmailIntegration() {
                           {account.sync_status === 'error' && <XCircle className="w-2.5 h-2.5 mr-0.5 text-red-500" />}
                           {account.sync_status}
                         </Badge>
+                        {account.sync_status === 'error' && account.last_error && (
+                          <span className="text-[9px] text-red-500 truncate max-w-[180px]" title={account.last_error}>
+                            {account.last_error}
+                          </span>
+                        )}
                         {account.last_sync_at && (
                           <span className="flex items-center gap-0.5">
                             <Clock className="w-2.5 h-2.5" />
