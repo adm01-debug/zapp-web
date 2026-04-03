@@ -421,8 +421,8 @@ html, body, #root {
     --shadow-header: 0 1px 3px hsl(0 0% 0% / 0.5);
 
     /* ===== GLASS ===== */
-    --glass-bg: 240 5% 10% / 0.97;
-    --glass-border: 254 45% 28% / 0.5;
+    --glass-bg: 240 5% 10% / 1;
+    --glass-border: 254 45% 28% / 1;
 
     /* ===== ELEVAÇÃO ===== */
     --elevated: 240 5% 15%;
