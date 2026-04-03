@@ -154,7 +154,7 @@ html, body, #root {
     
     /* ===== MUTED ===== */
     --muted: 230 20% 92%;
-    --muted-foreground: 230 15% 45%;
+    --muted-foreground: 230 15% 36%;
     
     /* ===== ACCENT (Purple Light) ===== */
     --accent: 258 60% 95%;
