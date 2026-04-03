@@ -219,7 +219,7 @@ function detectExtension(contentType: string, messageType: string): string {
 }
 
 async function uploadToStorage(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   bytes: Uint8Array,
   contentType: string,
   messageType: string,
