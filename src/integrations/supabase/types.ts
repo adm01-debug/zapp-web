@@ -1795,6 +1795,221 @@ export type Database = {
           },
         ]
       }
+      email_labels: {
+        Row: {
+          color: string | null
+          created_at: string
+          gmail_account_id: string
+          gmail_label_id: string
+          id: string
+          label_type: string
+          message_count: number
+          name: string
+          unread_count: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          gmail_account_id: string
+          gmail_label_id: string
+          id?: string
+          label_type?: string
+          message_count?: number
+          name: string
+          unread_count?: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          gmail_account_id?: string
+          gmail_label_id?: string
+          id?: string
+          label_type?: string
+          message_count?: number
+          name?: string
+          unread_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_labels_gmail_account_id_fkey"
+            columns: ["gmail_account_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_messages: {
+        Row: {
+          bcc_addresses: string[]
+          body_html: string
+          body_text: string
+          cc_addresses: string[]
+          created_at: string
+          direction: string
+          from_address: string
+          from_name: string | null
+          gmail_account_id: string
+          gmail_message_id: string
+          has_attachments: boolean
+          id: string
+          in_reply_to: string | null
+          internal_date: string
+          is_read: boolean
+          is_starred: boolean
+          label_ids: string[]
+          references_header: string | null
+          reply_to_address: string | null
+          snippet: string
+          subject: string
+          thread_id: string
+          to_addresses: string[]
+        }
+        Insert: {
+          bcc_addresses?: string[]
+          body_html?: string
+          body_text?: string
+          cc_addresses?: string[]
+          created_at?: string
+          direction?: string
+          from_address?: string
+          from_name?: string | null
+          gmail_account_id: string
+          gmail_message_id: string
+          has_attachments?: boolean
+          id?: string
+          in_reply_to?: string | null
+          internal_date?: string
+          is_read?: boolean
+          is_starred?: boolean
+          label_ids?: string[]
+          references_header?: string | null
+          reply_to_address?: string | null
+          snippet?: string
+          subject?: string
+          thread_id: string
+          to_addresses?: string[]
+        }
+        Update: {
+          bcc_addresses?: string[]
+          body_html?: string
+          body_text?: string
+          cc_addresses?: string[]
+          created_at?: string
+          direction?: string
+          from_address?: string
+          from_name?: string | null
+          gmail_account_id?: string
+          gmail_message_id?: string
+          has_attachments?: boolean
+          id?: string
+          in_reply_to?: string | null
+          internal_date?: string
+          is_read?: boolean
+          is_starred?: boolean
+          label_ids?: string[]
+          references_header?: string | null
+          reply_to_address?: string | null
+          snippet?: string
+          subject?: string
+          thread_id?: string
+          to_addresses?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_messages_gmail_account_id_fkey"
+            columns: ["gmail_account_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_threads: {
+        Row: {
+          assigned_to: string | null
+          contact_id: string | null
+          created_at: string
+          gmail_account_id: string
+          gmail_thread_id: string
+          id: string
+          is_important: boolean
+          is_starred: boolean
+          is_unread: boolean
+          label_ids: string[]
+          last_message_at: string
+          message_count: number
+          priority: string
+          snippet: string
+          status: string
+          subject: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          contact_id?: string | null
+          created_at?: string
+          gmail_account_id: string
+          gmail_thread_id: string
+          id?: string
+          is_important?: boolean
+          is_starred?: boolean
+          is_unread?: boolean
+          label_ids?: string[]
+          last_message_at?: string
+          message_count?: number
+          priority?: string
+          snippet?: string
+          status?: string
+          subject?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          contact_id?: string | null
+          created_at?: string
+          gmail_account_id?: string
+          gmail_thread_id?: string
+          id?: string
+          is_important?: boolean
+          is_starred?: boolean
+          is_unread?: boolean
+          label_ids?: string[]
+          last_message_at?: string
+          message_count?: number
+          priority?: string
+          snippet?: string
+          status?: string
+          subject?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_threads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_gmail_account_id_fkey"
+            columns: ["gmail_account_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_versions: {
         Row: {
           change_summary: string | null
@@ -2033,6 +2248,51 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           value?: string | null
+        }
+        Relationships: []
+      }
+      gmail_accounts: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          email_address: string
+          id: string
+          is_active: boolean
+          last_error: string | null
+          last_sync_at: string | null
+          refresh_token: string | null
+          sync_status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          email_address: string
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          sync_status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          email_address?: string
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          sync_status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

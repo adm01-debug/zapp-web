@@ -168,7 +168,7 @@ export function useGmail(accountId?: string) {
     queryKey: ['gmail-threads', activeAccount?.id],
     queryFn: async () => {
       if (!activeAccount) return [];
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('email_threads')
         .select('*, contact:contacts(id, name, email, avatar_url)')
         .eq('gmail_account_id', activeAccount.id)
@@ -187,7 +187,7 @@ export function useGmail(accountId?: string) {
     queryKey: ['gmail-messages', selectedThreadId],
     queryFn: async () => {
       if (!selectedThreadId) return [];
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('email_messages')
         .select('*')
         .eq('thread_id', selectedThreadId)
@@ -205,7 +205,7 @@ export function useGmail(accountId?: string) {
     queryKey: ['gmail-labels', activeAccount?.id],
     queryFn: async () => {
       if (!activeAccount) return [];
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('email_labels')
         .select('*')
         .eq('gmail_account_id', activeAccount.id)
