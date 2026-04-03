@@ -43,6 +43,8 @@ import {
   LayoutDashboard,
   Lock,
   Mail,
+  HardDrive,
+  Building2,
 } from 'lucide-react';
 import type { NavItemConfig } from './SidebarNavItem';
 
@@ -93,6 +95,7 @@ export const connectionsNav: readonly NavItemConfig[] = [
   { id: 'integrations', icon: Plug, label: 'Integrações' },
   { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
   { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
+  { id: 'sicoob-bridge', icon: Building2, label: 'Sicoob Bridge' },
 ] as const;
 
 // ── Analytics & Reports ───────────────────────────────────
@@ -115,6 +118,9 @@ export const systemNav: readonly NavItemConfig[] = [
   { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
   { id: 'security', icon: Shield, label: 'Segurança' },
   { id: 'admin', icon: UserCog, label: 'Admin' },
+  { id: 'public-api', icon: Globe, label: 'API Pública' },
+  { id: 'gmail-webhook', icon: Mail, label: 'Gmail Webhook' },
+  { id: 'media-migration', icon: HardDrive, label: 'Migração Mídia' },
   { id: 'themes', icon: Palette, label: 'Skins' },
   { id: 'docs', icon: BookOpen, label: 'Documentação' },
   { id: 'settings', icon: Settings, label: 'Configurações' },

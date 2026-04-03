@@ -46,6 +46,10 @@ export const AdminTelemetriaPage = lazy(() => import('@/pages/AdminTelemetriaPag
 export const NPSDashboard = lazy(() => import('@/components/nps/NPSDashboard').then(m => ({ default: m.NPSDashboard })));
 export const TeamChatView = lazy(() => import('@/components/team-chat/TeamChatView').then(m => ({ default: m.TeamChatView })));
 export const GmailInboxView = lazy(() => import('@/components/gmail/GmailInboxView'));
+export const PublicApiDashboard = lazy(() => import('@/components/admin/PublicApiDashboard').then(m => ({ default: m.PublicApiDashboard })));
+export const GmailWebhookMonitor = lazy(() => import('@/components/admin/GmailWebhookMonitor').then(m => ({ default: m.GmailWebhookMonitor })));
+export const MediaMigrationTool = lazy(() => import('@/components/admin/MediaMigrationTool').then(m => ({ default: m.MediaMigrationTool })));
+export const SicoobBridgeDashboard = lazy(() => import('@/components/admin/SicoobBridgeDashboard').then(m => ({ default: m.SicoobBridgeDashboard })));
 
 export const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');
