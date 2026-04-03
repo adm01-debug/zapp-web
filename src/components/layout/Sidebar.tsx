@@ -44,6 +44,11 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
   const isDark = resolvedTheme === 'dark';
   const [statusOpen, setStatusOpen] = useState(false);
   const { collapsed, toggle } = useSidebarCollapse();
+  const { favorites, toggleFavorite, isFavorite } = useSidebarFavorites();
+
+  // Build favorite items from all nav configs
+  const allNavItems = [...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav];
+  const favoriteItems = favorites.map(id => allNavItems.find(item => item.id === id)).filter(Boolean) as typeof allNavItems;
 
   return (
     <aside
