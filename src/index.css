@@ -258,8 +258,8 @@ html, body, #root {
     --shadow-header: 0 1px 3px hsl(230 25% 12% / 0.06);
 
     /* ===== GLASS ===== */
-    --glass-bg: 0 0% 100% / 0.95;
-    --glass-border: 230 20% 88% / 0.7;
+    --glass-bg: 0 0% 100% / 1;
+    --glass-border: 230 20% 88% / 1;
 
     /* ===== ELEVAÇÃO ===== */
     --elevated: 0 0% 100%;
@@ -421,8 +421,8 @@ html, body, #root {
     --shadow-header: 0 1px 3px hsl(0 0% 0% / 0.5);
 
     /* ===== GLASS ===== */
-    --glass-bg: 240 5% 10% / 0.97;
-    --glass-border: 254 45% 28% / 0.5;
+    --glass-bg: 240 5% 10% / 1;
+    --glass-border: 254 45% 28% / 1;
 
     /* ===== ELEVAÇÃO ===== */
     --elevated: 240 5% 15%;
@@ -717,13 +717,13 @@ select:focus-visible {
 
   /* Glass Card */
   .glass-card {
-    @apply rounded-xl p-6 backdrop-blur-sm border transition-all duration-200;
+    @apply rounded-xl p-6 border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }
 
   .glass-panel {
-    @apply backdrop-blur-sm border transition-all duration-200;
+    @apply border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
     box-shadow: var(--shadow-lg);
@@ -905,13 +905,13 @@ select:focus-visible {
 
   /* ===== GLASS MORPHISM ===== */
   .glass {
-    @apply backdrop-blur-md border transition-all duration-200;
+    @apply border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }
 
   .glass-strong {
-    @apply backdrop-blur-xl border transition-all duration-200;
+    @apply border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }

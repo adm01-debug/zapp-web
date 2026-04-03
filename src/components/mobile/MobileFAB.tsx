@@ -52,7 +52,7 @@ export function MobileFAB({ onNewConversation, onNewContact, onNewCampaign, clas
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background/40 backdrop-blur-[2px] z-30"
+              className="fixed inset-0 bg-background/60 z-30"
               onClick={() => setIsOpen(false)}
             />
             
@@ -66,7 +66,7 @@ export function MobileFAB({ onNewConversation, onNewContact, onNewCampaign, clas
                   transition={{ delay: i * 0.05, type: 'spring', stiffness: 400, damping: 25 }}
                   className="flex items-center gap-2"
                 >
-                  <span className="text-xs font-medium text-foreground bg-card/95 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md border border-border/40 whitespace-nowrap">
+                  <span className="text-xs font-medium text-foreground bg-card px-3 py-1.5 rounded-lg shadow-md border border-border/40 whitespace-nowrap">
                     {action.label}
                   </span>
                   <button

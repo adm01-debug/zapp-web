@@ -217,7 +217,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         initial={{ opacity: 0, x: 300 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 300 }}
-        className="w-80 border-l border-border bg-card/95 backdrop-blur-sm flex flex-col h-full"
+        className="w-80 border-l border-border bg-card flex flex-col h-full"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
