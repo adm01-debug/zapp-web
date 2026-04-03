@@ -575,9 +575,33 @@ serve(async (req) => {
       });
     }
 
-    // POST /chat/findStatusMessage/{instance}
+    // POST /chat/findMessages/{instance} filtered to WhatsApp stories
     if (action === 'find-status-messages') {
-      return await proxy(`/chat/findStatusMessage/${instance}`, 'POST', {});
+      const response = await proxy(`/chat/findMessages/${instance}`, 'POST', {
+        where: {
+          key: {
+            remoteJid: 'status@broadcast',
+          },
+        },
+        page: body.page ?? 1,
+        offset: body.offset ?? 200,
+      });
+
+      const data = await response.json();
+
+      if (data?.error === true) {
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const records = Array.isArray(data?.messages?.records) ? data.messages.records : [];
+
+      return new Response(JSON.stringify(records), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // POST /chat/findContacts/{instance}
