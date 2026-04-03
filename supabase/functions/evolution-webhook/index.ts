@@ -208,7 +208,7 @@ async function persistMediaToStorage(
 
 // Persist media via Evolution API getBase64 fallback
 async function persistMediaViaApi(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   messageType: string,
