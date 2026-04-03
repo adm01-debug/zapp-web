@@ -86,8 +86,8 @@ export function AppShell({
         />
       )}
 
-      {/* Desktop Sidebar */}
-      {!isMobile && (
+      {/* Desktop Sidebar — hidden in zen mode */}
+      {!isMobile && !isZen && (
         <Sidebar
           currentView={currentView}
           onViewChange={setCurrentView}
@@ -111,6 +111,27 @@ export function AppShell({
           isMobile && 'pt-12 pb-[56px]'
         )}
       >
+        {/* Zen mode toggle — desktop only, chat views */}
+        {!isMobile && isInboxView && (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleZen}
+                className={cn(
+                  'absolute top-3 right-3 z-30 w-8 h-8 rounded-lg flex items-center justify-center',
+                  'text-muted-foreground/50 hover:text-foreground hover:bg-muted/60 transition-all',
+                  'border border-border/30 hover:border-border/60 backdrop-blur-sm bg-card/50'
+                )}
+                aria-label={isZen ? 'Sair do modo zen' : 'Modo zen'}
+              >
+                {isZen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left" sideOffset={8} className="text-xs">
+              {isZen ? 'Sair do modo zen (Esc)' : 'Modo zen — foco total'}
+            </TooltipContent>
+          </Tooltip>
+        )}
         {showChecklist && currentView === 'dashboard' && (
           <div className="absolute top-4 right-4 z-20 w-96 max-w-[calc(100%-2rem)]">
             <OnboardingChecklist onNavigate={setCurrentView} />
