@@ -114,7 +114,7 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
           <AnimatePresence>
             {statusMessages.map((msg, index) => (
               <motion.div
-                key={msg.key?.id || index}
+                key={msg.key?.id || msg.id || index}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
