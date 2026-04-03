@@ -95,6 +95,7 @@ export const connectionsNav: readonly NavItemConfig[] = [
   { id: 'integrations', icon: Plug, label: 'Integrações' },
   { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
   { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
+  { id: 'sicoob-bridge', icon: Building2, label: 'Sicoob Bridge' },
 ] as const;
 
 // ── Analytics & Reports ───────────────────────────────────
