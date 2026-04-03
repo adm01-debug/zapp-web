@@ -22,7 +22,7 @@ const staggerContainer = {
 
 const staggerItem = {
   hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] } },
 };
 
 function SkeletonPulse({ className }: { className?: string }) {
