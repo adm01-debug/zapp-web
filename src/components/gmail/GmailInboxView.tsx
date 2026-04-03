@@ -17,7 +17,7 @@ import { EmailThreadView } from './EmailThreadView';
 import { EmailComposer } from './EmailComposer';
 
 function getInitials(name: string | null | undefined, email?: string): string {
-  if (name) return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  if (name) return name.split(' ').filter(w => w.length > 0).map(w => w[0]).slice(0, 2).join('').toUpperCase();
   if (email) return email[0]?.toUpperCase() || '?';
   return '?';
 }
@@ -120,7 +120,12 @@ export default function GmailInboxView() {
     subscribeToThreads,
   } = useGmail();
 
-  const [selectedThread, setSelectedThread] = useState<EmailThread | null>(null);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  // Derive thread from array to avoid stale snapshots
+  const selectedThread = useMemo(
+    () => selectedThreadId ? threads.find(t => t.id === selectedThreadId) || null : null,
+    [selectedThreadId, threads]
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [showComposer, setShowComposer] = useState(false);
   const [activeTab, setActiveTab] = useState('inbox');
@@ -169,7 +174,7 @@ export default function GmailInboxView() {
     return (
       <EmailThreadView
         thread={selectedThread}
-        onBack={() => setSelectedThread(null)}
+        onBack={() => setSelectedThreadId(null)}
       />
     );
   }
@@ -179,12 +184,12 @@ export default function GmailInboxView() {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20">
         <Mail className="w-16 h-16 text-muted-foreground/20 mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Gmail nao conectado</h3>
+        <h3 className="text-lg font-semibold mb-2">Gmail não conectado</h3>
         <p className="text-sm text-muted-foreground text-center max-w-sm mb-4">
-          Conecte sua conta Gmail nas Integracoes para visualizar e gerenciar seus emails aqui.
+          Conecte sua conta Gmail nas Integrações para visualizar e gerenciar seus emails aqui.
         </p>
         <Badge variant="outline" className="text-xs">
-          Integracoes &rarr; Gmail &rarr; Conectar
+          Integrações &rarr; Gmail &rarr; Conectar
         </Badge>
       </div>
     );
@@ -261,7 +266,7 @@ export default function GmailInboxView() {
           </TabsTrigger>
           <TabsTrigger value="unread" className="text-xs gap-1 data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
             <MailOpen className="w-3.5 h-3.5" />
-            Nao lidos
+            Não lidos
           </TabsTrigger>
           <TabsTrigger value="starred" className="text-xs gap-1 data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
             <Star className="w-3.5 h-3.5" />
@@ -304,7 +309,7 @@ export default function GmailInboxView() {
                     key={thread.id}
                     thread={thread}
                     isSelected={false}
-                    onClick={() => setSelectedThread(thread)}
+                    onClick={() => setSelectedThreadId(thread.id)}
                   />
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Send, X, Paperclip, ChevronDown, ChevronUp,
-  Bold, Italic, Link2, List, Loader2, Minimize2, Maximize2
+  Loader2, Minimize2, Maximize2
 } from 'lucide-react';
 import { useGmail, type EmailMessage } from '@/hooks/useGmail';
 
@@ -260,18 +264,6 @@ export function EmailComposer({
 
                 {/* Toolbar */}
                 <div className="flex items-center gap-1 border-b pb-1">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Negrito">
-                    <Bold className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Italico">
-                    <Italic className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Link">
-                    <Link2 className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Lista">
-                    <List className="w-3.5 h-3.5" />
-                  </Button>
                   <div className="flex-1" />
                   <Button
                     variant="ghost"
@@ -303,7 +295,7 @@ export function EmailComposer({
                 {attachments.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {attachments.map((file, i) => (
-                      <Badge key={i} variant="secondary" className="text-[10px] gap-1">
+                      <Badge key={`${file.name}-${file.lastModified}-${i}`} variant="secondary" className="text-[10px] gap-1">
                         <Paperclip className="w-2.5 h-2.5" />
                         {file.name}
                         <button onClick={() => removeAttachment(i)} className="ml-0.5 hover:text-destructive">
@@ -316,9 +308,27 @@ export function EmailComposer({
 
                 {/* Send Button */}
                 <div className="flex items-center justify-between pt-1">
-                  <Button variant="ghost" size="sm" onClick={onClose}>
-                    Descartar
-                  </Button>
+                  {(to.trim() || body.trim() || subject.trim()) ? (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm">Descartar</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Descartar rascunho?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            O conteúdo do email será perdido.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+                          <AlertDialogAction onClick={onClose}>Descartar</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : (
+                    <Button variant="ghost" size="sm" onClick={onClose}>Descartar</Button>
+                  )}
                   <Button
                     onClick={handleSend}
                     disabled={!to.trim() || !subject.trim() || isSending}

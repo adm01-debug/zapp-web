@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -159,6 +159,9 @@ export function useGmail(accountId?: string) {
       queryClient.invalidateQueries({ queryKey: ['gmail-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['gmail-threads'] });
       toast.success('Gmail desconectado');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao desconectar: ${error.message}`);
     },
   });
 
@@ -393,8 +396,8 @@ export function useGmail(accountId?: string) {
 
   // ── Stats ───────────────────────────────────────────────────────────────
 
-  const unreadCount = threads.filter(t => t.is_unread).length;
-  const starredCount = threads.filter(t => t.is_starred).length;
+  const unreadCount = useMemo(() => threads.filter(t => t.is_unread).length, [threads]);
+  const starredCount = useMemo(() => threads.filter(t => t.is_starred).length, [threads]);
 
   return {
     // Accounts

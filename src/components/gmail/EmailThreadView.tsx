@@ -46,7 +46,7 @@ interface EmailThreadViewProps {
 
 function getInitials(name: string | null, email: string): string {
   if (name) {
-    return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    return name.split(' ').filter(w => w.length > 0).map(w => w[0]).slice(0, 2).join('').toUpperCase();
   }
   return email[0]?.toUpperCase() || '?';
 }
@@ -172,7 +172,7 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
 }
 
 export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
-  const { threadMessages, messagesLoading, markAsRead, trashMessage, setSelectedThreadId } = useGmail();
+  const { threadMessages, messagesLoading, markAsRead, trashMessage, modifyLabels, setSelectedThreadId } = useGmail();
   const [composerMode, setComposerMode] = useState<'reply' | 'reply-all' | 'forward' | null>(null);
 
   // Set selected thread to load messages
@@ -229,7 +229,20 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
           <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => {
+                    if (lastMessage) {
+                      modifyLabels.mutate({
+                        message_id: lastMessage.gmail_message_id,
+                        remove_labels: ['INBOX'],
+                      });
+                      onBack();
+                    }
+                  }}
+                >
                   <Archive className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
