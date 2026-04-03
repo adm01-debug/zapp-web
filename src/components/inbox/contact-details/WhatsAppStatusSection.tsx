@@ -50,6 +50,8 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
     if (msg.message?.conversation) return msg.message.conversation;
     if (msg.message?.imageMessage) return '📷 Foto';
     if (msg.message?.videoMessage) return '🎥 Vídeo';
+    // Fallback for status delivery receipts
+    if (msg.status) return `Status: ${msg.status}`;
     return 'Status';
   };
 
@@ -112,7 +114,7 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
           <AnimatePresence>
             {statusMessages.map((msg, index) => (
               <motion.div
-                key={msg.key?.id || index}
+                key={msg.key?.id || msg.id || index}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}

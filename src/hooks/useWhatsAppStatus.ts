@@ -3,7 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { log } from '@/lib/logger';
 
 export interface WhatsAppStatusMessage {
-  key: {
+  id: string;
+  fromMe: boolean;
+  remoteJid: string;
+  participant?: string;
+  status?: string;
+  messageId?: string;
+  keyId?: string;
+  // When it contains actual message content
+  key?: {
     remoteJid: string;
     fromMe: boolean;
     id: string;
@@ -27,7 +35,6 @@ export interface WhatsAppStatusMessage {
   };
   messageTimestamp?: number | string;
   pushName?: string;
-  status?: number;
 }
 
 export interface WhatsAppPresenceInfo {
@@ -126,18 +133,28 @@ export function useWhatsAppStatus(phone: string | undefined): WhatsAppStatusData
             ? statusResult.value.data 
             : [];
           
-          // Filter statuses from this contact's phone
+          // Filter statuses from this contact's phone (not fromMe)
           const cleanPhone = phone.replace(/\D/g, '');
-          const contactStatuses = allStatuses.filter((s: WhatsAppStatusMessage) => {
-            const remoteJid = s.key?.remoteJid || '';
-            return remoteJid.includes(cleanPhone) || remoteJid === 'status@broadcast';
+          const contactStatuses = allStatuses.filter((s: any) => {
+            // Check both flat and nested remoteJid formats
+            const remoteJid = s.remoteJid || s.key?.remoteJid || '';
+            const isFromMe = s.fromMe ?? s.key?.fromMe ?? true;
+            const participant = s.participant || '';
+            
+            // We want stories FROM this contact (not our own)
+            const matchesPhone = remoteJid.includes(cleanPhone) || participant.includes(cleanPhone);
+            
+            // Also include status@broadcast entries that have this contact as participant
+            const isBroadcast = remoteJid === 'status@broadcast';
+            const broadcastMatch = isBroadcast && participant.includes(cleanPhone);
+            
+            return (!isFromMe && matchesPhone) || broadcastMatch;
           });
           
           setStatusMessages(contactStatuses);
         }
 
-        // Presence: the send-chat-presence call itself tests if the contact is reachable
-        // We'll use a separate approach - check if we get a response
+        // Presence
         if (presenceResult.status === 'fulfilled') {
           setPresence({ isOnline: false, lastSeen: null, loading: false });
         } else {

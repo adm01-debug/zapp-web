@@ -575,9 +575,9 @@ serve(async (req) => {
       });
     }
 
-    // GET /chat/findStatusMessage/{instance}
+    // POST /chat/findStatusMessage/{instance}
     if (action === 'find-status-messages') {
-      return await proxy(`/chat/findStatusMessage/${instance}`, 'GET');
+      return await proxy(`/chat/findStatusMessage/${instance}`, 'POST', {});
     }
 
     // POST /chat/findContacts/{instance}
