@@ -35,8 +35,9 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
   }
 }
 
+// deno-lint-ignore no-explicit-any
 async function persistProfilePicture(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   phone: string,
   profilePicUrl: string
 ): Promise<string | null> {
