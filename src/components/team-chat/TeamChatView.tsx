@@ -19,7 +19,7 @@ export function TeamChatView() {
   const selectedConversation = conversations.find(c => c.id === selectedId) || null;
 
   return (
-    <div className="flex h-full bg-background">
+    <div className="flex h-full w-full bg-background">
       {/* Sidebar */}
       <div className={cn(
         "w-80 border-r border-border flex flex-col shrink-0",
@@ -36,7 +36,7 @@ export function TeamChatView() {
 
       {/* Chat area */}
       <div className={cn(
-        "flex-1 flex flex-col min-w-0",
+        "flex-1 flex flex-col min-w-0 w-0",
         !selectedId && "hidden md:flex"
       )}>
         {selectedConversation ? (
