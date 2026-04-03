@@ -76,17 +76,17 @@ export function CampaignsView() {
   };
 
   return (
-    <div className="h-full flex flex-col p-6 space-y-6">
+    <div className="h-full flex flex-col p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-            <Megaphone className="w-7 h-7 text-primary" />
+          <h1 className="text-xl md:text-2xl font-display font-bold text-foreground flex items-center gap-2">
+            <Megaphone className="w-6 h-6 md:w-7 md:h-7 text-primary" />
             Campanhas
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Envio em massa e broadcast para contatos</p>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">Envio em massa e broadcast para contatos</p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="gap-2">
+        <Button onClick={() => setShowCreate(true)} className="gap-2 w-full sm:w-auto">
           <Plus className="w-4 h-4" /> Nova Campanha
         </Button>
       </div>
