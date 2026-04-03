@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useWhatsAppStatus, type WhatsAppStatusMessage } from '@/hooks/useWhatsAppStatus';
+import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -12,7 +13,12 @@ interface WhatsAppStatusSectionProps {
   phone: string;
 }
 
-/* ── helpers ── */
+interface ResolvedMedia {
+  src: string | null;
+  mimetype: string | null;
+}
+
+const DEFAULT_INSTANCE_NAME = 'wpp2';
 
 const getStatusIcon = (msg: WhatsAppStatusMessage) => {
   if (msg.message?.imageMessage) return <ImageIcon className="w-3.5 h-3.5 text-primary" />;
@@ -44,9 +50,6 @@ const getMediaType = (msg: WhatsAppStatusMessage): 'image' | 'video' | 'text' =>
   return 'text';
 };
 
-const getMediaUrl = (msg: WhatsAppStatusMessage) =>
-  msg.message?.imageMessage?.url || msg.message?.videoMessage?.url || null;
-
 const getTextContent = (msg: WhatsAppStatusMessage) => {
   if (msg.message?.imageMessage?.caption) return msg.message.imageMessage.caption;
   if (msg.message?.videoMessage?.caption) return msg.message.videoMessage.caption;
@@ -64,7 +67,10 @@ const getBgColor = (msg: WhatsAppStatusMessage) => {
   return null;
 };
 
-/* ── Story Viewer (modal) ── */
+const toDataUrl = (base64?: string | null, mimetype?: string | null) => {
+  if (!base64 || !mimetype) return null;
+  return `data:${mimetype};base64,${base64}`;
+};
 
 function StoryViewer({
   messages,
@@ -79,7 +85,11 @@ function StoryViewer({
   onClose: () => void;
   pushName?: string;
 }) {
+  const { getMediaBase64 } = useEvolutionApi();
   const [index, setIndex] = useState(initialIndex);
+  const [resolvedMedia, setResolvedMedia] = useState<ResolvedMedia>({ src: null, mimetype: null });
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaError, setMediaError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) setIndex(initialIndex);
@@ -99,11 +109,60 @@ function StoryViewer({
     return () => window.removeEventListener('keydown', handler);
   }, [open, goNext, goPrev, onClose]);
 
+  useEffect(() => {
+    if (!open || !messages.length) return;
+
+    const current = messages[index];
+    const mediaType = getMediaType(current);
+
+    setResolvedMedia({ src: null, mimetype: null });
+    setMediaError(null);
+
+    if (mediaType === 'text') {
+      setMediaLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadMedia = async () => {
+      setMediaLoading(true);
+      try {
+        const response = await getMediaBase64(
+          DEFAULT_INSTANCE_NAME,
+          current,
+          mediaType === 'video',
+        ) as { base64?: string; mimetype?: string } | null;
+
+        if (cancelled) return;
+
+        const src = toDataUrl(response?.base64 ?? null, response?.mimetype ?? null);
+        if (!src) {
+          setMediaError('Não foi possível carregar a mídia deste status.');
+          setResolvedMedia({ src: null, mimetype: response?.mimetype ?? null });
+          return;
+        }
+
+        setResolvedMedia({ src, mimetype: response?.mimetype ?? null });
+      } catch (error) {
+        if (cancelled) return;
+        setMediaError(error instanceof Error ? error.message : 'Erro ao carregar mídia');
+      } finally {
+        if (!cancelled) setMediaLoading(false);
+      }
+    };
+
+    loadMedia();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, index, messages, getMediaBase64]);
+
   if (!open || !messages.length) return null;
 
   const current = messages[index];
   const mediaType = getMediaType(current);
-  const mediaUrl = getMediaUrl(current);
   const textContent = getTextContent(current);
   const bgColor = getBgColor(current);
   const time = getStatusTime(current);
@@ -111,7 +170,6 @@ function StoryViewer({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 bg-black/95 border-border/20 overflow-hidden [&>button]:hidden">
-        {/* Progress bar */}
         <div className="flex gap-0.5 px-3 pt-3">
           {messages.map((_, i) => (
             <div key={i} className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/20">
@@ -125,7 +183,6 @@ function StoryViewer({
           ))}
         </div>
 
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
@@ -146,9 +203,7 @@ function StoryViewer({
           </div>
         </div>
 
-        {/* Content area */}
         <div className="relative flex items-center justify-center min-h-[50vh] max-h-[70vh]">
-          {/* Navigation buttons */}
           {index > 0 && (
             <button
               onClick={goPrev}
@@ -166,7 +221,6 @@ function StoryViewer({
             </button>
           )}
 
-          {/* Media / Text */}
           <AnimatePresence mode="wait">
             <motion.div
               key={index}
@@ -176,20 +230,44 @@ function StoryViewer({
               transition={{ duration: 0.2 }}
               className="w-full h-full flex items-center justify-center px-14"
             >
-              {mediaType === 'image' && mediaUrl ? (
-                <img
-                  src={mediaUrl}
-                  alt="Status"
-                  className="max-w-full max-h-[65vh] object-contain rounded-lg"
-                  loading="eager"
-                />
-              ) : mediaType === 'video' && mediaUrl ? (
-                <video
-                  src={mediaUrl}
-                  controls
-                  autoPlay
-                  className="max-w-full max-h-[65vh] object-contain rounded-lg"
-                />
+              {mediaType === 'image' ? (
+                mediaLoading ? (
+                  <div className="flex flex-col items-center gap-3 text-white/70">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <p className="text-sm">Carregando imagem...</p>
+                  </div>
+                ) : resolvedMedia.src ? (
+                  <img
+                    src={resolvedMedia.src}
+                    alt="Status"
+                    className="max-w-full max-h-[65vh] object-contain rounded-lg"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="text-center text-white/70 space-y-2">
+                    <ImageIcon className="w-8 h-8 mx-auto" />
+                    <p className="text-sm">{mediaError || 'Imagem indisponível'}</p>
+                  </div>
+                )
+              ) : mediaType === 'video' ? (
+                mediaLoading ? (
+                  <div className="flex flex-col items-center gap-3 text-white/70">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <p className="text-sm">Carregando vídeo...</p>
+                  </div>
+                ) : resolvedMedia.src ? (
+                  <video
+                    src={resolvedMedia.src}
+                    controls
+                    autoPlay
+                    className="max-w-full max-h-[65vh] object-contain rounded-lg"
+                  />
+                ) : (
+                  <div className="text-center text-white/70 space-y-2">
+                    <Video className="w-8 h-8 mx-auto" />
+                    <p className="text-sm">{mediaError || 'Vídeo indisponível'}</p>
+                  </div>
+                )
               ) : (
                 <div
                   className="w-full max-w-md p-8 rounded-2xl flex items-center justify-center text-center"
@@ -204,21 +282,17 @@ function StoryViewer({
           </AnimatePresence>
         </div>
 
-        {/* Caption overlay */}
         {mediaType !== 'text' && textContent && (
           <div className="px-6 py-4 bg-gradient-to-t from-black/80 to-transparent">
             <p className="text-sm text-white/90 whitespace-pre-wrap break-words text-center">{textContent}</p>
           </div>
         )}
 
-        {/* Bottom padding */}
         {(mediaType === 'text' || !textContent) && <div className="h-4" />}
       </DialogContent>
     </Dialog>
   );
 }
-
-/* ── Main Section ── */
 
 export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
   const { statusMessages, presence, loading, error, refresh } = useWhatsAppStatus(phone);
@@ -254,7 +328,6 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
 
   return (
     <div className="space-y-3" data-testid="whatsapp-status-section">
-      {/* Presence indicator */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div
@@ -284,7 +357,6 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
         </Button>
       </div>
 
-      {/* Status list */}
       {statusMessages.length === 0 ? (
         <div className="flex flex-col items-center gap-1.5 py-4 text-center">
           <div className="w-10 h-10 rounded-full bg-muted/20 flex items-center justify-center">
@@ -323,7 +395,6 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
         </div>
       )}
 
-      {/* Story Viewer Modal */}
       <StoryViewer
         messages={statusMessages}
         initialIndex={viewerIndex}
