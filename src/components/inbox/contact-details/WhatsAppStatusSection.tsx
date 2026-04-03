@@ -50,6 +50,8 @@ export function WhatsAppStatusSection({ phone }: WhatsAppStatusSectionProps) {
     if (msg.message?.conversation) return msg.message.conversation;
     if (msg.message?.imageMessage) return '📷 Foto';
     if (msg.message?.videoMessage) return '🎥 Vídeo';
+    // Fallback for status delivery receipts
+    if (msg.status) return `Status: ${msg.status}`;
     return 'Status';
   };
 
