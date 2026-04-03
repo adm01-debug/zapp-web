@@ -40,7 +40,7 @@ export function TypingIndicator({
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             className={cn(
-              "relative flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-muted/80 to-muted/50 backdrop-blur-sm border border-border/40 rounded-2xl rounded-bl-md w-fit shadow-lg",
+              "relative flex items-center gap-3 px-4 py-3 bg-muted border border-border/40 rounded-2xl rounded-bl-md w-fit shadow-lg",
               className
             )}
           >
