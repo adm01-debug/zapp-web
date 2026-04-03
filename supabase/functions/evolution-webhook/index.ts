@@ -141,8 +141,9 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
 }
 
 // Persist media (image/video/audio/document) to Supabase Storage
+// deno-lint-ignore no-explicit-any
 async function persistMediaToStorage(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   cdnUrl: string,
   messageType: string,
   messageId: string,
