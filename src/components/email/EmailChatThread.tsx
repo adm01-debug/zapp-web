@@ -47,7 +47,7 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
     trashMessage, setSelectedThreadId, activeAccount
   } = useGmail();
 
-  const [replyMode, setReplyMode] = useState<'reply' | 'forward' | 'new'>('reply');
+  const [replyMode, setReplyMode] = useState<'reply' | 'reply-all' | 'forward' | 'new'>('reply');
   const [showComposer, setShowComposer] = useState(false);
   const [composerMode, setComposerMode] = useState<'reply' | 'forward'>('reply');
   const messagesEndRef = useRef<HTMLDivElement>(null);
