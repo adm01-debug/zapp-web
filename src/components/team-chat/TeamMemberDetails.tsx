@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -94,6 +95,7 @@ function SectionHeader({ icon: Icon, label, open, onToggle }: { icon: React.Elem
 }
 
 export function TeamMemberDetails({ conversation, onClose }: TeamMemberDetailsProps) {
+  const { profile } = useAuth();
   const [sections, setSections] = useState({
     info: true,
     team: false,
@@ -105,9 +107,9 @@ export function TeamMemberDetails({ conversation, onClose }: TeamMemberDetailsPr
     setSections({ info: allClosed, team: allClosed, activity: allClosed });
   };
 
-  // For direct chats, get the other member's profile
+  // For direct chats, get the other member's profile (exclude current user)
   const otherMemberId = conversation.type === 'direct'
-    ? conversation.members?.find(m => m.profile?.id !== undefined)?.profile_id
+    ? conversation.members?.find(m => m.profile_id !== profile?.id)?.profile_id
     : null;
 
   // Fetch full profile data (including birthday, department, etc.)
