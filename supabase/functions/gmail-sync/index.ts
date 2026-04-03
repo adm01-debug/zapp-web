@@ -363,10 +363,10 @@ serve(async (req) => {
           return new Response(JSON.stringify({ success: true, ...result }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
-        } catch (err) {
+        } catch (err: unknown) {
           await supabase.from("gmail_accounts").update({
             sync_status: "error",
-            last_error: err.message,
+            last_error: err instanceof Error ? err.message : String(err),
           }).eq("id", account.id);
           throw err;
         }

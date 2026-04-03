@@ -269,8 +269,8 @@ serve(async (req) => {
             .update({ message_count: count || 0 })
             .eq("id", thread.id);
         }
-      } catch (err) {
-        console.error(`Error processing message ${msgId}:`, err.message);
+      } catch (err: unknown) {
+        console.error(`Error processing message ${msgId}:`, err instanceof Error ? err.message : err);
       }
     }
 
