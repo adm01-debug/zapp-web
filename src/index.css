@@ -717,13 +717,13 @@ select:focus-visible {
 
   /* Glass Card */
   .glass-card {
-    @apply rounded-xl p-6 backdrop-blur-md border transition-all duration-200;
+    @apply rounded-xl p-6 backdrop-blur-sm border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }
 
   .glass-panel {
-    @apply backdrop-blur-xl border transition-all duration-200;
+    @apply backdrop-blur-sm border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
     box-shadow: var(--shadow-lg);
