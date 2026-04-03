@@ -48,6 +48,8 @@ export function AppShell({
   loading,
 }: AppShellProps) {
   const isMobile = useIsMobile();
+  const { isZen, toggleZen } = useZenMode();
+  const isInboxView = currentView === 'inbox' || currentView === 'team-chat';
 
   // Mobile edge-swipe navigation
   useSwipeNavigation({
