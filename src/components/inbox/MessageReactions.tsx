@@ -192,7 +192,7 @@ export function QuickReactionBar({ messageId, isSent }: QuickReactionBarProps) {
       transition={{ duration: 0.15 }}
       className={cn(
         "absolute -top-8 flex items-center gap-0.5 p-1 rounded-full",
-        "bg-popover/95 backdrop-blur-sm border border-border/50 shadow-lg",
+        "bg-popover border border-border/50 shadow-lg",
         isSent ? "right-0" : "left-0"
       )}
     >
