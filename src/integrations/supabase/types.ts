@@ -3211,6 +3211,7 @@ export type Database = {
         Row: {
           access_level: string | null
           avatar_url: string | null
+          birthday: string | null
           created_at: string
           department: string | null
           email: string | null
@@ -3229,6 +3230,7 @@ export type Database = {
         Insert: {
           access_level?: string | null
           avatar_url?: string | null
+          birthday?: string | null
           created_at?: string
           department?: string | null
           email?: string | null
@@ -3247,6 +3249,7 @@ export type Database = {
         Update: {
           access_level?: string | null
           avatar_url?: string | null
+          birthday?: string | null
           created_at?: string
           department?: string | null
           email?: string | null
