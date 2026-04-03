@@ -85,8 +85,16 @@ export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, on
             )}>
               {items.map((item) => (
                 <li key={item.id}>
-                  <SidebarNavItem item={item} currentView={currentView} onViewChange={onViewChange} collapsed={collapsed} />
+                  <SidebarNavItem
+                    item={item}
+                    currentView={currentView}
+                    onViewChange={onViewChange}
+                    collapsed={collapsed}
+                    onToggleFavorite={onToggleFavorite}
+                    isFavorite={isFavorite?.(item.id)}
+                  />
                 </li>
+              ))}
               ))}
             </ul>
           </motion.nav>
