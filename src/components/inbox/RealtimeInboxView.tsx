@@ -829,18 +829,31 @@ export function RealtimeInboxView() {
 
           {/* Row 2: Search + Type filter */}
           <div className="flex items-center gap-1.5">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/60" />
-              <Input
-                placeholder="Buscar... ⌘K"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+            {isMobile ? (
+              /* Mobile: compact search icon that opens global search */
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setGlobalSearchOpen(true)}
-                className="pl-7 bg-muted/40 border-0 rounded-md h-7 text-[11px] cursor-pointer placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30"
-                readOnly
-              />
-            </div>
-            <div className="w-[130px] shrink-0">
+                className="w-7 h-7 shrink-0"
+                aria-label="Buscar"
+              >
+                <SearchIcon className="w-3.5 h-3.5 text-muted-foreground" />
+              </Button>
+            ) : (
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/60" />
+                <Input
+                  placeholder="Buscar... ⌘K"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onClick={() => setGlobalSearchOpen(true)}
+                  className="pl-7 bg-muted/40 border-0 rounded-md h-7 text-[11px] cursor-pointer placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30"
+                  readOnly
+                />
+              </div>
+            )}
+            <div className={cn("shrink-0", isMobile ? "flex-1" : "w-[130px]")}>
               <ContactTypeFilter
                 value={selectedContactType}
                 onChange={handleContactTypeChange}
