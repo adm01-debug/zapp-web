@@ -36,6 +36,8 @@ import { AddMembersDialog } from './AddMembersDialog';
 interface Props {
   conversation: TeamConversation;
   onBack: () => void;
+  onToggleDetails?: () => void;
+  showDetails?: boolean;
 }
 
 function formatTime(dateStr: string) {
