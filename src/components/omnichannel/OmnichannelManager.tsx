@@ -106,19 +106,19 @@ export function OmnichannelManager() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
                 <Globe className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <CardTitle>Canais Omnichannel</CardTitle>
-                <CardDescription>Gerencie todos os canais de comunicação em um só lugar</CardDescription>
+                <CardTitle className="text-base md:text-lg">Canais Omnichannel</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Gerencie todos os canais de comunicação em um só lugar</CardDescription>
               </div>
             </div>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button><Plus className="w-4 h-4 mr-2" />Adicionar Canal</Button>
+                <Button className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" />Adicionar Canal</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

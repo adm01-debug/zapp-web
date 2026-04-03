@@ -114,7 +114,7 @@ export function CampaignsView() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Input
           placeholder="Buscar campanha..."
           value={search}

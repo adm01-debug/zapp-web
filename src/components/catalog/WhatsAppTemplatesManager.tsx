@@ -310,7 +310,7 @@ export function WhatsAppTemplatesManager() {
 
       {/* Templates Table */}
       <Card className="border-secondary/20">
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Carregando templates...</div>
           ) : filteredTemplates.length === 0 ? (
