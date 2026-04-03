@@ -140,7 +140,7 @@ export function EmptyState({
   const Icon = IconOverride || config.icon;
   const title = titleOverride || config.title;
   const description = descOverride || config.description;
-  const actionLabel = actionOverride || config.actionLabel;
+  const actionLabel = actionOverride || ('actionLabel' in config ? config.actionLabel : undefined);
 
   return (
     <motion.div
