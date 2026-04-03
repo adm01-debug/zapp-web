@@ -197,11 +197,11 @@ export function TicketTabs({
               value={selectedQueueId || 'all'} 
               onValueChange={(v) => onQueueChange(v === 'all' ? null : v)}
             >
-              <SelectTrigger className="h-6 w-auto min-w-[80px] max-w-[120px] text-[10px] border-border/40 bg-transparent px-2 gap-1">
+              <SelectTrigger className={cn("h-6 w-auto text-[10px] border-border/40 bg-transparent px-2 gap-1", isMobile ? "min-w-[60px] max-w-[90px]" : "min-w-[80px] max-w-[120px]")}>
                 <SelectValue placeholder="Fila" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" className="text-xs">Todas filas</SelectItem>
+                <SelectItem value="all" className="text-xs">{isMobile ? 'Todas' : 'Todas filas'}</SelectItem>
                 {queues.map(q => (
                   <SelectItem key={q.id} value={q.id} className="text-xs">
                     <div className="flex items-center gap-1.5">
