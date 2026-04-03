@@ -236,13 +236,48 @@ export function EmailChatInbox() {
         {/* Thread list */}
         <ScrollArea className="flex-1">
           {threadsLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="p-3 space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 animate-pulse">
+                  <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-3.5 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                    <Skeleton className="h-2.5 w-full" />
+                  </div>
+                  <Skeleton className="h-3 w-10" />
+                </div>
+              ))}
             </div>
           ) : filteredThreads.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <Inbox className="w-10 h-10 mb-2 opacity-20" />
-              <p className="text-xs">{searchQuery ? 'Nenhum resultado' : 'Inbox vazio'}</p>
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground px-6">
+              {searchQuery ? (
+                <>
+                  <MailX className="w-12 h-12 mb-3 opacity-20" />
+                  <p className="text-sm font-medium mb-1">Nenhum resultado</p>
+                  <p className="text-xs text-center">Tente buscar por outro termo ou remova os filtros.</p>
+                  <Button variant="outline" size="sm" className="mt-3 text-xs" onClick={() => { setSearchQuery(''); setFilter('all'); setLabelFilter('all'); }}>
+                    Limpar filtros
+                  </Button>
+                </>
+              ) : filter !== 'all' || labelFilter !== 'all' ? (
+                <>
+                  <Inbox className="w-12 h-12 mb-3 opacity-20" />
+                  <p className="text-sm font-medium mb-1">Nenhum email neste filtro</p>
+                  <Button variant="outline" size="sm" className="mt-2 text-xs" onClick={() => { setFilter('all'); setLabelFilter('all'); }}>
+                    Ver todos
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Inbox className="w-12 h-12 mb-3 opacity-20" />
+                  <p className="text-sm font-medium mb-1">Inbox vazio</p>
+                  <p className="text-xs text-center">Sincronize seus emails para começar.</p>
+                  <Button variant="outline" size="sm" className="mt-3 text-xs" onClick={() => syncInbox.mutate({})}>
+                    <RefreshCw className="w-3 h-3 mr-1" /> Sincronizar agora
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             filteredThreads.map(thread => (
