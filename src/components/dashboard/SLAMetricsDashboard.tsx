@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+const SLAConfigurationManager = lazy(() => import('@/components/settings/SLAConfigurationManager').then(m => ({ default: m.SLAConfigurationManager })));
 import { log } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
