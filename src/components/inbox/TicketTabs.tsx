@@ -159,7 +159,7 @@ export function TicketTabs({
 
       {/* Sub-tabs for "Abertos" */}
       {mainTab === 'open' && (
-        <div className="flex items-center gap-1 px-1">
+        <div className="flex items-center gap-0.5 px-0.5 flex-wrap">
           {subTabs.map(tab => {
             const Icon = tab.icon;
             const isActive = subTab === tab.id;
