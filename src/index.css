@@ -690,7 +690,7 @@ select:focus-visible {
 }
 
 @layer components {
-  /* ===== CARD STYLES - DreamsChat Clean ===== */
+  /* ===== CARD STYLES - Premium Design System ===== */
   .card-base {
     @apply bg-card rounded-xl border border-border p-6 transition-all duration-200;
   }
@@ -703,15 +703,23 @@ select:focus-visible {
   .card-elevated:hover {
     box-shadow: var(--shadow-md);
     @apply border-primary/20;
+    transform: translateY(-1px);
   }
 
   .card-interactive {
-    @apply relative bg-card rounded-xl border border-border p-6 transition-all duration-200 cursor-pointer;
+    @apply relative bg-card rounded-xl border border-border p-6 cursor-pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .card-interactive:hover {
     @apply border-primary/30 bg-accent/30;
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .card-interactive:active {
+    transform: translateY(0) scale(0.995);
+    transition-duration: 0.1s;
   }
 
   /* Card with Purple tint */
@@ -723,6 +731,7 @@ select:focus-visible {
   .card-glow-purple:hover {
     box-shadow: var(--shadow-glow-primary);
     @apply border-primary/40;
+    transform: translateY(-2px);
   }
 
   .card-glow-gradient {
@@ -732,30 +741,40 @@ select:focus-visible {
 
   .card-glow-gradient:hover {
     box-shadow: var(--shadow-glow-primary);
+    transform: translateY(-1px);
   }
 
-  /* Glass Card */
+  /* Glass Card — frosted premium */
   .glass-card {
     @apply rounded-xl p-6 border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
+    backdrop-filter: blur(16px) saturate(1.6);
+  }
+
+  .glass-card:hover {
+    border-color: hsl(var(--primary) / 0.2);
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.06);
   }
 
   .glass-panel {
     @apply border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
+    backdrop-filter: blur(20px) saturate(1.8);
     box-shadow: var(--shadow-lg);
   }
 
-  /* Stat Card */
+  /* Stat Card — dashboard metrics */
   .stat-card {
-    @apply bg-card rounded-xl border border-border p-4 transition-all duration-200;
+    @apply bg-card rounded-xl border border-border p-4;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .stat-card:hover {
-    @apply border-primary/20;
+    @apply border-primary/25;
     box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
   }
 
   /* Card Hierarchy */
@@ -771,6 +790,33 @@ select:focus-visible {
   .card-featured {
     @apply bg-card-elevated border-primary/20 ring-1 ring-primary/10;
     box-shadow: var(--shadow-lg);
+  }
+
+  /* Shimmer highlight — for new/updated items */
+  .card-shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .card-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      hsl(var(--primary) / 0.04) 45%,
+      hsl(var(--primary) / 0.08) 50%,
+      hsl(var(--primary) / 0.04) 55%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 
   /* ===== HOVER EFFECTS - Clean & Subtle ===== */
