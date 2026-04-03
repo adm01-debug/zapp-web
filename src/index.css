@@ -725,6 +725,22 @@ select:focus-visible {
   .glow-purple-pulse-fast { box-shadow: var(--shadow-glow-purple); }
   .glow-gradient-pulse { box-shadow: var(--shadow-glow-primary); }
   .border-glow-purple { border-color: hsl(var(--primary) / 0.3); }
+
+  /* Scroll shadow — fades top/bottom of scrollable areas */
+  .scroll-shadow-y {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      black 16px,
+      black calc(100% - 16px),
+      transparent 100%
+    );
+  }
+
+  /* Subtle top border shadow for sticky headers */
+  .shadow-sticky {
+    box-shadow: 0 1px 3px hsl(var(--foreground) / 0.04), 0 1px 1px hsl(var(--foreground) / 0.02);
+  }
 }
 
 @layer components {
