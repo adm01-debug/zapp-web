@@ -44,7 +44,7 @@ function ThreadItem({ thread, isSelected, onClick }: { thread: EmailThread; isSe
       onClick={onClick}
       className={cn(
         'w-full text-left p-3 flex items-center gap-3 transition-all border-b border-border/10',
-        isSelected ? 'bg-primary/8 border-l-2 border-l-primary' : 'hover:bg-muted/50',
+        isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-muted/50',
         thread.is_unread && 'font-medium'
       )}
     >
