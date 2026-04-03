@@ -35,8 +35,8 @@ export function MobileTabBar({
   const baseStyles = 'fixed bottom-0 left-0 right-0 z-40 safe-area-bottom';
   
   const variantStyles = {
-    default: 'bg-card/95 backdrop-blur-lg border-t border-border',
-    floating: 'mx-4 mb-4 rounded-2xl bg-card/95 backdrop-blur-lg shadow-lg border border-border',
+    default: 'bg-card border-t border-border',
+    floating: 'mx-4 mb-4 rounded-2xl bg-card shadow-lg border border-border',
     minimal: 'bg-transparent',
   };
 
@@ -151,7 +151,7 @@ export function SlideOverPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/50 z-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/70 z-50"
           />
 
           {/* Panel */}
