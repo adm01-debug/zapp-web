@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ScheduledReportConfigs } from './ScheduledReportConfigs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -516,6 +517,8 @@ export function ScheduledReportsManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ScheduledReportConfigs />
     </div>
   );
 }

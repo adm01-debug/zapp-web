@@ -11,6 +11,8 @@ import {
   Keyboard, Volume2, ArrowRight, Package, Globe, TrendingUp,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
+import { ElevenLabsDialogue } from '@/components/voice/ElevenLabsDialogue';
+import { ElevenLabsVoiceDesign } from '@/components/voice/ElevenLabsVoiceDesign';
 import { MediaLibraryAdmin } from '@/components/settings/MediaLibraryAdmin';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
@@ -134,8 +136,10 @@ export function SettingsView() {
         </TabsContent>
 
         <TabsContent value="sounds">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <SoundCustomizationPanel />
+            <ElevenLabsDialogue />
+            <ElevenLabsVoiceDesign />
           </motion.div>
         </TabsContent>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
@@ -14,6 +14,8 @@ import {
   MessageSquare, Plus, Settings, Trash2, CheckCircle, XCircle, 
   Globe, Send, Instagram, MessagesSquare
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+const ChannelRoutingRules = lazy(() => import('./ChannelRoutingRules').then(m => ({ default: m.ChannelRoutingRules })));
 
 const channelConfig = {
   whatsapp: { label: 'WhatsApp', icon: MessageSquare, color: 'text-green-500', bg: 'bg-green-500/10' },
@@ -223,6 +225,11 @@ export function OmnichannelManager() {
           );
         })}
       </div>
+
+      {/* Channel Routing Rules */}
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <ChannelRoutingRules />
+      </Suspense>
     </div>
   );
 }

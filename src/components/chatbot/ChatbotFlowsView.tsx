@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { useChatbotFlows, ChatbotFlow, ChatbotNode } from '@/hooks/useChatbotFlows';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,19 +11,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
   Bot, Plus, Edit2, Trash2, Play, Pause, Copy, Zap, MessageSquare,
   GitBranch, Clock, ArrowRight, Loader2, Settings, BarChart3,
-  HelpCircle, Tag, Users, Send, ChevronRight,
+  HelpCircle, Tag, Users, Send, ChevronRight, Activity,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChatbotFlowEditor } from './ChatbotFlowEditor';
+const ChatbotExecutionsDashboard = lazy(() => import('./ChatbotExecutionsDashboard').then(m => ({ default: m.ChatbotExecutionsDashboard })));
 
 const triggerLabels: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
   keyword: { label: 'Palavra-chave', icon: Tag },
@@ -104,6 +107,14 @@ export function ChatbotFlowsView() {
           <Plus className="w-4 h-4" /> Novo Fluxo
         </Button>
       </div>
+
+      <Tabs defaultValue="flows" className="flex-1 flex flex-col min-h-0">
+        <TabsList className="bg-muted/50 w-fit">
+          <TabsTrigger value="flows" className="gap-2"><Bot className="w-4 h-4" />Fluxos</TabsTrigger>
+          <TabsTrigger value="executions" className="gap-2"><Activity className="w-4 h-4" />Execuções</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="flows" className="flex-1 min-h-0 space-y-6 mt-4">
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
@@ -247,6 +258,14 @@ export function ChatbotFlowsView() {
           </div>
         )}
       </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="executions" className="flex-1 min-h-0 mt-4">
+          <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+            <ChatbotExecutionsDashboard />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
 
       {/* Create Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>

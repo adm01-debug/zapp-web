@@ -8,6 +8,7 @@ const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
 interface UseTextToSpeechOptions {
   initialVoiceId?: string;
   initialSpeed?: number;
+  useStreaming?: boolean;
   onVoiceChange?: (voiceId: string) => void;
   onSpeedChange?: (speed: number) => void;
 }
@@ -94,8 +95,11 @@ export function useTextToSpeech(options: UseTextToSpeechOptions = {}) {
     setCurrentMessageId(messageId || null);
 
     try {
+      const endpoint = options.useStreaming
+        ? 'elevenlabs-tts-stream'
+        : 'elevenlabs-tts';
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${endpoint}`,
         {
           method: 'POST',
           headers: {
