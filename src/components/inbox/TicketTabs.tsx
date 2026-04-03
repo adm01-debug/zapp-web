@@ -131,7 +131,7 @@ export function TicketTabs({
               key={tab.id}
               onClick={() => onMainTabChange(tab.id)}
               className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200',
+                'flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all duration-200',
                 isActive
                   ? tab.activeColor + ' shadow-sm'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
