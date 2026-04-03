@@ -29,10 +29,10 @@ export function GmailWebhookMonitor() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: gmailAccounts } = await supabase
+      const { data: gmailAccounts } = await (supabase
         .from('gmail_accounts')
-        .select('id, email_address, is_active, sync_status, last_sync_at, last_error, history_id, created_at')
-        .order('created_at', { ascending: false });
+        .select('*')
+        .order('created_at', { ascending: false }) as any);
 
       setAccounts((gmailAccounts || []) as GmailAccount[]);
 
