@@ -8,6 +8,7 @@ const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
 interface UseTextToSpeechOptions {
   initialVoiceId?: string;
   initialSpeed?: number;
+  useStreaming?: boolean;
   onVoiceChange?: (voiceId: string) => void;
   onSpeedChange?: (speed: number) => void;
 }
