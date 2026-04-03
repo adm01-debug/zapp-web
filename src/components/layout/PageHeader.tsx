@@ -100,8 +100,8 @@ export function PageHeader({
       )}
 
       {/* Title row with actions */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {showBack && (
             <Button
               variant="ghost"
@@ -123,7 +123,7 @@ export function PageHeader({
         </div>
 
         {actions && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             {actions}
           </div>
         )}
