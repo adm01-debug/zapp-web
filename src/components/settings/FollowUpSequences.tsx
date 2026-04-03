@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Trash2, Clock, ArrowRight, Zap, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { FollowUpExecutionsHistory } from './FollowUpExecutionsHistory';
 
 interface Step {
   id?: string;
