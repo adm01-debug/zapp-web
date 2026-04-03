@@ -285,6 +285,21 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
             <TooltipContent>Adicionar membros</TooltipContent>
           </Tooltip>
         )}
+        {onToggleDetails && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={onToggleDetails}
+              >
+                {showDetails ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{showDetails ? 'Fechar detalhes' : 'Ver detalhes'}</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Messages */}
