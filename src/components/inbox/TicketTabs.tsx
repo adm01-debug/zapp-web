@@ -137,7 +137,7 @@ export function TicketTabs({
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
               )}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-3 h-3" />
               <span>{tab.label}</span>
               {tab.count !== null && (
                 <Badge 
