@@ -905,13 +905,13 @@ select:focus-visible {
 
   /* ===== GLASS MORPHISM ===== */
   .glass {
-    @apply backdrop-blur-md border transition-all duration-200;
+    @apply border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }
 
   .glass-strong {
-    @apply backdrop-blur-xl border transition-all duration-200;
+    @apply border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }
