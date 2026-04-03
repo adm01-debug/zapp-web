@@ -92,7 +92,7 @@ export function CampaignsView() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: 'Total', value: stats.total, icon: Megaphone, color: 'text-primary' },
           { label: 'Ativas', value: stats.active, icon: Play, color: 'text-warning' },
