@@ -127,7 +127,7 @@ serve(async (req) => {
 });
 
 async function downloadAndUpload(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   cdnUrl: string,
   messageType: string,
   messageId: string,
