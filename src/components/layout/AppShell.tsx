@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useRef } from 'react';
+import { Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
@@ -8,6 +8,9 @@ import { RouteLoadingBar } from '@/components/ui/route-loading-bar';
 import { MobileShell } from '@/components/mobile/MobileShell';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { useZenMode } from '@/hooks/useZenMode';
+import { Maximize2, Minimize2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AppShellProps {
   currentView: string;
