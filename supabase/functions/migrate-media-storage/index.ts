@@ -156,7 +156,7 @@ async function downloadAndUpload(
 }
 
 async function getBase64Fallback(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   evolutionUrl: string,
   evolutionKey: string,
   instance: string,
