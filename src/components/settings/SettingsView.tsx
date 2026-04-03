@@ -11,6 +11,8 @@ import {
   Keyboard, Volume2, ArrowRight, Package, Globe, TrendingUp,
 } from 'lucide-react';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
+import { ElevenLabsDialogue } from '@/components/voice/ElevenLabsDialogue';
+import { ElevenLabsVoiceDesign } from '@/components/voice/ElevenLabsVoiceDesign';
 import { MediaLibraryAdmin } from '@/components/settings/MediaLibraryAdmin';
 import { NotificationSettingsPanel } from '@/components/notifications/NotificationSettingsPanel';
 import { KeyboardShortcutsSettings } from '@/components/settings/KeyboardShortcutsSettings';
