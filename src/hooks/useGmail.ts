@@ -325,22 +325,23 @@ export function useGmail(accountId?: string) {
         message_ids: messageIds,
       });
     },
-    // Optimistic update — immediately mark as read in the UI
-    onMutate: async (messageIds) => {
-      await queryClient.cancelQueries({ queryKey: ['gmail-threads'] });
-      const previousThreads = queryClient.getQueryData(['gmail-threads', activeAccount?.id]);
+    // Optimistic update — immediately mark the current thread as read
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['gmail-threads', activeAccount?.id] });
+      const previousThreads = queryClient.getQueryData<EmailThread[]>(['gmail-threads', activeAccount?.id]);
 
-      queryClient.setQueryData(['gmail-threads', activeAccount?.id], (old: EmailThread[] | undefined) =>
-        (old || []).map(t => ({
-          ...t,
-          is_unread: t.is_unread ? false : t.is_unread, // optimistically mark read
-        }))
-      );
+      // Only mark the currently selected thread as read
+      if (selectedThreadId) {
+        queryClient.setQueryData<EmailThread[]>(['gmail-threads', activeAccount?.id], (old) =>
+          (old || []).map(t =>
+            t.id === selectedThreadId ? { ...t, is_unread: false } : t
+          )
+        );
+      }
 
       return { previousThreads };
     },
     onError: (_err, _vars, context) => {
-      // Rollback on error
       if (context?.previousThreads) {
         queryClient.setQueryData(['gmail-threads', activeAccount?.id], context.previousThreads);
       }
@@ -496,6 +497,9 @@ export function useGmail(accountId?: string) {
     const existing = supabase.getChannels().find(c => c.topic === channelName);
     if (existing) supabase.removeChannel(existing);
 
+    // Only subscribe to email_threads — email_messages is NOT in the
+    // supabase_realtime publication (bodies too large for broadcast).
+    // Messages are fetched on-demand when opening a thread.
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', {
@@ -505,14 +509,6 @@ export function useGmail(accountId?: string) {
         filter: `gmail_account_id=eq.${activeAccount.id}`,
       }, () => {
         queryClient.invalidateQueries({ queryKey: ['gmail-threads'] });
-      })
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'email_messages',
-        filter: `gmail_account_id=eq.${activeAccount.id}`,
-      }, () => {
-        queryClient.invalidateQueries({ queryKey: ['gmail-messages'] });
       })
       .subscribe();
 

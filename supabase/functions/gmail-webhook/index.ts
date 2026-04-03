@@ -294,9 +294,10 @@ serve(async (req) => {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Gmail Webhook error:", error.message);
-    // Return 200 to prevent Pub/Sub retries on application errors
-    return new Response(JSON.stringify({ acknowledged: true, error: error.message }), {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Gmail Webhook error:", msg);
+    // Return 200 to prevent Pub/Sub retries — never leak error details
+    return new Response(JSON.stringify({ acknowledged: true }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }

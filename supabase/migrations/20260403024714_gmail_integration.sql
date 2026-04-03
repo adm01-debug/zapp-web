@@ -139,7 +139,7 @@ CREATE TRIGGER trigger_email_threads_updated_at
 -- ═══════════════════════════════════════════════════════════════════════
 CREATE TABLE public.email_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  thread_id uuid NOT NULL REFERENCES public.email_threads(id) ON DELETE CASCADE,
+  thread_id uuid REFERENCES public.email_threads(id) ON DELETE CASCADE, -- nullable: sent emails linked on next sync
   gmail_message_id text NOT NULL UNIQUE,
   gmail_account_id uuid NOT NULL REFERENCES public.gmail_accounts(id) ON DELETE CASCADE,
   from_address text NOT NULL CHECK (length(from_address) <= 500),

@@ -82,7 +82,6 @@ export function EmailComposer({
 
   const [showCcBcc, setShowCcBcc] = useState(cc !== '' || bcc !== '');
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isUsingHtml, setIsUsingHtml] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
 
@@ -145,7 +144,7 @@ export function EmailComposer({
           bcc: bccList,
           subject,
           text_body: body,
-          html_body: isUsingHtml ? body : undefined,
+          ...(encodedAttachments.length > 0 ? { attachments: encodedAttachments } : {}),
         });
       } else {
         await sendEmail.mutateAsync({
@@ -154,7 +153,7 @@ export function EmailComposer({
           bcc: bccList,
           subject,
           text_body: body,
-          html_body: isUsingHtml ? body : undefined,
+          // HTML body not supported yet — plain text only
           attachments: encodedAttachments.length > 0 ? encodedAttachments : undefined,
         });
       }

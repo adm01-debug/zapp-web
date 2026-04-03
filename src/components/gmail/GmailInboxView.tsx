@@ -193,7 +193,7 @@ function GmailInboxContent() {
     }
 
     return result;
-  }, [threads, activeTab, statusFilter, searchQuery]);
+  }, [threads, activeTab, statusFilter, searchQuery, selectedLabel]);
 
   // If a thread is selected, show thread view
   if (selectedThread) {

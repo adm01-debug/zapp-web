@@ -30,7 +30,8 @@ export function GmailIntegration() {
   // Listen for OAuth callback from popup
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      // Validate origin for security
+      // Validate origin to prevent cross-origin OAuth code injection
+      if (event.origin !== window.location.origin) return;
       if (event.data?.type === 'gmail-oauth-callback' && event.data?.code) {
         exchangeCode.mutate(event.data.code);
       }

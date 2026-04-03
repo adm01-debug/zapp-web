@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -191,45 +191,10 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
   const [composerMode, setComposerMode] = useState<'reply' | 'reply-all' | 'forward' | null>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      // Skip if user is typing in an input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (composerMode) return; // Don't intercept while composing
-
-      switch (e.key) {
-        case 'Escape':
-          onBack();
-          break;
-        case 'r':
-          e.preventDefault();
-          setComposerMode(e.shiftKey ? 'reply-all' : 'reply');
-          break;
-        case 'f':
-          e.preventDefault();
-          setComposerMode('forward');
-          break;
-        case 'e':
-          if (lastMessage) {
-            e.preventDefault();
-            modifyLabels.mutate({ message_id: lastMessage.gmail_message_id, remove_labels: ['INBOX'] });
-            onBack();
-          }
-          break;
-        case '#':
-          // Trash with # (Gmail convention)
-          break;
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [composerMode, lastMessage, modifyLabels, onBack]);
-
-  // Focus management — focus back button on mount
-  useEffect(() => {
-    backButtonRef.current?.focus();
-  }, []);
+  // MUST be before keyboard shortcuts useEffect that references it
+  const lastMessage = useMemo(() => {
+    return threadMessages[threadMessages.length - 1];
+  }, [threadMessages]);
 
   // Set selected thread to load messages
   useEffect(() => {
@@ -250,9 +215,41 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
     }
   }, [threadMessages, thread.is_unread, markAsRead]);
 
-  const lastMessage = useMemo(() => {
-    return threadMessages[threadMessages.length - 1];
-  }, [threadMessages]);
+  // Focus management — focus back button on mount
+  useEffect(() => {
+    backButtonRef.current?.focus();
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (composerMode) return;
+
+      switch (e.key) {
+        case 'Escape':
+          onBack();
+          break;
+        case 'r':
+          e.preventDefault();
+          setComposerMode(e.shiftKey ? 'reply-all' : 'reply');
+          break;
+        case 'f':
+          e.preventDefault();
+          setComposerMode('forward');
+          break;
+        case 'e':
+          if (lastMessage) {
+            e.preventDefault();
+            modifyLabels.mutate({ message_id: lastMessage.gmail_message_id, remove_labels: ['INBOX'] });
+            onBack();
+          }
+          break;
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [composerMode, lastMessage, modifyLabels, onBack]);
 
   return (
     <div className="flex flex-col h-full">
