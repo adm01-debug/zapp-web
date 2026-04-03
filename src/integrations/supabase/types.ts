@@ -3066,6 +3066,57 @@ export type Database = {
           },
         ]
       }
+      performance_snapshots: {
+        Row: {
+          created_at: string
+          dom_nodes: number | null
+          dom_ready: number | null
+          fcp: number | null
+          id: string
+          memory_total: number | null
+          memory_used: number | null
+          network_type: string | null
+          overall_score: number | null
+          page_load: number | null
+          profile_id: string
+          rtt: number | null
+          ttfb: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          dom_nodes?: number | null
+          dom_ready?: number | null
+          fcp?: number | null
+          id?: string
+          memory_total?: number | null
+          memory_used?: number | null
+          network_type?: string | null
+          overall_score?: number | null
+          page_load?: number | null
+          profile_id: string
+          rtt?: number | null
+          ttfb?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          dom_nodes?: number | null
+          dom_ready?: number | null
+          fcp?: number | null
+          id?: string
+          memory_total?: number | null
+          memory_used?: number | null
+          network_type?: string | null
+          overall_score?: number | null
+          page_load?: number | null
+          profile_id?: string
+          rtt?: number | null
+          ttfb?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       permissions: {
         Row: {
           category: string
