@@ -16,7 +16,8 @@ import {
   Paperclip, ChevronDown, ChevronUp, MoreHorizontal,
   Mail, MailOpen, Tag, Clock, Loader2, ArrowLeft
 } from 'lucide-react';
-import { useGmail, type EmailThread, type EmailMessage } from '@/hooks/useGmail';
+import { type EmailThread, type EmailMessage } from '@/hooks/useGmail';
+import { useGmailContext } from './GmailProvider';
 import { EmailComposer } from './EmailComposer';
 
 /**
@@ -123,9 +124,17 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
                 {/* Addresses */}
                 <div className="text-[10px] text-muted-foreground space-y-0.5 mb-3">
                   <p>De: <span className="text-foreground">{message.from_name ? `${message.from_name} <${message.from_address}>` : message.from_address}</span></p>
-                  <p>Para: <span className="text-foreground">{message.to_addresses.join(', ')}</span></p>
+                  <p>Para: <span className="text-foreground truncate block max-w-full" title={message.to_addresses.join(', ')}>
+                    {message.to_addresses.length > 3
+                      ? `${message.to_addresses.slice(0, 3).join(', ')} e mais ${message.to_addresses.length - 3}`
+                      : message.to_addresses.join(', ')}
+                  </span></p>
                   {message.cc_addresses.length > 0 && (
-                    <p>Cc: <span className="text-foreground">{message.cc_addresses.join(', ')}</span></p>
+                    <p>Cc: <span className="text-foreground truncate block max-w-full" title={message.cc_addresses.join(', ')}>
+                      {message.cc_addresses.length > 3
+                        ? `${message.cc_addresses.slice(0, 3).join(', ')} e mais ${message.cc_addresses.length - 3}`
+                        : message.cc_addresses.join(', ')}
+                    </span></p>
                   )}
                 </div>
 
@@ -172,8 +181,49 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
 }
 
 export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
-  const { threadMessages, messagesLoading, markAsRead, trashMessage, modifyLabels, setSelectedThreadId } = useGmail();
+  const { threadMessages, messagesLoading, markAsRead, trashMessage, modifyLabels, setSelectedThreadId } = useGmailContext();
   const [composerMode, setComposerMode] = useState<'reply' | 'reply-all' | 'forward' | null>(null);
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      // Skip if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (composerMode) return; // Don't intercept while composing
+
+      switch (e.key) {
+        case 'Escape':
+          onBack();
+          break;
+        case 'r':
+          e.preventDefault();
+          setComposerMode(e.shiftKey ? 'reply-all' : 'reply');
+          break;
+        case 'f':
+          e.preventDefault();
+          setComposerMode('forward');
+          break;
+        case 'e':
+          if (lastMessage) {
+            e.preventDefault();
+            modifyLabels.mutate({ message_id: lastMessage.gmail_message_id, remove_labels: ['INBOX'] });
+            onBack();
+          }
+          break;
+        case '#':
+          // Trash with # (Gmail convention)
+          break;
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [composerMode, lastMessage, modifyLabels, onBack]);
+
+  // Focus management — focus back button on mount
+  useEffect(() => {
+    backButtonRef.current?.focus();
+  }, []);
 
   // Set selected thread to load messages
   useEffect(() => {
@@ -202,7 +252,7 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="p-3 border-b flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
+        <Button ref={backButtonRef} variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack} aria-label="Voltar para inbox">
           <ArrowLeft className="w-4 h-4" />
         </Button>
 

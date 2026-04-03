@@ -392,15 +392,57 @@ serve(async (req) => {
           }
         }
 
+        // Process each new message individually using same logic as full sync
         let synced = 0;
         for (const msgId of newMessageIds) {
           try {
-            const msg = await gmailFetch(accessToken, `/messages/${msgId}?format=full`);
-            // Reuse syncMessages logic for single message would be ideal,
-            // but for simplicity we re-sync the inbox with those IDs
+            const msg: GmailMessage = await gmailFetch(accessToken, `/messages/${msgId}?format=full`);
+            const headers = msg.payload.headers;
+            const { text, html } = extractBody(msg.payload);
+            const attachments = extractAttachments(msg.payload);
+
+            const fromRaw = getHeader(headers, "From");
+            const fromMatch = fromRaw.match(/(?:"?([^"]*)"?\s)?<?([^>]+)>?/);
+            const fromName = fromMatch?.[1]?.trim() || "";
+            const fromAddress = fromMatch?.[2]?.trim() || fromRaw;
+            const toRaw = getHeader(headers, "To");
+            const toAddresses = toRaw.split(",").map((t: string) => t.trim()).filter(Boolean);
+            const ccRaw = getHeader(headers, "Cc");
+            const ccAddresses = ccRaw ? ccRaw.split(",").map((t: string) => t.trim()).filter(Boolean) : [];
+            const isOutbound = fromAddress.toLowerCase() === account.email_address.toLowerCase();
+
+            const { data: thread } = await supabase.from("email_threads").upsert({
+              gmail_account_id: account.id,
+              gmail_thread_id: msg.threadId,
+              subject: getHeader(headers, "Subject"),
+              snippet: msg.snippet,
+              label_ids: msg.labelIds || [],
+              is_unread: (msg.labelIds || []).includes("UNREAD"),
+              last_message_at: new Date(parseInt(msg.internalDate)).toISOString(),
+            }, { onConflict: "gmail_account_id,gmail_thread_id" }).select().single();
+
+            await supabase.from("email_messages").upsert({
+              thread_id: thread?.id,
+              gmail_message_id: msg.id,
+              gmail_account_id: account.id,
+              from_address: fromAddress,
+              from_name: fromName,
+              to_addresses: toAddresses,
+              cc_addresses: ccAddresses,
+              subject: getHeader(headers, "Subject"),
+              body_text: text,
+              body_html: html,
+              snippet: msg.snippet,
+              label_ids: msg.labelIds || [],
+              is_read: !(msg.labelIds || []).includes("UNREAD"),
+              has_attachments: attachments.length > 0,
+              internal_date: new Date(parseInt(msg.internalDate)).toISOString(),
+              direction: isOutbound ? "outbound" : "inbound",
+            }, { onConflict: "gmail_message_id" });
+
             synced++;
-          } catch {
-            // Message may have been deleted
+          } catch (err) {
+            console.warn(`Incremental sync: skipping message ${msgId}:`, err.message);
           }
         }
 

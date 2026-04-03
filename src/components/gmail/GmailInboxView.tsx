@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import {
   ChevronRight, Paperclip, Clock
 } from 'lucide-react';
 import { useGmail, type EmailThread } from '@/hooks/useGmail';
+import { GmailProvider, useGmailContext } from './GmailProvider';
+import { ErrorBoundaryWithRetry } from '@/components/ui/error-boundary-retry';
 import { EmailThreadView } from './EmailThreadView';
 import { EmailComposer } from './EmailComposer';
 
@@ -36,7 +38,7 @@ function formatThreadDate(dateStr: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
-function ThreadListItem({
+const ThreadListItem = memo(function ThreadListItem({
   thread,
   isSelected,
   onClick,
@@ -105,20 +107,21 @@ function ThreadListItem({
       </div>
     </motion.button>
   );
-}
+});
 
-export default function GmailInboxView() {
+function GmailInboxContent() {
   const {
     accounts,
     activeAccount,
     threads,
     threadsLoading,
+    threadsError,
     labels,
     syncInbox,
     unreadCount,
     starredCount,
     subscribeToThreads,
-  } = useGmail();
+  } = useGmailContext();
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   // Derive thread from array to avoid stale snapshots
@@ -130,6 +133,23 @@ export default function GmailInboxView() {
   const [showComposer, setShowComposer] = useState(false);
   const [activeTab, setActiveTab] = useState('inbox');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced server-side search — triggers Gmail API search after 800ms of inactivity
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (value.length >= 3) {
+      searchTimerRef.current = setTimeout(() => {
+        syncInbox.mutate({ query: value, maxResults: 50 });
+      }, 800);
+    }
+  }, [syncInbox]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
+  }, []);
 
   // Subscribe to realtime updates
   useEffect(() => {
@@ -172,10 +192,12 @@ export default function GmailInboxView() {
   // If a thread is selected, show thread view
   if (selectedThread) {
     return (
-      <EmailThreadView
-        thread={selectedThread}
-        onBack={() => setSelectedThreadId(null)}
-      />
+      <ErrorBoundaryWithRetry moduleName="EmailThreadView" onError={() => setSelectedThreadId(null)}>
+        <EmailThreadView
+          thread={selectedThread}
+          onBack={() => setSelectedThreadId(null)}
+        />
+      </ErrorBoundaryWithRetry>
     );
   }
 
@@ -236,9 +258,10 @@ export default function GmailInboxView() {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar emails..."
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Buscar emails... (3+ caracteres busca no Gmail)"
               className="h-8 pl-8 text-sm"
+              aria-label="Buscar emails"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -281,7 +304,16 @@ export default function GmailInboxView() {
 
         <TabsContent value={activeTab} className="flex-1 mt-0 min-h-0">
           <ScrollArea className="h-full">
-            {threadsLoading ? (
+            {threadsError ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <AlertCircle className="w-12 h-12 mb-3 text-destructive opacity-50" />
+                <p className="text-sm font-medium text-destructive">Erro ao carregar emails</p>
+                <p className="text-xs mt-1">{threadsError instanceof Error ? threadsError.message : 'Erro desconhecido'}</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => syncInbox.mutate({})}>
+                  <RefreshCw className="w-3.5 h-3.5 mr-1" /> Tentar novamente
+                </Button>
+              </div>
+            ) : threadsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
@@ -344,5 +376,13 @@ export default function GmailInboxView() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function GmailInboxView() {
+  return (
+    <GmailProvider>
+      <GmailInboxContent />
+    </GmailProvider>
   );
 }

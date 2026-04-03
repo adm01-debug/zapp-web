@@ -126,12 +126,14 @@ export function useGmail(accountId?: string) {
       return result.url as string;
     },
     onSuccess: (url) => {
-      // Open OAuth consent in popup
       const width = 600;
       const height = 700;
       const left = window.screenX + (window.innerWidth - width) / 2;
       const top = window.screenY + (window.innerHeight - height) / 2;
-      window.open(url, 'gmail-oauth', `width=${width},height=${height},left=${left},top=${top}`);
+      const popup = window.open(url, 'gmail-oauth', `width=${width},height=${height},left=${left},top=${top}`);
+      if (!popup || popup.closed) {
+        toast.error('Popup bloqueado pelo navegador. Permita popups para este site e tente novamente.');
+      }
     },
     onError: (error: Error) => {
       toast.error(`Erro ao conectar Gmail: ${error.message}`);
@@ -167,7 +169,7 @@ export function useGmail(accountId?: string) {
 
   // ── Threads ─────────────────────────────────────────────────────────────
 
-  const { data: threads = [], isLoading: threadsLoading, refetch: refetchThreads } = useQuery({
+  const { data: threads = [], isLoading: threadsLoading, error: threadsError, refetch: refetchThreads } = useQuery({
     queryKey: ['gmail-threads', activeAccount?.id],
     queryFn: async () => {
       if (!activeAccount) return [];
@@ -321,7 +323,27 @@ export function useGmail(accountId?: string) {
         message_ids: messageIds,
       });
     },
-    onSuccess: () => {
+    // Optimistic update — immediately mark as read in the UI
+    onMutate: async (messageIds) => {
+      await queryClient.cancelQueries({ queryKey: ['gmail-threads'] });
+      const previousThreads = queryClient.getQueryData(['gmail-threads', activeAccount?.id]);
+
+      queryClient.setQueryData(['gmail-threads', activeAccount?.id], (old: EmailThread[] | undefined) =>
+        (old || []).map(t => ({
+          ...t,
+          is_unread: t.is_unread ? false : t.is_unread, // optimistically mark read
+        }))
+      );
+
+      return { previousThreads };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previousThreads) {
+        queryClient.setQueryData(['gmail-threads', activeAccount?.id], context.previousThreads);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gmail-threads'] });
       queryClient.invalidateQueries({ queryKey: ['gmail-messages'] });
     },
@@ -411,6 +433,7 @@ export function useGmail(accountId?: string) {
     // Threads
     threads,
     threadsLoading,
+    threadsError,
     selectedThreadId,
     setSelectedThreadId,
     refetchThreads,

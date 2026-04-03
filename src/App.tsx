@@ -17,6 +17,9 @@ import { Sparkles } from "lucide-react";
 import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
 import { ThemeSync } from "@/hooks/useTheme";
 
+// Gmail OAuth callback
+const GmailOAuthCallback = lazy(() => import("@/pages/GmailOAuthCallback"));
+
 // Deferred non-critical providers loaded after first paint
 const RealtimeSentimentAlertProvider = lazy(() => import("@/components/notifications/RealtimeSentimentAlertProvider").then(m => ({ default: m.RealtimeSentimentAlertProvider })));
 const IncomingCallAlert = lazy(() => import("@/components/calls/IncomingCallAlert").then(m => ({ default: m.IncomingCallAlert })));
@@ -131,6 +134,7 @@ function AppContent() {
             <Route path="/auth/callback" element={<SSOCallback />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/auth/gmail/callback" element={<Suspense fallback={<RouteLoadingFallback />}><GmailOAuthCallback /></Suspense>} />
             <Route path="/chat-popup/:contactId" element={<ProtectedRoute><ChatPopup /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/queue/:id" element={<ProtectedRoute><QueueDetails /></ProtectedRoute>} />

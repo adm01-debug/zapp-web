@@ -14,7 +14,8 @@ import {
   Send, X, Paperclip, ChevronDown, ChevronUp,
   Loader2, Minimize2, Maximize2
 } from 'lucide-react';
-import { useGmail, type EmailMessage } from '@/hooks/useGmail';
+import { type EmailMessage } from '@/hooks/useGmail';
+import { useGmailContext } from './GmailProvider';
 
 interface EmailComposerProps {
   mode: 'new' | 'reply' | 'reply-all' | 'forward';
@@ -33,7 +34,7 @@ export function EmailComposer({
   onClose,
   onSent,
 }: EmailComposerProps) {
-  const { sendEmail, replyEmail, activeAccount } = useGmail();
+  const { sendEmail, replyEmail, activeAccount } = useGmailContext();
 
   const [to, setTo] = useState(() => {
     if (defaultTo) return defaultTo;
@@ -58,8 +59,11 @@ export function EmailComposer({
   const [bcc, setBcc] = useState('');
   const [subject, setSubject] = useState(() => {
     if (!replyTo) return '';
-    if (mode === 'forward') return `Fwd: ${replyTo.subject || ''}`;
-    return replyTo.subject?.startsWith('Re:') ? replyTo.subject : `Re: ${replyTo.subject || ''}`;
+    const subj = replyTo.subject || '';
+    if (mode === 'forward') {
+      return /^(fwd|enc|fw):\s*/i.test(subj) ? subj : `Fwd: ${subj}`;
+    }
+    return /^(re|res):\s*/i.test(subj) ? subj : `Re: ${subj}`;
   });
   const [body, setBody] = useState(() => {
     if (mode === 'forward' && replyTo) {
@@ -178,7 +182,7 @@ export function EmailComposer({
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-4 right-4 z-50 w-[520px] max-w-[calc(100vw-32px)]"
+      className="fixed bottom-4 right-4 z-50 w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-32px)] sm:max-h-none"
     >
       <Card className="shadow-2xl border-primary/20">
         {/* Header */}
@@ -210,7 +214,7 @@ export function EmailComposer({
               exit={{ height: 0 }}
               className="overflow-hidden"
             >
-              <CardContent className="p-3 space-y-2">
+              <CardContent className="p-3 space-y-2 overflow-auto max-h-[calc(100vh-120px)] sm:max-h-none">
                 {/* To */}
                 <div className="flex items-center gap-2">
                   <Label className="text-xs text-muted-foreground w-12 shrink-0">Para:</Label>
@@ -219,6 +223,8 @@ export function EmailComposer({
                     onChange={(e) => setTo(e.target.value)}
                     placeholder="destinatario@email.com"
                     className="h-8 text-sm"
+                    autoFocus={mode === 'new'}
+                    aria-label="Destinatário"
                   />
                   <Button
                     variant="ghost"
