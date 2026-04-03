@@ -152,6 +152,33 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
         </Tooltip>
       </div>
 
+      {/* ─── Favorites Section ─── */}
+      {favoriteItems.length > 0 && (
+        <>
+          <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
+          {!collapsed && (
+            <div className="px-3 flex items-center gap-1.5">
+              <Star className="w-[10px] h-[10px] text-warning fill-warning" />
+              <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">Favoritos</span>
+            </div>
+          )}
+          <nav className={cn('flex flex-col gap-0.5', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Favoritos">
+            <ul role="list" className={cn('flex flex-col gap-0.5 w-full list-none p-0 m-0', collapsed && 'items-center')}>
+              {favoriteItems.map((item) => (
+                <li key={item.id}>
+                  <SidebarNavItem
+                    item={item}
+                    currentView={currentView}
+                    onViewChange={onViewChange}
+                    collapsed={collapsed}
+                  />
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </>
+      )}
+
       {/* ─── Section Divider ─── */}
       <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
 
@@ -167,6 +194,8 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
               currentView={currentView}
               onViewChange={onViewChange}
               collapsed={collapsed}
+              onToggleFavorite={toggleFavorite}
+              isFavorite={isFavorite}
             />
           ))}
         </div>
