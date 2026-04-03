@@ -141,12 +141,12 @@ export function TicketTabs({
               <span>{tab.label}</span>
               {tab.count !== null && (
                 <Badge 
-                  variant="secondary"
+                  variant="outline"
                   className={cn(
-                    'h-4 min-w-[16px] px-1 text-[9px] font-bold leading-none',
+                    'h-4 min-w-[16px] px-1 text-[9px] font-bold leading-none border',
                     isActive 
-                      ? 'bg-white/25 text-inherit border-0' 
-                      : 'bg-muted text-muted-foreground'
+                      ? 'bg-white/15 text-inherit border-white/25' 
+                      : 'bg-transparent text-muted-foreground border-border/60'
                   )}
                 >
                   {tab.count}
