@@ -109,8 +109,26 @@ export function useGmail(accountId?: string) {
   const { data: accounts = [], isLoading: accountsLoading } = useQuery({
     queryKey: ['gmail-accounts'],
     queryFn: async () => {
-      const result = await callGmailFunction('gmail-oauth', { action: 'list-accounts' });
-      return (result.accounts || []) as GmailAccount[];
+      // Try edge function first (includes OAuth validation)
+      try {
+        const result = await callGmailFunction('gmail-oauth', { action: 'list-accounts' });
+        return (result.accounts || []) as GmailAccount[];
+      } catch {
+        // Fallback: read directly from gmail_accounts table
+        const { data, error } = await supabase
+          .from('gmail_accounts')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        return (data || []).map((a: any) => ({
+          id: a.id,
+          email_address: a.email_address,
+          is_active: a.is_active,
+          sync_status: a.sync_status || 'pending',
+          last_sync_at: a.last_sync_at,
+          created_at: a.created_at,
+        })) as GmailAccount[];
+      }
     },
   });
 
