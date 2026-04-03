@@ -258,6 +258,14 @@ export function ChatbotFlowsView() {
           </div>
         )}
       </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="executions" className="flex-1 min-h-0 mt-4">
+          <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+            <ChatbotExecutionsDashboard />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
 
       {/* Create Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
