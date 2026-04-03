@@ -134,13 +134,12 @@ export function VirtualizedRealtimeList({
                 <div className="relative flex-shrink-0">
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={conversation.contact.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
-                      {(conversation.contact.name || '??')
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
+                    <AvatarFallback className={cn(
+                      'text-xs font-semibold',
+                      getAvatarColor(conversation.contact.name || '?').bg,
+                      getAvatarColor(conversation.contact.name || '?').text
+                    )}>
+                      {getInitials(conversation.contact.name || '?')}
                     </AvatarFallback>
                   </Avatar>
                 </div>
