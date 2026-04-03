@@ -111,7 +111,7 @@ function MediaTypeIcon({ type }: { type: string | null }) {
   }
 }
 
-export function TeamChatPanel({ conversation, onBack }: Props) {
+export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetails }: Props) {
   const { profile } = useAuth();
   const { data: messages = [], isLoading } = useTeamMessages(conversation.id);
   const sendMutation = useSendTeamMessage();
