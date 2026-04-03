@@ -130,7 +130,7 @@ export function MessageReactions({
           </motion.button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-auto p-2 bg-popover/95 backdrop-blur-sm" 
+          className="w-auto p-2 bg-popover" 
           align={isSent ? 'end' : 'start'}
           sideOffset={4}
         >
