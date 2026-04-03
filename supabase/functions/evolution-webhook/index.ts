@@ -1448,7 +1448,7 @@ async function handleIncomingMessage(
 }
 
 async function handleAudioTranscription(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   contactId: string,
   messageId: string,
   mediaUrl: string,
