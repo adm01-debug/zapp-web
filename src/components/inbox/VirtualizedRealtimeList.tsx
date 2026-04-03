@@ -142,6 +142,18 @@ export function VirtualizedRealtimeList({
                       {getInitials(conversation.contact.name || '?')}
                     </AvatarFallback>
                   </Avatar>
+                  {/* Sentiment indicator dot */}
+                  {conversation.contact.ai_sentiment && (
+                    <span
+                      className={cn(
+                        'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card',
+                        conversation.contact.ai_sentiment === 'positive' && 'bg-[hsl(var(--success))]',
+                        conversation.contact.ai_sentiment === 'negative' && 'bg-destructive',
+                        conversation.contact.ai_sentiment === 'neutral' && 'bg-[hsl(var(--warning))]'
+                      )}
+                      title={`Sentimento: ${conversation.contact.ai_sentiment}`}
+                    />
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0 overflow-hidden">
