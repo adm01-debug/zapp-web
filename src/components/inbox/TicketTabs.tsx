@@ -46,6 +46,8 @@ export function TicketTabs({
   const { user } = useAuth();
   const { isAdmin, isSupervisor } = useUserRole();
   const { queues } = useQueues();
+  const isMobile = useIsMobile();
+  const canShowAll = isAdmin || isSupervisor;
   const canShowAll = isAdmin || isSupervisor;
 
   // Count conversations by category
