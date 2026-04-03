@@ -42,11 +42,21 @@ Deno.serve(async (req) => {
       return errorResponse("Apenas administradores podem criar usuários", 403, req);
     }
 
-    const { email, password, name, role } = await req.json();
+    const bodySchema = z.object({
+      email: z.string().email("Email inválido").max(255),
+      password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres").max(128),
+      name: z.string().min(1, "Nome é obrigatório").max(255),
+      role: z.enum(["admin", "supervisor", "agent", "special_agent"]).optional().default("agent"),
+    });
 
-    if (!email || !password || !name) {
-      return errorResponse("Email, senha e nome são obrigatórios", 400, req);
+    const parsed = bodySchema.safeParse(await req.json());
+    if (!parsed.success) {
+      const errors = parsed.error.flatten().fieldErrors;
+      return errorResponse(Object.values(errors).flat().join("; "), 400, req);
     }
+
+    const { email, password, name, role } = parsed.data;
+    const sanitizedName = sanitizeString(name) || name;
 
     // Create user via admin API
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
