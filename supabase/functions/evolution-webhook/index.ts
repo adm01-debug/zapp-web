@@ -277,8 +277,9 @@ async function persistMediaViaApi(
 }
 
 // Helper to safely get connection by instance_id
+// deno-lint-ignore no-explicit-any
 async function getConnectionByInstance(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   instance: string
 ): Promise<{ id: string } | null> {
   const { data } = await supabase
