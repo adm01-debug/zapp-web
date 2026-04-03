@@ -72,7 +72,7 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       <div
         ref={ref}
         className={cn(
-          'bg-background/60',
+          'bg-background/90',
           blurClasses[blur],
           border && 'border border-border/50',
           glow && 'shadow-lg shadow-primary/5',
