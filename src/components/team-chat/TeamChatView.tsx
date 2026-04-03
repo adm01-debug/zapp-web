@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTeamConversations } from '@/hooks/useTeamChat';
 import { TeamConversationList } from './TeamConversationList';
 import { TeamChatPanel } from './TeamChatPanel';
+import { TeamMemberDetails } from './TeamMemberDetails';
 import { NewConversationDialog } from './NewConversationDialog';
 import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -12,6 +13,7 @@ export function TeamChatView() {
   const { data: conversations = [], isLoading } = useTeamConversations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   // Enable differentiated notifications for team chat
   useTeamChatNotifications(selectedId);
@@ -29,7 +31,7 @@ export function TeamChatView() {
           conversations={conversations}
           isLoading={isLoading}
           selectedId={selectedId}
-          onSelect={setSelectedId}
+          onSelect={(id) => { setSelectedId(id); setShowDetails(false); }}
           onNewConversation={() => setShowNewDialog(true)}
         />
       </div>
@@ -43,6 +45,8 @@ export function TeamChatView() {
           <TeamChatPanel
             conversation={selectedConversation}
             onBack={() => setSelectedId(null)}
+            onToggleDetails={() => setShowDetails(prev => !prev)}
+            showDetails={showDetails}
           />
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -56,6 +60,14 @@ export function TeamChatView() {
           </div>
         )}
       </div>
+
+      {/* Details panel */}
+      {showDetails && selectedConversation && (
+        <TeamMemberDetails
+          conversation={selectedConversation}
+          onClose={() => setShowDetails(false)}
+        />
+      )}
 
       <NewConversationDialog
         open={showNewDialog}
