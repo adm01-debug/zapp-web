@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { Star } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { usePrefetchOnHover } from '@/hooks/usePrefetchOnHover';
 
@@ -22,9 +23,11 @@ interface SidebarNavItemProps {
   onViewChange: (v: string) => void;
   badge?: number;
   collapsed?: boolean;
+  onToggleFavorite?: (id: string) => void;
+  isFavorite?: boolean;
 }
 
-export const SidebarNavItem = React.memo(function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true }: SidebarNavItemProps) {
+export const SidebarNavItem = React.memo(function SidebarNavItem({ item, currentView, onViewChange, badge, collapsed = true, onToggleFavorite, isFavorite }: SidebarNavItemProps) {
   const Icon = item.icon;
   const isActive = currentView === item.id;
   const shortcut = item.shortcut || SHORTCUT_MAP[item.id];
