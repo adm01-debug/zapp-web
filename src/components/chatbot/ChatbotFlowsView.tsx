@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChatbotFlowEditor } from './ChatbotFlowEditor';
+const ChatbotExecutionsDashboard = lazy(() => import('./ChatbotExecutionsDashboard').then(m => ({ default: m.ChatbotExecutionsDashboard })));
 
 const triggerLabels: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
   keyword: { label: 'Palavra-chave', icon: Tag },
