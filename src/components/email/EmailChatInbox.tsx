@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Mail, Search, RefreshCw, Pencil, Inbox, Star,
-  Loader2, MailOpen, Paperclip, Clock
+  Loader2, MailOpen, Paperclip, Clock, AlertCircle, MailX
 } from 'lucide-react';
 import { useGmail, type EmailThread } from '@/hooks/useGmail';
 import { EmailChatThread } from './EmailChatThread';
