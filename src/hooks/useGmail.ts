@@ -187,7 +187,7 @@ export function useGmail(accountId?: string) {
     queryKey: ['gmail-messages', selectedThreadId],
     queryFn: async () => {
       if (!selectedThreadId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('email_messages')
         .select('*')
         .eq('thread_id', selectedThreadId)
