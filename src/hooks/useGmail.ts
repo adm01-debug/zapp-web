@@ -205,7 +205,7 @@ export function useGmail(accountId?: string) {
     queryKey: ['gmail-labels', activeAccount?.id],
     queryFn: async () => {
       if (!activeAccount) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('email_labels')
         .select('*')
         .eq('gmail_account_id', activeAccount.id)
