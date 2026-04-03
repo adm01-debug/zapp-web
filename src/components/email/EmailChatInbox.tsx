@@ -85,7 +85,7 @@ function ThreadItem({ thread, isSelected, onClick }: { thread: EmailThread; isSe
           <Badge variant="secondary" className="text-[9px] px-1 py-0">{thread.message_count}</Badge>
         )}
         <div className="flex items-center gap-0.5">
-          {thread.is_starred && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+          {thread.is_starred && <Star className="w-3 h-3 text-accent-foreground fill-current" />}
           {thread.label_ids?.includes('SENT') && <Mail className="w-3 h-3 text-muted-foreground" />}
         </div>
       </div>
