@@ -245,7 +245,7 @@ async function uploadToStorage(
 }
 
 async function migrateSimple(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // deno-lint-ignore no-explicit-any
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
   const { data: messages, error } = await supabase
