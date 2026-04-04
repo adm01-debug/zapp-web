@@ -1,31 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
 
-export interface Campaign {
-  id: string;
-  name: string;
-  description: string | null;
-  message_content: string;
-  message_type: string;
-  media_url: string | null;
-  status: 'draft' | 'scheduled' | 'sending' | 'completed' | 'cancelled' | 'paused';
-  scheduled_at: string | null;
-  started_at: string | null;
-  completed_at: string | null;
-  total_contacts: number;
-  sent_count: number;
-  delivered_count: number;
-  read_count: number;
-  failed_count: number;
-  whatsapp_connection_id: string | null;
-  created_by: string | null;
-  target_type: 'all' | 'tag' | 'queue' | 'custom';
+type CampaignRow = Database['public']['Tables']['campaigns']['Row'];
+type CampaignInsert = Database['public']['Tables']['campaigns']['Insert'];
+type CampaignUpdate = Database['public']['Tables']['campaigns']['Update'];
+
+export type Campaign = CampaignRow & {
   target_filter: Record<string, unknown> | null;
-  send_interval_seconds: number;
-  created_at: string;
-  updated_at: string;
-}
+};
 
 export function useCampaigns() {
   const queryClient = useQueryClient();
