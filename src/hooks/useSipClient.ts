@@ -149,7 +149,7 @@ export function useSipClient() {
       setSipStatus('disconnected');
       reconnectAttemptsRef.current = 0;
     } catch (err) {
-      console.error('SIP disconnect error:', err);
+      log.error('SIP disconnect error:', err);
     }
   }, []);
 
