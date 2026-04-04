@@ -123,7 +123,7 @@ export function SicoobBridgeDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <CheckCircle className="w-5 h-5 text-green-500" /> Endpoints da Bridge
+            <CheckCircle className="w-5 h-5 text-success" /> Endpoints da Bridge
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
