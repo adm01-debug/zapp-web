@@ -446,6 +446,14 @@ export function AdminView() {
           <History className="w-4 h-4 mr-2" />
           Auditoria
         </Button>
+        <Button
+          variant={activeTab === 'crm' ? 'default' : 'outline'}
+          onClick={() => setActiveTab('crm')}
+          className={activeTab === 'crm' ? 'bg-whatsapp hover:bg-whatsapp-dark' : ''}
+        >
+          <Building className="w-4 h-4 mr-2" />
+          CRM 360°
+        </Button>
       </div>
 
       {/* Search */}
