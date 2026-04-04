@@ -33,19 +33,10 @@ interface WithHeaderProps {
   onNavigateTo?: (viewId: string) => void;
 }
 
-function WithHeader({ viewId, children, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: WithHeaderProps) {
+function WithHeader({ viewId, children }: WithHeaderProps) {
   if (FULL_SCREEN_VIEWS.has(viewId)) return <>{children}</>;
   return (
     <div className="flex flex-col h-full">
-      <ViewHeader
-        viewId={viewId}
-        canGoBack={canGoBack}
-        canGoForward={canGoForward}
-        onGoBack={onGoBack}
-        onGoForward={onGoForward}
-        breadcrumbTrail={breadcrumbTrail}
-        onNavigateTo={onNavigateTo}
-      />
       <div className="flex-1 min-h-0 overflow-auto p-6">{children}</div>
     </div>
   );
