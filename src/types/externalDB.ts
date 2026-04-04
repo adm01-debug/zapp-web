@@ -475,6 +475,8 @@ export type ExternalTableName =
   | 'segments';
 
 export const EXTERNAL_TABLE_LABELS: Record<ExternalTableName, string> = {
+  companies: 'Empresas',
+  contacts: 'Contatos',
   customers: 'Clientes',
   contact_phones: 'Telefones (Contatos)',
   contact_emails: 'E-mails (Contatos)',
@@ -494,4 +496,23 @@ export const EXTERNAL_TABLE_LABELS: Record<ExternalTableName, string> = {
   daily_challenges: 'Desafios Diários',
   weekly_challenges: 'Desafios Semanais',
   interactions: 'Interações',
+  orders: 'Pedidos',
+  order_items: 'Itens de Pedido',
+  products: 'Produtos',
+  leads: 'Leads',
+  pipelines: 'Pipelines',
+  pipeline_stages: 'Etapas do Pipeline',
+  deals: 'Negócios',
+  deal_products: 'Produtos do Negócio',
+  quotations: 'Orçamentos',
+  quotation_items: 'Itens de Orçamento',
+  tasks: 'Tarefas',
+  notes: 'Notas',
+  tags: 'Tags',
+  company_tags: 'Tags (Empresas)',
+  contact_tags_ext: 'Tags (Contatos)',
+  payment_conditions: 'Condições de Pagamento',
+  price_tables: 'Tabelas de Preço',
+  regions: 'Regiões',
+  segments: 'Segmentos',
 };
