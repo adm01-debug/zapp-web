@@ -585,13 +585,16 @@ export function AdminView() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new_avatar">URL da Foto (opcional)</Label>
+              <Label htmlFor="new_avatar">Foto (opcional)</Label>
               <Input
                 id="new_avatar"
-                placeholder="https://exemplo.com/foto.jpg"
-                value={newUserAvatarUrl}
-                onChange={(e) => setNewUserAvatarUrl(e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={(e) => setNewUserAvatarFile(e.target.files?.[0] || null)}
               />
+              {newUserAvatarFile && (
+                <p className="text-xs text-muted-foreground">{newUserAvatarFile.name}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="new_email">Email *</Label>
