@@ -109,7 +109,7 @@ function useAutomations() {
           actions: automation.actions || [],
           is_active: automation.is_active ?? true,
           created_by: automation.created_by,
-        } as any)
+        } as unknown as Database['public']['Tables']['automations']['Insert'])
         .select()
         .single();
       if (error) throw error;
