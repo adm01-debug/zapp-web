@@ -35,8 +35,8 @@ function IntegrationForm({
   title: string;
   icon: React.ElementType;
   fields: { key: string; label: string; type?: string; placeholder?: string }[];
-  values: Record<string, any>;
-  onChange: (key: string, value: any) => void;
+  values: Record<string, unknown>;
+  onChange: (key: string, value: unknown) => void;
   onSave: () => void;
   onDelete: () => void;
   isLoading: boolean;
@@ -49,12 +49,12 @@ function IntegrationForm({
           <Label className="font-medium">{title}</Label>
         </div>
         <Switch
-          checked={values.enabled ?? false}
+          checked={Boolean(values.enabled)}
           onCheckedChange={(checked) => onChange('enabled', checked)}
         />
       </div>
 
-      {values.enabled && (
+      {Boolean(values.enabled) && (
         <>
           {fields.map(({ key, label, type = 'text', placeholder }) => (
             <div key={key}>
@@ -62,7 +62,7 @@ function IntegrationForm({
               {type === 'boolean' ? (
                 <div className="flex items-center gap-2 mt-1">
                   <Switch
-                    checked={values[key] ?? false}
+                    checked={Boolean(values[key])}
                     onCheckedChange={(checked) => onChange(key, checked)}
                   />
                   <span className="text-sm text-muted-foreground">{values[key] ? 'Ativado' : 'Desativado'}</span>
@@ -70,7 +70,7 @@ function IntegrationForm({
               ) : (
                 <Input
                   type={type}
-                  value={values[key] ?? ''}
+                  value={String(values[key] ?? '')}
                   onChange={(e) => onChange(key, type === 'number' ? Number(e.target.value) : e.target.value)}
                   placeholder={placeholder}
                   className="mt-1"
@@ -102,22 +102,22 @@ export function IntegrationsPanel({
 }: IntegrationsPanelProps) {
   const api = useEvolutionApi();
 
-  const [typebot, setTypebot] = useState<Record<string, any>>({ enabled: false });
-  const [openai, setOpenai] = useState<Record<string, any>>({ enabled: false });
-  const [dify, setDify] = useState<Record<string, any>>({ enabled: false });
-  const [flowise, setFlowise] = useState<Record<string, any>>({ enabled: false });
-  const [chatwoot, setChatwoot] = useState<Record<string, any>>({ enabled: false });
-  const [evolutionBot, setEvolutionBot] = useState<Record<string, any>>({ enabled: false });
+  const [typebot, setTypebot] = useState<Record<string, unknown>>({ enabled: false });
+  const [openai, setOpenai] = useState<Record<string, unknown>>({ enabled: false });
+  const [dify, setDify] = useState<Record<string, unknown>>({ enabled: false });
+  const [flowise, setFlowise] = useState<Record<string, unknown>>({ enabled: false });
+  const [chatwoot, setChatwoot] = useState<Record<string, unknown>>({ enabled: false });
+  const [evolutionBot, setEvolutionBot] = useState<Record<string, unknown>>({ enabled: false });
 
   useEffect(() => {
     if (open && instanceName) loadAll();
   }, [open, instanceName]);
 
   const loadAll = async () => {
-    const load = async (getter: (n: string) => Promise<any>, setter: (v: any) => void) => {
+    const load = async (getter: (n: string) => Promise<unknown>, setter: (v: Record<string, unknown>) => void) => {
       try {
         const data = await getter(instanceName);
-        if (data) setter({ enabled: true, ...data });
+        if (data && typeof data === 'object') setter({ enabled: true, ...(data as Record<string, unknown>) });
       } catch { /* not configured */ }
     };
     await Promise.allSettled([
@@ -224,7 +224,7 @@ export function IntegrationsPanel({
               values={typebot}
               onChange={(k, v) => setTypebot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setTypebot({ instanceName, ...typebot } as any); toast.success('Typebot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setTypebot({ instanceName, ...typebot } as Parameters<typeof api.setTypebot>[0]); toast.success('Typebot configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteTypebot(instanceName); setTypebot({ enabled: false }); toast.success('Typebot removido'); } catch { toast.error('Erro'); }
@@ -241,7 +241,7 @@ export function IntegrationsPanel({
               values={openai}
               onChange={(k, v) => setOpenai(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setOpenAI({ instanceName, ...openai } as any); toast.success('OpenAI configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setOpenAI({ instanceName, ...openai } as Parameters<typeof api.setOpenAI>[0]); toast.success('OpenAI configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteOpenAI(instanceName); setOpenai({ enabled: false }); toast.success('OpenAI removido'); } catch { toast.error('Erro'); }
@@ -258,7 +258,7 @@ export function IntegrationsPanel({
               values={dify}
               onChange={(k, v) => setDify(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setDify({ instanceName, ...dify } as any); toast.success('Dify configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setDify({ instanceName, ...dify } as Parameters<typeof api.setDify>[0]); toast.success('Dify configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteDify(instanceName); setDify({ enabled: false }); toast.success('Dify removido'); } catch { toast.error('Erro'); }
@@ -275,7 +275,7 @@ export function IntegrationsPanel({
               values={flowise}
               onChange={(k, v) => setFlowise(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setFlowise({ instanceName, ...flowise } as any); toast.success('Flowise configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setFlowise({ instanceName, ...flowise } as Parameters<typeof api.setFlowise>[0]); toast.success('Flowise configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteFlowise(instanceName); setFlowise({ enabled: false }); toast.success('Flowise removido'); } catch { toast.error('Erro'); }
@@ -292,7 +292,7 @@ export function IntegrationsPanel({
               values={chatwoot}
               onChange={(k, v) => setChatwoot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setChatwoot({ instanceName, ...chatwoot } as any); toast.success('Chatwoot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setChatwoot({ instanceName, ...chatwoot } as Parameters<typeof api.setChatwoot>[0]); toast.success('Chatwoot configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteChatwoot(instanceName); setChatwoot({ enabled: false }); toast.success('Chatwoot removido'); } catch { toast.error('Erro'); }
@@ -309,7 +309,7 @@ export function IntegrationsPanel({
               values={evolutionBot}
               onChange={(k, v) => setEvolutionBot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setEvolutionBot({ instanceName, ...evolutionBot } as any); toast.success('Evolution Bot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setEvolutionBot({ instanceName, ...evolutionBot } as Parameters<typeof api.setEvolutionBot>[0]); toast.success('Evolution Bot configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteEvolutionBot(instanceName); setEvolutionBot({ enabled: false }); toast.success('Evolution Bot removido'); } catch { toast.error('Erro'); }

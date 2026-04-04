@@ -658,7 +658,8 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           insertData.image_url = urlData.publicUrl;
         }
 
-        const { error: insertError } = await supabase.from(type).insert(insertData as any);
+        // Dynamic table name requires runtime cast - type is validated to be one of the 3 media tables
+        const { error: insertError } = await (supabase as unknown as { from: (t: string) => { insert: (d: Record<string, unknown>) => Promise<{ error: unknown }> } }).from(type).insert(insertData);
         if (!insertError) successCount++;
       } catch (err) {
         log.error(`Unexpected error uploading ${file.name}:`, err);
