@@ -809,6 +809,35 @@ function DataExplorerTable({ tabConfig, onRowClick, onCreateClick }: { tabConfig
 // ─── Main Component ──────────────────────────────────────────
 export function CRM360ExplorerView() {
   const [activeTab, setActiveTab] = useState<string>(TABS[0].id);
+  const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<Record<string, unknown> | null>(null);
+  const [editingContact, setEditingContact] = useState<Record<string, unknown> | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRowClick = useCallback((tabId: string, row: Record<string, unknown>) => {
+    if (tabId === 'companies') {
+      setEditingCompany(row);
+      setCompanyDialogOpen(true);
+    } else if (tabId === 'contacts') {
+      setEditingContact(row);
+      setContactDialogOpen(true);
+    }
+  }, []);
+
+  const handleCreateClick = useCallback((tabId: string) => {
+    if (tabId === 'companies') {
+      setEditingCompany(null);
+      setCompanyDialogOpen(true);
+    } else if (tabId === 'contacts') {
+      setEditingContact(null);
+      setContactDialogOpen(true);
+    }
+  }, []);
+
+  const handleSuccess = useCallback(() => {
+    setRefreshKey(k => k + 1);
+  }, []);
 
   if (!isExternalConfigured) {
     return (
@@ -863,6 +892,7 @@ export function CRM360ExplorerView() {
                 >
                   <Icon className="h-3 w-3" />
                   {tab.label}
+                  {tab.editable && <Pencil className="h-2.5 w-2.5 text-primary/60" />}
                 </TabsTrigger>
               );
             })}
@@ -879,19 +909,43 @@ export function CRM360ExplorerView() {
                       <CardTitle className="text-sm flex items-center gap-2">
                         {(() => { const Icon = tab.icon; return <Icon className="h-4 w-4 text-primary" />; })()}
                         {tab.label}
+                        {tab.editable && (
+                          <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
+                            <Pencil className="h-2.5 w-2.5 mr-0.5" /> Editável
+                          </Badge>
+                        )}
                       </CardTitle>
                       <CardDescription className="text-[11px] mt-0.5">{tab.description}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <DataExplorerTable tabConfig={tab} />
+                  <DataExplorerTable
+                    key={refreshKey}
+                    tabConfig={tab}
+                    onRowClick={tab.editable ? (row) => handleRowClick(tab.id, row) : undefined}
+                    onCreateClick={tab.editable ? () => handleCreateClick(tab.id) : undefined}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
           ))}
         </div>
       </Tabs>
+
+      {/* CRUD Modals */}
+      <CompanyFormDialog
+        open={companyDialogOpen}
+        onOpenChange={setCompanyDialogOpen}
+        company={editingCompany}
+        onSuccess={handleSuccess}
+      />
+      <ContactFormDialog
+        open={contactDialogOpen}
+        onOpenChange={setContactDialogOpen}
+        contact={editingContact}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }
