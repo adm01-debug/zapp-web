@@ -34,7 +34,7 @@ const ChatPanel = lazy(() =>
   import('@/components/inbox/ChatPanel').then((m) => ({ default: m.ChatPanel }))
 );
 
-function mapToLegacyMessages(msgs: any[], contactId: string): Message[] {
+function mapToLegacyMessages(msgs: Record<string, unknown>[], contactId: string): Message[] {
   return msgs.map((m) => ({
     id: m.id,
     conversationId: contactId,

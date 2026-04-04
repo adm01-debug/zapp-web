@@ -75,7 +75,7 @@ export function WhatsAppFlowsBuilder() {
     setLoading(true);
     const { data } = await supabase.from('whatsapp_flows').select('*').order('created_at', { ascending: false });
     if (data) {
-      setFlows(data.map((f: any) => ({
+      setFlows(data.map((f) => ({
         ...f,
         screens: Array.isArray(f.screens) ? f.screens : [],
       })));
