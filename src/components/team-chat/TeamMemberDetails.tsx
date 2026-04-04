@@ -187,7 +187,7 @@ export function TeamMemberDetails({ conversation, onClose }: TeamMemberDetailsPr
                     </AvatarFallback>
                   </Avatar>
                   {memberProfile.is_active && (
-                    <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-card" />
+                    <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-success border-2 border-card" />
                   )}
                   {birthdayInfo?.isToday && (
                     <div className="absolute -top-1 -right-1 text-lg" title="Aniversário hoje!">🎂</div>
@@ -205,7 +205,7 @@ export function TeamMemberDetails({ conversation, onClose }: TeamMemberDetailsPr
                     </Badge>
                   )}
                   {memberProfile.is_active ? (
-                    <Badge variant="outline" className="text-[10px] px-2 bg-green-500/10 text-green-600 border-green-500/20">
+                    <Badge variant="outline" className="text-[10px] px-2 bg-success/10 text-success border-success/20">
                       Online
                     </Badge>
                   ) : (
@@ -299,7 +299,7 @@ export function TeamMemberDetails({ conversation, onClose }: TeamMemberDetailsPr
                           </AvatarFallback>
                         </Avatar>
                         {member.is_active && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-card" />
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-success border-2 border-card" />
                         )}
                         {mBirthday?.isToday && (
                           <div className="absolute -top-1 -right-1 text-xs">🎂</div>

@@ -356,7 +356,7 @@ export const SLAHistoryDashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-red-500/20"
+                    className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/20"
                   >
                     <div>
                       <p className="font-medium">{day.dateLabel}</p>
@@ -392,7 +392,7 @@ export const SLAHistoryDashboard = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex items-center justify-between p-3 rounded-lg bg-success/5 border border-green-500/20"
+                    className="flex items-center justify-between p-3 rounded-lg bg-success/5 border border-success/20"
                   >
                     <div>
                       <p className="font-medium">{day.dateLabel}</p>

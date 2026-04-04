@@ -60,20 +60,20 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string | 
 function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
   const segmentColors: Record<string, string> = {
     Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
-    'Loyal Customers': 'bg-blue-500/15 text-blue-600 border-blue-500/30',
+    'Loyal Customers': 'bg-info/15 text-info border-info/30',
     'Potential Loyalist': 'bg-sky-500/15 text-sky-600 border-sky-500/30',
     'Recent Customers': 'bg-violet-500/15 text-violet-600 border-violet-500/30',
     Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',
     'Need Attention': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
-    'About to Sleep': 'bg-orange-500/15 text-orange-600 border-orange-500/30',
-    'At Risk': 'bg-red-500/15 text-red-600 border-red-500/30',
+    'About to Sleep': 'bg-warning/15 text-warning border-warning/30',
+    'At Risk': 'bg-destructive/15 text-destructive border-destructive/30',
     Hibernating: 'bg-muted text-muted-foreground border-border',
     Lost: 'bg-muted/50 text-muted-foreground border-border/50',
     "Can't Lose Them": 'bg-rose-500/15 text-rose-600 border-rose-500/30',
   };
   const barColors: Record<string, string> = {
-    Champions: 'bg-emerald-500', 'Loyal Customers': 'bg-blue-500',
-    'Potential Loyalist': 'bg-sky-500', 'At Risk': 'bg-red-500',
+    Champions: 'bg-success', 'Loyal Customers': 'bg-info',
+    'Potential Loyalist': 'bg-primary', 'At Risk': 'bg-destructive',
     Hibernating: 'bg-muted-foreground', Lost: 'bg-muted-foreground/60',
     "Can't Lose Them": 'bg-rose-500',
   };

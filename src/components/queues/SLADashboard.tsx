@@ -380,25 +380,25 @@ export const SLADashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg bg-destructive/10 border border-red-500/20">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
                 <p className="text-sm text-muted-foreground">Violações 1ª Resposta</p>
                 <p className="text-2xl font-bold text-destructive">
                   {data.overall.firstResponse.breached}
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-destructive/10 border border-red-500/20">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
                 <p className="text-sm text-muted-foreground">Violações Resolução</p>
                 <p className="text-2xl font-bold text-destructive">
                   {data.overall.resolution.breached}
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-success/10 border border-green-500/20">
+              <div className="p-4 rounded-lg bg-success/10 border border-success/20">
                 <p className="text-sm text-muted-foreground">No Prazo 1ª Resposta</p>
                 <p className="text-2xl font-bold text-success">
                   {data.overall.firstResponse.onTime}
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-success/10 border border-green-500/20">
+              <div className="p-4 rounded-lg bg-success/10 border border-success/20">
                 <p className="text-sm text-muted-foreground">No Prazo Resolução</p>
                 <p className="text-2xl font-bold text-success">
                   {data.overall.resolution.onTime}

@@ -271,7 +271,7 @@ export function DevicesPanel() {
                               <Badge className="bg-primary">Este dispositivo</Badge>
                             )}
                             {device.is_trusted && (
-                              <Badge variant="outline" className="bg-success/10 text-success border-green-500/20">
+                              <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                 Confiável
                               </Badge>
@@ -355,7 +355,7 @@ export function DevicesPanel() {
       </Card>
 
       {/* Info Card */}
-      <Card className="bg-info/5 border-blue-500/20">
+      <Card className="bg-info/5 border-info/20">
         <CardContent className="flex items-start gap-4 p-4">
           <AlertCircle className="w-5 h-5 text-info mt-0.5" />
           <div>

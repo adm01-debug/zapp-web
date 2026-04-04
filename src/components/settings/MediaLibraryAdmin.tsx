@@ -164,7 +164,7 @@ function StatsCards({ items, type }: { items: MediaItem[]; type: MediaType }) {
       <Card className="border-border/50">
         <CardContent className="p-3">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-green-500" />
+            <TrendingUp className="w-4 h-4 text-success" />
             <div>
               <p className="text-lg font-bold text-foreground">{totalUses}</p>
               <p className="text-[10px] text-muted-foreground">Usos totais</p>
@@ -175,7 +175,7 @@ function StatsCards({ items, type }: { items: MediaItem[]; type: MediaType }) {
       <Card className="border-border/50">
         <CardContent className="p-3">
           <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-yellow-500" />
+            <Star className="w-4 h-4 text-warning" />
             <div>
               <p className="text-lg font-bold text-foreground">{favorites}</p>
               <p className="text-[10px] text-muted-foreground">Favoritos</p>
@@ -186,7 +186,7 @@ function StatsCards({ items, type }: { items: MediaItem[]; type: MediaType }) {
       <Card className="border-border/50">
         <CardContent className="p-3">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-blue-500" />
+            <Filter className="w-4 h-4 text-info" />
             <div>
               <p className="text-lg font-bold text-foreground">{categories}</p>
               <p className="text-[10px] text-muted-foreground">Categorias</p>
@@ -841,7 +841,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
                     <p className="text-xs font-medium truncate">{genPrompt}</p>
                     <p className="text-[10px] text-muted-foreground">{genDuration}s • {genMode === 'sfx' ? 'Efeito' : 'Música'}</p>
                   </div>
-                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">Pronto</Badge>
+                  <Badge className="bg-success/10 text-success border-success/20 text-[10px]">Pronto</Badge>
                 </div>
               )}
             </div>
@@ -1051,7 +1051,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
                         className="p-1 rounded hover:bg-muted/50 transition-colors"
                         title={item.is_favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                       >
-                        <Star className={cn('w-3.5 h-3.5 mx-auto transition-colors', item.is_favorite ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground/30 hover:text-yellow-400')} />
+                        <Star className={cn('w-3.5 h-3.5 mx-auto transition-colors', item.is_favorite ? 'fill-warning text-warning' : 'text-muted-foreground/30 hover:text-warning')} />
                       </button>
                     </div>
 

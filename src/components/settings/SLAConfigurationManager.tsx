@@ -27,8 +27,8 @@ interface SLAConfig {
 }
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
-  critical: { label: 'Crítica', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  high: { label: 'Alta', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  critical: { label: 'Crítica', color: 'bg-destructive/20 text-destructive border-destructive/30' },
+  high: { label: 'Alta', color: 'bg-warning/20 text-warning border-warning/30' },
   medium: { label: 'Média', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
   low: { label: 'Baixa', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
 };

@@ -115,11 +115,11 @@ export function SecurityOverview() {
     switch (severity) {
       case 'high':
       case 'critical':
-        return 'bg-destructive/10 text-destructive border-red-500/20';
+        return 'bg-destructive/10 text-destructive border-destructive/20';
       case 'medium':
         return 'bg-warning/10 text-warning border-yellow-500/20';
       default:
-        return 'bg-info/10 text-info border-blue-500/20';
+        return 'bg-info/10 text-info border-info/20';
     }
   };
 
@@ -376,7 +376,7 @@ export function SecurityOverview() {
                           {alert.severity}
                         </Badge>
                         {alert.is_resolved && (
-                          <Badge variant="outline" className="bg-success/10 text-success border-green-500/20">
+                          <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                             Resolvido
                           </Badge>
                         )}
@@ -451,7 +451,7 @@ export function SecurityOverview() {
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium">{device.device_name || 'Dispositivo'}</h4>
                           {device.is_trusted && (
-                            <Badge variant="outline" className="bg-success/10 text-success border-green-500/20 text-xs">
+                            <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs">
                               Confiável
                             </Badge>
                           )}
