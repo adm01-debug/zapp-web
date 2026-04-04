@@ -19,7 +19,7 @@ interface MobileShellProps {
 const mobileNavItems = [
   { id: 'inbox', icon: <MessageSquare className="w-5 h-5" />, label: 'Chat' },
   { id: 'team-chat', icon: <MessagesSquare className="w-5 h-5" />, label: 'Equipe' },
-  { id: 'omni-inbox', icon: <Mail className="w-5 h-5" />, label: 'Email' },
+  { id: 'email-chat', icon: <Mail className="w-5 h-5" />, label: 'Email' },
   { id: 'contacts', icon: <Users className="w-5 h-5" />, label: 'Contatos' },
   { id: 'more', icon: <Menu className="w-5 h-5" />, label: 'Mais' },
 ];
