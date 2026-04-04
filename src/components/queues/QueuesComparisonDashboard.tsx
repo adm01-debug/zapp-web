@@ -253,8 +253,8 @@ export function QueuesComparisonDashboard() {
                         labelFormatter={(value, payload) => payload?.[0]?.payload?.fullName || value}
                       />
                       <Legend />
-                      <Bar dataKey="contatos" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Contatos" />
-                      <Bar dataKey="mensagens" fill="#10B981" radius={[4, 4, 0, 0]} name="Mensagens" />
+                      <Bar dataKey="contatos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Contatos" />
+                      <Bar dataKey="mensagens" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Mensagens" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
