@@ -1837,6 +1837,13 @@ export type Database = {
             referencedRelation: "gmail_accounts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "email_labels_gmail_account_id_fkey"
+            columns: ["gmail_account_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_accounts_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_messages: {
@@ -1924,6 +1931,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "email_messages_gmail_account_id_fkey"
+            columns: ["gmail_account_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_accounts_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "email_messages_thread_id_fkey"
             columns: ["thread_id"]
             isOneToOne: false
@@ -2006,6 +2020,13 @@ export type Database = {
             columns: ["gmail_account_id"]
             isOneToOne: false
             referencedRelation: "gmail_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_gmail_account_id_fkey"
+            columns: ["gmail_account_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_accounts_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -5102,6 +5123,45 @@ export type Database = {
       }
     }
     Views: {
+      gmail_accounts_safe: {
+        Row: {
+          created_at: string | null
+          email_address: string | null
+          id: string | null
+          is_active: boolean | null
+          last_error: string | null
+          last_sync_at: string | null
+          sync_status: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_address?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_error?: string | null
+          last_sync_at?: string | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_address?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_error?: string | null
+          last_sync_at?: string | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           avatar_url: string | null
