@@ -420,7 +420,7 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
       is_favorite: false,
       use_count: 0,
       uploaded_by: user?.id || null,
-    } as any);
+    });
 
     if (error) {
       toast.error('Erro ao salvar emoji');
