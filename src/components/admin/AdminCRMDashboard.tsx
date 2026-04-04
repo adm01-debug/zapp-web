@@ -220,12 +220,12 @@ export const AdminCRMDashboard = memo(function AdminCRMDashboard() {
 
       {/* Metric cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-        <MetricCard label="Clientes" table="customers" icon={ShoppingCart} color="bg-blue-500/15 text-blue-600" />
-        <MetricCard label="Scores RFM" table="company_rfm_scores" icon={BarChart3} color="bg-emerald-500/15 text-emerald-600" />
-        <MetricCard label="Vendas" table="sales" icon={DollarSign} color="bg-amber-500/15 text-amber-600" />
-        <MetricCard label="Interações" table="interactions" icon={Activity} color="bg-violet-500/15 text-violet-600" />
-        <MetricCard label="Fornecedores" table="suppliers" icon={Package} color="bg-orange-500/15 text-orange-600" />
-        <MetricCard label="Transportadoras" table="carriers" icon={Truck} color="bg-cyan-500/15 text-cyan-600" />
+        <MetricCard label="Clientes" table="customers" icon={ShoppingCart} color="bg-info/15 text-info" />
+        <MetricCard label="Scores RFM" table="company_rfm_scores" icon={BarChart3} color="bg-success/15 text-success" />
+        <MetricCard label="Vendas" table="sales" icon={DollarSign} color="bg-warning/15 text-warning" />
+        <MetricCard label="Interações" table="interactions" icon={Activity} color="bg-secondary/15 text-secondary" />
+        <MetricCard label="Fornecedores" table="suppliers" icon={Package} color="bg-accent/15 text-accent-foreground" />
+        <MetricCard label="Transportadoras" table="carriers" icon={Truck} color="bg-primary/15 text-primary" />
       </div>
 
       {/* Detail panels */}

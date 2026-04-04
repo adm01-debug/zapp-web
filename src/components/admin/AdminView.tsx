@@ -866,12 +866,12 @@ export function AdminView() {
                       </TableCell>
                       <TableCell>
                         {user.is_active !== false ? (
-                          <Badge className="bg-success/10 text-success border-green-500/20">
+                          <Badge className="bg-success/10 text-success border-success/20">
                             <UserCheck className="w-3 h-3 mr-1" />
                             Ativo
                           </Badge>
                         ) : (
-                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-red-500/20">
+                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
                             <UserX className="w-3 h-3 mr-1" />
                             Inativo
                           </Badge>

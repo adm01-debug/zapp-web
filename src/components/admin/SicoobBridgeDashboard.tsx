@@ -159,9 +159,9 @@ export function SicoobBridgeDashboard() {
               {recentMessages.map(msg => (
                 <div key={msg.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
                   {msg.sender === 'contact' ? (
-                    <ArrowDownLeft className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <ArrowDownLeft className="w-4 h-4 text-success mt-0.5 shrink-0" />
                   ) : (
-                    <ArrowUpRight className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                    <ArrowUpRight className="w-4 h-4 text-info mt-0.5 shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{msg.content}</p>

@@ -165,9 +165,9 @@ export function MediaMigrationTool() {
             <div className="space-y-2">
               {history.slice(1).map((h, i) => (
                 <div key={i} className="flex items-center gap-3 p-2 rounded border text-xs">
-                  {h.success ? <CheckCircle className="w-3 h-3 text-green-500" /> : <XCircle className="w-3 h-3 text-destructive" />}
+                  {h.success ? <CheckCircle className="w-3 h-3 text-success" /> : <XCircle className="w-3 h-3 text-destructive" />}
                   <span>{h.processed} processados</span>
-                  <span className="text-green-500">{h.migrated} OK</span>
+                  <span className="text-success">{h.migrated} OK</span>
                   {h.failed > 0 && <span className="text-destructive">{h.failed} falhas</span>}
                 </div>
               ))}

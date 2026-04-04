@@ -194,7 +194,7 @@ export function PublicApiDashboard() {
                   {log.action.includes('error') || log.action.includes('fail') ? (
                     <XCircle className="w-4 h-4 text-destructive shrink-0" />
                   ) : (
-                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-success shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{log.action}</p>
