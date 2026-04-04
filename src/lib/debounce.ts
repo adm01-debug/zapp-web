@@ -4,13 +4,13 @@ import { useCallback, useRef, useEffect } from 'react';
  * Generic debounce utility with cancel support.
  * Returns a debounced function + cancel method.
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
   delayMs: number
 ): T & { cancel: () => void } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  const debounced = ((...args: any[]) => {
+  const debounced = ((...args: unknown[]) => {
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       timeoutId = null;
@@ -33,7 +33,7 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param callback - Function to debounce
  * @param delayMs - Debounce delay in ms
  */
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
+export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delayMs: number
 ): T & { cancel: () => void } {
@@ -49,7 +49,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
   }, []);
 
   const debounced = useCallback(
-    ((...args: any[]) => {
+    ((...args: unknown[]) => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         timeoutRef.current = null;

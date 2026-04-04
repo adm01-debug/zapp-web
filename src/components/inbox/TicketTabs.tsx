@@ -147,7 +147,7 @@ export function TicketTabs({
                   className={cn(
                     'h-4 min-w-[16px] px-1 text-[9px] font-bold leading-none border',
                     isActive 
-                      ? 'bg-white/15 text-inherit border-white/25' 
+                      ? 'bg-primary-foreground/15 text-inherit border-primary-foreground/25' 
                       : 'bg-transparent text-muted-foreground border-border/60'
                   )}
                 >

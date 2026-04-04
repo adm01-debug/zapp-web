@@ -205,7 +205,7 @@ export function useAnimationFrame(callback: (deltaTime: number) => void, isRunni
 /**
  * Memoized callback with stable reference
  */
-export function useStableCallback<T extends (...args: any[]) => any>(callback: T): T {
+export function useStableCallback<T extends (...args: unknown[]) => unknown>(callback: T): T {
   const callbackRef = useRef(callback);
   
   useEffect(() => {
