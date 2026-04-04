@@ -61,8 +61,8 @@ export function ElevenLabsVoiceDesign() {
         setAudioUrl(url);
       }
       toast.success('Voz gerada com sucesso!');
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao gerar voz');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao gerar voz');
     } finally {
       setGenerating(false);
     }

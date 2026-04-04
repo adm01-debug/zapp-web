@@ -238,8 +238,8 @@ export function FollowUpSequences() {
                 {seq.followup_steps && seq.followup_steps.length > 0 && (
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {seq.followup_steps
-                      .sort((a: any, b: any) => a.step_order - b.step_order)
-                      .map((step: any, i: number) => (
+                      .sort((a: Record<string, number>, b: Record<string, number>) => a.step_order - b.step_order)
+                      .map((step: Record<string, unknown>, i: number) => (
                         <div key={step.id} className="flex items-center gap-1">
                           <Badge variant="outline" className="text-xs">
                             {step.delay_hours}h

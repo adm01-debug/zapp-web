@@ -140,7 +140,7 @@ export function ChannelRoutingRules() {
             <Select value={newRule.queue_id} onValueChange={v => setNewRule(r => ({ ...r, queue_id: v }))}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Selecione fila..." /></SelectTrigger>
               <SelectContent>
-                {queues.map((q: any) => (
+                {queues.map((q: { id: string; name: string }) => (
                   <SelectItem key={q.id} value={q.id}>{q.name}</SelectItem>
                 ))}
               </SelectContent>

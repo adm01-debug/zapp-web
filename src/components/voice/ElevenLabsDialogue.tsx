@@ -84,8 +84,8 @@ export function ElevenLabsDialogue() {
       const url = URL.createObjectURL(blob);
       setAudioUrl(url);
       toast.success('Diálogo gerado com sucesso!');
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao gerar diálogo');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao gerar diálogo');
     } finally {
       setGenerating(false);
     }

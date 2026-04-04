@@ -574,8 +574,8 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
       setGenPrompt('');
       setGenPreviewUrl(null);
       fetchItems();
-    } catch (err: any) {
-      toast.error(err?.message || 'Erro ao salvar áudio');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao salvar áudio');
     } finally {
       setGenerating(false);
     }
