@@ -135,7 +135,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       }
 
       // Fallback: try first active connection
-      const { data: fallbackConn } = await (supabase as any)
+      const { data: fallbackConn } = await supabase
         .from('whatsapp_connections')
         .select('instance_id')
         .eq('status', 'connected')

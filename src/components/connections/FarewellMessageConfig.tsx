@@ -27,7 +27,7 @@ export function FarewellMessageConfig({ connectionId, initialMessage, initialEna
         .update({
           farewell_message: message,
           farewell_enabled: enabled,
-        } as any)
+        })
         .eq('id', connectionId);
       if (error) throw error;
       toast.success('Mensagem de despedida salva!');

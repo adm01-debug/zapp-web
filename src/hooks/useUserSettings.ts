@@ -126,8 +126,8 @@ export function useUserSettings() {
             theme: data.theme ?? DEFAULT_SETTINGS.theme,
             language: data.language ?? DEFAULT_SETTINGS.language,
             compact_mode: data.compact_mode ?? DEFAULT_SETTINGS.compact_mode,
-            tts_voice_id: (data as any).tts_voice_id ?? DEFAULT_SETTINGS.tts_voice_id,
-            tts_speed: (data as any).tts_speed ?? DEFAULT_SETTINGS.tts_speed,
+            tts_voice_id: data.tts_voice_id ?? DEFAULT_SETTINGS.tts_voice_id,
+            tts_speed: data.tts_speed ?? DEFAULT_SETTINGS.tts_speed,
           });
         }
       } catch (err) {

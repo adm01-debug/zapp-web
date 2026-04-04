@@ -462,7 +462,7 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
 
   const handleCategoryChange = async (emoji: CustomEmoji, newCategory: string) => {
     setEmojis(prev => prev.map(em => em.id === emoji.id ? { ...em, category: newCategory } : em));
-    await supabase.from('custom_emojis').update({ category: newCategory } as any).eq('id', emoji.id);
+    await supabase.from('custom_emojis').update({ category: newCategory }).eq('id', emoji.id);
     toast.success(`Categoria alterada para "${CATEGORY_LABELS[newCategory]?.label || newCategory}"`);
   };
 
