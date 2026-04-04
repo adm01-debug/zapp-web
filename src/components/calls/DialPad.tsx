@@ -189,11 +189,11 @@ export function DialPad({
       {!isInCall && (
         <Button
           size="lg"
-          className="rounded-full w-16 h-16 bg-green-600 hover:bg-green-700"
+          className="rounded-full w-16 h-16 bg-success hover:bg-success/90"
           onClick={handleCall}
           disabled={!number.trim() || !isConnected}
         >
-          <Phone className="w-7 h-7 text-white" />
+          <Phone className="w-7 h-7 text-success-foreground" />
         </Button>
       )}
 

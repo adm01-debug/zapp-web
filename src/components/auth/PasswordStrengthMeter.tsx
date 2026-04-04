@@ -217,7 +217,7 @@ export function PasswordStrengthMeter({ password, onStrengthChange }: PasswordSt
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex items-center gap-2 p-2 rounded-lg bg-success/10 border border-green-500/20"
+            className="flex items-center gap-2 p-2 rounded-lg bg-success/10 border border-success/20"
           >
             <ShieldCheck className="w-4 h-4 text-success" />
             <span className="text-xs text-success dark:text-success">

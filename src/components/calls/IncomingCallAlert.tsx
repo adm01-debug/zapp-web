@@ -144,10 +144,10 @@ export function IncomingCallAlert() {
             </Button>
             <Button
               className={cn(
-                "flex-1 gap-2 text-white",
+                "flex-1 gap-2 text-primary-foreground",
                 incomingCall.is_video
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-green-600 hover:bg-green-700"
+                  ? "bg-info hover:bg-info/90"
+                  : "bg-success hover:bg-success/90"
               )}
               onClick={handleAnswer}
             >

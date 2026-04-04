@@ -183,9 +183,9 @@ export function ChurnPredictionDashboard() {
         {[
           { label: 'Total Analisados', value: stats.total, icon: Users, color: 'text-primary' },
           { label: 'Crítico', value: stats.critical, icon: AlertTriangle, color: 'text-destructive' },
-          { label: 'Alto', value: stats.high, icon: ArrowUpRight, color: 'text-orange-500' },
-          { label: 'Médio', value: stats.medium, icon: Clock, color: 'text-yellow-500' },
-          { label: 'Baixo', value: stats.low, icon: ArrowDownRight, color: 'text-green-500' },
+          { label: 'Alto', value: stats.high, icon: ArrowUpRight, color: 'text-warning' },
+          { label: 'Médio', value: stats.medium, icon: Clock, color: 'text-accent-foreground' },
+          { label: 'Baixo', value: stats.low, icon: ArrowDownRight, color: 'text-success' },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent className="pt-4 pb-4">

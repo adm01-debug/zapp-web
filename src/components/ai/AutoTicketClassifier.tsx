@@ -224,7 +224,7 @@ export function AutoTicketClassifier() {
                           <p className="text-xs text-muted-foreground">Confiança</p>
                           <p className="text-sm font-medium">{Math.round(ticket.confidence)}%</p>
                         </div>
-                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <CheckCircle className="w-4 h-4 text-success" />
                       </div>
                     </motion.div>
                   );
