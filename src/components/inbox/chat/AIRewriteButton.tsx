@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('AIRewriteButton');
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
