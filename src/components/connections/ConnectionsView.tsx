@@ -1,7 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { log } from '@/lib/logger';
+import { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
@@ -47,53 +45,19 @@ import {
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { BusinessHoursDialog } from './BusinessHoursDialog';
 import { BusinessHoursIndicator } from './BusinessHoursIndicator';
 import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
 import { InstanceSettingsDialog } from './InstanceSettingsDialog';
 import { IntegrationsPanel } from './IntegrationsPanel';
 import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2, Settings, Boxes } from 'lucide-react';
-
-interface WhatsAppConnection {
-  id: string;
-  name: string;
-  phone_number: string;
-  instance_id: string | null;
-  status: string;
-  qr_code: string | null;
-  is_default: boolean;
-  created_at: string;
-  battery_level?: number | null;
-  is_plugged?: boolean | null;
-  retry_count?: number | null;
-  max_retries?: number | null;
-  health_status?: string | null;
-  health_response_ms?: number | null;
-  last_health_check?: string | null;
-}
+import { useConnectionsManager, type WhatsAppConnection } from '@/hooks/useConnectionsManager';
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Wifi }> = {
-  connected: {
-    label: 'Conectado',
-    color: 'bg-status-online',
-    icon: Wifi,
-  },
-  disconnected: {
-    label: 'Desconectado',
-    color: 'bg-status-offline',
-    icon: WifiOff,
-  },
-  connecting: {
-    label: 'Conectando...',
-    color: 'bg-status-away',
-    icon: RefreshCw,
-  },
-  pending: {
-    label: 'Aguardando QR',
-    color: 'bg-status-away',
-    icon: QrCode,
-  },
+  connected: { label: 'Conectado', color: 'bg-status-online', icon: Wifi },
+  disconnected: { label: 'Desconectado', color: 'bg-status-offline', icon: WifiOff },
+  connecting: { label: 'Conectando...', color: 'bg-status-away', icon: RefreshCw },
+  pending: { label: 'Aguardando QR', color: 'bg-status-away', icon: QrCode },
 };
 
 export function ConnectionsView() {
