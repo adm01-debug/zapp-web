@@ -30,9 +30,14 @@ export function ThemeCustomizer() {
           </h3>
           <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={resetTheme}>
-          <RotateCcw className="w-4 h-4 mr-1" /> Reset
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="default" size="sm" onClick={exportTheme}>
+            <Save className="w-4 h-4 mr-1" /> Salvar
+          </Button>
+          <Button variant="outline" size="sm" onClick={resetTheme}>
+            <RotateCcw className="w-4 h-4 mr-1" /> Original
+          </Button>
+        </div>
       </div>
 
       {/* Mode Toggle */}
