@@ -95,7 +95,7 @@ export function TicketTabs({
       label: 'Resolvidos', 
       icon: CheckCircle2, 
       count: counts.resolved,
-      activeColor: 'bg-[hsl(var(--success))] text-white',
+      activeColor: 'bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]',
     },
     { 
       id: 'search' as MainTab, 
