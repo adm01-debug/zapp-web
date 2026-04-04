@@ -37,7 +37,7 @@ export function useConnectionQueues(connectionId?: string) {
   const addQueue = useCallback(async (queueId: string) => {
     if (!connectionId) return;
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('whatsapp_connection_queues')
         .insert({ whatsapp_connection_id: connectionId, queue_id: queueId });
       if (error) throw error;
