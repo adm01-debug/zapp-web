@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { HighContrastProvider } from "@/components/theme/HighContrastToggle";
 import { ThemeSync } from "@/hooks/useTheme";
+import { ThemeInitializer } from "@/components/ThemeInitializer";
 
 // Deferred non-critical providers loaded after first paint
 const RealtimeSentimentAlertProvider = lazy(() => import("@/components/notifications/RealtimeSentimentAlertProvider").then(m => ({ default: m.RealtimeSentimentAlertProvider })));
