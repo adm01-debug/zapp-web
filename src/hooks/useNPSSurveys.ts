@@ -71,7 +71,7 @@ export function useNPSSurveys() {
           score: data.score,
           feedback: data.feedback || null,
           survey_type: data.survey_type || 'manual',
-        } as any);
+        });
 
       if (error) throw error;
       toast.success('Pesquisa NPS registrada!');

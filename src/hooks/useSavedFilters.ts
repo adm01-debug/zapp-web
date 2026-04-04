@@ -46,7 +46,7 @@ export function useSavedFilters(entityType: string) {
       if (!user) return [];
 
       // Fetch own filters + shared filters from others
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('saved_filters')
         .select('*')
         .eq('entity_type', entityType)

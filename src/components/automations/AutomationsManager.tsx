@@ -126,7 +126,7 @@ function useAutomations() {
     mutationFn: async ({ id, ...updates }: Partial<AutomationRow> & { id: string }) => {
       const { error } = await supabase
         .from('automations')
-        .update(updates as any)
+        .update(updates as unknown as Database['public']['Tables']['automations']['Update'])
         .eq('id', id);
       if (error) throw error;
     },
