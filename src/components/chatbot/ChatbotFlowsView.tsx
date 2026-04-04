@@ -45,7 +45,7 @@ export function ChatbotFlowsView() {
   const [form, setForm] = useState<{
     name: string;
     description: string;
-    trigger_type: string;
+    trigger_type: 'keyword' | 'first_message' | 'menu' | 'webhook' | 'schedule';
     trigger_value: string;
   }>({
     name: '',

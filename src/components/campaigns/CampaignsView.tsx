@@ -44,7 +44,7 @@ export function CampaignsView() {
     description: string;
     message_content: string;
     message_type: string;
-    target_type: string;
+    target_type: 'all' | 'tag' | 'queue' | 'groups' | 'custom';
     send_interval_seconds: number;
   }>({
     name: '',
