@@ -758,7 +758,7 @@ function DataExplorerTable({ tabConfig, onRowClick, onCreateClick }: { tabConfig
                   </TableCell>
                 </TableRow>
               ) : (
-                browser.data.map((row: any, idx: number) => (
+                browser.data.map((row: Record<string, unknown>, idx: number) => (
                   <TableRow key={row.id || idx} className={`hover:bg-muted/30 ${onRowClick ? 'cursor-pointer' : ''}`} onClick={() => onRowClick?.(row)}>
                     <TableCell className="text-muted-foreground text-[10px]">
                       {browser.page * browser.pageSize + idx + 1}

@@ -367,7 +367,7 @@ export function AutomationsManager() {
     } as Omit<AutomationRow, 'id' | 'created_at' | 'updated_at' | 'trigger_count' | 'last_triggered_at'>);
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: Partial<AutomationRow>) => {
     if (editingAutomation) {
       updateMutation.mutate({ id: editingAutomation.id, ...data });
     } else {

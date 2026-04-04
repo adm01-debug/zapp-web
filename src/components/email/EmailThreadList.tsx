@@ -133,7 +133,7 @@ export function EmailThreadList({
             >
               Todos
             </Badge>
-            {labels.filter(l => l.label_type === 'user' || ['INBOX', 'SENT', 'IMPORTANT', 'DRAFT'].includes(l.gmail_label_id)).map((label: any) => (
+            {labels.filter(l => l.label_type === 'user' || ['INBOX', 'SENT', 'IMPORTANT', 'DRAFT'].includes(l.gmail_label_id)).map((label) => (
               <Badge
                 key={label.id}
                 variant={labelFilter === label.gmail_label_id ? 'default' : 'outline'}
