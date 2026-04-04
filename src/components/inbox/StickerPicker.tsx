@@ -164,7 +164,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
     });
 
     if (insertError) {
-      console.error('[StickerPicker] Insert error:', insertError);
+      log.error('[StickerPicker] Insert error:', insertError);
       toast.error('Erro ao salvar figurinha');
       return;
     }

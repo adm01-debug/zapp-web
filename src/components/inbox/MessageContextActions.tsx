@@ -60,7 +60,7 @@ export function MessageContextActions({
           await deleteMessage(instanceName, externalId, contactJid, isSent);
         } catch {
           // WhatsApp deletion failed, but still mark locally as deleted
-          console.warn('WhatsApp API delete failed, marking locally only');
+          log.warn('WhatsApp API delete failed, marking locally only');
         }
       }
       // Always mark as deleted in local DB

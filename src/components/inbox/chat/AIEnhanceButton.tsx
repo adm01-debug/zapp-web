@@ -70,7 +70,7 @@ export function AIEnhanceButton({ inputValue, onInputChange }: AIEnhanceButtonPr
         });
       }
     } catch (err) {
-      console.error('AI enhance error:', err);
+      log.error('AI enhance error:', err);
       setOriginalMessage(null);
       toast({
         title: 'Erro ao aprimorar mensagem',
