@@ -60,7 +60,7 @@ export function useChatbotFlows() {
 
   const createFlow = useMutation({
     mutationFn: async (flow: Partial<ChatbotFlow>) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
         .insert({
           ...flow,
