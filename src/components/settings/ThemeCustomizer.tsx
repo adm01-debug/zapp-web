@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, RotateCcw, Save, Sun, Moon, Monitor } from 'lucide-react';
+import { Palette, RotateCcw, Save, Sun, Moon, Monitor, ChevronLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
 import { PRESETS } from './theme/presets';
@@ -23,14 +23,24 @@ export function ThemeCustomizer() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Back + Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-lg"
+            onClick={() => window.history.back()}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <div>
           <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Palette className="w-5 h-5 text-primary" />
             Personalizar Tema
           </h3>
           <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="default" size="sm" onClick={() => {
