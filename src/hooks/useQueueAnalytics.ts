@@ -271,9 +271,9 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
     const waitingPercent = 100 - resolvedPercent - inProgressPercent;
 
     return [
-      { name: 'Resolvidos', value: resolvedPercent, color: '#10B981' },
-      { name: 'Em Atendimento', value: inProgressPercent, color: '#3B82F6' },
-      { name: 'Aguardando', value: waitingPercent, color: '#F59E0B' },
+      { name: 'Resolvidos', value: resolvedPercent, color: 'hsl(var(--primary))' },
+      { name: 'Em Atendimento', value: inProgressPercent, color: 'hsl(var(--secondary))' },
+      { name: 'Aguardando', value: waitingPercent, color: 'hsl(var(--accent-foreground))' },
     ];
   };
 
