@@ -92,7 +92,6 @@ import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useContactsCRUD } from './useContactsCRUD';
-import { useContactsCRUD } from './useContactsCRUD';
 // Contact type used in view (extends the CRUD Contact)
 interface ViewContact {
   id: string;
