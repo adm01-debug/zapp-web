@@ -49,7 +49,7 @@ export function useChatbotFlows() {
   const flowsQuery = useQuery({
     queryKey: ['chatbot-flows'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
         .select('*')
         .order('created_at', { ascending: false });
