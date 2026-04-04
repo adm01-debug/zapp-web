@@ -903,7 +903,7 @@ export function AdminView() {
             </Table>
           </CardContent>
         </Card>
-      ) : (
+      ) : activeTab === 'audit' ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Logs de Auditoria</CardTitle>
