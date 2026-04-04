@@ -99,7 +99,7 @@ export function ChatDialogs({
       <TransferDialog
         open={showTransferDialog}
         onOpenChange={onTransferDialogChange}
-        onTransfer={onTransfer}
+        onTransfer={onTransfer as (type: "agent" | "connection" | "queue", targetId: string, message?: string) => void}
       />
       
       <ScheduleMessageDialog

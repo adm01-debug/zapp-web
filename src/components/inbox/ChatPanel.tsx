@@ -852,7 +852,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         {/* Dialogs */}
         <Suspense fallback={null}>
-          {showTransferDialog && <TransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onTransfer={handleTransfer} />}
+          {showTransferDialog && <TransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onTransfer={handleTransfer as (type: "agent" | "connection" | "queue", targetId: string, message?: string) => void} />}
           {showScheduleDialog && <ScheduleMessageDialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog} onSchedule={handleScheduleMessage} />}
           {showCallDialog && (
             <CallDialog
