@@ -85,8 +85,8 @@ export function initWebVitals() {
     let clsValue = 0;
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value;
+        if (!(entry as PerformanceEntry & { hadRecentInput?: boolean }).hadRecentInput) {
+          clsValue += (entry as PerformanceEntry & { value: number }).value;
         }
       }
       onMetric({
