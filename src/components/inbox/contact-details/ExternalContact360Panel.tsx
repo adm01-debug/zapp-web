@@ -67,8 +67,8 @@ function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
     'Need Attention': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
     'About to Sleep': 'bg-orange-500/15 text-orange-600 border-orange-500/30',
     'At Risk': 'bg-red-500/15 text-red-600 border-red-500/30',
-    Hibernating: 'bg-gray-500/15 text-gray-500 border-gray-500/30',
-    Lost: 'bg-gray-400/15 text-gray-400 border-gray-400/30',
+    Hibernating: 'bg-muted text-muted-foreground border-border',
+    Lost: 'bg-muted/50 text-muted-foreground border-border/50',
     "Can't Lose Them": 'bg-rose-500/15 text-rose-600 border-rose-500/30',
   };
   const barColors: Record<string, string> = {
