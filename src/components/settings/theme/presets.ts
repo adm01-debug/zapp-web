@@ -289,7 +289,25 @@ export const PRESETS: ThemePreset[] = [
   buildPreset({ id: 'ocean', name: 'Oceano', description: 'Azul profundo', emoji: '🌊', h: 200, s: 85, l: 55, gh: 210, sh: 190, ss: 75, sl: 50 }),
   buildPreset({ id: 'amber', name: 'Âmbar', description: 'Dourado e premium', emoji: '✨', h: 38, s: 92, l: 50, gh: 45, sh: 30, ss: 80, sl: 55 }),
   buildPreset({ id: 'cyber', name: 'Cyber', description: 'Neon futurista', emoji: '🤖', h: 180, s: 100, l: 50, gh: 300, sh: 320, ss: 100, sl: 60 }),
-  buildPreset({ id: 'lavender', name: 'Lavanda', description: 'Suave e calmante', emoji: '🪻', h: 270, s: 60, l: 65, gh: 280, sh: 250, ss: 50, sl: 60 }),
+  (() => {
+    // Diversity — Rainbow Pride theme 🏳️‍🌈
+    const base = buildPreset({ id: 'diversity', name: 'Diversity', description: 'Orgulho e diversidade 🏳️‍🌈', emoji: '🏳️‍🌈', h: 280, s: 80, l: 58, gh: 340, sh: 200, ss: 80, sl: 55 });
+    // Override gradients with full rainbow
+    const rainbowGrad = 'linear-gradient(135deg, hsl(0 85% 55%), hsl(30 90% 55%), hsl(55 90% 50%), hsl(130 70% 45%), hsl(210 80% 55%), hsl(280 80% 58%))';
+    const rainbowGradH = 'linear-gradient(90deg, hsl(0 85% 55%), hsl(30 90% 55%), hsl(55 90% 50%), hsl(130 70% 45%), hsl(210 80% 55%), hsl(280 80% 58%))';
+    base.light['gradient-primary'] = rainbowGrad;
+    base.light['gradient-secondary'] = rainbowGrad;
+    base.light['gradient-xp'] = rainbowGradH;
+    base.light['gradient-vibrant'] = rainbowGrad;
+    base.light['gradient-purple-green'] = rainbowGrad;
+    base.dark['gradient-primary'] = rainbowGrad;
+    base.dark['gradient-secondary'] = rainbowGrad;
+    base.dark['gradient-xp'] = rainbowGradH;
+    base.dark['gradient-vibrant'] = rainbowGrad;
+    base.dark['gradient-purple-green'] = rainbowGrad;
+    base.swatches = ['hsl(0 85% 55%)', 'hsl(55 90% 50%)', 'hsl(130 70% 45%)', 'hsl(280 80% 58%)'];
+    return base;
+  })(),
 ];
 
 export const STORAGE_KEY = 'theme-custom-colors';
