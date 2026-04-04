@@ -5,7 +5,7 @@ import { NotificationsPanel, Notification } from '@/components/mobile/Notificati
 import { MobileFAB } from '@/components/mobile/MobileFAB';
 import { BottomNavigation } from '@/components/ui/mobile-components';
 import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
-import { MessageSquare, BarChart3, Users, MessagesSquare, Menu } from 'lucide-react';
+import { MessageSquare, BarChart3, Users, MessagesSquare, Mail, Menu } from 'lucide-react';
 
 interface MobileShellProps {
   currentView: string;
@@ -20,7 +20,7 @@ const mobileNavItems = [
   { id: 'inbox', icon: <MessageSquare className="w-5 h-5" />, label: 'Chat' },
   { id: 'team-chat', icon: <MessagesSquare className="w-5 h-5" />, label: 'Equipe' },
   { id: 'contacts', icon: <Users className="w-5 h-5" />, label: 'Contatos' },
-  { id: 'dashboard', icon: <BarChart3 className="w-5 h-5" />, label: 'Dashboard' },
+  { id: 'omni-inbox', icon: <Mail className="w-5 h-5" />, label: 'Email' },
   { id: 'more', icon: <Menu className="w-5 h-5" />, label: 'Mais' },
 ];
 
