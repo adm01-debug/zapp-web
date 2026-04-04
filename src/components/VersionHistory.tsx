@@ -24,7 +24,7 @@ export function VersionHistory({ entityType, entityId }: VersionHistoryProps) {
                 <div className="font-medium">Versão {v.version_number}</div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
-                  {formatDistanceToNow(new Date(v.changed_at), { addSuffix: true, locale: ptBR })}
+                  {formatDistanceToNow(new Date(v.created_at), { addSuffix: true, locale: ptBR })}
                 </div>
               </div>
             </div>
