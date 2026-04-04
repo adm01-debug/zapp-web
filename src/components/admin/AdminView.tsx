@@ -301,7 +301,7 @@ export function AdminView() {
         setNewUserNickname('');
         setNewUserSignature('');
         setNewUserJobTitle('');
-        setNewUserAvatarUrl('');
+        setNewUserAvatarFile(null);
         setNewUserEmail('');
         setNewUserPassword('');
         setNewUserRole('agent');
