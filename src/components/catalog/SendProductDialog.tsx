@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SendProductDialog');
 import {
   Dialog,
   DialogContent,
