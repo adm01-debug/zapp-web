@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import {
-  ArrowLeft, Star, Archive, Trash2, Loader2, Mail
+  ArrowLeft, Star, Archive, Trash2, Loader2, Mail, PanelRightOpen
 } from 'lucide-react';
 import { useGmail, type EmailThread, type EmailMessage } from '@/hooks/useGmail';
 import { EmailChatBubble } from './EmailChatBubble';
