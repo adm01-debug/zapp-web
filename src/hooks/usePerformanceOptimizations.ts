@@ -177,13 +177,15 @@ export function useMemoryPressure() {
     // Listen for memory pressure events
     const handleMemoryPressure = () => setIsLowMemory(true);
     
+    // devicememory event is experimental - no standard types exist
+    const nav = navigator as unknown as EventTarget;
     if ('ondevicememory' in navigator) {
-      (navigator as EventTarget).addEventListener('devicememory', handleMemoryPressure);
+      nav.addEventListener('devicememory', handleMemoryPressure);
     }
 
     return () => {
       if ('ondevicememory' in navigator) {
-        (navigator as EventTarget).removeEventListener('devicememory', handleMemoryPressure);
+        nav.removeEventListener('devicememory', handleMemoryPressure);
       }
     };
   }, []);
