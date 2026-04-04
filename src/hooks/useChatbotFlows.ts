@@ -60,16 +60,17 @@ export function useChatbotFlows() {
 
   const createFlow = useMutation({
     mutationFn: async (flow: Partial<ChatbotFlow>) => {
-      const { data, error } = await supabase
-        .from('chatbot_flows')
-        .insert({
+      const insertData = {
           ...flow,
           nodes: JSON.stringify(flow.nodes ?? [
             { id: 'start-1', type: 'start', data: { label: 'Início' }, position: { x: 250, y: 50 } },
           ]),
           edges: JSON.stringify(flow.edges ?? []),
           variables: JSON.stringify(flow.variables ?? {}),
-        })
+        };
+      const { data, error } = await supabase
+        .from('chatbot_flows')
+        .insert(insertData as unknown as Parameters<ReturnType<typeof supabase.from<'chatbot_flows'>>['insert']>[0])
         .select()
         .single();
       if (error) throw error;
