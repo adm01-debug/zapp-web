@@ -68,7 +68,7 @@ export function usePerformanceSnapshots() {
       if (error) throw error;
       setHistory((data || []) as PerformanceSnapshot[]);
     } catch (err) {
-      console.warn('Failed to load performance history:', err);
+      log.warn('Failed to load performance history:', err);
     } finally {
       setLoading(false);
     }

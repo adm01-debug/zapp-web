@@ -40,7 +40,7 @@ export function useNPSSurveys() {
       if (error) throw error;
       setSurveys((data as NPSSurvey[]) || []);
     } catch (err) {
-      console.error('Error fetching NPS surveys:', err);
+      log.error('Error fetching NPS surveys:', err);
     } finally {
       setIsLoading(false);
     }

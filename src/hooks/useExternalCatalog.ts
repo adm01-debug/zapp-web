@@ -155,7 +155,7 @@ export function useExternalCatalog() {
       });
       return result;
     } catch (err) {
-      console.error('[catalog] Failed to fetch product', err);
+      log.error('Failed to fetch product', err);
       return null;
     }
   }, [queryClient]);
