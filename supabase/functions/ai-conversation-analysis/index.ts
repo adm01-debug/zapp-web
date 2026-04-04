@@ -1,46 +1,22 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { AiConversationAnalysisSchema, parseBody } from "../_shared/schemas.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("ai-conversation-analysis");
 
   try {
-    const { messages, contactName } = await req.json();
-    
-    if (!messages || messages.length < 5) {
-      return new Response(
-        JSON.stringify({ error: 'Conversation must have at least 5 messages for analysis' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const parsed = parseBody(AiConversationAnalysisSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
+    const { messages, contactName } = parsed.data;
+    const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
 
-    // Format messages for context
     const conversationText = messages
-      .map((msg: { sender: string; content: string; created_at: string }) => 
-        `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content}`
+      .map((msg) =>
+        `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content || ''}`
       )
       .join('\n');
 
@@ -65,7 +41,7 @@ Considere:
 
 Responda em português brasileiro de forma clara e objetiva.`;
 
-    console.log('Calling Lovable AI for conversation analysis...');
+    log.info("Calling AI for conversation analysis");
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -88,48 +64,15 @@ Responda em português brasileiro de forma clara e objetiva.`;
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { 
-                    type: "string", 
-                    description: "Brief summary of the conversation (max 4 sentences)" 
-                  },
-                  status: { 
-                    type: "string", 
-                    enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente"],
-                    description: "Current status of the conversation" 
-                  },
-                  keyPoints: { 
-                    type: "array", 
-                    items: { type: "string" },
-                    description: "Key points discussed (max 5)" 
-                  },
-                  nextSteps: { 
-                    type: "array", 
-                    items: { type: "string" },
-                    description: "Suggested next steps for the agent" 
-                  },
-                  sentiment: {
-                    type: "string",
-                    enum: ["positivo", "neutro", "negativo"],
-                    description: "Overall customer sentiment"
-                  },
-                  sentimentScore: {
-                    type: "number",
-                    description: "Sentiment score from 0 (very negative) to 100 (very positive)"
-                  },
-                  topics: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Main topics discussed (max 5 keywords)"
-                  },
-                  urgency: {
-                    type: "string",
-                    enum: ["baixa", "media", "alta"],
-                    description: "Urgency level of the conversation"
-                  },
-                  customerSatisfaction: {
-                    type: "number",
-                    description: "Estimated customer satisfaction from 1 to 5"
-                  }
+                  summary: { type: "string", description: "Brief summary of the conversation (max 4 sentences)" },
+                  status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente"], description: "Current status of the conversation" },
+                  keyPoints: { type: "array", items: { type: "string" }, description: "Key points discussed (max 5)" },
+                  nextSteps: { type: "array", items: { type: "string" }, description: "Suggested next steps for the agent" },
+                  sentiment: { type: "string", enum: ["positivo", "neutro", "negativo"], description: "Overall customer sentiment" },
+                  sentimentScore: { type: "number", description: "Sentiment score from 0 (very negative) to 100 (very positive)" },
+                  topics: { type: "array", items: { type: "string" }, description: "Main topics discussed (max 5 keywords)" },
+                  urgency: { type: "string", enum: ["baixa", "media", "alta"], description: "Urgency level of the conversation" },
+                  customerSatisfaction: { type: "number", description: "Estimated customer satisfaction from 1 to 5" }
                 },
                 required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "urgency"],
                 additionalProperties: false
@@ -142,56 +85,34 @@ Responda em português brasileiro de forma clara e objetiva.`;
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+      if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429, req);
+      if (response.status === 402) return errorResponse("Payment required. Please add credits to your workspace.", 402, req);
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      log.error("AI gateway error", { status: response.status, error: errorText });
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('AI response received:', JSON.stringify(data, null, 2));
-
-    // Extract the tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       const analysisData = JSON.parse(toolCall.function.arguments);
-      console.log('Analysis data:', analysisData);
-      return new Response(
-        JSON.stringify(analysisData),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      log.done(200);
+      return jsonResponse(analysisData, 200, req);
     }
 
-    // Fallback to content if no tool call
     const content = data.choices?.[0]?.message?.content;
-    return new Response(
-      JSON.stringify({ 
-        summary: content || 'Unable to analyze conversation', 
-        status: 'pendente', 
-        keyPoints: [], 
-        sentiment: 'neutro',
-        sentimentScore: 50,
-        urgency: 'media'
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.done(200);
+    return jsonResponse({
+      summary: content || 'Unable to analyze conversation',
+      status: 'pendente',
+      keyPoints: [],
+      sentiment: 'neutro',
+      sentimentScore: 50,
+      urgency: 'media'
+    }, 200, req);
 
   } catch (error) {
-    console.error('Error analyzing conversation:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.error("Error analyzing conversation", { error: error instanceof Error ? error.message : String(error) });
+    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500, req);
   }
 });

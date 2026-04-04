@@ -1,36 +1,20 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { ChatbotL1Schema, parseBody } from "../_shared/schemas.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("chatbot-l1");
 
   try {
-    const { contactId, message, connectionId } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const parsed = parseBody(ChatbotL1Schema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { contactId, message, connectionId } = parsed.data;
+    const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
 
     // Check if chatbot is active for this connection
     const { data: flow } = await supabase
@@ -42,20 +26,19 @@ serve(async (req) => {
       .maybeSingle();
 
     if (!flow) {
-      return new Response(JSON.stringify({ handled: false, reason: 'no_active_flow' }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ handled: false, reason: 'no_active_flow' }, 200, req);
     }
 
-    // RAG: Search Knowledge Base with full-text search for relevant articles
+    // RAG: Search Knowledge Base
     const { data: relevantArticles } = await supabase
       .rpc('search_knowledge_base', { search_query: message, max_results: 5 });
 
-    // Fallback: if no results from search, get general articles
     let kbContext = '';
     if (relevantArticles && relevantArticles.length > 0) {
       kbContext = relevantArticles
-        .map((a: any) => `[${a.category || 'Geral'}] ${a.title} (relevância: ${(a.rank * 100).toFixed(0)}%):\n${a.content.substring(0, 800)}`)
+        .map((a: { category?: string; title: string; content: string; rank: number }) =>
+          `[${a.category || 'Geral'}] ${a.title} (relevância: ${(a.rank * 100).toFixed(0)}%):\n${a.content.substring(0, 800)}`
+        )
         .join('\n---\n');
     } else {
       const { data: fallbackArticles } = await supabase
@@ -79,28 +62,26 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(15);
 
-    const conversationHistory = (history || []).reverse().map((m: any) => ({
+    const conversationHistory = (history || []).reverse().map((m: { sender: string; content: string }) => ({
       role: m.sender === 'agent' ? 'assistant' : 'user',
       content: m.content,
     }));
 
     // Fetch contact context
     let contactContext = '';
-    if (contactId) {
-      const { data: contact } = await supabase
-        .from('contacts')
-        .select('name, company, tags, ai_priority, ai_sentiment')
-        .eq('id', contactId)
-        .maybeSingle();
+    const { data: contact } = await supabase
+      .from('contacts')
+      .select('name, company, tags, ai_priority, ai_sentiment')
+      .eq('id', contactId)
+      .maybeSingle();
 
-      if (contact) {
-        contactContext = `\nCONTEXTO DO CLIENTE:
+    if (contact) {
+      contactContext = `\nCONTEXTO DO CLIENTE:
 - Nome: ${contact.name || 'Desconhecido'}
 - Empresa: ${contact.company || 'N/A'}
 - Tags: ${contact.tags?.join(', ') || 'Nenhuma'}
 - Prioridade: ${contact.ai_priority || 'normal'}
 - Sentimento: ${contact.ai_sentiment || 'neutro'}`;
-      }
     }
 
     const systemPrompt = `Você é um assistente de atendimento automatizado (Nível 1) via WhatsApp.
@@ -149,9 +130,7 @@ Responda em JSON:
 
     if (!response.ok) {
       if (response.status === 429 || response.status === 402) {
-        return new Response(JSON.stringify({ handled: false, reason: 'rate_limit' }), {
-          status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ handled: false, reason: 'rate_limit' }, response.status, req);
       }
       throw new Error(`AI error: ${response.status}`);
     }
@@ -168,32 +147,26 @@ Responda em JSON:
     }
 
     if (!result) {
-      return new Response(JSON.stringify({ handled: false, reason: 'parse_error' }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ handled: false, reason: 'parse_error' }, 200, req);
     }
 
-    // If confidence is too low, transfer to human
     if (result.confidence < 0.6) {
       result.transfer_to_human = true;
       result.transfer_reason = 'low_confidence';
     }
 
     // Update contact AI metadata
-    if (contactId && (result.detected_sentiment || result.detected_intent)) {
+    if (result.detected_sentiment || result.detected_intent) {
       const updateData: Record<string, string> = {};
       if (result.detected_sentiment) updateData.ai_sentiment = result.detected_sentiment;
       if (result.detected_sentiment === 'critical' || result.detected_sentiment === 'negative') {
         updateData.ai_priority = 'high';
       }
-      
-      await supabase
-        .from('contacts')
-        .update(updateData)
-        .eq('id', contactId);
+      await supabase.from('contacts').update(updateData).eq('id', contactId);
     }
 
-    return new Response(JSON.stringify({
+    log.done(200);
+    return jsonResponse({
       handled: !result.transfer_to_human,
       response: result.response,
       transfer_to_human: result.transfer_to_human || false,
@@ -202,14 +175,9 @@ Responda em JSON:
       matched_article: result.matched_article,
       detected_intent: result.detected_intent,
       detected_sentiment: result.detected_sentiment,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    }, 200, req);
   } catch (error: unknown) {
-    console.error("Error in chatbot-l1:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ handled: false, error: errorMessage }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    log.error("Error in chatbot-l1", { error: error instanceof Error ? error.message : String(error) });
+    return jsonResponse({ handled: false, error: error instanceof Error ? error.message : "Unknown error" }, 500, req);
   }
 });

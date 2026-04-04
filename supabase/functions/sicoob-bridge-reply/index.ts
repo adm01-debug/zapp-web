@@ -1,25 +1,15 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { SicoobBridgeReplySchema, parseBody } from "../_shared/schemas.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-/**
- * Called internally (via DB webhook or from the app) when an agent replies
- * to a sicoob_gifts contact. Forwards the message to Sicoob Gifts' chat-bridge.
- */
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("sicoob-bridge-reply");
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
     const sicoobGiftsUrl = Deno.env.get('SICOOB_GIFTS_URL');
     const sicoobGiftsBridgeSecret = Deno.env.get('SICOOB_GIFTS_BRIDGE_SECRET');
 
@@ -27,15 +17,10 @@ serve(async (req) => {
       throw new Error('SICOOB_GIFTS_URL or SICOOB_GIFTS_BRIDGE_SECRET not configured');
     }
 
-    const body = await req.json();
-    const { contact_id, content, message_id, agent_id, created_at } = body;
+    const parsed = parseBody(SicoobBridgeReplySchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    if (!contact_id || !content) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: contact_id, content' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { contact_id, content, message_id, agent_id, created_at } = parsed.data;
 
     // Get the contact to verify it's a sicoob_gifts contact
     const { data: contact } = await supabase
@@ -45,10 +30,7 @@ serve(async (req) => {
       .single();
 
     if (!contact || contact.contact_type !== 'sicoob_gifts') {
-      return new Response(
-        JSON.stringify({ error: 'Contact is not a Sicoob Gifts contact' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Contact is not a Sicoob Gifts contact', 400, req);
     }
 
     // Get the mapping to find Sicoob IDs
@@ -59,11 +41,7 @@ serve(async (req) => {
       .single();
 
     if (!mapping) {
-      console.error('No Sicoob mapping found for contact:', contact_id);
-      return new Response(
-        JSON.stringify({ error: 'No Sicoob mapping found for this contact' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('No Sicoob mapping found for this contact', 404, req);
     }
 
     // Get agent name
@@ -80,10 +58,7 @@ serve(async (req) => {
     // Forward to Sicoob Gifts
     const sicoobPayload = {
       action: 'agent_reply',
-      contact_id,
-      content,
-      message_id,
-      agent_id,
+      contact_id, content, message_id, agent_id,
       agent_name: agentName,
       sicoob_user_id: mapping.sicoob_user_id,
       sicoob_vendedor_id: mapping.sicoob_vendedor_id,
@@ -91,7 +66,7 @@ serve(async (req) => {
       created_at: created_at || new Date().toISOString(),
     };
 
-    console.log('Forwarding reply to Sicoob Gifts:', JSON.stringify(sicoobPayload));
+    log.info("Forwarding reply to Sicoob Gifts");
 
     const response = await fetch(`${sicoobGiftsUrl}/functions/v1/chat-bridge`, {
       method: 'POST',
@@ -104,26 +79,16 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Sicoob Gifts bridge error:', response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: `Sicoob Gifts returned ${response.status}: ${errorText}` }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      log.error("Sicoob Gifts bridge error", { status: response.status, error: errorText });
+      return errorResponse(`Sicoob Gifts returned ${response.status}: ${errorText}`, 502, req);
     }
 
     const result = await response.json();
-    console.log('Sicoob Gifts bridge response:', JSON.stringify(result));
-
-    return new Response(
-      JSON.stringify({ success: true, sicoob_response: result }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.done(200);
+    return jsonResponse({ success: true, sicoob_response: result }, 200, req);
 
   } catch (error) {
-    console.error('Sicoob bridge reply error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.error("Error", { error: error instanceof Error ? error.message : String(error) });
+    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500, req);
   }
 });
