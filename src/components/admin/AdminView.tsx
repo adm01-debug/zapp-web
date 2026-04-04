@@ -56,6 +56,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useUserRole, AppRole } from '@/hooks/useUserRole';
 import { ForceLogoutButton } from './ForceLogoutButton';
+import { AdminCRMDashboard } from './AdminCRMDashboard';
 
 interface UserWithRole {
   id: string;
@@ -101,7 +102,7 @@ const accessLevelConfig: Record<string, { label: string; description: string }> 
 
 export function AdminView() {
   const { isAdmin, isSupervisor, loading: roleLoading } = useUserRole();
-  const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'audit' | 'crm'>('users');
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -444,6 +445,14 @@ export function AdminView() {
         >
           <History className="w-4 h-4 mr-2" />
           Auditoria
+        </Button>
+        <Button
+          variant={activeTab === 'crm' ? 'default' : 'outline'}
+          onClick={() => setActiveTab('crm')}
+          className={activeTab === 'crm' ? 'bg-whatsapp hover:bg-whatsapp-dark' : ''}
+        >
+          <Building className="w-4 h-4 mr-2" />
+          CRM 360°
         </Button>
       </div>
 
@@ -894,7 +903,7 @@ export function AdminView() {
             </Table>
           </CardContent>
         </Card>
-      ) : (
+      ) : activeTab === 'audit' ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Logs de Auditoria</CardTitle>
@@ -932,7 +941,9 @@ export function AdminView() {
             </Table>
           </CardContent>
         </Card>
-      )}
+      ) : activeTab === 'crm' ? (
+        <AdminCRMDashboard />
+      ) : null}
     </div>
   );
 }
