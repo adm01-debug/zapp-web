@@ -11,7 +11,7 @@ interface ThemeConfig {
 
 export function useThemePreset() {
   const { resolvedTheme } = useTheme();
-  const [activePreset, setActivePreset] = useState<string>('default');
+  const [activePreset, setActivePreset] = useState<string>('corporate');
   const [borderRadius, setBorderRadius] = useState<number>(8);
 
   const save = useCallback((presetId: string, radius: number) => {
