@@ -63,6 +63,8 @@ interface UserWithRole {
   name: string;
   email: string | null;
   avatar_url: string | null;
+  nickname: string | null;
+  signature: string | null;
   role: AppRole;
   job_title: string | null;
   department: string | null;
