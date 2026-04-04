@@ -44,7 +44,7 @@ export function useCampaigns() {
 
   const createCampaign = useMutation({
     mutationFn: async (campaign: Partial<Campaign>) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('campaigns')
         .insert(campaign)
         .select()
