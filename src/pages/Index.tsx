@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { CommandPalette } from '@/components/CommandPalette';
 import { SLANotificationProvider } from '@/components/notifications/SLANotificationProvider';
 import { GoalNotificationProvider } from '@/components/notifications/GoalNotificationProvider';
@@ -12,13 +14,16 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { logAudit } from '@/lib/audit';
+import { consumeGmailOAuthReturnContext, parseGmailOAuthState, setPendingIntegrationView } from '@/lib/gmailOAuth';
 import { Sparkles } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indicator';
 import { EvolutionDisconnectBanner } from '@/components/alerts/EvolutionDisconnectBanner';
+import { toast } from 'sonner';
 
 function IndexContent() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, profile, loading, signOut } = useAuth();
   const { hasCompletedOnboarding, loading: loadingOnboarding, completeOnboarding } = useOnboarding();
   const { startTour } = useTour();
@@ -91,6 +96,7 @@ function IndexContent() {
   const showChecklist = !checklistComplete && !checklistDismissed && currentView === 'dashboard';
 
   const hasLoggedAudit = useRef(false);
+  const gmailOAuthHandledRef = useRef(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -100,6 +106,76 @@ function IndexContent() {
       logAudit({ action: 'login', details: { email: user.email } });
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (loading || !user || gmailOAuthHandledRef.current) return;
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get('code');
+    const oauthError = searchParams.get('error');
+    const issuer = searchParams.get('iss');
+    const oauthState = parseGmailOAuthState(searchParams.get('state'));
+    const hasGmailOAuthParams = Boolean(code || oauthError || issuer === 'https://accounts.google.com');
+
+    if (!hasGmailOAuthParams) return;
+
+    gmailOAuthHandledRef.current = true;
+
+    const fallbackContext = consumeGmailOAuthReturnContext();
+    const returnView = oauthState?.view || fallbackContext.view;
+    const integrationView = oauthState?.integrationView || fallbackContext.integrationView;
+
+    if (integrationView) {
+      setPendingIntegrationView(integrationView);
+    }
+
+    const returnToSavedView = () => {
+      window.history.replaceState(null, '', window.location.pathname);
+      setCurrentView(returnView);
+    };
+
+    if (oauthError) {
+      toast.error('Conexão com Gmail cancelada.');
+      returnToSavedView();
+      return;
+    }
+
+    if (!code) {
+      returnToSavedView();
+      return;
+    }
+
+    void (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          throw new Error('Sua sessão expirou. Faça login novamente para concluir a conexão.');
+        }
+
+        const response = await supabase.functions.invoke('gmail-oauth', {
+          body: { action: 'exchange-code', code },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
+
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['gmail-accounts'] }),
+          queryClient.invalidateQueries({ queryKey: ['gmail-threads'] }),
+        ]);
+
+        toast.success('Gmail conectado com sucesso!');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Falha ao concluir a autenticação do Gmail.';
+        toast.error(`Erro na autenticação: ${message}`);
+      } finally {
+        returnToSavedView();
+      }
+    })();
+  }, [loading, queryClient, setCurrentView, user]);
 
   useEffect(() => {
     if (!loadingOnboarding && hasCompletedOnboarding === false && user) {

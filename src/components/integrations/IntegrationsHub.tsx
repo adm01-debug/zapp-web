@@ -9,8 +9,21 @@ import { GoogleSheetsIntegrationView } from './GoogleSheetsIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
 import { GoogleCalendarIntegration } from './GoogleCalendarIntegration';
 import { GmailIntegration } from './GmailIntegration';
+import { consumePendingIntegrationView } from '@/lib/gmailOAuth';
 
 type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry' | 'google-calendar' | 'gmail';
+
+const integrationViews: IntegrationView[] = ['hub', 'n8n', 'google-sheets', 'sentry', 'google-calendar', 'gmail'];
+
+function getInitialIntegrationView(): IntegrationView {
+  const pendingView = consumePendingIntegrationView();
+
+  if (pendingView && integrationViews.includes(pendingView as IntegrationView)) {
+    return pendingView as IntegrationView;
+  }
+
+  return 'hub';
+}
 
 const integrations = [
   {
@@ -56,7 +69,7 @@ const integrations = [
 ];
 
 export function IntegrationsHub() {
-  const [currentView, setCurrentView] = useState<IntegrationView>('hub');
+  const [currentView, setCurrentView] = useState<IntegrationView>(getInitialIntegrationView);
 
   if (currentView === 'n8n') return (
     <div>

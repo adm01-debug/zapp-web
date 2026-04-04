@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
 import {
   Mail, Link2, CheckCircle2, XCircle, RefreshCw, Shield,
   Clock, Inbox, Send, Tag, Bell, Loader2, Trash2
@@ -26,18 +25,6 @@ export function GmailIntegration() {
   const [autoSync, setAutoSync] = useState(true);
   const [syncInterval, setSyncInterval] = useState(5);
   const [notifyNewEmails, setNotifyNewEmails] = useState(true);
-
-  // Listen for OAuth callback
-  useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.type === 'gmail-oauth-callback' && event.data?.code) {
-        // Exchange code is handled by the callback page
-        toast.success('Autorizacao recebida. Processando...');
-      }
-    }
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
 
   const handleConnect = () => {
     connectGmail.mutate();
