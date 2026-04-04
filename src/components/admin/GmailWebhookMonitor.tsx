@@ -119,7 +119,7 @@ export function GmailWebhookMonitor() {
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4 text-center">
-            <p className="text-2xl font-bold text-yellow-500">{stats.unread}</p>
+            <p className="text-2xl font-bold text-warning">{stats.unread}</p>
             <p className="text-xs text-muted-foreground">Não Lidos</p>
           </CardContent>
         </Card>
