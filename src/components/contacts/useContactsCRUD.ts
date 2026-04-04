@@ -30,7 +30,6 @@ export interface Contact {
   phone: string;
   email: string | null;
   contact_type: string | null;
-  [key: string]: unknown;
 }
 
 export function useContactsCRUD() {
