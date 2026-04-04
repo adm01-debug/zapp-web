@@ -63,10 +63,10 @@ interface WhatsAppGroup {
 }
 
 const GROUP_CATEGORIES = [
-  { value: 'orcamentos', label: 'Orçamentos | Fornecedores', color: 'text-blue-500', icon: '📋' },
+  { value: 'orcamentos', label: 'Orçamentos | Fornecedores', color: 'text-info', icon: '📋' },
   { value: 'aprovacao', label: 'Aprovação | Fornecedores', color: 'text-emerald-500', icon: '✅' },
   { value: 'os', label: 'O.S. | Fornecedores', color: 'text-orange-500', icon: '🔧' },
-  { value: 'acerto', label: 'Acerto | Fornecedores', color: 'text-purple-500', icon: '🤝' },
+  { value: 'acerto', label: 'Acerto | Fornecedores', color: 'text-secondary', icon: '🤝' },
 ] as const;
 
 interface WhatsAppConnection {

@@ -108,7 +108,7 @@ export function AnimatedMetricCard({
       value: 'text-foreground',
     },
     success: {
-      container: 'bg-success/5 border-green-500/20 hover:border-green-500/40',
+      container: 'bg-success/5 border-success/20 hover:border-success/40',
       icon: 'bg-success/10 text-success',
       value: 'text-success',
     },
@@ -123,7 +123,7 @@ export function AnimatedMetricCard({
       value: 'text-destructive',
     },
     info: {
-      container: 'bg-info/5 border-blue-500/20 hover:border-blue-500/40',
+      container: 'bg-info/5 border-info/20 hover:border-info/40',
       icon: 'bg-info/10 text-info',
       value: 'text-info',
     },

@@ -19,12 +19,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 const ChannelRoutingRules = lazy(() => import('./ChannelRoutingRules').then(m => ({ default: m.ChannelRoutingRules })));
 
 const channelConfig = {
-  whatsapp: { label: 'WhatsApp', icon: MessageSquare, color: 'text-green-500', bg: 'bg-green-500/10' },
+  whatsapp: { label: 'WhatsApp', icon: MessageSquare, color: 'text-success', bg: 'bg-success/10' },
   instagram: { label: 'Instagram', icon: Instagram, color: 'text-pink-500', bg: 'bg-pink-500/10' },
-  telegram: { label: 'Telegram', icon: Send, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  telegram: { label: 'Telegram', icon: Send, color: 'text-info', bg: 'bg-info/10' },
   messenger: { label: 'Messenger', icon: MessagesSquare, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-  webchat: { label: 'Web Chat', icon: Globe, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-  email: { label: 'Gmail', icon: MessageSquare, color: 'text-red-500', bg: 'bg-red-500/10' },
+  webchat: { label: 'Web Chat', icon: Globe, color: 'text-warning', bg: 'bg-warning/10' },
+  email: { label: 'Gmail', icon: MessageSquare, color: 'text-destructive', bg: 'bg-destructive/10' },
 };
 
 type ChannelType = keyof typeof channelConfig;

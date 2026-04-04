@@ -86,7 +86,7 @@ function ThreadListItem({
             {thread.snippet}
           </p>
           <div className="flex items-center gap-0.5 shrink-0">
-            {thread.is_starred && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+            {thread.is_starred && <Star className="w-3 h-3 text-warning fill-warning" />}
             {thread.is_important && <AlertCircle className="w-3 h-3 text-orange-500" />}
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function GmailInboxView() {
       <div className="p-3 border-b space-y-2">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 flex-1">
-            <Mail className="w-5 h-5 text-red-500 shrink-0" />
+            <Mail className="w-5 h-5 text-destructive shrink-0" />
             <h2 className="text-base font-semibold">Gmail</h2>
             {unreadCount > 0 && (
               <Badge variant="default" className="text-[10px] px-1.5 py-0">

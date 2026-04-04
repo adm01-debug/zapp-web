@@ -40,10 +40,10 @@ import {
 } from 'lucide-react';
 
 const contactTypeConfig: Record<string, { label: string; icon: typeof Users; color: string }> = {
-  cliente: { label: 'Cliente', icon: Users, color: 'bg-blue-500/10 text-blue-600 border-blue-500/30' },
-  colaborador: { label: 'Colaborador', icon: UserCheck, color: 'bg-green-500/10 text-green-600 border-green-500/30' },
-  fornecedor: { label: 'Fornecedor', icon: Truck, color: 'bg-purple-500/10 text-purple-600 border-purple-500/30' },
-  prestador_servico: { label: 'Prestador', icon: Wrench, color: 'bg-orange-500/10 text-orange-600 border-orange-500/30' },
+  cliente: { label: 'Cliente', icon: Users, color: 'bg-info/10 text-info border-info/30' },
+  colaborador: { label: 'Colaborador', icon: UserCheck, color: 'bg-success/10 text-success border-success/30' },
+  fornecedor: { label: 'Fornecedor', icon: Truck, color: 'bg-secondary/10 text-secondary border-secondary/30' },
+  prestador_servico: { label: 'Prestador', icon: Wrench, color: 'bg-warning/10 text-warning border-warning/30' },
   transportadora: { label: 'Transportadora', icon: Truck, color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/30' },
 };
 
@@ -96,8 +96,8 @@ export function ChatHeader({
 
   const rfmSegmentColors: Record<string, string> = {
     Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
-    'Loyal Customers': 'bg-blue-500/15 text-blue-600 border-blue-500/30',
-    'At Risk': 'bg-red-500/15 text-red-600 border-red-500/30',
+    'Loyal Customers': 'bg-info/15 text-info border-info/30',
+    'At Risk': 'bg-destructive/15 text-destructive border-destructive/30',
     Hibernating: 'bg-muted text-muted-foreground border-border',
     Lost: 'bg-muted/50 text-muted-foreground border-border/50',
     "Can't Lose Them": 'bg-rose-500/15 text-rose-600 border-rose-500/30',

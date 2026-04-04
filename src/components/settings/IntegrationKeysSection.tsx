@@ -96,7 +96,7 @@ export function IntegrationKeysSection() {
                 <div className="flex items-center gap-2">
                   <Label className="text-sm font-medium">{label}</Label>
                   {isConfigured ? (
-                    <Badge variant="outline" className="text-xs gap-1 text-green-600 border-green-600/30">
+                    <Badge variant="outline" className="text-xs gap-1 text-success border-success/30">
                       <CheckCircle2 className="w-3 h-3" />
                       Configurada
                     </Badge>

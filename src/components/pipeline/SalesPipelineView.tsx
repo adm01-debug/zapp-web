@@ -189,9 +189,9 @@ export function SalesPipelineView() {
   const totalWon = wonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
 
   const priorityColors: Record<string, string> = {
-    high: 'bg-destructive/20 text-destructive border-red-500/30',
+    high: 'bg-destructive/20 text-destructive border-destructive/30',
     medium: 'bg-warning/20 text-warning border-yellow-500/30',
-    low: 'bg-success/20 text-success border-green-500/30',
+    low: 'bg-success/20 text-success border-success/30',
   };
 
   const handleDragStart = (dealId: string) => setDraggedDeal(dealId);

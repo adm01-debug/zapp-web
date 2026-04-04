@@ -29,12 +29,12 @@ interface UnifiedMessage {
 }
 
 const CHANNEL_CONFIG: Record<ChannelType, { icon: typeof MessageSquare; label: string; color: string }> = {
-  whatsapp: { icon: MessageSquare, label: 'WhatsApp', color: 'text-green-500 bg-green-500/10' },
+  whatsapp: { icon: MessageSquare, label: 'WhatsApp', color: 'text-success bg-success/10' },
   instagram: { icon: Instagram, label: 'Instagram', color: 'text-pink-500 bg-pink-500/10' },
-  telegram: { icon: SendIcon, label: 'Telegram', color: 'text-blue-400 bg-blue-400/10' },
-  messenger: { icon: Facebook, label: 'Messenger', color: 'text-blue-600 bg-blue-600/10' },
-  email: { icon: Mail, label: 'Email', color: 'text-yellow-500 bg-yellow-500/10' },
-  webchat: { icon: Globe, label: 'Webchat', color: 'text-purple-500 bg-purple-500/10' },
+  telegram: { icon: SendIcon, label: 'Telegram', color: 'text-info bg-info/10' },
+  messenger: { icon: Facebook, label: 'Messenger', color: 'text-info bg-info/10' },
+  email: { icon: Mail, label: 'Email', color: 'text-warning bg-warning/10' },
+  webchat: { icon: Globe, label: 'Webchat', color: 'text-secondary bg-secondary/10' },
 };
 
 export function OmnichannelInbox() {
@@ -277,7 +277,7 @@ export function OmnichannelInbox() {
                         <Badge key={conn.id as string} variant="outline" className="gap-1">
                           {config && <config.icon className="w-3 h-3" />}
                           {(conn.name as string) || config?.label || channelType}
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 ml-1" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-success ml-1" />
                         </Badge>
                       );
                     })

@@ -89,16 +89,16 @@ export function SecurityNotificationsPanel() {
                   variant="outline" 
                   className={
                     permission === 'granted' 
-                      ? 'bg-success/10 text-success border-green-500/20'
+                      ? 'bg-success/10 text-success border-success/20'
                       : permission === 'denied'
-                        ? 'bg-destructive/10 text-destructive border-red-500/20'
+                        ? 'bg-destructive/10 text-destructive border-destructive/20'
                         : 'bg-warning/10 text-warning border-yellow-500/20'
                   }
                 >
                   {permission === 'granted' ? 'Permitido' : permission === 'denied' ? 'Bloqueado' : 'Não solicitado'}
                 </Badge>
                 {isSubscribed && (
-                  <Badge variant="outline" className="bg-success/10 text-success border-green-500/20">
+                  <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     Ativo
                   </Badge>
@@ -115,7 +115,7 @@ export function SecurityNotificationsPanel() {
 
         {/* Permission denied message */}
         {permission === 'denied' && (
-          <div className="flex items-start gap-4 p-4 rounded-lg border border-red-500/20 bg-destructive/5">
+          <div className="flex items-start gap-4 p-4 rounded-lg border border-destructive/20 bg-destructive/5">
             <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
             <div>
               <h4 className="font-medium text-destructive">Permissão Negada</h4>
@@ -184,7 +184,7 @@ export function SecurityNotificationsPanel() {
         )}
 
         {/* Info */}
-        <div className="flex items-start gap-4 p-4 rounded-lg border bg-info/5 border-blue-500/20">
+        <div className="flex items-start gap-4 p-4 rounded-lg border bg-info/5 border-info/20">
           <Shield className="w-5 h-5 text-info mt-0.5" />
           <div>
             <h4 className="font-medium text-info">Por que ativar?</h4>

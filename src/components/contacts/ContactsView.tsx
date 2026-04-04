@@ -442,7 +442,7 @@ export function ContactsView() {
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15 }}
               >
-                <CheckCircle2 className="w-16 h-16 text-green-500" />
+                <CheckCircle2 className="w-16 h-16 text-success" />
               </motion.div>
               Contato Adicionado!
             </DialogTitle>

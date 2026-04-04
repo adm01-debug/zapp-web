@@ -112,7 +112,7 @@ export function RateLimitConfigPanel() {
   const getActionBadge = (action: string) => {
     switch (action) {
       case 'block': return <Badge variant="destructive">Bloquear</Badge>;
-      case 'throttle': return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30">Limitar</Badge>;
+      case 'throttle': return <Badge className="bg-warning/10 text-warning border-warning/30">Limitar</Badge>;
       case 'alert': return <Badge variant="outline">Alertar</Badge>;
       default: return null;
     }

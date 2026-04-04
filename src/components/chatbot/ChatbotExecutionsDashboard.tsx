@@ -13,9 +13,9 @@ import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  running: { label: 'Em execução', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: Play },
+  running: { label: 'Em execução', color: 'bg-info/20 text-info border-info/30', icon: Play },
   completed: { label: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: CheckCircle2 },
-  failed: { label: 'Falhou', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: XCircle },
+  failed: { label: 'Falhou', color: 'bg-destructive/20 text-destructive border-destructive/30', icon: XCircle },
   waiting: { label: 'Aguardando', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: Clock },
 };
 
@@ -76,8 +76,8 @@ export function ChatbotExecutionsDashboard() {
         </Card>
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-              <Play className="w-5 h-5 text-blue-400" />
+            <div className="w-10 h-10 rounded-lg bg-info/20 flex items-center justify-center">
+              <Play className="w-5 h-5 text-info" />
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.running}</p>
@@ -98,8 +98,8 @@ export function ChatbotExecutionsDashboard() {
         </Card>
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
-              <XCircle className="w-5 h-5 text-red-400" />
+            <div className="w-10 h-10 rounded-lg bg-destructive/20 flex items-center justify-center">
+              <XCircle className="w-5 h-5 text-destructive" />
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.failed}</p>
@@ -168,7 +168,7 @@ export function ChatbotExecutionsDashboard() {
                           )}
                         </div>
                         {exec.error_message && (
-                          <p className="text-xs text-red-400 mt-1 truncate">{exec.error_message}</p>
+                          <p className="text-xs text-destructive mt-1 truncate">{exec.error_message}</p>
                         )}
                       </div>
                     </div>

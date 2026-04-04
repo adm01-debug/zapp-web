@@ -40,10 +40,10 @@ interface ConversationSummaryProps {
 }
 
 const statusConfig = {
-  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-success/20 text-success border-green-500/30' },
+  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-success/20 text-success border-success/30' },
   pendente: { label: 'Pendente', icon: Clock, className: 'bg-warning/20 text-warning border-yellow-500/30' },
   aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-warning/20 text-warning border-orange-500/30' },
-  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-info/20 text-info border-blue-500/30' },
+  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-info/20 text-info border-info/30' },
 };
 
 const sentimentConfig = {

@@ -121,12 +121,12 @@ export function PasskeysPanel() {
               </div>
             </div>
             {webauthnSupported ? (
-              <Badge variant="outline" className="bg-success/10 text-success border-green-500/30">
+              <Badge variant="outline" className="bg-success/10 text-success border-success/30">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Suportado
               </Badge>
             ) : (
-              <Badge variant="outline" className="bg-destructive/10 text-destructive border-red-500/30">
+              <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Não Suportado
               </Badge>

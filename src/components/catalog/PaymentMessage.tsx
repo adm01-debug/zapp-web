@@ -55,7 +55,7 @@ const statusConfig = {
     label: 'Reembolsado',
     icon: CreditCard,
     variant: 'outline' as const,
-    className: 'text-info border-blue-500/50 bg-info/10',
+    className: 'text-info border-info/50 bg-info/10',
   },
 };
 

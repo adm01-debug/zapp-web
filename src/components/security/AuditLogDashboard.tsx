@@ -24,16 +24,16 @@ interface AuditLog {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  login: 'bg-green-500/10 text-green-500',
+  login: 'bg-success/10 text-success',
   logout: 'bg-muted text-muted-foreground',
-  create: 'bg-blue-500/10 text-blue-500',
-  update: 'bg-yellow-500/10 text-yellow-500',
+  create: 'bg-info/10 text-info',
+  update: 'bg-warning/10 text-warning',
   delete: 'bg-destructive/10 text-destructive',
-  export: 'bg-purple-500/10 text-purple-500',
-  mfa_enabled: 'bg-green-500/10 text-green-500',
+  export: 'bg-secondary/10 text-secondary',
+  mfa_enabled: 'bg-success/10 text-success',
   mfa_disabled: 'bg-destructive/10 text-destructive',
-  password_change: 'bg-yellow-500/10 text-yellow-500',
-  role_change: 'bg-orange-500/10 text-orange-500',
+  password_change: 'bg-warning/10 text-warning',
+  role_change: 'bg-accent/10 text-accent-foreground',
 };
 
 const ACTION_ICONS: Record<string, typeof Shield> = {
@@ -127,9 +127,9 @@ export function AuditLogDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total de Logs', value: stats.total, icon: FileText, color: 'text-primary' },
-          { label: 'Hoje', value: stats.today, icon: Calendar, color: 'text-green-500' },
+          { label: 'Hoje', value: stats.today, icon: Calendar, color: 'text-success' },
           { label: 'Ações Sensíveis', value: stats.suspicious, icon: AlertTriangle, color: 'text-destructive' },
-          { label: 'Usuários Únicos', value: stats.uniqueUsers, icon: User, color: 'text-blue-500' },
+          { label: 'Usuários Únicos', value: stats.uniqueUsers, icon: User, color: 'text-info' },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent className="pt-4 pb-4">

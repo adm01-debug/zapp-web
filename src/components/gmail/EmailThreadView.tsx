@@ -60,7 +60,7 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
           className="w-full p-3 flex items-start gap-3 text-left hover:bg-secondary/5 transition-colors"
         >
           <Avatar className="h-8 w-8 shrink-0 mt-0.5">
-            <AvatarFallback className={`text-xs ${isInbound ? 'bg-blue-500/10 text-blue-600' : 'bg-green-500/10 text-green-600'}`}>
+            <AvatarFallback className={`text-xs ${isInbound ? 'bg-info/10 text-info' : 'bg-success/10 text-success'}`}>
               {getInitials(message.from_name, message.from_address)}
             </AvatarFallback>
           </Avatar>
@@ -70,7 +70,7 @@ function EmailMessageCard({ message, isLast }: { message: EmailMessage; isLast: 
               <span className="text-sm font-medium truncate">
                 {message.from_name || message.from_address}
               </span>
-              {message.is_starred && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 shrink-0" />}
+              {message.is_starred && <Star className="w-3 h-3 text-warning fill-warning shrink-0" />}
               {message.has_attachments && <Paperclip className="w-3 h-3 text-muted-foreground shrink-0" />}
               <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
                 {formatDate(message.internal_date)}

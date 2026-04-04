@@ -109,7 +109,7 @@ export function MediaMigrationTool() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               {result.success ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
+                <CheckCircle className="w-5 h-5 text-success" />
               ) : (
                 <XCircle className="w-5 h-5 text-destructive" />
               )}
@@ -122,8 +122,8 @@ export function MediaMigrationTool() {
                 <p className="text-2xl font-bold text-foreground">{result.processed}</p>
                 <p className="text-xs text-muted-foreground">Processados</p>
               </div>
-              <div className="text-center p-3 rounded-lg bg-green-500/5">
-                <p className="text-2xl font-bold text-green-500">{result.migrated}</p>
+              <div className="text-center p-3 rounded-lg bg-success/5">
+                <p className="text-2xl font-bold text-success">{result.migrated}</p>
                 <p className="text-xs text-muted-foreground">Migrados</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-destructive/5">
@@ -165,9 +165,9 @@ export function MediaMigrationTool() {
             <div className="space-y-2">
               {history.slice(1).map((h, i) => (
                 <div key={i} className="flex items-center gap-3 p-2 rounded border text-xs">
-                  {h.success ? <CheckCircle className="w-3 h-3 text-green-500" /> : <XCircle className="w-3 h-3 text-destructive" />}
+                  {h.success ? <CheckCircle className="w-3 h-3 text-success" /> : <XCircle className="w-3 h-3 text-destructive" />}
                   <span>{h.processed} processados</span>
-                  <span className="text-green-500">{h.migrated} OK</span>
+                  <span className="text-success">{h.migrated} OK</span>
                   {h.failed > 0 && <span className="text-destructive">{h.failed} falhas</span>}
                 </div>
               ))}

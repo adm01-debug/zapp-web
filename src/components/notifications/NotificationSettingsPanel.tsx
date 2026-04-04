@@ -521,7 +521,7 @@ export function NotificationSettingsPanel() {
                 <Label className="text-sm">Limite de Alerta</Label>
                 <Badge variant="outline" className={cn(
                   "font-mono",
-                  settings.sentimentAlertThreshold < 30 ? "text-destructive border-red-400/50" :
+                  settings.sentimentAlertThreshold < 30 ? "text-destructive border-destructive/50" :
                   settings.sentimentAlertThreshold < 50 ? "text-warning border-orange-400/50" :
                   "text-warning border-yellow-400/50"
                 )}>

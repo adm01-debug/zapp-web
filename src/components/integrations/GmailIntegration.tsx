@@ -46,7 +46,7 @@ export function GmailIntegration() {
     <div className="space-y-6 p-6 max-w-3xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <Mail className="w-6 h-6 text-red-500" />
+          <Mail className="w-6 h-6 text-destructive" />
           Gmail
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
@@ -77,16 +77,16 @@ export function GmailIntegration() {
               {accounts.map((account) => (
                 <div key={account.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/20">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-                      <Mail className="w-4 h-4 text-red-500" />
+                    <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-destructive" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">{account.email_address}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Badge variant="outline" className="text-[10px] px-1 py-0">
-                          {account.sync_status === 'synced' && <CheckCircle2 className="w-2.5 h-2.5 mr-0.5 text-green-500" />}
+                          {account.sync_status === 'synced' && <CheckCircle2 className="w-2.5 h-2.5 mr-0.5 text-success" />}
                           {account.sync_status === 'syncing' && <Loader2 className="w-2.5 h-2.5 mr-0.5 animate-spin" />}
-                          {account.sync_status === 'error' && <XCircle className="w-2.5 h-2.5 mr-0.5 text-red-500" />}
+                          {account.sync_status === 'error' && <XCircle className="w-2.5 h-2.5 mr-0.5 text-destructive" />}
                           {account.sync_status}
                         </Badge>
                         {account.last_sync_at && (

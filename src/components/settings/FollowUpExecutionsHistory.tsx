@@ -9,9 +9,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  active: { label: 'Ativo', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: Loader2 },
+  active: { label: 'Ativo', color: 'bg-info/20 text-info border-info/30', icon: Loader2 },
   completed: { label: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelado', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: XCircle },
+  cancelled: { label: 'Cancelado', color: 'bg-destructive/20 text-destructive border-destructive/30', icon: XCircle },
   paused: { label: 'Pausado', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: Clock },
 };
 

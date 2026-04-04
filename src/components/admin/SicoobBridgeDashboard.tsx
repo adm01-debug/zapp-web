@@ -102,8 +102,8 @@ export function SicoobBridgeDashboard() {
         <Card>
           <CardContent className="pt-4 pb-4 text-center">
             <div className="flex items-center justify-center gap-1">
-              <ArrowDownLeft className="w-4 h-4 text-green-500" />
-              <p className="text-2xl font-bold text-green-500">{inbound}</p>
+              <ArrowDownLeft className="w-4 h-4 text-success" />
+              <p className="text-2xl font-bold text-success">{inbound}</p>
             </div>
             <p className="text-xs text-muted-foreground">Recebidas</p>
           </CardContent>
@@ -111,8 +111,8 @@ export function SicoobBridgeDashboard() {
         <Card>
           <CardContent className="pt-4 pb-4 text-center">
             <div className="flex items-center justify-center gap-1">
-              <ArrowUpRight className="w-4 h-4 text-blue-500" />
-              <p className="text-2xl font-bold text-blue-500">{outbound}</p>
+              <ArrowUpRight className="w-4 h-4 text-info" />
+              <p className="text-2xl font-bold text-info">{outbound}</p>
             </div>
             <p className="text-xs text-muted-foreground">Enviadas</p>
           </CardContent>
@@ -123,7 +123,7 @@ export function SicoobBridgeDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <CheckCircle className="w-5 h-5 text-green-500" /> Endpoints da Bridge
+            <CheckCircle className="w-5 h-5 text-success" /> Endpoints da Bridge
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -159,9 +159,9 @@ export function SicoobBridgeDashboard() {
               {recentMessages.map(msg => (
                 <div key={msg.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
                   {msg.sender === 'contact' ? (
-                    <ArrowDownLeft className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <ArrowDownLeft className="w-4 h-4 text-success mt-0.5 shrink-0" />
                   ) : (
-                    <ArrowUpRight className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                    <ArrowUpRight className="w-4 h-4 text-info mt-0.5 shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{msg.content}</p>
