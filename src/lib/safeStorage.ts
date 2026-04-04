@@ -49,7 +49,7 @@ export function safeSetJSON(key: string, value: unknown): boolean {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch {
-    console.warn(`[safeStorage] Failed to write key "${key}"`);
+    log.warn(`Failed to write key "${key}"`);
     return false;
   }
 }

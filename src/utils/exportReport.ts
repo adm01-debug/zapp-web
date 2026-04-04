@@ -17,7 +17,7 @@ export interface ReportData {
 const BLOCKED_MESSAGE = '🔒 Exportação bloqueada: A exportação de dados está desabilitada por política de segurança para proteção dos dados de clientes e fornecedores.';
 
 export const exportToPDF = (_data: ReportData): void => {
-  console.warn('[SECURITY] PDF export blocked by data protection policy');
+  log.warn('PDF export blocked by data protection policy');
   throw new Error(BLOCKED_MESSAGE);
 };
 

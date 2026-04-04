@@ -72,7 +72,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.warn('Speech recognition error:', event.error);
+      log.warn('Speech recognition error:', event.error);
       setIsListening(false);
     };
 
