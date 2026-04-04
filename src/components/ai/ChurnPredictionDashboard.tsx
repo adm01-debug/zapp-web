@@ -148,9 +148,9 @@ export function ChurnPredictionDashboard() {
 
   const getRiskProgressColor = (score: number) => {
     if (score >= 80) return 'bg-destructive';
-    if (score >= 60) return 'bg-orange-500';
-    if (score >= 30) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (score >= 60) return 'bg-warning';
+    if (score >= 30) return 'bg-accent';
+    return 'bg-success';
   };
 
   return (
