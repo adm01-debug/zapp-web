@@ -1,58 +1,23 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { SentimentAlertSchema, parseBody } from "../_shared/schemas.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-interface AlertRequest {
-  contactId: string;
-  contactName: string;
-  sentimentScore: number;
-  previousScore?: number;
-  analysisId: string;
-  agentEmail?: string;
-  threshold?: number; // User's custom threshold (default 30)
-  consecutiveRequired?: number; // User's custom consecutive count (default 2)
-}
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("sentiment-alert");
 
   try {
-    const { 
-      contactId, 
-      contactName, 
-      sentimentScore, 
-      previousScore, 
-      analysisId, 
-      agentEmail,
-      threshold = 30,
-      consecutiveRequired = 2
-    }: AlertRequest = await req.json();
-    
-    console.log('Sentiment alert triggered:', { contactId, contactName, sentimentScore, previousScore, threshold, consecutiveRequired });
+    const parsed = parseBody(SentimentAlertSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { contactId, contactName, sentimentScore, previousScore, analysisId, threshold, consecutiveRequired } = parsed.data;
 
-    // Check for consecutive low sentiment (below user's threshold)
+    log.info("Sentiment alert triggered", { contactId, sentimentScore, threshold, consecutiveRequired });
+
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
+
     const { data: recentAnalyses, error: fetchError } = await supabase
       .from('conversation_analyses')
       .select('id, sentiment_score, created_at')
@@ -60,12 +25,8 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(consecutiveRequired + 1);
 
-    if (fetchError) {
-      console.error('Error fetching analyses:', fetchError);
-      throw fetchError;
-    }
+    if (fetchError) throw fetchError;
 
-    // Count consecutive low sentiment analyses using user's threshold
     let consecutiveLow = 0;
     for (const analysis of recentAnalyses || []) {
       if ((analysis.sentiment_score ?? 50) < threshold) {
@@ -75,29 +36,21 @@ serve(async (req) => {
       }
     }
 
-    console.log('Consecutive low sentiment analyses:', consecutiveLow, 'required:', consecutiveRequired);
-
-    // Only alert if consecutive count meets user's requirement
     if (consecutiveLow < consecutiveRequired) {
-      return new Response(
-        JSON.stringify({ 
-          alerted: false, 
-          reason: `Not enough consecutive low sentiment analyses (${consecutiveLow}/${consecutiveRequired})`,
-          consecutiveLow 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({
+        alerted: false,
+        reason: `Not enough consecutive low sentiment analyses (${consecutiveLow}/${consecutiveRequired})`,
+        consecutiveLow,
+      }, 200, req);
     }
 
-    // Get contact details for the alert
     const { data: contact } = await supabase
       .from('contacts')
       .select('name, phone, assigned_to')
       .eq('id', contactId)
       .single();
 
-    // Get assigned agent's profile for email notification
-    let agentProfile = null;
+    let agentProfile: { id: string; name: string; email: string; user_id: string } | null = null;
     if (contact?.assigned_to) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -107,7 +60,6 @@ serve(async (req) => {
       agentProfile = profile;
     }
 
-    // Create an in-app notification record (we'll use audit_logs for this)
     const alertDetails = {
       type: 'sentiment_alert',
       contact_id: contactId,
@@ -123,7 +75,6 @@ serve(async (req) => {
       created_at: new Date().toISOString(),
     };
 
-    // Log the alert
     const { error: logError } = await supabase
       .from('audit_logs')
       .insert({
@@ -134,13 +85,10 @@ serve(async (req) => {
         details: alertDetails,
       });
 
-    if (logError) {
-      console.warn('Failed to log alert:', logError);
-    }
+    if (logError) log.warn("Failed to log alert", { error: logError.message });
 
-    // If Resend is configured, send email alert
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     let emailSent = false;
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
     if (RESEND_API_KEY && agentProfile?.email) {
       try {
@@ -154,74 +102,35 @@ serve(async (req) => {
             from: 'Alertas <onboarding@resend.dev>',
             to: [agentProfile.email],
             subject: `⚠️ Alerta: Sentimento negativo - ${contact?.name || contactName}`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #dc2626;">⚠️ Alerta de Sentimento Negativo</h2>
-                
-                <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin: 16px 0;">
-                  <p style="margin: 0; font-size: 16px;">
-                    O cliente <strong>${contact?.name || contactName}</strong> apresenta sentimento negativo 
-                    em <strong>${consecutiveLow} análises consecutivas</strong>.
-                  </p>
-                </div>
-                
-                <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-                  <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Cliente:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${contact?.name || contactName}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Telefone:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${contact?.phone || 'N/A'}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Score Atual:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; color: #dc2626; font-weight: bold;">${sentimentScore}%</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Análises Negativas:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${consecutiveLow} consecutivas</td>
-                  </tr>
-                </table>
-                
-                <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin-top: 16px;">
-                  <p style="margin: 0 0 8px 0; font-weight: bold;">Ação Recomendada:</p>
-                  <p style="margin: 0; color: #4b5563;">
-                    Entre em contato com o cliente o mais rápido possível para entender e resolver suas preocupações.
-                  </p>
-                </div>
-                
-                <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">
-                  Este é um alerta automático do sistema de análise de conversas.
-                </p>
+            html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+              <h2 style="color:#dc2626">⚠️ Alerta de Sentimento Negativo</h2>
+              <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:16px;margin:16px 0">
+                <p style="margin:0;font-size:16px">O cliente <strong>${contact?.name || contactName}</strong> apresenta sentimento negativo em <strong>${consecutiveLow} análises consecutivas</strong>.</p>
               </div>
-            `,
+              <table style="width:100%;border-collapse:collapse;margin:16px 0">
+                <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb"><strong>Score Atual:</strong></td><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#dc2626;font-weight:bold">${sentimentScore}%</td></tr>
+                <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb"><strong>Análises Negativas:</strong></td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${consecutiveLow} consecutivas</td></tr>
+              </table>
+              <p style="color:#9ca3af;font-size:12px;margin-top:24px">Alerta automático do sistema de análise de conversas.</p>
+            </div>`,
           }),
         });
-
         emailSent = emailResponse.ok;
-        console.log('Email alert sent:', emailSent);
       } catch (emailError) {
-        console.error('Failed to send email alert:', emailError);
+        log.error("Failed to send email alert", { error: emailError instanceof Error ? emailError.message : String(emailError) });
       }
     }
 
-    return new Response(
-      JSON.stringify({ 
-        alerted: true,
-        consecutiveLow,
-        emailSent,
-        agentNotified: agentProfile?.name || null,
-        alertDetails,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('Error processing sentiment alert:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.done(200, { consecutiveLow, emailSent });
+    return jsonResponse({
+      alerted: true,
+      consecutiveLow,
+      emailSent,
+      agentNotified: agentProfile?.name || null,
+      alertDetails,
+    }, 200, req);
+  } catch (error: unknown) {
+    log.error("Unhandled error", { error: error instanceof Error ? error.message : String(error) });
+    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500, req);
   }
 });

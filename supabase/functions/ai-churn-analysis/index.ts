@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { AiChurnAnalysisSchema, parseBody } from "../_shared/schemas.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
@@ -20,27 +21,26 @@ Deno.serve(async (req) => {
     const { data: { user } } = await callerClient.auth.getUser();
     if (!user) return errorResponse("Não autorizado", 401, req);
 
-    const { contactIds } = await req.json();
-    if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
-      return errorResponse("contactIds é obrigatório (array de UUIDs)", 400, req);
-    }
+    const parsed = parseBody(AiChurnAnalysisSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
+    const { contactIds } = parsed.data;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Fetch contacts and their message activity
     const { data: contacts } = await adminClient
       .from("contacts")
       .select("id, name, phone, created_at, updated_at")
-      .in("id", contactIds.slice(0, 50));
+      .in("id", contactIds);
 
     if (!contacts || contacts.length === 0) {
       return jsonResponse({ results: [], message: "Nenhum contato encontrado" }, 200, req);
     }
 
+    log.info("Analyzing churn risk", { contactCount: contacts.length });
+
     const results = [];
 
     for (const contact of contacts) {
-      // Get last message date
       const { data: lastMsg } = await adminClient
         .from("messages")
         .select("created_at")
@@ -49,7 +49,6 @@ Deno.serve(async (req) => {
         .limit(1)
         .maybeSingle();
 
-      // Get message count in last 30 days
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const { count: recentMsgCount } = await adminClient
         .from("messages")
@@ -57,7 +56,6 @@ Deno.serve(async (req) => {
         .eq("contact_id", contact.id)
         .gte("created_at", thirtyDaysAgo);
 
-      // Get total message count
       const { count: totalMsgCount } = await adminClient
         .from("messages")
         .select("id", { count: "exact", head: true })
@@ -68,25 +66,21 @@ Deno.serve(async (req) => {
         (Date.now() - new Date(lastMessageAt).getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Calculate churn risk score (0-100)
       let riskScore = 0;
 
-      // Inactivity factor (max 40 points)
       if (daysSinceLastMessage > 90) riskScore += 40;
       else if (daysSinceLastMessage > 60) riskScore += 30;
       else if (daysSinceLastMessage > 30) riskScore += 20;
       else if (daysSinceLastMessage > 14) riskScore += 10;
 
-      // Engagement decline factor (max 30 points)
       const avgMonthly = (totalMsgCount || 0) > 0
         ? ((totalMsgCount || 0) / Math.max(1, Math.floor((Date.now() - new Date(contact.created_at).getTime()) / (30 * 24 * 60 * 60 * 1000))))
         : 0;
-      
+
       if (avgMonthly > 0 && (recentMsgCount || 0) < avgMonthly * 0.3) riskScore += 30;
       else if (avgMonthly > 0 && (recentMsgCount || 0) < avgMonthly * 0.5) riskScore += 20;
       else if (avgMonthly > 0 && (recentMsgCount || 0) < avgMonthly * 0.7) riskScore += 10;
 
-      // Low total engagement (max 30 points)
       if ((totalMsgCount || 0) <= 1) riskScore += 30;
       else if ((totalMsgCount || 0) <= 5) riskScore += 20;
       else if ((totalMsgCount || 0) <= 10) riskScore += 10;
@@ -96,7 +90,7 @@ Deno.serve(async (req) => {
       else if (riskScore >= 60) riskLevel = "high";
       else if (riskScore >= 40) riskLevel = "medium";
 
-      const reasons = [];
+      const reasons: string[] = [];
       if (daysSinceLastMessage > 30) reasons.push(`${daysSinceLastMessage} dias sem interação`);
       if ((recentMsgCount || 0) === 0) reasons.push("Sem mensagens nos últimos 30 dias");
       if ((totalMsgCount || 0) <= 5) reasons.push("Baixo engajamento total");
