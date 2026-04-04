@@ -64,6 +64,7 @@ const TABS: TabConfig[] = [
     icon: Users,
     description: '4.7k+ contatos — nome, cargo, empresa, score',
     searchColumn: 'full_name',
+    editable: true,
     columns: [
       { key: 'full_name', label: 'Nome' },
       { key: 'cargo', label: 'Cargo' },
