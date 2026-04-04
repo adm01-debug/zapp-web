@@ -106,7 +106,7 @@ export function PermissionMatrix() {
           />
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'admin' | 'supervisor' | 'agent')}>
           <TabsList className="w-full">
             {Object.entries(ROLE_LABELS).map(([role, { label }]) => (
               <TabsTrigger key={role} value={role} className="flex-1">

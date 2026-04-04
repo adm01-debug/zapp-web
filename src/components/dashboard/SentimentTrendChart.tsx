@@ -259,7 +259,7 @@ export function SentimentTrendChart({
             Tendência de Sentimento
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
+            <Select value={period} onValueChange={(v) => setPeriod(v as '7' | '14' | '30')}>
               <SelectTrigger className="w-32">
                 <Calendar className="w-4 h-4 mr-2" />
                 <SelectValue />

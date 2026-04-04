@@ -398,7 +398,7 @@ export function AutomationsManager() {
             <CardDescription>Configure respostas e ações automáticas</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+            <Select value={filter} onValueChange={(v) => setFilter(v as 'all' | 'active' | 'inactive')}>
               <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>

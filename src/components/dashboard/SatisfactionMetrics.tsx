@@ -151,7 +151,7 @@ export const SatisfactionMetrics = () => {
                   variant={selectedPeriod === period ? 'default' : 'outline'}
                   size="sm"
                   className="text-xs"
-                  onClick={() => setSelectedPeriod(period as any)}
+                  onClick={() => setSelectedPeriod(period as '7d' | '30d' | '90d')}
                 >
                   {period === '7d' ? '7 dias' : period === '30d' ? '30 dias' : '90 dias'}
                 </Button>

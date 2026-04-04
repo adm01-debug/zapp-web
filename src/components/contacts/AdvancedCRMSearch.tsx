@@ -471,7 +471,7 @@ function AdvancedCRMSearchInner({ onSelectContact, className }: AdvancedCRMSearc
         {/* Sort */}
         <Select
           value={params.sort_by || 'relevance'}
-          onValueChange={(v) => setSortBy(v as any)}
+          onValueChange={(v) => setSortBy(v as 'relevance' | 'name' | 'score' | 'compras' | 'pedidos' | 'recent')}
         >
           <SelectTrigger className="h-9 w-[130px] text-xs">
             <ArrowUpDown className="w-3 h-3 mr-1" />

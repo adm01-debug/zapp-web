@@ -191,7 +191,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
     // If editing a message
     if (editingMessage) {
-      const externalId = (editingMessage as any).external_id;
+      const externalId = editingMessage.external_id;
       const contactJid = conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : '';
       
       setIsSending(true);
