@@ -37,9 +37,9 @@ export function ThemeCustomizer() {
           <div>
           <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Palette className="w-5 h-5 text-primary" />
-            Personalizar Tema
+            Skins
           </h3>
-          <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
+          <p className="text-sm text-muted-foreground">Escolha sua skin favorita</p>
           </div>
         </div>
         <div className="flex gap-2">
