@@ -82,6 +82,7 @@ export const automationNav: readonly NavItemConfig[] = [
 // ── Sales & CRM ───────────────────────────────────────────
 export const salesNav: readonly NavItemConfig[] = [
   { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
+  { id: 'crm360', icon: Building2, label: 'CRM 360°' },
   { id: 'wallet', icon: Wallet, label: 'Carteira' },
   { id: 'catalog', icon: Package, label: 'Catálogo' },
   { id: 'payments', icon: CreditCard, label: 'Pagamentos' },

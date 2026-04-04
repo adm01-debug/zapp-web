@@ -103,6 +103,7 @@ const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any
   'gmail-webhook': Views.GmailWebhookMonitor,
   'media-migration': Views.MediaMigrationTool,
   'sicoob-bridge': Views.SicoobBridgeDashboard,
+  'crm360': Views.CRM360ExplorerView,
 };
 
 // Views that need custom props
