@@ -68,7 +68,7 @@ export function OmnichannelManager() {
 
       const { error } = await supabase.from('channel_connections').insert([{
         name: channel.name,
-        channel_type: channel.channel_type as any,
+        channel_type: channel.channel_type as Database["public"]["Enums"]["channel_type"],
         created_by: profile?.id,
         status: 'pending_setup',
       }]);

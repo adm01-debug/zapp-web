@@ -86,7 +86,7 @@ export function ChannelRoutingRules() {
       const { error } = await supabase
         .from('channel_routing_rules')
         .insert({
-          channel_type: rule.channel_type as any,
+          channel_type: rule.channel_type as Database["public"]["Enums"]["channel_type"],
           queue_id: rule.queue_id || null,
           priority: rule.priority,
           is_active: true,
