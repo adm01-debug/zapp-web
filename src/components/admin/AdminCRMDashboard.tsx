@@ -110,11 +110,11 @@ function RFMDistribution() {
   const total = sorted.reduce((s, [, c]) => s + c, 0);
 
   const segColors: Record<string, string> = {
-    Champions: 'bg-emerald-500', 'Loyal Customers': 'bg-blue-500',
-    'Potential Loyalist': 'bg-sky-500', 'At Risk': 'bg-red-500',
+    Champions: 'bg-success', 'Loyal Customers': 'bg-info',
+    'Potential Loyalist': 'bg-primary', 'At Risk': 'bg-destructive',
     Hibernating: 'bg-muted-foreground', Lost: 'bg-muted-foreground/60',
-    "Can't Lose Them": 'bg-rose-500', 'Need Attention': 'bg-amber-500',
-    Promising: 'bg-indigo-500',
+    "Can't Lose Them": 'bg-destructive/80', 'Need Attention': 'bg-warning',
+    Promising: 'bg-secondary',
   };
 
   return (
