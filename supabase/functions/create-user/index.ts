@@ -80,6 +80,23 @@ Deno.serve(async (req) => {
         .eq("user_id", newUser.user.id);
     }
 
+    // If a Gmail email was provided, create the gmail_accounts record
+    if (gmail_email && newUser.user) {
+      const { error: gmailError } = await adminClient
+        .from("gmail_accounts")
+        .insert({
+          user_id: newUser.user.id,
+          email_address: gmail_email,
+          is_active: true,
+          sync_status: "pending",
+        });
+
+      if (gmailError) {
+        log.error("Gmail account creation failed", { error: gmailError.message });
+        // Don't fail the whole request, user was already created
+      }
+    }
+
     log.done(200, { userId: newUser.user?.id });
     return jsonResponse({ success: true, user_id: newUser.user?.id }, 200, req);
   } catch (err: unknown) {
