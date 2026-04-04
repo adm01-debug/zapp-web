@@ -111,7 +111,8 @@ export function AdminView() {
   const [newUserNickname, setNewUserNickname] = useState('');
   const [newUserSignature, setNewUserSignature] = useState('');
   const [newUserJobTitle, setNewUserJobTitle] = useState('');
-  const [newUserAvatarUrl, setNewUserAvatarUrl] = useState('');
+  const [newUserAvatarFile, setNewUserAvatarFile] = useState<File | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
@@ -263,6 +264,24 @@ export function AdminView() {
 
     setCreatingUser(true);
     try {
+      // Upload avatar if file selected
+      let avatarUrl: string | undefined;
+      if (newUserAvatarFile) {
+        setUploadingAvatar(true);
+        const fileExt = newUserAvatarFile.name.split('.').pop();
+        const filePath = `${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, newUserAvatarFile);
+        setUploadingAvatar(false);
+        if (uploadError) {
+          toast.error('Erro ao fazer upload da foto');
+          setCreatingUser(false);
+          return;
+        }
+        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        avatarUrl = urlData.publicUrl;
+      }
       const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
@@ -277,7 +296,7 @@ export function AdminView() {
             nickname: newUserNickname || undefined,
             signature: newUserSignature || undefined,
             job_title: newUserJobTitle || undefined,
-            avatar_url: newUserAvatarUrl || undefined,
+            avatar_url: avatarUrl,
             email: newUserEmail,
             password: newUserPassword,
             role: newUserRole,
@@ -300,7 +319,7 @@ export function AdminView() {
         setNewUserNickname('');
         setNewUserSignature('');
         setNewUserJobTitle('');
-        setNewUserAvatarUrl('');
+        setNewUserAvatarFile(null);
         setNewUserEmail('');
         setNewUserPassword('');
         setNewUserRole('agent');
@@ -566,13 +585,16 @@ export function AdminView() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new_avatar">URL da Foto (opcional)</Label>
+              <Label htmlFor="new_avatar">Foto (opcional)</Label>
               <Input
                 id="new_avatar"
-                placeholder="https://exemplo.com/foto.jpg"
-                value={newUserAvatarUrl}
-                onChange={(e) => setNewUserAvatarUrl(e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={(e) => setNewUserAvatarFile(e.target.files?.[0] || null)}
               />
+              {newUserAvatarFile && (
+                <p className="text-xs text-muted-foreground">{newUserAvatarFile.name}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="new_email">Email *</Label>
