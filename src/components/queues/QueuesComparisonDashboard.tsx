@@ -203,8 +203,8 @@ export function QueuesComparisonDashboard() {
             <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-amber-500" />
+                  <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-accent-foreground" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Aguardando</p>
