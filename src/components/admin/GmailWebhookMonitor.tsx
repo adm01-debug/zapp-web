@@ -140,7 +140,7 @@ export function GmailWebhookMonitor() {
               {accounts.map(account => (
                 <div key={account.id} className="flex items-center gap-4 p-4 rounded-lg border bg-card">
                   <div className="p-2 rounded-lg bg-muted">
-                    {account.is_active ? <Wifi className="w-4 h-4 text-green-500" /> : <WifiOff className="w-4 h-4 text-muted-foreground" />}
+                    {account.is_active ? <Wifi className="w-4 h-4 text-success" /> : <WifiOff className="w-4 h-4 text-muted-foreground" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{account.email_address}</p>
