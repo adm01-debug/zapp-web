@@ -1,44 +1,20 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { AiConversationSummarySchema, parseBody } from "../_shared/schemas.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("ai-conversation-summary");
 
   try {
-    const { messages, contactName, contactId } = await req.json();
-    
-    if (!messages || messages.length < 5) {
-      return new Response(
-        JSON.stringify({ error: 'Conversation must have at least 5 messages for summary' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const parsed = parseBody(AiConversationSummarySchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { messages, contactName, contactId } = parsed.data;
+    const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
 
     // Fetch contact context for richer analysis
     let contactContext = '';
@@ -53,7 +29,6 @@ serve(async (req) => {
         contactContext = `\nContexto: ${contact.name || 'Cliente'}, Empresa: ${contact.company || 'N/A'}, Tags: ${contact.tags?.join(', ') || 'Nenhuma'}`;
       }
 
-      // Get previous analyses for trend detection
       const { data: prevAnalyses } = await supabase
         .from('conversation_analyses')
         .select('sentiment, summary, created_at')
@@ -67,8 +42,8 @@ serve(async (req) => {
     }
 
     const conversationText = messages
-      .map((msg: { sender: string; content: string; created_at: string }) => 
-        `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content}`
+      .map((msg) =>
+        `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content || ''}`
       )
       .join('\n');
 
@@ -105,10 +80,7 @@ Foque em:
                 type: "object",
                 properties: {
                   summary: { type: "string", description: "Brief summary (max 3 sentences)" },
-                  status: { 
-                    type: "string", 
-                    enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente", "escalado"],
-                  },
+                  status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente", "escalado"] },
                   keyPoints: { type: "array", items: { type: "string" }, description: "Key points (max 5)" },
                   nextSteps: { type: "array", items: { type: "string" }, description: "Actionable next steps" },
                   sentiment: { type: "string", enum: ["positivo", "neutro", "negativo", "critico"] },
@@ -117,10 +89,8 @@ Foque em:
                   agentPerformance: {
                     type: "object",
                     properties: {
-                      empathy: { type: "number", description: "1-5 scale" },
-                      clarity: { type: "number", description: "1-5 scale" },
-                      efficiency: { type: "number", description: "1-5 scale" },
-                      knowledge: { type: "number", description: "1-5 scale" },
+                      empathy: { type: "number" }, clarity: { type: "number" },
+                      efficiency: { type: "number" }, knowledge: { type: "number" },
                     },
                   },
                   churnRisk: { type: "string", enum: ["low", "medium", "high"] },
@@ -139,22 +109,14 @@ Foque em:
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+      if (response.status === 429) return errorResponse("Rate limit exceeded", 429, req);
+      if (response.status === 402) return errorResponse("Payment required", 402, req);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    
+
     let analysisData;
     if (toolCall?.function?.arguments) {
       analysisData = JSON.parse(toolCall.function.arguments);
@@ -179,21 +141,16 @@ Foque em:
         message_count: messages.length,
       });
 
-      // Update contact AI metadata
       await supabase.from('contacts').update({
         ai_sentiment: analysisData.sentiment,
         ai_priority: analysisData.urgency === 'critical' ? 'urgent' : analysisData.urgency,
       }).eq('id', contactId);
     }
 
-    return new Response(JSON.stringify(analysisData), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log.done(200);
+    return jsonResponse(analysisData, 200, req);
   } catch (error) {
-    console.error('Error generating summary:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.error("Error generating summary", { error: error instanceof Error ? error.message : String(error) });
+    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500, req);
   }
 });
