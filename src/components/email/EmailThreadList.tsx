@@ -36,7 +36,7 @@ function formatDate(dateStr: string): string {
 interface EmailThreadListProps {
   threads: EmailThread[];
   threadsLoading: boolean;
-  labels: any[];
+  labels: { id: string; name: string; gmail_label_id: string; label_type: string; unread_count: number }[];
   unreadCount: number;
   selectedThreadId: string | null;
   activeAccountEmail: string;
@@ -133,7 +133,7 @@ export function EmailThreadList({
             >
               Todos
             </Badge>
-            {labels.filter(l => l.label_type === 'user' || ['INBOX', 'SENT', 'IMPORTANT', 'DRAFT'].includes(l.gmail_label_id)).map((label: any) => (
+            {labels.filter(l => l.label_type === 'user' || ['INBOX', 'SENT', 'IMPORTANT', 'DRAFT'].includes(l.gmail_label_id)).map((label) => (
               <Badge
                 key={label.id}
                 variant={labelFilter === label.gmail_label_id ? 'default' : 'outline'}

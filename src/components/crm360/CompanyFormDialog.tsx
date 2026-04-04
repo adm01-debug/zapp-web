@@ -110,8 +110,8 @@ export function CompanyFormDialog({ open, onOpenChange, company, onSuccess }: Co
       }
       onOpenChange(false);
       onSuccess?.();
-    } catch (err: any) {
-      toast.error(`Erro: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
     }
   };
 

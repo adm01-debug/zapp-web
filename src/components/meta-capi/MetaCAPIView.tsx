@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -24,7 +25,7 @@ interface CAPIEvent {
   contact_id: string | null;
   pixel_id: string | null;
   action_source: string;
-  custom_data: any;
+  custom_data: Json;
   sent_to_meta: boolean;
   created_at: string;
 }

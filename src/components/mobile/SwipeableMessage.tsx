@@ -32,7 +32,7 @@ export function SwipeableMessage({
   const forwardScale = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0.5]);
 
   const handleDragEnd = useCallback(
-    (_: any, info: PanInfo) => {
+    (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       if (isAnimating.current) return;
 
       if (info.offset.x > SWIPE_THRESHOLD && onSwipeRight) {

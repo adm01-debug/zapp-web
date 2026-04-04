@@ -197,7 +197,7 @@ function AutomationCard({
           <div className="flex items-center gap-1 mt-2 flex-wrap">
             <Badge variant="outline" className="text-xs">{triggerInfo?.label}</Badge>
             <ArrowRight className="w-3 h-3 text-muted-foreground" />
-            {actions.map((action: any, i: number) => {
+            {actions.map((action: Record<string, unknown>, i: number) => {
               const actionInfo = ACTION_TYPES.find(a => a.type === action.type);
               return <Badge key={i} variant="secondary" className="text-xs">{actionInfo?.label}</Badge>;
             })}
@@ -230,14 +230,14 @@ function AutomationEditorDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   automation?: AutomationRow | null;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: Partial<AutomationRow>) => Promise<void>;
 }) {
   const [name, setName] = useState(automation?.name || '');
   const [description, setDescription] = useState(automation?.description || '');
   const [triggerType, setTriggerType] = useState(automation?.trigger_type || 'new_message');
   const actions = Array.isArray(automation?.actions) ? automation.actions : [];
-  const [actionType, setActionType] = useState((actions[0] as any)?.type || 'send_message');
-  const [messageContent, setMessageContent] = useState((actions[0] as any)?.config?.message || '');
+  const [actionType, setActionType] = useState((actions[0] as Record<string, unknown>)?.type as string || 'send_message');
+  const [messageContent, setMessageContent] = useState(((actions[0] as Record<string, Record<string, string>>)?.config)?.message || '');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -338,7 +338,7 @@ export function AutomationsManager() {
   }, [automations, filter]);
 
   const handleToggle = (automation: AutomationRow) => {
-    updateMutation.mutate({ id: automation.id, is_active: !automation.is_active } as any);
+    updateMutation.mutate({ id: automation.id, is_active: !automation.is_active } as Partial<AutomationRow> & { id: string });
   };
 
   const handleEdit = (automation: AutomationRow) => {
@@ -364,10 +364,10 @@ export function AutomationsManager() {
       actions: automation.actions,
       is_active: false,
       created_by: user?.id,
-    } as any);
+    } as Omit<AutomationRow, 'id' | 'created_at' | 'updated_at' | 'trigger_count' | 'last_triggered_at'>);
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: Partial<AutomationRow>) => {
     if (editingAutomation) {
       updateMutation.mutate({ id: editingAutomation.id, ...data });
     } else {

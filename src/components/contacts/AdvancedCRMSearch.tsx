@@ -248,7 +248,7 @@ function FiltersPanel({
 }: {
   filters: ReturnType<typeof useAdvancedContactSearch>['filters'];
   params: ReturnType<typeof useAdvancedContactSearch>['params'];
-  onFilter: (key: string, value: any) => void;
+  onFilter: (key: string, value: string | boolean | undefined) => void;
   onClear: () => void;
   activeCount: number;
 }) {
@@ -460,7 +460,7 @@ function AdvancedCRMSearchInner({ onSelectContact, className }: AdvancedCRMSearc
               <FiltersPanel
                 filters={filters}
                 params={params}
-                onFilter={setFilter as (key: string, value: any) => void}
+                onFilter={setFilter as (key: string, value: string | boolean | undefined) => void}
                 onClear={clearFilters}
                 activeCount={activeFilterCount}
               />
