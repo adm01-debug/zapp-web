@@ -27,7 +27,7 @@
 15. [Templates WhatsApp Oficiais](#15-templates-whatsapp-oficiais)
 16. [Grupos WhatsApp](#16-grupos-whatsapp)
 17. [Chamadas (Calls)](#17-chamadas-calls)
-18. [Carteira de Clientes](#18-carteira-de-clientes)
+18. ~~Carteira de Clientes~~ (removida — nunca implementada)
 19. [Automações](#19-automações)
 20. [Notificações](#20-notificações)
 21. [Agendamento de Mensagens](#21-agendamento-de-mensagens)
@@ -147,7 +147,7 @@
 | 3.11 | Stickers | ✅ | Suporte a stickers (até 100KB) |
 | 3.12 | Mensagem encaminhada | ✅ | Indicador de forwarded |
 | 3.13 | Mensagem de produto | ✅ | `ProductMessage.tsx` |
-| 3.14 | Mensagem de pagamento | ✅ | `PaymentMessage.tsx` |
+| 3.14 | ~~Mensagem de pagamento~~ | ❌ | Removida — nunca implementada |
 
 ### Validação de Arquivos (WhatsApp Business API compliance)
 - Imagens: JPEG, PNG (max 16MB)
@@ -243,7 +243,7 @@
 | 7.9 | Comparação entre filas | ✅ | `src/components/queues/QueuesComparisonDashboard.tsx` |
 | 7.10 | Detalhes da fila com analytics | ✅ | `src/pages/QueueDetails.tsx` |
 | 7.11 | Seletor de período (7/14/30 dias) | ✅ | `src/components/queues/PeriodSelector.tsx` |
-| 7.12 | Atribuição automática ao agente menos ocupado | ✅ | Trigger SQL `auto_assign_contact` |
+| 7.12 | ~~Atribuição automática ao agente menos ocupado~~ | ❌ | Removida — trigger `auto_assign_contact` removido |
 
 ---
 
@@ -342,7 +342,7 @@
 | 13.2 | Card de produto | ✅ | `src/components/catalog/ProductCard.tsx` |
 | 13.3 | Gerenciamento de produtos (CRUD) | ✅ | `src/components/catalog/ProductManagement.tsx` |
 | 13.4 | Mensagem de produto no chat | ✅ | `src/components/catalog/ProductMessage.tsx` |
-| 13.5 | Mensagem de pagamento (PIX, status) | ✅ | `src/components/catalog/PaymentMessage.tsx` |
+| 13.5 | ~~Mensagem de pagamento (PIX, status)~~ | ❌ | Removida — nunca implementada |
 | 13.6 | Carrinho de compras | ✅ | `src/components/catalog/ShoppingCart.tsx` |
 | 13.7 | Hook do carrinho | ✅ | `src/hooks/useShoppingCart.ts` |
 | 13.8 | Gerenciador de templates WhatsApp | ✅ | `src/components/catalog/WhatsAppTemplatesManager.tsx` |
@@ -400,14 +400,9 @@
 
 ---
 
-## 18. Carteira de Clientes
+## ~~18. Carteira de Clientes~~ (REMOVIDA)
 
-| # | Funcionalidade | Status | Arquivo Principal |
-|---|---------------|--------|-------------------|
-| 18.1 | Regras de carteira | ✅ | `src/components/wallet/ClientWalletView.tsx` |
-| 18.2 | Atribuição automática por regras | ✅ | Tabela `client_wallet_rules` |
-| 18.3 | Prioridade de regras | ✅ | Campo `priority` |
-| 18.4 | Ativação/desativação de regras | ✅ | Campo `is_active` |
+> Funcionalidade nunca implementada. Tabela `client_wallet_rules` e função `auto_assign_contact` removidas via migration `20260404120000_drop_client_wallet_rules.sql`.
 
 ---
 
@@ -722,7 +717,7 @@
 | `agent_achievements` | Conquistas |
 | `calls` | Chamadas |
 | `products` | Catálogo de produtos |
-| `client_wallet_rules` | Carteira de clientes |
+| ~~`client_wallet_rules`~~ | ~~Carteira de clientes~~ (removida) |
 | `audit_logs` | Logs de auditoria |
 | `notifications` | Notificações |
 | `login_attempts` | Tentativas de login |
@@ -750,7 +745,7 @@
 | `has_role(user_id, role)` | Verificar role (SECURITY DEFINER) |
 | `is_admin_or_supervisor(user_id)` | Verificar admin/supervisor |
 | `calculate_level(xp)` | Calcular nível por XP |
-| `auto_assign_contact` | Trigger de atribuição automática |
+| ~~`auto_assign_contact`~~ | ~~Trigger de atribuição automática~~ (removida) |
 
 ---
 

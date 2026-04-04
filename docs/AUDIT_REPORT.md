@@ -81,9 +81,8 @@
 - `src/components/inbox/RealtimeInboxView.tsx` ✅
 - `src/hooks/useMessages.ts` ✅ (testado: 5 testes)
 
-### ✅ Seção 3 — Mensagens WhatsApp Tipos (14 itens)
+### ✅ Seção 3 — Mensagens WhatsApp Tipos (13 itens)
 - `src/components/catalog/ProductMessage.tsx` ✅
-- `src/components/catalog/PaymentMessage.tsx` ✅
 - `src/components/inbox/InteractiveMessage.tsx` ✅
 - `src/components/inbox/LocationMessage.tsx` ✅
 - `src/utils/whatsappFileTypes.ts` ✅
@@ -192,7 +191,6 @@
 - `src/components/catalog/ProductCard.tsx` ✅
 - `src/components/catalog/ProductManagement.tsx` ✅
 - `src/components/catalog/ProductMessage.tsx` ✅
-- `src/components/catalog/PaymentMessage.tsx` ✅
 - `src/components/catalog/ShoppingCart.tsx` ✅
 - `src/hooks/useShoppingCart.ts` ✅
 - `src/components/catalog/WhatsAppTemplatesManager.tsx` ✅
@@ -213,8 +211,8 @@
 - `src/components/calls/CallDialog.tsx` ✅
 - `src/hooks/useCalls.ts` ✅
 
-### ✅ Seção 18 — Carteira de Clientes (4 itens)
-- `src/components/wallet/ClientWalletView.tsx` ✅
+### ❌ Seção 18 — Carteira de Clientes (removida)
+- Funcionalidade nunca implementada, removida do codebase.
 
 ### ✅ Seção 19 — Automações (8 itens)
 - `src/components/automations/AutomationsManager.tsx` ✅
@@ -347,7 +345,7 @@
 
 ### ✅ Seção 33 — Banco de Dados (48+ tabelas)
 - Todas as tabelas verificadas no schema `types.ts` ✅
-- Funções SQL verificadas: `has_role`, `is_admin_or_supervisor`, `calculate_level`, `auto_assign_contact`, etc. ✅
+- Funções SQL verificadas: `has_role`, `is_admin_or_supervisor`, `calculate_level`, etc. ✅
 
 ### ✅ Seção 34 — Edge Functions (19 funções)
 - Todas as 19 edge functions existem no diretório `supabase/functions/` ✅

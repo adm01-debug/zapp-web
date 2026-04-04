@@ -22,7 +22,7 @@
 12. [Configurações](#11-configurações)
 13. [Chamadas](#12-chamadas)
 14. [Grupos WhatsApp](#13-grupos-whatsapp)
-15. [Carteira de Clientes](#14-carteira-de-clientes)
+15. ~~Carteira de Clientes~~ (removida — nunca implementada)
 16. [Auditoria](#15-auditoria)
 
 ---
@@ -3182,54 +3182,9 @@ CREATE TABLE public.whatsapp_groups (
 
 ---
 
-## 14. Carteira de Clientes
+## ~~14. Carteira de Clientes~~ (REMOVIDA)
 
-### Descrição
-Sistema de distribuição automática de clientes para agentes.
-
-### Tabela do Banco
-
-```sql
-CREATE TABLE public.client_wallet_rules (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  agent_id UUID NOT NULL REFERENCES public.profiles(id),
-  whatsapp_connection_id UUID REFERENCES public.whatsapp_connections(id),
-  priority INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Trigger para auto-atribuição
-CREATE FUNCTION public.auto_assign_contact()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  assigned_agent_id UUID;
-BEGIN
-  SELECT agent_id INTO assigned_agent_id
-  FROM public.client_wallet_rules
-  WHERE is_active = true
-    AND (whatsapp_connection_id IS NULL OR whatsapp_connection_id = NEW.whatsapp_connection_id)
-  ORDER BY priority DESC, created_at ASC
-  LIMIT 1;
-  
-  IF assigned_agent_id IS NOT NULL AND NEW.assigned_to IS NULL THEN
-    NEW.assigned_to := assigned_agent_id;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER contact_auto_assign
-BEFORE INSERT ON public.contacts
-FOR EACH ROW
-EXECUTE FUNCTION public.auto_assign_contact();
-```
+> Funcionalidade nunca implementada. Tabela `client_wallet_rules`, função `auto_assign_contact` e triggers relacionados foram removidos via migration `20260404120000_drop_client_wallet_rules.sql`.
 
 ---
 

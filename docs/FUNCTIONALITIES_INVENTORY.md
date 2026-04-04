@@ -382,7 +382,7 @@ logDelete(entityType, entityId, details)
 | `agent_achievements` | Conquistas | achievement_type, xp_earned, earned_at |
 | `calls` | Chamadas | direction, duration, status, recording_url |
 | `products` | Catálogo | name, price, sku, stock_quantity |
-| `client_wallet_rules` | Carteira | agent_id, priority, is_active |
+| ~~`client_wallet_rules`~~ | ~~Carteira~~ (removida) | — |
 | `audit_logs` | Auditoria | action, entity_type, entity_id, details |
 | `notifications` | Notificações | title, message, type, is_read |
 
