@@ -224,7 +224,7 @@ export function IntegrationsPanel({
               values={typebot}
               onChange={(k, v) => setTypebot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setTypebot({ instanceName, ...typebot } as any); toast.success('Typebot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setTypebot({ instanceName, ...typebot } as Parameters<typeof api.setTypebot>[0]); toast.success('Typebot configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteTypebot(instanceName); setTypebot({ enabled: false }); toast.success('Typebot removido'); } catch { toast.error('Erro'); }
