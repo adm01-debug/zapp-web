@@ -43,11 +43,11 @@ export function usePerformanceSnapshots() {
     if (!profile?.id) return;
 
     try {
-      await (supabase.from('performance_snapshots' as any).insert({
+      await supabase.from('performance_snapshots').insert({
         profile_id: profile.id,
         ...data,
         user_agent: navigator.userAgent,
-      } as any) as any);
+      } as unknown as Database['public']['Tables']['performance_snapshots']['Insert']);
     } catch (err) {
       // Silent fail — don't interrupt UX for telemetry
       log.warn('Failed to save performance snapshot:', err);
