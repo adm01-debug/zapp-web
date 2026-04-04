@@ -122,7 +122,7 @@ export function useChatbotFlows() {
 
   const toggleFlow = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('chatbot_flows')
         .update({ is_active })
         .eq('id', id);
