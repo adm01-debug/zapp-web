@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('PublicApiDashboard');
 import { Globe, Key, Copy, RefreshCw, Send, CheckCircle, XCircle, Clock, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
