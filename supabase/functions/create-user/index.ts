@@ -46,6 +46,10 @@ Deno.serve(async (req) => {
       email: z.string().email("Email inválido").max(255),
       password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres").max(128),
       name: z.string().min(1, "Nome é obrigatório").max(255),
+      nickname: z.string().max(100).optional(),
+      signature: z.string().max(500).optional(),
+      job_title: z.string().max(255).optional(),
+      avatar_url: z.string().url("URL inválida").max(500).optional(),
       role: z.enum(["admin", "supervisor", "agent", "special_agent"]).optional().default("agent"),
       gmail_email: z.string().email("Email Gmail inválido").max(255).optional(),
       google_services: z.array(z.enum(["google_sheets", "google_docs", "google_calendar", "google_drive"])).optional().default([]),
@@ -58,7 +62,7 @@ Deno.serve(async (req) => {
       return errorResponse(Object.values(errors).flat().join("; "), 400, req);
     }
 
-    const { email, password, name, role, gmail_email, google_services, dropbox_email } = parsed.data;
+    const { email, password, name, nickname, signature, job_title, avatar_url, role, gmail_email, google_services, dropbox_email } = parsed.data;
     const sanitizedName = sanitizeString(name) || name;
 
     // Create user via admin API
