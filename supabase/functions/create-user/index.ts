@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
       password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres").max(128),
       name: z.string().min(1, "Nome é obrigatório").max(255),
       role: z.enum(["admin", "supervisor", "agent", "special_agent"]).optional().default("agent"),
+      gmail_email: z.string().email("Email Gmail inválido").max(255).optional(),
     });
 
     const parsed = bodySchema.safeParse(await req.json());
