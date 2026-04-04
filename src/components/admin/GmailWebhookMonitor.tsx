@@ -62,9 +62,9 @@ export function GmailWebhookMonitor() {
   const getStatusBadge = (status: string, isActive: boolean) => {
     if (!isActive) return <Badge variant="outline" className="text-[10px]">Inativo</Badge>;
     switch (status) {
-      case 'synced': return <Badge className="bg-green-500/10 text-green-500 border-green-500/30 text-[10px]">Sincronizado</Badge>;
-      case 'syncing': return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/30 text-[10px]">Sincronizando</Badge>;
-      case 'pending': return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 text-[10px]">Pendente</Badge>;
+      case 'synced': return <Badge className="bg-success/10 text-success border-success/30 text-[10px]">Sincronizado</Badge>;
+      case 'syncing': return <Badge className="bg-info/10 text-info border-info/30 text-[10px]">Sincronizando</Badge>;
+      case 'pending': return <Badge className="bg-warning/10 text-warning border-warning/30 text-[10px]">Pendente</Badge>;
       case 'error': return <Badge variant="destructive" className="text-[10px]">Erro</Badge>;
       default: return <Badge variant="secondary" className="text-[10px]">{status}</Badge>;
     }
