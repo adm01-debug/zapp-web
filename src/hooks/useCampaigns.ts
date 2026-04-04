@@ -21,7 +21,7 @@ export interface Campaign {
   whatsapp_connection_id: string | null;
   created_by: string | null;
   target_type: 'all' | 'tag' | 'queue' | 'custom';
-  target_filter: Record<string, unknown>;
+  target_filter: Record<string, unknown> | null;
   send_interval_seconds: number;
   created_at: string;
   updated_at: string;
