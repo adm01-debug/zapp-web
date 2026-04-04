@@ -110,7 +110,7 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
 
       {/* Preview overlay */}
       {preview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="bg-card rounded-xl p-4 max-w-sm w-full mx-4 space-y-3 shadow-xl border border-border">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-foreground">Enviar arquivo</h4>
