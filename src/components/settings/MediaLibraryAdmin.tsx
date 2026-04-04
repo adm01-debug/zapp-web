@@ -626,7 +626,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           .upload(storagePath, file, { contentType: file.type, cacheControl: '31536000' });
 
         if (uploadError) {
-          console.error(`Upload error for ${file.name}:`, uploadError);
+          log.error(`Upload error for ${file.name}:`, uploadError);
           continue;
         }
 
