@@ -56,7 +56,7 @@ export function AIAutoTagsConfig() {
           });
           processed++;
         } catch (e) {
-          console.error('Error tagging contact:', contact.id, e);
+          log.error('Error tagging contact:', contact.id, e);
         }
         // Small delay to avoid rate limits
         await new Promise(r => setTimeout(r, 1000));

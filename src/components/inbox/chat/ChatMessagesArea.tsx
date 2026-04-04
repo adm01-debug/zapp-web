@@ -114,7 +114,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     try {
       await supabase.from('messages').update({ is_deleted: true, content: '[Mensagem apagada]' }).eq('id', messageId);
     } catch {
-      console.error('Failed to mark message as deleted in DB');
+      log.error('Failed to mark message as deleted in DB');
     }
   }, []);
 

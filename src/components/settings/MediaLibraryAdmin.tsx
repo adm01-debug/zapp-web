@@ -283,7 +283,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
         .order('created_at', { ascending: false })
         .limit(1000);
       if (error) {
-        console.error(`Error fetching ${type}:`, error);
+        log.error(`Error fetching ${type}:`, error);
         toast.error(`Erro ao carregar ${type === 'stickers' ? 'figurinhas' : type === 'audio_memes' ? 'áudios' : 'emojis'}`);
       }
       setItems((data as MediaItem[]) || []);
