@@ -327,7 +327,7 @@ export const SLAHistoryDashboard = () => {
                 <Bar 
                   dataKey="resolutionBreaches" 
                   name="Resolução" 
-                  fill="hsl(0, 70%, 50%)" 
+                  fill="hsl(var(--destructive))" 
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
