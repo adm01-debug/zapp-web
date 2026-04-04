@@ -97,6 +97,7 @@ const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any
   'telemetry': Views.AdminTelemetriaPage,
   'nps': Views.NPSDashboard,
   'team-chat': Views.TeamChatView,
+  'email-chat': Views.EmailChatView,
   'gmail': Views.GmailInboxView,
   'public-api': Views.PublicApiDashboard,
   'gmail-webhook': Views.GmailWebhookMonitor,
