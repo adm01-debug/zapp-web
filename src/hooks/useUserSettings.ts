@@ -117,7 +117,7 @@ export function useUserSettings() {
             auto_assignment_enabled: data.auto_assignment_enabled ?? DEFAULT_SETTINGS.auto_assignment_enabled,
             auto_assignment_method: data.auto_assignment_method ?? DEFAULT_SETTINGS.auto_assignment_method,
             inactivity_timeout: data.inactivity_timeout ?? DEFAULT_SETTINGS.inactivity_timeout,
-            auto_transcription_enabled: (data as any).auto_transcription_enabled ?? DEFAULT_SETTINGS.auto_transcription_enabled,
+            auto_transcription_enabled: data.auto_transcription_enabled ?? DEFAULT_SETTINGS.auto_transcription_enabled,
             sound_enabled: data.sound_enabled ?? DEFAULT_SETTINGS.sound_enabled,
             browser_notifications_enabled: data.browser_notifications_enabled ?? DEFAULT_SETTINGS.browser_notifications_enabled,
             quiet_hours_enabled: data.quiet_hours_enabled ?? DEFAULT_SETTINGS.quiet_hours_enabled,
