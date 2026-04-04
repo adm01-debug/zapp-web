@@ -130,15 +130,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
   }, [currentView, userId]);
 
   return (
-    <WithHeader
-      viewId={currentView}
-      canGoBack={canGoBack}
-      canGoForward={canGoForward}
-      onGoBack={onGoBack}
-      onGoForward={onGoForward}
-      breadcrumbTrail={breadcrumbTrail}
-      onNavigateTo={onNavigateTo}
-    >
+    <WithHeader viewId={currentView}>
       <AnimatePresence mode="wait">
         <motion.div
           key={currentView}
