@@ -96,7 +96,7 @@ export function useChatbotFlows() {
 
       const { data, error } = await supabase
         .from('chatbot_flows')
-        .update(payload)
+        .update(payload as unknown as ChatbotFlowUpdate)
         .eq('id', id)
         .select()
         .single();
