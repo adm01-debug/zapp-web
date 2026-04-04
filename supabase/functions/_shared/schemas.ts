@@ -156,6 +156,112 @@ export const ApprovePasswordResetSchema = z.object({
   rejectionReason: z.string().max(500).optional(),
 });
 
+// ─── Conversation Analysis / Summary ─────────────────────────
+export const AiConversationSummarySchema = z.object({
+  messages: z.array(MessageSchema).min(5, "Conversation must have at least 5 messages").max(200),
+  contactName: z.string().max(200).optional(),
+  contactId: z.string().uuid().optional().nullable(),
+});
+
+// ─── Chatbot L1 ──────────────────────────────────────────────
+export const ChatbotL1Schema = z.object({
+  contactId: z.string().uuid("contactId must be a valid UUID"),
+  message: z.string().min(1, "Message is required").max(5000),
+  connectionId: z.string().uuid().optional().nullable(),
+});
+
+// ─── Device Detection ────────────────────────────────────────
+export const DetectNewDeviceSchema = z.object({
+  device_fingerprint: z.string().min(1).max(500),
+  browser: z.string().max(200),
+  os: z.string().max(200),
+  device_name: z.string().max(200),
+});
+
+// ─── Scheduled Report ────────────────────────────────────────
+export const ScheduledReportSchema = z.object({
+  reportId: z.string().uuid("reportId must be a valid UUID"),
+});
+
+// ─── Sicoob Bridge ───────────────────────────────────────────
+export const SicoobBridgeNewMessageSchema = z.object({
+  action: z.literal('new_message'),
+  message_id: z.string().min(1).max(500),
+  sender_name: z.string().min(1).max(500),
+  sender_email: z.string().email().optional().nullable(),
+  sender_phone: z.string().max(50).optional().nullable(),
+  sender_id: z.string().max(500).optional(),
+  singular_name: z.string().max(500).optional(),
+  singular_id: z.string().min(1).max(500),
+  content: z.string().min(1).max(10000),
+  vendedor_user_id: z.string().min(1).max(500),
+  created_at: z.string().optional(),
+});
+
+export const SicoobBridgeMarkReadSchema = z.object({
+  action: z.literal('mark_read'),
+  external_ids: z.array(z.string()).min(1).max(500),
+});
+
+export const SicoobBridgeReplySchema = z.object({
+  contact_id: z.string().uuid("contact_id must be a valid UUID"),
+  content: z.string().min(1, "Content is required").max(10000),
+  message_id: z.string().optional(),
+  agent_id: z.string().uuid().optional().nullable(),
+  created_at: z.string().optional(),
+});
+
+// ─── Gmail Send ──────────────────────────────────────────────
+export const GmailSendActionSchema = z.object({
+  action: z.enum(['send', 'reply', 'create-draft', 'modify-labels', 'mark-read', 'trash']),
+  account_id: z.string().uuid("account_id must be a valid UUID"),
+  to: z.union([z.string(), z.array(z.string())]).optional(),
+  cc: z.array(z.string()).optional(),
+  bcc: z.array(z.string()).optional(),
+  subject: z.string().max(1000).optional(),
+  text_body: z.string().max(100000).optional(),
+  html_body: z.string().max(500000).optional(),
+  thread_id: z.string().max(500).optional(),
+  message_id: z.string().max(500).optional(),
+  message_ids: z.array(z.string()).max(100).optional(),
+  add_labels: z.array(z.string()).max(50).optional(),
+  remove_labels: z.array(z.string()).max(50).optional(),
+  attachments: z.array(z.object({
+    filename: z.string().max(255),
+    mimeType: z.string().max(100),
+    content: z.string(), // base64
+  })).max(10).optional(),
+});
+
+// ─── Gmail OAuth ─────────────────────────────────────────────
+export const GmailOAuthActionSchema = z.object({
+  action: z.enum(['get-auth-url', 'exchange-code', 'refresh-token', 'disconnect', 'list-accounts']),
+  code: z.string().max(2000).optional(),
+  account_id: z.string().uuid().optional(),
+  state: z.string().max(500).optional(),
+});
+
+// ─── WebAuthn ────────────────────────────────────────────────
+export const WebAuthnActionSchema = z.object({
+  action: z.enum(['registration-options', 'verify-registration', 'authentication-options', 'verify-authentication']),
+  userId: z.string().uuid().optional(),
+  userEmail: z.string().email().optional(),
+  userName: z.string().max(200).optional(),
+  credential: z.record(z.unknown()).optional(),
+  friendlyName: z.string().max(200).optional(),
+});
+
+// ─── External DB Bridge ─────────────────────────────────────
+export const ExternalDbBridgeSchema = z.object({
+  action: z.enum(['select', 'rpc', 'insert', 'update', 'delete']),
+  table: z.string().max(100).optional(),
+  rpc: z.string().max(100).optional(),
+  params: z.record(z.unknown()).optional(),
+  limit: z.number().int().min(1).max(1000).optional(),
+  offset: z.number().int().min(0).optional(),
+  countMode: z.string().max(20).optional(),
+});
+
 // ─── Helper: parse body with schema ──────────────────────────
 export function parseBody<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
   const result = schema.safeParse(data);
