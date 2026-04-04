@@ -71,8 +71,8 @@ export function DialPad({
 
   const statusColor = {
     disconnected: 'bg-muted text-muted-foreground',
-    connecting: 'bg-yellow-500/20 text-yellow-600',
-    registered: 'bg-green-500/20 text-green-600',
+    connecting: 'bg-warning/20 text-warning',
+    registered: 'bg-success/20 text-success',
     error: 'bg-destructive/20 text-destructive',
   };
 
