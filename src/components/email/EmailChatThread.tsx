@@ -16,6 +16,8 @@ import { ptBR } from 'date-fns/locale';
 interface EmailChatThreadProps {
   thread: EmailThread;
   onBack: () => void;
+  onToggleDetails?: () => void;
+  showDetailsButton?: boolean;
 }
 
 function DateSeparator({ date }: { date: string }) {
