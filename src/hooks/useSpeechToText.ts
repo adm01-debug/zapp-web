@@ -32,7 +32,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
   useEffect(() => { onEndRef.current = onEnd; }, [onEnd]);
 
   const SpeechRecognition = typeof window !== 'undefined'
-    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    ? window.SpeechRecognition || window.webkitSpeechRecognition
     : null;
 
   const isSupported = !!SpeechRecognition;

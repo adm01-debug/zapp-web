@@ -170,20 +170,22 @@ export function useMemoryPressure() {
 
   useEffect(() => {
     if ('deviceMemory' in navigator) {
-      const memory = (navigator as any).deviceMemory as number;
+      const memory = navigator.deviceMemory ?? 8;
       setIsLowMemory(memory < 4);
     }
 
     // Listen for memory pressure events
     const handleMemoryPressure = () => setIsLowMemory(true);
     
+    // devicememory event is experimental - no standard types exist
+    const nav = navigator as unknown as EventTarget;
     if ('ondevicememory' in navigator) {
-      (navigator as any).addEventListener?.('devicememory', handleMemoryPressure);
+      nav.addEventListener('devicememory', handleMemoryPressure);
     }
 
     return () => {
       if ('ondevicememory' in navigator) {
-        (navigator as any).removeEventListener?.('devicememory', handleMemoryPressure);
+        nav.removeEventListener('devicememory', handleMemoryPressure);
       }
     };
   }, []);
@@ -205,7 +207,7 @@ export function useNetworkStatus() {
     window.addEventListener('offline', handleOffline);
 
     // Connection API
-    const connection = (navigator as any).connection;
+    const connection = navigator.connection;
     if (connection) {
       setConnectionType(connection.effectiveType);
       setIsSlowConnection(

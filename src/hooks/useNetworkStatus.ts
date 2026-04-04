@@ -19,7 +19,7 @@ export function useNetworkStatus(): NetworkStatus {
     isOnline: navigator.onLine,
     wasOffline: false,
     downSince: navigator.onLine ? null : new Date(),
-    effectiveType: (navigator as any).connection?.effectiveType,
+    effectiveType: navigator.connection?.effectiveType,
   });
 
   const handleOnline = useCallback(() => {
@@ -28,7 +28,7 @@ export function useNetworkStatus(): NetworkStatus {
       isOnline: true,
       wasOffline: true,
       downSince: null,
-      effectiveType: (navigator as any).connection?.effectiveType,
+      effectiveType: navigator.connection?.effectiveType,
     }));
   }, []);
 
@@ -46,7 +46,7 @@ export function useNetworkStatus(): NetworkStatus {
     window.addEventListener('offline', handleOffline);
 
     // Listen for connection quality changes
-    const connection = (navigator as any).connection;
+    const connection = navigator.connection;
     const handleConnectionChange = () => {
       setStatus((prev) => ({
         ...prev,
