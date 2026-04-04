@@ -72,16 +72,8 @@ export function useThemePreset() {
   // Re-apply when light/dark mode changes
   useEffect(() => {
     const preset = PRESETS.find(p => p.id === activePreset);
-    if (preset && activePreset !== 'default') {
+    if (preset) {
       applyPresetColors(preset, resolvedTheme);
-    }
-    // Also re-apply default if it was explicitly chosen
-    if (preset && activePreset === 'default') {
-      // Remove overrides so CSS defaults take over
-      const root = document.documentElement;
-      for (const key of CSS_VARS_TO_APPLY) {
-        root.style.removeProperty(`--${key}`);
-      }
     }
   }, [resolvedTheme, activePreset, applyPresetColors]);
 
