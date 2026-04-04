@@ -51,7 +51,7 @@ export function AudioMessagePlayer({
           filter: `id=eq.${messageId}`,
         },
         (payload) => {
-          const newData = payload.new as any;
+          const newData = payload.new as { transcription_status?: string; transcription?: string };
           if (newData.transcription_status) {
             setTranscriptionStatus(newData.transcription_status);
           }
@@ -137,7 +137,7 @@ export function AudioMessagePlayer({
         setTranscriptionStatus('completed');
         
         // Update message in database with transcription
-        await (supabase as any)
+        await supabase
           .from('messages')
           .update({ 
             transcription: data.transcription,

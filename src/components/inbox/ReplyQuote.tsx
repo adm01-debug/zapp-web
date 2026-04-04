@@ -10,7 +10,7 @@ interface ReplyPreviewProps {
 }
 
 function getMediaInfo(message: Message): { icon: React.ElementType; label: string } | null {
-  const type = message.type || (message as any).message_type;
+  const type = message.type || message.message_type;
   switch (type) {
     case 'audio': return { icon: Music, label: '🎵 Mensagem de áudio' };
     case 'image': return { icon: Image, label: '📷 Imagem' };
@@ -57,7 +57,7 @@ export function ReplyPreview({ message, onCancel }: ReplyPreviewProps) {
             </p>
           </div>
           {/* Show thumbnail for images */}
-          {message.mediaUrl && (message.type === 'image' || (message as any).message_type === 'image') && (
+          {message.mediaUrl && (message.type === 'image' || message.message_type === 'image') && (
             <img
               src={message.mediaUrl}
               alt="Preview"

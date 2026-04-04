@@ -243,10 +243,10 @@ export function useEvolutionApi() {
         if (error) throw error;
         // Check for wrapped API errors (edge function returns 200 with error field)
         if (data && typeof data === 'object' && data.error === true) {
-          const apiError = new Error(data.message || 'Erro na API Evolution');
-          (apiError as any).details = data.details;
-          (apiError as any).apiStatus = data.status;
-          (apiError as any).retries = data.retries;
+          const apiError = Object.assign(
+            new Error(data.message || 'Erro na API Evolution'),
+            { details: data.details, apiStatus: data.status, retries: data.retries }
+          );
           throw apiError;
         }
         return data;
