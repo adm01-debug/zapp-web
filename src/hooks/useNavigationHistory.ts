@@ -36,7 +36,7 @@ const BREADCRUMB_DEPTH = 4;
  * between separate setState calls.
  */
 // Hashes that are NOT view IDs (e.g. skip-to-content anchors)
-const RESERVED_HASHES = new Set(['main-content']);
+const RESERVED_HASHES = new Set(['main-content', 'main-navigation', 'inbox-section', 'search-input']);
 
 export function useNavigationHistory(defaultView = 'inbox'): NavigationHistoryReturn {
   const getInitialView = () => {
