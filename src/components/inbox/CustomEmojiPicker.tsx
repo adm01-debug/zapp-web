@@ -444,7 +444,7 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
     setOpen(false);
     await supabase
       .from('custom_emojis')
-      .update({ use_count: (emoji.use_count || 0) + 1 } as any)
+      .update({ use_count: (emoji.use_count || 0) + 1 })
       .eq('id', emoji.id);
   };
 
