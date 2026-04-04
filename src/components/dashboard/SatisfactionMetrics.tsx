@@ -123,7 +123,14 @@ export const SatisfactionMetrics = () => {
     return <Frown className="h-4 w-4 text-destructive" />;
   };
 
-  const COLORS = ['#22c55e', '#84cc16', '#eab308', '#f97316', '#ef4444'];
+  // Rating distribution colors (semantic: 5★=best → 1★=worst)
+  const COLORS = [
+    'hsl(var(--primary))',         // 5★ — primary theme color
+    'hsl(var(--secondary))',       // 4★
+    'hsl(var(--accent-foreground))', // 3★
+    'hsl(var(--muted-foreground))', // 2★
+    'hsl(var(--destructive))',     // 1★
+  ];
 
   if (isLoading || !data) {
     return (
