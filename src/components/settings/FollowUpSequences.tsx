@@ -101,7 +101,7 @@ export function FollowUpSequences() {
     }]);
   };
 
-  const updateStep = (index: number, field: keyof Step, value: any) => {
+  const updateStep = (index: number, field: keyof Step, value: string | number | boolean) => {
     setNewSteps(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
   };
 
