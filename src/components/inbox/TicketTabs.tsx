@@ -102,7 +102,7 @@ export function TicketTabs({
       label: 'Busca', 
       icon: Search, 
       count: null,
-      activeColor: 'bg-muted-foreground text-white',
+      activeColor: 'bg-muted-foreground text-background',
     },
   ];
 
