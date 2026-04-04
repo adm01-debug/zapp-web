@@ -309,7 +309,7 @@ export function IntegrationsPanel({
               values={evolutionBot}
               onChange={(k, v) => setEvolutionBot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setEvolutionBot({ instanceName, ...evolutionBot } as any); toast.success('Evolution Bot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setEvolutionBot({ instanceName, ...evolutionBot } as Parameters<typeof api.setEvolutionBot>[0]); toast.success('Evolution Bot configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteEvolutionBot(instanceName); setEvolutionBot({ enabled: false }); toast.success('Evolution Bot removido'); } catch { toast.error('Erro'); }
