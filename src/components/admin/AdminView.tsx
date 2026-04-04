@@ -525,14 +525,53 @@ export function AdminView() {
           <DialogHeader>
             <DialogTitle>Adicionar Novo Usuário</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4 max-h-[70vh] overflow-y-auto pr-1">
             <div className="space-y-2">
-              <Label htmlFor="new_name">Nome *</Label>
+              <Label htmlFor="new_name">Primeiro Nome *</Label>
               <Input
                 id="new_name"
-                placeholder="Nome completo"
+                placeholder="Ex: João"
                 value={newUserName}
                 onChange={(e) => setNewUserName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_nickname">Apelido</Label>
+              <Input
+                id="new_nickname"
+                placeholder="Ex: Joãozinho"
+                value={newUserNickname}
+                onChange={(e) => setNewUserNickname(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_job_title">Cargo</Label>
+              <Input
+                id="new_job_title"
+                placeholder="Ex: Atendente Senior"
+                value={newUserJobTitle}
+                onChange={(e) => setNewUserJobTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_signature">Assinatura</Label>
+              <Input
+                id="new_signature"
+                placeholder="Ex: João Silva - Suporte"
+                value={newUserSignature}
+                onChange={(e) => setNewUserSignature(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Texto usado como assinatura em mensagens e e-mails.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_avatar">URL da Foto (opcional)</Label>
+              <Input
+                id="new_avatar"
+                placeholder="https://exemplo.com/foto.jpg"
+                value={newUserAvatarUrl}
+                onChange={(e) => setNewUserAvatarUrl(e.target.value)}
               />
             </div>
             <div className="space-y-2">
