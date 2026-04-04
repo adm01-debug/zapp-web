@@ -33,7 +33,7 @@ export function useCampaigns() {
   const campaignsQuery = useQuery({
     queryKey: ['campaigns'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .order('created_at', { ascending: false });
