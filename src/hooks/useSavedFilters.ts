@@ -150,7 +150,7 @@ export function useSavedFilters(entityType: string) {
         .eq('entity_type', entityType);
       
       // Define novo padrão
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('saved_filters')
         .update({ is_default: true })
         .eq('id', id);
