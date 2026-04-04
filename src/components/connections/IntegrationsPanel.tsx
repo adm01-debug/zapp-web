@@ -62,7 +62,7 @@ function IntegrationForm({
               {type === 'boolean' ? (
                 <div className="flex items-center gap-2 mt-1">
                   <Switch
-                    checked={values[key] ?? false}
+                    checked={Boolean(values[key])}
                     onCheckedChange={(checked) => onChange(key, checked)}
                   />
                   <span className="text-sm text-muted-foreground">{values[key] ? 'Ativado' : 'Desativado'}</span>
