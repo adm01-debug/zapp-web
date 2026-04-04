@@ -271,7 +271,7 @@ const buildPreset = (p: PresetParams): ThemePreset => {
       `hsl(${h} ${s}% ${l}%)`,
       `hsl(${sh} ${ss}% ${sl}%)`,
       `hsl(${gh} ${s - 5}% ${l + 6}%)`,
-      `hsl(240 6% 10%)`,
+      `hsl(${h} ${Math.round(s * 0.5)}% ${l + 15}%)`,
     ],
     light,
     dark,
