@@ -135,7 +135,7 @@ export default function ConversationHeatmap({
             Mapa de Calor
           </CardTitle>
 
-          <Tabs value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as any)}>
+          <Tabs value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as 'volume' | 'response_time' | 'satisfaction')}>
             <TabsList className="h-8">
               <TabsTrigger value="volume" className="text-xs px-2 h-6">Volume</TabsTrigger>
               <TabsTrigger value="response_time" className="text-xs px-2 h-6">Resposta</TabsTrigger>

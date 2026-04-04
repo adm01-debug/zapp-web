@@ -181,7 +181,7 @@ export const ActivityHeatmap = ({
             <Activity className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">{title}</CardTitle>
           </div>
-          <Select value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as any)}>
+          <Select value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as '3m' | '6m' | '1y')}>
             <SelectTrigger className="w-[100px]">
               <SelectValue />
             </SelectTrigger>

@@ -80,7 +80,7 @@ export function NewConversationDialog({ open, onOpenChange, onCreated }: Props) 
           <DialogTitle>Nova Conversa</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={v => { setTab(v as any); setSelectedIds([]); }}>
+        <Tabs value={tab} onValueChange={v => { setTab(v as 'direct' | 'group'); setSelectedIds([]); }}>
           <TabsList className="w-full">
             <TabsTrigger value="direct" className="flex-1 gap-1.5">
               <User className="w-3.5 h-3.5" /> Direto

@@ -392,7 +392,7 @@ export function MediaGallery({ contactId, open, onOpenChange }: MediaGalleryProp
           </div>
 
           {/* Tabs */}
-          <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as 'all' | 'image' | 'video' | 'audio' | 'document')}>
             <TabsList className="grid grid-cols-5">
               <TabsTrigger value="all" className="gap-1">
                 Todos <Badge variant="outline" className="ml-1">{counts.all}</Badge>
