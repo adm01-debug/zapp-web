@@ -108,6 +108,10 @@ export function AdminView() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newUserName, setNewUserName] = useState('');
+  const [newUserNickname, setNewUserNickname] = useState('');
+  const [newUserSignature, setNewUserSignature] = useState('');
+  const [newUserJobTitle, setNewUserJobTitle] = useState('');
+  const [newUserAvatarUrl, setNewUserAvatarUrl] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
