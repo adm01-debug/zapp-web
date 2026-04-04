@@ -111,7 +111,8 @@ export function AdminView() {
   const [newUserNickname, setNewUserNickname] = useState('');
   const [newUserSignature, setNewUserSignature] = useState('');
   const [newUserJobTitle, setNewUserJobTitle] = useState('');
-  const [newUserAvatarUrl, setNewUserAvatarUrl] = useState('');
+  const [newUserAvatarFile, setNewUserAvatarFile] = useState<File | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
