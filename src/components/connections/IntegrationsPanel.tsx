@@ -54,7 +54,7 @@ function IntegrationForm({
         />
       </div>
 
-      {values.enabled && (
+      {Boolean(values.enabled) && (
         <>
           {fields.map(({ key, label, type = 'text', placeholder }) => (
             <div key={key}>
