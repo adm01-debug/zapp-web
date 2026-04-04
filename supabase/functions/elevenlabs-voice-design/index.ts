@@ -1,144 +1,82 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { ElevenLabsVoiceDesignPreviewSchema, ElevenLabsVoiceDesignCreateSchema, parseBody } from "../_shared/schemas.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("elevenlabs-voice-design");
 
   try {
-    const url = new URL(req.url);
-    const action = url.pathname.split('/').pop() || 'generate';
-
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-    if (!ELEVENLABS_API_KEY) {
-      throw new Error('ElevenLabs API key not configured');
-    }
-
+    const ELEVENLABS_API_KEY = requireEnv('ELEVENLABS_API_KEY');
     const body = await req.json();
+    const action = body.action || 'preview';
 
-    if (action === 'preview' || body.action === 'preview') {
-      // Generate a preview of a voice from text description
-      const { description, text } = body;
+    if (action === 'preview') {
+      const parsed = parseBody(ElevenLabsVoiceDesignPreviewSchema, body);
+      if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-      if (!description) throw new Error('Voice description is required');
-
+      const { description, text } = parsed.data;
       const previewText = text || 'Olá, esta é uma prévia da minha voz. Como posso te ajudar hoje?';
 
-      console.log(`[Voice Design] Generating preview: "${description.substring(0, 60)}..."`);
+      log.info("Generating voice preview", { descLen: description.length });
 
-      const response = await fetch(
-        'https://api.elevenlabs.io/v1/text-to-voice/create-previews',
-        {
-          method: 'POST',
-          headers: {
-            'xi-api-key': ELEVENLABS_API_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            voice_description: description,
-            text: previewText,
-          }),
-        }
-      );
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-voice/create-previews', {
+        method: 'POST',
+        headers: { 'xi-api-key': ELEVENLABS_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voice_description: description, text: previewText }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[Voice Design] Preview error:', response.status, errorText);
+        log.error("Preview error", { status: response.status, detail: errorText.substring(0, 300) });
         throw new Error(`Voice preview error: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log(`[Voice Design] Preview generated successfully`);
-
-      return new Response(
-        JSON.stringify(data),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      log.done(200);
+      return jsonResponse(data, 200, req);
     }
 
-    if (action === 'create' || body.action === 'create') {
-      // Create a permanent voice from a preview
-      const { voice_name, voice_description, generated_voice_id, labels } = body;
+    if (action === 'create') {
+      const parsed = parseBody(ElevenLabsVoiceDesignCreateSchema, body);
+      if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-      if (!voice_name) throw new Error('Voice name is required');
-      if (!generated_voice_id) throw new Error('Generated voice ID from preview is required');
+      const { voice_name, voice_description, generated_voice_id, labels } = parsed.data;
 
-      console.log(`[Voice Design] Creating voice: "${voice_name}"`);
+      log.info("Creating voice", { voice_name });
 
-      const response = await fetch(
-        'https://api.elevenlabs.io/v1/text-to-voice/create-voice-from-preview',
-        {
-          method: 'POST',
-          headers: {
-            'xi-api-key': ELEVENLABS_API_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            voice_name,
-            voice_description: voice_description || '',
-            generated_voice_id,
-            labels: labels || {},
-          }),
-        }
-      );
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-voice/create-voice-from-preview', {
+        method: 'POST',
+        headers: { 'xi-api-key': ELEVENLABS_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voice_name, voice_description: voice_description || '', generated_voice_id, labels: labels || {} }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[Voice Design] Create error:', response.status, errorText);
+        log.error("Create error", { status: response.status, detail: errorText.substring(0, 300) });
         throw new Error(`Voice creation error: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log(`[Voice Design] Voice created: ${data.voice_id}`);
-
-      return new Response(
-        JSON.stringify(data),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      log.done(200, { voiceId: data.voice_id });
+      return jsonResponse(data, 200, req);
     }
 
     // List available voices
-    console.log('[Voice Design] Listing voices');
-    const response = await fetch(
-      'https://api.elevenlabs.io/v1/voices',
-      {
-        headers: { 'xi-api-key': ELEVENLABS_API_KEY },
-      }
-    );
+    log.info("Listing voices");
+    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+      headers: { 'xi-api-key': ELEVENLABS_API_KEY },
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`List voices error: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`List voices error: ${response.status}`);
 
     const data = await response.json();
-    return new Response(
-      JSON.stringify(data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.done(200);
+    return jsonResponse(data, 200, req);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Voice Design] Error:', errorMessage);
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.error("Unhandled error", { error: errorMessage });
+    return errorResponse(errorMessage, 500, req);
   }
 });

@@ -1,24 +1,22 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
-import {
-  handleCors, errorResponse, jsonResponse,
-  sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv, Logger,
-} from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, checkRateLimit, getClientIP, requireEnv, Logger } from "../_shared/validation.ts";
+import { AiSuggestReplySchema, parseBody } from "../_shared/schemas.ts";
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
+
+  const log = new Logger("ai-suggest-reply");
 
   try {
     const ip = getClientIP(req);
     const { allowed } = checkRateLimit(`suggest:${ip}`, 15, 60_000);
-    if (!allowed) return errorResponse("Rate limit exceeded. Please try again later.", 429);
+    if (!allowed) return errorResponse("Rate limit exceeded. Please try again later.", 429, req);
 
-    const body = await req.json();
-    const { messages, context } = body;
-    const contactName = sanitizeString(body.contactName, 200) || 'Cliente';
-    const contactId = body.contactId && isValidUUID(body.contactId) ? body.contactId : null;
+    const parsed = parseBody(AiSuggestReplySchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
+    const { messages, contactName, contactId, context } = parsed.data;
     const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
 
     // Fetch Knowledge Base articles for context
@@ -64,16 +62,16 @@ serve(async (req) => {
         }
       }
     } catch (e) {
-      console.error("Error fetching knowledge base:", e);
+      log.warn("Error fetching knowledge base", { error: e instanceof Error ? e.message : String(e) });
     }
 
-    console.log("Generating reply suggestions for:", contactName, "with KB context:", knowledgeContext.length > 0);
+    log.info("Generating reply suggestions", { contactName, kbContext: knowledgeContext.length > 0 });
 
     const systemPrompt = `Você é um Copilot de IA especializado em atendimento ao cliente via WhatsApp.
 Seu papel é sugerir respostas profissionais, empáticas e CONTEXTUALIZADAS para agentes de suporte.
 
 Contexto do cliente: ${contactName}
-${context ? `Informações adicionais: ${sanitizeString(String(context), 500)}` : ''}
+${context ? `Informações adicionais: ${context}` : ''}
 ${knowledgeContext}
 
 IMPORTANTE: Use as informações da Base de Conhecimento e dados do contato para personalizar suas sugestões.
@@ -94,9 +92,9 @@ Responda APENAS em formato JSON com a seguinte estrutura:
 }`;
 
     const conversationHistory = Array.isArray(messages)
-      ? messages.slice(-20).map((m: { sender?: string; content?: string }) => ({
+      ? messages.slice(-20).map((m) => ({
           role: m.sender === 'agent' ? 'assistant' : 'user',
-          content: sanitizeString(String(m.content || ''), 2000) || '',
+          content: String(m.content || ''),
         }))
       : [];
 
@@ -119,9 +117,9 @@ Responda APENAS em formato JSON com a seguinte estrutura:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429);
-      if (response.status === 402) return errorResponse("Payment required. Please add credits.", 402);
+      log.error("AI gateway error", { status: response.status, detail: errorText.substring(0, 300) });
+      if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429, req);
+      if (response.status === 402) return errorResponse("Payment required. Please add credits.", 402, req);
       throw new Error(`AI gateway error [${response.status}]: ${errorText}`);
     }
 
@@ -137,7 +135,7 @@ Responda APENAS em formato JSON com a seguinte estrutura:
         throw new Error("No JSON found in response");
       }
     } catch {
-      console.error("Parse error, using fallback suggestions");
+      log.warn("Parse error, using fallback suggestions");
       suggestions = {
         suggestions: [
           { type: "direct", text: "Entendi sua solicitação. Vou verificar isso para você.", emoji: "✓", source: null },
@@ -147,10 +145,11 @@ Responda APENAS em formato JSON com a seguinte estrutura:
       };
     }
 
-    return jsonResponse(suggestions);
+    log.done(200);
+    return jsonResponse(suggestions, 200, req);
   } catch (error: unknown) {
-    console.error("Error in ai-suggest-reply:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return errorResponse(errorMessage, 500);
+    log.error("Unhandled error", { error: errorMessage });
+    return errorResponse(errorMessage, 500, req);
   }
 });

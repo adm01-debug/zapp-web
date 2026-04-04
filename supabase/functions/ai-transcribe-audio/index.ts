@@ -1,66 +1,42 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import {
-  handleCors, errorResponse, jsonResponse,
-  sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv, Logger,
-} from "../_shared/validation.ts";
-
-const ALLOWED_LANGUAGES = new Set([
-  'por', 'eng', 'spa', 'fra', 'deu', 'ita', 'jpn', 'kor', 'zho', 'ara', 'hin', 'rus',
-]);
+import { handleCors, errorResponse, jsonResponse, checkRateLimit, getClientIP, requireEnv, Logger } from "../_shared/validation.ts";
+import { TranscribeAudioSchema, parseBody } from "../_shared/schemas.ts";
 
 const MAX_AUDIO_SIZE = 25 * 1024 * 1024; // 25MB
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
+  const log = new Logger("ai-transcribe-audio");
+
   try {
-    // Rate limiting
     const ip = getClientIP(req);
     const { allowed } = checkRateLimit(`transcribe:${ip}`, 10, 60_000);
-    if (!allowed) {
-      return errorResponse("Limite de transcrições excedido. Tente novamente em 1 minuto.", 429);
-    }
+    if (!allowed) return errorResponse("Limite de transcrições excedido. Tente novamente em 1 minuto.", 429, req);
 
-    const body = await req.json();
-    const audioUrl = sanitizeString(body.audioUrl, 2048);
-    const messageId = body.messageId ? sanitizeString(String(body.messageId), 100) : undefined;
-    const languageCode = typeof body.languageCode === 'string' && ALLOWED_LANGUAGES.has(body.languageCode)
-      ? body.languageCode : 'por';
-    const enableDiarization = body.enableDiarization === true;
-    const tagAudioEvents = body.tagAudioEvents !== false;
+    const parsed = parseBody(TranscribeAudioSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    if (!audioUrl) {
-      return errorResponse("Audio URL is required");
-    }
+    const { audioUrl, messageId, languageCode, enableDiarization, tagAudioEvents } = parsed.data;
 
-    // Validate URL format
-    try {
-      new URL(audioUrl);
-    } catch {
-      return errorResponse("Invalid audio URL format");
-    }
-
-    console.log('Starting ElevenLabs transcription (scribe_v2) for message:', messageId);
+    log.info("Starting transcription", { messageId, languageCode });
     const ELEVENLABS_API_KEY = requireEnv('ELEVENLABS_API_KEY');
 
     // Download audio with size check
     const audioResponse = await fetch(audioUrl);
-    if (!audioResponse.ok) {
-      return errorResponse("Failed to download audio file");
-    }
+    if (!audioResponse.ok) return errorResponse("Failed to download audio file", 400, req);
 
     const contentLength = audioResponse.headers.get('content-length');
     if (contentLength && parseInt(contentLength) > MAX_AUDIO_SIZE) {
-      return errorResponse("Audio file too large (max 25MB)");
+      return errorResponse("Audio file too large (max 25MB)", 400, req);
     }
 
     const audioBlob = await audioResponse.blob();
     if (audioBlob.size > MAX_AUDIO_SIZE) {
-      return errorResponse("Audio file too large (max 25MB)");
+      return errorResponse("Audio file too large (max 25MB)", 400, req);
     }
 
-    console.log('Audio downloaded, size:', audioBlob.size, 'type:', audioBlob.type);
+    log.info("Audio downloaded", { size: audioBlob.size, type: audioBlob.type });
 
     // Determine file extension
     let fileName = 'audio.mp3';
@@ -77,8 +53,6 @@ serve(async (req) => {
     formData.append('tag_audio_events', String(tagAudioEvents));
     formData.append('diarize', String(enableDiarization));
 
-    console.log('Sending to ElevenLabs STT API (scribe_v2)...');
-
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: { 'xi-api-key': ELEVENLABS_API_KEY },
@@ -87,25 +61,25 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('ElevenLabs STT error:', response.status, errorText);
-      if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429);
-      if (response.status === 401) return errorResponse("Invalid ElevenLabs API key.", 401);
-      return errorResponse("Failed to transcribe audio", 500);
+      log.error("ElevenLabs STT error", { status: response.status, detail: errorText.substring(0, 300) });
+      if (response.status === 429) return errorResponse("Rate limit exceeded.", 429, req);
+      if (response.status === 401) return errorResponse("Invalid ElevenLabs API key.", 401, req);
+      return errorResponse("Failed to transcribe audio", 500, req);
     }
 
     const data = await response.json();
-    const transcription = data.text || '';
-    console.log('Transcription result:', transcription);
+    log.done(200, { transcriptionLength: data.text?.length || 0 });
 
     return jsonResponse({
-      transcription,
+      transcription: data.text || '',
       messageId,
       words: data.words || [],
       audio_events: data.audio_events || [],
       speakers: data.speakers || [],
-    });
+    }, 200, req);
   } catch (error) {
-    console.error('Transcription error:', error);
-    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    log.error("Unhandled error", { error: msg });
+    return errorResponse(msg, 500, req);
   }
 });

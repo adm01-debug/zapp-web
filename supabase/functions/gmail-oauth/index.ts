@@ -1,16 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
-
-const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
-const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
-const GOOGLE_REDIRECT_URI = Deno.env.get("GOOGLE_REDIRECT_URI");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { GmailOAuthActionSchema, parseBody } from "../_shared/schemas.ts";
 
 const GMAIL_SCOPES = [
   "https://www.googleapis.com/auth/gmail.readonly",
@@ -28,10 +18,10 @@ interface TokenResponse {
   scope: string;
 }
 
-async function getAuthUrl(state?: string): Promise<string> {
+async function getAuthUrl(clientId: string, redirectUri: string, state?: string): Promise<string> {
   const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID!,
-    redirect_uri: GOOGLE_REDIRECT_URI!,
+    client_id: clientId,
+    redirect_uri: redirectUri,
     response_type: "code",
     scope: GMAIL_SCOPES,
     access_type: "offline",
@@ -42,44 +32,23 @@ async function getAuthUrl(state?: string): Promise<string> {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-async function exchangeCode(code: string): Promise<TokenResponse> {
+async function exchangeCode(code: string, clientId: string, clientSecret: string, redirectUri: string): Promise<TokenResponse> {
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code,
-      client_id: GOOGLE_CLIENT_ID!,
-      client_secret: GOOGLE_CLIENT_SECRET!,
-      redirect_uri: GOOGLE_REDIRECT_URI!,
-      grant_type: "authorization_code",
-    }),
+    body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: "authorization_code" }),
   });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Token exchange failed: ${error}`);
-  }
-
+  if (!response.ok) throw new Error(`Token exchange failed: ${await response.text()}`);
   return response.json();
 }
 
-async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
+async function refreshAccessToken(refreshToken: string, clientId: string, clientSecret: string): Promise<TokenResponse> {
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      refresh_token: refreshToken,
-      client_id: GOOGLE_CLIENT_ID!,
-      client_secret: GOOGLE_CLIENT_SECRET!,
-      grant_type: "refresh_token",
-    }),
+    body: new URLSearchParams({ refresh_token: refreshToken, client_id: clientId, client_secret: clientSecret, grant_type: "refresh_token" }),
   });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Token refresh failed: ${error}`);
-  }
-
+  if (!response.ok) throw new Error(`Token refresh failed: ${await response.text()}`);
   return response.json();
 }
 
@@ -87,82 +56,55 @@ async function getGmailProfile(accessToken: string): Promise<{ emailAddress: str
   const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-
   if (!response.ok) throw new Error("Failed to get Gmail profile");
   return response.json();
 }
 
-async function revokeToken(token: string): Promise<void> {
-  await fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-}
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("gmail-oauth");
 
   try {
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REDIRECT_URI) {
-      throw new Error("Google OAuth credentials not configured. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI.");
-    }
+    const GOOGLE_CLIENT_ID = requireEnv("GOOGLE_CLIENT_ID");
+    const GOOGLE_CLIENT_SECRET = requireEnv("GOOGLE_CLIENT_SECRET");
+    const GOOGLE_REDIRECT_URI = requireEnv("GOOGLE_REDIRECT_URI");
+    const SUPABASE_URL = requireEnv("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return errorResponse("Missing authorization header", 401, req);
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: { user }, error: authError } = await createClient(
-      SUPABASE_URL,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
+      SUPABASE_URL, requireEnv("SUPABASE_ANON_KEY"),
       { global: { headers: { Authorization: authHeader } } }
     ).auth.getUser();
 
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (authError || !user) return errorResponse("Unauthorized", 401, req);
 
-    // Get user profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
+    const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
+    if (!profile) return errorResponse("Profile not found", 404, req);
 
-    if (!profile) {
-      return new Response(JSON.stringify({ error: "Profile not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const parsed = parseBody(GmailOAuthActionSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const body = await req.json();
-    const { action } = body;
+    const { action, code, account_id, state } = parsed.data;
 
     switch (action) {
       case "get-auth-url": {
-        const url = await getAuthUrl(typeof body.state === "string" ? body.state : undefined);
-        return new Response(JSON.stringify({ url }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const url = await getAuthUrl(GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, state);
+        log.done(200, { action });
+        return jsonResponse({ url }, 200, req);
       }
 
       case "exchange-code": {
-        const { code } = body;
-        if (!code) throw new Error("Missing authorization code");
-
-        const tokens = await exchangeCode(code);
+        if (!code) return errorResponse("Missing authorization code", 400, req);
+        const tokens = await exchangeCode(code, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
         const gmailProfile = await getGmailProfile(tokens.access_token);
-
         const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-        // Upsert gmail account
         const { data: account, error: upsertError } = await supabase
           .from("gmail_accounts")
           .upsert({
@@ -174,82 +116,50 @@ serve(async (req) => {
             scopes: tokens.scope.split(" "),
             is_active: true,
             sync_status: "pending",
-          }, {
-            onConflict: "profile_id,email_address",
-          })
+          }, { onConflict: "profile_id,email_address" })
           .select()
           .single();
 
         if (upsertError) throw upsertError;
 
-        return new Response(JSON.stringify({
+        log.done(200, { action });
+        return jsonResponse({
           success: true,
-          account: {
-            id: account.id,
-            email_address: account.email_address,
-            is_active: account.is_active,
-          },
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+          account: { id: account.id, email_address: account.email_address, is_active: account.is_active },
+        }, 200, req);
       }
 
       case "refresh-token": {
-        const { account_id } = body;
-        if (!account_id) throw new Error("Missing account_id");
+        if (!account_id) return errorResponse("Missing account_id", 400, req);
+        const { data: account } = await supabase.from("gmail_accounts").select("*").eq("id", account_id).eq("profile_id", profile.id).single();
+        if (!account) return errorResponse("Gmail account not found", 404, req);
 
-        const { data: account } = await supabase
-          .from("gmail_accounts")
-          .select("*")
-          .eq("id", account_id)
-          .eq("profile_id", profile.id)
-          .single();
-
-        if (!account) throw new Error("Gmail account not found");
-
-        const tokens = await refreshAccessToken(account.refresh_token);
+        const tokens = await refreshAccessToken(account.refresh_token, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
         const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-        await supabase
-          .from("gmail_accounts")
-          .update({
-            access_token: tokens.access_token,
-            token_expires_at: expiresAt,
-            ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
-          })
-          .eq("id", account_id);
-
-        return new Response(JSON.stringify({
-          success: true,
+        await supabase.from("gmail_accounts").update({
           access_token: tokens.access_token,
-          expires_at: expiresAt,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+          token_expires_at: expiresAt,
+          ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
+        }).eq("id", account_id);
+
+        log.done(200, { action });
+        return jsonResponse({ success: true, access_token: tokens.access_token, expires_at: expiresAt }, 200, req);
       }
 
       case "disconnect": {
-        const { account_id } = body;
-        if (!account_id) throw new Error("Missing account_id");
-
-        const { data: account } = await supabase
-          .from("gmail_accounts")
-          .select("access_token, refresh_token")
-          .eq("id", account_id)
-          .eq("profile_id", profile.id)
-          .single();
+        if (!account_id) return errorResponse("Missing account_id", 400, req);
+        const { data: account } = await supabase.from("gmail_accounts").select("access_token, refresh_token").eq("id", account_id).eq("profile_id", profile.id).single();
 
         if (account) {
-          await revokeToken(account.access_token).catch(() => {});
-          await supabase
-            .from("gmail_accounts")
-            .update({ is_active: false, access_token: "", refresh_token: "" })
-            .eq("id", account_id);
+          await fetch(`https://oauth2.googleapis.com/revoke?token=${account.access_token}`, {
+            method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          }).catch(() => {});
+          await supabase.from("gmail_accounts").update({ is_active: false, access_token: "", refresh_token: "" }).eq("id", account_id);
         }
 
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        log.done(200, { action });
+        return jsonResponse({ success: true }, 200, req);
       }
 
       case "list-accounts": {
@@ -259,20 +169,16 @@ serve(async (req) => {
           .eq("profile_id", profile.id)
           .eq("is_active", true);
 
-        return new Response(JSON.stringify({ accounts: accounts || [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        log.done(200, { action, count: accounts?.length });
+        return jsonResponse({ accounts: accounts || [] }, 200, req);
       }
 
       default:
-        return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return errorResponse(`Unknown action: ${action}`, 400, req);
     }
   } catch (error) {
-    console.error("Gmail OAuth error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    log.error("Unhandled error", { error: msg });
+    return errorResponse(msg, 500, req);
   }
 });
