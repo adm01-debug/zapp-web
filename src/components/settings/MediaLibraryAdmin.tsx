@@ -532,8 +532,8 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
       const audio = new Audio(audioUrl);
       audio.play().catch(() => {});
       audioRef.current = audio;
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao gerar áudio');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao gerar áudio');
     } finally {
       setGenerating(false);
     }
