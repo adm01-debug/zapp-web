@@ -297,6 +297,10 @@ export function AdminView() {
         toast.success('Usuário criado com sucesso!');
         setIsAddDialogOpen(false);
         setNewUserName('');
+        setNewUserNickname('');
+        setNewUserSignature('');
+        setNewUserJobTitle('');
+        setNewUserAvatarUrl('');
         setNewUserEmail('');
         setNewUserPassword('');
         setNewUserRole('agent');
