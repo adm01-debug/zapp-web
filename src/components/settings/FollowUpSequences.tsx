@@ -208,7 +208,7 @@ export function FollowUpSequences() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {sequences.map((seq: any) => (
+          {sequences.map((seq) => (
             <Card key={seq.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
