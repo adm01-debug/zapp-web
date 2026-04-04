@@ -1,6 +1,6 @@
 /**
  * CRM360ExplorerView — Full CRM 360° data explorer
- * Browse ALL tables from the external CRM database with filters, pagination, search and export
+ * Browse ALL tables from the external CRM database with filters, pagination, search, export, and CRUD
  */
 import { useState, useMemo, useCallback } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   Search, Building2, Users, ShoppingCart, MessageSquare, BarChart3,
   Share2, MapPin, Phone, Mail, Truck, Package, Trophy, RefreshCw,
-  ChevronLeft, ChevronRight, X, Download, ArrowUpDown,
+  ChevronLeft, ChevronRight, X, Download, ArrowUpDown, Plus, Pencil,
   DollarSign, User, Activity, Calendar, Zap, FileText, Target,
   Briefcase, Tag, Globe, Layers, ClipboardList, StickyNote, CreditCard,
 } from 'lucide-react';
@@ -24,6 +24,8 @@ import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CRM360StatsCards } from './CRM360StatsCards';
+import { CompanyFormDialog } from './CompanyFormDialog';
+import { ContactFormDialog } from './ContactFormDialog';
 import type { ExternalTableName } from '@/types/externalDB';
 
 // ─── Tab configuration ───────────────────────────────────────
