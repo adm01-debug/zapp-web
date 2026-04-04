@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       return errorResponse(Object.values(errors).flat().join("; "), 400, req);
     }
 
-    const { email, password, name, role } = parsed.data;
+    const { email, password, name, role, gmail_email } = parsed.data;
     const sanitizedName = sanitizeString(name) || name;
 
     // Create user via admin API
