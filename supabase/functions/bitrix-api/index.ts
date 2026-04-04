@@ -1,143 +1,113 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
+import { handleCors, errorResponse, jsonResponse, Logger, getCorsHeaders } from "../_shared/validation.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+const BitrixBodySchema = z.object({
+  action: z.enum([
+    'list', 'get', 'create', 'update', 'delete',
+    'register_call', 'finish_call', 'attach_record',
+    'sync_contacts', 'push_contact', 'create_lead_from_conversation',
+  ]),
+  entityType: z.enum(['lead', 'contact', 'deal', 'activity', 'call']).optional(),
+  entityId: z.string().max(100).optional(),
+  data: z.record(z.unknown()).optional(),
+  filters: z.record(z.unknown()).optional(),
+});
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-const corsHeaders = getCorsHeaders();
-
-interface BitrixRequest {
-  action: string;
-  entityType?: 'lead' | 'contact' | 'deal' | 'activity' | 'call';
-  entityId?: string;
-  data?: Record<string, any>;
-  filters?: Record<string, any>;
-}
-
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("bitrix-api");
 
   try {
     const BITRIX_WEBHOOK_URL = Deno.env.get('BITRIX_WEBHOOK_URL');
-    const BITRIX_DOMAIN = Deno.env.get('BITRIX_DOMAIN');
-
     if (!BITRIX_WEBHOOK_URL) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Bitrix não configurado', 
-          message: 'Configure BITRIX_WEBHOOK_URL nas configurações' 
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Bitrix não configurado. Configure BITRIX_WEBHOOK_URL nas configurações', 400, req);
     }
 
-    const { action, entityType, entityId, data, filters }: BitrixRequest = await req.json();
-    console.log(`Bitrix API action: ${action}, entityType: ${entityType}`);
+    const raw = await req.json().catch(() => null);
+    if (!raw) return errorResponse('Invalid JSON body', 400, req);
+
+    const parsed = BitrixBodySchema.safeParse(raw);
+    if (!parsed.success) {
+      const errors = parsed.error.flatten();
+      const msg = Object.entries(errors.fieldErrors)
+        .map(([k, v]) => `${k}: ${(v as string[]).join(', ')}`)
+        .join('; ');
+      return errorResponse(msg || 'Validation error', 400, req);
+    }
+
+    const { action, entityType, entityId, data, filters } = parsed.data;
+    log.info(`action=${action} entityType=${entityType || 'none'}`);
 
     let endpoint = '';
-    let method = 'GET';
-    let body: Record<string, any> | null = null;
+    let body: Record<string, unknown> | null = null;
 
-    // Map entity types to Bitrix API methods
     const entityMap: Record<string, string> = {
-      lead: 'crm.lead',
-      contact: 'crm.contact',
-      deal: 'crm.deal',
-      activity: 'crm.activity',
-      call: 'telephony.externalcall',
+      lead: 'crm.lead', contact: 'crm.contact', deal: 'crm.deal',
+      activity: 'crm.activity', call: 'telephony.externalcall',
     };
-
     const bitrixEntity = entityType ? entityMap[entityType] : '';
 
     switch (action) {
-      // === LEADS ===
       case 'list':
         endpoint = `${bitrixEntity}.list`;
         body = { filter: filters || {}, select: ['*', 'UF_*'] };
         break;
-
       case 'get':
         endpoint = `${bitrixEntity}.get`;
         body = { id: entityId };
         break;
-
       case 'create':
         endpoint = `${bitrixEntity}.add`;
         body = { fields: data };
         break;
-
       case 'update':
         endpoint = `${bitrixEntity}.update`;
         body = { id: entityId, fields: data };
         break;
-
       case 'delete':
         endpoint = `${bitrixEntity}.delete`;
         body = { id: entityId };
         break;
-
-      // === TELEPHONY ===
       case 'register_call':
         endpoint = 'telephony.externalcall.register';
         body = {
           USER_PHONE_INNER: data?.userPhoneInner,
           USER_ID: data?.userId,
           PHONE_NUMBER: data?.phoneNumber,
-          TYPE: data?.type || 1, // 1 = outgoing, 2 = incoming
+          TYPE: data?.type || 1,
           CALL_START_DATE: data?.callStartDate || new Date().toISOString(),
           CRM_CREATE: data?.crmCreate || 1,
         };
         break;
-
       case 'finish_call':
         endpoint = 'telephony.externalcall.finish';
         body = {
-          CALL_ID: data?.callId,
-          USER_ID: data?.userId,
-          DURATION: data?.duration,
-          STATUS_CODE: data?.statusCode || 200,
+          CALL_ID: data?.callId, USER_ID: data?.userId,
+          DURATION: data?.duration, STATUS_CODE: data?.statusCode || 200,
           ADD_TO_CHAT: data?.addToChat || 0,
         };
         break;
-
       case 'attach_record':
         endpoint = 'telephony.externalCall.attachRecord';
         body = {
-          CALL_ID: data?.callId,
-          FILENAME: data?.filename,
+          CALL_ID: data?.callId, FILENAME: data?.filename,
           FILE_CONTENT: data?.fileContent,
         };
         break;
-
-      // === SYNC ===
-      case 'sync_contacts':
-        // Sync contacts from Bitrix to local database
+      case 'sync_contacts': {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Fetch contacts from Bitrix
         const contactsResponse = await fetch(`${BITRIX_WEBHOOK_URL}/crm.contact.list`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             filter: filters || {},
-            select: ['ID', 'NAME', 'LAST_NAME', 'EMAIL', 'PHONE', 'COMPANY_ID', 'POST']
+            select: ['ID', 'NAME', 'LAST_NAME', 'EMAIL', 'PHONE', 'COMPANY_ID', 'POST'],
           }),
         });
         const contactsData = await contactsResponse.json();
@@ -147,8 +117,6 @@ serve(async (req) => {
           for (const bitrixContact of contactsData.result) {
             const phone = bitrixContact.PHONE?.[0]?.VALUE || '';
             if (!phone) continue;
-
-            // Upsert contact in local database
             const { data: upsertedContact, error } = await supabase
               .from('contacts')
               .upsert({
@@ -159,53 +127,33 @@ serve(async (req) => {
                 company: bitrixContact.COMPANY_ID,
                 job_title: bitrixContact.POST,
                 notes: `Bitrix ID: ${bitrixContact.ID}`,
-              }, { 
-                onConflict: 'phone',
-                ignoreDuplicates: false 
-              })
-              .select()
-              .single();
-
-            if (!error) {
-              syncResults.push(upsertedContact);
-            }
+              }, { onConflict: 'phone', ignoreDuplicates: false })
+              .select().single();
+            if (!error) syncResults.push(upsertedContact);
           }
-          
-          return new Response(
-            JSON.stringify({ 
-              success: true, 
-              synced: syncResults.length,
-              total: contactsData.result.length 
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          log.done(200, { synced: syncResults.length });
+          return jsonResponse({ success: true, synced: syncResults.length, total: contactsData.result.length }, 200, req);
         }
         break;
-
-      case 'push_contact':
-        // Push local contact to Bitrix
+      }
+      case 'push_contact': {
         const pushResponse = await fetch(`${BITRIX_WEBHOOK_URL}/crm.contact.add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             fields: {
-              NAME: data?.name,
-              LAST_NAME: data?.surname,
+              NAME: data?.name, LAST_NAME: data?.surname,
               PHONE: data?.phone ? [{ VALUE: data.phone, VALUE_TYPE: 'WORK' }] : [],
               EMAIL: data?.email ? [{ VALUE: data.email, VALUE_TYPE: 'WORK' }] : [],
               POST: data?.jobTitle,
-            }
+            },
           }),
         });
         const pushData = await pushResponse.json();
-        
-        return new Response(
-          JSON.stringify({ success: true, bitrixId: pushData.result }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-
-      case 'create_lead_from_conversation':
-        // Create lead from WhatsApp conversation
+        log.done(200);
+        return jsonResponse({ success: true, bitrixId: pushData.result }, 200, req);
+      }
+      case 'create_lead_from_conversation': {
         const leadResponse = await fetch(`${BITRIX_WEBHOOK_URL}/crm.lead.add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -218,63 +166,39 @@ serve(async (req) => {
               SOURCE_DESCRIPTION: 'WhatsApp via Lovable',
               COMMENTS: data?.conversationSummary,
               UF_CRM_WHATSAPP_CONTACT_ID: data?.contactId,
-            }
+            },
           }),
         });
         const leadData = await leadResponse.json();
-        
-        return new Response(
-          JSON.stringify({ success: true, leadId: leadData.result }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-
+        log.done(200);
+        return jsonResponse({ success: true, leadId: leadData.result }, 200, req);
+      }
       default:
-        return new Response(
-          JSON.stringify({ error: 'Ação não suportada', action }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return errorResponse('Ação não suportada', 400, req);
     }
 
-    // Make request to Bitrix API
     if (endpoint) {
-      console.log(`Calling Bitrix: ${BITRIX_WEBHOOK_URL}/${endpoint}`);
-      
+      log.info(`Calling Bitrix: ${endpoint}`);
       const bitrixResponse = await fetch(`${BITRIX_WEBHOOK_URL}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : undefined,
       });
-
       const responseData = await bitrixResponse.json();
-      console.log('Bitrix response:', JSON.stringify(responseData).substring(0, 500));
 
       if (responseData.error) {
-        return new Response(
-          JSON.stringify({ 
-            error: responseData.error, 
-            error_description: responseData.error_description 
-          }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        log.error('Bitrix error', { error: responseData.error });
+        return errorResponse(responseData.error_description || responseData.error, 400, req);
       }
 
-      return new Response(
-        JSON.stringify({ success: true, data: responseData.result, total: responseData.total }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      log.done(200);
+      return jsonResponse({ success: true, data: responseData.result, total: responseData.total }, 200, req);
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Endpoint não definido' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+    return errorResponse('Endpoint não definido', 400, req);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('Bitrix API error:', error);
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    const msg = error instanceof Error ? error.message : 'Erro desconhecido';
+    log.error('Unhandled error', { error: msg });
+    return errorResponse(msg, 500, req);
   }
 });
