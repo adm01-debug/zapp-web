@@ -48,6 +48,8 @@ Deno.serve(async (req) => {
       name: z.string().min(1, "Nome é obrigatório").max(255),
       role: z.enum(["admin", "supervisor", "agent", "special_agent"]).optional().default("agent"),
       gmail_email: z.string().email("Email Gmail inválido").max(255).optional(),
+      google_services: z.array(z.enum(["google_sheets", "google_docs", "google_calendar", "google_drive"])).optional().default([]),
+      dropbox_email: z.string().email("Email Dropbox inválido").max(255).optional(),
     });
 
     const parsed = bodySchema.safeParse(await req.json());
