@@ -1,74 +1,59 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, elevenlabs-signature, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("elevenlabs-webhook");
 
   try {
-    const body = await req.json();
-    const eventType = body.type || body.event_type;
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return errorResponse('Invalid JSON payload', 400, req);
+    }
 
-    console.log(`[ElevenLabs Webhook] Received event: ${eventType}`);
-    console.log('[ElevenLabs Webhook] Payload:', JSON.stringify(body).substring(0, 500));
+    const eventType = String(body.type || body.event_type || 'unknown').slice(0, 100);
+    log.info(`event=${eventType}`);
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_SERVICE_ROLE_KEY'));
 
     // Log the webhook event
     await supabase.from('audit_logs').insert({
       action: `elevenlabs_webhook_${eventType}`,
       entity_type: 'elevenlabs',
-      entity_id: body.id || body.request_id || null,
+      entity_id: String(body.id || body.request_id || '').slice(0, 100) || null,
       details: body,
     });
 
-    // Handle specific event types
     switch (eventType) {
       case 'tts.completed':
-        console.log('[Webhook] TTS generation completed:', body.request_id);
+        log.info('TTS completed', { requestId: body.request_id });
         break;
-
       case 'tts.failed':
-        console.error('[Webhook] TTS generation failed:', body.request_id, body.error);
+        log.error('TTS failed', { requestId: body.request_id, error: body.error });
         break;
-
       case 'music.completed':
-        console.log('[Webhook] Music generation completed:', body.request_id);
+        log.info('Music completed', { requestId: body.request_id });
         break;
-
       case 'sfx.completed':
-        console.log('[Webhook] SFX generation completed:', body.request_id);
+        log.info('SFX completed', { requestId: body.request_id });
         break;
-
       case 'voice_clone.completed':
-        console.log('[Webhook] Voice clone completed:', body.voice_id);
+        log.info('Voice clone completed', { voiceId: body.voice_id });
         break;
-
       case 'quota.warning':
-        console.warn('[Webhook] Quota warning received:', body.usage_percent);
+        log.warn('Quota warning', { usage: body.usage_percent });
         break;
-
       default:
-        console.log('[Webhook] Unhandled event type:', eventType);
+        log.info('Unhandled event type');
     }
 
-    return new Response(
-      JSON.stringify({ received: true, event: eventType }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.done(200);
+    return jsonResponse({ received: true, event: eventType }, 200, req);
   } catch (error) {
-    console.error('[ElevenLabs Webhook] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    log.error('Unhandled error', { error: msg });
+    return errorResponse(msg, 500, req);
   }
 });
