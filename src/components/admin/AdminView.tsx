@@ -274,6 +274,10 @@ export function AdminView() {
             password: newUserPassword,
             role: newUserRole,
             gmail_email: newUserGmail || undefined,
+            google_services: Object.entries(newUserGoogleServices)
+              .filter(([, enabled]) => enabled)
+              .map(([key]) => key),
+            dropbox_email: newUserDropboxEmail || undefined,
           }),
         }
       );
