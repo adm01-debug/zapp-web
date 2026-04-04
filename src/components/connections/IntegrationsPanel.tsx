@@ -49,7 +49,7 @@ function IntegrationForm({
           <Label className="font-medium">{title}</Label>
         </div>
         <Switch
-          checked={values.enabled ?? false}
+          checked={Boolean(values.enabled)}
           onCheckedChange={(checked) => onChange('enabled', checked)}
         />
       </div>
