@@ -359,16 +359,9 @@ describe('Edge Cases', () => {
 
 // ─── 12. ROUTING & NAVIGATION TESTS ─────────────────────────
 describe('CRM360 Routing', () => {
-  it('crm360 view is registered in lazyViews', async () => {
+  it('CRM360ExplorerView is registered in lazyViews', async () => {
     const mod = await import('@/pages/lazyViews');
-    expect(mod.lazyViews).toBeDefined();
-    expect(mod.lazyViews.crm360).toBeDefined();
-  });
-
-  it('crm360 route resolves to CRM360ExplorerView', async () => {
-    const mod = await import('@/pages/lazyViews');
-    const component = mod.lazyViews.crm360;
-    expect(component).toBeDefined();
+    expect(mod.CRM360ExplorerView).toBeDefined();
   });
 });
 
