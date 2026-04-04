@@ -36,7 +36,7 @@ function formatDate(dateStr: string): string {
 interface EmailThreadListProps {
   threads: EmailThread[];
   threadsLoading: boolean;
-  labels: any[];
+  labels: { id: string; name: string; gmail_label_id: string; label_type: string; unread_count: number }[];
   unreadCount: number;
   selectedThreadId: string | null;
   activeAccountEmail: string;
