@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Palette, RotateCcw, Save, Sun, Moon, Monitor } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
 import { PRESETS } from './theme/presets';
 import { useThemePreset } from './theme/useThemePreset';
@@ -50,29 +51,46 @@ export function ThemeCustomizer() {
           <CardTitle className="text-sm">Modo de Cor</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
-            <Button
-              variant={theme === 'light' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setTheme('light')}
-            >
-              <Sun className="w-4 h-4 mr-1" /> Claro
-            </Button>
-            <Button
-              variant={theme === 'dark' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setTheme('dark')}
-            >
-              <Moon className="w-4 h-4 mr-1" /> Escuro
-            </Button>
-            <Button
-              variant={theme === 'system' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setTheme('system')}
-            >
-              <Monitor className="w-4 h-4 mr-1" /> Sistema
-            </Button>
-          </div>
+          <TooltipProvider>
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={theme === 'light' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTheme('light')}
+                  >
+                    <Sun className="w-4 h-4 mr-1" /> Claro
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Força o tema claro independente do sistema</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={theme === 'dark' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTheme('dark')}
+                  >
+                    <Moon className="w-4 h-4 mr-1" /> Escuro
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Força o tema escuro independente do sistema</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={theme === 'system' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTheme('system')}
+                  >
+                    <Monitor className="w-4 h-4 mr-1" /> Sistema
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Segue automaticamente a preferência do seu dispositivo</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </CardContent>
       </Card>
 
