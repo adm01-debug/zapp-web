@@ -433,6 +433,8 @@ export interface ExternalDBRPCParams {
 // ─── Table registry (for UI rendering) ────────────────────────
 
 export type ExternalTableName =
+  | 'companies'
+  | 'contacts'
   | 'customers'
   | 'contact_phones'
   | 'contact_emails'
@@ -451,7 +453,26 @@ export type ExternalTableName =
   | 'achievements'
   | 'daily_challenges'
   | 'weekly_challenges'
-  | 'interactions';
+  | 'interactions'
+  | 'orders'
+  | 'order_items'
+  | 'products'
+  | 'leads'
+  | 'pipelines'
+  | 'pipeline_stages'
+  | 'deals'
+  | 'deal_products'
+  | 'quotations'
+  | 'quotation_items'
+  | 'tasks'
+  | 'notes'
+  | 'tags'
+  | 'company_tags'
+  | 'contact_tags_ext'
+  | 'payment_conditions'
+  | 'price_tables'
+  | 'regions'
+  | 'segments';
 
 export const EXTERNAL_TABLE_LABELS: Record<ExternalTableName, string> = {
   customers: 'Clientes',
