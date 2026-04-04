@@ -41,15 +41,17 @@ export function useThemePreset() {
     document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);
   }, []);
 
-  // Restore saved theme on mount
+  // Restore saved theme on mount (default to corporate on first access)
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed: ThemeConfig = JSON.parse(saved);
-        if (parsed.preset) {
-          setActivePreset(parsed.preset);
-          const preset = PRESETS.find(p => p.id === parsed.preset);
+        // Migrate old 'default' preset to 'purpure'
+        const presetId = parsed.preset === 'default' ? 'purpure' : parsed.preset;
+        if (presetId) {
+          setActivePreset(presetId);
+          const preset = PRESETS.find(p => p.id === presetId);
           if (preset) applyPresetColors(preset, resolvedTheme);
         }
         if (parsed.borderRadius != null) {
@@ -57,6 +59,13 @@ export function useThemePreset() {
           applyBorderRadius(parsed.borderRadius);
         }
       } catch { /* corrupted storage */ }
+    } else {
+      // First access: apply corporate as default
+      const corporate = PRESETS.find(p => p.id === 'corporate');
+      if (corporate) {
+        applyPresetColors(corporate, resolvedTheme);
+        save('corporate', borderRadius);
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
