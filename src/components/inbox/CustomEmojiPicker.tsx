@@ -457,7 +457,7 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
     e.stopPropagation();
     const newVal = !emoji.is_favorite;
     setEmojis(prev => prev.map(em => em.id === emoji.id ? { ...em, is_favorite: newVal } : em));
-    await supabase.from('custom_emojis').update({ is_favorite: newVal } as any).eq('id', emoji.id);
+    await supabase.from('custom_emojis').update({ is_favorite: newVal }).eq('id', emoji.id);
   };
 
   const handleCategoryChange = async (emoji: CustomEmoji, newCategory: string) => {
