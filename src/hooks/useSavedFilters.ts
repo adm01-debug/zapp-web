@@ -76,13 +76,13 @@ export function useSavedFilters(entityType: string) {
           .eq('entity_type', entityType);
       }
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('saved_filters')
         .insert({
           user_id: user.id,
           entity_type: entityType,
           name: input.name,
-          filters: input.filters,
+          filters: input.filters as unknown as import('@/integrations/supabase/types').Json,
           is_default: input.is_default ?? false,
           is_shared: input.is_shared ?? false,
         })
