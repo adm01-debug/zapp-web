@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, RotateCcw, Sun, Moon, Monitor } from 'lucide-react';
+import { Palette, RotateCcw, Save, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { PRESETS } from './theme/presets';
 import { useThemePreset } from './theme/useThemePreset';
@@ -30,9 +30,14 @@ export function ThemeCustomizer() {
           </h3>
           <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={resetTheme}>
-          <RotateCcw className="w-4 h-4 mr-1" /> Reset
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="default" size="sm" onClick={exportTheme}>
+            <Save className="w-4 h-4 mr-1" /> Salvar
+          </Button>
+          <Button variant="outline" size="sm" onClick={resetTheme}>
+            <RotateCcw className="w-4 h-4 mr-1" /> Original
+          </Button>
+        </div>
       </div>
 
       {/* Mode Toggle */}
