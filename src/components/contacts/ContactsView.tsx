@@ -90,6 +90,8 @@ import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { Sparkles, CheckSquare } from 'lucide-react';
 import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { supabase } from '@/integrations/supabase/client';
+import { useContactsCRUD } from './useContactsCRUD';
 import { useContactsCRUD } from './useContactsCRUD';
 import type { Contact } from './useContactsCRUD';
 
