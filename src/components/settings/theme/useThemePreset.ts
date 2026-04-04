@@ -85,16 +85,16 @@ export function useThemePreset() {
   }, [activePreset, applyBorderRadius, save]);
 
   const resetTheme = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    const root = document.documentElement;
-    for (const key of CSS_VARS_TO_APPLY) {
-      root.style.removeProperty(`--${key}`);
+    const corporate = PRESETS.find(p => p.id === 'corporate');
+    if (corporate) {
+      applyPresetColors(corporate, resolvedTheme);
     }
-    root.style.removeProperty('--radius');
-    setActivePreset('default');
+    setActivePreset('corporate');
     setBorderRadius(8);
+    document.documentElement.style.setProperty('--radius', '0.5rem');
+    save('corporate', 8);
     toast.success('Tema restaurado ao padrão!');
-  }, []);
+  }, [applyPresetColors, resolvedTheme, save]);
 
   const exportTheme = useCallback(() => {
     const config: ThemeConfig = { preset: activePreset, borderRadius };
