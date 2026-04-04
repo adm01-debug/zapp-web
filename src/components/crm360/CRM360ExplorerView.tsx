@@ -46,6 +46,7 @@ const TABS: TabConfig[] = [
     icon: Building2,
     description: '57k+ empresas — razão social, CNPJ, ramo de atividade',
     searchColumn: 'nome_fantasia',
+    editable: true,
     columns: [
       { key: 'nome_fantasia', label: 'Fantasia' },
       { key: 'razao_social', label: 'Razão Social' },
