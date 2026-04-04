@@ -941,7 +941,9 @@ export function AdminView() {
             </Table>
           </CardContent>
         </Card>
-      )}
+      ) : activeTab === 'crm' ? (
+        <AdminCRMDashboard />
+      ) : null}
     </div>
   );
 }
