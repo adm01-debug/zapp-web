@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, RotateCcw, Sun, Moon, Monitor } from 'lucide-react';
+import { Palette, RotateCcw, Save, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { PRESETS } from './theme/presets';
 import { useThemePreset } from './theme/useThemePreset';
