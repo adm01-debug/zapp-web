@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import {
-  ArrowLeft, Star, Archive, Trash2, Loader2, Mail
+  ArrowLeft, Star, Archive, Trash2, Loader2, Mail, PanelRightOpen
 } from 'lucide-react';
 import { useGmail, type EmailThread, type EmailMessage } from '@/hooks/useGmail';
 import { EmailChatBubble } from './EmailChatBubble';
@@ -16,6 +16,8 @@ import { ptBR } from 'date-fns/locale';
 interface EmailChatThreadProps {
   thread: EmailThread;
   onBack: () => void;
+  onToggleDetails?: () => void;
+  showDetailsButton?: boolean;
 }
 
 function DateSeparator({ date }: { date: string }) {
@@ -41,7 +43,7 @@ function DateSeparator({ date }: { date: string }) {
   );
 }
 
-export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
+export function EmailChatThread({ thread, onBack, onToggleDetails, showDetailsButton }: EmailChatThreadProps) {
   const {
     threadMessages, messagesLoading, markAsRead,
     trashMessage, setSelectedThreadId, activeAccount
@@ -150,6 +152,16 @@ export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
               </TooltipTrigger>
               <TooltipContent>Excluir</TooltipContent>
             </Tooltip>
+            {showDetailsButton && onToggleDetails && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleDetails} aria-label="Detalhes">
+                    <PanelRightOpen className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Detalhes do contato</TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </div>
 
