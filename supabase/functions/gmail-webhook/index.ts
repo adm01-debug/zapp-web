@@ -1,48 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
-const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { z } from "https://esm.sh/zod@3.23.8";
+import { getCorsHeaders, jsonResponse, Logger, requireEnv } from "../_shared/validation.ts";
 
 const GMAIL_API = "https://gmail.googleapis.com/gmail/v1/users/me";
 
-/**
- * Gmail Webhook - Receives Google Cloud Pub/Sub push notifications
- * when new emails arrive. The notification contains the user's email
- * and a historyId to fetch changes since the last known state.
- *
- * Flow:
- * 1. Gmail detects change -> sends to Pub/Sub topic
- * 2. Pub/Sub pushes to this endpoint
- * 3. We look up the gmail_account by email
- * 4. Fetch history changes since last known historyId
- * 5. Process new messages and store in DB
- */
+const PubSubSchema = z.object({
+  message: z.object({
+    data: z.string().min(1),
+    messageId: z.string().optional(),
+    publishTime: z.string().optional(),
+  }),
+  subscription: z.string().optional(),
+});
 
-interface PubSubMessage {
-  message: {
-    data: string; // base64 encoded JSON: { emailAddress: string, historyId: number }
-    messageId: string;
-    publishTime: string;
-  };
-  subscription: string;
-}
+// deno-lint-ignore no-explicit-any
+async function refreshToken(supabase: any, account: any, log: Logger): Promise<string> {
+  const GOOGLE_CLIENT_ID = requireEnv("GOOGLE_CLIENT_ID");
+  const GOOGLE_CLIENT_SECRET = requireEnv("GOOGLE_CLIENT_SECRET");
 
-async function refreshToken(supabase: any, account: any): Promise<string> {
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       refresh_token: account.refresh_token,
-      client_id: GOOGLE_CLIENT_ID!,
-      client_secret: GOOGLE_CLIENT_SECRET!,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
       grant_type: "refresh_token",
     }),
   });
@@ -55,6 +38,7 @@ async function refreshToken(supabase: any, account: any): Promise<string> {
     token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
   }).eq("id", account.id);
 
+  log.info("Token refreshed");
   return tokens.access_token;
 }
 
@@ -73,10 +57,12 @@ function getHeader(headers: { name: string; value: string }[], name: string): st
   return headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value || "";
 }
 
+// deno-lint-ignore no-explicit-any
 function extractBody(payload: any): { text: string; html: string } {
   let text = "";
   let html = "";
 
+  // deno-lint-ignore no-explicit-any
   function processPart(part: any) {
     if (part.mimeType === "text/plain" && part.body?.data) {
       text = decodeBase64Url(part.body.data);
@@ -100,18 +86,28 @@ function extractBody(payload: any): { text: string; html: string } {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  const log = new Logger("gmail-webhook");
+
   try {
+    const SUPABASE_URL = requireEnv("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Parse Pub/Sub push notification
-    const pubsubMessage: PubSubMessage = await req.json();
-    const decodedData = JSON.parse(atob(pubsubMessage.message.data));
+    const rawBody = await req.json();
+    const parsed = PubSubSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      log.warn("Invalid PubSub payload", { errors: parsed.error.message });
+      // Return 200 to acknowledge (prevent retries)
+      return jsonResponse({ acknowledged: true, error: "Invalid payload" }, 200, req);
+    }
+
+    const decodedData = JSON.parse(atob(parsed.data.message.data));
     const { emailAddress, historyId: newHistoryId } = decodedData;
 
-    console.log(`Gmail webhook: New notification for ${emailAddress}, historyId: ${newHistoryId}`);
+    log.info("Notification received", { email: emailAddress, historyId: newHistoryId });
 
     // Find the gmail account
     const { data: account, error: accountError } = await supabase
@@ -122,25 +118,20 @@ serve(async (req) => {
       .single();
 
     if (accountError || !account) {
-      console.log(`No active Gmail account found for ${emailAddress}`);
-      // Return 200 to acknowledge the message (prevent retries)
-      return new Response(JSON.stringify({ acknowledged: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.info("No active Gmail account found", { email: emailAddress });
+      return jsonResponse({ acknowledged: true }, 200, req);
     }
 
     if (!account.history_id) {
-      console.log("No history_id stored. Skipping incremental sync.");
-      return new Response(JSON.stringify({ acknowledged: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.info("No history_id stored, skipping incremental sync");
+      return jsonResponse({ acknowledged: true }, 200, req);
     }
 
     // Ensure valid access token
     let accessToken = account.access_token;
     const now = new Date();
     if (now >= new Date(account.token_expires_at)) {
-      accessToken = await refreshToken(supabase, account);
+      accessToken = await refreshToken(supabase, account, log);
     }
 
     // Fetch history changes
@@ -151,17 +142,14 @@ serve(async (req) => {
 
     if (!historyResponse.ok) {
       if (historyResponse.status === 404) {
-        // historyId is too old, need full resync
-        console.log("History ID expired. Marking for full resync.");
+        log.warn("History ID expired, marking for full resync");
         await supabase.from("gmail_accounts").update({
           sync_status: "pending",
           history_id: null,
           last_error: "History ID expired - full resync needed",
         }).eq("id", account.id);
 
-        return new Response(JSON.stringify({ acknowledged: true, resync_needed: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ acknowledged: true, resync_needed: true }, 200, req);
       }
       throw new Error(`History fetch failed: ${historyResponse.status}`);
     }
@@ -172,14 +160,13 @@ serve(async (req) => {
     const newMessageIds = new Set<string>();
     for (const record of historyData.history || []) {
       for (const added of record.messagesAdded || []) {
-        // Only process INBOX messages
         if (added.message.labelIds?.includes("INBOX")) {
           newMessageIds.add(added.message.id);
         }
       }
     }
 
-    console.log(`Found ${newMessageIds.size} new messages for ${emailAddress}`);
+    log.info(`Found ${newMessageIds.size} new messages`, { email: emailAddress });
 
     // Process each new message
     for (const msgId of newMessageIds) {
@@ -218,6 +205,7 @@ serve(async (req) => {
         }, { onConflict: "gmail_account_id,gmail_thread_id" }).select().single();
 
         // Upsert email message
+        // deno-lint-ignore no-explicit-any
         await supabase.from("email_messages").upsert({
           thread_id: thread?.id,
           gmail_message_id: msg.id,
@@ -270,7 +258,7 @@ serve(async (req) => {
             .eq("id", thread.id);
         }
       } catch (err: unknown) {
-        console.error(`Error processing message ${msgId}:`, err instanceof Error ? err.message : err);
+        log.error(`Error processing message ${msgId}`, { error: err instanceof Error ? err.message : String(err) });
       }
     }
 
@@ -280,17 +268,12 @@ serve(async (req) => {
       last_sync_at: new Date().toISOString(),
     }).eq("id", account.id);
 
-    return new Response(JSON.stringify({
-      acknowledged: true,
-      processed: newMessageIds.size,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    log.done(200, { processed: newMessageIds.size });
+    return jsonResponse({ acknowledged: true, processed: newMessageIds.size }, 200, req);
   } catch (error) {
-    console.error("Gmail Webhook error:", error.message);
+    log.error("Gmail Webhook error", { error: error instanceof Error ? error.message : String(error) });
     // Return 200 to prevent Pub/Sub retries on application errors
-    return new Response(JSON.stringify({ acknowledged: true, error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    log.done(200);
+    return jsonResponse({ acknowledged: true, error: error instanceof Error ? error.message : "Unknown error" }, 200, req);
   }
 });

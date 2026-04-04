@@ -1,19 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { handleCors, jsonResponse, errorResponse, Logger, requireEnv } from "../_shared/validation.ts";
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const log = new Logger("migrate-media-storage");
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = requireEnv('SUPABASE_URL');
+    const supabaseKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
     const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
     const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -40,21 +37,19 @@ serve(async (req) => {
       .limit(50);
 
     if (error) {
-      console.error('Query error:', error);
-      // Fallback: simple query without joins
-      return await migrateSimple(supabase, corsHeaders);
+      log.error('Query error', { error: error.message });
+      return await migrateSimple(supabase, req, log);
     }
 
     if (!messages?.length) {
-      return new Response(JSON.stringify({ 
-        success: true, processed: 0, migrated: 0, 
-        message: 'Todas as mídias já estão no Storage permanente.' 
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      log.done(200, { migrated: 0 });
+      return jsonResponse({
+        success: true, processed: 0, migrated: 0,
+        message: 'Todas as mídias já estão no Storage permanente.'
+      }, 200, req);
     }
 
-    console.log(`Found ${messages.length} messages with CDN URLs to migrate`);
+    log.info(`Found ${messages.length} messages with CDN URLs to migrate`);
 
     let migrated = 0;
     let failed = 0;
@@ -62,33 +57,25 @@ serve(async (req) => {
 
     for (const msg of messages) {
       try {
-        // Method 1: Direct CDN download
-        let permanentUrl = await downloadAndUpload(supabase, msg.media_url, msg.message_type, msg.id);
-        
-        // Method 2: Evolution API getBase64 fallback
+        let permanentUrl = await downloadAndUpload(supabase, msg.media_url, msg.message_type, msg.id, log);
+
         if (!permanentUrl && evolutionUrl && evolutionKey && msg.external_id) {
-          console.log(`[MIGRATE] CDN failed, trying API fallback. external_id=${msg.external_id}, connId=${msg.whatsapp_connection_id}`);
+          log.info("CDN failed, trying API fallback", { messageId: msg.id });
           const connId = msg.whatsapp_connection_id;
           const instance = connId ? instanceMap.get(connId) : null;
-          
-          // If no direct connection, try all instances
           const instancesToTry = instance ? [instance] : Array.from(instanceMap.values());
-          
+
           for (const inst of instancesToTry) {
-            console.log(`[MIGRATE] Trying getBase64 API for ${msg.id} on instance ${inst}`);
             permanentUrl = await getBase64Fallback(
               supabase, evolutionUrl, evolutionKey, inst,
-              msg.external_id, msg.message_type, msg.id
+              msg.external_id, msg.message_type, msg.id, log
             );
             if (permanentUrl) break;
           }
         }
 
         if (permanentUrl) {
-          await supabase
-            .from('messages')
-            .update({ media_url: permanentUrl })
-            .eq('id', msg.id);
+          await supabase.from('messages').update({ media_url: permanentUrl }).eq('id', msg.id);
           migrated++;
           details.push(`✅ ${msg.message_type} ${msg.id.substring(0, 8)}`);
         } else {
@@ -96,53 +83,51 @@ serve(async (req) => {
           details.push(`❌ ${msg.message_type} ${msg.id.substring(0, 8)} (irrecuperável)`);
         }
       } catch (err) {
-        console.error(`[MIGRATE] Error for ${msg.id}:`, err);
+        log.error(`Migration error for ${msg.id}`, { error: err instanceof Error ? err.message : String(err) });
         failed++;
         details.push(`❌ ${msg.message_type} ${msg.id.substring(0, 8)} (erro)`);
       }
 
-      // Rate limit between items
       await new Promise(r => setTimeout(r, 300));
     }
 
-    return new Response(JSON.stringify({
+    log.done(200, { migrated, failed });
+    return jsonResponse({
       success: true,
       processed: messages.length,
       migrated,
       failed,
       details,
-      message: migrated > 0 
+      message: migrated > 0
         ? `${migrated} mídias migradas para Storage permanente.`
         : `Nenhuma mídia pôde ser recuperada. ${failed} arquivos com URLs expiradas.`,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    }, 200, req);
   } catch (err: unknown) {
-    console.error('Migration error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log.error('Migration error', { error: err instanceof Error ? err.message : String(err) });
+    log.done(500);
+    return errorResponse(err instanceof Error ? err.message : 'Unknown error', 500, req);
   }
 });
 
 async function downloadAndUpload(
-  supabase: any, // deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   cdnUrl: string,
   messageType: string,
   messageId: string,
+  log: Logger,
 ): Promise<string | null> {
   try {
     const resp = await fetch(cdnUrl, { signal: AbortSignal.timeout(15000) });
     if (!resp.ok) {
-      console.error(`[MIGRATE] Download failed for ${messageId}: ${resp.status}`);
+      log.warn(`Download failed for ${messageId}`, { status: resp.status });
       return null;
     }
 
     const arrayBuf = await resp.arrayBuffer();
     const bytes = new Uint8Array(arrayBuf);
     if (bytes.length < 100) {
-      console.error(`[MIGRATE] File too small for ${messageId}`);
+      log.warn(`File too small for ${messageId}`, { size: bytes.length });
       return null;
     }
 
@@ -150,26 +135,28 @@ async function downloadAndUpload(
     const ext = detectExtension(contentType, messageType);
     return await uploadToStorage(supabase, bytes, contentType, messageType, messageId, ext);
   } catch (err) {
-    console.error(`[MIGRATE] Download error for ${messageId}:`, err);
+    log.error(`Download error for ${messageId}`, { error: err instanceof Error ? err.message : String(err) });
     return null;
   }
 }
 
 async function getBase64Fallback(
-  supabase: any, // deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   evolutionUrl: string,
   evolutionKey: string,
   instance: string,
   externalId: string,
   messageType: string,
   messageId: string,
+  log: Logger,
 ): Promise<string | null> {
   try {
     const baseUrl = evolutionUrl.replace(/\/+$/, '');
     const resp = await fetch(`${baseUrl}/chat/getBase64FromMediaMessage/${instance}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': evolutionKey },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         message: { key: { id: externalId } },
         convertToMp4: false,
       }),
@@ -177,17 +164,13 @@ async function getBase64Fallback(
     });
 
     if (!resp.ok) {
-      const errText = await resp.text();
-      console.error(`[MIGRATE] getBase64 API error (${resp.status}): ${errText.substring(0, 200)}`);
+      log.warn(`getBase64 API error for ${messageId}`, { status: resp.status });
       return null;
     }
 
     const result = await resp.json();
     const b64 = (result.base64 as string) || (result.data as string) || (result.media as string);
-    if (!b64) {
-      console.error(`[MIGRATE] No base64 in API response for ${messageId}`);
-      return null;
-    }
+    if (!b64) return null;
 
     const raw = b64.includes(',') ? b64.split(',')[1] : b64;
     const binaryStr = atob(raw);
@@ -200,7 +183,7 @@ async function getBase64Fallback(
     const ext = detectExtension(mimeType, messageType);
     return await uploadToStorage(supabase, bytes, mimeType, messageType, messageId, ext);
   } catch (err) {
-    console.error(`[MIGRATE] getBase64 error for ${messageId}:`, err);
+    log.error(`getBase64 error for ${messageId}`, { error: err instanceof Error ? err.message : String(err) });
     return null;
   }
 }
@@ -213,13 +196,14 @@ function detectExtension(contentType: string, messageType: string): string {
   if (contentType.includes('ogg') || contentType.includes('opus')) return 'ogg';
   if (contentType.includes('mpeg')) return 'mp3';
   if (contentType.includes('pdf')) return 'pdf';
-  
+
   const defaults: Record<string, string> = { image: 'jpg', video: 'mp4', audio: 'ogg', document: 'bin' };
   return defaults[messageType] || 'bin';
 }
 
 async function uploadToStorage(
-  supabase: any, // deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   bytes: Uint8Array,
   contentType: string,
   messageType: string,
@@ -240,13 +224,14 @@ async function uploadToStorage(
   }
 
   const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
-  console.log(`[MIGRATE] ${messageType} ${messageId.substring(0, 8)} → ${urlData.publicUrl} (${(bytes.length / 1024).toFixed(1)}KB)`);
   return urlData.publicUrl;
 }
 
 async function migrateSimple(
-  supabase: any, // deno-lint-ignore no-explicit-any
-  corsHeaders: Record<string, string>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  req: Request,
+  log: Logger,
 ): Promise<Response> {
   const { data: messages, error } = await supabase
     .from('messages')
@@ -258,16 +243,14 @@ async function migrateSimple(
 
   if (error) throw error;
   if (!messages?.length) {
-    return new Response(JSON.stringify({ success: true, processed: 0, migrated: 0, message: 'Nada a migrar.' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ success: true, processed: 0, migrated: 0, message: 'Nada a migrar.' }, 200, req);
   }
 
   let migrated = 0;
   let failed = 0;
 
   for (const msg of messages) {
-    const url = await downloadAndUpload(supabase, msg.media_url, msg.message_type, msg.id);
+    const url = await downloadAndUpload(supabase, msg.media_url, msg.message_type, msg.id, log);
     if (url) {
       await supabase.from('messages').update({ media_url: url }).eq('id', msg.id);
       migrated++;
@@ -277,7 +260,6 @@ async function migrateSimple(
     await new Promise(r => setTimeout(r, 300));
   }
 
-  return new Response(JSON.stringify({ success: true, processed: messages.length, migrated, failed }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+  log.done(200, { migrated, failed });
+  return jsonResponse({ success: true, processed: messages.length, migrated, failed }, 200, req);
 }
