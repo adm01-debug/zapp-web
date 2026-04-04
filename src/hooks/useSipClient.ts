@@ -1,4 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SipClient');
 import { UserAgent, Registerer, Inviter, SessionState, Web } from 'sip.js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
