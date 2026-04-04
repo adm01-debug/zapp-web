@@ -50,7 +50,7 @@ export function usePerformanceSnapshots() {
       } as any) as any);
     } catch (err) {
       // Silent fail — don't interrupt UX for telemetry
-      console.warn('Failed to save performance snapshot:', err);
+      log.warn('Failed to save performance snapshot:', err);
     }
   }, [profile?.id]);
 
