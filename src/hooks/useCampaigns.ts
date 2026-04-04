@@ -61,7 +61,7 @@ export function useCampaigns() {
 
   const updateCampaign = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Campaign> & { id: string }) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('campaigns')
         .update(updates)
         .eq('id', id)
