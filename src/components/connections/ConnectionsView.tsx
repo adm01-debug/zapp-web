@@ -101,37 +101,6 @@ export function ConnectionsView() {
     connectionName: string;
   }>({ open: false, instanceName: '', connectionName: '' });
 
-  const handleDelete = async (connection: WhatsAppConnection) => {
-    try {
-      // Delete Evolution instance if exists
-      if (connection.instance_id) {
-        await deleteInstance(connection.instance_id).catch(() => {});
-      }
-
-      const { error } = await supabase.from('whatsapp_connections').delete().eq('id', connection.id);
-      if (!error) {
-        setConnections(connections.filter((conn) => conn.id !== connection.id));
-        toast({
-          title: 'Conexão removida',
-          description: 'A conexão foi excluída com sucesso.',
-        });
-      }
-    } catch (error: unknown) {
-      toast({
-        title: 'Erro ao excluir',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const closeQrDialog = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
-    }
-    setQrCodeDialog({ open: false, connectionId: '', connectionName: '', qrCode: null, status: 'loading' });
-  };
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
