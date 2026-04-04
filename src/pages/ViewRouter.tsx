@@ -5,7 +5,7 @@ import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAriaAnnouncer } from '@/hooks/useAriaAnnouncer';
 import { ErrorBoundaryWithRetry } from '@/components/ui/error-boundary-retry';
-import { ViewHeader } from '@/components/layout/ViewHeader';
+
 import * as Views from './lazyViews';
 
 interface ViewRouterProps {
@@ -25,27 +25,12 @@ const FULL_SCREEN_VIEWS = new Set(['inbox', 'pipeline', 'omni-inbox', 'team-chat
 interface WithHeaderProps {
   viewId: string;
   children: React.ReactNode;
-  canGoBack?: boolean;
-  canGoForward?: boolean;
-  onGoBack?: () => void;
-  onGoForward?: () => void;
-  breadcrumbTrail?: string[];
-  onNavigateTo?: (viewId: string) => void;
 }
 
-function WithHeader({ viewId, children, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: WithHeaderProps) {
+function WithHeader({ viewId, children }: WithHeaderProps) {
   if (FULL_SCREEN_VIEWS.has(viewId)) return <>{children}</>;
   return (
     <div className="flex flex-col h-full">
-      <ViewHeader
-        viewId={viewId}
-        canGoBack={canGoBack}
-        canGoForward={canGoForward}
-        onGoBack={onGoBack}
-        onGoForward={onGoForward}
-        breadcrumbTrail={breadcrumbTrail}
-        onNavigateTo={onNavigateTo}
-      />
       <div className="flex-1 min-h-0 overflow-auto p-6">{children}</div>
     </div>
   );
@@ -139,15 +124,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
   }, [currentView, userId]);
 
   return (
-    <WithHeader
-      viewId={currentView}
-      canGoBack={canGoBack}
-      canGoForward={canGoForward}
-      onGoBack={onGoBack}
-      onGoForward={onGoForward}
-      breadcrumbTrail={breadcrumbTrail}
-      onNavigateTo={onNavigateTo}
-    >
+    <WithHeader viewId={currentView}>
       <AnimatePresence mode="wait">
         <motion.div
           key={currentView}
