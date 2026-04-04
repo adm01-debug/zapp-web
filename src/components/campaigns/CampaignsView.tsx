@@ -63,7 +63,7 @@ export function CampaignsView() {
   };
 
   const handleCreate = useCallback(() => {
-    createCampaign.mutate(form, {
+    createCampaign.mutate({ ...form, target_type: form.target_type as 'all' | 'custom' | 'queue' | 'tag' }, {
       onSuccess: () => {
         setShowCreate(false);
         setForm({ name: '', description: '', message_content: '', message_type: 'text', target_type: 'all', send_interval_seconds: 5 });
