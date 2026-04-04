@@ -112,7 +112,7 @@ function RFMDistribution() {
   const segColors: Record<string, string> = {
     Champions: 'bg-emerald-500', 'Loyal Customers': 'bg-blue-500',
     'Potential Loyalist': 'bg-sky-500', 'At Risk': 'bg-red-500',
-    Hibernating: 'bg-gray-400', Lost: 'bg-gray-300',
+    Hibernating: 'bg-muted-foreground', Lost: 'bg-muted-foreground/60',
     "Can't Lose Them": 'bg-rose-500', 'Need Attention': 'bg-amber-500',
     Promising: 'bg-indigo-500',
   };

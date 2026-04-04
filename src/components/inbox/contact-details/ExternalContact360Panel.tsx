@@ -74,7 +74,7 @@ function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
   const barColors: Record<string, string> = {
     Champions: 'bg-emerald-500', 'Loyal Customers': 'bg-blue-500',
     'Potential Loyalist': 'bg-sky-500', 'At Risk': 'bg-red-500',
-    Hibernating: 'bg-gray-500', Lost: 'bg-gray-400',
+    Hibernating: 'bg-muted-foreground', Lost: 'bg-muted-foreground/60',
     "Can't Lose Them": 'bg-rose-500',
   };
   const color = segmentColors[rfm.segment_code || ''] || 'bg-muted/30 text-muted-foreground border-border/30';
