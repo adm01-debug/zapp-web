@@ -123,7 +123,7 @@ describe('CRM360 Component Structure', () => {
 
   it('ExternalContact360Panel exports correctly', async () => {
     const mod = await import('@/components/inbox/contact-details/ExternalContact360Panel');
-    expect(mod.default).toBeDefined();
+    expect(mod.ExternalContact360Panel).toBeDefined();
   });
 });
 
