@@ -1,10 +1,10 @@
 /**
  * useExternalDB — Generic hook for querying any table in the external CRM database
- * Routes through external-db-bridge edge function for security + telemetry
+ * Uses externalSupabase client directly (secured by RLS policies on the external DB)
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { externalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
 import type {
   ExternalDBFilter,
   ExternalDBOrder,
@@ -12,18 +12,52 @@ import type {
   ExternalTableName,
 } from '@/types/externalDB';
 
-// ─── Bridge invoke helper ─────────────────────────────────────
-async function invokeBridge<T = unknown>(body: Record<string, unknown>): Promise<ExternalDBQueryResult<T>> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
+// ─── Direct query helper ──────────────────────────────────────
+async function queryExternal<T = unknown>(params: {
+  table: string;
+  select?: string;
+  filters?: ExternalDBFilter[];
+  order?: ExternalDBOrder;
+  limit?: number;
+  offset?: number;
+  countMode?: 'exact' | 'planned' | 'estimated';
+}): Promise<ExternalDBQueryResult<T>> {
+  const start = performance.now();
+
+  let query = externalSupabase
+    .from(params.table)
+    .select(params.select || '*', { count: params.countMode || undefined });
+
+  if (params.filters) {
+    for (const f of params.filters) {
+      query = query.filter(f.column, f.operator, f.value as string);
+    }
+  }
+
+  if (params.order) {
+    query = query.order(params.order.column, { ascending: params.order.ascending ?? true });
+  }
+
+  const limit = params.limit || 50;
+  const offset = params.offset || 0;
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+  const duration = Math.round(performance.now() - start);
+
   if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
+
   return {
-    data: Array.isArray(data?.data) ? data.data : data?.data ? [data.data] : [],
-    meta: data?.meta || { record_count: null, duration_ms: 0, severity: 'ok' },
+    data: (data as T[]) || [],
+    meta: {
+      record_count: count ?? (Array.isArray(data) ? data.length : null),
+      duration_ms: duration,
+      severity: duration > 3000 ? 'slow' : 'ok',
+    },
   };
 }
 
-// ─── Select query ─────────────────────────────────────────────
+// ─── Select query hook ────────────────────────────────────────
 interface UseExternalSelectOptions<T> {
   table: ExternalTableName | string;
   select?: string;
@@ -41,22 +75,22 @@ export function useExternalSelect<T = Record<string, unknown>>(options: UseExter
 
   return useQuery({
     queryKey: ['external-db', table, { select, filters, order, limit, offset, countMode }],
-    queryFn: () => invokeBridge<T>({
-      action: 'select',
+    queryFn: () => queryExternal<T>({
       table,
-      params: { select, filters },
-      ...(order && { params: { select, filters, order } }),
+      select,
+      filters,
+      order,
       limit,
       offset,
       countMode,
     }),
-    enabled,
+    enabled: enabled && isExternalConfigured,
     staleTime,
     gcTime: staleTime * 2,
   });
 }
 
-// ─── RPC call ─────────────────────────────────────────────────
+// ─── RPC call hook ────────────────────────────────────────────
 interface UseExternalRPCOptions {
   rpc: string;
   params?: Record<string, unknown>;
@@ -68,14 +102,16 @@ export function useExternalRPC<T = unknown>(options: UseExternalRPCOptions) {
   return useQuery({
     queryKey: ['external-db', 'rpc', options.rpc, options.params],
     queryFn: async () => {
-      const result = await invokeBridge<T>({
-        action: 'rpc',
-        rpc: options.rpc,
-        params: options.params || {},
-      });
-      return result;
+      const start = performance.now();
+      const { data, error } = await externalSupabase.rpc(options.rpc, options.params || {});
+      const duration = Math.round(performance.now() - start);
+      if (error) throw new Error(error.message);
+      return {
+        data: Array.isArray(data) ? data as T[] : [data as T],
+        meta: { record_count: Array.isArray(data) ? data.length : 1, duration_ms: duration, severity: 'ok' as string },
+      };
     },
-    enabled: options.enabled ?? true,
+    enabled: (options.enabled ?? true) && isExternalConfigured,
     staleTime: options.staleTime ?? 10 * 60 * 1000,
   });
 }
@@ -147,7 +183,7 @@ export function useExternalTableBrowser<T = Record<string, unknown>>(tableName: 
   };
 }
 
-// ─── Mutation (insert/update/delete) ──────────────────────────
+// ─── Mutation (insert/update/delete via external client) ──────
 export function useExternalMutation() {
   const queryClient = useQueryClient();
 
@@ -155,9 +191,32 @@ export function useExternalMutation() {
     mutationFn: async (params: {
       action: 'insert' | 'update' | 'delete';
       table: string;
-      params: Record<string, unknown>;
+      data?: Record<string, unknown> | Record<string, unknown>[];
+      match?: Record<string, unknown>;
     }) => {
-      return invokeBridge(params);
+      if (params.action === 'insert') {
+        const { data, error } = await externalSupabase.from(params.table).insert(params.data as any).select();
+        if (error) throw new Error(error.message);
+        return data;
+      }
+      if (params.action === 'update') {
+        let q = externalSupabase.from(params.table).update(params.data as any);
+        if (params.match) {
+          for (const [k, v] of Object.entries(params.match)) q = q.eq(k, v as string);
+        }
+        const { data, error } = await q.select();
+        if (error) throw new Error(error.message);
+        return data;
+      }
+      if (params.action === 'delete') {
+        let q = externalSupabase.from(params.table).delete();
+        if (params.match) {
+          for (const [k, v] of Object.entries(params.match)) q = q.eq(k, v as string);
+        }
+        const { data, error } = await q.select();
+        if (error) throw new Error(error.message);
+        return data;
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['external-db', variables.table] });
