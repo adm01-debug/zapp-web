@@ -291,7 +291,7 @@ export function ChatbotFlowsView() {
             </div>
             <div>
               <Label>Tipo de gatilho</Label>
-              <Select value={form.trigger_type} onValueChange={(v: string) => setForm(f => ({ ...f, trigger_type: v }))}>
+              <Select value={form.trigger_type} onValueChange={(v: string) => setForm(f => ({ ...f, trigger_type: v as TriggerType }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="keyword">Palavra-chave</SelectItem>

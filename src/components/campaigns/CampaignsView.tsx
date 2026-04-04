@@ -275,7 +275,7 @@ export function CampaignsView() {
               </div>
               <div>
                 <Label>Público-alvo</Label>
-                <Select value={form.target_type} onValueChange={(v: string) => setForm(f => ({ ...f, target_type: v }))}>
+                <Select value={form.target_type} onValueChange={(v: string) => setForm(f => ({ ...f, target_type: v as TargetType }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os contatos</SelectItem>
