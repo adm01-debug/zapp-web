@@ -230,7 +230,7 @@ function AutomationEditorDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   automation?: AutomationRow | null;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: Partial<AutomationRow>) => Promise<void>;
 }) {
   const [name, setName] = useState(automation?.name || '');
   const [description, setDescription] = useState(automation?.description || '');
