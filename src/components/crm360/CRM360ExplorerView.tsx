@@ -1,6 +1,6 @@
 /**
  * CRM360ExplorerView — Full CRM 360° data explorer
- * Browse ALL tables from the external CRM database with filters, pagination, search and export
+ * Browse ALL tables from the external CRM database with filters, pagination, search, export, and CRUD
  */
 import { useState, useMemo, useCallback } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   Search, Building2, Users, ShoppingCart, MessageSquare, BarChart3,
   Share2, MapPin, Phone, Mail, Truck, Package, Trophy, RefreshCw,
-  ChevronLeft, ChevronRight, X, Download, ArrowUpDown,
+  ChevronLeft, ChevronRight, X, Download, ArrowUpDown, Plus, Pencil,
   DollarSign, User, Activity, Calendar, Zap, FileText, Target,
   Briefcase, Tag, Globe, Layers, ClipboardList, StickyNote, CreditCard,
 } from 'lucide-react';
@@ -24,6 +24,8 @@ import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CRM360StatsCards } from './CRM360StatsCards';
+import { CompanyFormDialog } from './CompanyFormDialog';
+import { ContactFormDialog } from './ContactFormDialog';
 import type { ExternalTableName } from '@/types/externalDB';
 
 // ─── Tab configuration ───────────────────────────────────────
@@ -33,6 +35,7 @@ interface TabConfig {
   icon: React.ElementType;
   description: string;
   searchColumn?: string;
+  editable?: boolean;
   columns: { key: string; label: string; format?: 'date' | 'currency' | 'boolean' | 'number' }[];
 }
 
@@ -43,6 +46,7 @@ const TABS: TabConfig[] = [
     icon: Building2,
     description: '57k+ empresas — razão social, CNPJ, ramo de atividade',
     searchColumn: 'nome_fantasia',
+    editable: true,
     columns: [
       { key: 'nome_fantasia', label: 'Fantasia' },
       { key: 'razao_social', label: 'Razão Social' },
@@ -60,6 +64,7 @@ const TABS: TabConfig[] = [
     icon: Users,
     description: '4.7k+ contatos — nome, cargo, empresa, score',
     searchColumn: 'full_name',
+    editable: true,
     columns: [
       { key: 'full_name', label: 'Nome' },
       { key: 'cargo', label: 'Cargo' },
@@ -608,7 +613,7 @@ function RFMBadge({ segment }: { segment: string | null }) {
 }
 
 // ─── Generic Data Table ──────────────────────────────────────
-function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
+function DataExplorerTable({ tabConfig, onRowClick, onCreateClick }: { tabConfig: TabConfig; onRowClick?: (row: Record<string, unknown>) => void; onCreateClick?: () => void }) {
   const browser = useExternalTableBrowser(tabConfig.id as ExternalTableName);
   const [searchInput, setSearchInput] = useState('');
 
@@ -692,6 +697,12 @@ function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
           <Download className="h-3.5 w-3.5 mr-1" /> CSV
         </Button>
 
+        {onCreateClick && (
+          <Button size="sm" onClick={onCreateClick} className="h-9">
+            <Plus className="h-3.5 w-3.5 mr-1" /> Novo
+          </Button>
+        )}
+
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
           {browser.totalRecords > 0 && (
             <Badge variant="secondary" className="text-[10px]">
@@ -748,7 +759,7 @@ function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
                 </TableRow>
               ) : (
                 browser.data.map((row: any, idx: number) => (
-                  <TableRow key={row.id || idx} className="hover:bg-muted/30">
+                  <TableRow key={row.id || idx} className={`hover:bg-muted/30 ${onRowClick ? 'cursor-pointer' : ''}`} onClick={() => onRowClick?.(row)}>
                     <TableCell className="text-muted-foreground text-[10px]">
                       {browser.page * browser.pageSize + idx + 1}
                     </TableCell>
@@ -798,6 +809,35 @@ function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
 // ─── Main Component ──────────────────────────────────────────
 export function CRM360ExplorerView() {
   const [activeTab, setActiveTab] = useState<string>(TABS[0].id);
+  const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<Record<string, unknown> | null>(null);
+  const [editingContact, setEditingContact] = useState<Record<string, unknown> | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRowClick = useCallback((tabId: string, row: Record<string, unknown>) => {
+    if (tabId === 'companies') {
+      setEditingCompany(row);
+      setCompanyDialogOpen(true);
+    } else if (tabId === 'contacts') {
+      setEditingContact(row);
+      setContactDialogOpen(true);
+    }
+  }, []);
+
+  const handleCreateClick = useCallback((tabId: string) => {
+    if (tabId === 'companies') {
+      setEditingCompany(null);
+      setCompanyDialogOpen(true);
+    } else if (tabId === 'contacts') {
+      setEditingContact(null);
+      setContactDialogOpen(true);
+    }
+  }, []);
+
+  const handleSuccess = useCallback(() => {
+    setRefreshKey(k => k + 1);
+  }, []);
 
   if (!isExternalConfigured) {
     return (
@@ -852,6 +892,7 @@ export function CRM360ExplorerView() {
                 >
                   <Icon className="h-3 w-3" />
                   {tab.label}
+                  {tab.editable && <Pencil className="h-2.5 w-2.5 text-primary/60" />}
                 </TabsTrigger>
               );
             })}
@@ -868,19 +909,43 @@ export function CRM360ExplorerView() {
                       <CardTitle className="text-sm flex items-center gap-2">
                         {(() => { const Icon = tab.icon; return <Icon className="h-4 w-4 text-primary" />; })()}
                         {tab.label}
+                        {tab.editable && (
+                          <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
+                            <Pencil className="h-2.5 w-2.5 mr-0.5" /> Editável
+                          </Badge>
+                        )}
                       </CardTitle>
                       <CardDescription className="text-[11px] mt-0.5">{tab.description}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <DataExplorerTable tabConfig={tab} />
+                  <DataExplorerTable
+                    key={refreshKey}
+                    tabConfig={tab}
+                    onRowClick={tab.editable ? (row) => handleRowClick(tab.id, row) : undefined}
+                    onCreateClick={tab.editable ? () => handleCreateClick(tab.id) : undefined}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
           ))}
         </div>
       </Tabs>
+
+      {/* CRUD Modals */}
+      <CompanyFormDialog
+        open={companyDialogOpen}
+        onOpenChange={setCompanyDialogOpen}
+        company={editingCompany}
+        onSuccess={handleSuccess}
+      />
+      <ContactFormDialog
+        open={contactDialogOpen}
+        onOpenChange={setContactDialogOpen}
+        contact={editingContact}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }
