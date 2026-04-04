@@ -264,6 +264,24 @@ export function AdminView() {
 
     setCreatingUser(true);
     try {
+      // Upload avatar if file selected
+      let avatarUrl: string | undefined;
+      if (newUserAvatarFile) {
+        setUploadingAvatar(true);
+        const fileExt = newUserAvatarFile.name.split('.').pop();
+        const filePath = `${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, newUserAvatarFile);
+        setUploadingAvatar(false);
+        if (uploadError) {
+          toast.error('Erro ao fazer upload da foto');
+          setCreatingUser(false);
+          return;
+        }
+        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        avatarUrl = urlData.publicUrl;
+      }
       const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
