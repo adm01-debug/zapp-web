@@ -30,17 +30,9 @@ export function ThemeCustomizer() {
           </h3>
           <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => importTheme((t) => setTheme(t as 'light' | 'dark' | 'system'))}>
-            <Upload className="w-4 h-4 mr-1" /> Importar
-          </Button>
-          <Button variant="outline" size="sm" onClick={exportTheme}>
-            <Download className="w-4 h-4 mr-1" /> Exportar
-          </Button>
-          <Button variant="ghost" size="sm" onClick={resetTheme}>
-            <RotateCcw className="w-4 h-4 mr-1" /> Reset
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" onClick={resetTheme}>
+          <RotateCcw className="w-4 h-4 mr-1" /> Reset
+        </Button>
       </div>
 
       {/* Mode Toggle */}
