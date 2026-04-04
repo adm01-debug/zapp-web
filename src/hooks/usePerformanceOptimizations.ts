@@ -170,7 +170,7 @@ export function useMemoryPressure() {
 
   useEffect(() => {
     if ('deviceMemory' in navigator) {
-      const memory = (navigator as any).deviceMemory as number;
+      const memory = navigator.deviceMemory ?? 8;
       setIsLowMemory(memory < 4);
     }
 
