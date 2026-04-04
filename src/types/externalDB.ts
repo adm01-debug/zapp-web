@@ -433,6 +433,8 @@ export interface ExternalDBRPCParams {
 // ─── Table registry (for UI rendering) ────────────────────────
 
 export type ExternalTableName =
+  | 'companies'
+  | 'contacts'
   | 'customers'
   | 'contact_phones'
   | 'contact_emails'
@@ -451,9 +453,30 @@ export type ExternalTableName =
   | 'achievements'
   | 'daily_challenges'
   | 'weekly_challenges'
-  | 'interactions';
+  | 'interactions'
+  | 'orders'
+  | 'order_items'
+  | 'products'
+  | 'leads'
+  | 'pipelines'
+  | 'pipeline_stages'
+  | 'deals'
+  | 'deal_products'
+  | 'quotations'
+  | 'quotation_items'
+  | 'tasks'
+  | 'notes'
+  | 'tags'
+  | 'company_tags'
+  | 'contact_tags_ext'
+  | 'payment_conditions'
+  | 'price_tables'
+  | 'regions'
+  | 'segments';
 
 export const EXTERNAL_TABLE_LABELS: Record<ExternalTableName, string> = {
+  companies: 'Empresas',
+  contacts: 'Contatos',
   customers: 'Clientes',
   contact_phones: 'Telefones (Contatos)',
   contact_emails: 'E-mails (Contatos)',
@@ -473,4 +496,23 @@ export const EXTERNAL_TABLE_LABELS: Record<ExternalTableName, string> = {
   daily_challenges: 'Desafios Diários',
   weekly_challenges: 'Desafios Semanais',
   interactions: 'Interações',
+  orders: 'Pedidos',
+  order_items: 'Itens de Pedido',
+  products: 'Produtos',
+  leads: 'Leads',
+  pipelines: 'Pipelines',
+  pipeline_stages: 'Etapas do Pipeline',
+  deals: 'Negócios',
+  deal_products: 'Produtos do Negócio',
+  quotations: 'Orçamentos',
+  quotation_items: 'Itens de Orçamento',
+  tasks: 'Tarefas',
+  notes: 'Notas',
+  tags: 'Tags',
+  company_tags: 'Tags (Empresas)',
+  contact_tags_ext: 'Tags (Contatos)',
+  payment_conditions: 'Condições de Pagamento',
+  price_tables: 'Tabelas de Preço',
+  regions: 'Regiões',
+  segments: 'Segmentos',
 };
