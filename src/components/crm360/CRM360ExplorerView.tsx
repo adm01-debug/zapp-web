@@ -697,6 +697,12 @@ function DataExplorerTable({ tabConfig, onRowClick, onCreateClick }: { tabConfig
           <Download className="h-3.5 w-3.5 mr-1" /> CSV
         </Button>
 
+        {onCreateClick && (
+          <Button size="sm" onClick={onCreateClick} className="h-9">
+            <Plus className="h-3.5 w-3.5 mr-1" /> Novo
+          </Button>
+        )}
+
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
           {browser.totalRecords > 0 && (
             <Badge variant="secondary" className="text-[10px]">
