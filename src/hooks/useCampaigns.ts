@@ -30,7 +30,7 @@ export function useCampaigns() {
     mutationFn: async (campaign: Partial<Campaign>) => {
       const { data, error } = await supabase
         .from('campaigns')
-        .insert(campaign as Parameters<typeof supabase.from<'campaigns'>>[0] extends infer _T ? Record<string, unknown> : never)
+        .insert(campaign as unknown as CampaignInsert)
         .select()
         .single();
       if (error) throw error;
