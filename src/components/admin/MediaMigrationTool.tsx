@@ -109,7 +109,7 @@ export function MediaMigrationTool() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               {result.success ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
+                <CheckCircle className="w-5 h-5 text-success" />
               ) : (
                 <XCircle className="w-5 h-5 text-destructive" />
               )}
