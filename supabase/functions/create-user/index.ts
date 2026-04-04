@@ -95,7 +95,40 @@ Deno.serve(async (req) => {
 
       if (gmailError) {
         log.error("Gmail account creation failed", { error: gmailError.message });
-        // Don't fail the whole request, user was already created
+      }
+
+      // Create Google service accounts linked to same email
+      if (google_services && google_services.length > 0) {
+        const serviceRows = google_services.map((svc: string) => ({
+          user_id: newUser.user!.id,
+          service_type: svc,
+          account_email: gmail_email,
+          is_active: true,
+        }));
+
+        const { error: svcError } = await adminClient
+          .from("user_service_accounts")
+          .insert(serviceRows);
+
+        if (svcError) {
+          log.error("Service accounts creation failed", { error: svcError.message });
+        }
+      }
+    }
+
+    // If a Dropbox email was provided, create the service account
+    if (dropbox_email && newUser.user) {
+      const { error: dropboxError } = await adminClient
+        .from("user_service_accounts")
+        .insert({
+          user_id: newUser.user.id,
+          service_type: "dropbox",
+          account_email: dropbox_email,
+          is_active: true,
+        });
+
+      if (dropboxError) {
+        log.error("Dropbox account creation failed", { error: dropboxError.message });
       }
     }
 
