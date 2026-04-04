@@ -70,7 +70,7 @@ function IntegrationForm({
               ) : (
                 <Input
                   type={type}
-                  value={values[key] ?? ''}
+                  value={String(values[key] ?? '')}
                   onChange={(e) => onChange(key, type === 'number' ? Number(e.target.value) : e.target.value)}
                   placeholder={placeholder}
                   className="mt-1"
