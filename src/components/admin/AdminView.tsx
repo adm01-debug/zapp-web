@@ -274,6 +274,10 @@ export function AdminView() {
           },
           body: JSON.stringify({
             name: newUserName,
+            nickname: newUserNickname || undefined,
+            signature: newUserSignature || undefined,
+            job_title: newUserJobTitle || undefined,
+            avatar_url: newUserAvatarUrl || undefined,
             email: newUserEmail,
             password: newUserPassword,
             role: newUserRole,
