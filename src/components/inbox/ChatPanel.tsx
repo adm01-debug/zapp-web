@@ -123,7 +123,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       
       if (contact?.whatsapp_connection_id) {
         setWhatsappConnectionId(contact.whatsapp_connection_id);
-        const { data: conn } = await (supabase as any)
+        const { data: conn } = await supabase
           .from('whatsapp_connections')
           .select('instance_id')
           .eq('id', contact.whatsapp_connection_id)
