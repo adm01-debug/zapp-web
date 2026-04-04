@@ -205,7 +205,7 @@ export default function AdminTelemetriaPage() {
       case "very_slow":
         return <Badge className="bg-destructive/20 text-destructive border-destructive/30 text-[10px]">🔴 Muito Lenta</Badge>;
       case "slow":
-        return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30 text-[10px]">🟡 Lenta</Badge>;
+        return <Badge className="bg-warning/20 text-warning border-warning/30 text-[10px]">🟡 Lenta</Badge>;
       case "error":
         return <Badge className="bg-destructive/20 text-destructive border-destructive/30 text-[10px]">❌ Erro</Badge>;
       default:
@@ -259,8 +259,8 @@ export default function AdminTelemetriaPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-500/10">
-              <Clock className="h-5 w-5 text-yellow-600" />
+            <div className="p-2 rounded-lg bg-warning/10">
+              <Clock className="h-5 w-5 text-warning" />
             </div>
             <div>
               <p className="text-2xl font-bold">{slow}</p>
@@ -427,7 +427,7 @@ export default function AdminTelemetriaPage() {
                         {row.rpc_name || row.table_name || "-"}
                       </td>
                       <td className="p-3 text-right font-mono font-bold tabular-nums">
-                        <span className={row.duration_ms >= 8000 ? "text-destructive" : row.duration_ms >= 3000 ? "text-yellow-600" : ""}>
+                        <span className={row.duration_ms >= 8000 ? "text-destructive" : row.duration_ms >= 3000 ? "text-warning" : ""}>
                           {formatDuration(row.duration_ms)}
                         </span>
                       </td>

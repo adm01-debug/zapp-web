@@ -67,9 +67,9 @@ const Install = () => {
         </div>
 
         {isInstalled ? (
-          <Card className="border-green-500/30 bg-green-500/5">
+          <Card className="border-success/30 bg-success/5">
             <CardContent className="pt-6 text-center space-y-3">
-              <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
+              <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
               <p className="font-semibold text-foreground">App já instalado!</p>
               <p className="text-sm text-muted-foreground">
                 Você já pode acessar pela tela inicial do seu dispositivo.
