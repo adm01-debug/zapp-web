@@ -1303,8 +1303,10 @@ serve(async (req) => {
     });
 
   } catch (error: unknown) {
-    console.error('Evolution API error:', error);
+    const log = new Logger('evolution-api');
     const message = error instanceof Error ? error.message : 'Unknown error';
+    log.error('Unhandled error', { error: message, action: String((await json()).action || 'unknown') });
+    log.done(500);
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
