@@ -128,10 +128,10 @@ export function useSipClient() {
 
       uaRef.current = ua;
       registererRef.current = registerer;
-    } catch (err: any) {
+    } catch (err: unknown) {
       log.error('SIP connection error:', err);
       setSipStatus('error');
-      toast.error(`Erro ao conectar VoIP: ${err.message || 'Falha na conexão'}`);
+      toast.error(`Erro ao conectar VoIP: ${err instanceof Error ? err.message : 'Falha na conexão'}`);
     }
   }, []);
 
