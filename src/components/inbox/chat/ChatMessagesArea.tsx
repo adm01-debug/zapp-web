@@ -179,7 +179,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
           <StaggeredList className="space-y-3">
             {dayMessages.map((message, idx) => {
               const isSent = message.sender === 'agent';
-              const senderName = isSent ? 'Você' : (message as any).senderName || 'Contato';
+              const senderName = isSent ? 'Você' : message.senderName || 'Contato';
               // Check if next message is from same sender for grouping
               const nextMsg = dayMessages[idx + 1];
               const isLastInGroup = !nextMsg || nextMsg.sender !== message.sender;
