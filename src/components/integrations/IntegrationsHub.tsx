@@ -3,27 +3,11 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, FileSpreadsheet, Bug, ArrowRight, Calendar, Mail } from 'lucide-react';
+import { Zap, Bug, ArrowRight } from 'lucide-react';
 import { N8nIntegrationView } from './N8nIntegrationView';
-import { GoogleSheetsIntegrationView } from './GoogleSheetsIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
-import { GoogleCalendarIntegration } from './GoogleCalendarIntegration';
-import { GmailIntegration } from './GmailIntegration';
-import { consumePendingIntegrationView } from '@/lib/gmailOAuth';
 
-type IntegrationView = 'hub' | 'n8n' | 'google-sheets' | 'sentry' | 'google-calendar' | 'gmail';
-
-const integrationViews: IntegrationView[] = ['hub', 'n8n', 'google-sheets', 'sentry', 'google-calendar', 'gmail'];
-
-function getInitialIntegrationView(): IntegrationView {
-  const pendingView = consumePendingIntegrationView();
-
-  if (pendingView && integrationViews.includes(pendingView as IntegrationView)) {
-    return pendingView as IntegrationView;
-  }
-
-  return 'hub';
-}
+type IntegrationView = 'hub' | 'n8n' | 'sentry';
 
 const integrations = [
   {
@@ -35,14 +19,6 @@ const integrations = [
     status: 'available' as const,
   },
   {
-    id: 'google-sheets' as const,
-    name: 'Google Sheets',
-    description: 'Sincronize contatos, mensagens e relatórios com planilhas Google.',
-    icon: FileSpreadsheet,
-    color: 'bg-success',
-    status: 'available' as const,
-  },
-  {
     id: 'sentry' as const,
     name: 'Sentry',
     description: 'Monitoramento de erros, performance e session replays em tempo real.',
@@ -50,26 +26,10 @@ const integrations = [
     color: 'bg-[#362D59]',
     status: 'available' as const,
   },
-  {
-    id: 'google-calendar' as const,
-    name: 'Google Calendar',
-    description: 'Sincronize agendamentos e follow-ups com o Google Calendar.',
-    icon: Calendar,
-    color: 'bg-[#4285F4]',
-    status: 'available' as const,
-  },
-  {
-    id: 'gmail' as const,
-    name: 'Gmail',
-    description: 'Receba e envie emails diretamente do Zapp. Inbox unificado com OAuth seguro.',
-    icon: Mail,
-    color: 'bg-[#EA4335]',
-    status: 'available' as const,
-  },
 ];
 
 export function IntegrationsHub() {
-  const [currentView, setCurrentView] = useState<IntegrationView>(getInitialIntegrationView);
+  const [currentView, setCurrentView] = useState<IntegrationView>('hub');
 
   if (currentView === 'n8n') return (
     <div>
@@ -80,39 +40,12 @@ export function IntegrationsHub() {
     </div>
   );
 
-  if (currentView === 'google-sheets') return (
-    <div>
-      <div className="p-4 pb-0">
-        <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
-      </div>
-      <GoogleSheetsIntegrationView />
-    </div>
-  );
-
   if (currentView === 'sentry') return (
     <div>
       <div className="p-4 pb-0">
         <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
       </div>
       <SentryIntegrationView />
-    </div>
-  );
-
-  if (currentView === 'google-calendar') return (
-    <div>
-      <div className="p-4 pb-0">
-        <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
-      </div>
-      <GoogleCalendarIntegration />
-    </div>
-  );
-
-  if (currentView === 'gmail') return (
-    <div>
-      <div className="p-4 pb-0">
-        <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
-      </div>
-      <GmailIntegration />
     </div>
   );
 
@@ -132,9 +65,7 @@ export function IntegrationsHub() {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${integration.color}`}>
                     <integration.icon className="w-5 h-5 text-primary-foreground" />
                   </div>
-                  <Badge variant={integration.status === 'available' ? 'default' : 'secondary'}>
-                    {integration.status === 'available' ? 'Disponível' : 'Em Breve'}
-                  </Badge>
+                  <Badge variant="default">Disponível</Badge>
                 </div>
                 <CardTitle className="text-base mt-2">{integration.name}</CardTitle>
                 <CardDescription className="text-xs">{integration.description}</CardDescription>
@@ -142,13 +73,9 @@ export function IntegrationsHub() {
               <CardContent>
                 <Button
                   className="w-full"
-                  variant={integration.status === 'available' ? 'default' : 'outline'}
-                  disabled={integration.status !== 'available'}
-                  onClick={() => integration.status === 'available' && setCurrentView(integration.id as IntegrationView)}
+                  onClick={() => setCurrentView(integration.id)}
                 >
-                  {integration.status === 'available' ? (
-                    <>Configurar <ArrowRight className="w-4 h-4 ml-1" /></>
-                  ) : 'Em Breve'}
+                  Configurar <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </CardContent>
             </Card>
