@@ -18,7 +18,7 @@ export function safeSetItem(key: string, value: string): boolean {
     localStorage.setItem(key, value);
     return true;
   } catch {
-    console.warn(`[safeStorage] Failed to write key "${key}"`);
+    log.warn(`Failed to write key "${key}"`);
     return false;
   }
 }
