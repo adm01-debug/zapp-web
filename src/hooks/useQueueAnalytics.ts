@@ -74,9 +74,9 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
         setHourlyData(generateEmptyHourlyData());
         setAgentPerformance([]);
         setStatusData([
-          { name: 'Resolvidos', value: 0, color: '#10B981' },
-          { name: 'Em Atendimento', value: 0, color: '#3B82F6' },
-          { name: 'Aguardando', value: 0, color: '#F59E0B' },
+          { name: 'Resolvidos', value: 0, color: 'hsl(var(--primary))' },
+          { name: 'Em Atendimento', value: 0, color: 'hsl(var(--secondary))' },
+          { name: 'Aguardando', value: 0, color: 'hsl(var(--accent-foreground))' },
         ]);
         setLoading(false);
         return;
