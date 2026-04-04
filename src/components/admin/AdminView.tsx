@@ -466,12 +466,22 @@ export function AdminView() {
             <div className="space-y-4 pt-4">
               <div className="flex items-center gap-4 mb-6">
                 <Avatar className="w-16 h-16">
-                  <AvatarImage src={editingUser.avatar_url || undefined} />
+                  <AvatarImage src={editAvatarFile ? URL.createObjectURL(editAvatarFile) : (editingUser.avatar_url || undefined)} />
                   <AvatarFallback className="text-lg">{editingUser.name?.[0] || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-semibold text-lg">{editingUser.name}</p>
                   <p className="text-muted-foreground">{editingUser.email}</p>
+                  <Label htmlFor="edit_avatar" className="text-xs text-primary cursor-pointer hover:underline mt-1 inline-block">
+                    Alterar foto
+                  </Label>
+                  <Input
+                    id="edit_avatar"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => setEditAvatarFile(e.target.files?.[0] || null)}
+                  />
                 </div>
               </div>
 
@@ -485,11 +495,12 @@ export function AdminView() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit_phone">Telefone</Label>
+                  <Label htmlFor="edit_nickname">Apelido</Label>
                   <Input
-                    id="edit_phone"
-                    value={editingUser.phone || ''}
-                    onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
+                    id="edit_nickname"
+                    placeholder="Ex: Joãozinho"
+                    value={editingUser.nickname || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, nickname: e.target.value })}
                   />
                 </div>
               </div>
@@ -515,6 +526,39 @@ export function AdminView() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="edit_signature">Assinatura</Label>
+                <Input
+                  id="edit_signature"
+                  placeholder="Ex: João Silva - Suporte Técnico"
+                  value={editingUser.signature || ''}
+                  onChange={(e) => setEditingUser({ ...editingUser, signature: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">Texto usado como assinatura em mensagens</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_phone">Telefone</Label>
+                  <Input
+                    id="edit_phone"
+                    value={editingUser.phone || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_max_chats">Limite de Chats</Label>
+                  <Input
+                    id="edit_max_chats"
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={editingUser.max_chats || 5}
+                    onChange={(e) => setEditingUser({ ...editingUser, max_chats: parseInt(e.target.value) })}
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit_access_level">Nível de Acesso</Label>
@@ -536,17 +580,6 @@ export function AdminView() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit_max_chats">Limite de Chats</Label>
-                  <Input
-                    id="edit_max_chats"
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={editingUser.max_chats || 5}
-                    onChange={(e) => setEditingUser({ ...editingUser, max_chats: parseInt(e.target.value) })}
-                  />
                 </div>
               </div>
 
