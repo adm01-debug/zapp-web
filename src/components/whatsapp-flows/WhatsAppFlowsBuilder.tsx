@@ -78,7 +78,7 @@ export function WhatsAppFlowsBuilder() {
     if (data) {
       setFlows(data.map((f) => ({
         ...f,
-        screens: (Array.isArray(f.screens) ? f.screens : []) as FlowScreen[],
+        screens: (Array.isArray(f.screens) ? f.screens : []) as unknown as FlowScreen[],
       })) as WhatsAppFlow[]);
     }
     setLoading(false);
