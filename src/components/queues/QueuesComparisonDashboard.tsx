@@ -354,7 +354,7 @@ export function QueuesComparisonDashboard() {
                           </TableCell>
                           <TableCell className="text-right font-medium">{queue.totalContacts}</TableCell>
                           <TableCell className="text-right text-success">{queue.assignedContacts}</TableCell>
-                          <TableCell className="text-right text-amber-500">{queue.waitingContacts}</TableCell>
+                          <TableCell className="text-right text-accent-foreground">{queue.waitingContacts}</TableCell>
                           <TableCell className="text-right">{queue.totalMessages}</TableCell>
                           <TableCell className="text-right">{queue.avgMessagesPerContact}</TableCell>
                           <TableCell className="text-right">{queue.agentsCount}</TableCell>
