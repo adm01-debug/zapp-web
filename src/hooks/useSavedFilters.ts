@@ -166,7 +166,7 @@ export function useSavedFilters(entityType: string) {
   // Alternar compartilhamento
   const shareMutation = useMutation({
     mutationFn: async ({ id, is_shared }: { id: string; is_shared: boolean }) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('saved_filters')
         .update({ is_shared })
         .eq('id', id);
