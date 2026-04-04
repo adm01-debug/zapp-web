@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, FileSpreadsheet, Bug, CreditCard, ArrowRight } from 'lucide-react';
+import { Zap, FileSpreadsheet, Bug, ArrowRight } from 'lucide-react';
 import { N8nIntegrationView } from './N8nIntegrationView';
 import { GoogleSheetsIntegrationView } from './GoogleSheetsIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
@@ -17,7 +17,6 @@ const integrations = [
     description: 'Automação de workflows via webhooks. Conecte eventos do sistema a fluxos n8n.',
     icon: Zap,
     color: 'bg-orange-600',
-    status: 'available' as const,
   },
   {
     id: 'google-sheets' as const,
@@ -25,7 +24,6 @@ const integrations = [
     description: 'Sincronize contatos, mensagens e relatórios com planilhas Google.',
     icon: FileSpreadsheet,
     color: 'bg-green-600',
-    status: 'available' as const,
   },
   {
     id: 'sentry' as const,
@@ -33,15 +31,6 @@ const integrations = [
     description: 'Monitoramento de erros, performance e session replays em tempo real.',
     icon: Bug,
     color: 'bg-[#362D59]',
-    status: 'available' as const,
-  },
-  {
-    id: 'stripe' as const,
-    name: 'Stripe',
-    description: 'Pagamentos, assinaturas e faturamento. Requer chave API.',
-    icon: CreditCard,
-    color: 'bg-[#635BFF]',
-    status: 'coming-soon' as const,
   },
 ];
 
@@ -91,9 +80,7 @@ export function IntegrationsHub() {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${integration.color}`}>
                     <integration.icon className="w-5 h-5 text-white" />
                   </div>
-                  <Badge variant={integration.status === 'available' ? 'default' : 'secondary'}>
-                    {integration.status === 'available' ? 'Disponível' : 'Em Breve'}
-                  </Badge>
+                  <Badge variant="default">Disponível</Badge>
                 </div>
                 <CardTitle className="text-base mt-2">{integration.name}</CardTitle>
                 <CardDescription className="text-xs">{integration.description}</CardDescription>
@@ -101,13 +88,9 @@ export function IntegrationsHub() {
               <CardContent>
                 <Button
                   className="w-full"
-                  variant={integration.status === 'available' ? 'default' : 'outline'}
-                  disabled={integration.status !== 'available'}
-                  onClick={() => integration.status === 'available' && setCurrentView(integration.id as IntegrationView)}
+                  onClick={() => setCurrentView(integration.id as IntegrationView)}
                 >
-                  {integration.status === 'available' ? (
-                    <>Configurar <ArrowRight className="w-4 h-4 ml-1" /></>
-                  ) : 'Em Breve'}
+                  Configurar <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </CardContent>
             </Card>

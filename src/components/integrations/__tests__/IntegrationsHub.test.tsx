@@ -47,31 +47,18 @@ describe('IntegrationsHub', () => {
     expect(screen.getByText('n8n')).toBeInTheDocument();
     expect(screen.getByText('Google Sheets')).toBeInTheDocument();
     expect(screen.getByText('Sentry')).toBeInTheDocument();
-    expect(screen.getByText('Stripe')).toBeInTheDocument();
   });
 
-  it('shows Disponivel badge for available integrations', () => {
+  it('shows Disponivel badge for all integrations', () => {
     renderView();
     const badges = screen.getAllByText('Disponível');
     expect(badges.length).toBe(3);
   });
 
-  it('shows Em Breve badge for coming soon integrations', () => {
-    renderView();
-    const badge = screen.getAllByText('Em Breve');
-    expect(badge.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('shows Configurar button for available integrations', () => {
+  it('shows Configurar button for all integrations', () => {
     renderView();
     const configButtons = screen.getAllByRole('button').filter(b => b.textContent?.includes('Configurar'));
     expect(configButtons.length).toBe(3);
-  });
-
-  it('disables button for coming-soon integrations', () => {
-    renderView();
-    const disabledBtns = screen.getAllByRole('button').filter(b => b.hasAttribute('disabled'));
-    expect(disabledBtns.length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders integration descriptions', () => {
@@ -79,7 +66,6 @@ describe('IntegrationsHub', () => {
     expect(screen.getByText(/Automação de workflows via webhooks/)).toBeInTheDocument();
     expect(screen.getByText(/Sincronize contatos/)).toBeInTheDocument();
     expect(screen.getByText(/Monitoramento de erros/)).toBeInTheDocument();
-    expect(screen.getByText(/Pagamentos, assinaturas/)).toBeInTheDocument();
   });
 
   // ---- Navigation to sub-views ----
@@ -138,21 +124,11 @@ describe('IntegrationsHub', () => {
 
   // ---- Card layout ----
 
-  it('renders exactly 4 integration cards', () => {
+  it('renders exactly 3 integration cards', () => {
     renderView();
-    const names = ['n8n', 'Google Sheets', 'Sentry', 'Stripe'];
+    const names = ['n8n', 'Google Sheets', 'Sentry'];
     names.forEach(name => {
       expect(screen.getByText(name)).toBeInTheDocument();
     });
-  });
-
-  it('does not navigate when clicking disabled Stripe button', async () => {
-    renderView();
-    const emBreveButtons = screen.getAllByRole('button').filter(b => b.textContent === 'Em Breve');
-    if (emBreveButtons.length > 0) {
-      await userEvent.click(emBreveButtons[0]);
-    }
-    // Should still be on hub
-    expect(screen.getByText('Integrações')).toBeInTheDocument();
   });
 });
