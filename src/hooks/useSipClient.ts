@@ -319,7 +319,7 @@ export function useSipClient() {
           sessionRef.current.cancel();
         }
       } catch (err) {
-        console.error('Hangup error:', err);
+        log.error('Hangup error:', err);
       }
       sessionRef.current = null;
     }
