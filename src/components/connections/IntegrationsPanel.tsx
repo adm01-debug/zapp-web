@@ -35,8 +35,8 @@ function IntegrationForm({
   title: string;
   icon: React.ElementType;
   fields: { key: string; label: string; type?: string; placeholder?: string }[];
-  values: Record<string, any>;
-  onChange: (key: string, value: any) => void;
+  values: Record<string, unknown>;
+  onChange: (key: string, value: unknown) => void;
   onSave: () => void;
   onDelete: () => void;
   isLoading: boolean;
