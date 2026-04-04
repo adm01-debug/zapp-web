@@ -24,7 +24,7 @@ interface CAPIEvent {
   contact_id: string | null;
   pixel_id: string | null;
   action_source: string;
-  custom_data: any;
+  custom_data: Record<string, unknown>;
   sent_to_meta: boolean;
   created_at: string;
 }

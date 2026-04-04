@@ -171,7 +171,7 @@ export function EmailContactPanel({ thread, onClose }: EmailContactPanelProps) {
   );
 }
 
-function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
+function InfoRow({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value?: string | null }) {
   if (!value) return null;
   return (
     <div className="flex items-start gap-2">

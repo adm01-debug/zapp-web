@@ -485,14 +485,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       try {
         const result = await sendStickerMessage(resolvedInstance, phone, stickerUrl);
         externalId = result?.key?.id || null;
-      } catch (err: any) {
+      } catch (err: unknown) {
         // API failed — mark message as failed
         if (messageId) {
           await supabase.from('messages')
             .update({ status: 'failed' })
             .eq('id', messageId);
         }
-        const errorMessage = err?.message || 'Falha na API';
+        const errorMessage = err instanceof Error ? err.message : 'Falha na API';
         toast({ title: 'Erro ao enviar figurinha', description: errorMessage, variant: 'destructive' });
         return;
       }

@@ -66,7 +66,7 @@ export function EditContactDialog({ open, onOpenChange, contact }: EditContactDi
     const enrichedKey = ['contact-enriched', contact.id];
     const previousData = queryClient.getQueryData(enrichedKey);
 
-    queryClient.setQueryData(enrichedKey, (old: any) =>
+    queryClient.setQueryData(enrichedKey, (old: Record<string, unknown> | undefined) =>
       old ? { ...old, ...updatePayload } : old
     );
 

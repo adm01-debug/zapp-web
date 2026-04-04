@@ -359,7 +359,7 @@ export function GlobalSearch({ open, onOpenChange, onSelectResult }: GlobalSearc
             const localPhones = new Set(
               searchResults.filter(r => r.type === 'contact').map(r => r.preview.replace(/\D/g, ''))
             );
-            crmData.results.forEach((cr: any) => {
+            crmData.results.forEach((cr: Record<string, string | null>) => {
               const phone = cr.phone_primary?.replace(/\D/g, '') || '';
               if (phone && localPhones.has(phone)) return; // skip duplicates
               searchResults.push({

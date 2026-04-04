@@ -135,7 +135,7 @@ export function ChatbotExecutionsDashboard() {
               </div>
             ) : (
               <div className="divide-y divide-border/50">
-                {executions.map((exec: any) => {
+                {executions.map((exec) => {
                   const cfg = STATUS_CONFIG[exec.status] || STATUS_CONFIG.waiting;
                   const Icon = cfg.icon;
                   const duration = exec.completed_at && exec.started_at
