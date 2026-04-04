@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import {
   Shield, MessageSquare, FileText, Headphones, Brain, Users, Layers,
   Clock, Trophy, BarChart3, Download, Star, ShoppingCart, Wifi, Layout,
-  UsersRound, Phone, Wallet, Zap, Bell, CalendarClock, MapPin, Settings,
+  UsersRound, Phone, Zap, Bell, CalendarClock, MapPin, Settings,
   Lock, Accessibility, Gauge, Smartphone, Keyboard, GraduationCap,
   Plug, ClipboardList, Palette, Database, Cloud, Search, ChevronDown, ChevronRight, CheckCircle2
 } from 'lucide-react';
@@ -53,7 +53,7 @@ const sections = [
       "Documento (até 100MB)", "Localização", "Mensagens interativas (botões)",
       "Mensagens interativas (lista)", "Mensagens interativas (CTA URL)",
       "Resposta de botão", "Stickers (até 100KB)", "Mensagem encaminhada",
-      "Mensagem de produto", "Mensagem de pagamento"
+      "Mensagem de produto"
     ]
   },
   {
@@ -148,7 +148,7 @@ const sections = [
     id: 13, title: "Catálogo de Produtos e E-commerce", icon: ShoppingCart, color: "text-emerald-500",
     items: [
       "Catálogo de produtos", "Card de produto", "Gerenciamento de produtos (CRUD)",
-      "Mensagem de produto no chat", "Mensagem de pagamento (PIX, status)",
+      "Mensagem de produto no chat",
       "Carrinho de compras", "Hook do carrinho", "Gerenciador de templates WhatsApp"
     ]
   },
@@ -182,13 +182,6 @@ const sections = [
       "Diálogo de chamada", "Chamadas inbound/outbound",
       "Status (ringing/answered/ended)", "Duração e gravação",
       "Notas de chamada", "Hook de chamadas"
-    ]
-  },
-  {
-    id: 18, title: "Carteira de Clientes", icon: Wallet, color: "text-rose-500",
-    items: [
-      "Regras de carteira", "Atribuição automática por regras",
-      "Prioridade de regras", "Ativação/desativação de regras"
     ]
   },
   {
@@ -335,7 +328,7 @@ const sections = [
       "whatsapp_templates", "business_hours", "away_messages", "queues", "queue_members",
       "queue_goals", "tags", "sla_configurations", "conversation_sla", "conversation_analyses",
       "goals_configurations", "agent_stats", "agent_achievements", "calls", "products",
-      "client_wallet_rules", "audit_logs", "notifications", "login_attempts", "blocked_ips",
+      "audit_logs", "notifications", "login_attempts", "blocked_ips",
       "ip_whitelist", "blocked_countries", "allowed_countries", "geo_blocking_settings",
       "rate_limit_configs", "rate_limit_logs", "security_alerts", "password_reset_requests",
       "passkey_credentials", "webauthn_challenges", "mfa_sessions", "permissions",

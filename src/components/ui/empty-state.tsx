@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { LucideIcon, Plus, ArrowRight, Sparkles } from 'lucide-react';
+import { type LucideIcon, Plus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -11,7 +11,7 @@ interface EmptyStateProps {
   onAction?: () => void;
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
-  illustration?: 'inbox' | 'contacts' | 'queues' | 'messages' | 'data' | 'search' | 'tags' | 'transcriptions' | 'agents' | 'wallet' | 'calls' | 'notifications' | 'dashboard';
+  illustration?: 'inbox' | 'contacts' | 'queues' | 'messages' | 'data' | 'search' | 'tags' | 'transcriptions' | 'agents' | 'calls' | 'notifications' | 'dashboard';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -471,35 +471,6 @@ const illustrations: Record<string, React.ReactNode> = {
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 0.3, delay: 0.7 }}
-      />
-    </svg>
-  ),
-  wallet: (
-    <svg viewBox="0 0 200 160" className="w-full h-full" fill="none">
-      <motion.rect
-        x="38" y="48" width="124" height="74" rx="10"
-        className="fill-muted stroke-border"
-        strokeWidth="2"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-      />
-      <motion.rect
-        x="118" y="68" width="54" height="34" rx="6"
-        className="fill-primary/20 stroke-primary"
-        strokeWidth="2"
-        initial={{ x: 20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-      />
-      <motion.circle
-        cx="142" cy="85"
-        r="10"
-        className="fill-primary stroke-primary-foreground"
-        strokeWidth="2"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.3, delay: 0.5, type: 'spring' }}
       />
     </svg>
   ),

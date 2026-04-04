@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
+import { useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useDeepLinks } from '@/hooks/useDeepLinks';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +18,7 @@ import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { logAudit } from '@/lib/audit';
-import { Sparkles, MessageSquare, Users, BarChart3, Settings, Menu, Phone, Loader2 } from 'lucide-react';
+import { Sparkles, MessageSquare, Users, BarChart3, Menu, Phone, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Lazy-loaded views - only the active view is loaded
@@ -31,7 +31,6 @@ const ContactsView = lazy(() => import('@/components/contacts/ContactsView').the
 const ConnectionsView = lazy(() => import('@/components/connections/ConnectionsView').then(m => ({ default: m.ConnectionsView })));
 const TagsView = lazy(() => import('@/components/tags/TagsView').then(m => ({ default: m.TagsView })));
 const SettingsView = lazy(() => import('@/components/settings/SettingsView').then(m => ({ default: m.SettingsView })));
-const ClientWalletView = lazy(() => import('@/components/wallet/ClientWalletView').then(m => ({ default: m.ClientWalletView })));
 const AdminView = lazy(() => import('@/components/admin/AdminView').then(m => ({ default: m.AdminView })));
 const ProductManagement = lazy(() => import('@/components/catalog/ProductManagement').then(m => ({ default: m.ProductManagement })));
 const GroupsView = lazy(() => import('@/components/groups/GroupsView').then(m => ({ default: m.GroupsView })));
@@ -46,7 +45,6 @@ const IntegrationsHub = lazy(() => import('@/components/integrations/Integration
 const LGPDComplianceView = lazy(() => import('@/components/compliance/LGPDComplianceView').then(m => ({ default: m.LGPDComplianceView })));
 const SalesPipelineView = lazy(() => import('@/components/pipeline/SalesPipelineView').then(m => ({ default: m.SalesPipelineView })));
 const KnowledgeBaseView = lazy(() => import('@/components/knowledge/KnowledgeBaseView').then(m => ({ default: m.KnowledgeBaseView })));
-const PaymentLinksView = lazy(() => import('@/components/payments/PaymentLinksView').then(m => ({ default: m.PaymentLinksView })));
 const WhatsAppFlowsBuilder = lazy(() => import('@/components/whatsapp-flows/WhatsAppFlowsBuilder').then(m => ({ default: m.WhatsAppFlowsBuilder })));
 const MetaCAPIView = lazy(() => import('@/components/meta-capi/MetaCAPIView').then(m => ({ default: m.MetaCAPIView })));
 const CallsView = lazy(() => import('@/components/calls/CallsView').then(m => ({ default: m.CallsView })));
@@ -203,8 +201,6 @@ function IndexContent() {
         return <GroupsView />;
       case 'connections':
         return <ConnectionsView />;
-      case 'wallet':
-        return <ClientWalletView />;
       case 'catalog':
         return <ProductManagement />;
       case 'transcriptions':
@@ -237,8 +233,6 @@ function IndexContent() {
         return <SalesPipelineView />;
       case 'knowledge':
         return <KnowledgeBaseView />;
-      case 'payments':
-        return <PaymentLinksView />;
       case 'wa-flows':
         return <WhatsAppFlowsBuilder />;
       case 'meta-capi':
@@ -396,7 +390,7 @@ function IndexContent() {
 
 // Wrapper component with TourProvider
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
   const { completeOnboarding } = useOnboarding();
 
   if (loading) {

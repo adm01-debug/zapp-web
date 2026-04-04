@@ -31,16 +31,8 @@ import {
  * Each empty state has context-specific primary and secondary actions
  */
 
-interface ContextualAction {
-  label: string;
-  onClick: () => void;
-  icon?: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost';
-  external?: boolean;
-}
-
 interface ContextualEmptyStateProps {
-  context: 'inbox' | 'contacts' | 'queues' | 'agents' | 'tags' | 'transcriptions' | 'dashboard' | 'search' | 'notifications' | 'calls' | 'wallet' | 'messages';
+  context: 'inbox' | 'contacts' | 'queues' | 'agents' | 'tags' | 'transcriptions' | 'dashboard' | 'search' | 'notifications' | 'calls' | 'messages';
   
   // Override defaults
   title?: string;
@@ -205,20 +197,6 @@ const contextConfigs: Record<string, {
       icon: <Settings className="w-4 h-4 mr-2" /> 
     },
     helpText: 'Integre com seu sistema de telefonia para registrar chamadas.'
-  },
-  wallet: {
-    icon: Users,
-    title: 'Nenhum cliente na carteira',
-    description: 'Configure regras para distribuir clientes entre agentes.',
-    primaryAction: { 
-      label: 'Criar regra', 
-      icon: <Plus className="w-4 h-4 mr-2" /> 
-    },
-    secondaryAction: { 
-      label: 'Importar distribuição', 
-      icon: <Upload className="w-4 h-4 mr-2" /> 
-    },
-    helpText: 'Carteiras garantem que cada cliente seja atendido pelo mesmo agente.'
   },
   messages: {
     icon: MessageSquare,

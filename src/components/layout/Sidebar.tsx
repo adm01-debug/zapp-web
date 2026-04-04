@@ -9,21 +9,16 @@ import {
   Tag,
   Zap,
   LogOut,
-  Wallet,
   UsersRound,
   Package,
-  Mic,
   FileBarChart,
-  Globe,
   Link2,
   Brain,
   Megaphone,
   Bot,
   Kanban,
-  CreditCard,
   Moon,
   Sun,
-  User,
   Shield,
   PhoneCall,
   BookOpen,
@@ -60,9 +55,7 @@ const toolsNav = [
   { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
   { id: 'chatbot', icon: Bot, label: 'Chatbot' },
   { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
-  { id: 'wallet', icon: Wallet, label: 'Carteira' },
   { id: 'catalog', icon: Package, label: 'Catálogo' },
-  { id: 'payments', icon: CreditCard, label: 'Pagamentos' },
   { id: 'tags', icon: Tag, label: 'Etiquetas' },
   { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
   { id: 'automations', icon: Zap, label: 'Automações' },
@@ -115,7 +108,6 @@ export function Sidebar({ currentView, onViewChange, currentAgent, onLogout }: S
 
   // Check if current view is in tools section to keep it open
   const isToolActive = toolsNav.some(t => t.id === currentView);
-  const isSystemActive = systemNav.some(t => t.id === currentView);
 
   return (
     <aside
