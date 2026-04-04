@@ -276,7 +276,7 @@ export function PerformanceMonitor() {
               <p className="text-xs text-muted-foreground">Cache Hits</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-500">{cacheStats.misses}</p>
+              <p className="text-2xl font-bold text-warning">{cacheStats.misses}</p>
               <p className="text-xs text-muted-foreground">Cache Misses</p>
             </div>
             <div className="text-center">
