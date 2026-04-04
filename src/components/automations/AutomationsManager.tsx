@@ -338,7 +338,7 @@ export function AutomationsManager() {
   }, [automations, filter]);
 
   const handleToggle = (automation: AutomationRow) => {
-    updateMutation.mutate({ id: automation.id, is_active: !automation.is_active } as any);
+    updateMutation.mutate({ id: automation.id, is_active: !automation.is_active } as Partial<AutomationRow> & { id: string });
   };
 
   const handleEdit = (automation: AutomationRow) => {
