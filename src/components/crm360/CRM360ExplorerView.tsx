@@ -1,6 +1,6 @@
 /**
  * CRM360ExplorerView — Full CRM 360° data explorer
- * Browse ALL tables from the external CRM database with filters, pagination, and search
+ * Browse ALL tables from the external CRM database with filters, pagination, search and export
  */
 import { useState, useMemo, useCallback } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -12,32 +12,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Search, Building2, Users, ShoppingCart, MessageSquare, BarChart3,
   Share2, MapPin, Phone, Mail, Truck, Package, Trophy, RefreshCw,
-  ChevronLeft, ChevronRight, Filter, X, Download, ArrowUpDown,
-  DollarSign, TrendingUp, Clock, User, Activity,
+  ChevronLeft, ChevronRight, X, Download, ArrowUpDown,
+  DollarSign, User, Activity, Calendar, Zap,
 } from 'lucide-react';
-import { useExternalSelect, useExternalTableBrowser } from '@/hooks/useExternalDB';
-import { useExternalContact360 } from '@/hooks/useExternalContact360';
+import { useExternalTableBrowser } from '@/hooks/useExternalDB';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import type {
-  ExtCustomer, ExtCompanyRFMScore, ExtSalesperson, ExtSale,
-  ExtCompanySocialMedia, ExtCompanyAddress, ExtContactPhone,
-  ExtContactEmail, ExtContactSocialMedia, ExtContactAddress,
-  ExtSupplier, ExtCarrier, ExtAchievement, ExternalTableName,
-} from '@/types/externalDB';
-import { EXTERNAL_TABLE_LABELS } from '@/types/externalDB';
+import { CRM360StatsCards } from './CRM360StatsCards';
+import type { ExternalTableName } from '@/types/externalDB';
 
 // ─── Tab configuration ───────────────────────────────────────
 interface TabConfig {
-  id: ExternalTableName;
+  id: ExternalTableName | string;
   label: string;
   icon: React.ElementType;
   description: string;
+  searchColumn?: string;
   columns: { key: string; label: string; format?: 'date' | 'currency' | 'boolean' | 'number' }[];
 }
 
@@ -47,23 +41,26 @@ const TABS: TabConfig[] = [
     label: 'Clientes',
     icon: ShoppingCart,
     description: '52k+ registros — dados financeiros, vendedores, ativação',
+    searchColumn: 'vendedor_nome',
     columns: [
       { key: 'vendedor_nome', label: 'Vendedor' },
       { key: 'cliente_ativado', label: 'Ativo', format: 'boolean' },
-      { key: 'ja_comprou', label: 'Já Comprou', format: 'boolean' },
+      { key: 'ja_comprou', label: 'Comprou', format: 'boolean' },
       { key: 'total_pedidos', label: 'Pedidos', format: 'number' },
-      { key: 'valor_total_compras', label: 'Total Compras', format: 'currency' },
-      { key: 'ticket_medio', label: 'Ticket Médio', format: 'currency' },
-      { key: 'poder_compra', label: 'Poder Compra' },
+      { key: 'valor_total_compras', label: 'Total', format: 'currency' },
+      { key: 'ticket_medio', label: 'Ticket', format: 'currency' },
+      { key: 'poder_compra', label: 'Poder' },
       { key: 'grupo_clientes', label: 'Grupo' },
+      { key: 'perfil_preco', label: 'Preço' },
       { key: 'data_ultima_compra', label: 'Última Compra', format: 'date' },
     ],
   },
   {
     id: 'company_rfm_scores',
-    label: 'Scores RFM',
+    label: 'RFM',
     icon: BarChart3,
-    description: 'Recência, Frequência e Monetário por empresa',
+    description: 'Recência, Frequência e Monetário',
+    searchColumn: 'segment_code',
     columns: [
       { key: 'segment_code', label: 'Segmento' },
       { key: 'recency_score', label: 'R', format: 'number' },
@@ -71,30 +68,48 @@ const TABS: TabConfig[] = [
       { key: 'monetary_score', label: 'M', format: 'number' },
       { key: 'combined_score', label: 'Score', format: 'number' },
       { key: 'interaction_count', label: 'Interações', format: 'number' },
-      { key: 'total_value', label: 'Valor Total', format: 'currency' },
+      { key: 'total_value', label: 'Valor', format: 'currency' },
       { key: 'overall_trend', label: 'Tendência' },
-      { key: 'calculated_at', label: 'Calculado em', format: 'date' },
+      { key: 'calculated_at', label: 'Calculado', format: 'date' },
+    ],
+  },
+  {
+    id: 'interactions',
+    label: 'Interações',
+    icon: MessageSquare,
+    description: '10k+ interações com contatos e empresas',
+    searchColumn: 'assunto',
+    columns: [
+      { key: 'channel', label: 'Canal' },
+      { key: 'direction', label: 'Direção' },
+      { key: 'type', label: 'Tipo' },
+      { key: 'assunto', label: 'Assunto' },
+      { key: 'resumo', label: 'Resumo' },
+      { key: 'sentiment', label: 'Sentimento' },
+      { key: 'data_interacao', label: 'Data', format: 'date' },
     ],
   },
   {
     id: 'salespeople',
     label: 'Vendedores',
     icon: User,
-    description: 'Equipe de vendas do CRM',
+    description: 'Equipe de vendas',
+    searchColumn: 'name',
     columns: [
       { key: 'name', label: 'Nome' },
       { key: 'email', label: 'Email' },
       { key: 'role', label: 'Cargo' },
       { key: 'commission_rate', label: 'Comissão', format: 'number' },
       { key: 'is_active', label: 'Ativo', format: 'boolean' },
-      { key: 'created_at', label: 'Criado em', format: 'date' },
+      { key: 'created_at', label: 'Criado', format: 'date' },
     ],
   },
   {
     id: 'sales',
     label: 'Vendas',
     icon: DollarSign,
-    description: 'Registro de vendas realizadas',
+    description: 'Registro de vendas',
+    searchColumn: 'client_name',
     columns: [
       { key: 'client_name', label: 'Cliente' },
       { key: 'product_name', label: 'Produto' },
@@ -106,10 +121,26 @@ const TABS: TabConfig[] = [
     ],
   },
   {
+    id: 'sales_activities',
+    label: 'Atividades',
+    icon: Activity,
+    description: 'Atividades de venda registradas',
+    searchColumn: 'activity_type',
+    columns: [
+      { key: 'activity_type', label: 'Tipo' },
+      { key: 'outcome', label: 'Resultado' },
+      { key: 'notes', label: 'Notas' },
+      { key: 'duration_minutes', label: 'Duração (min)', format: 'number' },
+      { key: 'contact_name', label: 'Contato' },
+      { key: 'created_at', label: 'Data', format: 'date' },
+    ],
+  },
+  {
     id: 'contact_phones',
-    label: 'Telefones',
+    label: 'Tel. Contatos',
     icon: Phone,
-    description: 'Todos os telefones de contatos',
+    description: 'Telefones dos contatos',
+    searchColumn: 'numero',
     columns: [
       { key: 'numero', label: 'Número' },
       { key: 'numero_e164', label: 'E.164' },
@@ -117,26 +148,59 @@ const TABS: TabConfig[] = [
       { key: 'is_primary', label: 'Principal', format: 'boolean' },
       { key: 'is_whatsapp', label: 'WhatsApp', format: 'boolean' },
       { key: 'is_verified', label: 'Verificado', format: 'boolean' },
-    ],
-  },
-  {
-    id: 'contact_emails',
-    label: 'E-mails',
-    icon: Mail,
-    description: 'Todos os e-mails de contatos',
-    columns: [
-      { key: 'email', label: 'E-mail' },
-      { key: 'email_type', label: 'Tipo' },
-      { key: 'is_primary', label: 'Principal', format: 'boolean' },
-      { key: 'contexto', label: 'Contexto' },
       { key: 'fonte', label: 'Fonte' },
     ],
   },
   {
+    id: 'contact_emails',
+    label: 'Emails Contatos',
+    icon: Mail,
+    description: 'E-mails dos contatos',
+    searchColumn: 'email',
+    columns: [
+      { key: 'email', label: 'E-mail' },
+      { key: 'email_type', label: 'Tipo' },
+      { key: 'is_primary', label: 'Principal', format: 'boolean' },
+      { key: 'is_verified', label: 'Verificado', format: 'boolean' },
+      { key: 'contexto', label: 'Contexto' },
+      { key: 'fonte', label: 'Fonte' },
+      { key: 'confiabilidade', label: 'Confiança', format: 'number' },
+    ],
+  },
+  {
+    id: 'company_phones',
+    label: 'Tel. Empresas',
+    icon: Phone,
+    description: 'Telefones das empresas',
+    searchColumn: 'numero',
+    columns: [
+      { key: 'numero', label: 'Número' },
+      { key: 'numero_e164', label: 'E.164' },
+      { key: 'phone_type', label: 'Tipo' },
+      { key: 'is_primary', label: 'Principal', format: 'boolean' },
+      { key: 'is_whatsapp', label: 'WhatsApp', format: 'boolean' },
+      { key: 'departamento', label: 'Depto.' },
+    ],
+  },
+  {
+    id: 'company_emails',
+    label: 'Emails Empresas',
+    icon: Mail,
+    description: 'E-mails das empresas',
+    searchColumn: 'email',
+    columns: [
+      { key: 'email', label: 'E-mail' },
+      { key: 'email_type', label: 'Tipo' },
+      { key: 'is_primary', label: 'Principal', format: 'boolean' },
+      { key: 'departamento', label: 'Depto.' },
+    ],
+  },
+  {
     id: 'company_social_media',
-    label: 'Social (Empresas)',
+    label: 'Social Empresas',
     icon: Share2,
     description: '99k+ registros de redes sociais',
+    searchColumn: 'handle',
     columns: [
       { key: 'plataforma', label: 'Plataforma' },
       { key: 'handle', label: 'Handle' },
@@ -148,22 +212,24 @@ const TABS: TabConfig[] = [
   },
   {
     id: 'contact_social_media',
-    label: 'Social (Contatos)',
+    label: 'Social Contatos',
     icon: Share2,
     description: 'Redes sociais dos contatos',
+    searchColumn: 'handle',
     columns: [
       { key: 'plataforma', label: 'Plataforma' },
       { key: 'handle', label: 'Handle' },
       { key: 'url', label: 'URL' },
-      { key: 'confiabilidade', label: 'Confiabilidade', format: 'number' },
+      { key: 'confiabilidade', label: 'Confiança', format: 'number' },
       { key: 'fonte', label: 'Fonte' },
     ],
   },
   {
     id: 'company_addresses',
-    label: 'Endereços (Empresas)',
+    label: 'End. Empresas',
     icon: MapPin,
-    description: 'Endereços físicos das empresas',
+    description: 'Endereços das empresas',
+    searchColumn: 'cidade',
     columns: [
       { key: 'logradouro', label: 'Logradouro' },
       { key: 'numero', label: 'Nº' },
@@ -177,9 +243,10 @@ const TABS: TabConfig[] = [
   },
   {
     id: 'contact_addresses',
-    label: 'Endereços (Contatos)',
+    label: 'End. Contatos',
     icon: MapPin,
     description: 'Endereços dos contatos',
+    searchColumn: 'cidade',
     columns: [
       { key: 'logradouro', label: 'Logradouro' },
       { key: 'numero', label: 'Nº' },
@@ -193,13 +260,15 @@ const TABS: TabConfig[] = [
     id: 'suppliers',
     label: 'Fornecedores',
     icon: Package,
-    description: 'Base de fornecedores homologados',
+    description: 'Base de fornecedores',
+    searchColumn: 'categoria',
     columns: [
       { key: 'categoria', label: 'Categoria' },
       { key: 'tipo_fornecedor', label: 'Tipo' },
       { key: 'ramo_atividade', label: 'Ramo' },
       { key: 'perfil_preco', label: 'Preço' },
       { key: 'perfil_qualidade', label: 'Qualidade' },
+      { key: 'perfil_prazo', label: 'Prazo' },
       { key: 'homologado', label: 'Homologado', format: 'boolean' },
       { key: 'score_geral', label: 'Score', format: 'number' },
     ],
@@ -209,12 +278,14 @@ const TABS: TabConfig[] = [
     label: 'Transportadoras',
     icon: Truck,
     description: 'Transportadoras cadastradas',
+    searchColumn: 'tipo_transporte',
     columns: [
       { key: 'tipo_transporte', label: 'Tipo' },
       { key: 'tipo_frete', label: 'Frete' },
       { key: 'transportadora_validada', label: 'Validada', format: 'boolean' },
       { key: 'homologado', label: 'Homologado', format: 'boolean' },
       { key: 'score_geral', label: 'Score', format: 'number' },
+      { key: 'ultimo_transporte', label: 'Último', format: 'date' },
     ],
   },
   {
@@ -222,9 +293,43 @@ const TABS: TabConfig[] = [
     label: 'Conquistas',
     icon: Trophy,
     description: 'Conquistas dos vendedores',
+    searchColumn: 'achievement_type',
     columns: [
       { key: 'achievement_type', label: 'Tipo' },
       { key: 'achievement_date', label: 'Data', format: 'date' },
+    ],
+  },
+  {
+    id: 'daily_challenges',
+    label: 'Desafios Diários',
+    icon: Zap,
+    description: 'Desafios diários da gamificação',
+    searchColumn: 'title',
+    columns: [
+      { key: 'title', label: 'Título' },
+      { key: 'description', label: 'Descrição' },
+      { key: 'challenge_type', label: 'Tipo' },
+      { key: 'target_value', label: 'Meta', format: 'number' },
+      { key: 'xp_reward', label: 'XP', format: 'number' },
+      { key: 'is_active', label: 'Ativo', format: 'boolean' },
+      { key: 'challenge_date', label: 'Data', format: 'date' },
+    ],
+  },
+  {
+    id: 'weekly_challenges',
+    label: 'Desafios Semanais',
+    icon: Calendar,
+    description: 'Desafios semanais da gamificação',
+    searchColumn: 'title',
+    columns: [
+      { key: 'title', label: 'Título' },
+      { key: 'description', label: 'Descrição' },
+      { key: 'challenge_type', label: 'Tipo' },
+      { key: 'target_value', label: 'Meta', format: 'number' },
+      { key: 'xp_reward', label: 'XP', format: 'number' },
+      { key: 'is_active', label: 'Ativo', format: 'boolean' },
+      { key: 'start_date', label: 'Início', format: 'date' },
+      { key: 'end_date', label: 'Fim', format: 'date' },
     ],
   },
 ];
@@ -248,6 +353,27 @@ function formatCellValue(value: unknown, format?: string): string {
   return String(value);
 }
 
+// ─── CSV Export ──────────────────────────────────────────────
+function exportToCSV(data: Record<string, unknown>[], columns: TabConfig['columns'], filename: string) {
+  if (!data.length) return;
+  const header = columns.map(c => c.label).join(',');
+  const rows = data.map(row =>
+    columns.map(c => {
+      const val = row[c.key];
+      const str = val === null || val === undefined ? '' : String(val);
+      return `"${str.replace(/"/g, '""')}"`;
+    }).join(',')
+  );
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── RFM Segment badge ───────────────────────────────────────
 function RFMBadge({ segment }: { segment: string | null }) {
   if (!segment) return null;
@@ -268,29 +394,65 @@ function RFMBadge({ segment }: { segment: string | null }) {
 
 // ─── Generic Data Table ──────────────────────────────────────
 function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
-  const browser = useExternalTableBrowser(tabConfig.id);
+  const browser = useExternalTableBrowser(tabConfig.id as ExternalTableName);
+  const [searchInput, setSearchInput] = useState('');
 
   const totalPages = Math.max(1, Math.ceil(browser.totalRecords / browser.pageSize));
 
+  const handleSearch = useCallback(() => {
+    if (!searchInput.trim() || !tabConfig.searchColumn) {
+      browser.clearFilters();
+      return;
+    }
+    browser.clearFilters();
+    browser.addFilter({
+      column: tabConfig.searchColumn,
+      operator: 'ilike',
+      value: `%${searchInput.trim()}%`,
+    });
+  }, [searchInput, tabConfig.searchColumn, browser]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSearch();
+  }, [handleSearch]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchInput('');
+    browser.clearFilters();
+  }, [browser]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Controls */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[180px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={`Buscar em ${tabConfig.label}...`}
-            value={browser.searchTerm}
-            onChange={(e) => browser.setSearchTerm(e.target.value)}
-            className="pl-9"
+            placeholder={`Buscar por ${tabConfig.searchColumn || 'campo'}...`}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="pl-9 pr-8 h-9"
           />
+          {searchInput && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
+
+        <Button variant="outline" size="sm" onClick={handleSearch} className="h-9">
+          <Search className="h-3.5 w-3.5 mr-1" /> Buscar
+        </Button>
 
         <Select
           value={String(browser.pageSize)}
           onValueChange={(v) => browser.setPageSize(Number(v))}
         >
-          <SelectTrigger className="w-[100px]">
+          <SelectTrigger className="w-[80px] h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -301,41 +463,46 @@ function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
           </SelectContent>
         </Select>
 
-        {browser.filters.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={browser.clearFilters}>
-            <X className="h-4 w-4 mr-1" /> Limpar filtros
-          </Button>
-        )}
-
-        <Button variant="outline" size="sm" onClick={() => browser.refetch()}>
-          <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
+        <Button variant="outline" size="sm" onClick={() => browser.refetch()} className="h-9">
+          <RefreshCw className="h-3.5 w-3.5" />
         </Button>
 
-        {/* Stats */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground ml-auto">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportToCSV(browser.data as Record<string, unknown>[], tabConfig.columns, tabConfig.id)}
+          disabled={browser.data.length === 0}
+          className="h-9"
+        >
+          <Download className="h-3.5 w-3.5 mr-1" /> CSV
+        </Button>
+
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
           {browser.totalRecords > 0 && (
-            <Badge variant="secondary">{browser.totalRecords.toLocaleString('pt-BR')} registros</Badge>
+            <Badge variant="secondary" className="text-[10px]">
+              {browser.totalRecords.toLocaleString('pt-BR')} reg.
+            </Badge>
           )}
           {browser.duration > 0 && (
-            <Badge variant="outline" className="text-xs">{browser.duration}ms</Badge>
+            <Badge variant="outline" className="text-[10px]">{browser.duration}ms</Badge>
           )}
         </div>
       </div>
 
       {/* Table */}
       <div className="border rounded-lg overflow-hidden">
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="max-h-[55vh]">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]">#</TableHead>
+                <TableHead className="w-[40px] text-[10px]">#</TableHead>
                 {tabConfig.columns.map((col) => (
                   <TableHead
                     key={col.key}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors text-xs"
                     onClick={() => {
-                      const isCurrentAsc = browser.order?.column === col.key && browser.order?.ascending;
-                      browser.setSort(col.key, !isCurrentAsc);
+                      const isAsc = browser.order?.column === col.key && browser.order?.ascending;
+                      browser.setSort(col.key, !isAsc);
                     }}
                   >
                     <div className="flex items-center gap-1">
@@ -354,7 +521,7 @@ function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-6" /></TableCell>
                     {tabConfig.columns.map((col) => (
-                      <TableCell key={col.key}><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell key={col.key}><Skeleton className="h-4 w-16" /></TableCell>
                     ))}
                   </TableRow>
                 ))
@@ -367,11 +534,11 @@ function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
               ) : (
                 browser.data.map((row: any, idx: number) => (
                   <TableRow key={row.id || idx} className="hover:bg-muted/30">
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="text-muted-foreground text-[10px]">
                       {browser.page * browser.pageSize + idx + 1}
                     </TableCell>
                     {tabConfig.columns.map((col) => (
-                      <TableCell key={col.key} className="max-w-[200px] truncate">
+                      <TableCell key={col.key} className="max-w-[180px] truncate text-xs">
                         {col.key === 'segment_code' ? (
                           <RFMBadge segment={row[col.key]} />
                         ) : (
@@ -391,25 +558,15 @@ function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          Página {browser.page + 1} de {totalPages}
+        <span className="text-xs text-muted-foreground">
+          Pág. {browser.page + 1} de {totalPages}
         </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={browser.prevPage}
-            disabled={browser.page === 0}
-          >
-            <ChevronLeft className="h-4 w-4" />
+        <div className="flex items-center gap-1.5">
+          <Button variant="outline" size="sm" onClick={browser.prevPage} disabled={browser.page === 0} className="h-7 px-2">
+            <ChevronLeft className="h-3.5 w-3.5" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={browser.nextPage}
-            disabled={browser.page >= totalPages - 1}
-          >
-            <ChevronRight className="h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={browser.nextPage} disabled={browser.page >= totalPages - 1} className="h-7 px-2">
+            <ChevronRight className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
@@ -435,7 +592,7 @@ export function CRM360ExplorerView() {
             <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">CRM Externo Não Configurado</h3>
             <p className="text-muted-foreground text-sm">
-              Configure as variáveis VITE_EXTERNAL_SUPABASE_URL e VITE_EXTERNAL_SUPABASE_ANON_KEY para acessar os dados do CRM 360°.
+              Configure as variáveis de ambiente para acessar os dados do CRM 360°.
             </p>
           </CardContent>
         </Card>
@@ -458,26 +615,27 @@ export function CRM360ExplorerView() {
             Acesso completo a todas as tabelas do banco de dados CRM externo
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs">
-            {TABS.length} tabelas disponíveis
-          </Badge>
-        </div>
+        <Badge variant="outline" className="text-xs">
+          {TABS.length} tabelas
+        </Badge>
       </div>
+
+      {/* Stats */}
+      <CRM360StatsCards />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="w-full overflow-x-auto">
-          <TabsList className="inline-flex w-auto h-auto p-1 gap-1 flex-nowrap">
+          <TabsList className="inline-flex w-auto h-auto p-1 gap-0.5 flex-nowrap">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               return (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 whitespace-nowrap"
+                  className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 whitespace-nowrap"
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-3 w-3" />
                   {tab.label}
                 </TabsTrigger>
               );
@@ -485,18 +643,18 @@ export function CRM360ExplorerView() {
           </TabsList>
         </ScrollArea>
 
-        <div className="flex-1 min-h-0 mt-4">
+        <div className="flex-1 min-h-0 mt-3">
           {TABS.map((tab) => (
             <TabsContent key={tab.id} value={tab.id} className="h-full mt-0">
               <Card className="h-full">
-                <CardHeader className="py-3 px-4">
+                <CardHeader className="py-2.5 px-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
                         {(() => { const Icon = tab.icon; return <Icon className="h-4 w-4 text-primary" />; })()}
                         {tab.label}
                       </CardTitle>
-                      <CardDescription className="text-xs mt-0.5">{tab.description}</CardDescription>
+                      <CardDescription className="text-[11px] mt-0.5">{tab.description}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
