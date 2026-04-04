@@ -102,8 +102,8 @@ export function SicoobBridgeDashboard() {
         <Card>
           <CardContent className="pt-4 pb-4 text-center">
             <div className="flex items-center justify-center gap-1">
-              <ArrowDownLeft className="w-4 h-4 text-green-500" />
-              <p className="text-2xl font-bold text-green-500">{inbound}</p>
+              <ArrowDownLeft className="w-4 h-4 text-success" />
+              <p className="text-2xl font-bold text-success">{inbound}</p>
             </div>
             <p className="text-xs text-muted-foreground">Recebidas</p>
           </CardContent>
