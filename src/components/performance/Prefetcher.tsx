@@ -89,7 +89,7 @@ export function useNetworkAwarePrefetch() {
   const smartPrefetch = useCallback(
     (route: string) => {
       // Check if user is on a fast connection
-      const connection = (navigator as any).connection;
+      const connection = navigator.connection;
       
       if (connection) {
         const { effectiveType, saveData } = connection;

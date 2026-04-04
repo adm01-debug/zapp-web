@@ -46,7 +46,7 @@ export function useNetworkStatus(): NetworkStatus {
     window.addEventListener('offline', handleOffline);
 
     // Listen for connection quality changes
-    const connection = (navigator as any).connection;
+    const connection = navigator.connection;
     const handleConnectionChange = () => {
       setStatus((prev) => ({
         ...prev,
