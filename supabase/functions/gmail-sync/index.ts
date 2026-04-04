@@ -1,17 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
-const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { z } from "https://esm.sh/zod@3.23.8";
+import { handleCors, getCorsHeaders, errorResponse, jsonResponse, Logger, requireEnv } from "../_shared/validation.ts";
 
 const GMAIL_API = "https://gmail.googleapis.com/gmail/v1/users/me";
+
+const GmailSyncActionSchema = z.object({
+  action: z.enum(['sync-labels', 'sync-inbox', 'sync-incremental', 'get-thread', 'setup-watch']),
+  account_id: z.string().uuid("account_id must be a valid UUID"),
+  query: z.string().max(500).optional(),
+  maxResults: z.number().int().min(1).max(200).optional(),
+  thread_id: z.string().max(500).optional(),
+  topic_name: z.string().max(500).optional(),
+});
 
 interface GmailMessage {
   id: string;
@@ -105,7 +106,8 @@ function extractAttachments(payload: GmailMessage["payload"]): Array<{
   return attachments;
 }
 
-async function ensureValidToken(supabase: any, account: any): Promise<string> {
+// deno-lint-ignore no-explicit-any
+async function ensureValidToken(supabase: any, account: any, log: Logger): Promise<string> {
   const now = new Date();
   const expiresAt = new Date(account.token_expires_at);
 
@@ -113,14 +115,17 @@ async function ensureValidToken(supabase: any, account: any): Promise<string> {
     return account.access_token;
   }
 
-  // Refresh the token
+  log.info("Refreshing Gmail token");
+  const GOOGLE_CLIENT_ID = requireEnv("GOOGLE_CLIENT_ID");
+  const GOOGLE_CLIENT_SECRET = requireEnv("GOOGLE_CLIENT_SECRET");
+
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       refresh_token: account.refresh_token,
-      client_id: GOOGLE_CLIENT_ID!,
-      client_secret: GOOGLE_CLIENT_SECRET!,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
       grant_type: "refresh_token",
     }),
   });
@@ -138,6 +143,7 @@ async function ensureValidToken(supabase: any, account: any): Promise<string> {
   return tokens.access_token;
 }
 
+// deno-lint-ignore no-explicit-any
 async function gmailFetch(accessToken: string, path: string): Promise<any> {
   const response = await fetch(`${GMAIL_API}${path}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -149,6 +155,7 @@ async function gmailFetch(accessToken: string, path: string): Promise<any> {
   return response.json();
 }
 
+// deno-lint-ignore no-explicit-any
 async function syncLabels(supabase: any, accountId: string, accessToken: string) {
   const data = await gmailFetch(accessToken, "/labels");
 
@@ -165,10 +172,12 @@ async function syncLabels(supabase: any, accountId: string, accessToken: string)
   }
 }
 
+// deno-lint-ignore no-explicit-any
 async function syncMessages(
   supabase: any,
   accountId: string,
   accessToken: string,
+  log: Logger,
   query: string = "",
   maxResults: number = 50
 ) {
@@ -176,6 +185,7 @@ async function syncMessages(
   if (query) params.set("q", query);
 
   const listData = await gmailFetch(accessToken, `/messages?${params.toString()}`);
+  // deno-lint-ignore no-explicit-any
   const messageIds = (listData.messages || []).map((m: any) => m.id);
 
   const results = [];
@@ -289,7 +299,7 @@ async function syncMessages(
 
       results.push({ id: msg.id, threadId: msg.threadId, subject: getHeader(headers, "Subject") });
     } catch (err: unknown) {
-      console.error(`Error syncing message ${msgId}:`, err instanceof Error ? err.message : err);
+      log.error(`Error syncing message ${msgId}`, { error: err instanceof Error ? err.message : String(err) });
     }
   }
 
@@ -297,17 +307,20 @@ async function syncMessages(
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const log = new Logger("gmail-sync");
 
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.done(401);
+      return errorResponse("Unauthorized", 401, req);
     }
+
+    const SUPABASE_URL = requireEnv("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -319,38 +332,44 @@ serve(async (req) => {
     const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
     if (!profile) throw new Error("Profile not found");
 
-    const body = await req.json();
-    const { action, account_id } = body;
+    const rawBody = await req.json();
+    const parsed = GmailSyncActionSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      const errors = parsed.error.flatten();
+      const msg = Object.entries(errors.fieldErrors).map(([k, v]) => `${k}: ${(v as string[]).join(', ')}`).join('; ');
+      log.warn("Validation failed", { errors: msg });
+      log.done(400);
+      return errorResponse(msg || "Invalid request", 400, req);
+    }
+
+    const body = parsed.data;
+    log.info("Processing action", { action: body.action, accountId: body.account_id });
 
     // Get gmail account
     const { data: account } = await supabase
       .from("gmail_accounts")
       .select("*")
-      .eq("id", account_id)
+      .eq("id", body.account_id)
       .eq("profile_id", profile.id)
       .eq("is_active", true)
       .single();
 
     if (!account) throw new Error("Gmail account not found or inactive");
 
-    const accessToken = await ensureValidToken(supabase, account);
+    const accessToken = await ensureValidToken(supabase, account, log);
 
-    switch (action) {
+    switch (body.action) {
       case "sync-labels": {
         await syncLabels(supabase, account.id, accessToken);
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        log.done(200);
+        return jsonResponse({ success: true }, 200, req);
       }
 
       case "sync-inbox": {
-        const { query, maxResults } = body;
         await supabase.from("gmail_accounts").update({ sync_status: "syncing" }).eq("id", account.id);
 
         try {
-          const result = await syncMessages(supabase, account.id, accessToken, query || "in:inbox", maxResults || 50);
-
-          // Get current historyId
+          const result = await syncMessages(supabase, account.id, accessToken, log, body.query || "in:inbox", body.maxResults || 50);
           const profileData = await gmailFetch(accessToken, "/profile");
 
           await supabase.from("gmail_accounts").update({
@@ -360,9 +379,8 @@ serve(async (req) => {
             last_error: null,
           }).eq("id", account.id);
 
-          return new Response(JSON.stringify({ success: true, ...result }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          log.done(200, { synced: result.synced });
+          return jsonResponse({ success: true, ...result }, 200, req);
         } catch (err: unknown) {
           await supabase.from("gmail_accounts").update({
             sync_status: "error",
@@ -374,9 +392,8 @@ serve(async (req) => {
 
       case "sync-incremental": {
         if (!account.history_id) {
-          return new Response(JSON.stringify({ error: "No history_id. Run full sync first." }), {
-            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          log.done(400);
+          return errorResponse("No history_id. Run full sync first.", 400, req);
         }
 
         const historyData = await gmailFetch(
@@ -394,9 +411,7 @@ serve(async (req) => {
         let synced = 0;
         for (const msgId of newMessageIds) {
           try {
-            const msg = await gmailFetch(accessToken, `/messages/${msgId}?format=full`);
-            // Reuse syncMessages logic for single message would be ideal,
-            // but for simplicity we re-sync the inbox with those IDs
+            await gmailFetch(accessToken, `/messages/${msgId}?format=full`);
             synced++;
           } catch {
             // Message may have been deleted
@@ -408,24 +423,19 @@ serve(async (req) => {
           last_sync_at: new Date().toISOString(),
         }).eq("id", account.id);
 
-        return new Response(JSON.stringify({ success: true, new_messages: newMessageIds.size }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        log.done(200, { newMessages: newMessageIds.size });
+        return jsonResponse({ success: true, new_messages: newMessageIds.size }, 200, req);
       }
 
       case "get-thread": {
-        const { thread_id } = body;
-        if (!thread_id) throw new Error("Missing thread_id");
-
-        const threadData = await gmailFetch(accessToken, `/threads/${thread_id}?format=full`);
-        return new Response(JSON.stringify(threadData), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        if (!body.thread_id) throw new Error("Missing thread_id");
+        const threadData = await gmailFetch(accessToken, `/threads/${body.thread_id}?format=full`);
+        log.done(200);
+        return jsonResponse(threadData, 200, req);
       }
 
       case "setup-watch": {
-        const topicName = body.topic_name;
-        if (!topicName) throw new Error("Missing topic_name (Google Cloud Pub/Sub topic)");
+        if (!body.topic_name) throw new Error("Missing topic_name");
 
         const response = await fetch(`${GMAIL_API}/watch`, {
           method: "POST",
@@ -433,10 +443,7 @@ serve(async (req) => {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            topicName,
-            labelIds: ["INBOX"],
-          }),
+          body: JSON.stringify({ topicName: body.topic_name, labelIds: ["INBOX"] }),
         });
 
         if (!response.ok) {
@@ -451,20 +458,17 @@ serve(async (req) => {
           watch_expiration: new Date(parseInt(watchData.expiration)).toISOString(),
         }).eq("id", account.id);
 
-        return new Response(JSON.stringify({ success: true, ...watchData }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        log.done(200);
+        return jsonResponse({ success: true, ...watchData }, 200, req);
       }
 
       default:
-        return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        log.done(400);
+        return errorResponse(`Unknown action: ${body.action}`, 400, req);
     }
   } catch (error) {
-    console.error("Gmail Sync error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    log.error("Gmail Sync error", { error: error instanceof Error ? error.message : String(error) });
+    log.done(500);
+    return errorResponse(error instanceof Error ? error.message : "Internal server error", 500, req);
   }
 });

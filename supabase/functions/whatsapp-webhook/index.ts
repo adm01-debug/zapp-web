@@ -1,49 +1,47 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { z } from "https://esm.sh/zod@3.23.8";
+import { getCorsHeaders, jsonResponse, errorResponse, Logger, requireEnv } from "../_shared/validation.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+const WhatsAppStatusSchema = z.object({
+  id: z.string().max(500),
+  status: z.enum(['sent', 'delivered', 'read', 'failed']),
+  timestamp: z.string(),
+  recipient_id: z.string().optional(),
+  errors: z.array(z.object({ code: z.number(), title: z.string() })).optional(),
+});
 
-interface WhatsAppStatus {
-  id: string;
-  status: 'sent' | 'delivered' | 'read' | 'failed';
-  timestamp: string;
-  recipient_id?: string;
-  errors?: Array<{ code: number; title: string }>;
-}
-
-interface WhatsAppWebhookPayload {
-  object: string;
-  entry: Array<{
-    id: string;
-    changes: Array<{
-      value: {
-        messaging_product: string;
-        metadata: {
-          display_phone_number: string;
-          phone_number_id: string;
-        };
-        statuses?: WhatsAppStatus[];
-        messages?: Array<{
-          id: string;
-          from: string;
-          timestamp: string;
-          type: string;
-          text?: { body: string };
-        }>;
-      };
-      field: string;
-    }>;
-  }>;
-}
+const WhatsAppWebhookSchema = z.object({
+  object: z.string(),
+  entry: z.array(z.object({
+    id: z.string(),
+    changes: z.array(z.object({
+      value: z.object({
+        messaging_product: z.string().optional(),
+        metadata: z.object({
+          display_phone_number: z.string(),
+          phone_number_id: z.string(),
+        }).optional(),
+        statuses: z.array(WhatsAppStatusSchema).optional(),
+        messages: z.array(z.object({
+          id: z.string(),
+          from: z.string(),
+          timestamp: z.string(),
+          type: z.string(),
+          text: z.object({ body: z.string() }).optional(),
+        })).optional(),
+      }),
+      field: z.string(),
+    })),
+  })),
+});
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
+
+  const log = new Logger("whatsapp-webhook");
 
   // Handle webhook verification (GET request from WhatsApp)
   if (req.method === 'GET') {
@@ -55,35 +53,45 @@ serve(async (req) => {
     const verifyToken = Deno.env.get('WHATSAPP_VERIFY_TOKEN') || 'lovable_webhook_token';
 
     if (mode === 'subscribe' && token === verifyToken) {
-      console.log('Webhook verified successfully');
-      return new Response(challenge, { 
+      log.info("Webhook verified successfully");
+      return new Response(challenge, {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'text/plain' }
       });
     }
 
-    return new Response('Forbidden', { status: 403, headers: corsHeaders });
+    log.warn("Webhook verification failed");
+    return new Response('Forbidden', { status: 403, headers: getCorsHeaders(req) });
   }
 
   // Handle webhook events (POST request)
   if (req.method === 'POST') {
     try {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabaseUrl = requireEnv('SUPABASE_URL');
+      const supabaseServiceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-      const payload: WhatsAppWebhookPayload = await req.json();
-      console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
+      const rawPayload = await req.json();
+      const parsed = WhatsAppWebhookSchema.safeParse(rawPayload);
+
+      if (!parsed.success) {
+        log.warn("Invalid webhook payload", { errors: parsed.error.message });
+        // Return 200 to acknowledge and prevent retries
+        return jsonResponse({ success: true, warning: "Invalid payload format" }, 200, req);
+      }
+
+      const payload = parsed.data;
+      log.info("Received webhook", { entries: payload.entry.length });
 
       // Process status updates
-      for (const entry of payload.entry || []) {
-        for (const change of entry.changes || []) {
+      for (const entry of payload.entry) {
+        for (const change of entry.changes) {
           const value = change.value;
 
           // Handle status updates
           if (value.statuses) {
             for (const status of value.statuses) {
-              console.log(`Processing status update: ${status.id} -> ${status.status}`);
+              log.info("Processing status update", { messageId: status.id, status: status.status });
 
               const { error } = await supabase
                 .from('messages')
@@ -94,35 +102,28 @@ serve(async (req) => {
                 .eq('external_id', status.id);
 
               if (error) {
-                console.error('Error updating message status:', error);
-              } else {
-                console.log(`Successfully updated status for message ${status.id}`);
+                log.error("Error updating message status", { messageId: status.id, error: error.message });
               }
             }
           }
 
-          // Handle incoming messages (optional - can be extended)
+          // Handle incoming messages
           if (value.messages) {
             for (const message of value.messages) {
-              console.log(`Received message from ${message.from}: ${message.type}`);
-              // Messages can be processed here if needed
+              log.info("Received message", { from: message.from, type: message.type });
             }
           }
         }
       }
 
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      log.done(200);
+      return jsonResponse({ success: true }, 200, req);
     } catch (error) {
-      console.error('Webhook processing error:', error);
-      return new Response(JSON.stringify({ error: 'Internal server error' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      log.error("Webhook processing error", { error: error instanceof Error ? error.message : String(error) });
+      log.done(500);
+      return errorResponse("Internal server error", 500, req);
     }
   }
 
-  return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+  return new Response('Method not allowed', { status: 405, headers: getCorsHeaders(req) });
 });
