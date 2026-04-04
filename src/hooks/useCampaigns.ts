@@ -99,7 +99,7 @@ export function useCampaigns() {
         contact_id: contactId,
         status: 'pending',
       }));
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('campaign_contacts')
         .insert(records);
       if (error) throw error;
