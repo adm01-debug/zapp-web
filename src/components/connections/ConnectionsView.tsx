@@ -867,8 +867,8 @@ export function ConnectionsView() {
                                           title: 'Sincronização concluída!',
                                           description: `${data?.totalSynced || 0} mensagens sincronizadas de ${data?.totalContacts || 0} contatos.`,
                                         });
-                                      } catch (e: any) {
-                                        toast({ title: 'Erro na sincronização', description: e.message, variant: 'destructive' });
+                                      } catch (e: unknown) {
+                                        toast({ title: 'Erro na sincronização', description: e instanceof Error ? e.message : 'Erro desconhecido', variant: 'destructive' });
                                       } finally {
                                         setSyncingHistory(null);
                                       }
