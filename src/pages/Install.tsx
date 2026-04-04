@@ -58,7 +58,7 @@ const Install = () => {
       <div className="max-w-md w-full space-y-6">
         <div className="text-center space-y-2">
           <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/70 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-            <Smartphone className="w-10 h-10 text-white" />
+            <Smartphone className="w-10 h-10 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">Instalar App</h1>
           <p className="text-muted-foreground text-sm">
