@@ -120,7 +120,7 @@ export function useSavedFilters(entityType: string) {
   // Deletar filtro
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('saved_filters')
         .delete()
         .eq('id', id);
