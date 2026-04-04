@@ -102,12 +102,12 @@ export function IntegrationsPanel({
 }: IntegrationsPanelProps) {
   const api = useEvolutionApi();
 
-  const [typebot, setTypebot] = useState<Record<string, any>>({ enabled: false });
-  const [openai, setOpenai] = useState<Record<string, any>>({ enabled: false });
-  const [dify, setDify] = useState<Record<string, any>>({ enabled: false });
-  const [flowise, setFlowise] = useState<Record<string, any>>({ enabled: false });
-  const [chatwoot, setChatwoot] = useState<Record<string, any>>({ enabled: false });
-  const [evolutionBot, setEvolutionBot] = useState<Record<string, any>>({ enabled: false });
+  const [typebot, setTypebot] = useState<Record<string, unknown>>({ enabled: false });
+  const [openai, setOpenai] = useState<Record<string, unknown>>({ enabled: false });
+  const [dify, setDify] = useState<Record<string, unknown>>({ enabled: false });
+  const [flowise, setFlowise] = useState<Record<string, unknown>>({ enabled: false });
+  const [chatwoot, setChatwoot] = useState<Record<string, unknown>>({ enabled: false });
+  const [evolutionBot, setEvolutionBot] = useState<Record<string, unknown>>({ enabled: false });
 
   useEffect(() => {
     if (open && instanceName) loadAll();
