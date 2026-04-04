@@ -104,7 +104,7 @@ export function useExternalCatalog() {
         'list_products',
         filters as Record<string, unknown>
       );
-      console.log('[catalog] got', result.data?.length, 'products, total:', result.meta?.total);
+      log.debug('Got', result.data?.length, 'products, total:', result.meta?.total);
       return result;
     },
     enabled: ready,
