@@ -766,7 +766,7 @@ function DataExplorerTable({ tabConfig, onRowClick, onCreateClick }: { tabConfig
                     {tabConfig.columns.map((col) => (
                       <TableCell key={col.key} className="max-w-[180px] truncate text-xs">
                         {col.key === 'segment_code' ? (
-                          <RFMBadge segment={row[col.key]} />
+                          <RFMBadge segment={row[col.key] as string} />
                         ) : (
                           <span title={String(row[col.key] ?? '')}>
                             {formatCellValue(row[col.key], col.format)}
