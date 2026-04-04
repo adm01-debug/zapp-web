@@ -39,12 +39,19 @@ export function CampaignsView() {
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    name: string;
+    description: string;
+    message_content: string;
+    message_type: string;
+    target_type: string;
+    send_interval_seconds: number;
+  }>({
     name: '',
     description: '',
     message_content: '',
     message_type: 'text',
-    target_type: 'all' as const,
+    target_type: 'all',
     send_interval_seconds: 5,
   });
 

@@ -42,10 +42,15 @@ export function ChatbotFlowsView() {
   const [editingFlow, setEditingFlow] = useState<ChatbotFlow | null>(null);
   const [search, setSearch] = useState('');
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    name: string;
+    description: string;
+    trigger_type: string;
+    trigger_value: string;
+  }>({
     name: '',
     description: '',
-    trigger_type: 'keyword' as const,
+    trigger_type: 'keyword',
     trigger_value: '',
   });
 
