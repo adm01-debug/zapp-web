@@ -43,7 +43,7 @@ function DateSeparator({ date }: { date: string }) {
   );
 }
 
-export function EmailChatThread({ thread, onBack }: EmailChatThreadProps) {
+export function EmailChatThread({ thread, onBack, onToggleDetails, showDetailsButton }: EmailChatThreadProps) {
   const {
     threadMessages, messagesLoading, markAsRead,
     trashMessage, setSelectedThreadId, activeAccount
