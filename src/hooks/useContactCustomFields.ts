@@ -60,7 +60,7 @@ export function useContactCustomFields(contactId: string | undefined) {
   const removeField = useCallback(async (fieldId: string) => {
     try {
       const { error } = await supabase
-        .from('contact_custom_fields' as any)
+        .from('contact_custom_fields')
         .delete()
         .eq('id', fieldId);
       if (error) throw error;

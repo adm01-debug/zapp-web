@@ -51,7 +51,7 @@ export function useConnectionQueues(connectionId?: string) {
   const removeQueue = useCallback(async (queueId: string) => {
     if (!connectionId) return;
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('whatsapp_connection_queues')
         .delete()
         .eq('whatsapp_connection_id', connectionId)
