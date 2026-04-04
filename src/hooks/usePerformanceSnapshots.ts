@@ -58,12 +58,12 @@ export function usePerformanceSnapshots() {
     setLoading(true);
     try {
       const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-      const { data, error } = await (supabase
-        .from('performance_snapshots' as any)
+      const { data, error } = await supabase
+        .from('performance_snapshots')
         .select('*')
         .gte('created_at', since)
         .order('created_at', { ascending: true })
-        .limit(500) as any);
+        .limit(500);
 
       if (error) throw error;
       setHistory((data || []) as PerformanceSnapshot[]);
