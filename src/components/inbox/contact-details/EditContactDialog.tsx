@@ -1,4 +1,7 @@
 import { useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('EditContactDialog');
 import {
   Dialog,
   DialogContent,
