@@ -14,6 +14,7 @@ export default function GmailOAuthCallback() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const error = params.get('error');
+    const returnedState = params.get('state');
 
     if (error) {
       setStatus('error');
@@ -26,6 +27,16 @@ export default function GmailOAuthCallback() {
       setErrorMsg('Código de autorização não encontrado na URL.');
       return;
     }
+
+    // Validate CSRF state parameter
+    const savedState = sessionStorage.getItem('gmail-oauth-state');
+    if (savedState && returnedState && savedState !== returnedState) {
+      setStatus('error');
+      setErrorMsg('Falha na validação de segurança (state mismatch). Tente novamente.');
+      return;
+    }
+    // Clean up stored state
+    sessionStorage.removeItem('gmail-oauth-state');
 
     // Send the code to the parent window (the main app)
     if (window.opener) {

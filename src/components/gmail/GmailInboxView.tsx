@@ -17,26 +17,7 @@ import { GmailProvider, useGmailContext } from './GmailProvider';
 import { ErrorBoundaryWithRetry } from '@/components/ui/error-boundary-retry';
 import { EmailThreadView } from './EmailThreadView';
 import { EmailComposer } from './EmailComposer';
-
-function getInitials(name: string | null | undefined, email?: string): string {
-  if (name) return name.split(' ').filter(w => w.length > 0).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-  if (email) return email[0]?.toUpperCase() || '?';
-  return '?';
-}
-
-function formatThreadDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-
-  if (diff < 86400000 && date.getDate() === now.getDate()) {
-    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  }
-  if (diff < 604800000) {
-    return date.toLocaleDateString('pt-BR', { weekday: 'short' });
-  }
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-}
+import { getInitials, formatThreadDate } from './utils';
 
 const ThreadListItem = memo(function ThreadListItem({
   thread,

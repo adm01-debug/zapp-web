@@ -73,6 +73,7 @@ export interface EmailAttachment {
   mime_type: string;
   size_bytes: number;
   storage_path: string | null;
+  download_status: string;
 }
 
 export interface EmailLabel {
@@ -125,6 +126,10 @@ export function useGmail(accountId?: string) {
   const connectGmail = useMutation({
     mutationFn: async () => {
       const result = await callGmailFunction('gmail-oauth', { action: 'get-auth-url' });
+      // Store OAuth state for CSRF validation in callback
+      if (result.state) {
+        sessionStorage.setItem('gmail-oauth-state', result.state);
+      }
       return result.url as string;
     },
     onSuccess: (url) => {
@@ -186,6 +191,9 @@ export function useGmail(accountId?: string) {
       return (data || []) as EmailThread[];
     },
     enabled: !!activeAccount,
+    // Auto-refresh every 2 minutes when account is active
+    refetchInterval: activeAccount ? 2 * 60 * 1000 : false,
+    refetchIntervalInBackground: false,
   });
 
   // ── Messages for selected thread ────────────────────────────────────────
@@ -204,6 +212,24 @@ export function useGmail(accountId?: string) {
       return (data || []) as EmailMessage[];
     },
     enabled: !!selectedThreadId,
+  });
+
+  // ── Attachments for selected thread messages ─────────────────────────────
+
+  const { data: threadAttachments = [] } = useQuery({
+    queryKey: ['gmail-attachments', selectedThreadId],
+    queryFn: async () => {
+      if (!selectedThreadId || threadMessages.length === 0) return [];
+      const messageIds = threadMessages.map(m => m.id);
+      const { data, error } = await supabase
+        .from('email_attachments')
+        .select('*')
+        .in('email_message_id', messageIds);
+
+      if (error) throw error;
+      return (data || []) as EmailAttachment[];
+    },
+    enabled: !!selectedThreadId && threadMessages.length > 0,
   });
 
   // ── Labels ──────────────────────────────────────────────────────────────
@@ -542,6 +568,9 @@ export function useGmail(accountId?: string) {
     // Messages
     threadMessages,
     messagesLoading,
+
+    // Attachments
+    threadAttachments,
 
     // Labels
     labels,

@@ -19,24 +19,29 @@ import {
 import { type EmailThread, type EmailMessage } from '@/hooks/useGmail';
 import { useGmailContext } from './GmailProvider';
 import { EmailComposer } from './EmailComposer';
+import { getInitials, formatMessageDate, truncateAddresses, formatFileSize } from './utils';
 
 /**
  * Sanitize HTML to prevent XSS attacks from email content.
  * Removes script tags, event handlers, javascript: URIs, and dangerous elements.
  */
 function sanitizeHtml(html: string): string {
+  let clean = html;
   // Remove script tags and their content
-  let clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  clean = clean.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove style blocks that could contain @import, url(), or expression()
+  clean = clean.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
   // Remove event handlers (onclick, onerror, onload, etc.)
   clean = clean.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
-  // Remove javascript: and data: URIs in href/src/action attributes
-  clean = clean.replace(/(href|src|action)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, '$1=""');
-  clean = clean.replace(/(href|src|action)\s*=\s*(?:"data:[^"]*"|'data:[^']*')/gi, '$1=""');
-  // Remove <object>, <embed>, <applet>, <form>, <iframe>, <link>, <meta>, <base> tags
-  clean = clean.replace(/<\/?(object|embed|applet|form|iframe|link|meta|base|svg)\b[^>]*>/gi, '');
-  // Remove style attributes that could contain expressions
-  clean = clean.replace(/style\s*=\s*"[^"]*expression\s*\([^"]*"/gi, '');
-  clean = clean.replace(/style\s*=\s*'[^']*expression\s*\([^']*'/gi, '');
+  // Remove javascript:, data:, and vbscript: URIs in href/src/action
+  clean = clean.replace(/(href|src|action)\s*=\s*(?:"(?:javascript|data|vbscript):[^"]*"|'(?:javascript|data|vbscript):[^']*')/gi, '$1=""');
+  // Remove dangerous tags
+  clean = clean.replace(/<\/?(script|object|embed|applet|form|iframe|link|meta|base|svg|math)\b[^>]*>/gi, '');
+  // Remove style attributes containing expression(), url(), or @import
+  clean = clean.replace(/style\s*=\s*"[^"]*(?:expression|url|@import)\s*\([^"]*"/gi, '');
+  clean = clean.replace(/style\s*=\s*'[^']*(?:expression|url|@import)\s*\([^']*'/gi, '');
+  // Remove background attributes (can leak data via url())
+  clean = clean.replace(/\s+background\s*=\s*(?:"[^"]*"|'[^']*')/gi, '');
   return clean;
 }
 
@@ -45,28 +50,19 @@ interface EmailThreadViewProps {
   onBack: () => void;
 }
 
-function getInitials(name: string | null, email: string): string {
-  if (name) {
-    return name.split(' ').filter(w => w.length > 0).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-  }
-  return email[0]?.toUpperCase() || '?';
+interface EmailAttachmentInfo {
+  id: string;
+  filename: string;
+  mime_type: string;
+  size_bytes: number;
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-
-  if (diff < 86400000 && date.getDate() === now.getDate()) {
-    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  }
-  if (diff < 604800000) {
-    return date.toLocaleDateString('pt-BR', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
-  }
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function EmailMessageCard({ message, isLast, onToggleStar }: { message: EmailMessage; isLast: boolean; onToggleStar: (msgId: string, isStarred: boolean) => void }) {
+function EmailMessageCard({ message, isLast, onToggleStar, attachments }: {
+  message: EmailMessage;
+  isLast: boolean;
+  onToggleStar: (msgId: string, isStarred: boolean) => void;
+  attachments: EmailAttachmentInfo[];
+}) {
   const [expanded, setExpanded] = useState(isLast);
   const [showHtml, setShowHtml] = useState(false);
 
@@ -104,7 +100,7 @@ function EmailMessageCard({ message, isLast, onToggleStar }: { message: EmailMes
               </button>
               {message.has_attachments && <Paperclip className="w-3 h-3 text-muted-foreground shrink-0" />}
               <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
-                {formatDate(message.internal_date)}
+                {formatMessageDate(message.internal_date)}
               </span>
             </div>
             {!expanded && (
@@ -131,15 +127,11 @@ function EmailMessageCard({ message, isLast, onToggleStar }: { message: EmailMes
                 <div className="text-[10px] text-muted-foreground space-y-0.5 mb-3">
                   <p>De: <span className="text-foreground">{message.from_name ? `${message.from_name} <${message.from_address}>` : message.from_address}</span></p>
                   <p>Para: <span className="text-foreground truncate block max-w-full" title={message.to_addresses.join(', ')}>
-                    {message.to_addresses.length > 3
-                      ? `${message.to_addresses.slice(0, 3).join(', ')} e mais ${message.to_addresses.length - 3}`
-                      : message.to_addresses.join(', ')}
+                    {truncateAddresses(message.to_addresses)}
                   </span></p>
                   {message.cc_addresses.length > 0 && (
                     <p>Cc: <span className="text-foreground truncate block max-w-full" title={message.cc_addresses.join(', ')}>
-                      {message.cc_addresses.length > 3
-                        ? `${message.cc_addresses.slice(0, 3).join(', ')} e mais ${message.cc_addresses.length - 3}`
-                        : message.cc_addresses.join(', ')}
+                      {truncateAddresses(message.cc_addresses)}
                     </span></p>
                   )}
                 </div>
@@ -170,8 +162,29 @@ function EmailMessageCard({ message, isLast, onToggleStar }: { message: EmailMes
                   </Button>
                 )}
 
-                {/* Attachment indicators */}
-                {message.has_attachments && (
+                {/* Attachments */}
+                {attachments.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Paperclip className="w-3 h-3" />
+                      {attachments.length} anexo{attachments.length !== 1 ? 's' : ''}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {attachments.map(att => (
+                        <div
+                          key={att.id}
+                          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary/20 border border-secondary/30 text-[10px] hover:bg-secondary/30 transition-colors"
+                          title={`${att.filename} (${formatFileSize(att.size_bytes)})`}
+                        >
+                          <Paperclip className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
+                          <span className="truncate max-w-[150px]">{att.filename}</span>
+                          <span className="text-muted-foreground shrink-0">{formatFileSize(att.size_bytes)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {message.has_attachments && attachments.length === 0 && (
                   <div className="mt-2 flex items-center gap-1">
                     <Paperclip className="w-3 h-3 text-muted-foreground" />
                     <span className="text-[10px] text-muted-foreground">Este email possui anexos</span>
@@ -187,7 +200,7 @@ function EmailMessageCard({ message, isLast, onToggleStar }: { message: EmailMes
 }
 
 export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
-  const { threadMessages, messagesLoading, markAsRead, trashMessage, modifyLabels, toggleStar, updateThread, setSelectedThreadId } = useGmailContext();
+  const { threadMessages, messagesLoading, markAsRead, trashMessage, modifyLabels, toggleStar, updateThread, setSelectedThreadId, threadAttachments } = useGmailContext();
   const [composerMode, setComposerMode] = useState<'reply' | 'reply-all' | 'forward' | null>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -280,6 +293,22 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
         {/* Thread Actions */}
         <TooltipProvider>
           <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground/50" tabIndex={-1}>
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-[10px]">
+                <div className="space-y-0.5">
+                  <p><kbd className="bg-secondary px-1 rounded text-[9px]">R</kbd> Responder</p>
+                  <p><kbd className="bg-secondary px-1 rounded text-[9px]">Shift+R</kbd> Responder a todos</p>
+                  <p><kbd className="bg-secondary px-1 rounded text-[9px]">F</kbd> Encaminhar</p>
+                  <p><kbd className="bg-secondary px-1 rounded text-[9px]">E</kbd> Arquivar</p>
+                  <p><kbd className="bg-secondary px-1 rounded text-[9px]">Esc</kbd> Voltar</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -392,6 +421,7 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
                 message={msg}
                 isLast={i === threadMessages.length - 1}
                 onToggleStar={(msgId, isStarred) => toggleStar.mutate({ messageId: msgId, isStarred })}
+                attachments={threadAttachments.filter(a => a.email_message_id === msg.id)}
               />
             ))
           )}

@@ -165,9 +165,29 @@ export function EmailComposer({
     }
   };
 
+  const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB per file
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setAttachments(prev => [...prev, ...files]);
+    const validFiles: File[] = [];
+    const rejected: string[] = [];
+
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        rejected.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      } else {
+        validFiles.push(file);
+      }
+    }
+
+    if (rejected.length > 0) {
+      toast.error(`Arquivos muito grandes (máx 25MB): ${rejected.join(', ')}`);
+    }
+    if (validFiles.length > 0) {
+      setAttachments(prev => [...prev, ...validFiles]);
+    }
+    // Reset input so same file can be re-selected
+    e.target.value = '';
   };
 
   const removeAttachment = (index: number) => {
