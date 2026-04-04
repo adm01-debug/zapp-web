@@ -22,19 +22,19 @@ interface ClassifiedTicket {
 }
 
 const CATEGORIES = [
-  { name: 'Suporte Técnico', color: 'bg-blue-500/10 text-blue-500', icon: '🔧' },
-  { name: 'Vendas', color: 'bg-green-500/10 text-green-500', icon: '💰' },
-  { name: 'Financeiro', color: 'bg-yellow-500/10 text-yellow-500', icon: '💳' },
+  { name: 'Suporte Técnico', color: 'bg-info/10 text-info', icon: '🔧' },
+  { name: 'Vendas', color: 'bg-success/10 text-success', icon: '💰' },
+  { name: 'Financeiro', color: 'bg-warning/10 text-warning', icon: '💳' },
   { name: 'Reclamação', color: 'bg-destructive/10 text-destructive', icon: '⚠️' },
-  { name: 'Informação', color: 'bg-purple-500/10 text-purple-500', icon: 'ℹ️' },
-  { name: 'Agendamento', color: 'bg-orange-500/10 text-orange-500', icon: '📅' },
+  { name: 'Informação', color: 'bg-secondary/10 text-secondary', icon: 'ℹ️' },
+  { name: 'Agendamento', color: 'bg-accent/10 text-accent-foreground', icon: '📅' },
 ];
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   urgent: { label: 'Urgente', color: 'bg-destructive text-destructive-foreground' },
-  high: { label: 'Alta', color: 'bg-orange-500 text-white' },
-  medium: { label: 'Média', color: 'bg-yellow-500 text-white' },
-  low: { label: 'Baixa', color: 'bg-green-500 text-white' },
+  high: { label: 'Alta', color: 'bg-warning text-warning-foreground' },
+  medium: { label: 'Média', color: 'bg-accent text-accent-foreground' },
+  low: { label: 'Baixa', color: 'bg-success text-success-foreground' },
 };
 
 export function AutoTicketClassifier() {
