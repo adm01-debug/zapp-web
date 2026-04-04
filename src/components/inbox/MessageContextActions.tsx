@@ -138,7 +138,7 @@ export function MessageContextActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent align={isSent ? 'end' : 'start'} className="w-48">
         {isSent && message.type === 'text' && onEditStart && (() => {
-          const ts = message.timestamp instanceof Date ? message.timestamp : new Date((message as any).created_at || message.timestamp);
+          const ts = message.timestamp instanceof Date ? message.timestamp : new Date(message.created_at || String(message.timestamp));
           const minutesAgo = (Date.now() - ts.getTime()) / 60000;
           return minutesAgo <= 15;
         })() && (

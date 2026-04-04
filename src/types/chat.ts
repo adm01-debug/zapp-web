@@ -102,6 +102,12 @@ export interface Message {
   transcriptionStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   // Edit tracking
   isEdited?: boolean;
+  // Database fields (present when loaded from DB)
+  external_id?: string;
+  is_deleted?: boolean;
+  message_type?: string;
+  senderName?: string;
+  created_at?: string;
 }
 
 export interface Conversation {

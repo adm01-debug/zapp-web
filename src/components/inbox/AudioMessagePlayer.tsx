@@ -137,7 +137,7 @@ export function AudioMessagePlayer({
         setTranscriptionStatus('completed');
         
         // Update message in database with transcription
-        await (supabase as any)
+        await supabase
           .from('messages')
           .update({ 
             transcription: data.transcription,

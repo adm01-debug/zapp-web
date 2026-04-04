@@ -225,7 +225,7 @@ export const VirtualizedMessageList = forwardRef<VirtualizedMessageListRef, Virt
             )}
           </div>
 
-          {(message as any).is_deleted ? (
+          {message.is_deleted ? (
             <DeletedMessagePlaceholder isSent={isSent} content={message.content} />
           ) : (
           <div
