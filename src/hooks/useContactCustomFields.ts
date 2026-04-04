@@ -42,13 +42,13 @@ export function useContactCustomFields(contactId: string | undefined) {
     if (!contactId) return;
     try {
       const { error } = await supabase
-        .from('contact_custom_fields' as any)
+        .from('contact_custom_fields')
         .upsert({
           contact_id: contactId,
           field_name: fieldName,
           field_value: fieldValue,
           field_type: fieldType,
-        } as any, { onConflict: 'contact_id,field_name' });
+        });
       if (error) throw error;
       await fetchFields();
     } catch (err) {
