@@ -1,4 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('TeamFileUploader');
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -70,7 +73,7 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
       URL.revokeObjectURL(preview.url);
       setPreview(null);
     } catch (err) {
-      console.error('Upload error:', err);
+      log.error('Upload error:', err);
       toast.error('Erro ao enviar arquivo');
     } finally {
       setUploading(false);

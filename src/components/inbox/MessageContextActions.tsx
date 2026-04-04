@@ -1,4 +1,7 @@
 import { useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('MessageContextActions');
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { supabase } from '@/integrations/supabase/client';
 import { Message } from '@/types/chat';
@@ -57,7 +60,7 @@ export function MessageContextActions({
           await deleteMessage(instanceName, externalId, contactJid, isSent);
         } catch {
           // WhatsApp deletion failed, but still mark locally as deleted
-          console.warn('WhatsApp API delete failed, marking locally only');
+          log.warn('WhatsApp API delete failed, marking locally only');
         }
       }
       // Always mark as deleted in local DB

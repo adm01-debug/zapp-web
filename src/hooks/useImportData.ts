@@ -64,7 +64,7 @@ export function useImportData<T>(options: UseImportDataOptions<T>) {
           });
           
           // Normalizar headers
-          const normalized = jsonData.map((row: Record<string, unknown>) => {
+          const normalized = (jsonData as Record<string, unknown>[]).map((row: Record<string, unknown>) => {
             const newRow: Record<string, unknown> = {};
             Object.keys(row).forEach(key => {
               const normalizedKey = key.trim().toLowerCase().replace(/\s+/g, '_');
@@ -104,7 +104,7 @@ export function useImportData<T>(options: UseImportDataOptions<T>) {
           });
           
           // Normalizar headers
-          const normalized = jsonData.map((row: Record<string, unknown>) => {
+          const normalized = (jsonData as Record<string, unknown>[]).map((row: Record<string, unknown>) => {
             const newRow: Record<string, unknown> = {};
             Object.keys(row).forEach(key => {
               const normalizedKey = key.trim().toLowerCase().replace(/\s+/g, '_');

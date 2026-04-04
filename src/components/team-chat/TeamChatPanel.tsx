@@ -1,4 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('TeamChatPanel');
 import { TeamConversation, useTeamMessages, useSendTeamMessage, useDeleteTeamMessage, useEditTeamMessage, TeamMessage } from '@/hooks/useTeamChat';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -218,7 +221,7 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
       handleSendMedia(urlData.publicUrl, 'audio', '🎤 Mensagem de áudio');
     } catch (err) {
       toast.error('Erro ao enviar áudio');
-      console.error(err);
+      log.error('Audio upload error:', err);
     }
   };
 

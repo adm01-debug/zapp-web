@@ -1,3 +1,8 @@
-Login: 11935024030
+⚠️ CREDENCIAIS REMOVIDAS POR SEGURANÇA ⚠️
 
-Senha: @Promobrindes2021
+As credenciais da Lalamove foram movidas para o gerenciamento seguro de secrets.
+Nunca armazene credenciais em arquivos de texto no repositório.
+
+Data da remoção: 2026-04-04
+Motivo: Auditoria de segurança — exposição de credenciais em texto plano
+Ação: Credenciais devem ser armazenadas via Lovable Cloud Secrets

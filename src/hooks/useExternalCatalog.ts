@@ -1,4 +1,7 @@
 import { useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('ExternalCatalog');
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -96,12 +99,12 @@ export function useExternalCatalog() {
   const productsQuery = useQuery({
     queryKey: ['external-catalog', 'products', filters],
     queryFn: async () => {
-      console.log('[catalog] fetching products with filters:', JSON.stringify(filters));
+      log.debug('Fetching products with filters:', JSON.stringify(filters));
       const result = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>(
         'list_products',
         filters as Record<string, unknown>
       );
-      console.log('[catalog] got', result.data?.length, 'products, total:', result.meta?.total);
+      log.debug('Got', result.data?.length, 'products, total:', result.meta?.total);
       return result;
     },
     enabled: ready,
@@ -152,7 +155,7 @@ export function useExternalCatalog() {
       });
       return result;
     } catch (err) {
-      console.error('[catalog] Failed to fetch product', err);
+      log.error('Failed to fetch product', err);
       return null;
     }
   }, [queryClient]);

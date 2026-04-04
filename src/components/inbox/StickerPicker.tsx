@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('StickerPicker');
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -161,7 +164,7 @@ export function StickerPicker({ onSendSticker, disabled }: StickerPickerProps) {
     });
 
     if (insertError) {
-      console.error('[StickerPicker] Insert error:', insertError);
+      log.error('[StickerPicker] Insert error:', insertError);
       toast.error('Erro ao salvar figurinha');
       return;
     }

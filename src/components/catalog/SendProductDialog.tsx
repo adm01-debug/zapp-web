@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SendProductDialog');
 import {
   Dialog,
   DialogContent,
@@ -430,7 +433,7 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
       setStep('configure');
       setSelectedContact(null);
     } catch (err) {
-      console.error('Error sending product:', err);
+      log.error('Error sending product:', err);
       toast({ title: 'Erro ao enviar produto', variant: 'destructive' });
     } finally {
       setIsSending(false);

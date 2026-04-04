@@ -1,6 +1,9 @@
 /**
  * Safe localStorage wrapper that handles exceptions (quota exceeded, private mode, etc.)
  */
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SafeStorage');
 
 export function safeGetItem(key: string): string | null {
   try {
@@ -15,7 +18,7 @@ export function safeSetItem(key: string, value: string): boolean {
     localStorage.setItem(key, value);
     return true;
   } catch {
-    console.warn(`[safeStorage] Failed to write key "${key}"`);
+    log.warn(`Failed to write key "${key}"`);
     return false;
   }
 }
@@ -46,7 +49,7 @@ export function safeSetJSON(key: string, value: unknown): boolean {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch {
-    console.warn(`[safeStorage] Failed to write key "${key}"`);
+    log.warn(`Failed to write key "${key}"`);
     return false;
   }
 }

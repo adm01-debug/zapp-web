@@ -1,4 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SpeechToText');
 
 interface UseSpeechToTextOptions {
   language?: string;
@@ -69,7 +72,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.warn('Speech recognition error:', event.error);
+      log.warn('Speech recognition error:', event.error);
       setIsListening(false);
     };
 

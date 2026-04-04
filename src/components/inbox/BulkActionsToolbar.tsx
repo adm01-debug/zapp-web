@@ -127,7 +127,7 @@ export function BulkActionsToolbar({
       <TransferDialog
         open={showTransferDialog}
         onOpenChange={setShowTransferDialog}
-        onTransfer={handleTransfer}
+        onTransfer={handleTransfer as (type: "agent" | "connection" | "queue", targetId: string, message?: string) => void}
       />
     </>
   );

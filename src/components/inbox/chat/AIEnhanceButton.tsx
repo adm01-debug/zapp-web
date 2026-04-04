@@ -1,4 +1,7 @@
 import { useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('AIEnhanceButton');
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -67,7 +70,7 @@ export function AIEnhanceButton({ inputValue, onInputChange }: AIEnhanceButtonPr
         });
       }
     } catch (err) {
-      console.error('AI enhance error:', err);
+      log.error('AI enhance error:', err);
       setOriginalMessage(null);
       toast({
         title: 'Erro ao aprimorar mensagem',

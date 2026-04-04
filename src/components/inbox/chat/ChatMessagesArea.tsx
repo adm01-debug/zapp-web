@@ -1,4 +1,7 @@
 import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('ChatMessagesArea');
 import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -111,7 +114,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     try {
       await supabase.from('messages').update({ is_deleted: true, content: '[Mensagem apagada]' }).eq('id', messageId);
     } catch {
-      console.error('Failed to mark message as deleted in DB');
+      log.error('Failed to mark message as deleted in DB');
     }
   }, []);
 

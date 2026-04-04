@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('PublicApiDashboard');
 import { Globe, Key, Copy, RefreshCw, Send, CheckCircle, XCircle, Clock, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +49,7 @@ export function PublicApiDashboard() {
 
       setLogs((auditLogs || []) as ApiLog[]);
     } catch (err) {
-      console.warn('Failed to load API data:', err);
+      log.warn('Failed to load API data:', err);
     } finally {
       setLoading(false);
     }

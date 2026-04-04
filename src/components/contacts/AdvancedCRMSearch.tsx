@@ -460,7 +460,7 @@ function AdvancedCRMSearchInner({ onSelectContact, className }: AdvancedCRMSearc
               <FiltersPanel
                 filters={filters}
                 params={params}
-                onFilter={setFilter}
+                onFilter={setFilter as (key: string, value: any) => void}
                 onClear={clearFilters}
                 activeCount={activeFilterCount}
               />

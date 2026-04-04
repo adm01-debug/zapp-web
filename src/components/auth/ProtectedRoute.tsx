@@ -1,4 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('ProtectedRoute');
 import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,7 +35,7 @@ export function ProtectedRoute({
         _permission_name: requiredPermission
       }).then(({ data, error }) => {
         if (error) {
-          console.error('Permission check failed:', error.message);
+          log.error('Permission check failed:', error.message);
           setHasPermission(false);
           return;
         }

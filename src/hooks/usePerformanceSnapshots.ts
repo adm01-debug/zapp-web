@@ -1,4 +1,7 @@
 import { useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('PerformanceSnapshots');
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -47,7 +50,7 @@ export function usePerformanceSnapshots() {
       } as any) as any);
     } catch (err) {
       // Silent fail — don't interrupt UX for telemetry
-      console.warn('Failed to save performance snapshot:', err);
+      log.warn('Failed to save performance snapshot:', err);
     }
   }, [profile?.id]);
 
@@ -65,7 +68,7 @@ export function usePerformanceSnapshots() {
       if (error) throw error;
       setHistory((data || []) as PerformanceSnapshot[]);
     } catch (err) {
-      console.warn('Failed to load performance history:', err);
+      log.warn('Failed to load performance history:', err);
     } finally {
       setLoading(false);
     }

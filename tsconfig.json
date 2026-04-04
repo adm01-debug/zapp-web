@@ -3,6 +3,7 @@
     "allowJs": true,
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
+    "strictFunctionTypes": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {

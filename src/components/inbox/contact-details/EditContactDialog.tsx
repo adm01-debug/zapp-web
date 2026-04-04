@@ -1,4 +1,7 @@
 import { useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('EditContactDialog');
 import {
   Dialog,
   DialogContent,
@@ -84,7 +87,7 @@ export function EditContactDialog({ open, onOpenChange, contact }: EditContactDi
       if (previousData) {
         queryClient.setQueryData(enrichedKey, previousData);
       }
-      console.error('Error updating contact:', err);
+      log.error('Error updating contact:', err);
       toast.error('Erro ao atualizar contato');
     } finally {
       setIsSubmitting(false);

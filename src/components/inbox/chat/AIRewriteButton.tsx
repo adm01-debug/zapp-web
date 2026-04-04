@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('AIRewriteButton');
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -50,7 +53,7 @@ export function AIRewriteButton({ inputValue, onRewrite }: AIRewriteButtonProps)
         toast.error(data.error);
       }
     } catch (err) {
-      console.error('AI rewrite error:', err);
+      log.error('AI rewrite error:', err);
       toast.error('Erro ao reescrever mensagem. Tente novamente.');
     } finally {
       setIsLoading(false);

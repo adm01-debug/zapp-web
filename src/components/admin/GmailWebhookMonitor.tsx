@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('GmailWebhookMonitor');
 import { Mail, RefreshCw, CheckCircle, AlertCircle, Clock, Wifi, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +51,7 @@ export function GmailWebhookMonitor() {
 
       setStats({ total: totalThreads || 0, unread: unreadThreads || 0 });
     } catch (err) {
-      console.warn('Failed to load Gmail data:', err);
+      log.warn('Failed to load Gmail data:', err);
     } finally {
       setLoading(false);
     }

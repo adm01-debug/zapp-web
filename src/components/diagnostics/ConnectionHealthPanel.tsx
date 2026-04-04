@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('ConnectionHealthPanel');
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -80,7 +83,7 @@ export function ConnectionHealthPanel() {
       await fetchData();
     } catch (err) {
       toast.error('Erro ao executar health check');
-      console.error(err);
+      log.error('Health check error:', err);
     } finally {
       setChecking(false);
     }

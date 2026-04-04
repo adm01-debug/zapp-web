@@ -1,4 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SipClient');
 import { UserAgent, Registerer, Inviter, SessionState, Web } from 'sip.js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -126,7 +129,7 @@ export function useSipClient() {
       uaRef.current = ua;
       registererRef.current = registerer;
     } catch (err: any) {
-      console.error('SIP connection error:', err);
+      log.error('SIP connection error:', err);
       setSipStatus('error');
       toast.error(`Erro ao conectar VoIP: ${err.message || 'Falha na conexão'}`);
     }
@@ -146,7 +149,7 @@ export function useSipClient() {
       setSipStatus('disconnected');
       reconnectAttemptsRef.current = 0;
     } catch (err) {
-      console.error('SIP disconnect error:', err);
+      log.error('SIP disconnect error:', err);
     }
   }, []);
 
@@ -213,7 +216,7 @@ export function useSipClient() {
       });
       callStartTimeRef.current = null;
     } catch (err) {
-      console.error('Error logging call:', err);
+      log.error('Error logging call:', err);
     }
   }, [getProfileId, findContactByPhone]);
 
@@ -298,7 +301,7 @@ export function useSipClient() {
       await inviter.invite();
       sessionRef.current = inviter;
     } catch (err: any) {
-      console.error('Call error:', err);
+      log.error('Call error:', err);
       // Log failed call attempt
       logCall(number, 'missed');
       setCallStatus('idle');
@@ -316,7 +319,7 @@ export function useSipClient() {
           sessionRef.current.cancel();
         }
       } catch (err) {
-        console.error('Hangup error:', err);
+        log.error('Hangup error:', err);
       }
       sessionRef.current = null;
     }
@@ -350,7 +353,7 @@ export function useSipClient() {
         }
       }
     } catch (err) {
-      console.error('DTMF error:', err);
+      log.error('DTMF error:', err);
     }
   }, []);
 

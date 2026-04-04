@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('MediaLibraryAdmin');
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -280,12 +283,12 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
         .order('created_at', { ascending: false })
         .limit(1000);
       if (error) {
-        console.error(`Error fetching ${type}:`, error);
+        log.error(`Error fetching ${type}:`, error);
         toast.error(`Erro ao carregar ${type === 'stickers' ? 'figurinhas' : type === 'audio_memes' ? 'áudios' : 'emojis'}`);
       }
       setItems((data as MediaItem[]) || []);
     } catch (err) {
-      console.error(`Unexpected error fetching ${type}:`, err);
+      log.error(`Unexpected error fetching ${type}:`, err);
       setItems([]);
     } finally {
       setLoading(false);
@@ -623,7 +626,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           .upload(storagePath, file, { contentType: file.type, cacheControl: '31536000' });
 
         if (uploadError) {
-          console.error(`Upload error for ${file.name}:`, uploadError);
+          log.error(`Upload error for ${file.name}:`, uploadError);
           continue;
         }
 
@@ -658,7 +661,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
         const { error: insertError } = await supabase.from(type).insert(insertData as any);
         if (!insertError) successCount++;
       } catch (err) {
-        console.error(`Unexpected error uploading ${file.name}:`, err);
+        log.error(`Unexpected error uploading ${file.name}:`, err);
       }
       setUploadProgress(Math.round(((i + 1) / sizedFiles.length) * 100));
     }

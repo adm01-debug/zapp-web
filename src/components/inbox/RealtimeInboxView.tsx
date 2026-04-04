@@ -748,7 +748,7 @@ export function RealtimeInboxView() {
           <GlobalSearch 
             open={globalSearchOpen} 
             onOpenChange={setGlobalSearchOpen} 
-            onSelectResult={handleGlobalSearchResult}
+            onSelectResult={handleGlobalSearchResult as any}
           />
         </Suspense>
       )}
