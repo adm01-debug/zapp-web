@@ -101,10 +101,10 @@ export function IncomingCallAlert() {
         <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
           {/* Pulsing header */}
           <div className={cn(
-            "px-4 py-3 flex items-center gap-2 text-sm font-medium text-white",
+            "px-4 py-3 flex items-center gap-2 text-sm font-medium text-primary-foreground",
             incomingCall.is_video
-              ? "bg-blue-600"
-              : "bg-green-600"
+              ? "bg-info"
+              : "bg-success"
           )}>
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
