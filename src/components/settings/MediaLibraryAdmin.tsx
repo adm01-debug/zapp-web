@@ -661,7 +661,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
         const { error: insertError } = await supabase.from(type).insert(insertData as any);
         if (!insertError) successCount++;
       } catch (err) {
-        console.error(`Unexpected error uploading ${file.name}:`, err);
+        log.error(`Unexpected error uploading ${file.name}:`, err);
       }
       setUploadProgress(Math.round(((i + 1) / sizedFiles.length) * 100));
     }

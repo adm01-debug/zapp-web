@@ -73,7 +73,7 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
       URL.revokeObjectURL(preview.url);
       setPreview(null);
     } catch (err) {
-      console.error('Upload error:', err);
+      log.error('Upload error:', err);
       toast.error('Erro ao enviar arquivo');
     } finally {
       setUploading(false);

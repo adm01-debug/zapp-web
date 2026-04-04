@@ -221,7 +221,7 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
       handleSendMedia(urlData.publicUrl, 'audio', '🎤 Mensagem de áudio');
     } catch (err) {
       toast.error('Erro ao enviar áudio');
-      console.error(err);
+      log.error('Audio upload error:', err);
     }
   };
 
