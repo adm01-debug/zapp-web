@@ -79,7 +79,7 @@ export function useCampaigns() {
 
   const deleteCampaign = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('campaigns')
         .delete()
         .eq('id', id);
