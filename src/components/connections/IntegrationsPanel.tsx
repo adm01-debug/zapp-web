@@ -241,7 +241,7 @@ export function IntegrationsPanel({
               values={openai}
               onChange={(k, v) => setOpenai(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setOpenAI({ instanceName, ...openai } as any); toast.success('OpenAI configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setOpenAI({ instanceName, ...openai } as Parameters<typeof api.setOpenAI>[0]); toast.success('OpenAI configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteOpenAI(instanceName); setOpenai({ enabled: false }); toast.success('OpenAI removido'); } catch { toast.error('Erro'); }
