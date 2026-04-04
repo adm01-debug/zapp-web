@@ -83,7 +83,7 @@ export function ConnectionHealthPanel() {
       await fetchData();
     } catch (err) {
       toast.error('Erro ao executar health check');
-      console.error(err);
+      log.error('Health check error:', err);
     } finally {
       setChecking(false);
     }

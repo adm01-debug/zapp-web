@@ -310,7 +310,7 @@ export function AudioMemePicker({ onSendAudio, disabled }: AudioMemePickerProps)
     });
 
     if (insertError) {
-      console.error('[AudioMeme] Insert error:', insertError);
+      log.error('[AudioMeme] Insert error:', insertError);
       toast.error('Erro ao salvar áudio meme no banco de dados');
       return;
     }

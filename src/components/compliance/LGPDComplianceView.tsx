@@ -44,7 +44,7 @@ export function LGPDComplianceView() {
       toast.success('Solicitação de exclusão registrada. Um administrador irá processar em até 30 dias.');
       setShowDeleteConfirm(false);
     } catch (error) {
-      console.error('Delete request error:', error);
+      log.error('Delete request error:', error);
       toast.error('Erro ao registrar solicitação');
     } finally {
       setIsDeleting(false);
