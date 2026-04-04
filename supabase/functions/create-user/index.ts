@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
       password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres").max(128),
       name: z.string().min(1, "Nome é obrigatório").max(255),
       role: z.enum(["admin", "supervisor", "agent", "special_agent"]).optional().default("agent"),
+      gmail_email: z.string().email("Email Gmail inválido").max(255).optional(),
     });
 
     const parsed = bodySchema.safeParse(await req.json());
@@ -55,7 +56,7 @@ Deno.serve(async (req) => {
       return errorResponse(Object.values(errors).flat().join("; "), 400, req);
     }
 
-    const { email, password, name, role } = parsed.data;
+    const { email, password, name, role, gmail_email } = parsed.data;
     const sanitizedName = sanitizeString(name) || name;
 
     // Create user via admin API
@@ -77,6 +78,23 @@ Deno.serve(async (req) => {
         .from("user_roles")
         .update({ role })
         .eq("user_id", newUser.user.id);
+    }
+
+    // If a Gmail email was provided, create the gmail_accounts record
+    if (gmail_email && newUser.user) {
+      const { error: gmailError } = await adminClient
+        .from("gmail_accounts")
+        .insert({
+          user_id: newUser.user.id,
+          email_address: gmail_email,
+          is_active: true,
+          sync_status: "pending",
+        });
+
+      if (gmailError) {
+        log.error("Gmail account creation failed", { error: gmailError.message });
+        // Don't fail the whole request, user was already created
+      }
     }
 
     log.done(200, { userId: newUser.user?.id });

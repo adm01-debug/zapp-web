@@ -111,6 +111,7 @@ export function AdminView() {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
+  const [newUserGmail, setNewUserGmail] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
 
   useEffect(() => {
@@ -265,6 +266,7 @@ export function AdminView() {
             email: newUserEmail,
             password: newUserPassword,
             role: newUserRole,
+            gmail_email: newUserGmail || undefined,
           }),
         }
       );
@@ -279,6 +281,7 @@ export function AdminView() {
         setNewUserEmail('');
         setNewUserPassword('');
         setNewUserRole('agent');
+        setNewUserGmail('');
         fetchData();
       }
     } catch (err) {
@@ -547,6 +550,19 @@ export function AdminView() {
                   })}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_gmail">Conta Gmail (opcional)</Label>
+              <Input
+                id="new_gmail"
+                type="email"
+                placeholder="usuario@gmail.com"
+                value={newUserGmail}
+                onChange={(e) => setNewUserGmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                O usuário não poderá alterar ou remover esta conta.
+              </p>
             </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
