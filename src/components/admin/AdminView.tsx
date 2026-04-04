@@ -222,27 +222,52 @@ export function AdminView() {
     }
   };
 
+  const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
+  const [savingUser, setSavingUser] = useState(false);
+
   const handleSaveUser = async () => {
     if (!editingUser) return;
+    setSavingUser(true);
+
+    let avatarUrl = editingUser.avatar_url;
+    if (editAvatarFile) {
+      const fileExt = editAvatarFile.name.split('.').pop();
+      const filePath = `${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, editAvatarFile);
+      if (uploadError) {
+        toast.error('Erro ao enviar foto');
+        setSavingUser(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      avatarUrl = urlData.publicUrl;
+    }
 
     const { error } = await supabase
       .from('profiles')
       .update({
         name: editingUser.name,
+        nickname: editingUser.nickname,
+        signature: editingUser.signature,
         job_title: editingUser.job_title,
         department: editingUser.department,
         phone: editingUser.phone,
+        avatar_url: avatarUrl,
         access_level: editingUser.access_level,
         max_chats: editingUser.max_chats,
       })
       .eq('id', editingUser.id);
 
+    setSavingUser(false);
     if (error) {
       toast.error('Erro ao salvar usuário');
     } else {
       toast.success('Usuário atualizado com sucesso');
       setIsEditDialogOpen(false);
       setEditingUser(null);
+      setEditAvatarFile(null);
       fetchData();
     }
   };
