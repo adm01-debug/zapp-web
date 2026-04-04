@@ -104,9 +104,10 @@ export function useSavedFilters(entityType: string) {
   // Atualizar filtro
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...input }: SaveFilterInput & { id: string }) => {
+      const updateData = { ...input, filters: input.filters as unknown as import('@/integrations/supabase/types').Json };
       const { error } = await supabase
         .from('saved_filters')
-        .update(input)
+        .update(updateData)
         .eq('id', id);
       
       if (error) throw error;

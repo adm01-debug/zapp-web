@@ -9,7 +9,7 @@ export interface Version {
   version_number: number;
   data: Record<string, unknown>;
   changed_by: string | null;
-  changed_at: string;
+  created_at: string;
   change_summary: string | null;
 }
 
