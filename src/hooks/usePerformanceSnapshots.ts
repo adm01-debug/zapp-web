@@ -77,10 +77,10 @@ export function usePerformanceSnapshots() {
   const clearOldSnapshots = useCallback(async () => {
     try {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      await (supabase
-        .from('performance_snapshots' as any)
+      await supabase
+        .from('performance_snapshots')
         .delete()
-        .lt('created_at', sevenDaysAgo) as any);
+        .lt('created_at', sevenDaysAgo);
       toast.success('Dados antigos removidos');
       await loadHistory();
     } catch (err) {
