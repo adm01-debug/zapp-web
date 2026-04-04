@@ -248,7 +248,7 @@ function FiltersPanel({
 }: {
   filters: ReturnType<typeof useAdvancedContactSearch>['filters'];
   params: ReturnType<typeof useAdvancedContactSearch>['params'];
-  onFilter: (key: string, value: any) => void;
+  onFilter: (key: string, value: string | null) => void;
   onClear: () => void;
   activeCount: number;
 }) {
