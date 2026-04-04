@@ -107,7 +107,7 @@ export function useChatbotFlows() {
 
   const deleteFlow = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('chatbot_flows')
         .delete()
         .eq('id', id);
