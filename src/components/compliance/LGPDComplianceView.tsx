@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('LGPDCompliance');
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
