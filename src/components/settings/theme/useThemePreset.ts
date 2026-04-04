@@ -11,7 +11,7 @@ interface ThemeConfig {
 
 export function useThemePreset() {
   const { resolvedTheme } = useTheme();
-  const [activePreset, setActivePreset] = useState<string>('default');
+  const [activePreset, setActivePreset] = useState<string>('corporate');
   const [borderRadius, setBorderRadius] = useState<number>(8);
 
   const save = useCallback((presetId: string, radius: number) => {
@@ -41,15 +41,17 @@ export function useThemePreset() {
     document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);
   }, []);
 
-  // Restore saved theme on mount
+  // Restore saved theme on mount (default to corporate on first access)
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed: ThemeConfig = JSON.parse(saved);
-        if (parsed.preset) {
-          setActivePreset(parsed.preset);
-          const preset = PRESETS.find(p => p.id === parsed.preset);
+        // Migrate old 'default' preset to 'purpure'
+        const presetId = parsed.preset === 'default' ? 'purpure' : parsed.preset;
+        if (presetId) {
+          setActivePreset(presetId);
+          const preset = PRESETS.find(p => p.id === presetId);
           if (preset) applyPresetColors(preset, resolvedTheme);
         }
         if (parsed.borderRadius != null) {
@@ -57,22 +59,21 @@ export function useThemePreset() {
           applyBorderRadius(parsed.borderRadius);
         }
       } catch { /* corrupted storage */ }
+    } else {
+      // First access: apply corporate as default
+      const corporate = PRESETS.find(p => p.id === 'corporate');
+      if (corporate) {
+        applyPresetColors(corporate, resolvedTheme);
+        save('corporate', borderRadius);
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Re-apply when light/dark mode changes
   useEffect(() => {
     const preset = PRESETS.find(p => p.id === activePreset);
-    if (preset && activePreset !== 'default') {
+    if (preset) {
       applyPresetColors(preset, resolvedTheme);
-    }
-    // Also re-apply default if it was explicitly chosen
-    if (preset && activePreset === 'default') {
-      // Remove overrides so CSS defaults take over
-      const root = document.documentElement;
-      for (const key of CSS_VARS_TO_APPLY) {
-        root.style.removeProperty(`--${key}`);
-      }
     }
   }, [resolvedTheme, activePreset, applyPresetColors]);
 
@@ -84,16 +85,16 @@ export function useThemePreset() {
   }, [activePreset, applyBorderRadius, save]);
 
   const resetTheme = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    const root = document.documentElement;
-    for (const key of CSS_VARS_TO_APPLY) {
-      root.style.removeProperty(`--${key}`);
+    const corporate = PRESETS.find(p => p.id === 'corporate');
+    if (corporate) {
+      applyPresetColors(corporate, resolvedTheme);
     }
-    root.style.removeProperty('--radius');
-    setActivePreset('default');
+    setActivePreset('corporate');
     setBorderRadius(8);
+    document.documentElement.style.setProperty('--radius', '0.5rem');
+    save('corporate', 8);
     toast.success('Tema restaurado ao padrão!');
-  }, []);
+  }, [applyPresetColors, resolvedTheme, save]);
 
   const exportTheme = useCallback(() => {
     const config: ThemeConfig = { preset: activePreset, borderRadius };

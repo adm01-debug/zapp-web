@@ -280,8 +280,8 @@ const buildPreset = (p: PresetParams): ThemePreset => {
 
 // ──────────── PRESETS ────────────
 export const PRESETS: ThemePreset[] = [
-  buildPreset({ id: 'default', name: 'Padrão', description: 'Roxo vibrante original', emoji: '💜', h: 254, s: 92, l: 62, gh: 260, sh: 260, ss: 90, sl: 67 }),
-  buildPreset({ id: 'corporate', name: 'Corporativo', description: 'Azul profissional', emoji: '💼', h: 221, s: 83, l: 53, gh: 230, sh: 215, ss: 70, sl: 55 }),
+  buildPreset({ id: 'corporate', name: 'Padrão', description: 'Azul profissional', emoji: '💼', h: 221, s: 83, l: 53, gh: 230, sh: 215, ss: 70, sl: 55 }),
+  buildPreset({ id: 'purpure', name: 'Púrpure', description: 'Roxo vibrante original', emoji: '💜', h: 254, s: 92, l: 62, gh: 260, sh: 260, ss: 90, sl: 67 }),
   buildPreset({ id: 'emerald', name: 'Esmeralda', description: 'Verde sofisticado', emoji: '💎', h: 160, s: 84, l: 45, gh: 170, sh: 145, ss: 70, sl: 50 }),
   buildPreset({ id: 'sunset', name: 'Pôr do Sol', description: 'Quente e acolhedor', emoji: '🌅', h: 25, s: 95, l: 53, gh: 35, sh: 15, ss: 80, sl: 50 }),
   buildPreset({ id: 'rose', name: 'Rosé', description: 'Elegante e moderno', emoji: '🌸', h: 346, s: 77, l: 50, gh: 355, sh: 330, ss: 70, sl: 55 }),
