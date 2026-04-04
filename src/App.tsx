@@ -30,24 +30,40 @@ function DeferredProviders() {
   );
 }
 
+// Retry wrapper for lazy imports to handle transient network failures
+function lazyWithRetry(factory: () => Promise<any>, retries = 3): React.LazyExoticComponent<any> {
+  return lazy(() => {
+    let attempt = 0;
+    const load = (): Promise<any> =>
+      factory().catch((err: unknown) => {
+        attempt++;
+        if (attempt < retries) {
+          return new Promise(r => setTimeout(r, 1000 * attempt)).then(load);
+        }
+        throw err;
+      });
+    return load();
+  });
+}
+
 // Lazy-load ALL page routes for optimal initial bundle
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
 import NotFound from "./pages/NotFound";
 
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
-const SSOCallback = lazy(() => import("./pages/SSOCallback"));
-const TwoFactorAuth = lazy(() => import("./pages/TwoFactorAuth"));
-const QueueDetails = lazy(() => import("./pages/QueueDetails"));
-const QueuesComparison = lazy(() => import("./pages/QueuesComparison"));
-const SLADashboard = lazy(() => import("./pages/SLADashboard"));
-const SLAHistory = lazy(() => import("./pages/SLAHistory"));
-const RolesPage = lazy(() => import("./pages/admin/RolesPage"));
-const RateLimitDashboard = lazy(() => import("./pages/admin/RateLimitDashboard"));
-const Install = lazy(() => import("./pages/Install"));
-const ChatPopup = lazy(() => import("./pages/ChatPopup"));
+const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const VerifyEmail = lazyWithRetry(() => import("./pages/VerifyEmail"));
+const SSOCallback = lazyWithRetry(() => import("./pages/SSOCallback"));
+const TwoFactorAuth = lazyWithRetry(() => import("./pages/TwoFactorAuth"));
+const QueueDetails = lazyWithRetry(() => import("./pages/QueueDetails"));
+const QueuesComparison = lazyWithRetry(() => import("./pages/QueuesComparison"));
+const SLADashboard = lazyWithRetry(() => import("./pages/SLADashboard"));
+const SLAHistory = lazyWithRetry(() => import("./pages/SLAHistory"));
+const RolesPage = lazyWithRetry(() => import("./pages/admin/RolesPage"));
+const RateLimitDashboard = lazyWithRetry(() => import("./pages/admin/RateLimitDashboard"));
+const Install = lazyWithRetry(() => import("./pages/Install"));
+const ChatPopup = lazyWithRetry(() => import("./pages/ChatPopup"));
 
 // Route loading fallback component
 function RouteLoadingFallback() {
@@ -203,3 +219,5 @@ function AppWithErrorRecovery() {
 const App = () => <AppWithErrorRecovery />;
 
 export default App;
+
+
