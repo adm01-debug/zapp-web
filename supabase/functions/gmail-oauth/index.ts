@@ -28,7 +28,7 @@ interface TokenResponse {
   scope: string;
 }
 
-async function getAuthUrl(): Promise<string> {
+async function getAuthUrl(state?: string): Promise<string> {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID!,
     redirect_uri: GOOGLE_REDIRECT_URI!,
@@ -37,6 +37,7 @@ async function getAuthUrl(): Promise<string> {
     access_type: "offline",
     prompt: "consent",
     include_granted_scopes: "true",
+    ...(state ? { state } : {}),
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
@@ -146,7 +147,7 @@ serve(async (req) => {
 
     switch (action) {
       case "get-auth-url": {
-        const url = await getAuthUrl();
+        const url = await getAuthUrl(typeof body.state === "string" ? body.state : undefined);
         return new Response(JSON.stringify({ url }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

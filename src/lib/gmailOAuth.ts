@@ -2,6 +2,11 @@ const GMAIL_OAUTH_RETURN_VIEW_KEY = 'gmail-oauth-return-view';
 const GMAIL_OAUTH_RETURN_INTEGRATION_KEY = 'gmail-oauth-return-integration';
 const PENDING_INTEGRATION_VIEW_KEY = 'pending-integration-view';
 
+export interface GmailOAuthState {
+  view: string;
+  integrationView?: string;
+}
+
 function getSessionStorage() {
   if (typeof window === 'undefined') return null;
   return window.sessionStorage;
@@ -13,6 +18,26 @@ export function storeGmailOAuthReturnContext(view: string, integrationView = 'gm
 
   storage.setItem(GMAIL_OAUTH_RETURN_VIEW_KEY, view);
   storage.setItem(GMAIL_OAUTH_RETURN_INTEGRATION_KEY, integrationView);
+}
+
+export function createGmailOAuthState(state: GmailOAuthState) {
+  return JSON.stringify(state);
+}
+
+export function parseGmailOAuthState(value: string | null): GmailOAuthState | null {
+  if (!value) return null;
+
+  try {
+    const parsed = JSON.parse(value) as GmailOAuthState;
+
+    if (!parsed?.view) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
 export function consumeGmailOAuthReturnContext() {

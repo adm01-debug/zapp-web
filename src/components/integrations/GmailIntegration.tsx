@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
 import {
   Mail, Link2, CheckCircle2, XCircle, RefreshCw, Shield,
   Clock, Inbox, Send, Tag, Bell, Loader2, Trash2

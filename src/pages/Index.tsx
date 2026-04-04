@@ -14,7 +14,7 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOnboardingChecklist } from '@/hooks/useOnboardingChecklist';
 import { useTranscriptionNotifications } from '@/hooks/useTranscriptionNotifications';
 import { logAudit } from '@/lib/audit';
-import { consumeGmailOAuthReturnContext, setPendingIntegrationView } from '@/lib/gmailOAuth';
+import { consumeGmailOAuthReturnContext, parseGmailOAuthState, setPendingIntegrationView } from '@/lib/gmailOAuth';
 import { Sparkles } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indicator';
@@ -114,13 +114,16 @@ function IndexContent() {
     const code = searchParams.get('code');
     const oauthError = searchParams.get('error');
     const issuer = searchParams.get('iss');
+    const oauthState = parseGmailOAuthState(searchParams.get('state'));
     const hasGmailOAuthParams = Boolean(code || oauthError || issuer === 'https://accounts.google.com');
 
     if (!hasGmailOAuthParams) return;
 
     gmailOAuthHandledRef.current = true;
 
-    const { view: returnView, integrationView } = consumeGmailOAuthReturnContext();
+    const fallbackContext = consumeGmailOAuthReturnContext();
+    const returnView = oauthState?.view || fallbackContext.view;
+    const integrationView = oauthState?.integrationView || fallbackContext.integrationView;
 
     if (integrationView) {
       setPendingIntegrationView(integrationView);

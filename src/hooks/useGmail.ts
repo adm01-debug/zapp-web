@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { storeGmailOAuthReturnContext } from '@/lib/gmailOAuth';
+import { createGmailOAuthState, storeGmailOAuthReturnContext } from '@/lib/gmailOAuth';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -141,7 +141,9 @@ export function useGmail(accountId?: string) {
 
   const connectGmail = useMutation({
     mutationFn: async () => {
-      const result = await callGmailFunction('gmail-oauth', { action: 'get-auth-url' });
+      const returnView = window.location.hash.replace('#', '') || 'integrations';
+      const state = createGmailOAuthState({ view: returnView, integrationView: 'gmail' });
+      const result = await callGmailFunction('gmail-oauth', { action: 'get-auth-url', state });
       return result.url as string;
     },
     onSuccess: (url) => {
