@@ -613,7 +613,7 @@ function RFMBadge({ segment }: { segment: string | null }) {
 }
 
 // ─── Generic Data Table ──────────────────────────────────────
-function DataExplorerTable({ tabConfig }: { tabConfig: TabConfig }) {
+function DataExplorerTable({ tabConfig, onRowClick, onCreateClick }: { tabConfig: TabConfig; onRowClick?: (row: Record<string, unknown>) => void; onCreateClick?: () => void }) {
   const browser = useExternalTableBrowser(tabConfig.id as ExternalTableName);
   const [searchInput, setSearchInput] = useState('');
 
