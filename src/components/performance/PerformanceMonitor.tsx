@@ -229,8 +229,8 @@ export function PerformanceMonitor() {
                 <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" />
                 <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
                 <Area type="monotone" dataKey="score" name="Score (%)" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" />
-                <Area type="monotone" dataKey="fcp" name="FCP (ms)" stroke="hsl(160, 70%, 42%)" fill="hsl(160, 70%, 42%, 0.1)" />
-                <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(40, 100%, 50%)" fill="hsl(40, 100%, 50%, 0.1)" />
+                <Area type="monotone" dataKey="fcp" name="FCP (ms)" stroke="hsl(var(--secondary))" fill="hsl(var(--secondary) / 0.1)" />
+                <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(var(--accent-foreground))" fill="hsl(var(--accent-foreground) / 0.1)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
