@@ -46,7 +46,7 @@ function WithHeader({ viewId, children, canGoBack, canGoForward, onGoBack, onGoF
         breadcrumbTrail={breadcrumbTrail}
         onNavigateTo={onNavigateTo}
       />
-      <div className="flex-1 min-h-0 overflow-auto">{children}</div>
+      <div className="flex-1 min-h-0 overflow-auto p-6">{children}</div>
     </div>
   );
 }
