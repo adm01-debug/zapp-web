@@ -114,7 +114,7 @@ export function initWebVitals() {
         });
       }
     });
-    inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 } as any);
+    inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 } as PerformanceObserverInit);
   } catch (e) { /* not supported */ }
 
   // TTFB - Time to First Byte
