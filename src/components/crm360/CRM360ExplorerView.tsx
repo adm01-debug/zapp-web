@@ -35,6 +35,7 @@ interface TabConfig {
   icon: React.ElementType;
   description: string;
   searchColumn?: string;
+  editable?: boolean;
   columns: { key: string; label: string; format?: 'date' | 'currency' | 'boolean' | 'number' }[];
 }
 
