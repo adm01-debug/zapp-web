@@ -7,6 +7,8 @@ import { useTheme } from '@/hooks/useTheme';
  * Global theme initializer — must be mounted at the app root.
  * Restores saved skin (preset + border-radius) on every page load
  * and re-applies when light/dark mode changes.
+ * Also caches computed CSS vars in localStorage for the inline
+ * flash-prevention script in index.html.
  */
 export function ThemeInitializer() {
   const { resolvedTheme } = useTheme();
@@ -28,9 +30,20 @@ export function ThemeInitializer() {
     if (preset) {
       const colors: ThemeModeColors = resolvedTheme === 'dark' ? preset.dark : preset.light;
       const root = document.documentElement;
+      const cssVarsCache: Record<string, string> = {};
+
       for (const key of CSS_VARS_TO_APPLY) {
-        root.style.setProperty(`--${key}`, colors[key]);
+        const value = colors[key];
+        root.style.setProperty(`--${key}`, value);
+        cssVarsCache[key] = value;
       }
+
+      // Cache for the inline flash-prevention script
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        stored.cssVarsCache = cssVarsCache;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+      } catch { /* ignore */ }
     }
 
     document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);
