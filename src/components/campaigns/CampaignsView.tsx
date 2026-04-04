@@ -39,19 +39,13 @@ export function CampaignsView() {
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
-  const [form, setForm] = useState<{
-    name: string;
-    description: string;
-    message_content: string;
-    message_type: string;
-    target_type: 'all' | 'tag' | 'queue' | 'groups' | 'custom';
-    send_interval_seconds: number;
-  }>({
+  type TargetType = 'all' | 'tag' | 'queue' | 'groups' | 'custom';
+  const [form, setForm] = useState({
     name: '',
     description: '',
     message_content: '',
     message_type: 'text',
-    target_type: 'all',
+    target_type: 'all' as TargetType,
     send_interval_seconds: 5,
   });
 
