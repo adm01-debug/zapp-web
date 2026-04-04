@@ -40,6 +40,7 @@ export function ThemeCustomizer() {
             Personalizar Tema
           </h3>
           <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="default" size="sm" onClick={() => {
