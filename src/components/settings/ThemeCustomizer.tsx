@@ -23,9 +23,18 @@ export function ThemeCustomizer() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Back + Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-lg"
+            onClick={() => window.history.back()}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <div>
           <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Palette className="w-5 h-5 text-primary" />
             Personalizar Tema
