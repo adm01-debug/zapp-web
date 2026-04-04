@@ -207,7 +207,7 @@ function StoryViewer({
           {index > 0 && (
             <button
               onClick={goPrev}
-              className="absolute left-2 z-10 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all"
+              className="absolute left-2 z-10 w-10 h-10 rounded-full bg-muted/60 backdrop-blur flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
