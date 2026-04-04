@@ -216,7 +216,7 @@ export function useSipClient() {
       });
       callStartTimeRef.current = null;
     } catch (err) {
-      console.error('Error logging call:', err);
+      log.error('Error logging call:', err);
     }
   }, [getProfileId, findContactByPhone]);
 
