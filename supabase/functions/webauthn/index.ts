@@ -1,30 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, getCorsHeaders } from "../_shared/validation.ts";
+import { WebAuthnActionSchema, parseBody } from "../_shared/schemas.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
-
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-// Base64URL encoding/decoding utilities
 function base64URLEncode(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let str = '';
-  for (let i = 0; i < bytes.length; i++) {
-    str += String.fromCharCode(bytes[i]);
-  }
+  for (let i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
   return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
@@ -33,44 +14,37 @@ function base64URLDecode(str: string): Uint8Array {
   const padding = '='.repeat((4 - base64.length % 4) % 4);
   const binary = atob(base64 + padding);
   const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes;
 }
 
-// Generate a random challenge
 function generateChallenge(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   return base64URLEncode(array.buffer);
 }
 
-// Get RP ID from origin
 function getRpId(origin: string): string {
-  try {
-    const url = new URL(origin);
-    return url.hostname;
-  } catch {
-    return 'localhost';
-  }
+  try { return new URL(origin).hostname; } catch { return 'localhost'; }
 }
 
-serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
+
+  const log = new Logger("webauthn");
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    // Service role client for DB operations
+    const supabaseUrl = requireEnv('SUPABASE_URL');
+    const supabaseAnonKey = requireEnv('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, ...params } = await req.json();
+    const rawBody = await req.json();
+    const parsed = parseBody(WebAuthnActionSchema, rawBody);
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
+
+    const { action, userId, userEmail, userName, credential, friendlyName } = parsed.data;
     const origin = req.headers.get('origin') || 'https://localhost';
     const rpId = getRpId(origin);
     const rpName = 'WhatsApp Platform';
@@ -90,348 +64,130 @@ serve(async (req) => {
       }
     }
 
-    console.log(`WebAuthn action: ${action}, origin: ${origin}, rpId: ${rpId}`);
+    log.info("WebAuthn action", { action, rpId });
 
     switch (action) {
       case 'registration-options': {
-        const { userId, userEmail, userName } = params;
-        
-        if (!userId || !userEmail) {
-          return new Response(
-            JSON.stringify({ error: 'userId and userEmail are required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // SECURITY: Verify the caller IS the user they claim to be
+        if (!userId || !userEmail) return errorResponse('userId and userEmail are required', 400, req);
         if (!authenticatedUserId || authenticatedUserId !== userId) {
-          return new Response(
-            JSON.stringify({ error: 'Unauthorized: you can only register passkeys for your own account' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          return errorResponse('Unauthorized: you can only register passkeys for your own account', 403, req);
         }
 
-        // Get existing credentials to exclude
-        const { data: existingCredentials } = await supabaseAdmin
-          .from('passkey_credentials')
-          .select('credential_id')
-          .eq('user_id', userId);
-
+        const { data: existingCredentials } = await supabaseAdmin.from('passkey_credentials').select('credential_id').eq('user_id', userId);
         const excludeCredentials = (existingCredentials || []).map(cred => ({
-          id: cred.credential_id,
-          type: 'public-key',
-          transports: ['internal', 'hybrid', 'usb', 'ble', 'nfc'],
+          id: cred.credential_id, type: 'public-key', transports: ['internal', 'hybrid', 'usb', 'ble', 'nfc'],
         }));
 
-        // Generate and store challenge
         const challenge = generateChallenge();
-        
-        await supabaseAdmin.from('webauthn_challenges').insert({
-          user_id: userId,
-          challenge,
-          type: 'registration',
-        });
-
-        // Clean up expired challenges
+        await supabaseAdmin.from('webauthn_challenges').insert({ user_id: userId, challenge, type: 'registration' });
         await supabaseAdmin.rpc('cleanup_expired_challenges');
 
         const options = {
-          challenge,
-          rp: {
-            name: rpName,
-            id: rpId,
-          },
-          user: {
-            id: base64URLEncode(new TextEncoder().encode(userId).buffer),
-            name: userEmail,
-            displayName: userName || userEmail,
-          },
-          pubKeyCredParams: [
-            { alg: -7, type: 'public-key' },   // ES256
-            { alg: -257, type: 'public-key' }, // RS256
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform' as const,
-            userVerification: 'preferred' as const,
-            residentKey: 'preferred' as const,
-            requireResidentKey: false,
-          },
-          timeout: 60000,
-          attestation: 'none' as const,
-          excludeCredentials,
+          challenge, rp: { name: rpName, id: rpId },
+          user: { id: base64URLEncode(new TextEncoder().encode(userId).buffer), name: userEmail, displayName: userName || userEmail },
+          pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+          authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'preferred', residentKey: 'preferred', requireResidentKey: false },
+          timeout: 60000, attestation: 'none', excludeCredentials,
         };
 
-        console.log('Registration options generated successfully');
-
-        return new Response(
-          JSON.stringify({ options }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        log.done(200, { action });
+        return jsonResponse({ options }, 200, req);
       }
 
       case 'verify-registration': {
-        const { userId, credential, friendlyName } = params;
-
-        if (!userId || !credential) {
-          return new Response(
-            JSON.stringify({ error: 'userId and credential are required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // SECURITY: Verify the caller IS the user they claim to be
+        if (!userId || !credential) return errorResponse('userId and credential are required', 400, req);
         if (!authenticatedUserId || authenticatedUserId !== userId) {
-          return new Response(
-            JSON.stringify({ error: 'Unauthorized: you can only verify passkeys for your own account' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          return errorResponse('Unauthorized: you can only verify passkeys for your own account', 403, req);
         }
 
-        // Get stored challenge
         const { data: challengeData, error: challengeError } = await supabaseAdmin
-          .from('webauthn_challenges')
-          .select('challenge')
-          .eq('user_id', userId)
-          .eq('type', 'registration')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .from('webauthn_challenges').select('challenge').eq('user_id', userId).eq('type', 'registration')
+          .order('created_at', { ascending: false }).limit(1).single();
 
-        if (challengeError || !challengeData) {
-          console.error('Challenge not found:', challengeError);
-          return new Response(
-            JSON.stringify({ error: 'Challenge not found or expired' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        if (challengeError || !challengeData) return errorResponse('Challenge not found or expired', 400, req);
 
-        // Verify the credential
-        const { id, rawId, response: credResponse, type, authenticatorAttachment } = credential;
+        const { id, response: credResponse, type, authenticatorAttachment } = credential as Record<string, unknown>;
+        if (type !== 'public-key') return errorResponse('Invalid credential type', 400, req);
 
-        if (type !== 'public-key') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid credential type' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        const cr = credResponse as Record<string, string>;
+        const clientData = JSON.parse(new TextDecoder().decode(base64URLDecode(cr.clientDataJSON)));
+        if (clientData.type !== 'webauthn.create') return errorResponse('Invalid client data type', 400, req);
+        if (clientData.challenge !== challengeData.challenge) return errorResponse('Challenge mismatch', 400, req);
 
-        // Extract public key from attestation object
-        const attestationObject = credResponse.attestationObject;
-        const clientDataJSON = credResponse.clientDataJSON;
+        const { error: insertError } = await supabaseAdmin.from('passkey_credentials').insert({
+          user_id: userId, credential_id: id, public_key: cr.attestationObject,
+          counter: 0, device_type: authenticatorAttachment || 'platform',
+          backed_up: cr.publicKeyAlgorithm === '-7', transports: (credential as Record<string, unknown>).transports || ['internal'],
+          friendly_name: friendlyName || 'Passkey',
+        });
 
-        // Decode and verify clientDataJSON
-        const clientData = JSON.parse(new TextDecoder().decode(base64URLDecode(clientDataJSON)));
-        
-        if (clientData.type !== 'webauthn.create') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid client data type' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        if (insertError) return errorResponse('Failed to store credential', 500, req);
+        await supabaseAdmin.from('webauthn_challenges').delete().eq('user_id', userId).eq('type', 'registration');
 
-        if (clientData.challenge !== challengeData.challenge) {
-          return new Response(
-            JSON.stringify({ error: 'Challenge mismatch' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Store the credential
-        const { error: insertError } = await supabaseAdmin
-          .from('passkey_credentials')
-          .insert({
-            user_id: userId,
-            credential_id: id,
-            public_key: attestationObject,
-            counter: 0,
-            device_type: authenticatorAttachment || 'platform',
-            backed_up: credResponse.publicKeyAlgorithm === -7,
-            transports: credResponse.transports || ['internal'],
-            friendly_name: friendlyName || 'Passkey',
-          });
-
-        if (insertError) {
-          console.error('Failed to store credential:', insertError);
-          return new Response(
-            JSON.stringify({ error: 'Failed to store credential' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Delete used challenge
-        await supabaseAdmin
-          .from('webauthn_challenges')
-          .delete()
-          .eq('user_id', userId)
-          .eq('type', 'registration');
-
-        console.log('Registration verified successfully');
-
-        return new Response(
-          JSON.stringify({ success: true, credentialId: id }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        log.done(200, { action });
+        return jsonResponse({ success: true, credentialId: id }, 200, req);
       }
 
       case 'authentication-options': {
-        // Authentication options don't require prior auth (user is logging in)
-        const { userEmail } = params;
-
-        // Generate challenge
         const challenge = generateChallenge();
-
-        // If email provided, get user's credentials
+        // deno-lint-ignore no-explicit-any
         let allowCredentials: any[] = [];
-        let userId: string | null = null;
+        let authUserId: string | null = null;
 
         if (userEmail) {
-          // Find user by email
           const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
           const user = userData?.users?.find(u => u.email === userEmail);
-          
           if (user) {
-            userId = user.id;
-            
-            const { data: credentials } = await supabaseAdmin
-              .from('passkey_credentials')
-              .select('credential_id, transports')
-              .eq('user_id', user.id);
-
+            authUserId = user.id;
+            const { data: credentials } = await supabaseAdmin.from('passkey_credentials').select('credential_id, transports').eq('user_id', user.id);
             allowCredentials = (credentials || []).map(cred => ({
-              id: cred.credential_id,
-              type: 'public-key',
-              transports: cred.transports || ['internal', 'hybrid'],
+              id: cred.credential_id, type: 'public-key', transports: cred.transports || ['internal', 'hybrid'],
             }));
           }
         }
 
-        // Store challenge
-        await supabaseAdmin.from('webauthn_challenges').insert({
-          user_id: userId,
-          challenge,
-          type: 'authentication',
-        });
+        await supabaseAdmin.from('webauthn_challenges').insert({ user_id: authUserId, challenge, type: 'authentication' });
 
-        const options = {
-          challenge,
-          rpId,
-          timeout: 60000,
-          userVerification: 'preferred' as const,
-          allowCredentials: allowCredentials.length > 0 ? allowCredentials : undefined,
-        };
-
-        console.log('Authentication options generated');
-
-        return new Response(
-          JSON.stringify({ options }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        log.done(200, { action });
+        return jsonResponse({
+          options: { challenge, rpId, timeout: 60000, userVerification: 'preferred', allowCredentials: allowCredentials.length > 0 ? allowCredentials : undefined },
+        }, 200, req);
       }
 
       case 'verify-authentication': {
-        const { credential } = params;
+        if (!credential) return errorResponse('credential is required', 400, req);
 
-        if (!credential) {
-          return new Response(
-            JSON.stringify({ error: 'credential is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        const cred = credential as Record<string, unknown>;
+        const { id, response: credResponse } = cred;
 
-        const { id, response: credResponse } = credential;
+        const { data: storedCred, error: credError } = await supabaseAdmin.from('passkey_credentials').select('*').eq('credential_id', id).single();
+        if (credError || !storedCred) return errorResponse('Credential not found', 400, req);
 
-        // Find the stored credential
-        const { data: storedCred, error: credError } = await supabaseAdmin
-          .from('passkey_credentials')
-          .select('*')
-          .eq('credential_id', id)
-          .single();
+        const { data: challengeData } = await supabaseAdmin.from('webauthn_challenges')
+          .select('challenge').eq('user_id', storedCred.user_id).eq('type', 'authentication')
+          .order('created_at', { ascending: false }).limit(1).single();
 
-        if (credError || !storedCred) {
-          console.error('Credential not found:', credError);
-          return new Response(
-            JSON.stringify({ error: 'Credential not found' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        if (!challengeData) return errorResponse('Challenge not found or expired', 400, req);
 
-        // Get the most recent challenge for this user
-        const { data: challengeData } = await supabaseAdmin
-          .from('webauthn_challenges')
-          .select('challenge')
-          .eq('user_id', storedCred.user_id)
-          .eq('type', 'authentication')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+        const cr = credResponse as Record<string, string>;
+        const clientData = JSON.parse(new TextDecoder().decode(base64URLDecode(cr.clientDataJSON)));
+        if (clientData.type !== 'webauthn.get') return errorResponse('Invalid client data type', 400, req);
+        if (clientData.challenge !== challengeData.challenge) return errorResponse('Challenge mismatch', 400, req);
 
-        if (!challengeData) {
-          return new Response(
-            JSON.stringify({ error: 'Challenge not found or expired' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        await supabaseAdmin.from('passkey_credentials').update({ last_used_at: new Date().toISOString(), counter: storedCred.counter + 1 }).eq('id', storedCred.id);
+        await supabaseAdmin.from('webauthn_challenges').delete().eq('user_id', storedCred.user_id).eq('type', 'authentication');
 
-        // Verify clientDataJSON
-        const clientData = JSON.parse(new TextDecoder().decode(base64URLDecode(credResponse.clientDataJSON)));
-        
-        if (clientData.type !== 'webauthn.get') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid client data type' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        if (clientData.challenge !== challengeData.challenge) {
-          return new Response(
-            JSON.stringify({ error: 'Challenge mismatch' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Update last used and counter
-        await supabaseAdmin
-          .from('passkey_credentials')
-          .update({
-            last_used_at: new Date().toISOString(),
-            counter: storedCred.counter + 1,
-          })
-          .eq('id', storedCred.id);
-
-        // Clean up challenges for this user
-        await supabaseAdmin
-          .from('webauthn_challenges')
-          .delete()
-          .eq('user_id', storedCred.user_id)
-          .eq('type', 'authentication');
-
-        // Get user info
         const { data: userData } = await supabaseAdmin.auth.admin.getUserById(storedCred.user_id);
-
-        console.log('Authentication verified successfully for user:', storedCred.user_id);
-
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            userId: storedCred.user_id,
-            userEmail: userData?.user?.email,
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        log.done(200, { action });
+        return jsonResponse({ success: true, userId: storedCred.user_id, userEmail: userData?.user?.email }, 200, req);
       }
 
       default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return errorResponse('Invalid action', 400, req);
     }
   } catch (error: unknown) {
-    console.error('WebAuthn error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    log.error("Unhandled error", { error: errorMessage });
+    return errorResponse(errorMessage, 500, req);
   }
 });
