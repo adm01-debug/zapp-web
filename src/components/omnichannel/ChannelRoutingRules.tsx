@@ -18,7 +18,7 @@ interface RoutingRule {
   queue_id: string | null;
   priority: number | null;
   is_active: boolean | null;
-  conditions: any;
+  conditions: Record<string, unknown> | null;
   created_at: string;
   queue?: { name: string } | null;
   channel_connection?: { name: string } | null;
