@@ -111,6 +111,7 @@ export function AdminView() {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
+  const [newUserGmail, setNewUserGmail] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
 
   useEffect(() => {
