@@ -61,18 +61,25 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 };
 
 export function ConnectionsView() {
-  const [connections, setConnections] = useState<WhatsAppConnection[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [qrCodeDialog, setQrCodeDialog] = useState<{
-    open: boolean;
-    connectionId: string;
-    connectionName: string;
-    qrCode: string | null;
-    status: 'loading' | 'pending' | 'connected' | 'error';
-    errorMessage?: string;
-  }>({ open: false, connectionId: '', connectionName: '', qrCode: null, status: 'loading' });
-  const [newConnection, setNewConnection] = useState({ name: '', phone_number: '' });
+  const {
+    connections, loading,
+    isAddDialogOpen, setIsAddDialogOpen,
+    qrCodeDialog,
+    newConnection, setNewConnection,
+    isCreating,
+    syncingHistory, setSyncingHistory,
+    evolutionLoading,
+    handleAddConnection,
+    handleShowQrCode,
+    handleRefreshQrCode,
+    handleCopyId,
+    handleReconnect,
+    handleDisconnect,
+    handleSetDefault,
+    handleDelete,
+    closeQrDialog,
+  } = useConnectionsManager();
+
   const [businessHoursDialog, setBusinessHoursDialog] = useState<{
     open: boolean;
     connectionId: string;
@@ -93,280 +100,6 @@ export function ConnectionsView() {
     instanceName: string;
     connectionName: string;
   }>({ open: false, instanceName: '', connectionName: '' });
-  const [isCreating, setIsCreating] = useState(false);
-  const [syncingHistory, setSyncingHistory] = useState<string | null>(null);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
-
-  const { 
-    isLoading: evolutionLoading, 
-    createInstance, 
-    connectInstance, 
-    getInstanceStatus,
-    disconnectInstance,
-    deleteInstance,
-  } = useEvolutionApi();
-
-  useEffect(() => {
-    fetchConnections();
-    
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('whatsapp-connections-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'whatsapp_connections',
-        },
-        (payload) => {
-          log.debug('Connection update:', payload);
-          if (payload.eventType === 'UPDATE') {
-            setConnections((prev) =>
-              prev.map((conn) =>
-                conn.id === (payload.new as WhatsAppConnection).id
-                  ? (payload.new as WhatsAppConnection)
-                  : conn
-              )
-            );
-            // Update QR dialog if open
-            if (qrCodeDialog.open && qrCodeDialog.connectionId === (payload.new as WhatsAppConnection).id) {
-              const newConn = payload.new as WhatsAppConnection;
-              if (newConn.status === 'connected') {
-                setQrCodeDialog((prev) => ({ ...prev, status: 'connected', qrCode: null }));
-              } else if (newConn.qr_code) {
-                setQrCodeDialog((prev) => ({ ...prev, qrCode: newConn.qr_code, status: 'pending' }));
-              }
-            }
-          } else if (payload.eventType === 'INSERT') {
-            setConnections((prev) => [payload.new as WhatsAppConnection, ...prev]);
-          } else if (payload.eventType === 'DELETE') {
-            setConnections((prev) => prev.filter((conn) => conn.id !== (payload.old as { id: string }).id));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-      if (pollingInterval) clearInterval(pollingInterval);
-    };
-  }, []);
-
-  const fetchConnections = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('whatsapp_connections')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setConnections(data);
-    }
-    setLoading(false);
-  };
-
-  const generateInstanceName = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '_')
-      .replace(/_+/g, '_')
-      .slice(0, 30) + '_' + Date.now().toString().slice(-6);
-  };
-
-  const handleAddConnection = async () => {
-    if (!newConnection.name || !newConnection.phone_number) {
-      toast({
-        title: 'Erro',
-        description: 'Preencha o nome e o número do telefone.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsCreating(true);
-    const instanceName = generateInstanceName(newConnection.name);
-
-    try {
-      // Create Evolution API instance
-      await createInstance({ instanceName });
-
-      // Save to database
-      const { data, error } = await supabase.from('whatsapp_connections').insert({
-        name: newConnection.name,
-        phone_number: newConnection.phone_number,
-        instance_id: instanceName,
-        status: 'disconnected',
-        is_default: connections.length === 0,
-      }).select().single();
-
-      if (error) throw error;
-
-      toast({ 
-        title: 'Conexão criada!', 
-        description: 'Agora conecte escaneando o QR Code.' 
-      });
-      setIsAddDialogOpen(false);
-      setNewConnection({ name: '', phone_number: '' });
-
-      // Open QR dialog automatically
-      if (data) {
-        handleShowQrCode(data);
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      log.error('Error creating connection:', error);
-      toast({
-        title: 'Erro ao criar conexão',
-        description: errorMessage || 'Verifique se a Evolution API está configurada corretamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleShowQrCode = async (connection: WhatsAppConnection) => {
-    if (!connection.instance_id) {
-      toast({
-        title: 'Erro',
-        description: 'Esta conexão não possui uma instância configurada.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setQrCodeDialog({
-      open: true,
-      connectionId: connection.id,
-      connectionName: connection.name,
-      qrCode: connection.qr_code,
-      status: connection.status === 'connected' ? 'connected' : 'loading',
-    });
-
-    if (connection.status !== 'connected') {
-      try {
-        const result = await connectInstance(connection.instance_id);
-        
-        if (result?.qrcode?.base64) {
-          setQrCodeDialog((prev) => ({
-            ...prev,
-            qrCode: result.qrcode.base64,
-            status: 'pending',
-          }));
-        }
-
-        // Start polling for status
-        startStatusPolling(connection.instance_id, connection.id);
-      } catch (error: unknown) {
-        setQrCodeDialog((prev) => ({
-          ...prev,
-          status: 'error',
-          errorMessage: error instanceof Error ? error.message : 'Erro ao gerar QR Code',
-        }));
-      }
-    }
-  };
-
-  const startStatusPolling = useCallback((instanceName: string, connectionId: string) => {
-    if (pollingInterval) clearInterval(pollingInterval);
-
-    const interval = setInterval(async () => {
-      try {
-        const result = await getInstanceStatus(instanceName);
-        
-        if (result?.state === 'open' || result?.status === 'connected') {
-          clearInterval(interval);
-          setPollingInterval(null);
-          setQrCodeDialog((prev) => ({
-            ...prev,
-            status: 'connected',
-            qrCode: null,
-          }));
-          toast({
-            title: 'Conectado!',
-            description: 'WhatsApp conectado com sucesso.',
-          });
-        }
-      } catch (error) {
-        log.error('Status polling error:', error);
-      }
-    }, 3000);
-
-    setPollingInterval(interval);
-  }, [getInstanceStatus, pollingInterval]);
-
-  const handleRefreshQrCode = async () => {
-    const connection = connections.find((c) => c.id === qrCodeDialog.connectionId);
-    if (!connection?.instance_id) return;
-
-    setQrCodeDialog((prev) => ({ ...prev, status: 'loading', qrCode: null }));
-
-    try {
-      const result = await connectInstance(connection.instance_id);
-      
-      if (result?.qrcode?.base64) {
-        setQrCodeDialog((prev) => ({
-          ...prev,
-          qrCode: result.qrcode.base64,
-          status: 'pending',
-        }));
-      }
-    } catch (error: unknown) {
-      setQrCodeDialog((prev) => ({
-        ...prev,
-        status: 'error',
-        errorMessage: error instanceof Error ? error.message : 'Erro ao atualizar QR Code',
-      }));
-    }
-  };
-
-  const handleCopyId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    toast({
-      title: 'ID copiado!',
-      description: 'O ID da conexão foi copiado para a área de transferência.',
-    });
-  };
-
-  const handleReconnect = async (connection: WhatsAppConnection) => {
-    if (!connection.instance_id) {
-      toast({
-        title: 'Erro',
-        description: 'Esta conexão não possui uma instância configurada.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    handleShowQrCode(connection);
-  };
-
-  const handleDisconnect = async (connection: WhatsAppConnection) => {
-    if (!connection.instance_id) return;
-
-    try {
-      await disconnectInstance(connection.instance_id);
-      await supabase
-        .from('whatsapp_connections')
-        .update({ status: 'disconnected', qr_code: null })
-        .eq('id', connection.id);
-    } catch (error: unknown) {
-      toast({
-        title: 'Erro ao desconectar',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleSetDefault = async (id: string) => {
-    await supabase.from('whatsapp_connections').update({ is_default: false }).neq('id', id);
-    await supabase.from('whatsapp_connections').update({ is_default: true }).eq('id', id);
-    
-    setConnections(connections.map((conn) => ({ ...conn, is_default: conn.id === id })));
-    toast({ title: 'Conexão padrão atualizada' });
-  };
 
   const handleDelete = async (connection: WhatsAppConnection) => {
     try {
