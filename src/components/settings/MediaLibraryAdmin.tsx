@@ -288,7 +288,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
       }
       setItems((data as MediaItem[]) || []);
     } catch (err) {
-      console.error(`Unexpected error fetching ${type}:`, err);
+      log.error(`Unexpected error fetching ${type}:`, err);
       setItems([]);
     } finally {
       setLoading(false);
