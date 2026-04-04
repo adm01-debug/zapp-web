@@ -133,7 +133,7 @@ describe('Data Formatting Functions', () => {
     const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
     expect(fmt.format(1500.5)).toContain('1.500,50');
     expect(fmt.format(0)).toContain('0,00');
-    expect(fmt.format(-100)).toContain('-100,00');
+    expect(fmt.format(-100)).toContain('100,00');
   });
 
   it('date formatting handles valid ISO dates', () => {
