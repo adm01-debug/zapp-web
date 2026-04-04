@@ -51,7 +51,7 @@ export function AudioMessagePlayer({
           filter: `id=eq.${messageId}`,
         },
         (payload) => {
-          const newData = payload.new as Record<string, unknown>;
+          const newData = payload.new as { transcription_status?: string; transcription?: string };
           if (newData.transcription_status) {
             setTranscriptionStatus(newData.transcription_status);
           }
