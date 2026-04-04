@@ -20,7 +20,7 @@ interface ViewRouterProps {
 }
 
 // Views that manage their own full-screen layout (no header)
-const FULL_SCREEN_VIEWS = new Set(['inbox', 'pipeline', 'omni-inbox', 'team-chat']);
+const FULL_SCREEN_VIEWS = new Set(['inbox', 'pipeline', 'omni-inbox', 'team-chat', 'email-chat']);
 
 interface WithHeaderProps {
   viewId: string;
