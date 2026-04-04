@@ -364,7 +364,7 @@ export function AutomationsManager() {
       actions: automation.actions,
       is_active: false,
       created_by: user?.id,
-    } as any);
+    } as Omit<AutomationRow, 'id' | 'created_at' | 'updated_at' | 'trigger_count' | 'last_triggered_at'>);
   };
 
   const handleSave = async (data: any) => {
