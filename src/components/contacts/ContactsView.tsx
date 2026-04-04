@@ -1,13 +1,10 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { log } from '@/lib/logger';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
 import { ContactsEmptyState } from '@/components/ui/contextual-empty-states';
 import { ContactForm } from '@/components/contacts/ContactForm';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { useActionFeedback } from '@/hooks/useActionFeedback';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
@@ -83,35 +80,18 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, subMonths, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
-import { useContactsSearch } from '@/hooks/useContactsSearch';
 import { AdvancedCRMSearch } from '@/components/contacts/AdvancedCRMSearch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { Sparkles, CheckSquare } from 'lucide-react';
 import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
 import { Checkbox } from '@/components/ui/checkbox';
-
-interface Contact {
-  id: string;
-  name: string;
-  nickname: string | null;
-  surname: string | null;
-  job_title: string | null;
-  company: string | null;
-  phone: string;
-  email: string | null;
-  avatar_url: string | null;
-  tags: string[] | null;
-  notes: string | null;
-  contact_type: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { useContactsCRUD } from './useContactsCRUD';
+import type { Contact } from './useContactsCRUD';
 
 // Contact type icons mapping
 const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -145,211 +125,29 @@ const SORT_OPTIONS = [
 
 
 export function ContactsView() {
-  
-  const { profile } = useAuth();
-
-  const openContactChat = useCallback((contactId: string) => {
-    const appWindow = window as Window & { __pendingOpenContactId?: string };
-    appWindow.__pendingOpenContactId = contactId;
-
-    if (window.location.hash !== '#inbox') {
-      window.location.hash = 'inbox';
-    } else {
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
-    }
-
-    let attempts = 0;
-    const tryDispatch = () => {
-      attempts++;
-      window.dispatchEvent(new CustomEvent('open-contact-chat', { detail: { contactId } }));
-      if (attempts < 15) {
-        setTimeout(tryDispatch, 200);
-      }
-    };
-    setTimeout(tryDispatch, 150);
-  }, []);
-  const feedback = useActionFeedback();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
-  const [showSuccess, setShowSuccess] = useState<{ name: string; protocol: string } | null>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [isCRMSearchOpen, setIsCRMSearchOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  const [newContact, setNewContact] = useState({
-    name: '',
-    nickname: '',
-    surname: '',
-    job_title: '',
-    company: '',
-    phone: '',
-    email: '',
-    contact_type: 'cliente',
-  });
-
-  // Server-side search hook
+  const crud = useContactsCRUD();
   const {
-    contacts: filteredContacts,
-    totalCount,
-    loading,
-    hasMore,
-    contactCountByType,
-    uniqueCompanies,
-    uniqueJobTitles,
-    uniqueTags,
-    searchInput,
-    debouncedSearch: search,
-    handleSearchChange,
-    clearSearch,
-    activeTab,
-    setActiveTab,
-    filterCompany,
-    setFilterCompany,
-    filterJobTitle,
-    setFilterJobTitle,
-    filterTag,
-    setFilterTag,
-    filterDateRange,
-    setFilterDateRange,
-    sortBy,
-    setSortBy,
-    activeFiltersCount,
-    clearFilters,
-    page,
-    setPage,
-    pageSize,
-    loadMore,
-    loadPrevious,
-    refetch,
-  } = useContactsSearch();
-
-  const generateProtocol = useCallback(() => {
-    const now = new Date();
-    return `CT-${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
-  }, []);
-
-  const handleAddContact = async () => {
-    if (!newContact.name || !newContact.phone) {
-      feedback.warning('Preencha os campos obrigatórios');
-      return;
-    }
-    setIsSubmitting(true);
-    await feedback.withFeedback(
-      async () => {
-        const { error } = await supabase.from('contacts').insert({
-          name: newContact.name,
-          nickname: newContact.nickname || null,
-          surname: newContact.surname || null,
-          job_title: newContact.job_title || null,
-          company: newContact.company || null,
-          phone: newContact.phone,
-          email: newContact.email || null,
-          contact_type: newContact.contact_type,
-          assigned_to: profile?.id || null,
-        });
-        if (error) {
-          if (error.code === '23505' && error.message?.includes('contacts_phone_unique')) {
-            throw new Error('Já existe um contato cadastrado com este número de telefone.');
-          }
-          throw error;
-        }
-      },
-      {
-        loadingMessage: 'Adicionando contato...',
-        successMessage: 'Contato adicionado com sucesso!',
-        errorMessage: 'Erro ao adicionar contato',
-        onSuccess: () => {
-          const protocol = generateProtocol();
-          const contactName = newContact.name;
-          setNewContact({ name: '', nickname: '', surname: '', job_title: '', company: '', phone: '', email: '', contact_type: 'cliente' });
-          setIsAddDialogOpen(false);
-          setShowSuccess({ name: contactName, protocol });
-          refetch();
-        },
-      }
-    );
-    setIsSubmitting(false);
-  };
-
-  const handleEditContact = async () => {
-    if (!editingContact) return;
-    setIsSubmitting(true);
-    await feedback.withFeedback(
-      async () => {
-        const { error } = await supabase
-          .from('contacts')
-          .update({
-            name: editingContact.name,
-            nickname: editingContact.nickname,
-            surname: editingContact.surname,
-            job_title: editingContact.job_title,
-            company: editingContact.company,
-            phone: editingContact.phone,
-            email: editingContact.email,
-            contact_type: editingContact.contact_type,
-          })
-          .eq('id', editingContact.id);
-        if (error) {
-          if (error.code === '23505' && error.message?.includes('contacts_phone_unique')) {
-            throw new Error('Já existe outro contato com este número de telefone.');
-          }
-          throw error;
-        }
-      },
-      {
-        loadingMessage: 'Salvando alterações...',
-        successMessage: 'Contato atualizado com sucesso!',
-        errorMessage: 'Erro ao atualizar contato',
-        onSuccess: () => {
-          setIsEditDialogOpen(false);
-          setEditingContact(null);
-          refetch();
-        },
-      }
-    );
-    setIsSubmitting(false);
-  };
-
-  const handleDeleteContact = async (id: string) => {
-    await feedback.withFeedback(
-      async () => {
-        const { error } = await supabase.from('contacts').delete().eq('id', id);
-        if (error) throw error;
-      },
-      {
-        loadingMessage: 'Excluindo contato...',
-        successMessage: 'Contato excluído com sucesso!',
-        errorMessage: 'Erro ao excluir contato',
-        onSuccess: () => {
-          setDeleteTarget(null);
-          refetch();
-        },
-      }
-    );
-  };
-
-  const openEditDialog = (contact: Contact) => {
-    setEditingContact(contact);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleCancelForm = useCallback(() => {
-    setIsAddDialogOpen(false);
-    setIsEditDialogOpen(false);
-  }, []);
-
-  const handleNewContactChange = useCallback((field: string, value: string) => {
-    setNewContact(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleEditContactChange = useCallback((field: string, value: string) => {
-    setEditingContact(prev => prev ? { ...prev, [field]: value } as Contact : null);
-  }, []);
-
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+    contacts: filteredContacts, totalCount, loading, hasMore,
+    contactCountByType, uniqueCompanies, uniqueJobTitles, uniqueTags,
+    searchInput, debouncedSearch: search, handleSearchChange, clearSearch,
+    activeTab, setActiveTab, filterCompany, setFilterCompany,
+    filterJobTitle, setFilterJobTitle, filterTag, setFilterTag,
+    filterDateRange, setFilterDateRange, sortBy, setSortBy,
+    activeFiltersCount, clearFilters, page, setPage, pageSize,
+    loadMore, loadPrevious, refetch,
+    profile, feedback, scrollContainerRef,
+    isSubmitting, deleteTarget, setDeleteTarget,
+    showSuccess, setShowSuccess,
+    isAddDialogOpen, setIsAddDialogOpen,
+    isEditDialogOpen, setIsEditDialogOpen,
+    editingContact, showFilters, setShowFilters,
+    isCRMSearchOpen, setIsCRMSearchOpen,
+    selectedIds, setSelectedIds,
+    newContact, openContactChat,
+    handleAddContact, handleEditContact, handleDeleteContact,
+    openEditDialog, handleCancelForm,
+    handleNewContactChange, handleEditContactChange,
+  } = crud;
 
   return (
     <div ref={scrollContainerRef} className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
