@@ -117,7 +117,7 @@ export function IntegrationsPanel({
     const load = async (getter: (n: string) => Promise<unknown>, setter: (v: Record<string, unknown>) => void) => {
       try {
         const data = await getter(instanceName);
-        if (data) setter({ enabled: true, ...data });
+        if (data && typeof data === 'object') setter({ enabled: true, ...(data as Record<string, unknown>) });
       } catch { /* not configured */ }
     };
     await Promise.allSettled([
