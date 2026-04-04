@@ -152,6 +152,16 @@ export function EmailChatThread({ thread, onBack, onToggleDetails, showDetailsBu
               </TooltipTrigger>
               <TooltipContent>Excluir</TooltipContent>
             </Tooltip>
+            {showDetailsButton && onToggleDetails && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleDetails} aria-label="Detalhes">
+                    <PanelRightOpen className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Detalhes do contato</TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </div>
 
