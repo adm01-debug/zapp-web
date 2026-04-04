@@ -143,7 +143,7 @@ export function useSavedFilters(entityType: string) {
       if (!user) throw new Error('Usuário não autenticado');
 
       // Remove padrão de todos
-      await (supabase as any)
+      await supabase
         .from('saved_filters')
         .update({ is_default: false })
         .eq('user_id', user.id)
