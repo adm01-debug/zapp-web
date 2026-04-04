@@ -21,12 +21,12 @@ export function useContactCustomFields(contactId: string | undefined) {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('contact_custom_fields' as any)
+        .from('contact_custom_fields')
         .select('*')
         .eq('contact_id', contactId)
         .order('field_name');
       if (error) throw error;
-      setFields((data as any[]) || []);
+      setFields((data || []) as CustomField[]);
     } catch (err) {
       log.error('Error fetching custom fields:', err);
     } finally {
