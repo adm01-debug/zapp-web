@@ -112,6 +112,13 @@ export function AdminView() {
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
   const [newUserGmail, setNewUserGmail] = useState('');
+  const [newUserGoogleServices, setNewUserGoogleServices] = useState({
+    google_sheets: false,
+    google_docs: false,
+    google_calendar: false,
+    google_drive: false,
+  });
+  const [newUserDropboxEmail, setNewUserDropboxEmail] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
 
   useEffect(() => {
@@ -267,6 +274,10 @@ export function AdminView() {
             password: newUserPassword,
             role: newUserRole,
             gmail_email: newUserGmail || undefined,
+            google_services: Object.entries(newUserGoogleServices)
+              .filter(([, enabled]) => enabled)
+              .map(([key]) => key),
+            dropbox_email: newUserDropboxEmail || undefined,
           }),
         }
       );
@@ -282,6 +293,8 @@ export function AdminView() {
         setNewUserPassword('');
         setNewUserRole('agent');
         setNewUserGmail('');
+        setNewUserGoogleServices({ google_sheets: false, google_docs: false, google_calendar: false, google_drive: false });
+        setNewUserDropboxEmail('');
         fetchData();
       }
     } catch (err) {
@@ -552,13 +565,51 @@ export function AdminView() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new_gmail">Conta Gmail (opcional)</Label>
+              <Label htmlFor="new_gmail">Conta Google (opcional)</Label>
               <Input
                 id="new_gmail"
                 type="email"
                 placeholder="usuario@gmail.com"
                 value={newUserGmail}
                 onChange={(e) => setNewUserGmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Será usada para Gmail e os serviços Google selecionados abaixo.
+              </p>
+            </div>
+
+            {newUserGmail && (
+              <div className="space-y-3 rounded-lg border border-secondary/30 p-3">
+                <Label className="text-sm font-medium">Serviços Google vinculados</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { key: 'google_sheets', label: 'Google Sheets' },
+                    { key: 'google_docs', label: 'Google Docs' },
+                    { key: 'google_calendar', label: 'Google Calendar' },
+                    { key: 'google_drive', label: 'Google Drive' },
+                  ] as const).map(({ key, label }) => (
+                    <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Switch
+                        checked={newUserGoogleServices[key]}
+                        onCheckedChange={(checked) =>
+                          setNewUserGoogleServices(prev => ({ ...prev, [key]: checked }))
+                        }
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="new_dropbox">Conta Dropbox (opcional)</Label>
+              <Input
+                id="new_dropbox"
+                type="email"
+                placeholder="usuario@email.com"
+                value={newUserDropboxEmail}
+                onChange={(e) => setNewUserDropboxEmail(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
                 O usuário não poderá alterar ou remover esta conta.

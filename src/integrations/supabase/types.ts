@@ -4417,6 +4417,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_service_accounts: {
+        Row: {
+          account_email: string
+          created_at: string
+          id: string
+          is_active: boolean
+          service_type: Database["public"]["Enums"]["service_account_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_email: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          service_type: Database["public"]["Enums"]["service_account_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_email?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          service_type?: Database["public"]["Enums"]["service_account_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           device_id: string | null
@@ -5299,6 +5329,12 @@ export type Database = {
         | "messenger"
         | "webchat"
         | "email"
+      service_account_type:
+        | "google_sheets"
+        | "google_docs"
+        | "google_calendar"
+        | "google_drive"
+        | "dropbox"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5434,6 +5470,13 @@ export const Constants = {
         "messenger",
         "webchat",
         "email",
+      ],
+      service_account_type: [
+        "google_sheets",
+        "google_docs",
+        "google_calendar",
+        "google_drive",
+        "dropbox",
       ],
     },
   },
