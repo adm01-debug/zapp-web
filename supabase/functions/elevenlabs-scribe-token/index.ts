@@ -1,89 +1,35 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("elevenlabs-scribe-token");
 
   try {
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-    
-    if (!ELEVENLABS_API_KEY) {
-      console.error('ELEVENLABS_API_KEY is not configured');
-      return new Response(
-        JSON.stringify({ error: 'ElevenLabs API key not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const ELEVENLABS_API_KEY = requireEnv('ELEVENLABS_API_KEY');
 
-    console.log('Requesting ElevenLabs realtime scribe token...');
+    log.info("Requesting ElevenLabs realtime scribe token");
 
-    // Request a single-use token for realtime transcription
-    const response = await fetch(
-      'https://api.elevenlabs.io/v1/single-use-token/realtime_scribe',
-      {
-        method: 'POST',
-        headers: {
-          'xi-api-key': ELEVENLABS_API_KEY,
-        },
-      }
-    );
+    const response = await fetch('https://api.elevenlabs.io/v1/single-use-token/realtime_scribe', {
+      method: 'POST',
+      headers: { 'xi-api-key': ELEVENLABS_API_KEY },
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('ElevenLabs token error:', response.status, errorText);
-      
-      if (response.status === 401) {
-        return new Response(
-          JSON.stringify({ error: 'Invalid ElevenLabs API key' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ error: 'Failed to get transcription token', details: errorText }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      log.error("ElevenLabs token error", { status: response.status, detail: errorText.substring(0, 300) });
+      if (response.status === 401) return errorResponse('Invalid ElevenLabs API key', 401, req);
+      if (response.status === 429) return errorResponse('Rate limit exceeded', 429, req);
+      return errorResponse('Failed to get transcription token', 500, req);
     }
 
     const data = await response.json();
-    console.log('Token received successfully');
-
-    return new Response(
-      JSON.stringify({ token: data.token }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+    log.done(200);
+    return jsonResponse({ token: data.token }, 200, req);
   } catch (error) {
-    console.error('Token generation error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    log.error("Unhandled error", { error: msg });
+    return errorResponse(msg, 500, req);
   }
 });

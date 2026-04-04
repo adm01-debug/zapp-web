@@ -1,56 +1,25 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
 
-// CORS headers - built dynamically per request for origin validation
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-function getCorsHeaders(req?: Request) {
-  const origin = req?.headers?.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  };
-}
-
-const corsHeaders = getCorsHeaders();
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("connection-health-check");
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
-    const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
-
-    if (!evolutionUrl || !evolutionKey) {
-      return new Response(JSON.stringify({ error: 'Evolution API not configured' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const evolutionUrl = requireEnv('EVOLUTION_API_URL');
+    const evolutionKey = requireEnv('EVOLUTION_API_KEY');
+    const supabase = createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_SERVICE_ROLE_KEY'));
     const baseUrl = evolutionUrl.replace(/\/+$/, '');
 
-    // Get all connections
     const { data: connections, error: connError } = await supabase
-      .from('whatsapp_connections')
-      .select('id, instance_id, status, phone_number');
+      .from('whatsapp_connections').select('id, instance_id, status, phone_number');
 
-    if (connError || !connections) {
-      return new Response(JSON.stringify({ error: 'Failed to fetch connections' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    if (connError || !connections) return errorResponse('Failed to fetch connections', 500, req);
 
     const results = [];
-    const alertsToCreate = [];
+    const alertsToCreate: Array<{ connection_id: string; instance_id: string; phone: string | null }> = [];
 
     for (const conn of connections) {
       const start = performance.now();
@@ -60,11 +29,9 @@ serve(async (req) => {
 
       try {
         const resp = await fetch(`${baseUrl}/instance/connectionState/${conn.instance_id}`, {
-          method: 'GET',
-          headers: { 'apikey': evolutionKey },
+          method: 'GET', headers: { 'apikey': evolutionKey },
           signal: AbortSignal.timeout(10000),
         });
-
         responseTime = Math.round(performance.now() - start);
 
         if (resp.ok) {
@@ -72,27 +39,16 @@ serve(async (req) => {
           const state = data?.instance?.state || data?.state || 'unknown';
           healthStatus = state === 'open' ? 'healthy' : state === 'close' ? 'disconnected' : 'degraded';
 
-          // Update connection status if it changed
           const dbStatus = state === 'open' ? 'connected' : 'disconnected';
           if (dbStatus !== conn.status) {
-            await supabase
-              .from('whatsapp_connections')
-              .update({ status: dbStatus, updated_at: new Date().toISOString() })
-              .eq('id', conn.id);
-
-            // Create disconnection alert
+            await supabase.from('whatsapp_connections').update({ status: dbStatus, updated_at: new Date().toISOString() }).eq('id', conn.id);
             if (dbStatus === 'disconnected' && conn.status === 'connected') {
-              alertsToCreate.push({
-                connection_id: conn.id,
-                instance_id: conn.instance_id,
-                phone: conn.phone_number,
-              });
+              alertsToCreate.push({ connection_id: conn.id, instance_id: conn.instance_id, phone: conn.phone_number });
             }
           }
         } else {
-          const errText = await resp.text();
           healthStatus = 'error';
-          errorMessage = `HTTP ${resp.status}: ${errText.slice(0, 200)}`;
+          errorMessage = `HTTP ${resp.status}: ${(await resp.text()).slice(0, 200)}`;
         }
       } catch (err) {
         responseTime = Math.round(performance.now() - start);
@@ -100,66 +56,39 @@ serve(async (req) => {
         errorMessage = err instanceof Error ? err.message : 'Unknown error';
       }
 
-      // Log health check
       await supabase.from('connection_health_logs').insert({
-        connection_id: conn.id,
-        instance_id: conn.instance_id,
-        status: healthStatus,
-        response_time_ms: responseTime,
-        error_message: errorMessage,
+        connection_id: conn.id, instance_id: conn.instance_id, status: healthStatus,
+        response_time_ms: responseTime, error_message: errorMessage,
       });
 
-      // Update connection health fields
-      await supabase
-        .from('whatsapp_connections')
-        .update({
-          last_health_check: new Date().toISOString(),
-          health_status: healthStatus,
-          health_response_ms: responseTime,
-        })
-        .eq('id', conn.id);
+      await supabase.from('whatsapp_connections').update({
+        last_health_check: new Date().toISOString(), health_status: healthStatus, health_response_ms: responseTime,
+      }).eq('id', conn.id);
 
-      results.push({
-        instance_id: conn.instance_id,
-        status: healthStatus,
-        response_time_ms: responseTime,
-        error: errorMessage,
-      });
+      results.push({ instance_id: conn.instance_id, status: healthStatus, response_time_ms: responseTime, error: errorMessage });
     }
 
-    // Create warroom alerts for disconnections
     for (const alert of alertsToCreate) {
       await supabase.from('warroom_alerts').insert({
-        alert_type: 'connection_down',
-        severity: 'critical',
+        alert_type: 'connection_down', severity: 'critical',
         title: `Conexão ${alert.instance_id} desconectada`,
         description: `A instância ${alert.instance_id}${alert.phone ? ` (${alert.phone})` : ''} perdeu conexão com o WhatsApp.`,
         metadata: { connection_id: alert.connection_id, instance_id: alert.instance_id },
-      }).then(({ error }) => {
-        if (error) console.error('Failed to create warroom alert:', error);
-      });
+      }).then(({ error }) => { if (error) log.warn("Failed to create warroom alert", { error: error.message }); });
     }
 
-    // Cleanup old health logs (keep last 7 days)
+    // Cleanup old health logs
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     await supabase.from('connection_health_logs').delete().lt('checked_at', sevenDaysAgo);
 
-    console.log(`Health check completed: ${results.length} connections checked`);
-
-    return new Response(JSON.stringify({
-      success: true,
-      checked_at: new Date().toISOString(),
-      connections: results,
-      alerts_created: alertsToCreate.length,
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
+    log.done(200, { checked: results.length, alerts: alertsToCreate.length });
+    return jsonResponse({
+      success: true, checked_at: new Date().toISOString(),
+      connections: results, alerts_created: alertsToCreate.length,
+    }, 200, req);
   } catch (err) {
-    console.error('Health check error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    log.error("Health check error", { error: msg });
+    return errorResponse(msg, 500, req);
   }
 });

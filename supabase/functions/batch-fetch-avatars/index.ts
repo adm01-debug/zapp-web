@@ -1,90 +1,15 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-async function fetchProfilePicFromApi(instance: string, phone: string): Promise<string | null> {
-  try {
-    const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
-    const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
-    if (!evolutionUrl || !evolutionKey) return null;
-
-    const baseUrl = evolutionUrl.replace(/\/+$/, '');
-    const resp = await fetch(
-      `${baseUrl}/chat/fetchProfilePictureUrl/${instance}`,
-      {
-        method: 'POST',
-        headers: { 'apikey': evolutionKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: phone }),
-        signal: AbortSignal.timeout(5000),
-      }
-    );
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => '');
-      console.error(`fetchProfilePic failed for ${phone} on ${instance}: ${resp.status} ${text}`);
-      return null;
-    }
-    const result = await resp.json();
-    return result?.profilePictureUrl || result?.picture || result?.url || null;
-  } catch (err) {
-    console.error(`fetchProfilePic error for ${phone}:`, err);
-    return null;
-  }
-}
-
-// deno-lint-ignore no-explicit-any
-async function persistProfilePicture(
-  supabase: any,
-  phone: string,
-  profilePicUrl: string
-): Promise<string | null> {
-  try {
-    const response = await fetch(profilePicUrl, { signal: AbortSignal.timeout(8000) });
-    if (!response.ok) return null;
-
-    const blob = await response.arrayBuffer();
-    const bytes = new Uint8Array(blob);
-    if (bytes.length < 100) return null;
-
-    const fileName = `${phone}_${Date.now()}.jpg`;
-    const storagePath = `avatars/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from('avatars')
-      .upload(storagePath, bytes, {
-        contentType: 'image/jpeg',
-        cacheControl: '604800',
-        upsert: true,
-      });
-
-    if (error) {
-      console.error('Avatar upload error:', error);
-      return null;
-    }
-
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(storagePath);
-    return urlData.publicUrl;
-  } catch (err) {
-    console.error('Avatar persist error:', err);
-    return null;
-  }
-}
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const log = new Logger("batch-fetch-avatars");
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_SERVICE_ROLE_KEY'));
 
-    // Get all contacts without avatar or with expired WhatsApp CDN URLs
-    // Exclude @lid contacts (internal WhatsApp IDs, not real phone numbers)
     const { data: contacts, error: contactsError } = await supabase
       .from('contacts')
       .select('id, phone, name, avatar_url, whatsapp_connection_id')
@@ -96,90 +21,73 @@ serve(async (req) => {
 
     if (contactsError) throw contactsError;
     if (!contacts?.length) {
-      return new Response(JSON.stringify({ success: true, processed: 0, updated: 0, message: 'Todos os contatos já possuem avatar.' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: true, processed: 0, updated: 0, message: 'Todos os contatos já possuem avatar.' }, 200, req);
     }
 
-    console.log(`Found ${contacts.length} contacts needing avatars`);
+    log.info("Found contacts needing avatars", { count: contacts.length });
 
-    // Get unique connection IDs and their instance IDs
     const connectionIds = [...new Set(contacts.map(c => c.whatsapp_connection_id).filter(Boolean))];
     const { data: connections } = await supabase
-      .from('whatsapp_connections')
-      .select('id, instance_id')
-      .in('id', connectionIds)
-      .eq('status', 'connected');
-
-    console.log(`Found ${connections?.length || 0} active connections:`, JSON.stringify(connections));
+      .from('whatsapp_connections').select('id, instance_id').in('id', connectionIds).eq('status', 'connected');
 
     if (!connections?.length) {
-      return new Response(JSON.stringify({ success: false, message: 'Nenhuma conexão WhatsApp ativa encontrada.' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: false, message: 'Nenhuma conexão WhatsApp ativa encontrada.' }, 200, req);
     }
 
-    // Map connection ID -> instance_id
     const connectionMap = new Map(connections.map(c => [c.id, c.instance_id]));
+    const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
+    const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
 
-    let updated = 0;
-    let failed = 0;
-    let skipped = 0;
-    const processed = contacts.length;
+    let updated = 0, failed = 0, skipped = 0;
 
-    // Process in batches of 5 to avoid rate limits
     for (let i = 0; i < contacts.length; i += 5) {
       const batch = contacts.slice(i, i + 5);
 
       await Promise.allSettled(batch.map(async (contact) => {
         const instanceId = connectionMap.get(contact.whatsapp_connection_id);
-        if (!instanceId) { 
-          skipped++; 
-          console.log(`Skipped ${contact.phone}: no instance_id for connection ${contact.whatsapp_connection_id}`);
-          return; 
-        }
+        if (!instanceId || !evolutionUrl || !evolutionKey) { skipped++; return; }
 
         try {
-          const picUrl = await fetchProfilePicFromApi(instanceId, contact.phone);
+          const baseUrl = evolutionUrl.replace(/\/+$/, '');
+          const resp = await fetch(`${baseUrl}/chat/fetchProfilePictureUrl/${instanceId}`, {
+            method: 'POST', headers: { 'apikey': evolutionKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ number: contact.phone }), signal: AbortSignal.timeout(5000),
+          });
+          if (!resp.ok) { failed++; return; }
+          const result = await resp.json();
+          const picUrl = result?.profilePictureUrl || result?.picture || result?.url || null;
           if (!picUrl) { failed++; return; }
 
-          const permanentUrl = await persistProfilePicture(supabase, contact.phone, picUrl);
-          if (!permanentUrl) { failed++; return; }
+          const imgResp = await fetch(picUrl, { signal: AbortSignal.timeout(8000) });
+          if (!imgResp.ok) { failed++; return; }
+          const blob = await imgResp.arrayBuffer();
+          const bytes = new Uint8Array(blob);
+          if (bytes.length < 100) { failed++; return; }
 
-          await supabase
-            .from('contacts')
-            .update({ avatar_url: permanentUrl })
-            .eq('id', contact.id);
+          const fileName = `${contact.phone}_${Date.now()}.jpg`;
+          const storagePath = `avatars/${fileName}`;
+          const { error } = await supabase.storage.from('avatars').upload(storagePath, bytes, {
+            contentType: 'image/jpeg', cacheControl: '604800', upsert: true,
+          });
+          if (error) { failed++; return; }
 
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(storagePath);
+          await supabase.from('contacts').update({ avatar_url: urlData.publicUrl }).eq('id', contact.id);
           updated++;
-          console.log(`Updated avatar for ${contact.name} (${contact.phone})`);
-        } catch (err) {
-          console.error(`Error processing ${contact.phone}:`, err);
-          failed++;
-        }
+        } catch { failed++; }
       }));
 
-      // Rate limit: wait 1s between batches
-      if (i + 5 < contacts.length) {
-        await new Promise(r => setTimeout(r, 1000));
-      }
+      if (i + 5 < contacts.length) await new Promise(r => setTimeout(r, 1000));
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      processed,
-      updated,
-      failed,
-      skipped,
-      message: `${updated} avatares atualizados de ${processed} contatos processados.`,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log.done(200, { processed: contacts.length, updated, failed, skipped });
+    return jsonResponse({
+      success: true, processed: contacts.length, updated, failed, skipped,
+      message: `${updated} avatares atualizados de ${contacts.length} contatos processados.`,
+    }, 200, req);
   } catch (err: unknown) {
-    console.error('Batch avatar fetch error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    log.error("Batch avatar error", { error: msg });
+    return errorResponse(msg, 500, req);
   }
 });
