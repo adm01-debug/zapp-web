@@ -189,8 +189,8 @@ export function QueuesComparisonDashboard() {
             <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-cyan-500" />
+                  <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-secondary" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Atendentes</p>
@@ -203,8 +203,8 @@ export function QueuesComparisonDashboard() {
             <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-amber-500" />
+                  <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-accent-foreground" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Aguardando</p>
@@ -253,8 +253,8 @@ export function QueuesComparisonDashboard() {
                         labelFormatter={(value, payload) => payload?.[0]?.payload?.fullName || value}
                       />
                       <Legend />
-                      <Bar dataKey="contatos" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Contatos" />
-                      <Bar dataKey="mensagens" fill="#10B981" radius={[4, 4, 0, 0]} name="Mensagens" />
+                      <Bar dataKey="contatos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Contatos" />
+                      <Bar dataKey="mensagens" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Mensagens" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -354,7 +354,7 @@ export function QueuesComparisonDashboard() {
                           </TableCell>
                           <TableCell className="text-right font-medium">{queue.totalContacts}</TableCell>
                           <TableCell className="text-right text-success">{queue.assignedContacts}</TableCell>
-                          <TableCell className="text-right text-amber-500">{queue.waitingContacts}</TableCell>
+                          <TableCell className="text-right text-accent-foreground">{queue.waitingContacts}</TableCell>
                           <TableCell className="text-right">{queue.totalMessages}</TableCell>
                           <TableCell className="text-right">{queue.avgMessagesPerContact}</TableCell>
                           <TableCell className="text-right">{queue.agentsCount}</TableCell>

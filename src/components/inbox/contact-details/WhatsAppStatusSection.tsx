@@ -169,7 +169,7 @@ function StoryViewer({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 bg-black/95 border-border/20 overflow-hidden [&>button]:hidden">
+      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 bg-background/95 border-border/20 overflow-hidden [&>button]:hidden">
         <div className="flex gap-0.5 px-3 pt-3">
           {messages.map((_, i) => (
             <div key={i} className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/20">
@@ -207,7 +207,7 @@ function StoryViewer({
           {index > 0 && (
             <button
               onClick={goPrev}
-              className="absolute left-2 z-10 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all"
+              className="absolute left-2 z-10 w-10 h-10 rounded-full bg-muted/60 backdrop-blur flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -215,7 +215,7 @@ function StoryViewer({
           {index < messages.length - 1 && (
             <button
               onClick={goNext}
-              className="absolute right-2 z-10 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all"
+              className="absolute right-2 z-10 w-10 h-10 rounded-full bg-muted/60 backdrop-blur flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

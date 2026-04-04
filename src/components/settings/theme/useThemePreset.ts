@@ -29,12 +29,20 @@ export function useThemePreset() {
   const applyPresetById = useCallback((presetId: string, notify = true) => {
     const preset = PRESETS.find(p => p.id === presetId);
     if (!preset) return;
+
+    // Smooth transition when changing skins
+    const root = document.documentElement;
+    root.classList.add('theme-transitioning');
+
     applyPresetColors(preset, resolvedTheme);
     setActivePreset(presetId);
     if (notify) {
       save(presetId, borderRadius);
       toast.success(`Tema "${preset.name}" aplicado!`);
     }
+
+    // Remove transition class after animation
+    setTimeout(() => root.classList.remove('theme-transitioning'), 350);
   }, [applyPresetColors, resolvedTheme, borderRadius, save]);
 
   const applyBorderRadius = useCallback((radius: number) => {

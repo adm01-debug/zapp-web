@@ -72,7 +72,7 @@
     }
     </script>
 
-    <!-- Theme flash prevention -->
+    <!-- Theme flash prevention (dark/light + skin CSS vars) -->
     <script>
       (function(){
         try {
@@ -81,6 +81,21 @@
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');
+          }
+          // Restore skin CSS vars before React mounts
+          var skin = localStorage.getItem('theme-custom-colors');
+          if (skin) {
+            var c = JSON.parse(skin);
+            if (c.cssVarsCache) {
+              var root = document.documentElement;
+              var vars = c.cssVarsCache;
+              for (var k in vars) {
+                if (vars.hasOwnProperty(k)) root.style.setProperty('--' + k, vars[k]);
+              }
+            }
+            if (c.borderRadius != null) {
+              document.documentElement.style.setProperty('--radius', (c.borderRadius / 16) + 'rem');
+            }
           }
         } catch(e){}
       })();
