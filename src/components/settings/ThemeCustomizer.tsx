@@ -31,7 +31,7 @@ export function ThemeCustomizer() {
           <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => importTheme((t) => setTheme(t as any))}>
+          <Button variant="outline" size="sm" onClick={() => importTheme((t) => setTheme(t as 'light' | 'dark' | 'system'))}>
             <Upload className="w-4 h-4 mr-1" /> Importar
           </Button>
           <Button variant="outline" size="sm" onClick={exportTheme}>
