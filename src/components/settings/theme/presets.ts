@@ -291,20 +291,76 @@ export const PRESETS: ThemePreset[] = [
   buildPreset({ id: 'cyber', name: 'Cyber', description: 'Neon futurista', emoji: '🤖', h: 180, s: 100, l: 50, gh: 300, sh: 320, ss: 100, sl: 60 }),
   (() => {
     // Diversity — Rainbow Pride theme 🏳️‍🌈
-    const base = buildPreset({ id: 'diversity', name: 'Diversity', description: 'Orgulho e diversidade 🏳️‍🌈', emoji: '🏳️‍🌈', h: 280, s: 80, l: 58, gh: 340, sh: 200, ss: 80, sl: 55 });
-    // Override gradients with full rainbow
+    // Use a vibrant magenta/pink as primary for max color pop
+    const base = buildPreset({ id: 'diversity', name: 'Diversity', description: 'Orgulho e diversidade 🏳️‍🌈', emoji: '🏳️‍🌈', h: 330, s: 90, l: 58, gh: 280, sh: 160, ss: 85, sl: 50 });
+    
     const rainbowGrad = 'linear-gradient(135deg, hsl(0 85% 55%), hsl(30 90% 55%), hsl(55 90% 50%), hsl(130 70% 45%), hsl(210 80% 55%), hsl(280 80% 58%))';
     const rainbowGradH = 'linear-gradient(90deg, hsl(0 85% 55%), hsl(30 90% 55%), hsl(55 90% 50%), hsl(130 70% 45%), hsl(210 80% 55%), hsl(280 80% 58%))';
+    const rainbowGradSurface = 'linear-gradient(180deg, hsl(280 30% 8%), hsl(330 20% 6%))';
+    const rainbowGradSurfaceLight = 'linear-gradient(180deg, hsl(330 30% 97%), hsl(280 20% 95%))';
+    const rainbowDivider = 'linear-gradient(90deg, hsl(0 85% 55% / 0.4), hsl(55 90% 50% / 0.4), hsl(130 70% 45% / 0.4), hsl(210 80% 55% / 0.4), hsl(280 80% 58% / 0.4))';
+
+    // Override ALL gradients with rainbow
     base.light['gradient-primary'] = rainbowGrad;
     base.light['gradient-secondary'] = rainbowGrad;
     base.light['gradient-xp'] = rainbowGradH;
     base.light['gradient-vibrant'] = rainbowGrad;
     base.light['gradient-purple-green'] = rainbowGrad;
+    base.light['gradient-surface'] = rainbowGradSurfaceLight;
+    base.light['gradient-divider'] = rainbowDivider;
+    
     base.dark['gradient-primary'] = rainbowGrad;
     base.dark['gradient-secondary'] = rainbowGrad;
     base.dark['gradient-xp'] = rainbowGradH;
     base.dark['gradient-vibrant'] = rainbowGrad;
     base.dark['gradient-purple-green'] = rainbowGrad;
+    base.dark['gradient-surface'] = rainbowGradSurface;
+    base.dark['gradient-divider'] = rainbowDivider;
+
+    // Make shadows colorful
+    base.light['shadow-glow-primary'] = '0 4px 24px hsl(330 90% 58% / 0.3)';
+    base.light['shadow-glow-secondary'] = '0 4px 24px hsl(160 85% 50% / 0.25)';
+    base.light['shadow-glow-accent'] = '0 4px 24px hsl(280 80% 58% / 0.25)';
+    base.light['shadow-glow-purple'] = '0 4px 24px hsl(280 80% 58% / 0.3)';
+    base.dark['shadow-glow-primary'] = '0 4px 24px hsl(330 90% 58% / 0.4)';
+    base.dark['shadow-glow-secondary'] = '0 4px 24px hsl(160 85% 50% / 0.35)';
+    base.dark['shadow-glow-accent'] = '0 4px 24px hsl(280 80% 58% / 0.35)';
+    base.dark['shadow-glow-purple'] = '0 4px 24px hsl(280 80% 58% / 0.4)';
+
+    // Colorful accents — make secondary green/teal, accent purple
+    base.dark['secondary'] = '160 85% 50%';
+    base.dark['accent'] = '280 60% 25%';
+    base.dark['accent-foreground'] = '280 80% 78%';
+    base.dark['ring'] = '330 90% 58%';
+    base.dark['xp'] = '130 70% 45%';
+    base.dark['unread'] = '0 85% 55%';
+    base.dark['status-open'] = '130 70% 50%';
+    base.dark['sidebar-primary'] = '330 90% 58%';
+    base.dark['sidebar-accent'] = '280 50% 20%';
+    base.dark['sidebar-accent-foreground'] = '280 80% 78%';
+    base.dark['sidebar-ring'] = '330 90% 58%';
+    base.dark['chat-bubble-sent'] = '330 90% 55%';
+    base.dark['glass-border'] = '330 50% 35% / 0.4';
+    base.dark['chart-1'] = '330 90% 58%';
+    base.dark['chart-9'] = '160 85% 50%';
+    base.dark['chart-status-open'] = '130 70% 50%';
+
+    base.light['secondary'] = '160 85% 45%';
+    base.light['accent'] = '280 55% 93%';
+    base.light['accent-foreground'] = '280 80% 45%';
+    base.light['ring'] = '330 90% 55%';
+    base.light['xp'] = '130 70% 40%';
+    base.light['unread'] = '0 85% 50%';
+    base.light['status-open'] = '130 70% 45%';
+    base.light['sidebar-primary'] = '330 90% 55%';
+    base.light['sidebar-accent'] = '330 50% 95%';
+    base.light['sidebar-accent-foreground'] = '330 90% 45%';
+    base.light['sidebar-ring'] = '330 90% 55%';
+    base.light['chat-bubble-sent'] = '330 90% 55%';
+    base.light['chart-1'] = '330 90% 55%';
+    base.light['chart-9'] = '160 85% 45%';
+    base.light['chart-status-open'] = '130 70% 45%';
+
     base.swatches = ['hsl(0 85% 55%)', 'hsl(55 90% 50%)', 'hsl(130 70% 45%)', 'hsl(280 80% 58%)'];
     return base;
   })(),
