@@ -658,7 +658,7 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           insertData.image_url = urlData.publicUrl;
         }
 
-        const { error: insertError } = await supabase.from(type).insert(insertData as any);
+        const { error: insertError } = await (supabase.from(type as 'audio_memes' | 'stickers' | 'custom_emojis') as ReturnType<typeof supabase.from>).insert(insertData as Record<string, unknown> & { name: string });
         if (!insertError) successCount++;
       } catch (err) {
         log.error(`Unexpected error uploading ${file.name}:`, err);
