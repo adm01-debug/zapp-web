@@ -43,9 +43,9 @@ export function ChatbotExecutionsDashboard() {
 
   const stats = {
     total: executions.length,
-    running: executions.filter((e: any) => e.status === 'running').length,
-    completed: executions.filter((e: any) => e.status === 'completed').length,
-    failed: executions.filter((e: any) => e.status === 'failed').length,
+    running: executions.filter((e) => e.status === 'running').length,
+    completed: executions.filter((e) => e.status === 'completed').length,
+    failed: executions.filter((e) => e.status === 'failed').length,
   };
 
   if (isLoading) {
