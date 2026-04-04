@@ -111,7 +111,7 @@ export function BorderRadiusControl({ borderRadius, onChange }: BorderRadiusCont
                   <p className="text-[10px] text-muted-foreground truncate">Última mensagem enviada há 5 min</p>
                 </div>
                 <div
-                  className="w-2 h-2 bg-green-500 rounded-full shrink-0"
+                  className="w-2 h-2 bg-primary rounded-full shrink-0"
                 />
               </div>
             </div>
