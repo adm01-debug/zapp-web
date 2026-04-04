@@ -1,4 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('TeamChatPanel');
 import { TeamConversation, useTeamMessages, useSendTeamMessage, useDeleteTeamMessage, useEditTeamMessage, TeamMessage } from '@/hooks/useTeamChat';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
