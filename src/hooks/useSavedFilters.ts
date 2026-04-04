@@ -69,7 +69,7 @@ export function useSavedFilters(entityType: string) {
 
       // Se marcado como padrão, remove padrão dos outros
       if (input.is_default) {
-        await (supabase as any)
+        await supabase
           .from('saved_filters')
           .update({ is_default: false })
           .eq('user_id', user.id)
