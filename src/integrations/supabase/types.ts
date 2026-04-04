@@ -5429,6 +5429,17 @@ export type Database = {
         }[]
       }
       skill_based_assign: { Args: { p_queue_id: string }; Returns: string }
+      update_own_profile: {
+        Args: {
+          p_avatar_url?: string
+          p_birthday?: string
+          p_display_name?: string
+          p_email?: string
+          p_phone?: string
+          p_signature?: string
+        }
+        Returns: boolean
+      }
       user_has_permission: {
         Args: { _permission_name: string; _user_id: string }
         Returns: boolean
