@@ -272,7 +272,7 @@ export function PerformanceMonitor() {
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-500">{cacheStats.hits}</p>
+              <p className="text-2xl font-bold text-primary">{cacheStats.hits}</p>
               <p className="text-xs text-muted-foreground">Cache Hits</p>
             </div>
             <div className="text-center">
