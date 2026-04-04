@@ -1,69 +1,62 @@
 /**
  * ExternalContact360Panel
  * 
- * Renders the full 360° view of a contact from the external CRM database.
- * Designed to be embedded inside ContactDetails as an accordion section.
- * 
- * Sections:
- * 1. Company card (logo, name, CNPJ, ramo, website)
- * 2. Customer profile (vendedor, compras, ticket médio)
- * 3. RFM Score visual
- * 4. Contact enrichment (cargo, DISC, behavior)
- * 5. Interactions timeline (last 10)
- * 6. Social media links
- * 7. Company address
+ * Renders the COMPLETE 360° view of a contact from the external CRM database.
+ * All available fields from the RPC are displayed.
  */
 import { memo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
-  Building,
-  Globe,
-  MapPin,
-  Phone,
-  Mail,
-  TrendingUp,
-  TrendingDown,
-  ShoppingCart,
-  User,
-  Calendar,
-  MessageSquare,
-  Instagram,
-  Linkedin,
-  Facebook,
-  ExternalLink,
-  Copy,
-  CircleDollarSign,
-  Target,
-  Heart,
-  Briefcase,
-  Award,
-  BarChart3,
-  Sparkles,
-  AlertCircle,
+  Building, Globe, MapPin, Phone, Mail, TrendingUp,
+  ShoppingCart, User, Calendar, MessageSquare,
+  Instagram, Linkedin, Facebook, ExternalLink, Copy,
+  CircleDollarSign, Target, Heart, Briefcase, Award,
+  BarChart3, Sparkles, AlertCircle, Shield, Star,
+  FileText, DollarSign, Tag, Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type {
-  Contact360Data,
-  Contact360RFM,
-  Contact360Customer,
-  Contact360Company,
-  Contact360Interaction,
+  Contact360Data, Contact360RFM, Contact360Customer,
+  Contact360Company, Contact360Interaction, Contact360Contact,
+  Contact360Stakeholder,
 } from '@/types/contact360';
 
 interface ExternalContact360PanelProps {
   phone: string;
 }
 
-// ========================
-// Sub-components
-// ========================
+// ─── Section header ──────────────────────────────────────────
+function SectionTitle({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+      <Icon className="w-3.5 h-3.5 text-primary" />
+      {children}
+    </h5>
+  );
+}
 
+// ─── Info row helper ─────────────────────────────────────────
+function InfoRow({ label, value, icon: Icon }: { label: string; value: string | number | null | undefined; icon?: React.ElementType }) {
+  if (value === null || value === undefined || value === '') return null;
+  return (
+    <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1 text-xs">
+      <span className="text-muted-foreground flex items-center gap-1">
+        {Icon && <Icon className="w-3 h-3" />}
+        {label}
+      </span>
+      <span className="font-medium text-right max-w-[55%] truncate">{value}</span>
+    </div>
+  );
+}
+
+// ─── RFM Badge ───────────────────────────────────────────────
 function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
   const segmentColors: Record<string, string> = {
     Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
@@ -78,16 +71,12 @@ function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
     Lost: 'bg-gray-400/15 text-gray-400 border-gray-400/30',
     "Can't Lose Them": 'bg-rose-500/15 text-rose-600 border-rose-500/30',
   };
-
   const barColors: Record<string, string> = {
     Champions: 'bg-emerald-500', 'Loyal Customers': 'bg-blue-500',
-    'Potential Loyalist': 'bg-sky-500', 'Recent Customers': 'bg-violet-500',
-    Promising: 'bg-indigo-500', 'Need Attention': 'bg-amber-500',
-    'About to Sleep': 'bg-orange-500', 'At Risk': 'bg-red-500',
+    'Potential Loyalist': 'bg-sky-500', 'At Risk': 'bg-red-500',
     Hibernating: 'bg-gray-500', Lost: 'bg-gray-400',
     "Can't Lose Them": 'bg-rose-500',
   };
-
   const color = segmentColors[rfm.segment_code || ''] || 'bg-muted/30 text-muted-foreground border-border/30';
   const barColor = barColors[rfm.segment_code || ''] || 'bg-primary';
 
@@ -97,19 +86,16 @@ function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
         <Badge variant="outline" className={cn('text-xs', color)}>
           {rfm.segment_code || 'Sem segmento'}
         </Badge>
-        {rfm.combined_score && (
-          <span className="text-xs text-muted-foreground">
-            Score: {rfm.combined_score.toFixed(1)}
-          </span>
+        {rfm.combined_score != null && (
+          <span className="text-xs text-muted-foreground">Score: {rfm.combined_score.toFixed(1)}</span>
         )}
       </div>
-      {/* RFM Progress bars */}
       <div className="space-y-1.5">
         {[
-          { label: 'Recência', abbr: 'R', value: rfm.recency_score },
-          { label: 'Frequência', abbr: 'F', value: rfm.frequency_score },
-          { label: 'Monetário', abbr: 'M', value: rfm.monetary_score },
-        ].map(({ label, abbr, value }) => (
+          { abbr: 'R', value: rfm.recency_score },
+          { abbr: 'F', value: rfm.frequency_score },
+          { abbr: 'M', value: rfm.monetary_score },
+        ].map(({ abbr, value }) => (
           <div key={abbr} className="flex items-center gap-2">
             <span className="text-[10px] text-muted-foreground w-3 font-semibold">{abbr}</span>
             <div className="flex-1 h-2 bg-muted/30 rounded-full overflow-hidden">
@@ -117,29 +103,38 @@ function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
                 className={cn('h-full rounded-full', barColor)}
                 initial={{ width: 0 }}
                 animate={{ width: `${((value ?? 0) / 5) * 100}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' as const }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
               />
             </div>
             <span className="text-[10px] text-muted-foreground w-4 text-right font-medium">{value ?? '—'}</span>
           </div>
         ))}
       </div>
+      {rfm.overall_trend && (
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <TrendingUp className="w-3 h-3" /> Tendência: <span className="font-medium">{rfm.overall_trend}</span>
+        </div>
+      )}
+      {rfm.last_interaction_date && (
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Clock className="w-3 h-3" /> Última interação: {format(new Date(rfm.last_interaction_date), 'dd/MM/yyyy', { locale: ptBR })}
+        </div>
+      )}
     </div>
   );
 }
 
+// ─── Company Card ────────────────────────────────────────────
 function CompanyCard({ company }: { company: Contact360Company }) {
   const displayName = company.nome_fantasia || company.nome_crm || company.razao_social;
+  const formatCurrency = (v: number | null) =>
+    v != null ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : null;
 
   return (
     <div className="space-y-2 bg-gradient-to-br from-primary/5 via-transparent to-primary/3 rounded-xl p-3 border border-primary/10">
       <div className="flex items-start gap-3">
         {company.logo_url ? (
-          <img
-            src={company.logo_url}
-            alt={displayName || ''}
-            className="w-10 h-10 rounded-lg object-contain bg-white border border-border/30"
-          />
+          <img src={company.logo_url} alt={displayName || ''} className="w-10 h-10 rounded-lg object-contain bg-white border border-border/30" />
         ) : (
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
             <Building className="w-5 h-5 text-primary" />
@@ -147,6 +142,9 @@ function CompanyCard({ company }: { company: Contact360Company }) {
         )}
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm truncate">{displayName}</p>
+          {company.razao_social && company.razao_social !== displayName && (
+            <p className="text-[10px] text-muted-foreground truncate">{company.razao_social}</p>
+          )}
           {company.cnpj && (
             <p className="text-[10px] text-muted-foreground font-mono">
               {company.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')}
@@ -168,23 +166,53 @@ function CompanyCard({ company }: { company: Contact360Company }) {
             <span className="truncate">{company.porte_rf}</span>
           </div>
         )}
+        {company.nicho_cliente && (
+          <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/20 rounded-md p-1.5">
+            <Tag className="w-3 h-3 shrink-0" />
+            <span className="truncate">{company.nicho_cliente}</span>
+          </div>
+        )}
+        {company.natureza_juridica_desc && (
+          <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/20 rounded-md p-1.5">
+            <FileText className="w-3 h-3 shrink-0" />
+            <span className="truncate">{company.natureza_juridica_desc}</span>
+          </div>
+        )}
+        {company.capital_social != null && company.capital_social > 0 && (
+          <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/20 rounded-md p-1.5">
+            <DollarSign className="w-3 h-3 shrink-0" />
+            <span className="truncate">{formatCurrency(company.capital_social)}</span>
+          </div>
+        )}
+        {company.data_fundacao && (
+          <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/20 rounded-md p-1.5">
+            <Calendar className="w-3 h-3 shrink-0" />
+            <span className="truncate">{format(new Date(company.data_fundacao), 'dd/MM/yyyy')}</span>
+          </div>
+        )}
+        {company.inscricao_estadual && (
+          <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/20 rounded-md p-1.5 col-span-2">
+            <Shield className="w-3 h-3 shrink-0" />
+            <span className="truncate">IE: {company.inscricao_estadual}</span>
+          </div>
+        )}
         {company.website && (
-          <a
-            href={company.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-primary hover:underline col-span-2 bg-primary/5 rounded-md p-1.5"
-          >
+          <a href={company.website} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-primary hover:underline col-span-2 bg-primary/5 rounded-md p-1.5">
             <Globe className="w-3 h-3 shrink-0" />
             <span className="truncate">{company.website.replace(/https?:\/\/(www\.)?/, '')}</span>
             <ExternalLink className="w-3 h-3 shrink-0 ml-auto" />
           </a>
         )}
       </div>
+      {company.status && (
+        <Badge variant="outline" className="text-[10px]">Status: {company.status}</Badge>
+      )}
     </div>
   );
 }
 
+// ─── Customer Profile ────────────────────────────────────────
 function CustomerProfile({ customer }: { customer: Contact360Customer }) {
   const formatCurrency = (v: number | null) =>
     v != null ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—';
@@ -197,18 +225,20 @@ function CustomerProfile({ customer }: { customer: Contact360Customer }) {
           <span className="text-xs text-muted-foreground">Vendedor:</span>
           <span className="text-xs font-medium">{customer.vendedor_nome || '—'}</span>
         </div>
-        <Badge
-          variant="outline"
-          className={cn(
-            'text-[10px]',
-            customer.cliente_ativado
-              ? 'bg-success/15 text-success border-success/30'
-              : 'bg-destructive/15 text-destructive border-destructive/30'
-          )}
-        >
+        <Badge variant="outline" className={cn('text-[10px]',
+          customer.cliente_ativado
+            ? 'bg-success/15 text-success border-success/30'
+            : 'bg-destructive/15 text-destructive border-destructive/30'
+        )}>
           {customer.cliente_ativado ? 'Ativo' : 'Inativo'}
         </Badge>
       </div>
+
+      {customer.sdr_nome && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <User className="w-3 h-3" /> SDR: <span className="font-medium text-foreground">{customer.sdr_nome}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-1.5">
         <div className="bg-muted/20 rounded-lg p-2 text-center">
@@ -228,74 +258,109 @@ function CustomerProfile({ customer }: { customer: Contact360Customer }) {
         </div>
       </div>
 
+      {/* Extended profile fields */}
+      <div className="space-y-1">
+        <InfoRow label="Poder de Compra" value={customer.poder_compra} />
+        <InfoRow label="Perfil Preço" value={customer.perfil_preco} />
+        <InfoRow label="Perfil Qualidade" value={customer.perfil_qualidade} />
+        <InfoRow label="Perfil Prazo" value={customer.perfil_prazo} />
+        <InfoRow label="Grupo" value={customer.grupo_clientes} />
+        <InfoRow label="Ramo" value={customer.ramo_atividade} />
+      </div>
+
       {(customer.data_primeira_compra || customer.data_ultima_compra) && (
         <div className="flex items-center justify-between text-[10px] text-muted-foreground bg-muted/10 rounded-md p-1.5">
           {customer.data_primeira_compra && (
-            <span>
-              1ª compra:{' '}
-              {format(new Date(customer.data_primeira_compra), 'dd/MM/yyyy', { locale: ptBR })}
-            </span>
+            <span>1ª: {format(new Date(customer.data_primeira_compra), 'dd/MM/yyyy', { locale: ptBR })}</span>
           )}
           {customer.data_ultima_compra && (
-            <span>
-              Última:{' '}
-              {format(new Date(customer.data_ultima_compra), 'dd/MM/yyyy', { locale: ptBR })}
-            </span>
+            <span>Última: {format(new Date(customer.data_ultima_compra), 'dd/MM/yyyy', { locale: ptBR })}</span>
           )}
+        </div>
+      )}
+
+      {customer.data_ativacao && (
+        <div className="text-[10px] text-muted-foreground">
+          Ativado em: {format(new Date(customer.data_ativacao), 'dd/MM/yyyy', { locale: ptBR })}
+        </div>
+      )}
+
+      {customer.motivo_inativacao && (
+        <div className="text-[10px] text-destructive bg-destructive/10 rounded-md p-1.5">
+          Motivo inativação: {customer.motivo_inativacao}
         </div>
       )}
     </div>
   );
 }
 
+// ─── Contact Detail Card ─────────────────────────────────────
+function ContactDetailCard({ contact }: { contact: Contact360Contact }) {
+  return (
+    <div className="space-y-1">
+      <InfoRow label="Nome" value={contact.full_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim()} icon={User} />
+      <InfoRow label="Tratamento" value={contact.nome_tratamento} />
+      <InfoRow label="Apelido" value={contact.apelido} />
+      <InfoRow label="Cargo" value={contact.cargo} icon={Briefcase} />
+      <InfoRow label="Depto." value={contact.departamento} />
+      <InfoRow label="CPF" value={contact.cpf} icon={Shield} />
+      {contact.data_nascimento && (
+        <InfoRow label="Nascimento" value={format(new Date(contact.data_nascimento), 'dd/MM/yyyy')} icon={Calendar} />
+      )}
+      <InfoRow label="Sentimento" value={contact.sentiment} />
+      <InfoRow label="Estágio" value={contact.relationship_stage} icon={Star} />
+      <InfoRow label="Fonte" value={contact.source} />
+      {contact.tags && contact.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {contact.tags.map((tag, i) => (
+            <Badge key={i} variant="outline" className="text-[9px] px-1.5 py-0">{tag}</Badge>
+          ))}
+        </div>
+      )}
+      {contact.notes && (
+        <div className="text-[10px] text-muted-foreground bg-muted/10 rounded-md p-1.5 mt-1">
+          {contact.notes}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Stakeholder Card ────────────────────────────────────────
+function StakeholderCard({ stakeholder }: { stakeholder: Contact360Stakeholder }) {
+  return (
+    <div className="space-y-1">
+      <InfoRow label="Papel" value={stakeholder.buying_role} />
+      <InfoRow label="Poder" value={`${stakeholder.power_level}/10`} />
+      <InfoRow label="Interesse" value={`${stakeholder.interest_level}/10`} />
+      <InfoRow label="Posição" value={stakeholder.stance} />
+      <InfoRow label="Prioridade" value={stakeholder.engagement_priority} />
+    </div>
+  );
+}
+
+// ─── Interactions Timeline ───────────────────────────────────
 function InteractionsTimeline({ interactions }: { interactions: Contact360Interaction[] }) {
   if (!interactions.length) return null;
-
   const channelEmoji: Record<string, string> = {
-    whatsapp: '💬',
-    email: '📧',
-    phone: '📞',
-    presencial: '🤝',
-    chat: '💻',
+    whatsapp: '💬', email: '📧', phone: '📞', presencial: '🤝', chat: '💻',
   };
-
-  const sentimentColor: Record<string, string> = {
-    positive: 'text-success',
-    neutral: 'text-muted-foreground',
-    negative: 'text-warning',
-    critical: 'text-destructive',
+  const sentimentEmoji: Record<string, string> = {
+    positive: '😊', neutral: '😐', negative: '😟', critical: '🔴',
   };
 
   return (
-    <div className="space-y-1.5">
-      {interactions.slice(0, 5).map((interaction) => (
-        <div
-          key={interaction.id}
-          className="flex items-start gap-2 text-xs bg-muted/10 rounded-md p-1.5"
-        >
-          <span className="shrink-0 text-base leading-none mt-0.5">
-            {channelEmoji[interaction.channel] || '📝'}
-          </span>
+    <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+      {interactions.map((i) => (
+        <div key={i.id} className="flex items-start gap-2 text-xs bg-muted/10 rounded-md p-1.5">
+          <span className="shrink-0 text-base leading-none mt-0.5">{channelEmoji[i.channel] || '📝'}</span>
           <div className="flex-1 min-w-0">
-            <p className="truncate font-medium">
-              {interaction.assunto || interaction.type || 'Interação'}
-            </p>
-            {interaction.resumo && (
-              <p className="text-muted-foreground truncate">{interaction.resumo}</p>
-            )}
+            <p className="truncate font-medium">{i.assunto || i.type || 'Interação'}</p>
+            {i.resumo && <p className="text-muted-foreground truncate">{i.resumo}</p>}
           </div>
           <div className="text-right shrink-0">
-            <p className="text-muted-foreground">
-              {format(new Date(interaction.data_interacao), 'dd/MM', { locale: ptBR })}
-            </p>
-            {interaction.sentiment && (
-              <span className={cn('text-[10px]', sentimentColor[interaction.sentiment])}>
-                {interaction.sentiment === 'positive' && '😊'}
-                {interaction.sentiment === 'neutral' && '😐'}
-                {interaction.sentiment === 'negative' && '😟'}
-                {interaction.sentiment === 'critical' && '🔴'}
-              </span>
-            )}
+            <p className="text-muted-foreground">{format(new Date(i.data_interacao), 'dd/MM', { locale: ptBR })}</p>
+            {i.sentiment && <span className="text-[10px]">{sentimentEmoji[i.sentiment] || ''}</span>}
           </div>
         </div>
       ))}
@@ -303,26 +368,20 @@ function InteractionsTimeline({ interactions }: { interactions: Contact360Intera
   );
 }
 
+// ─── Social Links ────────────────────────────────────────────
 function SocialLinks({ social }: { social: { plataforma: string; url: string | null; handle: string | null }[] }) {
   if (!social.length) return null;
-
   const icons: Record<string, React.ReactNode> = {
     instagram: <Instagram className="w-3.5 h-3.5" />,
     linkedin: <Linkedin className="w-3.5 h-3.5" />,
     facebook: <Facebook className="w-3.5 h-3.5" />,
   };
-
   return (
     <div className="flex flex-wrap gap-1.5">
       {social.map((s, i) => (
-        <a
-          key={i}
-          href={s.url || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
+        <a key={i} href={s.url || '#'} target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-xs bg-muted/20 hover:bg-muted/40 rounded-md px-2 py-1 transition-colors"
-          title={`${s.plataforma}: ${s.handle || ''}`}
-        >
+          title={`${s.plataforma}: ${s.handle || ''}`}>
           {icons[s.plataforma] || <Globe className="w-3.5 h-3.5" />}
           <span className="truncate max-w-[100px]">{s.handle || s.plataforma}</span>
         </a>
@@ -331,19 +390,15 @@ function SocialLinks({ social }: { social: { plataforma: string; url: string | n
   );
 }
 
+// ─── Address ─────────────────────────────────────────────────
 function AddressLine({ address }: { address: Contact360Data['company_address'] }) {
   if (!address) return null;
-  const parts = [
-    address.logradouro,
-    address.numero && `nº ${address.numero}`,
-    address.bairro,
-    address.cidade && address.estado && `${address.cidade}/${address.estado}`,
-    address.cep,
+  const parts = [address.logradouro, address.numero && `nº ${address.numero}`,
+    address.complemento, address.bairro,
+    address.cidade && address.estado && `${address.cidade}/${address.estado}`, address.cep,
   ].filter(Boolean);
-
   const mapsUrl = address.latitude && address.longitude
-    ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}`
-    : null;
+    ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : null;
 
   return (
     <div className="text-xs text-muted-foreground bg-muted/10 rounded-md p-2">
@@ -352,12 +407,8 @@ function AddressLine({ address }: { address: Contact360Data['company_address'] }
         <div>
           <p>{parts.join(', ')}</p>
           {mapsUrl && (
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline inline-flex items-center gap-1 mt-0.5"
-            >
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+              className="text-primary hover:underline inline-flex items-center gap-1 mt-0.5">
               Ver no mapa <ExternalLink className="w-3 h-3" />
             </a>
           )}
@@ -367,31 +418,56 @@ function AddressLine({ address }: { address: Contact360Data['company_address'] }
   );
 }
 
-function BehaviorRadar({ decisionPower, formalityLevel, discProfile }: {
-  decisionPower: number;
-  formalityLevel: number;
-  discProfile?: string | null;
+// ─── Contact Phones & Emails ─────────────────────────────────
+function ContactChannels({ phones, emails }: {
+  phones: Contact360Data['contact_phones'];
+  emails: Contact360Data['contact_emails'];
 }) {
-  // Normalize to 0-1 scale
+  if (!phones?.length && !emails?.length) return null;
+  return (
+    <div className="space-y-1 text-xs">
+      {phones?.map((p, i) => (
+        <div key={i}
+          className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+          onClick={() => { navigator.clipboard.writeText(p.numero_e164 || p.numero); toast.success('Copiado!'); }}>
+          <Phone className="w-3 h-3" />
+          <span>{p.numero_e164 || p.numero}</span>
+          {p.is_whatsapp && <Badge variant="outline" className="text-[9px] py-0 px-1">WA</Badge>}
+          {p.is_primary && <Badge variant="outline" className="text-[9px] py-0 px-1 bg-primary/10">P</Badge>}
+        </div>
+      ))}
+      {emails?.map((e, i) => (
+        <div key={i}
+          className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+          onClick={() => { navigator.clipboard.writeText(e.email); toast.success('Copiado!'); }}>
+          <Mail className="w-3 h-3" />
+          <span className="truncate">{e.email}</span>
+          {e.is_primary && <Badge variant="outline" className="text-[9px] py-0 px-1 bg-primary/10">P</Badge>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Behavior Radar ──────────────────────────────────────────
+function BehaviorRadar({ decisionPower, formalityLevel, discProfile }: {
+  decisionPower: number; formalityLevel: number; discProfile?: string | null;
+}) {
   const dp = decisionPower / 10;
   const fl = formalityLevel / 5;
-  // DISC maps to a "dominance" visual axis
   const discMap: Record<string, number> = { D: 1, I: 0.8, S: 0.5, C: 0.7 };
   const ds = discProfile ? (discMap[discProfile.charAt(0)] ?? 0.5) : 0.5;
-
   const cx = 48, cy = 48, r = 36;
   const axes = [
     { angle: -90, value: dp, label: 'D' },
     { angle: 30, value: fl, label: 'F' },
     { angle: 150, value: ds, label: 'P' },
   ];
-
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const getPoint = (angle: number, val: number) => ({
     x: cx + Math.cos(toRad(angle)) * r * val,
     y: cy + Math.sin(toRad(angle)) * r * val,
   });
-
   const points = axes.map(a => getPoint(a.angle, a.value));
   const poly = points.map(p => `${p.x},${p.y}`).join(' ');
   const gridPoints = axes.map(a => getPoint(a.angle, 1));
@@ -399,45 +475,25 @@ function BehaviorRadar({ decisionPower, formalityLevel, discProfile }: {
 
   return (
     <svg viewBox="0 0 96 96" className="w-full h-full">
-      {/* Grid */}
       <polygon points={gridPoly} fill="none" stroke="hsl(var(--muted))" strokeWidth="0.5" opacity="0.4" />
       {axes.map((a, i) => {
         const ep = getPoint(a.angle, 1);
         return <line key={i} x1={cx} y1={cy} x2={ep.x} y2={ep.y} stroke="hsl(var(--muted))" strokeWidth="0.5" opacity="0.3" />;
       })}
-      {/* Filled area */}
-      <motion.polygon
-        points={poly}
-        fill="hsl(var(--primary))"
-        fillOpacity="0.15"
-        stroke="hsl(var(--primary))"
-        strokeWidth="1.5"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      />
-      {/* Points */}
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="hsl(var(--primary))" />
-      ))}
-      {/* Labels */}
+      <motion.polygon points={poly} fill="hsl(var(--primary))" fillOpacity="0.15"
+        stroke="hsl(var(--primary))" strokeWidth="1.5"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} />
+      {points.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="hsl(var(--primary))" />)}
       {axes.map((a, i) => {
         const lp = getPoint(a.angle, 1.25);
-        return (
-          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="central"
-            className="text-[8px] fill-muted-foreground font-medium">
-            {a.label}
-          </text>
-        );
+        return <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="central"
+          className="text-[8px] fill-muted-foreground font-medium">{a.label}</text>;
       })}
     </svg>
   );
 }
 
-// ========================
-// Main Component
-// ========================
-
+// ─── Main Component ──────────────────────────────────────────
 function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
   const { data, isLoading, error } = useExternalContact360(phone);
 
@@ -451,9 +507,7 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
     );
   }
 
-  if (error || !data) {
-    return null; // Silently hide if external DB not configured or error
-  }
+  if (error || !data) return null;
 
   if (!data.found) {
     return (
@@ -470,12 +524,8 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
   ].filter((s, i, arr) => arr.findIndex((x) => x.url === s.url) === i);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
-    >
-      {/* Header badge */}
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+      {/* Header */}
       <div className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-primary" />
         <span className="text-sm font-medium">Visão 360° CRM</span>
@@ -486,13 +536,26 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
         )}
       </div>
 
+      {/* Contact details */}
+      {data.contact && (
+        <div className="space-y-1.5">
+          <SectionTitle icon={User}>Contato</SectionTitle>
+          <ContactDetailCard contact={data.contact} />
+        </div>
+      )}
+
+      {/* Contact phones & emails */}
+      {(data.contact_phones?.length > 0 || data.contact_emails?.length > 0) && (
+        <div className="space-y-1.5">
+          <SectionTitle icon={Phone}>Canais do Contato</SectionTitle>
+          <ContactChannels phones={data.contact_phones} emails={data.contact_emails} />
+        </div>
+      )}
+
       {/* Company */}
       {data.company && (
         <div className="space-y-1.5">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <Building className="w-3.5 h-3.5 text-primary" />
-            Empresa
-          </h5>
+          <SectionTitle icon={Building}>Empresa</SectionTitle>
           <CompanyCard company={data.company} />
         </div>
       )}
@@ -500,34 +563,32 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
       {/* Customer profile */}
       {data.customer && (
         <div className="space-y-1.5">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <Target className="w-3.5 h-3.5 text-primary" />
-            Perfil comercial
-          </h5>
+          <SectionTitle icon={Target}>Perfil Comercial</SectionTitle>
           <CustomerProfile customer={data.customer} />
+        </div>
+      )}
+
+      {/* Stakeholder */}
+      {data.stakeholder && (
+        <div className="space-y-1.5">
+          <SectionTitle icon={Star}>Stakeholder</SectionTitle>
+          <StakeholderCard stakeholder={data.stakeholder} />
         </div>
       )}
 
       {/* RFM */}
       {data.rfm && data.rfm.segment_code && (
         <div className="space-y-1.5">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <BarChart3 className="w-3.5 h-3.5 text-primary" />
-            Segmento RFM
-          </h5>
+          <SectionTitle icon={BarChart3}>Segmento RFM</SectionTitle>
           <RFMBadge rfm={data.rfm} />
         </div>
       )}
 
-      {/* Contact enrichment — cargo, behavior with radial chart */}
+      {/* Behavior */}
       {data.contact?.behavior && (
         <div className="space-y-2">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <Heart className="w-3.5 h-3.5 text-primary" />
-            Perfil comportamental
-          </h5>
+          <SectionTitle icon={Heart}>Perfil Comportamental</SectionTitle>
           <div className="flex items-center gap-3">
-            {/* Mini radar/radial chart */}
             <div className="relative w-24 h-24 shrink-0">
               <BehaviorRadar
                 decisionPower={data.contact.behavior.decisionPower ?? 0}
@@ -535,40 +596,31 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
                 discProfile={data.contact.behavior.discProfile}
               />
             </div>
-            {/* Labels */}
-            <div className="flex-1 space-y-1.5 text-xs">
-              {data.contact.behavior.discProfile && (
-                <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
-                  <span className="text-muted-foreground">DISC</span>
-                  <Badge variant="outline" className="text-[10px] font-semibold bg-primary/10 text-primary border-primary/20">
-                    {data.contact.behavior.discProfile}
-                  </Badge>
-                </div>
-              )}
-              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
-                <span className="text-muted-foreground">Canal</span>
-                <span className="font-medium capitalize">{data.contact.behavior.preferredChannel}</span>
-              </div>
-              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
-                <span className="text-muted-foreground">Decisão</span>
-                <span className="font-medium">{data.contact.behavior.decisionPower}/10</span>
-              </div>
-              <div className="flex items-center justify-between bg-muted/15 rounded-md px-2 py-1">
-                <span className="text-muted-foreground">Formalidade</span>
-                <span className="font-medium">{data.contact.behavior.formalityLevel}/5</span>
-              </div>
+            <div className="flex-1 space-y-1 text-xs">
+              <InfoRow label="DISC" value={data.contact.behavior.discProfile} />
+              <InfoRow label="Canal" value={data.contact.behavior.preferredChannel} />
+              <InfoRow label="Decisão" value={`${data.contact.behavior.decisionPower}/10`} />
+              <InfoRow label="Formalidade" value={`${data.contact.behavior.formalityLevel}/5`} />
+              <InfoRow label="Suporte" value={`${data.contact.behavior.supportLevel}/5`} />
             </div>
           </div>
+          {data.contact.behavior.currentChallenges?.length > 0 && (
+            <div className="text-[10px] text-muted-foreground">
+              Desafios: {data.contact.behavior.currentChallenges.join(', ')}
+            </div>
+          )}
+          {data.contact.behavior.competitorsUsed?.length > 0 && (
+            <div className="text-[10px] text-muted-foreground">
+              Concorrentes: {data.contact.behavior.competitorsUsed.join(', ')}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Interactions timeline */}
+      {/* Interactions */}
       {data.contact_interactions && data.contact_interactions.length > 0 && (
         <div className="space-y-1.5">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <MessageSquare className="w-3.5 h-3.5 text-primary" />
-            Últimas interações ({data.contact_interactions.length})
-          </h5>
+          <SectionTitle icon={MessageSquare}>Interações ({data.contact_interactions.length})</SectionTitle>
           <InteractionsTimeline interactions={data.contact_interactions} />
         </div>
       )}
@@ -576,9 +628,7 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
       {/* Social media */}
       {allSocial.length > 0 && (
         <div className="space-y-1.5">
-          <h5 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-            Redes sociais
-          </h5>
+          <SectionTitle icon={Globe}>Redes Sociais</SectionTitle>
           <SocialLinks social={allSocial} />
         </div>
       )}
@@ -586,41 +636,11 @@ function ExternalContact360PanelInner({ phone }: ExternalContact360PanelProps) {
       {/* Address */}
       {data.company_address && <AddressLine address={data.company_address} />}
 
-      {/* Extra phones & emails */}
+      {/* Company phones & emails */}
       {(data.company_phones?.length > 0 || data.company_emails?.length > 0) && (
-        <div className="space-y-1 text-xs">
-          {data.company_phones?.slice(0, 3).map((p, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-              onClick={() => {
-                navigator.clipboard.writeText(p.numero_e164 || p.numero);
-                toast.success('Telefone copiado!');
-              }}
-              title="Clique para copiar"
-            >
-              <Phone className="w-3 h-3" />
-              <span>{p.numero_e164 || p.numero}</span>
-              {p.is_whatsapp && <Badge variant="outline" className="text-[9px] py-0 px-1">WhatsApp</Badge>}
-              {p.departamento && <span className="text-[10px]">({p.departamento})</span>}
-              <Copy className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />
-            </div>
-          ))}
-          {data.company_emails?.slice(0, 3).map((e, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-              onClick={() => {
-                navigator.clipboard.writeText(e.email);
-                toast.success('Email copiado!');
-              }}
-              title="Clique para copiar"
-            >
-              <Mail className="w-3 h-3" />
-              <span className="truncate">{e.email}</span>
-              <Copy className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />
-            </div>
-          ))}
+        <div className="space-y-1.5">
+          <SectionTitle icon={Building}>Canais da Empresa</SectionTitle>
+          <ContactChannels phones={data.company_phones} emails={data.company_emails} />
         </div>
       )}
     </motion.div>
