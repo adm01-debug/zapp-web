@@ -40,7 +40,7 @@ interface WhatsAppFlow {
   id: string;
   name: string;
   description: string | null;
-  flow_json: Record<string, unknown> | null;
+  flow_json: Json;
   screens: FlowScreen[];
   status: string;
   whatsapp_flow_id: string | null;
