@@ -3,11 +3,12 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, Bug, ArrowRight } from 'lucide-react';
+import { Zap, Bug, ArrowRight, Building2 } from 'lucide-react';
 import { N8nIntegrationView } from './N8nIntegrationView';
 import { SentryIntegrationView } from './SentryIntegrationView';
+import { BitrixIntegrationView } from './BitrixIntegrationView';
 
-type IntegrationView = 'hub' | 'n8n' | 'sentry';
+type IntegrationView = 'hub' | 'n8n' | 'sentry' | 'bitrix24';
 
 const integrations = [
   {
@@ -24,6 +25,14 @@ const integrations = [
     description: 'Monitoramento de erros, performance e session replays em tempo real.',
     icon: Bug,
     color: 'bg-[#362D59]',
+    status: 'available' as const,
+  },
+  {
+    id: 'bitrix24' as const,
+    name: 'Bitrix24',
+    description: 'CRM completo com sincronização de leads, contatos, negócios e telefonia VoIP.',
+    icon: Building2,
+    color: 'bg-[#2FC7F7]',
     status: 'available' as const,
   },
 ];
