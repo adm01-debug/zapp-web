@@ -34,8 +34,9 @@ export function GoogleSheetsIntegrationView() {
   const [isConnected, setIsConnected] = useState(false);
   const [syncs, setSyncs] = useState<SheetSync[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  type SyncDirection = 'export' | 'import' | 'bidirectional';
   const [newSync, setNewSync] = useState({
-    name: '', spreadsheetId: '', sheetName: 'Sheet1', syncDirection: 'export' as const, dataSource: 'contacts', syncInterval: 60
+    name: '', spreadsheetId: '', sheetName: 'Sheet1', syncDirection: 'export' as SyncDirection, dataSource: 'contacts', syncInterval: 60
   });
 
   const handleConnect = () => {
