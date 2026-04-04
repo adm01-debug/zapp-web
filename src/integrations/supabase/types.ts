@@ -3220,10 +3220,12 @@ export type Database = {
           job_title: string | null
           max_chats: number | null
           name: string
+          nickname: string | null
           permissions: Json | null
           phone: string | null
           role: string | null
           session_invalidated_at: string | null
+          signature: string | null
           updated_at: string
           user_id: string
         }
@@ -3239,10 +3241,12 @@ export type Database = {
           job_title?: string | null
           max_chats?: number | null
           name: string
+          nickname?: string | null
           permissions?: Json | null
           phone?: string | null
           role?: string | null
           session_invalidated_at?: string | null
+          signature?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3258,10 +3262,12 @@ export type Database = {
           job_title?: string | null
           max_chats?: number | null
           name?: string
+          nickname?: string | null
           permissions?: Json | null
           phone?: string | null
           role?: string | null
           session_invalidated_at?: string | null
+          signature?: string | null
           updated_at?: string
           user_id?: string
         }
