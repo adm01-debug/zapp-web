@@ -551,6 +551,19 @@ export function AdminView() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_gmail">Conta Gmail (opcional)</Label>
+              <Input
+                id="new_gmail"
+                type="email"
+                placeholder="usuario@gmail.com"
+                value={newUserGmail}
+                onChange={(e) => setNewUserGmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                O usuário não poderá alterar ou remover esta conta.
+              </p>
+            </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancelar
