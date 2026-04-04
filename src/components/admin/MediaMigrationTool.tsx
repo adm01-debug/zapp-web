@@ -122,8 +122,8 @@ export function MediaMigrationTool() {
                 <p className="text-2xl font-bold text-foreground">{result.processed}</p>
                 <p className="text-xs text-muted-foreground">Processados</p>
               </div>
-              <div className="text-center p-3 rounded-lg bg-green-500/5">
-                <p className="text-2xl font-bold text-green-500">{result.migrated}</p>
+              <div className="text-center p-3 rounded-lg bg-success/5">
+                <p className="text-2xl font-bold text-success">{result.migrated}</p>
                 <p className="text-xs text-muted-foreground">Migrados</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-destructive/5">
