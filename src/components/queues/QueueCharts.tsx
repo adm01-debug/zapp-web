@@ -171,8 +171,8 @@ export function QueueCharts({ queueId, queueColor }: QueueChartsProps) {
                       color: 'hsl(var(--foreground))',
                     }}
                   />
-                  <Bar dataKey="resolvidos" fill="#10B981" radius={[4, 4, 0, 0]} name="Resolvidos" />
-                  <Bar dataKey="novos" fill="#F59E0B" radius={[4, 4, 0, 0]} name="Novos" />
+                  <Bar dataKey="resolvidos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Resolvidos" />
+                  <Bar dataKey="novos" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Novos" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
