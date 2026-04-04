@@ -101,7 +101,7 @@ export function WhatsAppFlowsBuilder() {
     const { error } = await supabase.from('whatsapp_flows').insert({
       name: formName,
       description: formDescription || null,
-      screens: defaultScreens as any,
+      screens: defaultScreens as unknown as import('@/integrations/supabase/types').Json,
     });
 
     if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
@@ -164,7 +164,7 @@ export function WhatsAppFlowsBuilder() {
   const updateFlowScreens = async (screens: FlowScreen[]) => {
     if (!selectedFlow) return;
     setSelectedFlow({ ...selectedFlow, screens });
-    await supabase.from('whatsapp_flows').update({ screens: screens as any }).eq('id', selectedFlow.id);
+    await supabase.from('whatsapp_flows').update({ screens: screens as unknown as import('@/integrations/supabase/types').Json }).eq('id', selectedFlow.id);
   };
 
   // Flow list view

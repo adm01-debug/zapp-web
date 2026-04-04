@@ -34,8 +34,9 @@ export function GoogleSheetsIntegrationView() {
   const [isConnected, setIsConnected] = useState(false);
   const [syncs, setSyncs] = useState<SheetSync[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  type SyncDirection = 'export' | 'import' | 'bidirectional';
   const [newSync, setNewSync] = useState({
-    name: '', spreadsheetId: '', sheetName: 'Sheet1', syncDirection: 'export' as const, dataSource: 'contacts', syncInterval: 60
+    name: '', spreadsheetId: '', sheetName: 'Sheet1', syncDirection: 'export' as SyncDirection, dataSource: 'contacts', syncInterval: 60
   });
 
   const handleConnect = () => {
@@ -155,7 +156,7 @@ export function GoogleSheetsIntegrationView() {
                   </div>
                   <div>
                     <Label>Direção</Label>
-                    <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={newSync.syncDirection} onChange={e => setNewSync(p => ({ ...p, syncDirection: e.target.value as any }))}>
+                    <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={newSync.syncDirection} onChange={e => setNewSync(p => ({ ...p, syncDirection: e.target.value as 'export' | 'import' | 'bidirectional' }))}>
                       <option value="export">Exportar</option>
                       <option value="import">Importar</option>
                       <option value="bidirectional">Bidirecional</option>

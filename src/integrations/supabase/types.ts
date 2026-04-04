@@ -5444,6 +5444,7 @@ export type Database = {
         Args: { _permission_name: string; _user_id: string }
         Returns: boolean
       }
+      validate_reset_token: { Args: { p_token: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "supervisor" | "agent" | "special_agent"

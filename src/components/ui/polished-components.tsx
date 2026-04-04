@@ -458,7 +458,7 @@ export const FeatureCard = memo(function FeatureCard({
     >
       {badge && (
         <div className="absolute -top-2 -right-2">
-          <PremiumBadge type={badge as any} size="sm" />
+          <PremiumBadge type={badge as 'pro' | 'premium' | 'gold' | 'new' | 'beta' | 'hot'} size="sm" />
         </div>
       )}
       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-3">

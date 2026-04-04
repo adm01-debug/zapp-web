@@ -3,6 +3,7 @@ import { getLogger } from '@/lib/logger';
 
 const log = getLogger('PerformanceSnapshots');
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -43,11 +44,11 @@ export function usePerformanceSnapshots() {
     if (!profile?.id) return;
 
     try {
-      await (supabase.from('performance_snapshots' as any).insert({
+      await supabase.from('performance_snapshots').insert({
         profile_id: profile.id,
         ...data,
         user_agent: navigator.userAgent,
-      } as any) as any);
+      } as unknown as Database['public']['Tables']['performance_snapshots']['Insert']);
     } catch (err) {
       // Silent fail — don't interrupt UX for telemetry
       log.warn('Failed to save performance snapshot:', err);
@@ -58,12 +59,12 @@ export function usePerformanceSnapshots() {
     setLoading(true);
     try {
       const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-      const { data, error } = await (supabase
-        .from('performance_snapshots' as any)
+      const { data, error } = await supabase
+        .from('performance_snapshots')
         .select('*')
         .gte('created_at', since)
         .order('created_at', { ascending: true })
-        .limit(500) as any);
+        .limit(500);
 
       if (error) throw error;
       setHistory((data || []) as PerformanceSnapshot[]);
@@ -77,10 +78,10 @@ export function usePerformanceSnapshots() {
   const clearOldSnapshots = useCallback(async () => {
     try {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      await (supabase
-        .from('performance_snapshots' as any)
+      await supabase
+        .from('performance_snapshots')
         .delete()
-        .lt('created_at', sevenDaysAgo) as any);
+        .lt('created_at', sevenDaysAgo);
       toast.success('Dados antigos removidos');
       await loadHistory();
     } catch (err) {

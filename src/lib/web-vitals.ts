@@ -49,7 +49,7 @@ export function initWebVitals() {
   try {
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      const lastEntry = entries[entries.length - 1] as any;
+      const lastEntry = entries[entries.length - 1] as PerformanceEntry;
       if (lastEntry) {
         onMetric({
           name: 'LCP',
@@ -67,7 +67,7 @@ export function initWebVitals() {
   try {
     const fidObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const fid = (entry as any).processingStart - entry.startTime;
+        const fid = (entry as PerformanceEventTiming).processingStart - entry.startTime;
         onMetric({
           name: 'FID',
           value: fid,
@@ -85,8 +85,8 @@ export function initWebVitals() {
     let clsValue = 0;
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value;
+        if (!(entry as PerformanceEntry & { hadRecentInput?: boolean }).hadRecentInput) {
+          clsValue += (entry as PerformanceEntry & { value: number }).value;
         }
       }
       onMetric({
@@ -114,7 +114,7 @@ export function initWebVitals() {
         });
       }
     });
-    inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 } as any);
+    inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 } as PerformanceObserverInit);
   } catch (e) { /* not supported */ }
 
   // TTFB - Time to First Byte

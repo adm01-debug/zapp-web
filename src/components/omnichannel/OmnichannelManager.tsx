@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,7 +69,7 @@ export function OmnichannelManager() {
 
       const { error } = await supabase.from('channel_connections').insert([{
         name: channel.name,
-        channel_type: channel.channel_type as any,
+        channel_type: channel.channel_type as Database["public"]["Enums"]["channel_type"],
         created_by: profile?.id,
         status: 'pending_setup',
       }]);

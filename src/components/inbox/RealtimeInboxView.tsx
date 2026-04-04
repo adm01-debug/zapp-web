@@ -44,11 +44,16 @@ const log = getLogger('RealtimeInboxView');
 
 interface SearchResult {
   id: string;
-  type: 'message' | 'contact' | 'transcription';
+  type: 'message' | 'contact' | 'transcription' | 'action' | 'crm';
   title: string;
   preview: string;
   timestamp: Date;
   contactId?: string;
+  contactName?: string;
+  messageType?: string;
+  tags?: string[];
+  action?: () => void;
+  crmPhone?: string;
 }
 
 export function RealtimeInboxView() {
@@ -285,7 +290,7 @@ export function RealtimeInboxView() {
           <GlobalSearch 
             open={globalSearchOpen} 
             onOpenChange={setGlobalSearchOpen} 
-            onSelectResult={handleGlobalSearchResult as any}
+            onSelectResult={handleGlobalSearchResult}
           />
         </Suspense>
       )}
