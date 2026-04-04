@@ -59,7 +59,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
     [delayMs]
   );
 
-  (debounced as any).cancel = () => {
+  (debounced as T & { cancel: () => void }).cancel = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;

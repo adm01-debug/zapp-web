@@ -349,7 +349,7 @@ export function useSipClient() {
       if (sdh && sdh.peerConnection) {
         const sender = sdh.peerConnection.getSenders().find(s => s.track?.kind === 'audio');
         if (sender) {
-          (sender as any).dtmf?.insertDTMF(digit, 100, 70);
+          (sender as RTCRtpSender & { dtmf?: RTCDTMFSender }).dtmf?.insertDTMF(digit, 100, 70);
         }
       }
     } catch (err) {

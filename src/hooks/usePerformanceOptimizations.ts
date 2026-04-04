@@ -41,7 +41,7 @@ export function usePerformanceMetrics() {
     // Cumulative Layout Shift
     let clsValue = 0;
     const clsObserver = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries() as any[]) {
+      for (const entry of list.getEntries() as Array<PerformanceEntry & { hadRecentInput?: boolean; value?: number }>) {
         if (!entry.hadRecentInput) {
           clsValue += entry.value;
           setMetrics((prev) => ({ ...prev, cls: clsValue }));
