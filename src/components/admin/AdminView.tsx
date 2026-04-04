@@ -112,6 +112,13 @@ export function AdminView() {
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('agent');
   const [newUserGmail, setNewUserGmail] = useState('');
+  const [newUserGoogleServices, setNewUserGoogleServices] = useState({
+    google_sheets: false,
+    google_docs: false,
+    google_calendar: false,
+    google_drive: false,
+  });
+  const [newUserDropboxEmail, setNewUserDropboxEmail] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
 
   useEffect(() => {
