@@ -1,6 +1,3 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,14 +40,12 @@ import {
   Clock,
   GitCompare,
 } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO, differenceInDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useAgents } from '@/hooks/useAgents';
-import { useTags } from '@/hooks/useTags';
+import { useReportsData } from './useReportsData';
 
 const PERIOD_OPTIONS = [
   { value: '7', label: 'Últimos 7 dias' },
