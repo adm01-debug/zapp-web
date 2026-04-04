@@ -25,12 +25,6 @@ const FULL_SCREEN_VIEWS = new Set(['inbox', 'pipeline', 'omni-inbox', 'team-chat
 interface WithHeaderProps {
   viewId: string;
   children: React.ReactNode;
-  canGoBack?: boolean;
-  canGoForward?: boolean;
-  onGoBack?: () => void;
-  onGoForward?: () => void;
-  breadcrumbTrail?: string[];
-  onNavigateTo?: (viewId: string) => void;
 }
 
 function WithHeader({ viewId, children }: WithHeaderProps) {
