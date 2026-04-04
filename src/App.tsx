@@ -132,6 +132,7 @@ function AppContent() {
 
   return (
     <BrowserRouter>
+      <ThemeInitializer />
       <SkipLinks />
       <LiveRegion />
       <GlobalKeyboardProvider>
