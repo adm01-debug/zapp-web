@@ -19,7 +19,7 @@ export function useGlobalSettings() {
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('global_settings')
         .select('*')
         .order('key');
