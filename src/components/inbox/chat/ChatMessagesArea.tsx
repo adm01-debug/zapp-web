@@ -1,4 +1,7 @@
 import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('ChatMessagesArea');
 import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
