@@ -21,12 +21,12 @@ export function useContactCustomFields(contactId: string | undefined) {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('contact_custom_fields' as any)
+        .from('contact_custom_fields')
         .select('*')
         .eq('contact_id', contactId)
         .order('field_name');
       if (error) throw error;
-      setFields((data as any[]) || []);
+      setFields((data || []) as CustomField[]);
     } catch (err) {
       log.error('Error fetching custom fields:', err);
     } finally {
@@ -42,13 +42,13 @@ export function useContactCustomFields(contactId: string | undefined) {
     if (!contactId) return;
     try {
       const { error } = await supabase
-        .from('contact_custom_fields' as any)
+        .from('contact_custom_fields')
         .upsert({
           contact_id: contactId,
           field_name: fieldName,
           field_value: fieldValue,
           field_type: fieldType,
-        } as any, { onConflict: 'contact_id,field_name' });
+        });
       if (error) throw error;
       await fetchFields();
     } catch (err) {
@@ -60,7 +60,7 @@ export function useContactCustomFields(contactId: string | undefined) {
   const removeField = useCallback(async (fieldId: string) => {
     try {
       const { error } = await supabase
-        .from('contact_custom_fields' as any)
+        .from('contact_custom_fields')
         .delete()
         .eq('id', fieldId);
       if (error) throw error;

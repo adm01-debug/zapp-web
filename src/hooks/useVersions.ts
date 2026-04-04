@@ -9,7 +9,7 @@ export interface Version {
   version_number: number;
   data: Record<string, unknown>;
   changed_by: string | null;
-  changed_at: string;
+  created_at: string;
   change_summary: string | null;
 }
 
@@ -20,8 +20,7 @@ export function useVersions(entityType: string, entityId: string) {
   const { data: versions = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      // Use any to work around Supabase's dynamic table typing
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('entity_versions')
         .select('*')
         .eq('entity_type', entityType)

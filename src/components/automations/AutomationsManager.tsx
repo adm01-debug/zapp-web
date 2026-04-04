@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -109,7 +110,7 @@ function useAutomations() {
           actions: automation.actions || [],
           is_active: automation.is_active ?? true,
           created_by: automation.created_by,
-        } as any)
+        } as unknown as Database['public']['Tables']['automations']['Insert'])
         .select()
         .single();
       if (error) throw error;
@@ -126,7 +127,7 @@ function useAutomations() {
     mutationFn: async ({ id, ...updates }: Partial<AutomationRow> & { id: string }) => {
       const { error } = await supabase
         .from('automations')
-        .update(updates as any)
+        .update(updates as unknown as Database['public']['Tables']['automations']['Update'])
         .eq('id', id);
       if (error) throw error;
     },

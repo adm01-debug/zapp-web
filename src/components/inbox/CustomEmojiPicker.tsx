@@ -420,7 +420,7 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
       is_favorite: false,
       use_count: 0,
       uploaded_by: user?.id || null,
-    } as any);
+    });
 
     if (error) {
       toast.error('Erro ao salvar emoji');
@@ -444,7 +444,7 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
     setOpen(false);
     await supabase
       .from('custom_emojis')
-      .update({ use_count: (emoji.use_count || 0) + 1 } as any)
+      .update({ use_count: (emoji.use_count || 0) + 1 })
       .eq('id', emoji.id);
   };
 
@@ -457,12 +457,12 @@ export function CustomEmojiPicker({ onSendEmoji, disabled }: CustomEmojiPickerPr
     e.stopPropagation();
     const newVal = !emoji.is_favorite;
     setEmojis(prev => prev.map(em => em.id === emoji.id ? { ...em, is_favorite: newVal } : em));
-    await supabase.from('custom_emojis').update({ is_favorite: newVal } as any).eq('id', emoji.id);
+    await supabase.from('custom_emojis').update({ is_favorite: newVal }).eq('id', emoji.id);
   };
 
   const handleCategoryChange = async (emoji: CustomEmoji, newCategory: string) => {
     setEmojis(prev => prev.map(em => em.id === emoji.id ? { ...em, category: newCategory } : em));
-    await supabase.from('custom_emojis').update({ category: newCategory } as any).eq('id', emoji.id);
+    await supabase.from('custom_emojis').update({ category: newCategory }).eq('id', emoji.id);
     toast.success(`Categoria alterada para "${CATEGORY_LABELS[newCategory]?.label || newCategory}"`);
   };
 

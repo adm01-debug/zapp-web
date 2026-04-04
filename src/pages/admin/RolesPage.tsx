@@ -374,7 +374,7 @@ export default function RolesPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Role</label>
-              <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as any)}>
+              <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'admin' | 'supervisor' | 'agent' | 'special_agent')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

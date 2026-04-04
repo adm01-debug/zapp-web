@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
+
+type ChatbotFlowInsert = Database['public']['Tables']['chatbot_flows']['Insert'];
+type ChatbotFlowUpdate = Database['public']['Tables']['chatbot_flows']['Update'];
 
 export interface ChatbotNode {
   id: string;
@@ -49,27 +53,28 @@ export function useChatbotFlows() {
   const flowsQuery = useQuery({
     queryKey: ['chatbot-flows'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as ChatbotFlow[];
+      return (data || []) as unknown as ChatbotFlow[];
     },
   });
 
   const createFlow = useMutation({
     mutationFn: async (flow: Partial<ChatbotFlow>) => {
-      const { data, error } = await (supabase as any)
-        .from('chatbot_flows')
-        .insert({
+      const insertData = {
           ...flow,
           nodes: JSON.stringify(flow.nodes ?? [
             { id: 'start-1', type: 'start', data: { label: 'Início' }, position: { x: 250, y: 50 } },
           ]),
           edges: JSON.stringify(flow.edges ?? []),
           variables: JSON.stringify(flow.variables ?? {}),
-        })
+        };
+      const { data, error } = await supabase
+        .from('chatbot_flows')
+        .insert(insertData as unknown as ChatbotFlowInsert)
         .select()
         .single();
       if (error) throw error;
@@ -89,9 +94,9 @@ export function useChatbotFlows() {
       if (updates.edges) payload.edges = JSON.stringify(updates.edges);
       if (updates.variables) payload.variables = JSON.stringify(updates.variables);
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
-        .update(payload)
+        .update(payload as unknown as ChatbotFlowUpdate)
         .eq('id', id)
         .select()
         .single();
@@ -107,7 +112,7 @@ export function useChatbotFlows() {
 
   const deleteFlow = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('chatbot_flows')
         .delete()
         .eq('id', id);
@@ -122,7 +127,7 @@ export function useChatbotFlows() {
 
   const toggleFlow = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('chatbot_flows')
         .update({ is_active })
         .eq('id', id);

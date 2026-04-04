@@ -39,12 +39,13 @@ export function CampaignsView() {
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
+  type TargetType = 'all' | 'tag' | 'queue' | 'groups' | 'custom';
   const [form, setForm] = useState({
     name: '',
     description: '',
     message_content: '',
     message_type: 'text',
-    target_type: 'all' as const,
+    target_type: 'all' as TargetType,
     send_interval_seconds: 5,
   });
 
@@ -62,7 +63,7 @@ export function CampaignsView() {
   };
 
   const handleCreate = useCallback(() => {
-    createCampaign.mutate(form, {
+    createCampaign.mutate({ ...form, target_type: form.target_type as 'all' | 'custom' | 'queue' | 'tag' }, {
       onSuccess: () => {
         setShowCreate(false);
         setForm({ name: '', description: '', message_content: '', message_type: 'text', target_type: 'all', send_interval_seconds: 5 });
@@ -274,7 +275,7 @@ export function CampaignsView() {
               </div>
               <div>
                 <Label>Público-alvo</Label>
-                <Select value={form.target_type} onValueChange={v => setForm(f => ({ ...f, target_type: v as any }))}>
+                <Select value={form.target_type} onValueChange={(v: string) => setForm(f => ({ ...f, target_type: v as TargetType }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os contatos</SelectItem>

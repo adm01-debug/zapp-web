@@ -46,7 +46,7 @@ export function useSavedFilters(entityType: string) {
       if (!user) return [];
 
       // Fetch own filters + shared filters from others
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('saved_filters')
         .select('*')
         .eq('entity_type', entityType)
@@ -69,20 +69,20 @@ export function useSavedFilters(entityType: string) {
 
       // Se marcado como padrão, remove padrão dos outros
       if (input.is_default) {
-        await (supabase as any)
+        await supabase
           .from('saved_filters')
           .update({ is_default: false })
           .eq('user_id', user.id)
           .eq('entity_type', entityType);
       }
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('saved_filters')
         .insert({
           user_id: user.id,
           entity_type: entityType,
           name: input.name,
-          filters: input.filters,
+          filters: input.filters as unknown as import('@/integrations/supabase/types').Json,
           is_default: input.is_default ?? false,
           is_shared: input.is_shared ?? false,
         })
@@ -104,9 +104,10 @@ export function useSavedFilters(entityType: string) {
   // Atualizar filtro
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...input }: SaveFilterInput & { id: string }) => {
-      const { error } = await (supabase as any)
+      const updateData = { ...input, filters: input.filters as unknown as import('@/integrations/supabase/types').Json };
+      const { error } = await supabase
         .from('saved_filters')
-        .update(input)
+        .update(updateData)
         .eq('id', id);
       
       if (error) throw error;
@@ -120,7 +121,7 @@ export function useSavedFilters(entityType: string) {
   // Deletar filtro
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('saved_filters')
         .delete()
         .eq('id', id);
@@ -143,14 +144,14 @@ export function useSavedFilters(entityType: string) {
       if (!user) throw new Error('Usuário não autenticado');
 
       // Remove padrão de todos
-      await (supabase as any)
+      await supabase
         .from('saved_filters')
         .update({ is_default: false })
         .eq('user_id', user.id)
         .eq('entity_type', entityType);
       
       // Define novo padrão
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('saved_filters')
         .update({ is_default: true })
         .eq('id', id);
@@ -166,7 +167,7 @@ export function useSavedFilters(entityType: string) {
   // Alternar compartilhamento
   const shareMutation = useMutation({
     mutationFn: async ({ id, is_shared }: { id: string; is_shared: boolean }) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('saved_filters')
         .update({ is_shared })
         .eq('id', id);

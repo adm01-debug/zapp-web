@@ -42,10 +42,11 @@ export function ChatbotFlowsView() {
   const [editingFlow, setEditingFlow] = useState<ChatbotFlow | null>(null);
   const [search, setSearch] = useState('');
 
+  type TriggerType = 'keyword' | 'first_message' | 'menu' | 'webhook' | 'schedule';
   const [form, setForm] = useState({
     name: '',
     description: '',
-    trigger_type: 'keyword' as const,
+    trigger_type: 'keyword' as TriggerType,
     trigger_value: '',
   });
 
@@ -290,7 +291,7 @@ export function ChatbotFlowsView() {
             </div>
             <div>
               <Label>Tipo de gatilho</Label>
-              <Select value={form.trigger_type} onValueChange={v => setForm(f => ({ ...f, trigger_type: v as any }))}>
+              <Select value={form.trigger_type} onValueChange={(v: string) => setForm(f => ({ ...f, trigger_type: v as TriggerType }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="keyword">Palavra-chave</SelectItem>
