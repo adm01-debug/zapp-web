@@ -749,51 +749,6 @@ export type Database = {
           },
         ]
       }
-      client_wallet_rules: {
-        Row: {
-          agent_id: string
-          created_at: string
-          id: string
-          is_active: boolean | null
-          name: string
-          priority: number | null
-          whatsapp_connection_id: string | null
-        }
-        Insert: {
-          agent_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          name: string
-          priority?: number | null
-          whatsapp_connection_id?: string | null
-        }
-        Update: {
-          agent_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          priority?: number | null
-          whatsapp_connection_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_wallet_rules_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_wallet_rules_whatsapp_connection_id_fkey"
-            columns: ["whatsapp_connection_id"]
-            isOneToOne: false
-            referencedRelation: "whatsapp_connections"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       contact_custom_fields: {
         Row: {
           contact_id: string
