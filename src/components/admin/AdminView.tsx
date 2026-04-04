@@ -281,6 +281,7 @@ export function AdminView() {
         setNewUserEmail('');
         setNewUserPassword('');
         setNewUserRole('agent');
+        setNewUserGmail('');
         fetchData();
       }
     } catch (err) {
