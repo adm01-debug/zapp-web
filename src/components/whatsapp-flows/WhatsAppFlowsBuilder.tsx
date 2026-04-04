@@ -101,7 +101,7 @@ export function WhatsAppFlowsBuilder() {
     const { error } = await supabase.from('whatsapp_flows').insert({
       name: formName,
       description: formDescription || null,
-      screens: defaultScreens as any,
+      screens: defaultScreens as unknown as import('@/integrations/supabase/types').Json,
     });
 
     if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
