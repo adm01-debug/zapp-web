@@ -236,8 +236,8 @@ function AutomationEditorDialog({
   const [description, setDescription] = useState(automation?.description || '');
   const [triggerType, setTriggerType] = useState(automation?.trigger_type || 'new_message');
   const actions = Array.isArray(automation?.actions) ? automation.actions : [];
-  const [actionType, setActionType] = useState((actions[0] as any)?.type || 'send_message');
-  const [messageContent, setMessageContent] = useState((actions[0] as any)?.config?.message || '');
+  const [actionType, setActionType] = useState((actions[0] as Record<string, unknown>)?.type as string || 'send_message');
+  const [messageContent, setMessageContent] = useState(((actions[0] as Record<string, Record<string, string>>)?.config)?.message || '');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
