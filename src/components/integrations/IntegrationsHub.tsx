@@ -58,6 +58,15 @@ export function IntegrationsHub() {
     </div>
   );
 
+  if (currentView === 'bitrix24') return (
+    <div>
+      <div className="p-4 pb-0">
+        <Button variant="ghost" size="sm" onClick={() => setCurrentView('hub')}>← Voltar</Button>
+      </div>
+      <BitrixIntegrationView />
+    </div>
+  );
+
   return (
     <div className="space-y-6 p-6 max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
