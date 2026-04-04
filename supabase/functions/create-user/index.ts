@@ -86,6 +86,22 @@ Deno.serve(async (req) => {
         .eq("user_id", newUser.user.id);
     }
 
+    // Update profile with additional fields
+    if (newUser.user) {
+      const profileUpdate: Record<string, unknown> = {};
+      if (nickname) profileUpdate.nickname = nickname;
+      if (signature) profileUpdate.signature = signature;
+      if (job_title) profileUpdate.job_title = job_title;
+      if (avatar_url) profileUpdate.avatar_url = avatar_url;
+
+      if (Object.keys(profileUpdate).length > 0) {
+        await adminClient
+          .from("profiles")
+          .update(profileUpdate)
+          .eq("user_id", newUser.user.id);
+      }
+    }
+
     // If a Gmail email was provided, create the gmail_accounts record
     if (gmail_email && newUser.user) {
       const { error: gmailError } = await adminClient
