@@ -293,6 +293,8 @@ export function AdminView() {
         setNewUserPassword('');
         setNewUserRole('agent');
         setNewUserGmail('');
+        setNewUserGoogleServices({ google_sheets: false, google_docs: false, google_calendar: false, google_drive: false });
+        setNewUserDropboxEmail('');
         fetchData();
       }
     } catch (err) {
