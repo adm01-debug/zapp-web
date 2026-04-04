@@ -89,7 +89,7 @@ export function useChatbotFlows() {
       if (updates.edges) payload.edges = JSON.stringify(updates.edges);
       if (updates.variables) payload.variables = JSON.stringify(updates.variables);
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chatbot_flows')
         .update(payload)
         .eq('id', id)
