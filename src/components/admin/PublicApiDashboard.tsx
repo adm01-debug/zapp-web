@@ -49,7 +49,7 @@ export function PublicApiDashboard() {
 
       setLogs((auditLogs || []) as ApiLog[]);
     } catch (err) {
-      console.warn('Failed to load API data:', err);
+      log.warn('Failed to load API data:', err);
     } finally {
       setLoading(false);
     }

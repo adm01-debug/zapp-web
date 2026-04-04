@@ -35,7 +35,7 @@ export function ProtectedRoute({
         _permission_name: requiredPermission
       }).then(({ data, error }) => {
         if (error) {
-          console.error('Permission check failed:', error.message);
+          log.error('Permission check failed:', error.message);
           setHasPermission(false);
           return;
         }

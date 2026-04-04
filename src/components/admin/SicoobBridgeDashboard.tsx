@@ -57,7 +57,7 @@ export function SicoobBridgeDashboard() {
         setRecentMessages((msgData || []) as SicoobMessage[]);
       }
     } catch (err) {
-      console.warn('Failed to load Sicoob data:', err);
+      log.warn('Failed to load Sicoob data:', err);
     } finally {
       setLoading(false);
     }

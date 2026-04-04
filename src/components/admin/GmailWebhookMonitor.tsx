@@ -51,7 +51,7 @@ export function GmailWebhookMonitor() {
 
       setStats({ total: totalThreads || 0, unread: unreadThreads || 0 });
     } catch (err) {
-      console.warn('Failed to load Gmail data:', err);
+      log.warn('Failed to load Gmail data:', err);
     } finally {
       setLoading(false);
     }
