@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { storeGmailOAuthReturnContext } from '@/lib/gmailOAuth';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -144,12 +145,9 @@ export function useGmail(accountId?: string) {
       return result.url as string;
     },
     onSuccess: (url) => {
-      // Open OAuth consent in popup
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.innerWidth - width) / 2;
-      const top = window.screenY + (window.innerHeight - height) / 2;
-      window.open(url, 'gmail-oauth', `width=${width},height=${height},left=${left},top=${top}`);
+      const returnView = window.location.hash.replace('#', '') || 'integrations';
+      storeGmailOAuthReturnContext(returnView, 'gmail');
+      window.location.assign(url);
     },
     onError: (error: Error) => {
       toast.error(`Erro ao conectar Gmail: ${error.message}`);
