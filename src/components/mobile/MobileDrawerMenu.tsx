@@ -1,21 +1,21 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { X, Search, Moon, Sun, LogOut, ChevronRight } from 'lucide-react';
-import {
-  MessageSquare, Users, UsersRound, BarChart3, Phone,
-  Zap, Link2, Megaphone, Bot, Kanban, Wallet, Package,
-  CreditCard, Tag, Brain, Workflow, Plug, Activity,
-  PhoneCall, Calendar, CalendarClock, FileText, Globe,
-  FileBarChart, ClipboardList, AlertTriangle, Gauge,
-  Mic, Trophy, ShieldCheck, Shield, UserCog, Palette,
-  BookOpen, Settings,
-} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/hooks/useTheme';
 import { IconButton } from '@/components/ui/icon-button';
+import {
+  primaryNav,
+  communicationNav,
+  automationNav,
+  salesNav,
+  connectionsNav,
+  analyticsNav,
+  systemNav,
+} from '@/components/layout/sidebarNavConfig';
 
 interface MobileDrawerMenuProps {
   isOpen: boolean;
@@ -28,66 +28,15 @@ interface MobileDrawerMenuProps {
   onLogout?: () => void;
 }
 
-interface NavItem {
-  id: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-}
-
-interface NavSection {
-  title: string;
-  items: NavItem[];
-}
-
-const sections: NavSection[] = [
-  {
-    title: 'Principal',
-    items: [
-      { id: 'inbox', icon: MessageSquare, label: 'Conversas' },
-      { id: 'contacts', icon: Users, label: 'Contatos' },
-      { id: 'groups', icon: UsersRound, label: 'Grupos' },
-      { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-      { id: 'agents', icon: Phone, label: 'Equipe' },
-    ],
-  },
-  {
-    title: 'Ferramentas',
-    items: [
-      { id: 'queues', icon: Zap, label: 'Filas' },
-      { id: 'connections', icon: Link2, label: 'Conexões' },
-      { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
-      { id: 'chatbot', icon: Bot, label: 'Chatbot' },
-      { id: 'pipeline', icon: Kanban, label: 'Pipeline' },
-      { id: 'wallet', icon: Wallet, label: 'Carteira' },
-      { id: 'catalog', icon: Package, label: 'Catálogo' },
-      { id: 'payments', icon: CreditCard, label: 'Pagamentos' },
-      { id: 'tags', icon: Tag, label: 'Etiquetas' },
-      { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
-      { id: 'automations', icon: Zap, label: 'Automações' },
-      { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
-      { id: 'integrations', icon: Plug, label: 'Integrações' },
-      { id: 'omnichannel', icon: Globe, label: 'Omnichannel' },
-      { id: 'voip', icon: PhoneCall, label: 'VoIP' },
-      { id: 'schedule', icon: CalendarClock, label: 'Agendamentos' },
-      { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
-    ],
-  },
-  {
-    title: 'Sistema',
-    items: [
-      { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-      { id: 'warroom', icon: AlertTriangle, label: 'War Room' },
-      { id: 'sentiment', icon: Gauge, label: 'Sentimento' },
-      { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
-      { id: 'achievements', icon: Trophy, label: 'Conquistas' },
-      { id: 'diagnostics', icon: Globe, label: 'Diagnóstico' },
-      { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
-      { id: 'security', icon: Shield, label: 'Segurança' },
-      { id: 'admin', icon: UserCog, label: 'Admin' },
-      { id: 'themes', icon: Palette, label: 'Temas' },
-      { id: 'settings', icon: Settings, label: 'Configurações' },
-    ],
-  },
+// Build sections from the same source as the desktop sidebar
+const sections = [
+  { title: 'Principal', items: primaryNav },
+  { title: 'Comunicação', items: communicationNav },
+  { title: 'Automação & IA', items: automationNav },
+  { title: 'Vendas & CRM', items: salesNav },
+  { title: 'Conexões', items: connectionsNav },
+  { title: 'Analytics', items: analyticsNav },
+  { title: 'Sistema', items: systemNav },
 ];
 
 const listItemVariants = {
