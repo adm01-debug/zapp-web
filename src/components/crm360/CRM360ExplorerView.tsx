@@ -38,6 +38,40 @@ interface TabConfig {
 
 const TABS: TabConfig[] = [
   {
+    id: 'companies',
+    label: 'Empresas',
+    icon: Building2,
+    description: '57k+ empresas — razão social, CNPJ, ramo de atividade',
+    searchColumn: 'nome_fantasia',
+    columns: [
+      { key: 'nome_fantasia', label: 'Fantasia' },
+      { key: 'razao_social', label: 'Razão Social' },
+      { key: 'cnpj', label: 'CNPJ' },
+      { key: 'ramo_atividade', label: 'Ramo' },
+      { key: 'status', label: 'Status' },
+      { key: 'porte_rf', label: 'Porte' },
+      { key: 'capital_social', label: 'Capital', format: 'currency' },
+      { key: 'data_fundacao', label: 'Fundação', format: 'date' },
+    ],
+  },
+  {
+    id: 'contacts',
+    label: 'Contatos',
+    icon: Users,
+    description: '4.7k+ contatos — nome, cargo, empresa, score',
+    searchColumn: 'full_name',
+    columns: [
+      { key: 'full_name', label: 'Nome' },
+      { key: 'cargo', label: 'Cargo' },
+      { key: 'departamento', label: 'Departamento' },
+      { key: 'relationship_stage', label: 'Estágio' },
+      { key: 'relationship_score', label: 'Score', format: 'number' },
+      { key: 'sentiment', label: 'Sentimento' },
+      { key: 'source', label: 'Origem' },
+      { key: 'created_at', label: 'Criado', format: 'date' },
+    ],
+  },
+  {
     id: 'customers',
     label: 'Clientes',
     icon: ShoppingCart,
