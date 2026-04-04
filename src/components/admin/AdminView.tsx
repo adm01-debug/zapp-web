@@ -296,7 +296,7 @@ export function AdminView() {
             nickname: newUserNickname || undefined,
             signature: newUserSignature || undefined,
             job_title: newUserJobTitle || undefined,
-            avatar_url: undefined,
+            avatar_url: avatarUrl,
             email: newUserEmail,
             password: newUserPassword,
             role: newUserRole,
