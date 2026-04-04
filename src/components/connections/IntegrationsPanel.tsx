@@ -275,7 +275,7 @@ export function IntegrationsPanel({
               values={flowise}
               onChange={(k, v) => setFlowise(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setFlowise({ instanceName, ...flowise } as any); toast.success('Flowise configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setFlowise({ instanceName, ...flowise } as Parameters<typeof api.setFlowise>[0]); toast.success('Flowise configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteFlowise(instanceName); setFlowise({ enabled: false }); toast.success('Flowise removido'); } catch { toast.error('Erro'); }
