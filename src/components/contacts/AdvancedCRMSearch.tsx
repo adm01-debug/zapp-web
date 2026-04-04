@@ -187,7 +187,7 @@ function ContactResultCard({
         {contact.rfm_segment && (() => {
           const rfmColors: Record<string, string> = {
             Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
-            'At Risk': 'bg-red-500/15 text-red-600 border-red-500/30',
+            'At Risk': 'bg-destructive/15 text-destructive border-destructive/30',
             Hibernating: 'bg-muted text-muted-foreground border-border',
             'Need Attention': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
             Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',

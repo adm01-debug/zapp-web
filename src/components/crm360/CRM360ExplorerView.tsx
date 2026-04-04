@@ -599,9 +599,9 @@ function RFMBadge({ segment }: { segment: string | null }) {
   if (!segment) return null;
   const colors: Record<string, string> = {
     Champions: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
-    'Loyal Customers': 'bg-blue-500/15 text-blue-700 dark:text-blue-400',
+    'Loyal Customers': 'bg-info/15 text-info',
     'Potential Loyalist': 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400',
-    'At Risk': 'bg-red-500/15 text-red-700 dark:text-red-400',
+    'At Risk': 'bg-destructive/15 text-destructive',
     Hibernating: 'bg-muted text-muted-foreground',
     Lost: 'bg-muted/50 text-muted-foreground',
   };

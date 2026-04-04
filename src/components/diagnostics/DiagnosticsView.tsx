@@ -374,7 +374,7 @@ export function DiagnosticsView() {
     info: { icon: Activity, color: 'text-info', bg: 'bg-info/10', border: 'border-info/20' },
     warning: { icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
     error: { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20' },
-    critical: { icon: Bug, color: 'text-red-600', bg: 'bg-red-600/10', border: 'border-red-600/20' },
+    critical: { icon: Bug, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20' },
   };
 
   const errorCount = errorLogs.filter(l => l.severity === 'error' || l.severity === 'critical').length;

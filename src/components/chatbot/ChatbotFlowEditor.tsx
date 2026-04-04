@@ -30,14 +30,14 @@ const flowSteps: Step[] = [
 ];
 
 const nodeTypes: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-  start: { label: 'Início', icon: Zap, color: 'border-green-500 bg-success/10' },
-  message: { label: 'Mensagem', icon: MessageSquare, color: 'border-blue-500 bg-info/10' },
+  start: { label: 'Início', icon: Zap, color: 'border-success bg-success/10' },
+  message: { label: 'Mensagem', icon: MessageSquare, color: 'border-info bg-info/10' },
   question: { label: 'Pergunta', icon: HelpCircle, color: 'border-purple-500 bg-primary/10' },
   condition: { label: 'Condição', icon: GitBranch, color: 'border-yellow-500 bg-warning/10' },
   action: { label: 'Ação', icon: Zap, color: 'border-orange-500 bg-warning/10' },
   delay: { label: 'Aguardar', icon: Clock, color: 'border-cyan-500 bg-cyan-500/10' },
   transfer: { label: 'Transferir', icon: Users, color: 'border-pink-500 bg-destructive/10' },
-  end: { label: 'Fim', icon: CheckCircle2, color: 'border-red-500 bg-destructive/10' },
+  end: { label: 'Fim', icon: CheckCircle2, color: 'border-destructive bg-destructive/10' },
 };
 
 interface Props {

@@ -167,7 +167,7 @@ export const ContactForm = React.memo(function ContactForm({
           animate={{ opacity: 1, scale: 1 }}
           className="absolute right-3 top-1/2 -translate-y-1/2"
         >
-          <CheckCircle2 className="w-4 h-4 text-green-500" />
+          <CheckCircle2 className="w-4 h-4 text-success" />
         </motion.div>
       );
     }
@@ -211,7 +211,7 @@ export const ContactForm = React.memo(function ContactForm({
                 className={cn(
                   'transition-all duration-200',
                   errors.name && touched.name && 'border-destructive focus-visible:ring-destructive',
-                  !errors.name && touched.name && values.name.trim() && 'border-green-500/50 focus-visible:ring-green-500/30',
+                  !errors.name && touched.name && values.name.trim() && 'border-success/50 focus-visible:ring-success/30',
                 )}
                 maxLength={100}
               />
@@ -345,7 +345,7 @@ export const ContactForm = React.memo(function ContactForm({
               className={cn(
                 'transition-all duration-200',
                 errors.phone && touched.phone && 'border-destructive focus-visible:ring-destructive',
-                !errors.phone && touched.phone && values.phone.trim() && 'border-green-500/50 focus-visible:ring-green-500/30',
+                !errors.phone && touched.phone && values.phone.trim() && 'border-success/50 focus-visible:ring-success/30',
               )}
               maxLength={20}
             />
@@ -384,7 +384,7 @@ export const ContactForm = React.memo(function ContactForm({
               className={cn(
                 'transition-all duration-200',
                 errors.email && touched.email && 'border-destructive focus-visible:ring-destructive',
-                !errors.email && touched.email && values.email && 'border-green-500/50 focus-visible:ring-green-500/30',
+                !errors.email && touched.email && values.email && 'border-success/50 focus-visible:ring-success/30',
               )}
               maxLength={255}
             />

@@ -57,7 +57,7 @@ export function BitrixIntegrationView() {
       <div>
         <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
           Bitrix24
-          {connectionStatus === 'connected' && <Badge variant="default" className="bg-green-600">Conectado</Badge>}
+          {connectionStatus === 'connected' && <Badge variant="default" className="bg-success">Conectado</Badge>}
           {connectionStatus === 'error' && <Badge variant="destructive">Erro</Badge>}
         </h2>
         <p className="text-muted-foreground text-sm mt-1">

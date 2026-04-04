@@ -176,7 +176,7 @@ export function ChatbotFlowsView() {
                   >
                     <Card className={cn(
                       'border-secondary/30 hover:border-primary/30 transition-all',
-                      flow.is_active && 'border-green-500/30 shadow-green-500/5'
+                      flow.is_active && 'border-success/30 shadow-success/5'
                     )}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">

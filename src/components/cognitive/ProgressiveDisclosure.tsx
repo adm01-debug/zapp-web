@@ -314,11 +314,11 @@ export function InfoBanner({
   
   const styles = {
     info: {
-      bg: 'bg-info/10 border-blue-500/20',
+      bg: 'bg-info/10 border-info/20',
       icon: <Info className="w-5 h-5 text-info" />,
     },
     tip: {
-      bg: 'bg-success/10 border-green-500/20',
+      bg: 'bg-success/10 border-success/20',
       icon: <Lightbulb className="w-5 h-5 text-success" />,
     },
     warning: {

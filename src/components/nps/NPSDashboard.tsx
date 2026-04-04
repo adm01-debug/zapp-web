@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Minus, Users, ThumbsUp, ThumbsDown, Meh, BarChart3 } from 'lucide-react';
 
 function ScoreGauge({ score }: { score: number }) {
-  const color = score >= 50 ? 'text-green-500' : score >= 0 ? 'text-yellow-500' : 'text-red-500';
-  const bg = score >= 50 ? 'bg-green-500/10' : score >= 0 ? 'bg-yellow-500/10' : 'bg-red-500/10';
+  const color = score >= 50 ? 'text-success' : score >= 0 ? 'text-warning' : 'text-destructive';
+  const bg = score >= 50 ? 'bg-success/10' : score >= 0 ? 'bg-warning/10' : 'bg-destructive/10';
   const label = score >= 70 ? 'Excelente' : score >= 50 ? 'Bom' : score >= 0 ? 'Neutro' : 'Crítico';
 
   return (
@@ -79,9 +79,9 @@ export function NPSDashboard() {
 
         <div className="md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard icon={Users} label="Total de Respostas" value={metrics.totalResponses} color="bg-primary/10 text-primary" />
-          <MetricCard icon={ThumbsUp} label="Promotores (9-10)" value={metrics.promoters} color="bg-green-500/10 text-green-500" />
-          <MetricCard icon={Meh} label="Passivos (7-8)" value={metrics.passives} color="bg-yellow-500/10 text-yellow-500" />
-          <MetricCard icon={ThumbsDown} label="Detratores (0-6)" value={metrics.detractors} color="bg-red-500/10 text-red-500" />
+          <MetricCard icon={ThumbsUp} label="Promotores (9-10)" value={metrics.promoters} color="bg-success/10 text-success" />
+          <MetricCard icon={Meh} label="Passivos (7-8)" value={metrics.passives} color="bg-warning/10 text-warning" />
+          <MetricCard icon={ThumbsDown} label="Detratores (0-6)" value={metrics.detractors} color="bg-destructive/10 text-destructive" />
         </div>
       </div>
 
@@ -143,7 +143,7 @@ export function NPSDashboard() {
           ) : (
             <div className="space-y-2">
               {recentSurveys.map(survey => {
-                const scoreColor = survey.score >= 9 ? 'text-green-500' : survey.score >= 7 ? 'text-yellow-500' : 'text-red-500';
+                const scoreColor = survey.score >= 9 ? 'text-success' : survey.score >= 7 ? 'text-warning' : 'text-destructive';
                 const ScoreIcon = survey.score >= 9 ? TrendingUp : survey.score >= 7 ? Minus : TrendingDown;
 
                 return (
