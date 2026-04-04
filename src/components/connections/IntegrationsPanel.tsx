@@ -258,7 +258,7 @@ export function IntegrationsPanel({
               values={dify}
               onChange={(k, v) => setDify(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setDify({ instanceName, ...dify } as any); toast.success('Dify configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setDify({ instanceName, ...dify } as Parameters<typeof api.setDify>[0]); toast.success('Dify configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteDify(instanceName); setDify({ enabled: false }); toast.success('Dify removido'); } catch { toast.error('Erro'); }
