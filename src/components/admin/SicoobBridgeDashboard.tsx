@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('SicoobBridgeDashboard');
 import { Building2, RefreshCw, ArrowDownLeft, ArrowUpRight, Users, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
