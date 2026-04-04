@@ -353,7 +353,7 @@ export function useSipClient() {
         }
       }
     } catch (err) {
-      console.error('DTMF error:', err);
+      log.error('DTMF error:', err);
     }
   }, []);
 
