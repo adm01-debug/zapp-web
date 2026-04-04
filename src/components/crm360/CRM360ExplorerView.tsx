@@ -16,7 +16,8 @@ import {
   Search, Building2, Users, ShoppingCart, MessageSquare, BarChart3,
   Share2, MapPin, Phone, Mail, Truck, Package, Trophy, RefreshCw,
   ChevronLeft, ChevronRight, X, Download, ArrowUpDown,
-  DollarSign, User, Activity, Calendar, Zap,
+  DollarSign, User, Activity, Calendar, Zap, FileText, Target,
+  Briefcase, Tag, Globe, Layers, ClipboardList, StickyNote, CreditCard,
 } from 'lucide-react';
 import { useExternalTableBrowser } from '@/hooks/useExternalDB';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
