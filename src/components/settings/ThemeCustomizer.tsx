@@ -6,6 +6,7 @@ import { PRESETS } from './theme/presets';
 import { useThemePreset } from './theme/useThemePreset';
 import { PresetCard } from './theme/PresetCard';
 import { BorderRadiusControl } from './theme/BorderRadiusControl';
+import { toast } from 'sonner';
 
 export function ThemeCustomizer() {
   const { theme, setTheme } = useTheme();
@@ -31,7 +32,10 @@ export function ThemeCustomizer() {
           <p className="text-sm text-muted-foreground">Escolha um preset ou customize as cores</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="default" size="sm" onClick={exportTheme}>
+          <Button variant="default" size="sm" onClick={() => {
+            const preset = PRESETS.find(p => p.id === activePreset);
+            toast.success(`Tema "${preset?.name || 'Padrão'}" salvo com sucesso!`);
+          }}>
             <Save className="w-4 h-4 mr-1" /> Salvar
           </Button>
           <Button variant="outline" size="sm" onClick={resetTheme}>
