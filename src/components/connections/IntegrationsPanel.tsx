@@ -292,7 +292,7 @@ export function IntegrationsPanel({
               values={chatwoot}
               onChange={(k, v) => setChatwoot(prev => ({ ...prev, [k]: v }))}
               onSave={async () => {
-                try { await api.setChatwoot({ instanceName, ...chatwoot } as any); toast.success('Chatwoot configurado!'); } catch { toast.error('Erro'); }
+                try { await api.setChatwoot({ instanceName, ...chatwoot } as Parameters<typeof api.setChatwoot>[0]); toast.success('Chatwoot configurado!'); } catch { toast.error('Erro'); }
               }}
               onDelete={async () => {
                 try { await api.deleteChatwoot(instanceName); setChatwoot({ enabled: false }); toast.success('Chatwoot removido'); } catch { toast.error('Erro'); }
