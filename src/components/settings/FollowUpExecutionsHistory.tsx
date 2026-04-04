@@ -53,7 +53,7 @@ export function FollowUpExecutionsHistory() {
       <CardContent className="p-0">
         <ScrollArea className="max-h-[400px]">
           <div className="divide-y divide-border/50">
-            {executions.map((exec: any) => {
+            {executions.map((exec) => {
               const cfg = STATUS_MAP[exec.status] || STATUS_MAP.active;
               const Icon = cfg.icon;
 

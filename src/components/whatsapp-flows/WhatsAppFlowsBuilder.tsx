@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -40,7 +41,7 @@ interface WhatsAppFlow {
   id: string;
   name: string;
   description: string | null;
-  flow_json: any;
+  flow_json: Json;
   screens: FlowScreen[];
   status: string;
   whatsapp_flow_id: string | null;
@@ -75,10 +76,10 @@ export function WhatsAppFlowsBuilder() {
     setLoading(true);
     const { data } = await supabase.from('whatsapp_flows').select('*').order('created_at', { ascending: false });
     if (data) {
-      setFlows(data.map((f: any) => ({
+      setFlows(data.map((f) => ({
         ...f,
-        screens: Array.isArray(f.screens) ? f.screens : [],
-      })));
+        screens: (Array.isArray(f.screens) ? f.screens : []) as unknown as FlowScreen[],
+      })) as WhatsAppFlow[]);
     }
     setLoading(false);
   }, []);

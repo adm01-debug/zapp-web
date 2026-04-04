@@ -128,10 +128,10 @@ export function useSipClient() {
 
       uaRef.current = ua;
       registererRef.current = registerer;
-    } catch (err: any) {
+    } catch (err: unknown) {
       log.error('SIP connection error:', err);
       setSipStatus('error');
-      toast.error(`Erro ao conectar VoIP: ${err.message || 'Falha na conexão'}`);
+      toast.error(`Erro ao conectar VoIP: ${err instanceof Error ? err.message : 'Falha na conexão'}`);
     }
   }, []);
 
@@ -300,13 +300,13 @@ export function useSipClient() {
 
       await inviter.invite();
       sessionRef.current = inviter;
-    } catch (err: any) {
+    } catch (err: unknown) {
       log.error('Call error:', err);
       // Log failed call attempt
       logCall(number, 'missed');
       setCallStatus('idle');
       callStatusRef.current = 'idle';
-      toast.error(`Erro ao ligar: ${err.message || 'Falha na chamada'}`);
+      toast.error(`Erro ao ligar: ${err instanceof Error ? err.message : 'Falha na chamada'}`);
     }
   }, [sipStatus, startTimer, stopTimer, getRemoteAudio, logCall]);
 

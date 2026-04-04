@@ -18,7 +18,7 @@ interface RoutingRule {
   queue_id: string | null;
   priority: number | null;
   is_active: boolean | null;
-  conditions: any;
+  conditions: Record<string, unknown> | null;
   created_at: string;
   queue?: { name: string } | null;
   channel_connection?: { name: string } | null;
@@ -140,7 +140,7 @@ export function ChannelRoutingRules() {
             <Select value={newRule.queue_id} onValueChange={v => setNewRule(r => ({ ...r, queue_id: v }))}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Selecione fila..." /></SelectTrigger>
               <SelectContent>
-                {queues.map((q: any) => (
+                {queues.map((q: { id: string; name: string }) => (
                   <SelectItem key={q.id} value={q.id}>{q.name}</SelectItem>
                 ))}
               </SelectContent>

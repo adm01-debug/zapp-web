@@ -73,7 +73,7 @@ export function useAdvancedContactSearch() {
     setParams((prev) => ({ ...prev, search: search || undefined, page: 0 }));
   }, []);
 
-  const setFilter = useCallback((key: keyof SearchContactsParams, value: any) => {
+  const setFilter = useCallback((key: keyof SearchContactsParams, value: string | number | boolean | undefined) => {
     setParams((prev) => ({ ...prev, [key]: value || undefined, page: 0 }));
   }, []);
 

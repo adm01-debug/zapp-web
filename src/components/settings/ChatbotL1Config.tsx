@@ -236,8 +236,8 @@ export function ChatbotL1Config() {
                   });
                   if (error) throw error;
                   toast({ title: '✅ Conexão OK', description: 'Edge Function chatbot-l1 está acessível.' });
-                } catch (err: any) {
-                  toast({ title: 'Status', description: err.message || 'Verificação concluída', variant: 'destructive' });
+                } catch (err: unknown) {
+                  toast({ title: 'Status', description: err instanceof Error ? err.message : 'Verificação concluída', variant: 'destructive' });
                 }
               }}
             >

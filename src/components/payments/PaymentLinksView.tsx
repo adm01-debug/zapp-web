@@ -98,7 +98,7 @@ export function PaymentLinksView() {
     fetchData();
   };
 
-  const statusConfig: Record<string, { label: string; icon: any; className: string }> = {
+  const statusConfig: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
     active: { label: 'Ativo', icon: Clock, className: 'text-info bg-info/20 border-blue-500/30' },
     paid: { label: 'Pago', icon: CheckCircle, className: 'text-success bg-success/20 border-green-500/30' },
     expired: { label: 'Expirado', icon: XCircle, className: 'text-destructive bg-destructive/20 border-red-500/30' },

@@ -32,12 +32,12 @@ export function GmailWebhookMonitor() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: gmailAccounts } = await (supabase
-        .from('gmail_accounts')
-        .select('*')
-        .order('created_at', { ascending: false }) as any);
+      const { data: gmailAccounts } = await supabase
+        .from('gmail_accounts_safe' as 'gmail_accounts')
+        .select('id, email_address, is_active, sync_status, last_sync_at, last_error, created_at, updated_at')
+        .order('created_at', { ascending: false });
 
-      setAccounts((gmailAccounts || []) as GmailAccount[]);
+      setAccounts((gmailAccounts || []).map(a => ({ ...a, history_id: null })) as GmailAccount[]);
 
       // Get thread stats
       const { count: totalThreads } = await supabase

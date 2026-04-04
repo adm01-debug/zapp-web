@@ -101,7 +101,7 @@ export function FollowUpSequences() {
     }]);
   };
 
-  const updateStep = (index: number, field: keyof Step, value: any) => {
+  const updateStep = (index: number, field: keyof Step, value: string | number | boolean) => {
     setNewSteps(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
   };
 
@@ -208,7 +208,7 @@ export function FollowUpSequences() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {sequences.map((seq: any) => (
+          {sequences.map((seq) => (
             <Card key={seq.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -238,8 +238,8 @@ export function FollowUpSequences() {
                 {seq.followup_steps && seq.followup_steps.length > 0 && (
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {seq.followup_steps
-                      .sort((a: any, b: any) => a.step_order - b.step_order)
-                      .map((step: any, i: number) => (
+                      .sort((a, b) => a.step_order - b.step_order)
+                      .map((step, i: number) => (
                         <div key={step.id} className="flex items-center gap-1">
                           <Badge variant="outline" className="text-xs">
                             {step.delay_hours}h

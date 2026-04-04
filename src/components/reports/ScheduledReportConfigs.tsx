@@ -20,7 +20,7 @@ interface ReportConfig {
   is_active: boolean;
   last_sent_at: string | null;
   next_send_at: string | null;
-  config: any;
+  config: Record<string, unknown>;
   created_at: string;
 }
 
