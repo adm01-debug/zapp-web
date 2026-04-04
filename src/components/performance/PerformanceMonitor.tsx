@@ -100,8 +100,8 @@ export function PerformanceMonitor() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'good': return <Badge className="bg-green-500/10 text-green-500 border-green-500/30 text-[10px]">Bom</Badge>;
-      case 'warning': return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 text-[10px]">Atenção</Badge>;
+      case 'good': return <Badge className="bg-primary/10 text-primary border-primary/30 text-[10px]">Bom</Badge>;
+      case 'warning': return <Badge className="bg-warning/10 text-warning border-warning/30 text-[10px]">Atenção</Badge>;
       case 'critical': return <Badge variant="destructive" className="text-[10px]">Crítico</Badge>;
       default: return null;
     }
@@ -109,8 +109,8 @@ export function PerformanceMonitor() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'good': return 'text-green-500';
-      case 'warning': return 'text-yellow-500';
+      case 'good': return 'text-primary';
+      case 'warning': return 'text-warning';
       case 'critical': return 'text-destructive';
       default: return 'text-muted-foreground';
     }
