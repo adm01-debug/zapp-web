@@ -6,6 +6,7 @@ import { PRESETS } from './theme/presets';
 import { useThemePreset } from './theme/useThemePreset';
 import { PresetCard } from './theme/PresetCard';
 import { BorderRadiusControl } from './theme/BorderRadiusControl';
+import { toast } from 'sonner';
 
 export function ThemeCustomizer() {
   const { theme, setTheme } = useTheme();
