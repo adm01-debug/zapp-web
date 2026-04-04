@@ -467,7 +467,7 @@ export function CRM360ExplorerView() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-        <ScrollArea className="w-full" orientation="horizontal">
+        <ScrollArea className="w-full overflow-x-auto">
           <TabsList className="inline-flex w-auto h-auto p-1 gap-1 flex-nowrap">
             {TABS.map((tab) => {
               const Icon = tab.icon;
