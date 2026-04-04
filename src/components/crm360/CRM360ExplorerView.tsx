@@ -602,8 +602,8 @@ function RFMBadge({ segment }: { segment: string | null }) {
     'Loyal Customers': 'bg-blue-500/15 text-blue-700 dark:text-blue-400',
     'Potential Loyalist': 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400',
     'At Risk': 'bg-red-500/15 text-red-700 dark:text-red-400',
-    Hibernating: 'bg-gray-500/15 text-gray-600 dark:text-gray-400',
-    Lost: 'bg-gray-500/15 text-gray-500',
+    Hibernating: 'bg-muted text-muted-foreground',
+    Lost: 'bg-muted/50 text-muted-foreground',
   };
   return (
     <Badge variant="outline" className={colors[segment] || 'bg-muted text-muted-foreground'}>
