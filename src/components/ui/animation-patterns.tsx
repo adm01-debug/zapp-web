@@ -529,7 +529,12 @@ interface ConfettiBurstProps {
 
 export function ConfettiBurst({ trigger, onComplete }: ConfettiBurstProps) {
   const particles = Array.from({ length: 50 });
-  const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA'];
+  const colors = [
+    'hsl(var(--primary))',
+    'hsl(var(--secondary))',
+    'hsl(var(--primary-glow))',
+    'hsl(var(--accent-foreground))',
+  ];
 
   if (!trigger) return null;
 

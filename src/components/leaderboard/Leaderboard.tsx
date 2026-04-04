@@ -159,9 +159,11 @@ function CelebrationParticles({ isVisible }: { isVisible: boolean }) {
     delay: Math.random() * 0.5,
     duration: 1 + Math.random() * 0.5,
     size: 4 + Math.random() * 8,
-    color: ['#FFD700', '#FFA500', '#FF6347', '#00CED1', '#9370DB'][
-      Math.floor(Math.random() * 5)
-    ],
+    color: [
+      getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+      getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim(),
+      getComputedStyle(document.documentElement).getPropertyValue('--accent-foreground').trim(),
+    ].map(v => `hsl(${v})`)[Math.floor(Math.random() * 3)] || 'hsl(var(--primary))',
   }));
 
   return (

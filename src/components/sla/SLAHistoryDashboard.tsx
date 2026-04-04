@@ -321,13 +321,13 @@ export const SLAHistoryDashboard = () => {
                 <Bar 
                   dataKey="firstResponseBreaches" 
                   name="1ª Resposta" 
-                  fill="hsl(30, 100%, 50%)" 
+                  fill="hsl(var(--secondary))" 
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar 
                   dataKey="resolutionBreaches" 
                   name="Resolução" 
-                  fill="hsl(0, 70%, 50%)" 
+                  fill="hsl(var(--destructive))" 
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

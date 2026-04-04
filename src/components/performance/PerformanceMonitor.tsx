@@ -100,8 +100,8 @@ export function PerformanceMonitor() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'good': return <Badge className="bg-green-500/10 text-green-500 border-green-500/30 text-[10px]">Bom</Badge>;
-      case 'warning': return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 text-[10px]">Atenção</Badge>;
+      case 'good': return <Badge className="bg-primary/10 text-primary border-primary/30 text-[10px]">Bom</Badge>;
+      case 'warning': return <Badge className="bg-warning/10 text-warning border-warning/30 text-[10px]">Atenção</Badge>;
       case 'critical': return <Badge variant="destructive" className="text-[10px]">Crítico</Badge>;
       default: return null;
     }
@@ -109,8 +109,8 @@ export function PerformanceMonitor() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'good': return 'text-green-500';
-      case 'warning': return 'text-yellow-500';
+      case 'good': return 'text-primary';
+      case 'warning': return 'text-warning';
       case 'critical': return 'text-destructive';
       default: return 'text-muted-foreground';
     }
@@ -229,8 +229,8 @@ export function PerformanceMonitor() {
                 <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" />
                 <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
                 <Area type="monotone" dataKey="score" name="Score (%)" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" />
-                <Area type="monotone" dataKey="fcp" name="FCP (ms)" stroke="hsl(160, 70%, 42%)" fill="hsl(160, 70%, 42%, 0.1)" />
-                <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(40, 100%, 50%)" fill="hsl(40, 100%, 50%, 0.1)" />
+                <Area type="monotone" dataKey="fcp" name="FCP (ms)" stroke="hsl(var(--secondary))" fill="hsl(var(--secondary) / 0.1)" />
+                <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(var(--accent-foreground))" fill="hsl(var(--accent-foreground) / 0.1)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -254,7 +254,7 @@ export function PerformanceMonitor() {
                 <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" />
                 <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
                 <Area type="monotone" dataKey="fcp" name="FCP (ms)" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" />
-                <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(40, 100%, 50%)" fill="hsl(40, 100%, 50%, 0.1)" />
+                <Area type="monotone" dataKey="memory" name="Memória (MB)" stroke="hsl(var(--secondary))" fill="hsl(var(--secondary) / 0.1)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -272,11 +272,11 @@ export function PerformanceMonitor() {
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-500">{cacheStats.hits}</p>
+              <p className="text-2xl font-bold text-primary">{cacheStats.hits}</p>
               <p className="text-xs text-muted-foreground">Cache Hits</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-500">{cacheStats.misses}</p>
+              <p className="text-2xl font-bold text-warning">{cacheStats.misses}</p>
               <p className="text-xs text-muted-foreground">Cache Misses</p>
             </div>
             <div className="text-center">

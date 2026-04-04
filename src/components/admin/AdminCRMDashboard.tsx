@@ -75,7 +75,7 @@ function TopCustomers() {
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground font-mono w-4">#{i + 1}</span>
                   <span className="font-medium truncate max-w-[120px]">{c.vendedor_nome || '—'}</span>
-                  <Badge variant="outline" className={`text-[9px] ${c.cliente_ativado ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  <Badge variant="outline" className={`text-[9px] ${c.cliente_ativado ? 'text-primary' : 'text-muted-foreground'}`}>
                     {c.cliente_ativado ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </div>
@@ -112,7 +112,7 @@ function RFMDistribution() {
   const segColors: Record<string, string> = {
     Champions: 'bg-emerald-500', 'Loyal Customers': 'bg-blue-500',
     'Potential Loyalist': 'bg-sky-500', 'At Risk': 'bg-red-500',
-    Hibernating: 'bg-gray-400', Lost: 'bg-gray-300',
+    Hibernating: 'bg-muted-foreground', Lost: 'bg-muted-foreground/60',
     "Can't Lose Them": 'bg-rose-500', 'Need Attention': 'bg-amber-500',
     Promising: 'bg-indigo-500',
   };

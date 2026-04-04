@@ -177,8 +177,8 @@ export function ChatMessageBubble({
               ? 'p-0'
               : 'px-4 py-2.5',
             isSent 
-              ? 'rounded-br-md bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))]' 
-              : 'rounded-bl-md bg-[hsl(var(--chat-bubble-received))] border border-border/30 text-[hsl(var(--chat-bubble-received-foreground))]'
+              ? 'rounded-br-md bg-chat-sent text-chat-sent-foreground' 
+              : 'rounded-bl-md bg-chat-received border border-border/30 text-chat-received-foreground'
           )}
         >
 

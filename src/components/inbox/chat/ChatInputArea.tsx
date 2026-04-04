@@ -596,7 +596,7 @@ export function ChatInputArea({
                     isMobile ? "w-11 h-11" : "w-10 h-10",
                     isRecordingAudio
                       ? "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 hover:bg-destructive/90"
-                      : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/30"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30"
                   )}
                   onClick={onRecordToggle}
                   aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}

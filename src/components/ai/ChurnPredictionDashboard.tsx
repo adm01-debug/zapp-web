@@ -139,9 +139,9 @@ export function ChurnPredictionDashboard() {
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'critical': return 'bg-destructive text-destructive-foreground';
-      case 'high': return 'bg-orange-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-green-500 text-white';
+      case 'high': return 'bg-warning text-warning-foreground';
+      case 'medium': return 'bg-accent text-accent-foreground';
+      case 'low': return 'bg-primary text-primary-foreground';
       default: return 'bg-muted text-muted-foreground';
     }
   };
