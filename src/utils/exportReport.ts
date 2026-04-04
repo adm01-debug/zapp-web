@@ -1,7 +1,9 @@
 /**
  * Export functions BLOCKED for data protection (LGPD/client data security).
  * All export operations are disabled system-wide.
- */
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('ExportReport');
 
 export interface ReportData {
   title: string;
