@@ -295,7 +295,9 @@ describe('Security Validations', () => {
   });
 
   it('isExternalConfigured is false when env vars are empty', () => {
-    const isConfigured = Boolean('' && '');
+    const emptyUrl = '';
+    const emptyKey = '';
+    const isConfigured = Boolean(emptyUrl) && Boolean(emptyKey);
     expect(isConfigured).toBe(false);
   });
 
