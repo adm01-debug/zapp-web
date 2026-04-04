@@ -17,7 +17,7 @@ export function useConnectionQueues(connectionId?: string) {
     if (!connectionId) return;
     setIsLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('whatsapp_connection_queues')
         .select('*')
         .eq('whatsapp_connection_id', connectionId);
