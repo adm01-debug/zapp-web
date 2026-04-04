@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   handleCors, errorResponse, jsonResponse,
-  sanitizeString, checkRateLimit, getClientIP, requireEnv, Logger,
+  sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv, Logger,
 } from "../_shared/validation.ts";
+import { AiEnhanceMessageSchema, parseBody } from "../_shared/schemas.ts";
 
 const tonePrompts: Record<string, string> = {
   professional: "Reescreva a mensagem abaixo de forma mais profissional, clara e educada. Mantenha o mesmo significado mas use linguagem corporativa e polida.",
@@ -13,30 +13,25 @@ const tonePrompts: Record<string, string> = {
   detailed: "Reescreva a mensagem abaixo de forma mais detalhada e explicativa. Expanda as ideias para que fique mais completa e informativa.",
 };
 
-const VALID_TONES = new Set(Object.keys(tonePrompts));
-
-serve(async (req) => {
+Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
+  const log = new Logger("ai-enhance-message");
+
   try {
-    // Rate limiting
     const ip = getClientIP(req);
-    const { allowed, remaining } = checkRateLimit(`enhance:${ip}`, 20, 60_000);
-    if (!allowed) {
-      return errorResponse("Limite de requisições excedido. Tente novamente em 1 minuto.", 429);
-    }
+    const { allowed } = checkRateLimit(`enhance:${ip}`, 20, 60_000);
+    if (!allowed) return errorResponse("Limite de requisições excedido. Tente novamente em 1 minuto.", 429, req);
 
-    const body = await req.json();
-    const message = sanitizeString(body.message, 4096);
-    const tone = typeof body.tone === 'string' && VALID_TONES.has(body.tone) ? body.tone : 'professional';
+    const parsed = parseBody(AiEnhanceMessageSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    if (!message) {
-      return errorResponse("Mensagem é obrigatória e deve ter conteúdo válido.");
-    }
-
+    const { message, tone } = parsed.data;
     const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
     const systemPrompt = tonePrompts[tone];
+
+    log.info("Enhancing message", { tone, len: message.length });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -57,10 +52,10 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      if (response.status === 429) return errorResponse("Limite de requisições excedido. Tente novamente em alguns segundos.", 429);
-      if (response.status === 402) return errorResponse("Créditos de IA esgotados. Adicione créditos nas configurações.", 402);
+      if (response.status === 429) return errorResponse("Limite de requisições excedido. Tente novamente em alguns segundos.", 429, req);
+      if (response.status === 402) return errorResponse("Créditos de IA esgotados. Adicione créditos nas configurações.", 402, req);
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      log.error("AI gateway error", { status: response.status, detail: errorText.substring(0, 300) });
       throw new Error("Erro ao processar com IA");
     }
 
@@ -68,9 +63,10 @@ serve(async (req) => {
     const enhancedMessage = data.choices?.[0]?.message?.content?.trim();
     if (!enhancedMessage) throw new Error("Resposta vazia da IA");
 
-    return jsonResponse({ enhanced: enhancedMessage }, 200);
-  } catch (error) {
-    console.error("ai-enhance-message error:", error);
-    return errorResponse(error instanceof Error ? error.message : "Erro desconhecido", 500);
+    log.done(200);
+    return jsonResponse({ enhanced: enhancedMessage }, 200, req);
+  } catch (error: unknown) {
+    log.error("Unhandled error", { error: error instanceof Error ? error.message : String(error) });
+    return errorResponse(error instanceof Error ? error.message : "Erro desconhecido", 500, req);
   }
 });

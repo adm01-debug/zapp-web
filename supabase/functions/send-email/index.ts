@@ -1,46 +1,19 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { SendEmailSchema, parseBody } from "../_shared/schemas.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface EmailRequest {
-  to: string | string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  from?: string;
-  reply_to?: string;
-  cc?: string[];
-  bcc?: string[];
-  attachments?: Array<{
-    filename: string;
-    content: string; // base64
-    content_type?: string;
-  }>;
-}
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const log = new Logger("send-email");
 
   try {
-    if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY not configured");
-    }
+    const RESEND_API_KEY = requireEnv("RESEND_API_KEY");
 
-    const body: EmailRequest = await req.json();
+    const parsed = parseBody(SendEmailSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    if (!body.to || !body.subject) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: to, subject" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const body = parsed.data;
 
     const payload: Record<string, unknown> = {
       from: body.from || "ZAPP System <noreply@zapp.com>",
@@ -55,6 +28,8 @@ serve(async (req) => {
     if (body.bcc) payload.bcc = body.bcc;
     if (body.attachments) payload.attachments = body.attachments;
 
+    log.info("Sending email", { to: payload.to, subject: body.subject });
+
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -67,22 +42,14 @@ serve(async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Resend API error:", data);
-      return new Response(
-        JSON.stringify({ error: "Failed to send email", details: data }),
-        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      log.error("Resend API error", { status: response.status, detail: JSON.stringify(data).substring(0, 300) });
+      return errorResponse("Failed to send email", response.status, req);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, id: data.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error) {
-    console.error("Error:", error.message);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    log.done(200, { emailId: data.id });
+    return jsonResponse({ success: true, id: data.id }, 200, req);
+  } catch (error: unknown) {
+    log.error("Unhandled error", { error: error instanceof Error ? error.message : String(error) });
+    return errorResponse(error instanceof Error ? error.message : "Internal error", 500, req);
   }
 });

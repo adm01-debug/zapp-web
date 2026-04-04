@@ -1,4 +1,5 @@
 import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { ElevenLabsSFXSchema, parseBody } from "../_shared/schemas.ts";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 Deno.serve(async (req) => {
@@ -8,15 +9,12 @@ Deno.serve(async (req) => {
   const log = new Logger("elevenlabs-sfx");
 
   try {
-    const { prompt, duration, mode } = await req.json();
+    const parsed = parseBody(ElevenLabsSFXSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    if (!prompt) {
-      return errorResponse("Prompt is required", 400, req);
-    }
-
+    const { prompt, duration, mode } = parsed.data;
     const ELEVENLABS_API_KEY = requireEnv("ELEVENLABS_API_KEY");
 
-    // mode: 'sfx' (sound effects) or 'music'
     const isMusic = mode === "music";
     const url = isMusic
       ? "https://api.elevenlabs.io/v1/music"

@@ -1,4 +1,5 @@
-import { handleCors, errorResponse, requireEnv, Logger, getCorsHeaders } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, getCorsHeaders } from "../_shared/validation.ts";
+import { ElevenLabsDialogueSchema, parseBody } from "../_shared/schemas.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
@@ -7,23 +8,14 @@ Deno.serve(async (req) => {
   const log = new Logger("elevenlabs-dialogue");
 
   try {
-    const { script, languageCode } = await req.json();
+    const parsed = parseBody(ElevenLabsDialogueSchema, await req.json());
+    if (!parsed.success) return errorResponse(parsed.error, 400, req);
+
+    const { script, languageCode } = parsed.data;
     const ELEVENLABS_API_KEY = requireEnv("ELEVENLABS_API_KEY");
-
-    if (!script || !Array.isArray(script) || script.length === 0) {
-      return errorResponse("Script is required (array of { voice_id, text } objects)", 400, req);
-    }
-
-    // Validate script format
-    for (const line of script) {
-      if (!line.voice_id || !line.text) {
-        return errorResponse("Each script line must have voice_id and text", 400, req);
-      }
-    }
 
     log.info(`Generating dialogue with ${script.length} lines`);
 
-    // Build the dialogue request for eleven_v3
     const response = await fetch(
       'https://api.elevenlabs.io/v1/text-to-dialogue?output_format=mp3_44100_128',
       {
@@ -35,7 +27,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           model_id: 'eleven_v3',
           script,
-          language_code: languageCode || 'pt',
+          language_code: languageCode,
         }),
       }
     );
