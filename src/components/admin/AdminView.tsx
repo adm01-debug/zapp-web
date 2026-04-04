@@ -266,6 +266,7 @@ export function AdminView() {
             email: newUserEmail,
             password: newUserPassword,
             role: newUserRole,
+            gmail_email: newUserGmail || undefined,
           }),
         }
       );
