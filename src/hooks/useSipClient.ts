@@ -301,7 +301,7 @@ export function useSipClient() {
       await inviter.invite();
       sessionRef.current = inviter;
     } catch (err: any) {
-      console.error('Call error:', err);
+      log.error('Call error:', err);
       // Log failed call attempt
       logCall(number, 'missed');
       setCallStatus('idle');
