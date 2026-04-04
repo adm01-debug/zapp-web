@@ -169,7 +169,7 @@ function StoryViewer({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 bg-black/95 border-border/20 overflow-hidden [&>button]:hidden">
+      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 bg-background/95 border-border/20 overflow-hidden [&>button]:hidden">
         <div className="flex gap-0.5 px-3 pt-3">
           {messages.map((_, i) => (
             <div key={i} className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/20">
