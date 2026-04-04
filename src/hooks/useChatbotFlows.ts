@@ -74,7 +74,7 @@ export function useChatbotFlows() {
         };
       const { data, error } = await supabase
         .from('chatbot_flows')
-        .insert(insertData as unknown as Parameters<ReturnType<typeof supabase.from<'chatbot_flows'>>['insert']>[0])
+        .insert(insertData as unknown as ChatbotFlowInsert)
         .select()
         .single();
       if (error) throw error;
