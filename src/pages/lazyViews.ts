@@ -51,6 +51,7 @@ export const PublicApiDashboard = lazy(() => import('@/components/admin/PublicAp
 export const GmailWebhookMonitor = lazy(() => import('@/components/admin/GmailWebhookMonitor').then(m => ({ default: m.GmailWebhookMonitor })));
 export const MediaMigrationTool = lazy(() => import('@/components/admin/MediaMigrationTool').then(m => ({ default: m.MediaMigrationTool })));
 export const SicoobBridgeDashboard = lazy(() => import('@/components/admin/SicoobBridgeDashboard').then(m => ({ default: m.SicoobBridgeDashboard })));
+export const CRM360ExplorerView = lazy(() => import('@/components/crm360/CRM360ExplorerView').then(m => ({ default: m.CRM360ExplorerView })));
 
 export const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');
