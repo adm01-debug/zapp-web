@@ -1,4 +1,7 @@
 import { useState, useCallback } from 'react';
+import { getLogger } from '@/lib/logger';
+
+const log = getLogger('PerformanceSnapshots');
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
