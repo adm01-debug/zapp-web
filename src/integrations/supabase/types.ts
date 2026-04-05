@@ -5541,6 +5541,21 @@ export type Database = {
         Args: { _connection_id: string }
         Returns: string
       }
+      get_own_gmail_accounts: {
+        Args: never
+        Returns: {
+          created_at: string
+          email_address: string
+          id: string
+          is_active: boolean
+          last_error: string
+          last_sync_at: string
+          sync_status: string
+          token_expires_at: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_own_lockout_status: {
         Args: { p_email: string }
         Returns: {
