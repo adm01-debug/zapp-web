@@ -39,34 +39,6 @@ import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
 import { supabase } from '@/integrations/supabase/client';
 import { useContactsCRUD } from './useContactsCRUD';
 import { ContactsTable, CONTACT_TYPE_ICONS } from './ContactsTable';
-// Contact type used in view (extends the CRUD Contact)
-interface ViewContact {
-  id: string;
-  name: string;
-  nickname: string | null;
-  surname: string | null;
-  job_title: string | null;
-  company: string | null;
-  phone: string;
-  email: string | null;
-  avatar_url: string | null;
-  tags: string[] | null;
-  notes: string | null;
-  contact_type: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-// Contact type icons mapping
-const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
-  cliente: <Users className="w-4 h-4" />,
-  fornecedor: <Truck className="w-4 h-4" />,
-  colaborador: <UserCheck className="w-4 h-4" />,
-  prestador_servico: <Wrench className="w-4 h-4" />,
-  lead: <Star className="w-4 h-4" />,
-  parceiro: <Handshake className="w-4 h-4" />,
-  outros: <MoreHorizontal className="w-4 h-4" />,
-};
 
 // Date filter options
 const DATE_FILTERS = [
