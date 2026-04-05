@@ -32,7 +32,7 @@ export function DemoAchievements() {
       label: 'Resposta < 2min',
       icon: Zap,
       action: () => triggerFastResponse(90),
-      gradient: 'from-primary to-teal-400',
+      gradient: 'from-primary to-info',
     },
     {
       label: 'Streak 5',
@@ -96,7 +96,7 @@ export function DemoAchievements() {
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-info flex items-center justify-center">
             <Trophy className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>

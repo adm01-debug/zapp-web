@@ -25,7 +25,7 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
   fast_response: {
     icon: Zap,
     title: 'Resposta Rápida!',
-    gradient: 'from-primary via-emerald-400 to-teal-400',
+    gradient: 'from-primary via-success to-info',
     glowColor: 'hsl(142 72% 50% / 0.5)',
     particles: 'bg-primary',
   },
@@ -39,7 +39,7 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
   first_message: {
     icon: MessageSquare,
     title: 'Primeiro Contato!',
-    gradient: 'from-info via-cyan-400 to-teal-400',
+    gradient: 'from-info via-info to-info',
     glowColor: 'hsl(200 80% 50% / 0.5)',
     particles: 'bg-info',
   },

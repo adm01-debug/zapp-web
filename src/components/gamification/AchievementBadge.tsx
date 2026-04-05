@@ -26,7 +26,7 @@ const BADGE_CONFIG: Record<string, {
 }> = {
   [ACHIEVEMENT_TYPES.FAST_RESPONSE]: {
     icon: Zap,
-    gradient: 'from-primary to-teal-400',
+    gradient: 'from-primary to-info',
     bgGlow: 'shadow-primary/30',
     rarity: 'common',
   },
@@ -57,7 +57,7 @@ const BADGE_CONFIG: Record<string, {
   [ACHIEVEMENT_TYPES.PERFECT_RATING]: {
     icon: Star,
     gradient: 'from-warning to-warning',
-    bgGlow: 'shadow-yellow-400/30',
+    bgGlow: 'shadow-warning/30',
     rarity: 'rare',
   },
   [ACHIEVEMENT_TYPES.LEVEL_UP]: {
@@ -80,7 +80,7 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.FIRST_RESOLUTION]: {
     icon: CheckCircle2,
-    gradient: 'from-success to-teal-400',
+    gradient: 'from-success to-info',
     bgGlow: 'shadow-green-400/30',
     rarity: 'common',
   },
