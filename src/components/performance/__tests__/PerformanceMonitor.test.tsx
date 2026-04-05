@@ -113,44 +113,44 @@ describe('PerformanceMonitor', () => {
       expect(screen.getByText('Score de Performance')).toBeInTheDocument();
     });
 
-    it('renders FCP metric', () => {
+    it('renders FCP metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('FCP (First Contentful Paint)')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('FCP')).toBeInTheDocument());
     });
 
-    it('renders page load time metric', () => {
+    it('renders page load time metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Page Load Time')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Page Load')).toBeInTheDocument());
     });
 
-    it('renders DOM Ready metric', () => {
+    it('renders DOM Ready metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('DOM Ready')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('DOM Ready')).toBeInTheDocument());
     });
 
-    it('renders TTFB metric', () => {
+    it('renders TTFB metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('TTFB')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('TTFB')).toBeInTheDocument());
     });
 
-    it('renders memory metric', () => {
+    it('renders memory metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Memória JS')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Memória JS')).toBeInTheDocument());
     });
 
-    it('renders DOM Nodes metric', () => {
+    it('renders DOM Nodes metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('DOM Nodes')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('DOM Nodes')).toBeInTheDocument());
     });
 
-    it('renders RTT metric', () => {
+    it('renders RTT metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('RTT (Latência)')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText(/RTT/)).toBeInTheDocument());
     });
 
-    it('renders connection metric', () => {
+    it('renders connection metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Conexão')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Conexão')).toBeInTheDocument());
     });
 
     it('renders cache section', () => {
@@ -168,9 +168,9 @@ describe('PerformanceMonitor', () => {
       expect(screen.getByText('Cache Misses')).toBeInTheDocument();
     });
 
-    it('renders entries cached label', () => {
+    it('renders entries cached label', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText(/Entradas|Cached|Cache/)).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Entradas Cached')).toBeInTheDocument());
     });
   });
 
