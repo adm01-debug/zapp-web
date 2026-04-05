@@ -115,16 +115,15 @@ describe('DialPad', () => {
 
   it('disables call button when not connected', () => {
     render(<DialPad {...defaultProps} />);
-    // The green call button should be disabled
     const callButtons = screen.getAllByRole('button');
-    const greenCallBtn = callButtons.find(b => b.className.includes('bg-green'));
+    const greenCallBtn = callButtons.find(b => b.className.includes('bg-success'));
     expect(greenCallBtn).toBeDisabled();
   });
 
   it('disables call button when number is empty', () => {
     render(<DialPad {...defaultProps} sipStatus="registered" />);
     const callButtons = screen.getAllByRole('button');
-    const greenCallBtn = callButtons.find(b => b.className.includes('bg-green'));
+    const greenCallBtn = callButtons.find(b => b.className.includes('bg-success'));
     expect(greenCallBtn).toBeDisabled();
   });
 
@@ -132,7 +131,7 @@ describe('DialPad', () => {
     render(<DialPad {...defaultProps} sipStatus="registered" />);
     fireEvent.click(screen.getByText('1'));
     const callButtons = screen.getAllByRole('button');
-    const greenCallBtn = callButtons.find(b => b.className.includes('bg-green'));
+    const greenCallBtn = callButtons.find(b => b.className.includes('bg-success'));
     expect(greenCallBtn).not.toBeDisabled();
   });
 
@@ -142,7 +141,7 @@ describe('DialPad', () => {
     fireEvent.click(screen.getByText('5'));
     fireEvent.click(screen.getByText('1'));
     const callButtons = screen.getAllByRole('button');
-    const greenCallBtn = callButtons.find(b => b.className.includes('bg-green'));
+    const greenCallBtn = callButtons.find(b => b.className.includes('bg-success'));
     fireEvent.click(greenCallBtn!);
     expect(defaultProps.onCall).toHaveBeenCalledWith('551');
   });
@@ -249,7 +248,7 @@ describe('DialPad', () => {
   it('hides call button during active call', () => {
     render(<DialPad {...defaultProps} callStatus="active" currentNumber="123" />);
     const callButtons = screen.getAllByRole('button');
-    const greenCallBtn = callButtons.find(b => b.className.includes('bg-green'));
+    const greenCallBtn = callButtons.find(b => b.className.includes('bg-success'));
     expect(greenCallBtn).toBeFalsy();
   });
 
@@ -267,9 +266,8 @@ describe('DialPad', () => {
 
   it('does not call onCall with empty string', () => {
     render(<DialPad {...defaultProps} sipStatus="registered" />);
-    // Try to call without entering number - button should be disabled
     const callButtons = screen.getAllByRole('button');
-    const greenCallBtn = callButtons.find(b => b.className.includes('bg-green'));
+    const greenCallBtn = callButtons.find(b => b.className.includes('bg-success'));
     fireEvent.click(greenCallBtn!);
     expect(defaultProps.onCall).not.toHaveBeenCalled();
   });
