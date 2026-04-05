@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
+import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 
 const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
   cliente: <Users className="w-4 h-4" />,
@@ -59,7 +60,7 @@ export function ContactsTable({
 }: ContactsTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border/40">
-      <table className="w-full">
+      <table className="w-full" role="grid" aria-label="Lista de contatos">
         <thead>
           <tr className="border-b border-border/30 bg-muted/30">
             <th className="p-4 w-10">
@@ -107,8 +108,8 @@ export function ContactsTable({
                   <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={contact.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      <AvatarFallback className={cn('font-semibold', getAvatarColor(contact.name).bg, getAvatarColor(contact.name).text)}>
+                        {getInitials(contact.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div>

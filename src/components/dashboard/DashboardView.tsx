@@ -37,6 +37,7 @@ import { ActivityHeatmap } from './ActivityHeatmap';
 import ConversationHeatmap from './ConversationHeatmap';
 import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
+import { useAuth } from '@/hooks/useAuth';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
 import { ProgressiveDisclosureDashboard } from './ProgressiveDisclosureDashboard';
 import { DraggableWidgetContainer } from './DraggableWidgetContainer';
@@ -48,6 +49,11 @@ import { ptBR } from 'date-fns/locale';
 export function DashboardView() {
   const [filters, setFilters] = useState<DashboardFiltersState>(getDefaultFilters());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { profile } = useAuth();
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? '☀️ Bom dia' : hour < 18 ? '🌤️ Boa tarde' : '🌙 Boa noite';
+  const userName = profile?.name?.split(' ')[0] || '';
   
   const { stats, isLoading, refetch } = useDashboardData({
     dateRange: filters.dateRange,
@@ -455,7 +461,7 @@ export function DashboardView() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="font-display text-2xl font-bold tracking-tight text-foreground neon-underline"
               >
-                Dashboard
+                {greeting}{userName ? `, ${userName}` : ''}
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0 }}
