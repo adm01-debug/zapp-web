@@ -3,18 +3,11 @@ import { getLogger } from '@/lib/logger';
 
 const log = getLogger('SendProductDialog');
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,70 +17,23 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  Send,
-  ChevronDown,
-  Package,
-  Copy,
-  Download,
-  Palette,
-  Check,
-  Pencil,
-  Search,
-  Loader2,
-  ArrowLeft,
-  User,
+  Send, ChevronDown, Package, Copy, Download, Palette, Check,
+  Pencil, Search, Loader2, ArrowLeft, User,
 } from 'lucide-react';
-import { ExternalProduct, ExternalProductVariant, useExternalCatalog } from '@/hooks/useExternalCatalog';
+import { ExternalProduct, useExternalCatalog } from '@/hooks/useExternalCatalog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-
-interface ContactResult {
-  id: string;
-  name: string;
-  phone: string;
-  avatar_url: string | null;
-}
-
-type MessageTemplate = 'formal' | 'informal' | 'promo';
-type SendMode = 'product' | 'variant';
-
-interface VariantGroup {
-  colorName: string;
-  colorHex: string | null;
-  variants: ExternalProductVariant[];
-  images: string[];
-}
+import {
+  type MessageTemplate, type SendMode, type VariantGroup, type ContactResult,
+  templateLabels, groupVariantsByColor, buildMessage, collectAllImages,
+} from './sendProductUtils';
 
 interface SendProductDialogProps {
   product: ExternalProduct;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmSend?: (text: string, images: string[]) => void;
-}
-
-// ─── Group variants by color ──────────────────────────────────
-function groupVariantsByColor(variants: ExternalProductVariant[]): VariantGroup[] {
-  const map = new Map<string, VariantGroup>();
-
-  variants.forEach((v) => {
-    const key = v.color_name || v.name || 'Padrão';
-    if (!map.has(key)) {
-      map.set(key, {
-        colorName: key,
-        colorHex: v.color_hex,
-        variants: [],
-        images: [],
-      });
-    }
-    const group = map.get(key)!;
-    group.variants.push(v);
-    if (v.selected_thumbnail && !group.images.includes(v.selected_thumbnail)) {
-      group.images.push(v.selected_thumbnail);
-    }
-  });
-
-  return Array.from(map.values());
 }
 
 // ─── Message builders ─────────────────────────────────────────
