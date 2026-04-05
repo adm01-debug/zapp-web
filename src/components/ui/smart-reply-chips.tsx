@@ -105,10 +105,10 @@ const analyzeMessage = (message: string): SmartReply[] => {
 };
 
 const categoryColors: Record<SmartReply['category'], string> = {
-  positive: 'bg-success/10 text-success dark:text-success border-emerald-500/20 hover:bg-success/20',
+  positive: 'bg-success/10 text-success dark:text-success border-success/20 hover:bg-success/20',
   neutral: 'bg-muted text-muted-foreground border-border hover:bg-muted/80',
   action: 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20',
-  question: 'bg-warning/10 text-warning dark:text-warning border-amber-500/20 hover:bg-warning/20',
+  question: 'bg-warning/10 text-warning dark:text-warning border-warning/20 hover:bg-warning/20',
   custom: 'bg-secondary/50 text-secondary-foreground border-secondary hover:bg-secondary/70',
 };
 

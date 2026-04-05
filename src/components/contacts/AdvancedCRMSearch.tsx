@@ -186,10 +186,10 @@ function ContactResultCard({
         )}
         {contact.rfm_segment && (() => {
           const rfmColors: Record<string, string> = {
-            Champions: 'bg-success/15 text-success border-emerald-500/30',
+            Champions: 'bg-success/15 text-success border-success/30',
             'At Risk': 'bg-destructive/15 text-destructive border-destructive/30',
             Hibernating: 'bg-muted text-muted-foreground border-border',
-            'Need Attention': 'bg-warning/15 text-warning border-amber-500/30',
+            'Need Attention': 'bg-warning/15 text-warning border-warning/30',
             Promising: 'bg-secondary/15 text-secondary border-secondary/30',
           };
           return (

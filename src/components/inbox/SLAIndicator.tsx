@@ -122,13 +122,13 @@ const statusStyles = {
   ok: {
     bg: 'bg-success/10',
     text: 'text-success',
-    border: 'border-emerald-500/30',
+    border: 'border-success/30',
     icon: CheckCircle,
   },
   warning: {
     bg: 'bg-warning/10',
     text: 'text-warning',
-    border: 'border-amber-500/30',
+    border: 'border-warning/30',
     icon: Clock,
   },
   breached: {

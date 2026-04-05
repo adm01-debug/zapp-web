@@ -267,7 +267,7 @@ export function AgentRanking() {
                     'h-10 w-10 border-2',
                     position === 1 && 'border-yellow-500',
                     position === 2 && 'border-border',
-                    position === 3 && 'border-amber-600',
+                    position === 3 && 'border-warning',
                     !isTopThree && 'border-border'
                   )}>
                     <AvatarImage src={agent.avatar_url || undefined} />

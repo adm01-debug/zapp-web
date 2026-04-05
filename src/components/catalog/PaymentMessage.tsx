@@ -37,7 +37,7 @@ const statusConfig = {
     label: 'Pago',
     icon: CheckCircle2,
     variant: 'outline' as const,
-    className: 'text-success border-emerald-500/50 bg-success/10',
+    className: 'text-success border-success/50 bg-success/10',
   },
   failed: {
     label: 'Falhou',

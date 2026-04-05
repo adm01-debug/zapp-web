@@ -522,7 +522,7 @@ export function NotificationSettingsPanel() {
                 <Badge variant="outline" className={cn(
                   "font-mono",
                   settings.sentimentAlertThreshold < 30 ? "text-destructive border-destructive/50" :
-                  settings.sentimentAlertThreshold < 50 ? "text-warning border-orange-400/50" :
+                  settings.sentimentAlertThreshold < 50 ? "text-warning border-warning/50" :
                   "text-warning border-yellow-400/50"
                 )}>
                   {settings.sentimentAlertThreshold}%

@@ -101,7 +101,7 @@ export function IntegrationKeysSection() {
                       Configurada
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-xs gap-1 text-warning border-amber-500/30">
+                    <Badge variant="outline" className="text-xs gap-1 text-warning border-warning/30">
                       <AlertCircle className="w-3 h-3" />
                       Não configurada
                     </Badge>

@@ -216,7 +216,7 @@ export function PushNotificationSettings() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-amber-500/20"
+              className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-warning/20"
             >
               <Info className="w-5 h-5 text-warning shrink-0 mt-0.5" />
               <div>

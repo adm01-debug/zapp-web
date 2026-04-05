@@ -14,9 +14,9 @@ import { useState } from 'react';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   running: { label: 'Em execução', color: 'bg-info/20 text-info border-info/30', icon: Play },
-  completed: { label: 'Concluído', color: 'bg-success/20 text-success border-emerald-500/30', icon: CheckCircle2 },
+  completed: { label: 'Concluído', color: 'bg-success/20 text-success border-success/30', icon: CheckCircle2 },
   failed: { label: 'Falhou', color: 'bg-destructive/20 text-destructive border-destructive/30', icon: XCircle },
-  waiting: { label: 'Aguardando', color: 'bg-warning/20 text-warning border-amber-500/30', icon: Clock },
+  waiting: { label: 'Aguardando', color: 'bg-warning/20 text-warning border-warning/30', icon: Clock },
 };
 
 export function ChatbotExecutionsDashboard() {

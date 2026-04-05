@@ -329,7 +329,7 @@ export function PasswordResetRequestsPanel() {
                 placeholder="Ex: Atividade suspeita detectada"
               />
             </div>
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-amber-500/20">
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
               <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
                 O usuário será notificado por email sobre a rejeição.
