@@ -108,14 +108,17 @@ export function AgentsView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card className="border border-secondary/20 bg-card hover:border-secondary/40 transition-all card-glow-purple">
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/40 hover:-translate-y-0.5 transition-all duration-200 card-glow-purple">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   {stat.color ? (
-                    <div className={cn('w-3 h-3 rounded-full', stat.color)} />
-                  ) : (
-                    <MessageSquare className="w-5 h-5 text-primary" />
-                  )}
+                    <div className="relative">
+                      <div className={cn('w-3.5 h-3.5 rounded-full', stat.color)} />
+                      <div className={cn('absolute inset-0 w-3.5 h-3.5 rounded-full animate-ping opacity-30', stat.color)} />
+                    </div>
+                  ) : stat.icon ? (
+                    <stat.icon className="w-5 h-5 text-primary" />
+                  ) : null}
                   <div>
                     <p className="text-2xl font-bold text-foreground">
                       {stat.value}
