@@ -115,13 +115,11 @@ export function useGmail(accountId?: string) {
         const result = await callGmailFunction('gmail-oauth', { action: 'list-accounts' });
         return (result.accounts || []) as GmailAccount[];
       } catch {
-        // Fallback: read from gmail_accounts_safe view (hides OAuth tokens)
+        // Fallback: read via secure RPC function (hides OAuth tokens)
         const { data, error } = await supabase
-          .from('gmail_accounts_safe' as 'gmail_accounts')
-          .select('id, email_address, is_active, sync_status, last_sync_at, created_at')
-          .order('created_at', { ascending: false });
+          .rpc('get_own_gmail_accounts');
         if (error) throw error;
-        return (data || []).map((a) => ({
+        return (data || []).map((a: any) => ({
           id: a.id,
           email_address: a.email_address,
           is_active: a.is_active,
