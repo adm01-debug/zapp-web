@@ -33,6 +33,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 
 export function AgentsView() {
   const { agents, stats, isLoading, refetch } = useAgents();
@@ -180,8 +181,8 @@ export function AgentsView() {
                             agent.status === 'offline' && 'ring-border/30'
                           )}>
                             <AvatarImage src={agent.avatar_url || undefined} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {agent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                            <AvatarFallback className={cn('font-semibold', getAvatarColor(agent.name).bg, getAvatarColor(agent.name).text)}>
+                              {getInitials(agent.name)}
                             </AvatarFallback>
                           </Avatar>
                           <span
