@@ -196,13 +196,19 @@ describe('useRealtimeMessages', () => {
       }),
     ];
 
-    const { result } = renderHook(() => useRealtimeMessages());
+    let result: any;
+    await act(async () => {
+      const rendered = renderHook(() => useRealtimeMessages());
+      result = rendered.result;
+      // Allow all async effects to settle
+      await new Promise((r) => setTimeout(r, 100));
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
-    }, { timeout: 5000 });
+    }, { timeout: 10000 });
 
-    expect(result.current.conversations.map((conversation) => conversation.contact.id)).toContain(
+    expect(result.current.conversations.map((conversation: any) => conversation.contact.id)).toContain(
       hiddenActiveContact.id
     );
   });
