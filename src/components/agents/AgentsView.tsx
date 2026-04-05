@@ -45,10 +45,10 @@ export function AgentsView() {
   );
 
   const statsData = [
-    { label: 'Online', value: stats.onlineCount, color: 'bg-status-online' },
-    { label: 'Ausente', value: stats.awayCount, color: 'bg-status-away' },
-    { label: 'Offline', value: stats.offlineCount, color: 'bg-status-offline' },
-    { label: 'Chats Ativos', value: stats.totalActiveChats, icon: MessageSquare },
+    { label: 'Online', value: stats.onlineCount, color: 'bg-status-online', icon: undefined as React.ElementType | undefined },
+    { label: 'Ausente', value: stats.awayCount, color: 'bg-status-away', icon: undefined as React.ElementType | undefined },
+    { label: 'Offline', value: stats.offlineCount, color: 'bg-status-offline', icon: undefined as React.ElementType | undefined },
+    { label: 'Chats Ativos', value: stats.totalActiveChats, color: undefined as string | undefined, icon: MessageSquare as React.ElementType },
   ];
 
   if (isLoading) {
@@ -108,14 +108,17 @@ export function AgentsView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card className="border border-secondary/20 bg-card hover:border-secondary/40 transition-all card-glow-purple">
+            <Card className="border border-secondary/20 bg-card hover:border-secondary/40 hover:-translate-y-0.5 transition-all duration-200 card-glow-purple">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   {stat.color ? (
-                    <div className={cn('w-3 h-3 rounded-full', stat.color)} />
-                  ) : (
-                    <MessageSquare className="w-5 h-5 text-primary" />
-                  )}
+                    <div className="relative">
+                      <div className={cn('w-3.5 h-3.5 rounded-full', stat.color)} />
+                      <div className={cn('absolute inset-0 w-3.5 h-3.5 rounded-full animate-ping opacity-30', stat.color)} />
+                    </div>
+                  ) : stat.icon ? (
+                    <stat.icon className="w-5 h-5 text-primary" />
+                  ) : null}
                   <div>
                     <p className="text-2xl font-bold text-foreground">
                       {stat.value}
@@ -158,14 +161,14 @@ export function AgentsView() {
           onConfigurePermissions={() => setPermissionsOpen(true)}
         />
       ) : (
-        <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredAgents.map((agent) => {
             const maxChats = agent.max_chats || 5;
             const capacityPercent = (agent.activeChats / maxChats) * 100;
 
             return (
               <StaggeredItem key={agent.id}>
-                <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
+                <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all duration-200 hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)] hover:-translate-y-0.5">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -228,8 +231,9 @@ export function AgentsView() {
                         value={capacityPercent}
                         className={cn(
                           'h-2',
-                          capacityPercent > 80 && '[&>div]:bg-destructive',
-                          capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-status-pending'
+                          capacityPercent <= 50 && '[&>div]:bg-success',
+                          capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-warning',
+                          capacityPercent > 80 && '[&>div]:bg-destructive'
                         )}
                       />
                     </div>
