@@ -41,8 +41,14 @@ export function SettingsView() {
         <AuroraBorealis />
         <FloatingParticles />
         <div className="space-y-4">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-8 w-48 animate-pulse" />
+          <Skeleton className="h-4 w-64 animate-pulse [animation-delay:100ms]" />
+          <div className="flex gap-2 mt-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-9 w-24 rounded-md animate-pulse" style={{ animationDelay: `${150 + i * 80}ms` }} />
+            ))}
+          </div>
+          <Skeleton className="h-64 w-full mt-4 animate-pulse [animation-delay:600ms]" />
         </div>
       </div>
     );
@@ -93,7 +99,7 @@ export function SettingsView() {
       </motion.div>
 
       <Tabs defaultValue="schedule" className="space-y-6">
-        <TabsList className="bg-muted/50">
+        <TabsList className="bg-muted/50 flex-wrap h-auto gap-1 p-1">
           <TabsTrigger value="schedule" className="gap-2"><Clock className="w-4 h-4" />Horário</TabsTrigger>
           <TabsTrigger value="messages" className="gap-2"><MessageSquare className="w-4 h-4" />Mensagens</TabsTrigger>
           <TabsTrigger value="automation" className="gap-2"><RefreshCw className="w-4 h-4" />Automação</TabsTrigger>

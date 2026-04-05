@@ -4,6 +4,7 @@
  * @module components/BulkActionsBar
  */
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -40,7 +41,12 @@ export function BulkActionsBar<T>({
   if (selectionCount === 0) return null;
 
   return (
-    <div
+    <AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={cn(
         'fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border bg-background p-2 shadow-lg',
         className
@@ -116,7 +122,8 @@ export function BulkActionsBar<T>({
           return ActionButton;
         })}
       </div>
-    </div>
+    </motion.div>
+    </AnimatePresence>
   );
 }
 
