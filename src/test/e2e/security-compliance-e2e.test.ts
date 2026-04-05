@@ -72,13 +72,13 @@ describe('E2E: Security Module', () => {
       expect(actions.length).toBeGreaterThan(10);
     });
 
-    it('creates audit log entry', async () => {
+    it('creates audit log entry via RPC', async () => {
       const { supabase } = await import('@/integrations/supabase/client');
-      const mockInsert = vi.fn().mockResolvedValue({ data: { id: 'log-1' }, error: null });
-      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({ insert: mockInsert });
+      const mockRpc = vi.fn().mockResolvedValue({ data: null, error: null });
+      (supabase.rpc as ReturnType<typeof vi.fn>) = mockRpc;
 
-      await supabase.from('audit_logs').insert({ action: 'user.login', user_id: 'u-1' });
-      expect(mockInsert).toHaveBeenCalled();
+      await supabase.rpc('log_audit_event', { p_action: 'user.login' });
+      expect(mockRpc).toHaveBeenCalled();
     });
   });
 
