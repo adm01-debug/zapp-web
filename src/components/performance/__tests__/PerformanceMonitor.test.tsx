@@ -88,12 +88,7 @@ vi.mock('recharts', () => ({
 
 describe('PerformanceMonitor', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     localStorage.clear();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   // ===== RENDERING =====
