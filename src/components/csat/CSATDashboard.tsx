@@ -11,7 +11,7 @@ const ratingColors: Record<number, string> = {
   1: 'bg-destructive',
   2: 'bg-warning',
   3: 'bg-warning',
-  4: 'bg-emerald-400',
+  4: 'bg-success/70',
   5: 'bg-success',
 };
 

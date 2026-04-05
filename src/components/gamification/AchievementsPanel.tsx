@@ -219,7 +219,7 @@ export function AchievementsPanel() {
             className="p-4 rounded-xl bg-muted/30 border border-border/30"
           >
             <div className="flex items-center gap-2 mb-1">
-              <BarChart3 className="w-4 h-4 text-teal-500" />
+              <BarChart3 className="w-4 h-4 text-info" />
               <span className="text-xs text-muted-foreground">Tipos</span>
             </div>
             <p className="text-2xl font-bold text-foreground">{uniqueTypes.length}</p>

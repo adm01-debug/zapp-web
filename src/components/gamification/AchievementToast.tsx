@@ -69,7 +69,7 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
     title: 'Meta Diária!',
     gradient: 'from-primary via-teal-400 to-cyan-400',
     glowColor: 'hsl(175 60% 50% / 0.5)',
-    particles: 'bg-teal-400',
+    particles: 'bg-info',
   },
   speed_demon: {
     icon: Rocket,

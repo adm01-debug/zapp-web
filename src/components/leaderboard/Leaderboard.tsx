@@ -83,7 +83,7 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
           bg: 'bg-gradient-to-br from-amber-600 to-amber-700',
           shadow: '',
           icon: Medal,
-          iconColor: 'text-amber-100',
+          iconColor: 'text-warning-foreground',
         };
       default:
         return {
