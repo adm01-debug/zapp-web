@@ -93,7 +93,7 @@ export function SettingsView() {
       </motion.div>
 
       <Tabs defaultValue="schedule" className="space-y-6">
-        <TabsList className="bg-muted/50">
+        <TabsList className="bg-muted/50 flex-wrap h-auto gap-1 p-1">
           <TabsTrigger value="schedule" className="gap-2"><Clock className="w-4 h-4" />Horário</TabsTrigger>
           <TabsTrigger value="messages" className="gap-2"><MessageSquare className="w-4 h-4" />Mensagens</TabsTrigger>
           <TabsTrigger value="automation" className="gap-2"><RefreshCw className="w-4 h-4" />Automação</TabsTrigger>
