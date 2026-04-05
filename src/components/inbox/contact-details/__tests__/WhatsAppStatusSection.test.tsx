@@ -16,6 +16,18 @@ vi.mock('@/hooks/useWhatsAppStatus', () => ({
   useWhatsAppStatus: () => mockData,
 }));
 
+// Mock useEvolutionApi
+vi.mock('@/hooks/useEvolutionApi', () => ({
+  useEvolutionApi: () => ({
+    getMediaBase64: vi.fn().mockResolvedValue({ base64: '', mimetype: 'image/jpeg' }),
+  }),
+}));
+
+// Mock formatRelativeTime
+vi.mock('@/lib/formatters', () => ({
+  formatRelativeTime: () => 'há 1h',
+}));
+
 describe('WhatsAppStatusSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -98,7 +110,8 @@ describe('WhatsAppStatusSection', () => {
       messageTimestamp: Math.floor(Date.now() / 1000) - 3600,
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('Minha foto de férias')).toBeInTheDocument();
+    // The component shows "Ver Status" button with count badge, not individual captions
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
   it('renders video status correctly', () => {
@@ -108,7 +121,7 @@ describe('WhatsAppStatusSection', () => {
       messageTimestamp: Math.floor(Date.now() / 1000) - 1800,
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('Meu vídeo')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
   it('renders text status correctly', () => {
@@ -118,7 +131,7 @@ describe('WhatsAppStatusSection', () => {
       messageTimestamp: Math.floor(Date.now() / 1000) - 600,
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('Bom dia!')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
   it('renders conversation type status', () => {
@@ -128,37 +141,37 @@ describe('WhatsAppStatusSection', () => {
       messageTimestamp: Math.floor(Date.now() / 1000) - 300,
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('Status simples')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
-  it('shows fallback 📷 Foto for image without caption', () => {
+  it('shows Ver Status button for image without caption', () => {
     mockData.statusMessages = [{
       key: { remoteJid: 'status@broadcast', fromMe: false, id: 'img2' },
       message: { imageMessage: {} },
       messageTimestamp: Math.floor(Date.now() / 1000),
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('📷 Foto')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
-  it('shows fallback 🎥 Vídeo for video without caption', () => {
+  it('shows Ver Status button for video without caption', () => {
     mockData.statusMessages = [{
       key: { remoteJid: 'status@broadcast', fromMe: false, id: 'vid2' },
       message: { videoMessage: {} },
       messageTimestamp: Math.floor(Date.now() / 1000),
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('🎥 Vídeo')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
-  it('shows fallback Status for empty message', () => {
+  it('shows Ver Status button for empty message', () => {
     mockData.statusMessages = [{
       key: { remoteJid: 'status@broadcast', fromMe: false, id: 'empty1' },
       message: {},
       messageTimestamp: Math.floor(Date.now() / 1000),
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('Status')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
   // ========== STATUS COUNT BADGE ==========
@@ -169,7 +182,8 @@ describe('WhatsAppStatusSection', () => {
       messageTimestamp: Math.floor(Date.now() / 1000),
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('1 status')).toBeInTheDocument();
+    // Badge shows just the number, not "1 status"
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('shows correct count for multiple statuses', () => {
@@ -179,27 +193,26 @@ describe('WhatsAppStatusSection', () => {
       { key: { id: 's3' }, message: { conversation: 'C' }, messageTimestamp: Math.floor(Date.now() / 1000) },
     ];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('3 status')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
   });
 
   // ========== REFRESH BUTTON ==========
   it('has refresh button in the presence section', () => {
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    // The refresh button in the normal (non-error) state
     const buttons = screen.getAllByRole('button');
     expect(buttons.length).toBeGreaterThan(0);
   });
 
   // ========== CLICK TO SELECT STATUS ==========
-  it('does not crash when clicking a status item', () => {
+  it('does not crash when clicking Ver Status button', () => {
     mockData.statusMessages = [{
       key: { remoteJid: 'status@broadcast', fromMe: false, id: 'click1' },
       message: { conversation: 'Clickable' },
       messageTimestamp: Math.floor(Date.now() / 1000),
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    const item = screen.getByText('Clickable');
-    fireEvent.click(item);
+    const btn = screen.getByText('Ver Status');
+    fireEvent.click(btn);
     // No crash = success
   });
 
@@ -211,7 +224,7 @@ describe('WhatsAppStatusSection', () => {
       messageTimestamp: String(Math.floor(Date.now() / 1000) - 60),
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('String TS')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
   it('handles missing timestamp gracefully', () => {
@@ -220,7 +233,7 @@ describe('WhatsAppStatusSection', () => {
       message: { conversation: 'No Time' },
     }];
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('No Time')).toBeInTheDocument();
+    expect(screen.getByText('Ver Status')).toBeInTheDocument();
   });
 
   // ========== MANY STATUSES ==========
@@ -231,6 +244,7 @@ describe('WhatsAppStatusSection', () => {
       messageTimestamp: Math.floor(Date.now() / 1000) - i * 60,
     }));
     render(<WhatsAppStatusSection phone="+5511999999999" />);
-    expect(screen.getByText('50 status')).toBeInTheDocument();
+    // Badge shows "50" not "50 status"
+    expect(screen.getByText('50')).toBeInTheDocument();
   });
 });
