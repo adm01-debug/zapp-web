@@ -7,6 +7,7 @@ import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import {
   MessageSquare,
   Users,
@@ -376,8 +377,8 @@ export function DashboardView() {
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
                             <AvatarImage src={activity.contactAvatar || undefined} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                              {activity.contactName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                            <AvatarFallback className={cn('font-semibold text-sm', getAvatarColor(activity.contactName).bg, getAvatarColor(activity.contactName).text)}>
+                              {getInitials(activity.contactName)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
@@ -487,6 +488,9 @@ export function DashboardView() {
           <LevelProgress currentXP={1250} requiredXP={2000} level={12} />
         </div>
       </motion.div>
+
+      {/* Divider */}
+      <div className="relative z-10 border-t border-border/20" />
 
       {/* Global Filters */}
       <motion.div
