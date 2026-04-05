@@ -389,7 +389,7 @@ export function ConnectionsView() {
                                 </span>
                               )}
                               {(connection.retry_count ?? 0) > 0 && (
-                                <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-warning">
+                                <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">
                                   Retry {connection.retry_count}/{connection.max_retries || 5}
                                 </Badge>
                               )}

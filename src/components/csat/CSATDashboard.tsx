@@ -66,7 +66,7 @@ export function CSATDashboard() {
                   key={star}
                   className={cn(
                     'w-4 h-4',
-                    star <= Math.round(avgScore) ? 'fill-yellow-400 text-warning' : 'text-muted-foreground/20'
+                    star <= Math.round(avgScore) ? 'fill-warning text-warning' : 'text-muted-foreground/20'
                   )}
                 />
               ))}
@@ -82,7 +82,7 @@ export function CSATDashboard() {
               return (
                 <div key={rating} className="flex items-center gap-2 text-sm">
                   <span className="w-4 text-muted-foreground">{rating}</span>
-                  <Star className="w-3 h-3 fill-yellow-400 text-warning" />
+                  <Star className="w-3 h-3 fill-warning text-warning" />
                   <div className="flex-1">
                     <Progress value={percentage} className={cn('h-2', `[&>div]:${ratingColors[rating]}`)} />
                   </div>

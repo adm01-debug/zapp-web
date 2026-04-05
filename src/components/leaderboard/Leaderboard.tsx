@@ -80,7 +80,7 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
         };
       case 3:
         return {
-          bg: 'bg-gradient-to-br from-amber-600 to-amber-700',
+          bg: 'bg-gradient-to-br from-warning to-warning/80',
           shadow: '',
           icon: Medal,
           iconColor: 'text-warning-foreground',

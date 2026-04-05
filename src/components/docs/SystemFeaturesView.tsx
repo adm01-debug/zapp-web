@@ -343,7 +343,7 @@ const sections = [
     ]
   },
   {
-    id: 34, title: "Edge Functions", icon: Cloud, color: "text-sky-400",
+    id: 34, title: "Edge Functions", icon: Cloud, color: "text-info",
     items: [
       "evolution-api — Bridge para Evolution API",
       "evolution-webhook — Recebimento de webhooks",
