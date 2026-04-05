@@ -9,50 +9,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SmilePlus, Search, Plus, Star, Trash2, Loader2, X, Tag, Check, ChevronDown, Smile } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface CustomEmoji {
-  id: string;
-  name: string;
-  image_url: string;
-  category: string;
-  is_favorite: boolean;
-  use_count: number;
-}
-
-interface CustomEmojiPickerProps {
-  onSendEmoji: (emojiUrl: string) => void;
-  disabled?: boolean;
-}
-
-const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
-  'sorriso': { emoji: '😊', label: 'Sorriso' },
-  'riso': { emoji: '😂', label: 'Riso' },
-  'amor': { emoji: '❤️', label: 'Amor' },
-  'triste': { emoji: '😢', label: 'Triste' },
-  'raiva': { emoji: '😡', label: 'Raiva' },
-  'surpresa': { emoji: '😲', label: 'Surpresa' },
-  'medo': { emoji: '😨', label: 'Medo' },
-  'nojo': { emoji: '🤢', label: 'Nojo' },
-  'pensativo': { emoji: '🤔', label: 'Pensativo' },
-  'legal': { emoji: '😎', label: 'Legal' },
-  'festa': { emoji: '🎉', label: 'Festa' },
-  'comida': { emoji: '🍔', label: 'Comida' },
-  'animal': { emoji: '🐾', label: 'Animal' },
-  'natureza': { emoji: '🌿', label: 'Natureza' },
-  'esporte': { emoji: '⚽', label: 'Esporte' },
-  'trabalho': { emoji: '💼', label: 'Trabalho' },
-  'música': { emoji: '🎵', label: 'Música' },
-  'tech': { emoji: '🤖', label: 'Tech' },
-  'viagem': { emoji: '✈️', label: 'Viagem' },
-  'meme': { emoji: '🔥', label: 'Meme' },
-  'deboche': { emoji: '😏', label: 'Deboche' },
-  'fofo': { emoji: '🥰', label: 'Fofo' },
-  'fantasía': { emoji: '🦄', label: 'Fantasia' },
-  'bandeira': { emoji: '🏳️', label: 'Bandeira' },
-  'outros': { emoji: '📦', label: 'Outros' },
-};
-
-const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
+import { CATEGORY_LABELS, ALL_CATEGORIES, NATIVE_EMOJI_CATEGORIES } from './emojiConstants';
 
 // ── Traditional WhatsApp-style Unicode Emojis ──
 const NATIVE_EMOJI_CATEGORIES: { id: string; icon: string; label: string; emojis: string[] }[] = [
