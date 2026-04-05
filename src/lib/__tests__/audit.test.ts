@@ -1,14 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockFrom = vi.fn();
-const mockGetUser = vi.fn();
+const mockRpc = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: (...args: any[]) => mockFrom(...args),
-    auth: {
-      getUser: (...args: any[]) => mockGetUser(...args),
-    },
+    rpc: (...args: any[]) => mockRpc(...args),
   },
 }));
 
@@ -22,15 +18,10 @@ import { logAudit } from '@/lib/audit';
 describe('audit logging', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: 'u1' } },
-    });
+    mockRpc.mockResolvedValue({ error: null });
   });
 
-  it('inserts audit log entry', async () => {
+  it('calls log_audit_event RPC', async () => {
     await logAudit({
       action: 'login',
       entityType: 'auth',
@@ -38,31 +29,20 @@ describe('audit logging', () => {
       details: { method: 'password' },
     });
 
-    expect(mockFrom).toHaveBeenCalledWith('audit_logs');
+    expect(mockRpc).toHaveBeenCalledWith('log_audit_event', expect.objectContaining({
+      p_action: 'login',
+      p_entity_type: 'auth',
+      p_entity_id: 'u1',
+    }));
   });
 
-  it('does not insert when no user', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+  it('handles RPC error without throwing', async () => {
+    mockRpc.mockResolvedValue({ error: new Error('DB error') });
 
-    await logAudit({ action: 'login' });
-
-    // from should not be called since no user
-    expect(mockFrom).not.toHaveBeenCalled();
-  });
-
-  it('handles insert error without throwing', async () => {
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockResolvedValue({ error: new Error('DB error') }),
-    });
-
-    // Should not throw
     await expect(logAudit({ action: 'login' })).resolves.not.toThrow();
   });
 
-  it('includes optional fields when provided', async () => {
-    const insertMock = vi.fn().mockResolvedValue({ error: null });
-    mockFrom.mockReturnValue({ insert: insertMock });
-
+  it('includes details and user_agent', async () => {
     await logAudit({
       action: 'contact_created',
       entityType: 'contact',
@@ -70,12 +50,23 @@ describe('audit logging', () => {
       details: { contactName: 'John' },
     });
 
-    expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
-      expect.objectContaining({
-        action: 'contact_created',
-        entity_type: 'contact',
-        entity_id: 'c1',
-      }),
-    ]));
+    expect(mockRpc).toHaveBeenCalledWith('log_audit_event', expect.objectContaining({
+      p_action: 'contact_created',
+      p_entity_type: 'contact',
+      p_entity_id: 'c1',
+      p_details: { contactName: 'John' },
+      p_user_agent: expect.any(String),
+    }));
+  });
+
+  it('sends null for optional fields when not provided', async () => {
+    await logAudit({ action: 'logout' });
+
+    expect(mockRpc).toHaveBeenCalledWith('log_audit_event', expect.objectContaining({
+      p_action: 'logout',
+      p_entity_type: null,
+      p_entity_id: null,
+      p_details: null,
+    }));
   });
 });
