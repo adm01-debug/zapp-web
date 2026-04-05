@@ -131,7 +131,7 @@ describe('useQueueAnalytics', () => {
     expect(result.current.loading).toBe(true);
   });
 
-  it('status data has correct colors', async () => {
+  it('status data uses semantic HSL colors', async () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === 'contacts') {
         return {
@@ -147,7 +147,8 @@ describe('useQueueAnalytics', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     result.current.statusData.forEach(s => {
-      expect(s.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      // Colors are now semantic HSL tokens like 'hsl(var(--primary))'
+      expect(s.color).toContain('hsl(var(--');
       expect(s.name).toBeTruthy();
     });
   });
