@@ -231,8 +231,9 @@ export function AgentsView() {
                         value={capacityPercent}
                         className={cn(
                           'h-2',
-                          capacityPercent > 80 && '[&>div]:bg-destructive',
-                          capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-status-pending'
+                          capacityPercent <= 50 && '[&>div]:bg-success',
+                          capacityPercent > 50 && capacityPercent <= 80 && '[&>div]:bg-warning',
+                          capacityPercent > 80 && '[&>div]:bg-destructive'
                         )}
                       />
                     </div>
