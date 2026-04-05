@@ -262,12 +262,12 @@ describe('Component Structure Validation', () => {
       expect(tabsSource).toContain('bg-transparent');
     });
 
-    it('should use white/translucent for active badge', () => {
-      expect(tabsSource).toContain('bg-white/15');
+    it('should use primary-foreground for active badge', () => {
+      expect(tabsSource).toContain('bg-primary-foreground/15');
     });
 
     it('should have border styling on badges', () => {
-      expect(tabsSource).toContain('border-white/25');
+      expect(tabsSource).toContain('border-primary-foreground/25');
       expect(tabsSource).toContain('border-border/60');
     });
   });
