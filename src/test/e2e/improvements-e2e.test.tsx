@@ -96,7 +96,7 @@ describe('ViewRouter Route Coverage', () => {
     ...systemNav,
   ].map(i => i.id);
 
-  // We import the raw source to parse the switch cases
+  // ViewRouter now uses VIEW_MAP + SPECIAL_VIEWS objects instead of switch/case
   it('ViewRouter must handle every nav item ID', async () => {
     const fs = await import('fs');
     const path = await import('path');
@@ -105,10 +105,11 @@ describe('ViewRouter Route Coverage', () => {
       'utf-8',
     );
 
-    const caseRegex = /case\s+'([^']+)'/g;
+    // Match keys in VIEW_MAP and SPECIAL_VIEWS (e.g. 'inbox': Views.X or 'achievements': ...)
+    const keyRegex = /'([^']+)'\s*:/g;
     const handledCases = new Set<string>();
     let match: RegExpExecArray | null;
-    while ((match = caseRegex.exec(routerSrc)) !== null) {
+    while ((match = keyRegex.exec(routerSrc)) !== null) {
       handledCases.add(match[1]);
     }
 
