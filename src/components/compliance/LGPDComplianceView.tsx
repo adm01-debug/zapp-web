@@ -29,16 +29,16 @@ export function LGPDComplianceView() {
     setIsDeleting(true);
     try {
       // Create a deletion request (admin reviews)
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'gdpr_deletion_request',
-        entity_type: 'user',
-        entity_id: user.id,
-        details: {
+      await supabase.rpc('log_audit_event', {
+        p_action: 'gdpr_deletion_request',
+        p_entity_type: 'user',
+        p_entity_id: user.id,
+        p_details: {
           type: 'right_to_be_forgotten',
           requested_at: new Date().toISOString(),
           email: user.email,
         },
+        p_user_agent: navigator.userAgent,
       });
 
       toast.success('Solicitação de exclusão registrada. Um administrador irá processar em até 30 dias.');
