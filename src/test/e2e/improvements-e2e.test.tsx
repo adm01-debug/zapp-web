@@ -205,13 +205,13 @@ describe('SidebarNavItem Component', () => {
     const onViewChange = vi.fn();
 
     render(
-      <TooltipProvider>
+      <TestWrapper>
         <SidebarNavItem
           item={{ id: 'test', icon: MessageSquare, label: 'Test Item' }}
           currentView="other"
           onViewChange={onViewChange}
         />
-      </TooltipProvider>,
+      </TestWrapper>,
     );
 
     const btn = screen.getByLabelText('Test Item');
@@ -225,13 +225,13 @@ describe('SidebarNavItem Component', () => {
     const { MessageSquare } = await import('lucide-react');
 
     render(
-      <TooltipProvider>
+      <TestWrapper>
         <SidebarNavItem
           item={{ id: 'active-test', icon: MessageSquare, label: 'Active' }}
           currentView="active-test"
           onViewChange={() => {}}
         />
-      </TooltipProvider>,
+      </TestWrapper>,
     );
 
     const btn = screen.getByLabelText('Active');
@@ -253,7 +253,7 @@ describe('SidebarNavGroup Component', () => {
     ];
 
     render(
-      <TooltipProvider>
+      <TestWrapper>
         <SidebarNavGroup
           label="Test Group"
           icon={Megaphone}
@@ -261,7 +261,7 @@ describe('SidebarNavGroup Component', () => {
           currentView="a"
           onViewChange={() => {}}
         />
-      </TooltipProvider>,
+      </TestWrapper>,
     );
 
     const matches = screen.getAllByLabelText(/Test Group/);
