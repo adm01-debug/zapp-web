@@ -107,7 +107,7 @@ export function CSATDashboard() {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className={cn('w-3 h-3', star <= survey.rating ? 'fill-yellow-400 text-warning' : 'text-muted-foreground/20')}
+                        className={cn('w-3 h-3', star <= survey.rating ? 'fill-warning text-warning' : 'text-muted-foreground/20')}
                       />
                     ))}
                   </div>
