@@ -53,7 +53,7 @@ export function PageHeader({
 
   return (
     <header className={cn(
-      'flex flex-col gap-2 px-6 py-4 border-b border-border/50 bg-card/50 backdrop-blur-sm',
+      'flex flex-col gap-2 px-6 py-4 border-b border-border/50 bg-card',
       className
     )}>
       {/* Breadcrumbs row */}
