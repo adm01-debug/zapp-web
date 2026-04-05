@@ -33,9 +33,7 @@ export function GmailWebhookMonitor() {
     setLoading(true);
     try {
       const { data: gmailAccounts } = await supabase
-        .from('gmail_accounts_safe' as 'gmail_accounts')
-        .select('id, email_address, is_active, sync_status, last_sync_at, last_error, created_at, updated_at')
-        .order('created_at', { ascending: false });
+        .rpc('get_own_gmail_accounts');
 
       setAccounts((gmailAccounts || []).map(a => ({ ...a, history_id: null })) as GmailAccount[]);
 
