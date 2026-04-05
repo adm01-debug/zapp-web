@@ -19,11 +19,11 @@ interface StatCard {
 
 const STATS: StatCard[] = [
   { label: 'Clientes', icon: ShoppingCart, table: 'customers', colorClass: 'text-info' },
-  { label: 'Scores RFM', icon: BarChart3, table: 'company_rfm_scores', colorClass: 'text-emerald-500' },
-  { label: 'Vendas', icon: DollarSign, table: 'sales', colorClass: 'text-amber-500' },
-  { label: 'Interações', icon: Activity, table: 'interactions', colorClass: 'text-violet-500' },
-  { label: 'Fornecedores', icon: Package, table: 'suppliers', colorClass: 'text-orange-500' },
-  { label: 'Transportadoras', icon: Truck, table: 'carriers', colorClass: 'text-cyan-500' },
+  { label: 'Scores RFM', icon: BarChart3, table: 'company_rfm_scores', colorClass: 'text-success' },
+  { label: 'Vendas', icon: DollarSign, table: 'sales', colorClass: 'text-warning' },
+  { label: 'Interações', icon: Activity, table: 'interactions', colorClass: 'text-accent' },
+  { label: 'Fornecedores', icon: Package, table: 'suppliers', colorClass: 'text-warning' },
+  { label: 'Transportadoras', icon: Truck, table: 'carriers', colorClass: 'text-info' },
 ];
 
 function StatCardItem({ stat }: { stat: StatCard }) {
