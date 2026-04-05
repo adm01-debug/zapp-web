@@ -45,10 +45,10 @@ export function AgentsView() {
   );
 
   const statsData = [
-    { label: 'Online', value: stats.onlineCount, color: 'bg-status-online' },
-    { label: 'Ausente', value: stats.awayCount, color: 'bg-status-away' },
-    { label: 'Offline', value: stats.offlineCount, color: 'bg-status-offline' },
-    { label: 'Chats Ativos', value: stats.totalActiveChats, icon: MessageSquare },
+    { label: 'Online', value: stats.onlineCount, color: 'bg-status-online', icon: undefined as React.ElementType | undefined },
+    { label: 'Ausente', value: stats.awayCount, color: 'bg-status-away', icon: undefined as React.ElementType | undefined },
+    { label: 'Offline', value: stats.offlineCount, color: 'bg-status-offline', icon: undefined as React.ElementType | undefined },
+    { label: 'Chats Ativos', value: stats.totalActiveChats, color: undefined as string | undefined, icon: MessageSquare as React.ElementType },
   ];
 
   if (isLoading) {
@@ -158,14 +158,14 @@ export function AgentsView() {
           onConfigurePermissions={() => setPermissionsOpen(true)}
         />
       ) : (
-        <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredAgents.map((agent) => {
             const maxChats = agent.max_chats || 5;
             const capacityPercent = (agent.activeChats / maxChats) * 100;
 
             return (
               <StaggeredItem key={agent.id}>
-                <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
+                <Card className="cursor-pointer border border-secondary/20 bg-card hover:border-secondary/40 transition-all duration-200 hover:shadow-[0_0_20px_hsl(var(--secondary)/0.2)] hover:-translate-y-0.5">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
