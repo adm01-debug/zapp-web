@@ -12,7 +12,7 @@ const ratingColors: Record<number, string> = {
   2: 'bg-warning',
   3: 'bg-warning',
   4: 'bg-emerald-400',
-  5: 'bg-emerald-500',
+  5: 'bg-success',
 };
 
 export function CSATDashboard() {

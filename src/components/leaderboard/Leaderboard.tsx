@@ -225,7 +225,7 @@ function LeaderboardRow({ agent, index }: { agent: LeaderboardAgent; index: numb
           : agent.rank === 2
           ? 'border-border/20 bg-muted/5'
           : agent.rank === 3
-          ? 'border-amber-600/20 bg-amber-600/5'
+          ? 'border-amber-600/20 bg-warning/5'
           : 'border-border/20 bg-muted/10 hover:border-primary/20 hover:bg-muted/20'
       }`}
     >

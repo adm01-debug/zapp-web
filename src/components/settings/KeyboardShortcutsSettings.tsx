@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 const categoryConfig = {
   chat: { icon: MessageSquare, label: 'Chat', color: 'bg-info/10 text-info' },
   navigation: { icon: Navigation, label: 'Navegação', color: 'bg-primary/10 text-primary' },
-  actions: { icon: Zap, label: 'Ações', color: 'bg-amber-500/10 text-amber-500' },
+  actions: { icon: Zap, label: 'Ações', color: 'bg-warning/10 text-warning' },
   selection: { icon: MousePointerClick, label: 'Seleção', color: 'bg-success/10 text-success' },
 };
 

@@ -338,7 +338,7 @@ export function RealtimeInboxView() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <h2 className="text-xs font-semibold text-foreground tracking-tight">Conversas</h2>
-                <span className={cn('w-1.5 h-1.5 rounded-full', isOnline ? 'bg-emerald-500' : 'bg-destructive')} />
+                <span className={cn('w-1.5 h-1.5 rounded-full', isOnline ? 'bg-success' : 'bg-destructive')} />
               </div>
               <div className="flex items-center gap-0.5">
                 <Tooltip>

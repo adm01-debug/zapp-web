@@ -365,7 +365,7 @@ export function QueuesComparisonDashboard() {
                                 assignmentRate >= 80
                                   ? 'bg-success/10 text-success'
                                   : assignmentRate >= 50
-                                  ? 'bg-amber-500/10 text-amber-500'
+                                  ? 'bg-warning/10 text-warning'
                                   : 'bg-destructive/10 text-destructive'
                               }
                             >

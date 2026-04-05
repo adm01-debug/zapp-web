@@ -14,9 +14,9 @@ import { useState } from 'react';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   running: { label: 'Em execução', color: 'bg-info/20 text-info border-info/30', icon: Play },
-  completed: { label: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: CheckCircle2 },
+  completed: { label: 'Concluído', color: 'bg-success/20 text-success border-emerald-500/30', icon: CheckCircle2 },
   failed: { label: 'Falhou', color: 'bg-destructive/20 text-destructive border-destructive/30', icon: XCircle },
-  waiting: { label: 'Aguardando', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: Clock },
+  waiting: { label: 'Aguardando', color: 'bg-warning/20 text-warning border-amber-500/30', icon: Clock },
 };
 
 export function ChatbotExecutionsDashboard() {
@@ -87,8 +87,8 @@ export function ChatbotExecutionsDashboard() {
         </Card>
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-success" />
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.completed}</p>

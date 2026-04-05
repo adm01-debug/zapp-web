@@ -409,8 +409,8 @@ export function ConnectionsView() {
                                   )}
                                   <span className={cn(
                                     'relative inline-flex rounded-full h-2 w-2',
-                                    connection.health_status === 'healthy' && 'bg-emerald-500',
-                                    connection.health_status === 'degraded' && 'bg-amber-500',
+                                    connection.health_status === 'healthy' && 'bg-success',
+                                    connection.health_status === 'degraded' && 'bg-warning',
                                     (connection.health_status === 'error' || connection.health_status === 'timeout' || connection.health_status === 'disconnected') && 'bg-destructive',
                                   )} />
                                 </span>

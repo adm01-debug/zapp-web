@@ -331,7 +331,7 @@ export const SWIPE_ACTIONS = {
   star: (onAction: () => void): SwipeAction => ({
     icon: Star,
     color: 'text-primary-foreground',
-    bgColor: 'bg-amber-500',
+    bgColor: 'bg-warning',
     label: 'Favoritar',
     action: onAction,
   }),

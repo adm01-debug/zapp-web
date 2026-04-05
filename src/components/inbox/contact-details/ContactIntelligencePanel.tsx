@@ -100,9 +100,9 @@ function TriggersSection({ triggers }: { triggers: MentalTrigger[] }) {
   if (!triggers.length) return null;
 
   const categoryColors: Record<string, string> = {
-    reciprocity: 'bg-violet-500/10 text-violet-600 border-violet-500/20',
+    reciprocity: 'bg-accent/10 text-violet-600 border-violet-500/20',
     social: 'bg-info/10 text-info border-info/20',
-    authority: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    authority: 'bg-warning/10 text-warning border-amber-500/20',
     scarcity: 'bg-destructive/10 text-destructive border-destructive/20',
     commitment: 'bg-teal-500/10 text-teal-600 border-teal-500/20',
     liking: 'bg-secondary/10 text-secondary border-secondary/20',
@@ -200,7 +200,7 @@ function ChurnAlert({ churn }: { churn: ChurnData }) {
 function DISCSection({ disc }: { disc: DISCTips }) {
   const profileColors: Record<string, string> = {
     D: 'bg-destructive/10 text-destructive',
-    I: 'bg-amber-500/10 text-amber-600',
+    I: 'bg-warning/10 text-warning',
     S: 'bg-teal-500/10 text-teal-600',
     C: 'bg-info/10 text-info',
   };

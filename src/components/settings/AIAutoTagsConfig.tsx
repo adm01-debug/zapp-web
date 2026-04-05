@@ -77,11 +77,11 @@ export function AIAutoTagsConfig() {
     vendas: 'bg-success/15 text-success border-success',
     financeiro: 'bg-warning/15 text-warning border-warning',
     reclamacao: 'bg-destructive/15 text-destructive border-destructive',
-    elogio: 'bg-emerald-500/15 text-emerald-700 border-emerald-300',
+    elogio: 'bg-success/15 text-emerald-700 border-emerald-300',
     urgente: 'bg-destructive/15 text-destructive border-destructive/30',
     cancelamento: 'bg-warning/15 text-warning border-warning',
     duvida: 'bg-primary/15 text-primary border-primary',
-    feedback: 'bg-cyan-500/15 text-cyan-700 border-cyan-300',
+    feedback: 'bg-info/15 text-cyan-700 border-cyan-300',
   };
 
   return (

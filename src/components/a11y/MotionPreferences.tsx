@@ -192,10 +192,10 @@ export function MotionSettingsPanel({ className }: { className?: string }) {
       </div>
       
       {prefersReducedMotion && (
-        <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-          <span className="text-amber-500 text-lg">⚠️</span>
+        <div className="flex items-start gap-3 p-3 bg-warning/10 border border-amber-500/20 rounded-lg">
+          <span className="text-warning text-lg">⚠️</span>
           <div className="text-sm">
-            <p className="font-medium text-amber-500">Movimento reduzido detectado</p>
+            <p className="font-medium text-warning">Movimento reduzido detectado</p>
             <p className="text-muted-foreground">
               Seu sistema está configurado para preferir movimento reduzido.
             </p>

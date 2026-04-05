@@ -87,7 +87,7 @@ function ThreadListItem({
           </p>
           <div className="flex items-center gap-0.5 shrink-0">
             {thread.is_starred && <Star className="w-3 h-3 text-warning fill-warning" />}
-            {thread.is_important && <AlertCircle className="w-3 h-3 text-orange-500" />}
+            {thread.is_important && <AlertCircle className="w-3 h-3 text-warning" />}
           </div>
         </div>
 

@@ -70,7 +70,7 @@ interface ErrorLog {
 
 // ─── Status helpers ───
 function StatusDot({ status }: { status: string }) {
-  const color = status === 'connected' ? 'bg-emerald-500' : status === 'connecting' ? 'bg-amber-500' : 'bg-destructive';
+  const color = status === 'connected' ? 'bg-success' : status === 'connecting' ? 'bg-warning' : 'bg-destructive';
   return (
     <span className="relative flex h-3 w-3">
       {status === 'connected' && <span className={cn('absolute inline-flex h-full w-full animate-ping rounded-full opacity-75', color)} />}
@@ -81,8 +81,8 @@ function StatusDot({ status }: { status: string }) {
 
 function HealthBadge({ status }: { status: 'healthy' | 'degraded' | 'down' }) {
   const config = {
-    healthy: { label: 'Saudável', variant: 'default' as const, icon: CheckCircle2, className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-    degraded: { label: 'Degradado', variant: 'secondary' as const, icon: AlertTriangle, className: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+    healthy: { label: 'Saudável', variant: 'default' as const, icon: CheckCircle2, className: 'bg-success/10 text-success border-emerald-500/20' },
+    degraded: { label: 'Degradado', variant: 'secondary' as const, icon: AlertTriangle, className: 'bg-warning/10 text-warning border-amber-500/20' },
     down: { label: 'Fora do ar', variant: 'destructive' as const, icon: XCircle, className: 'bg-destructive/10 text-destructive border-destructive/20' },
   };
   const c = config[status];
@@ -372,7 +372,7 @@ export function DiagnosticsView() {
 
   const severityConfig = {
     info: { icon: Activity, color: 'text-info', bg: 'bg-info/10', border: 'border-info/20' },
-    warning: { icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    warning: { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10', border: 'border-amber-500/20' },
     error: { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20' },
     critical: { icon: Bug, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20' },
   };
@@ -415,7 +415,7 @@ export function DiagnosticsView() {
             </Badge>
           )}
           {warningCount > 0 && (
-            <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-500 border-amber-500/20">
+            <Badge variant="outline" className="gap-1 bg-warning/10 text-warning border-amber-500/20">
               <AlertTriangle className="w-3.5 h-3.5" />
               {warningCount} aviso(s)
             </Badge>
@@ -517,8 +517,8 @@ export function DiagnosticsView() {
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge variant="outline" className={cn(
-                          conn.status === 'connected' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                          conn.status === 'connecting' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                          conn.status === 'connected' ? 'bg-success/10 text-success border-emerald-500/20' :
+                          conn.status === 'connecting' ? 'bg-warning/10 text-warning border-amber-500/20' :
                           'bg-destructive/10 text-destructive border-destructive/20'
                         )}>
                           {conn.status === 'connected' ? 'Conectado' : conn.status === 'connecting' ? 'Conectando' : conn.status || 'Desconectado'}
@@ -561,8 +561,8 @@ export function DiagnosticsView() {
                           transition={{ duration: 1, ease: 'easeOut' }}
                           className={cn(
                             'h-full rounded-full',
-                            messageDiag.deliveryRate >= 90 ? 'bg-emerald-500' :
-                            messageDiag.deliveryRate >= 70 ? 'bg-amber-500' : 'bg-destructive'
+                            messageDiag.deliveryRate >= 90 ? 'bg-success' :
+                            messageDiag.deliveryRate >= 70 ? 'bg-warning' : 'bg-destructive'
                           )}
                         />
                       </div>
@@ -626,13 +626,13 @@ export function DiagnosticsView() {
                           <div className="flex items-center gap-4">
                             <div className={cn(
                               'p-2.5 rounded-xl',
-                              health[key] === 'healthy' ? 'bg-emerald-500/10' :
-                              health[key] === 'degraded' ? 'bg-amber-500/10' : 'bg-destructive/10'
+                              health[key] === 'healthy' ? 'bg-success/10' :
+                              health[key] === 'degraded' ? 'bg-warning/10' : 'bg-destructive/10'
                             )}>
                               <Icon className={cn(
                                 'w-5 h-5',
-                                health[key] === 'healthy' ? 'text-emerald-500' :
-                                health[key] === 'degraded' ? 'text-amber-500' : 'text-destructive'
+                                health[key] === 'healthy' ? 'text-success' :
+                                health[key] === 'degraded' ? 'text-warning' : 'text-destructive'
                               )} />
                             </div>
                             <div>
@@ -653,8 +653,8 @@ export function DiagnosticsView() {
                     <Shield className={cn(
                       'w-8 h-8',
                       Object.values({ db: health.database, st: health.storage, rt: health.realtime, ef: health.edgeFunctions }).every(s => s === 'healthy')
-                        ? 'text-emerald-500'
-                        : 'text-amber-500'
+                        ? 'text-success'
+                        : 'text-warning'
                     )} />
                     <div>
                       <p className="font-semibold text-foreground">
@@ -680,7 +680,7 @@ export function DiagnosticsView() {
             {errorLogs.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mb-4" />
+                  <CheckCircle2 className="w-12 h-12 text-success mb-4" />
                   <p className="text-lg font-medium text-foreground">Nenhum problema detectado</p>
                   <p className="text-sm text-muted-foreground">Todos os sistemas estão funcionando normalmente.</p>
                 </CardContent>

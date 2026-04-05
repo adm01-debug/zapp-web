@@ -322,8 +322,8 @@ export function InfoBanner({
       icon: <Lightbulb className="w-5 h-5 text-success" />,
     },
     warning: {
-      bg: 'bg-amber-500/10 border-amber-500/20',
-      icon: <HelpCircle className="w-5 h-5 text-amber-500" />,
+      bg: 'bg-warning/10 border-amber-500/20',
+      icon: <HelpCircle className="w-5 h-5 text-warning" />,
     },
   };
   

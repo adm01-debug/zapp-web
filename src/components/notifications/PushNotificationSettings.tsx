@@ -216,11 +216,11 @@ export function PushNotificationSettings() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20"
+              className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-amber-500/20"
             >
-              <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <Info className="w-5 h-5 text-warning shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-amber-600 dark:text-amber-400">Navegador não suportado</p>
+                <p className="font-medium text-warning dark:text-warning">Navegador não suportado</p>
                 <p className="text-sm text-muted-foreground">
                   Seu navegador não suporta notificações push. Tente usar Chrome, Firefox, 
                   Edge ou Safari.

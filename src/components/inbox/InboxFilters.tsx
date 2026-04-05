@@ -230,8 +230,8 @@ export function InboxFilters({ filters, onFiltersChange }: InboxFiltersProps) {
                       <span className="flex items-center gap-1.5">
                         <span className={cn(
                           'w-1.5 h-1.5 rounded-full',
-                          agent.status === 'online' ? 'bg-emerald-500' :
-                          agent.status === 'away' ? 'bg-amber-500' : 'bg-muted-foreground/40'
+                          agent.status === 'online' ? 'bg-success' :
+                          agent.status === 'away' ? 'bg-warning' : 'bg-muted-foreground/40'
                         )} />
                         {agent.name}
                       </span>
