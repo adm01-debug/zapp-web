@@ -32,20 +32,20 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.SPEED_DEMON]: {
     icon: Rocket,
-    gradient: 'from-red-500 to-orange-400',
+    gradient: 'from-destructive to-warning',
     bgGlow: 'shadow-red-500/30',
     rarity: 'rare',
   },
   [ACHIEVEMENT_TYPES.STREAK]: {
     icon: Flame,
-    gradient: 'from-orange-500 to-warning',
-    bgGlow: 'shadow-orange-500/30',
+    gradient: 'from-warning to-warning',
+    bgGlow: 'shadow-warning/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.STREAK_MASTER]: {
     icon: Flame,
-    gradient: 'from-orange-600 to-red-500',
-    bgGlow: 'shadow-orange-600/30',
+    gradient: 'from-warning to-destructive',
+    bgGlow: 'shadow-warning/30',
     rarity: 'epic',
   },
   [ACHIEVEMENT_TYPES.RESOLUTION]: {
@@ -62,19 +62,19 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.LEVEL_UP]: {
     icon: Crown,
-    gradient: 'from-primary to-fuchsia-400',
+    gradient: 'from-primary to-accent',
     bgGlow: 'shadow-purple-500/30',
     rarity: 'epic',
   },
   [ACHIEVEMENT_TYPES.DAILY_GOAL]: {
     icon: Trophy,
     gradient: 'from-info to-info',
-    bgGlow: 'shadow-teal-400/30',
+    bgGlow: 'shadow-info/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.FIRST_MESSAGE]: {
     icon: MessageSquare,
-    gradient: 'from-info to-indigo-400',
+    gradient: 'from-info to-secondary',
     bgGlow: 'shadow-blue-500/30',
     rarity: 'common',
   },
@@ -86,14 +86,14 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.MESSAGE_MILESTONE]: {
     icon: Medal,
-    gradient: 'from-indigo-500 to-primary',
-    bgGlow: 'shadow-indigo-500/30',
+    gradient: 'from-secondary to-primary',
+    bgGlow: 'shadow-secondary/30',
     rarity: 'rare',
   },
   [ACHIEVEMENT_TYPES.TEAM_PLAYER]: {
     icon: Users,
-    gradient: 'from-pink-500 to-rose-400',
-    bgGlow: 'shadow-pink-500/30',
+    gradient: 'from-destructive to-destructive',
+    bgGlow: 'shadow-destructive/30',
     rarity: 'rare',
   },
 };

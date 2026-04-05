@@ -26,7 +26,7 @@ export function DemoAchievements() {
       label: 'Resposta < 30s',
       icon: Rocket,
       action: () => triggerFastResponse(25),
-      gradient: 'from-red-500 to-orange-400',
+      gradient: 'from-destructive to-warning',
     },
     {
       label: 'Resposta < 2min',
@@ -38,13 +38,13 @@ export function DemoAchievements() {
       label: 'Streak 5',
       icon: Flame,
       action: () => triggerStreak(5),
-      gradient: 'from-orange-500 to-warning',
+      gradient: 'from-warning to-warning',
     },
     {
       label: 'Streak 10',
       icon: Flame,
       action: () => triggerStreak(10),
-      gradient: 'from-orange-600 to-red-500',
+      gradient: 'from-warning to-destructive',
     },
     {
       label: 'Resolução',
@@ -62,7 +62,7 @@ export function DemoAchievements() {
       label: 'Level Up!',
       icon: Crown,
       action: () => triggerLevelUp((stats?.level || 1) + 1),
-      gradient: 'from-primary to-fuchsia-400',
+      gradient: 'from-primary to-accent',
     },
     {
       label: 'Meta Diária',

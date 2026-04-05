@@ -104,7 +104,7 @@ export const PremiumBadge = memo(function PremiumBadge({
 }: PremiumBadgeProps) {
   const configs = {
     pro: { icon: Crown, label: 'PRO', className: 'bg-gradient-to-r from-warning to-warning text-primary-foreground' },
-    premium: { icon: Star, label: 'Premium', className: 'bg-gradient-to-r from-primary to-pink-500 text-primary-foreground' },
+    premium: { icon: Star, label: 'Premium', className: 'bg-gradient-to-r from-primary to-destructive text-primary-foreground' },
     gold: { icon: Sparkles, label: 'Gold', className: 'bg-gradient-to-r from-warning to-warning text-foreground' },
     new: { icon: Zap, label: 'Novo', className: 'bg-gradient-to-r from-success to-info text-primary-foreground' },
     beta: { icon: Sparkles, label: 'Beta', className: 'bg-gradient-to-r from-info to-info text-primary-foreground' },
