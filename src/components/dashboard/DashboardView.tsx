@@ -489,6 +489,9 @@ export function DashboardView() {
         </div>
       </motion.div>
 
+      {/* Divider */}
+      <div className="relative z-10 border-t border-border/20" />
+
       {/* Global Filters */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
