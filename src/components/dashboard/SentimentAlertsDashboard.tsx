@@ -20,7 +20,7 @@ import { useSentimentData, getSentimentColor, getSentimentBg, getSentimentLabel 
 export function SentimentAlertsDashboard() {
   const [period, setPeriod] = useState('7');
   const [activeTab, setActiveTab] = useState('overview');
-  const { alerts, loading, stats, dailyData, agentData, fetchData } = useSentimentData(period);
+  const { alerts, analyses, loading, stats, dailyData, agentData, fetchData } = useSentimentData(period);
 
   return (
     <div className="p-6 space-y-6">
