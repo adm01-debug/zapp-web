@@ -79,7 +79,7 @@ export function PasswordResetRequestsPanel() {
   const fetchRequests = async () => {
     try {
       const { data, error } = await supabase
-        .from('password_reset_requests')
+        .from('password_reset_requests_safe' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
