@@ -37,7 +37,7 @@ import { ActivityHeatmap } from './ActivityHeatmap';
 import ConversationHeatmap from './ConversationHeatmap';
 import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
 import { ProgressiveDisclosureDashboard } from './ProgressiveDisclosureDashboard';
 import { DraggableWidgetContainer } from './DraggableWidgetContainer';
