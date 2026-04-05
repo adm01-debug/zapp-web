@@ -447,8 +447,8 @@ export function GeoBlockingPanel() {
                     </Select>
                   </div>
                   {activeTab === 'blacklist' && (
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                      <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-amber-500/20">
+                      <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
                       <p className="text-sm text-muted-foreground">
                         Todos os usuários deste país serão bloqueados.
                       </p>
@@ -507,7 +507,7 @@ export function GeoBlockingPanel() {
                     {search ? 'Nenhum país encontrado' : `Nenhum país na ${activeTab}`}
                   </p>
                   {activeTab === 'whitelist' && settings?.mode === 'whitelist' && allowedCountries.length === 0 && (
-                    <p className="text-xs text-amber-500 mt-2">
+                    <p className="text-xs text-warning mt-2">
                       ⚠️ Atenção: com whitelist ativa e vazia, ninguém poderá acessar!
                     </p>
                   )}

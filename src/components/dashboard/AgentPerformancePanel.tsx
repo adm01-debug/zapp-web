@@ -64,7 +64,7 @@ export function AgentPerformancePanel() {
   });
 
   const rankIcons = [Crown, Medal, Trophy];
-  const rankColors = ['text-warning', 'text-muted-foreground', 'text-amber-600'];
+  const rankColors = ['text-warning', 'text-muted-foreground', 'text-warning'];
 
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${Math.round(seconds)}s`;

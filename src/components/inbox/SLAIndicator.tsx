@@ -120,14 +120,14 @@ function calculateSLAState(
 
 const statusStyles = {
   ok: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-500',
+    bg: 'bg-success/10',
+    text: 'text-success',
     border: 'border-emerald-500/30',
     icon: CheckCircle,
   },
   warning: {
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-500',
+    bg: 'bg-warning/10',
+    text: 'text-warning',
     border: 'border-amber-500/30',
     icon: Clock,
   },
@@ -215,7 +215,7 @@ export function SLAIndicator({
                 <Timer className="w-3 h-3" />
                 <span className="font-medium">Primeira Resposta:</span>
                 {firstResponseAt ? (
-                  <span className={slaState.firstResponse.breached ? 'text-destructive' : 'text-emerald-500'}>
+                  <span className={slaState.firstResponse.breached ? 'text-destructive' : 'text-success'}>
                     {slaState.firstResponse.breached ? 'Violado' : 'OK'}
                   </span>
                 ) : (
@@ -230,7 +230,7 @@ export function SLAIndicator({
                 <Clock className="w-3 h-3" />
                 <span className="font-medium">Resolução:</span>
                 {resolvedAt ? (
-                  <span className={slaState.resolution.breached ? 'text-destructive' : 'text-emerald-500'}>
+                  <span className={slaState.resolution.breached ? 'text-destructive' : 'text-success'}>
                     {slaState.resolution.breached ? 'Violado' : 'OK'}
                   </span>
                 ) : (

@@ -199,7 +199,7 @@ export function RealTimeValidation({
           className={cn(
             "flex items-center gap-2 text-sm",
             result.passed ? "text-success" : 
-            result.type === 'error' ? "text-destructive" : "text-amber-500"
+            result.type === 'error' ? "text-destructive" : "text-warning"
           )}
         >
           {result.passed ? (

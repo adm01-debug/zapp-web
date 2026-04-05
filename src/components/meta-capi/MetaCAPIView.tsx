@@ -36,7 +36,7 @@ const EVENT_TYPES = [
   { name: 'InitiateCheckout', label: 'Checkout', icon: ShoppingCart, color: 'text-warning' },
   { name: 'AddToCart', label: 'Carrinho', icon: ShoppingCart, color: 'text-warning' },
   { name: 'ViewContent', label: 'Visualização', icon: Eye, color: 'text-primary' },
-  { name: 'Contact', label: 'Contato', icon: MousePointer, color: 'text-cyan-400' },
+  { name: 'Contact', label: 'Contato', icon: MousePointer, color: 'text-info' },
 ];
 
 export function MetaCAPIView() {

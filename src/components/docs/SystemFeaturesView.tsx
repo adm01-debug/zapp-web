@@ -78,7 +78,7 @@ const sections = [
     ]
   },
   {
-    id: 6, title: "Gestão de Contatos", icon: Users, color: "text-cyan-500",
+    id: 6, title: "Gestão de Contatos", icon: Users, color: "text-info",
     items: [
       "CRUD de contatos", "Campos estendidos (nome, apelido, sobrenome, cargo, empresa)",
       "Avatar de contato", "Atribuição de contato a agente", "Atribuição a fila",
@@ -98,7 +98,7 @@ const sections = [
     ]
   },
   {
-    id: 8, title: "SLA (Service Level Agreement)", icon: Clock, color: "text-amber-500",
+    id: 8, title: "SLA (Service Level Agreement)", icon: Clock, color: "text-warning",
     items: [
       "Configuração de SLA (tempo resposta/resolução)", "Tracking de SLA por conversa",
       "Indicador visual de SLA no chat", "Dashboard de métricas SLA",
@@ -145,7 +145,7 @@ const sections = [
     ]
   },
   {
-    id: 13, title: "Catálogo de Produtos e E-commerce", icon: ShoppingCart, color: "text-emerald-500",
+    id: 13, title: "Catálogo de Produtos e E-commerce", icon: ShoppingCart, color: "text-success",
     items: [
       "Catálogo de produtos", "Card de produto", "Gerenciamento de produtos (CRUD)",
       "Mensagem de produto no chat", "Mensagem de pagamento (PIX, status)",
@@ -177,7 +177,7 @@ const sections = [
     ]
   },
   {
-    id: 17, title: "Chamadas (Calls)", icon: Phone, color: "text-violet-500",
+    id: 17, title: "Chamadas (Calls)", icon: Phone, color: "text-accent",
     items: [
       "Diálogo de chamada", "Chamadas inbound/outbound",
       "Status (ringing/answered/ended)", "Duração e gravação",
@@ -192,7 +192,7 @@ const sections = [
     ]
   },
   {
-    id: 19, title: "Automações", icon: Zap, color: "text-amber-400",
+    id: 19, title: "Automações", icon: Zap, color: "text-warning",
     items: [
       "Gerenciador de automações", "Atribuição automática de chats",
       "Métodos de distribuição (round-robin, aleatório, menor carga)",
@@ -269,7 +269,7 @@ const sections = [
     ]
   },
   {
-    id: 27, title: "Mobile e PWA", icon: Smartphone, color: "text-cyan-400",
+    id: 27, title: "Mobile e PWA", icon: Smartphone, color: "text-info",
     items: [
       "PWA (manifest.json completo)", "Service Worker", "Navegação mobile (bottom nav)",
       "Bottom Sheet", "Gestos swipe", "Swipeable list items", "Detecção de dispositivo",
@@ -295,7 +295,7 @@ const sections = [
     ]
   },
   {
-    id: 30, title: "Integrações Externas", icon: Plug, color: "text-emerald-400",
+    id: 30, title: "Integrações Externas", icon: Plug, color: "text-success",
     items: [
       "Evolution API (WhatsApp) — 60+ endpoints", "Evolution API — Webhook de recebimento",
       "Evolution API — Sync de dados", "WhatsApp Cloud API — Webhook",

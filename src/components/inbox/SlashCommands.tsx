@@ -76,7 +76,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Adicionar nota privada à conversa',
     icon: StickyNote,
     category: 'notes',
-    color: 'text-amber-500',
+    color: 'text-warning',
     shortcut: 'N',
   },
   {
@@ -86,7 +86,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Adicionar ou remover tags',
     icon: Tag,
     category: 'tags',
-    color: 'text-cyan-500',
+    color: 'text-info',
     shortcut: 'G',
     subCommands: [
       { id: 'add', label: 'Adicionar Tag', value: 'add' },
@@ -171,7 +171,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Usar uma resposta rápida salva',
     icon: Zap,
     category: 'templates',
-    color: 'text-emerald-500',
+    color: 'text-success',
     shortcut: 'K',
   },
   {
@@ -181,7 +181,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Gerar resumo da conversa com IA',
     icon: MessageSquare,
     category: 'actions',
-    color: 'text-violet-500',
+    color: 'text-accent',
     shortcut: 'I',
   },
   {
@@ -191,7 +191,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
     description: 'Buscar e enviar produto do catálogo',
     icon: Package,
     category: 'actions',
-    color: 'text-emerald-500',
+    color: 'text-success',
     shortcut: 'C',
   },
 ];
@@ -310,8 +310,8 @@ export function SlashCommands({
   const categoryColors = {
     actions: 'bg-info/10 text-info',
     templates: 'bg-primary/10 text-primary',
-    notes: 'bg-amber-500/10 text-amber-500',
-    tags: 'bg-cyan-500/10 text-cyan-500',
+    notes: 'bg-warning/10 text-warning',
+    tags: 'bg-info/10 text-info',
     priority: 'bg-warning/10 text-warning',
   };
 

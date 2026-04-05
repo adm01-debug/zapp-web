@@ -90,11 +90,11 @@ export function ConnectionHealthPanel() {
   };
 
   const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; label: string; bg: string }> = {
-    healthy: { icon: CheckCircle2, color: 'text-emerald-500', label: 'Saudável', bg: 'bg-emerald-500/10' },
-    degraded: { icon: AlertTriangle, color: 'text-amber-500', label: 'Degradado', bg: 'bg-amber-500/10' },
+    healthy: { icon: CheckCircle2, color: 'text-success', label: 'Saudável', bg: 'bg-success/10' },
+    degraded: { icon: AlertTriangle, color: 'text-warning', label: 'Degradado', bg: 'bg-warning/10' },
     disconnected: { icon: WifiOff, color: 'text-destructive', label: 'Desconectado', bg: 'bg-destructive/10' },
     error: { icon: XCircle, color: 'text-destructive', label: 'Erro', bg: 'bg-destructive/10' },
-    timeout: { icon: Timer, color: 'text-amber-500', label: 'Timeout', bg: 'bg-amber-500/10' },
+    timeout: { icon: Timer, color: 'text-warning', label: 'Timeout', bg: 'bg-warning/10' },
     unknown: { icon: Activity, color: 'text-muted-foreground', label: 'Desconhecido', bg: 'bg-muted/50' },
   };
 
@@ -200,11 +200,11 @@ export function ConnectionHealthPanel() {
                     <div className="flex items-center gap-2">
                       <span className="relative flex h-2 w-2">
                         {conn.status === 'connected' && (
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
                         )}
                         <span className={cn(
                           'relative inline-flex h-2 w-2 rounded-full',
-                          conn.status === 'connected' ? 'bg-emerald-500' : 'bg-destructive'
+                          conn.status === 'connected' ? 'bg-success' : 'bg-destructive'
                         )} />
                       </span>
                       <span className="text-xs text-muted-foreground capitalize">{conn.status}</span>
@@ -245,7 +245,7 @@ export function ConnectionHealthPanel() {
                     {log.error_message && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500 cursor-help" />
+                          <AlertTriangle className="w-3.5 h-3.5 text-warning cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-xs">{log.error_message}</p>

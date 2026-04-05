@@ -59,12 +59,12 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string | 
 // ─── RFM Badge ───────────────────────────────────────────────
 function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
   const segmentColors: Record<string, string> = {
-    Champions: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+    Champions: 'bg-success/15 text-success border-emerald-500/30',
     'Loyal Customers': 'bg-info/15 text-info border-info/30',
     'Potential Loyalist': 'bg-sky-500/15 text-sky-600 border-sky-500/30',
-    'Recent Customers': 'bg-violet-500/15 text-violet-600 border-violet-500/30',
+    'Recent Customers': 'bg-accent/15 text-violet-600 border-violet-500/30',
     Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',
-    'Need Attention': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+    'Need Attention': 'bg-warning/15 text-warning border-amber-500/30',
     'About to Sleep': 'bg-warning/15 text-warning border-warning/30',
     'At Risk': 'bg-destructive/15 text-destructive border-destructive/30',
     Hibernating: 'bg-muted text-muted-foreground border-border',

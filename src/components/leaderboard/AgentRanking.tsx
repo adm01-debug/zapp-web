@@ -73,7 +73,7 @@ function getRankIcon(position: number) {
     case 2:
       return <Medal className="w-5 h-5 text-muted-foreground" />;
     case 3:
-      return <Award className="w-5 h-5 text-amber-600" />;
+      return <Award className="w-5 h-5 text-warning" />;
     default:
       return <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-muted-foreground">#{position}</span>;
   }

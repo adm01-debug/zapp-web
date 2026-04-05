@@ -124,8 +124,8 @@ const typeConfig: Record<NotificationType, {
   },
   goal: { 
     icon: Target, 
-    color: 'text-emerald-500', 
-    bgColor: 'bg-emerald-500/10',
+    color: 'text-success', 
+    bgColor: 'bg-success/10',
     label: 'Meta' 
   },
   message: { 
