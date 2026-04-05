@@ -151,7 +151,7 @@ function ContactResultCard({
             <img
               src={contact.company_logo}
               alt=""
-              className="w-5 h-5 rounded object-contain bg-white border border-border/20"
+              className="w-5 h-5 rounded object-contain bg-background border border-border/20"
             />
           ) : (
             <Building className="w-4 h-4 text-muted-foreground shrink-0" />

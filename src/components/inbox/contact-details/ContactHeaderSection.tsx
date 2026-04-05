@@ -228,7 +228,7 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
             <img
               src={crmCompany.logo_url}
               alt={crmCompany.nome_fantasia || ''}
-              className="absolute -top-1 -left-1 w-8 h-8 rounded-md object-contain bg-white border border-border/30 ring-2 ring-background"
+              className="absolute -top-1 -left-1 w-8 h-8 rounded-md object-contain bg-background border border-border/30 ring-2 ring-background"
             />
           )}
         </div>

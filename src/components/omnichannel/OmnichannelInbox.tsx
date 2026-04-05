@@ -30,7 +30,7 @@ interface UnifiedMessage {
 
 const CHANNEL_CONFIG: Record<ChannelType, { icon: typeof MessageSquare; label: string; color: string }> = {
   whatsapp: { icon: MessageSquare, label: 'WhatsApp', color: 'text-success bg-success/10' },
-  instagram: { icon: Instagram, label: 'Instagram', color: 'text-pink-500 bg-pink-500/10' },
+  instagram: { icon: Instagram, label: 'Instagram', color: 'text-accent bg-accent/10' },
   telegram: { icon: SendIcon, label: 'Telegram', color: 'text-info bg-info/10' },
   messenger: { icon: Facebook, label: 'Messenger', color: 'text-info bg-info/10' },
   email: { icon: Mail, label: 'Email', color: 'text-warning bg-warning/10' },
