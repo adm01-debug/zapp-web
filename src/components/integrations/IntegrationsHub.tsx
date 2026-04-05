@@ -24,7 +24,7 @@ const integrations = [
     name: 'Sentry',
     description: 'Monitoramento de erros, performance e session replays em tempo real.',
     icon: Bug,
-    color: 'bg-[#362D59]',
+    color: 'bg-[hsl(255_35%_27%)]',
     status: 'available' as const,
   },
   {
@@ -32,7 +32,7 @@ const integrations = [
     name: 'Bitrix24',
     description: 'CRM completo com sincronização de leads, contatos, negócios e telefonia VoIP.',
     icon: Building2,
-    color: 'bg-[#2FC7F7]',
+    color: 'bg-[hsl(193_92%_58%)]',
     status: 'available' as const,
   },
 ];

@@ -580,8 +580,8 @@ export function WhatsAppTemplatesManager() {
               )}
 
               {/* WhatsApp-like preview */}
-              <div className="bg-[#0b141a] rounded-xl p-4">
-                <div className="bg-[#005c4b] rounded-lg p-3 max-w-[280px] ml-auto">
+              <div className="bg-[hsl(202_50%_8%)] rounded-xl p-4">
+                <div className="bg-whatsapp-dark rounded-lg p-3 max-w-[280px] ml-auto">
                   {previewTemplate.header_text && (
                     <p className="text-primary-foreground font-bold text-sm mb-1">
                       {renderPreviewContent(previewTemplate.header_text, previewVariables)}
