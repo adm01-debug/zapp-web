@@ -89,7 +89,7 @@ export default function ForgotPassword() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: 'spring' }}
-                className="mx-auto mb-4 w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center"
+                className="mx-auto mb-4 w-16 h-16 bg-warning/10 dark:bg-warning/20 rounded-full flex items-center justify-center"
               >
                 <Clock className="w-8 h-8 text-warning dark:text-warning" />
               </motion.div>

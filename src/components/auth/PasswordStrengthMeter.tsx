@@ -65,7 +65,7 @@ export function PasswordStrengthMeter({ password, onStrengthChange }: PasswordSt
 
   const strengthColor = useMemo(() => {
     if (strengthPercent < 40) return { bg: 'bg-destructive', text: 'text-destructive', glow: 'shadow-destructive/50' };
-    if (strengthPercent < 60) return { bg: 'bg-warning', text: 'text-warning', glow: 'shadow-amber-500/50' };
+    if (strengthPercent < 60) return { bg: 'bg-warning', text: 'text-warning', glow: 'shadow-warning/50' };
     if (strengthPercent < 80) return { bg: 'bg-info', text: 'text-info', glow: 'shadow-blue-500/50' };
     return { bg: 'bg-success', text: 'text-success', glow: 'shadow-green-500/50' };
   }, [strengthPercent]);

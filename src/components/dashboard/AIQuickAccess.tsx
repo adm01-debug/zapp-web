@@ -52,7 +52,7 @@ const aiFeatures: AIFeature[] = [
     description: 'Monitore conversas com sentimento negativo',
     icon: AlertTriangle,
     route: '/sentiment-alerts',
-    gradient: 'from-warning to-orange-400',
+    gradient: 'from-warning to-warning',
     badge: 'Novo',
   },
   {

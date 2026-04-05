@@ -28,7 +28,7 @@ const variantConfig = {
   },
   streak: {
     icon: Flame,
-    gradient: 'from-streak to-orange-400',
+    gradient: 'from-streak to-warning',
     glow: 'shadow-[0_0_20px_hsl(var(--streak)/0.4)]',
     pulse: true,
   },

@@ -32,7 +32,7 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
   streak: {
     icon: Flame,
     title: 'Streak de Fogo!',
-    gradient: 'from-orange-500 via-amber-400 to-warning',
+    gradient: 'from-warning via-warning to-warning',
     glowColor: 'hsl(25 95% 55% / 0.5)',
     particles: 'bg-warning',
   },
