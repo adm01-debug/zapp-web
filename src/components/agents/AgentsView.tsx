@@ -234,6 +234,7 @@ export function AgentsView() {
                       </div>
                       <Progress
                         value={capacityPercent}
+                        aria-label={`Capacidade: ${capacityPercent}% — ${agent.activeChats} de ${maxChats} chats`}
                         className={cn(
                           'h-2',
                           capacityPercent <= 50 && '[&>div]:bg-success',

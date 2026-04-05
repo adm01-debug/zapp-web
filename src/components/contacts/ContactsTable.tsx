@@ -60,7 +60,7 @@ export function ContactsTable({
 }: ContactsTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border/40">
-      <table className="w-full">
+      <table className="w-full" role="grid" aria-label="Lista de contatos">
         <thead>
           <tr className="border-b border-border/30 bg-muted/30">
             <th className="p-4 w-10">
