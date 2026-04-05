@@ -36,6 +36,43 @@ Object.defineProperty(navigator, 'connection', {
   configurable: true,
 });
 
+// Mock useAuth (needed by usePerformanceSnapshots)
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ profile: { id: 'test-profile' }, user: { id: 'test-user' } }),
+}));
+
+// Mock supabase
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        }),
+      }),
+      insert: vi.fn().mockResolvedValue({ data: null, error: null }),
+      delete: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          lt: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+    })),
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'test-user' } } }),
+    },
+  },
+}));
+
+// Mock sonner
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+
+// Mock formatters
+vi.mock('@/lib/formatters', () => ({
+  formatRelativeTime: vi.fn(() => '1min atrás'),
+}));
+
 // Mock recharts
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="chart">{children}</div>,
@@ -51,12 +88,7 @@ vi.mock('recharts', () => ({
 
 describe('PerformanceMonitor', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     localStorage.clear();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   // ===== RENDERING =====
@@ -81,44 +113,44 @@ describe('PerformanceMonitor', () => {
       expect(screen.getByText('Score de Performance')).toBeInTheDocument();
     });
 
-    it('renders FCP metric', () => {
+    it('renders FCP metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('FCP (First Contentful Paint)')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('FCP')).toBeInTheDocument());
     });
 
-    it('renders page load time metric', () => {
+    it('renders page load time metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Page Load Time')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Page Load')).toBeInTheDocument());
     });
 
-    it('renders DOM Ready metric', () => {
+    it('renders DOM Ready metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('DOM Ready')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('DOM Ready')).toBeInTheDocument());
     });
 
-    it('renders TTFB metric', () => {
+    it('renders TTFB metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('TTFB')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('TTFB')).toBeInTheDocument());
     });
 
-    it('renders memory metric', () => {
+    it('renders memory metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Memória JS')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Memória JS')).toBeInTheDocument());
     });
 
-    it('renders DOM Nodes metric', () => {
+    it('renders DOM Nodes metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('DOM Nodes')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('DOM Nodes')).toBeInTheDocument());
     });
 
-    it('renders RTT metric', () => {
+    it('renders RTT metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('RTT (Latência)')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText(/RTT/)).toBeInTheDocument());
     });
 
-    it('renders connection metric', () => {
+    it('renders connection metric', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Conexão')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Conexão')).toBeInTheDocument());
     });
 
     it('renders cache section', () => {
@@ -136,9 +168,9 @@ describe('PerformanceMonitor', () => {
       expect(screen.getByText('Cache Misses')).toBeInTheDocument();
     });
 
-    it('renders entries cached label', () => {
+    it('renders entries cached label', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Entradas Cached')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Entradas Cached')).toBeInTheDocument());
     });
   });
 
@@ -257,10 +289,10 @@ describe('PerformanceMonitor', () => {
 
   // ===== STATUS BADGES =====
   describe('Status badges', () => {
-    it('good badge shows Bom', () => {
+    it('good badge shows Bom', async () => {
       render(<PerformanceMonitor />);
       // At least some metrics should be "good"
-      waitFor(() => {
+      await waitFor(() => {
         expect(screen.getAllByText('Bom').length).toBeGreaterThan(0);
       });
     });
@@ -268,14 +300,19 @@ describe('PerformanceMonitor', () => {
 
   // ===== INTERVAL =====
   describe('Auto-refresh interval', () => {
-    it('collects metrics on mount', () => {
+    it('collects metrics on mount', async () => {
       render(<PerformanceMonitor />);
-      expect(screen.getByText('Monitor de Performance')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Monitor de Performance')).toBeInTheDocument();
+      });
     });
 
-    it('sets up interval for auto-refresh', () => {
+    it('sets up interval for auto-refresh', async () => {
       const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
       const { unmount } = render(<PerformanceMonitor />);
+      await waitFor(() => {
+        expect(screen.getByText('Monitor de Performance')).toBeInTheDocument();
+      });
       unmount();
       expect(clearIntervalSpy).toHaveBeenCalled();
       clearIntervalSpy.mockRestore();

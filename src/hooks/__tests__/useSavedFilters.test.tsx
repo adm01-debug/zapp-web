@@ -41,7 +41,7 @@ describe('useSavedFilters', () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
             order: vi.fn().mockResolvedValue({ data: mockFilters, error: null }),
           }),
         }),
@@ -115,7 +115,7 @@ describe('useSavedFilters', () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
             order: vi.fn().mockRejectedValue(new Error('DB error')),
           }),
         }),
