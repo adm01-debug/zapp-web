@@ -14,9 +14,6 @@ export type {
   DifyConfig, FlowiseConfig, EvolutionBotConfig, ChatwootConfig, CreateInstanceParams,
 } from './evolutionApi.types';
 
-// ============================================================
-// EVOLUTION API v2 — FULL REACT HOOK (60+ actions)
-// ============================================================
 
 export function useEvolutionApi() {
   const [isLoading, setIsLoading] = useState(false);
@@ -87,10 +84,7 @@ export function useEvolutionApi() {
       throw error;
     }
   }, [callApi]);
-
-  // =============================================
-  // 1. INSTANCE MANAGEMENT
-  // =============================================
+  // — 1. INSTANCE MANAGEMENT
 
   const createInstance = useCallback(async (params: CreateInstanceParams) => {
     return withToast('create-instance', params, 'Instância criada com sucesso', 'Erro ao criar instância');
@@ -127,10 +121,7 @@ export function useEvolutionApi() {
   const setPresence = useCallback(async (instanceName: string, presence: 'available' | 'unavailable' | 'composing' | 'recording' | 'paused') => {
     return callApi('set-presence', { instanceName, presence });
   }, [callApi]);
-
-  // =============================================
-  // 2. SETTINGS
-  // =============================================
+  // — 2. SETTINGS
 
   const setSettings = useCallback(async (config: SettingsConfig) => {
     return withToast('set-settings', config, 'Configurações salvas', 'Erro ao salvar configurações');
@@ -139,10 +130,7 @@ export function useEvolutionApi() {
   const getSettings = useCallback(async (instanceName: string) => {
     return callApi('get-settings', { instanceName }, 'GET');
   }, [callApi]);
-
-  // =============================================
-  // 3. WEBHOOK MANAGEMENT
-  // =============================================
+  // — 3. WEBHOOK MANAGEMENT
 
   const setWebhook = useCallback(async (config: WebhookConfig) => {
     return withToast('set-webhook', config, 'Webhook configurado', 'Erro ao configurar webhook');
@@ -151,10 +139,7 @@ export function useEvolutionApi() {
   const getWebhook = useCallback(async (instanceName: string) => {
     return callApi('get-webhook', { instanceName }, 'GET');
   }, [callApi]);
-
-  // =============================================
-  // 4. MESSAGE SENDING
-  // =============================================
+  // — 4. MESSAGE SENDING
 
   const sendTextMessage = useCallback(async (instanceName: string, number: string, text: string, options?: { delay?: number; quoted?: SendMessageParams['quoted']; mentioned?: string[] }) => {
     return callApi('send-text', { instanceName, number, text, ...options });
@@ -203,10 +188,7 @@ export function useEvolutionApi() {
   const sendTemplateMessage = useCallback(async (instanceName: string, number: string, template: object) => {
     return callApi('send-template', { instanceName, number, template });
   }, [callApi]);
-
-  // =============================================
-  // 5. MESSAGE MANAGEMENT
-  // =============================================
+  // — 5. MESSAGE MANAGEMENT
 
   const markMessageAsRead = useCallback(async (instanceName: string, key: object) => {
     return callApi('mark-read', { instanceName, key });
@@ -227,10 +209,7 @@ export function useEvolutionApi() {
   const updateMessage = useCallback(async (instanceName: string, number: string, key: object, text: string) => {
     return callApi('update-message', { instanceName, number, key, text });
   }, [callApi]);
-
-  // =============================================
-  // 6. CHAT MANAGEMENT
-  // =============================================
+  // — 6. CHAT MANAGEMENT
 
   const findChats = useCallback(async (instanceName: string, page?: number, offset?: number) => {
     return callApi('find-chats', { instanceName, page, offset }, 'GET');
@@ -263,10 +242,7 @@ export function useEvolutionApi() {
   const editMessage = useCallback(async (instanceName: string, body: object) => {
     return callApi('edit-message', { instanceName, ...body });
   }, [callApi]);
-
-  // =============================================
-  // 7. GROUP MANAGEMENT
-  // =============================================
+  // — 7. GROUP MANAGEMENT
 
   const createGroup = useCallback(async (instanceName: string, subject: string, description: string, participants: string[]) => {
     return withToast('create-group', { instanceName, subject, description, participants }, 'Grupo criado', 'Erro ao criar grupo');
@@ -327,10 +303,7 @@ export function useEvolutionApi() {
   const toggleEphemeral = useCallback(async (instanceName: string, groupJid: string, expiration: number) => {
     return callApi('toggle-ephemeral', { instanceName, groupJid, expiration });
   }, [callApi]);
-
-  // =============================================
-  // 8. PROFILE MANAGEMENT
-  // =============================================
+  // — 8. PROFILE MANAGEMENT
 
   const fetchProfile = useCallback(async (instanceName: string) => {
     return callApi('fetch-profile', { instanceName }, 'GET');
@@ -363,10 +336,7 @@ export function useEvolutionApi() {
   const updatePrivacySettings = useCallback(async (settings: PrivacySettings) => {
     return withToast('update-privacy', settings, 'Privacidade atualizada', 'Erro ao atualizar privacidade');
   }, [withToast]);
-
-  // =============================================
-  // 9. LABELS
-  // =============================================
+  // — 9. LABELS
 
   const findLabels = useCallback(async (instanceName: string) => {
     return callApi('find-labels', { instanceName }, 'GET');
@@ -375,10 +345,7 @@ export function useEvolutionApi() {
   const handleLabel = useCallback(async (instanceName: string, number: string, labelId: string, action: 'add' | 'remove') => {
     return callApi('handle-label', { instanceName, number, labelId, action });
   }, [callApi]);
-
-  // =============================================
-  // 10. CHATWOOT INTEGRATION
-  // =============================================
+  // — 10. CHATWOOT INTEGRATION
 
   const setChatwoot = useCallback(async (config: ChatwootConfig) => {
     return withToast('set-chatwoot', config, 'Chatwoot configurado', 'Erro ao configurar Chatwoot');
@@ -391,10 +358,7 @@ export function useEvolutionApi() {
   const deleteChatwoot = useCallback(async (instanceName: string) => {
     return withToast('delete-chatwoot', { instanceName }, 'Chatwoot removido', 'Erro ao remover Chatwoot', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 11. TYPEBOT INTEGRATION
-  // =============================================
+  // — 11. TYPEBOT INTEGRATION
 
   const setTypebot = useCallback(async (config: TypebotConfig) => {
     return withToast('set-typebot', config, 'Typebot configurado', 'Erro ao configurar Typebot');
@@ -419,10 +383,7 @@ export function useEvolutionApi() {
   const startTypebot = useCallback(async (instanceName: string, remoteJid: string, url: string, typebot: string, variables?: object) => {
     return callApi('start-typebot', { instanceName, remoteJid, url, typebot, variables });
   }, [callApi]);
-
-  // =============================================
-  // 12. OPENAI INTEGRATION
-  // =============================================
+  // — 12. OPENAI INTEGRATION
 
   const setOpenAI = useCallback(async (config: OpenAIConfig) => {
     return withToast('set-openai', config, 'OpenAI configurado', 'Erro ao configurar OpenAI');
@@ -435,10 +396,7 @@ export function useEvolutionApi() {
   const deleteOpenAI = useCallback(async (instanceName: string) => {
     return withToast('delete-openai', { instanceName }, 'OpenAI removido', 'Erro ao remover OpenAI', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 13. DIFY INTEGRATION
-  // =============================================
+  // — 13. DIFY INTEGRATION
 
   const setDify = useCallback(async (config: DifyConfig) => {
     return withToast('set-dify', config, 'Dify configurado', 'Erro ao configurar Dify');
@@ -451,10 +409,7 @@ export function useEvolutionApi() {
   const deleteDify = useCallback(async (instanceName: string) => {
     return withToast('delete-dify', { instanceName }, 'Dify removido', 'Erro ao remover Dify', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 14. FLOWISE INTEGRATION
-  // =============================================
+  // — 14. FLOWISE INTEGRATION
 
   const setFlowise = useCallback(async (config: FlowiseConfig) => {
     return withToast('set-flowise', config, 'Flowise configurado', 'Erro ao configurar Flowise');
@@ -467,10 +422,7 @@ export function useEvolutionApi() {
   const deleteFlowise = useCallback(async (instanceName: string) => {
     return withToast('delete-flowise', { instanceName }, 'Flowise removido', 'Erro ao remover Flowise', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 15. EVOLUTION BOT INTEGRATION
-  // =============================================
+  // — 15. EVOLUTION BOT INTEGRATION
 
   const setEvolutionBot = useCallback(async (config: EvolutionBotConfig) => {
     return withToast('set-evolution-bot', config, 'Evolution Bot configurado', 'Erro ao configurar Evolution Bot');
@@ -483,10 +435,7 @@ export function useEvolutionApi() {
   const deleteEvolutionBot = useCallback(async (instanceName: string) => {
     return withToast('delete-evolution-bot', { instanceName }, 'Evolution Bot removido', 'Erro ao remover Evolution Bot', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 16. RABBITMQ / SQS
-  // =============================================
+  // — 16. RABBITMQ / SQS
 
   const setRabbitMQ = useCallback(async (instanceName: string, enabled: boolean, events?: string[]) => {
     return callApi('set-rabbitmq', { instanceName, enabled, events });
@@ -503,10 +452,7 @@ export function useEvolutionApi() {
   const getSQS = useCallback(async (instanceName: string) => {
     return callApi('get-sqs', { instanceName }, 'GET');
   }, [callApi]);
-
-  // =============================================
-  // 17. TEMPLATE MANAGEMENT (Cloud API)
-  // =============================================
+  // — 17. TEMPLATE MANAGEMENT (Cloud API)
 
   const createTemplate = useCallback(async (instanceName: string, templateData: object) => {
     return withToast('create-template', { instanceName, ...templateData }, 'Template criado', 'Erro ao criar template');
@@ -519,44 +465,29 @@ export function useEvolutionApi() {
   const deleteTemplate = useCallback(async (instanceName: string, templateData: object) => {
     return withToast('delete-template', { instanceName, ...templateData }, 'Template excluído', 'Erro ao excluir template', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 18. BLOCK/UNBLOCK CONTACTS
-  // =============================================
+  // — 18. BLOCK/UNBLOCK CONTACTS
 
   const updateBlockStatus = useCallback(async (instanceName: string, number: string, status: 'block' | 'unblock') => {
     return withToast('update-block-status', { instanceName, number, status },
       status === 'block' ? 'Contato bloqueado' : 'Contato desbloqueado',
       'Erro ao atualizar bloqueio');
   }, [withToast]);
-
-  // =============================================
-  // 19. SEND PTV (Video Note)
-  // =============================================
+  // — 19. SEND PTV (Video Note)
 
   const sendPtvMessage = useCallback(async (instanceName: string, number: string, video: string, delay?: number) => {
     return callApi('send-ptv', { instanceName, number, video, delay });
   }, [callApi]);
-
-  // =============================================
-  // 20. OFFER CALL
-  // =============================================
+  // — 20. OFFER CALL
 
   const offerCall = useCallback(async (instanceName: string, number: string, isVideo?: boolean, callDuration?: number) => {
     return callApi('offer-call', { instanceName, number, isVideo, callDuration });
   }, [callApi]);
-
-  // =============================================
-  // 21. SEND CHAT PRESENCE (per chat)
-  // =============================================
+  // — 21. SEND CHAT PRESENCE (per chat)
 
   const sendChatPresence = useCallback(async (instanceName: string, number: string, presence: 'composing' | 'recording' | 'paused', delay?: number) => {
     return callApi('send-chat-presence', { instanceName, number, presence, delay });
   }, [callApi]);
-
-  // =============================================
-  // 22. BUSINESS CATALOG & COLLECTIONS
-  // =============================================
+  // — 22. BUSINESS CATALOG & COLLECTIONS
 
   const getBusinessCatalog = useCallback(async (instanceName: string, number: string, limit?: number, cursor?: string) => {
     return callApi('get-catalog', { instanceName, number, limit, cursor });
@@ -565,10 +496,7 @@ export function useEvolutionApi() {
   const getBusinessCollections = useCallback(async (instanceName: string, number: string, limit?: number, cursor?: string) => {
     return callApi('get-collections', { instanceName, number, limit, cursor });
   }, [callApi]);
-
-  // =============================================
-  // 23. PROXY CONFIGURATION
-  // =============================================
+  // — 23. PROXY CONFIGURATION
 
   const setProxy = useCallback(async (instanceName: string, config: { enabled?: boolean; host: string; port: number; protocol: string; username?: string; password?: string }) => {
     return withToast('set-proxy', { instanceName, ...config }, 'Proxy configurado', 'Erro ao configurar proxy');
@@ -577,10 +505,7 @@ export function useEvolutionApi() {
   const getProxy = useCallback(async (instanceName: string) => {
     return callApi('get-proxy', { instanceName }, 'GET');
   }, [callApi]);
-
-  // =============================================
-  // 24. EVO AI INTEGRATION
-  // =============================================
+  // — 24. EVO AI INTEGRATION
 
   const setEvoAI = useCallback(async (instanceName: string, config: { enabled?: boolean; apiUrl: string; apiKey: string; agentId: string; expire?: number; triggerType?: string; triggerOperator?: string; triggerValue?: string; keywordFinish?: string; delayMessage?: number; unknownMessage?: string; listeningFromMe?: boolean; stopBotFromMe?: boolean; keepOpen?: boolean; debounceTime?: number; speechToText?: boolean }) => {
     return withToast('set-evoai', { instanceName, ...config }, 'EvoAI configurado', 'Erro ao configurar EvoAI');
@@ -593,10 +518,7 @@ export function useEvolutionApi() {
   const deleteEvoAI = useCallback(async (instanceName: string) => {
     return withToast('delete-evoai', { instanceName }, 'EvoAI removido', 'Erro ao remover EvoAI', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 25. N8N INTEGRATION
-  // =============================================
+  // — 25. N8N INTEGRATION
 
   const setN8N = useCallback(async (instanceName: string, config: { enabled?: boolean; webhookUrl: string; expire?: number; triggerType?: string; triggerOperator?: string; triggerValue?: string; keywordFinish?: string; delayMessage?: number; unknownMessage?: string; listeningFromMe?: boolean; stopBotFromMe?: boolean; keepOpen?: boolean; debounceTime?: number }) => {
     return withToast('set-n8n', { instanceName, ...config }, 'N8N configurado', 'Erro ao configurar N8N');
@@ -609,10 +531,7 @@ export function useEvolutionApi() {
   const deleteN8N = useCallback(async (instanceName: string) => {
     return withToast('delete-n8n', { instanceName }, 'N8N removido', 'Erro ao remover N8N', 'DELETE');
   }, [withToast]);
-
-  // =============================================
-  // 26. EVENT STREAMING (Kafka, NATS, Pusher)
-  // =============================================
+  // — 26. EVENT STREAMING (Kafka, NATS, Pusher)
 
   const setKafka = useCallback(async (instanceName: string, enabled: boolean, events?: string[]) => {
     return callApi('set-kafka', { instanceName, enabled, events });
