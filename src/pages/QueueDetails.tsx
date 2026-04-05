@@ -429,7 +429,7 @@ export default function QueueDetails() {
                                 <span className="text-sm">{contact.assigned_agent.name}</span>
                               </div>
                             ) : (
-                              <Badge variant="outline" className="text-amber-500 border-amber-500/30">
+                              <Badge variant="outline" className="text-warning border-warning/30">
                                 Aguardando
                               </Badge>
                             )}
