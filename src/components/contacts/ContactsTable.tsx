@@ -58,10 +58,10 @@ export function ContactsTable({
   contacts, selectedIds, onSelectIds, onOpenChat, onEdit, onDelete,
 }: ContactsTableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-border/40">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-secondary/20 bg-secondary/5">
+          <tr className="border-b border-border/30 bg-muted/30">
             <th className="p-4 w-10">
               <Checkbox
                 checked={selectedIds.length === contacts.length && contacts.length > 0}
@@ -69,14 +69,14 @@ export function ContactsTable({
                 aria-label="Selecionar todos"
               />
             </th>
-            <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
-            <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
-            <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
-            <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-            <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
-            <th className="text-left p-4 font-medium text-muted-foreground">Etiquetas</th>
-            <th className="text-left p-4 font-medium text-muted-foreground">Criado em</th>
-            <th className="text-right p-4 font-medium text-muted-foreground">Ações</th>
+            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contato</th>
+            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tipo</th>
+            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Telefone</th>
+            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</th>
+            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Empresa/Cargo</th>
+            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Etiquetas</th>
+            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Criado em</th>
+            <th className="text-right p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -88,7 +88,7 @@ export function ContactsTable({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.02 }}
-                className="border-b border-secondary/10 last:border-0 hover:bg-muted/40 transition-all duration-150 cursor-pointer"
+                className="border-b border-border/10 last:border-0 hover:bg-muted/40 transition-all duration-150 cursor-pointer group"
                 onClick={() => onOpenChat(contact.id)}
               >
                 <td className="p-4" onClick={(e) => e.stopPropagation()}>
@@ -145,9 +145,9 @@ export function ContactsTable({
                   <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}</div>
                 </td>
                 <td className="p-4 text-right">
-                  <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150" onClick={(e) => e.stopPropagation()}>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                      <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onOpenChat(contact.id)} title="Iniciar conversa">
+                      <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-primary/10 hover:text-primary" onClick={() => onOpenChat(contact.id)} title="Iniciar conversa">
                         <MessageSquare className="w-4 h-4" />
                       </Button>
                     </motion.div>
