@@ -122,7 +122,8 @@ export function BulkActionsBar<T>({
           return ActionButton;
         })}
       </div>
-    </div>
+    </motion.div>
+    </AnimatePresence>
   );
 }
 
