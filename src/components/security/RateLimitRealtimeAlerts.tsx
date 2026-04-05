@@ -27,7 +27,7 @@ const ALERT_CONFIG: Record<string, { icon: React.ComponentType<{ className?: str
 const SEVERITY_COLORS: Record<string, string> = {
   low: 'border-l-blue-500',
   medium: 'border-l-yellow-500',
-  high: 'border-l-orange-500',
+  high: 'border-l-warning',
   critical: 'border-l-red-500'
 };
 

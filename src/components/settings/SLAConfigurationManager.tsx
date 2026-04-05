@@ -29,8 +29,8 @@ interface SLAConfig {
 const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
   critical: { label: 'Crítica', color: 'bg-destructive/20 text-destructive border-destructive/30' },
   high: { label: 'Alta', color: 'bg-warning/20 text-warning border-warning/30' },
-  medium: { label: 'Média', color: 'bg-warning/20 text-warning border-amber-500/30' },
-  low: { label: 'Baixa', color: 'bg-success/20 text-success border-emerald-500/30' },
+  medium: { label: 'Média', color: 'bg-warning/20 text-warning border-warning/30' },
+  low: { label: 'Baixa', color: 'bg-success/20 text-success border-success/30' },
 };
 
 const defaultForm = {

@@ -190,11 +190,11 @@ export const CONTACT_TYPES = [
   { value: 'cliente', label: 'Cliente', color: 'bg-blue-500' },
   { value: 'fornecedor', label: 'Fornecedor', color: 'bg-purple-500' },
   { value: 'colaborador', label: 'Colaborador', color: 'bg-green-500' },
-  { value: 'prestador_servico', label: 'Prestador de Serviço', color: 'bg-orange-500' },
+  { value: 'prestador_servico', label: 'Prestador de Serviço', color: 'bg-warning' },
   { value: 'lead', label: 'Lead', color: 'bg-yellow-500' },
-  { value: 'parceiro', label: 'Parceiro', color: 'bg-pink-500' },
-  { value: 'sicoob_gifts', label: 'Sicoob Gifts', color: 'bg-teal-700' },
-  { value: 'transportadora', label: 'Transportadora', color: 'bg-cyan-500' },
+  { value: 'parceiro', label: 'Parceiro', color: 'bg-destructive' },
+  { value: 'sicoob_gifts', label: 'Sicoob Gifts', color: 'bg-info' },
+  { value: 'transportadora', label: 'Transportadora', color: 'bg-info' },
   { value: 'outros', label: 'Outros', color: 'bg-gray-500' },
 ] as const;
 

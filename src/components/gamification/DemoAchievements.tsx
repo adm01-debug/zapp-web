@@ -26,49 +26,49 @@ export function DemoAchievements() {
       label: 'Resposta < 30s',
       icon: Rocket,
       action: () => triggerFastResponse(25),
-      gradient: 'from-red-500 to-orange-400',
+      gradient: 'from-destructive to-warning',
     },
     {
       label: 'Resposta < 2min',
       icon: Zap,
       action: () => triggerFastResponse(90),
-      gradient: 'from-primary to-teal-400',
+      gradient: 'from-primary to-info',
     },
     {
       label: 'Streak 5',
       icon: Flame,
       action: () => triggerStreak(5),
-      gradient: 'from-orange-500 to-warning',
+      gradient: 'from-warning to-warning',
     },
     {
       label: 'Streak 10',
       icon: Flame,
       action: () => triggerStreak(10),
-      gradient: 'from-orange-600 to-red-500',
+      gradient: 'from-warning to-destructive',
     },
     {
       label: 'Resolução',
       icon: Target,
       action: () => triggerResolution(),
-      gradient: 'from-success to-emerald-400',
+      gradient: 'from-success to-success',
     },
     {
       label: 'Nota 5 ⭐',
       icon: Star,
       action: () => triggerPerfectRating(),
-      gradient: 'from-warning to-amber-400',
+      gradient: 'from-warning to-warning',
     },
     {
       label: 'Level Up!',
       icon: Crown,
       action: () => triggerLevelUp((stats?.level || 1) + 1),
-      gradient: 'from-primary to-fuchsia-400',
+      gradient: 'from-primary to-accent',
     },
     {
       label: 'Meta Diária',
       icon: Trophy,
       action: () => triggerDailyGoal('50 atendimentos'),
-      gradient: 'from-teal-400 to-cyan-400',
+      gradient: 'from-info to-info',
     },
   ];
 
@@ -96,7 +96,7 @@ export function DemoAchievements() {
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-info flex items-center justify-center">
             <Trophy className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>

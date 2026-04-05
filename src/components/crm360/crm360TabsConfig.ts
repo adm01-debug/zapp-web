@@ -580,9 +580,9 @@ export function exportToCSV(data: Record<string, unknown>[], columns: TabConfig[
 
 // ─── RFM Segment colors ─────────────────────────────────────
 export const RFM_SEGMENT_COLORS: Record<string, string> = {
-  Champions: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+  Champions: 'bg-success/15 text-success dark:text-success',
   'Loyal Customers': 'bg-info/15 text-info',
-  'Potential Loyalist': 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400',
+  'Potential Loyalist': 'bg-info/15 text-info dark:text-info',
   'At Risk': 'bg-destructive/15 text-destructive',
   Hibernating: 'bg-muted text-muted-foreground',
   Lost: 'bg-muted/50 text-muted-foreground',

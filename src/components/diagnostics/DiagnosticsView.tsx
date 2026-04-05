@@ -81,8 +81,8 @@ function StatusDot({ status }: { status: string }) {
 
 function HealthBadge({ status }: { status: 'healthy' | 'degraded' | 'down' }) {
   const config = {
-    healthy: { label: 'Saudável', variant: 'default' as const, icon: CheckCircle2, className: 'bg-success/10 text-success border-emerald-500/20' },
-    degraded: { label: 'Degradado', variant: 'secondary' as const, icon: AlertTriangle, className: 'bg-warning/10 text-warning border-amber-500/20' },
+    healthy: { label: 'Saudável', variant: 'default' as const, icon: CheckCircle2, className: 'bg-success/10 text-success border-success/20' },
+    degraded: { label: 'Degradado', variant: 'secondary' as const, icon: AlertTriangle, className: 'bg-warning/10 text-warning border-warning/20' },
     down: { label: 'Fora do ar', variant: 'destructive' as const, icon: XCircle, className: 'bg-destructive/10 text-destructive border-destructive/20' },
   };
   const c = config[status];
@@ -372,7 +372,7 @@ export function DiagnosticsView() {
 
   const severityConfig = {
     info: { icon: Activity, color: 'text-info', bg: 'bg-info/10', border: 'border-info/20' },
-    warning: { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10', border: 'border-amber-500/20' },
+    warning: { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/20' },
     error: { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20' },
     critical: { icon: Bug, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20' },
   };
@@ -415,7 +415,7 @@ export function DiagnosticsView() {
             </Badge>
           )}
           {warningCount > 0 && (
-            <Badge variant="outline" className="gap-1 bg-warning/10 text-warning border-amber-500/20">
+            <Badge variant="outline" className="gap-1 bg-warning/10 text-warning border-warning/20">
               <AlertTriangle className="w-3.5 h-3.5" />
               {warningCount} aviso(s)
             </Badge>
@@ -517,8 +517,8 @@ export function DiagnosticsView() {
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge variant="outline" className={cn(
-                          conn.status === 'connected' ? 'bg-success/10 text-success border-emerald-500/20' :
-                          conn.status === 'connecting' ? 'bg-warning/10 text-warning border-amber-500/20' :
+                          conn.status === 'connected' ? 'bg-success/10 text-success border-success/20' :
+                          conn.status === 'connecting' ? 'bg-warning/10 text-warning border-warning/20' :
                           'bg-destructive/10 text-destructive border-destructive/20'
                         )}>
                           {conn.status === 'connected' ? 'Conectado' : conn.status === 'connecting' ? 'Conectando' : conn.status || 'Desconectado'}
@@ -544,7 +544,7 @@ export function DiagnosticsView() {
                   <MetricCard icon={ArrowUpDown} label="Entregues" value={messageDiag.delivered} />
                   <MetricCard icon={CheckCircle2} label="Lidas" value={messageDiag.read} />
                   <MetricCard icon={XCircle} label="Falharam" value={messageDiag.failed} className={messageDiag.failed > 0 ? 'border-destructive/30' : ''} />
-                  <MetricCard icon={Clock} label="Pendentes" value={messageDiag.pending} className={messageDiag.pending > 0 ? 'border-amber-500/30' : ''} />
+                  <MetricCard icon={Clock} label="Pendentes" value={messageDiag.pending} className={messageDiag.pending > 0 ? 'border-warning/30' : ''} />
                 </div>
 
                 {/* Delivery rate bar */}

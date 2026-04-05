@@ -109,7 +109,7 @@ export function AgentPerformancePanel() {
                   "p-3 rounded-lg border hover:shadow-md transition-all",
                   i === 0 && "bg-gradient-to-r from-warning/5 to-transparent border-yellow-500/30",
                   i === 1 && "bg-gradient-to-r from-gray-400/5 to-transparent border-border/20",
-                  i === 2 && "bg-gradient-to-r from-amber-600/5 to-transparent border-amber-600/20"
+                  i === 2 && "bg-gradient-to-r from-warning/5 to-transparent border-warning/20"
                 )}
               >
                 <div className="flex items-center gap-3">

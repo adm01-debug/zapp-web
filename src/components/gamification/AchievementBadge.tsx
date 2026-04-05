@@ -26,74 +26,74 @@ const BADGE_CONFIG: Record<string, {
 }> = {
   [ACHIEVEMENT_TYPES.FAST_RESPONSE]: {
     icon: Zap,
-    gradient: 'from-primary to-teal-400',
+    gradient: 'from-primary to-info',
     bgGlow: 'shadow-primary/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.SPEED_DEMON]: {
     icon: Rocket,
-    gradient: 'from-red-500 to-orange-400',
+    gradient: 'from-destructive to-warning',
     bgGlow: 'shadow-red-500/30',
     rarity: 'rare',
   },
   [ACHIEVEMENT_TYPES.STREAK]: {
     icon: Flame,
-    gradient: 'from-orange-500 to-warning',
-    bgGlow: 'shadow-orange-500/30',
+    gradient: 'from-warning to-warning',
+    bgGlow: 'shadow-warning/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.STREAK_MASTER]: {
     icon: Flame,
-    gradient: 'from-orange-600 to-red-500',
-    bgGlow: 'shadow-orange-600/30',
+    gradient: 'from-warning to-destructive',
+    bgGlow: 'shadow-warning/30',
     rarity: 'epic',
   },
   [ACHIEVEMENT_TYPES.RESOLUTION]: {
     icon: Target,
-    gradient: 'from-success to-emerald-400',
+    gradient: 'from-success to-success',
     bgGlow: 'shadow-green-500/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.PERFECT_RATING]: {
     icon: Star,
-    gradient: 'from-warning to-amber-400',
-    bgGlow: 'shadow-yellow-400/30',
+    gradient: 'from-warning to-warning',
+    bgGlow: 'shadow-warning/30',
     rarity: 'rare',
   },
   [ACHIEVEMENT_TYPES.LEVEL_UP]: {
     icon: Crown,
-    gradient: 'from-primary to-fuchsia-400',
+    gradient: 'from-primary to-accent',
     bgGlow: 'shadow-purple-500/30',
     rarity: 'epic',
   },
   [ACHIEVEMENT_TYPES.DAILY_GOAL]: {
     icon: Trophy,
-    gradient: 'from-teal-400 to-cyan-400',
-    bgGlow: 'shadow-teal-400/30',
+    gradient: 'from-info to-info',
+    bgGlow: 'shadow-info/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.FIRST_MESSAGE]: {
     icon: MessageSquare,
-    gradient: 'from-info to-indigo-400',
+    gradient: 'from-info to-secondary',
     bgGlow: 'shadow-blue-500/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.FIRST_RESOLUTION]: {
     icon: CheckCircle2,
-    gradient: 'from-success to-teal-400',
+    gradient: 'from-success to-info',
     bgGlow: 'shadow-green-400/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.MESSAGE_MILESTONE]: {
     icon: Medal,
-    gradient: 'from-indigo-500 to-primary',
-    bgGlow: 'shadow-indigo-500/30',
+    gradient: 'from-secondary to-primary',
+    bgGlow: 'shadow-secondary/30',
     rarity: 'rare',
   },
   [ACHIEVEMENT_TYPES.TEAM_PLAYER]: {
     icon: Users,
-    gradient: 'from-pink-500 to-rose-400',
-    bgGlow: 'shadow-pink-500/30',
+    gradient: 'from-destructive to-destructive',
+    bgGlow: 'shadow-destructive/30',
     rarity: 'rare',
   },
 };
@@ -182,7 +182,7 @@ export function AchievementBadge({
         {/* Rarity glow effect */}
         {config.rarity === 'legendary' && (
           <motion.div
-            className="absolute inset-0 rounded-xl bg-gradient-to-br from-warning/20 to-amber-400/20"
+            className="absolute inset-0 rounded-xl bg-gradient-to-br from-warning/20 to-warning/20"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           />

@@ -278,8 +278,8 @@ export default function QueueDetails() {
             <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-amber-500" />
+                  <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-warning" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Aguardando</p>
@@ -306,8 +306,8 @@ export default function QueueDetails() {
             <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-cyan-500" />
+                  <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-info" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Tempo Médio</p>
@@ -429,7 +429,7 @@ export default function QueueDetails() {
                                 <span className="text-sm">{contact.assigned_agent.name}</span>
                               </div>
                             ) : (
-                              <Badge variant="outline" className="text-amber-500 border-amber-500/30">
+                              <Badge variant="outline" className="text-warning border-warning/30">
                                 Aguardando
                               </Badge>
                             )}
@@ -452,7 +452,7 @@ export default function QueueDetails() {
                               variant="secondary"
                               className={contact.assigned_to 
                                 ? 'bg-success/10 text-success' 
-                                : 'bg-amber-500/10 text-amber-500'}
+                                : 'bg-warning/10 text-warning'}
                             >
                               {contact.assigned_to ? 'Em atendimento' : 'Na fila'}
                             </Badge>

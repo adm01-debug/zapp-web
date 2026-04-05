@@ -36,7 +36,7 @@ export function QueueAlertsDisplay({ alerts, onDismiss, onNavigate }: QueueAlert
                 relative flex items-center gap-3 p-3 rounded-lg border backdrop-blur
                 ${alert.severity === 'critical' 
                   ? 'bg-destructive/10 border-destructive/30 text-destructive' 
-                  : 'bg-warning/10 border-amber-500/30 text-warning'
+                  : 'bg-warning/10 border-warning/30 text-warning'
                 }
               `}
             >

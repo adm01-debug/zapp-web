@@ -209,7 +209,7 @@ export default function ConversationHeatmap({
                             className={cn(
                               "flex-1 aspect-square rounded cursor-pointer transition-all relative",
                               "min-w-[12px] max-w-[24px]",
-                              isHotspot && "ring-1 ring-orange-500/50"
+                              isHotspot && "ring-1 ring-warning/50"
                             )}
                             style={{
                               backgroundColor: cellData ? getColor(cellData.value) : config.colorScale[0],
