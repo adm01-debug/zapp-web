@@ -79,14 +79,10 @@ describe('Security - RLS & Access Control', () => {
 describe('Security - Audit Logging', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    const chain = {
-      insert: mockInsert.mockResolvedValue({ error: null }),
-    };
-    mockFrom.mockReturnValue(chain);
+    mockRpc.mockResolvedValue({ error: null });
   });
 
-  it('should log audit entries with required fields', async () => {
+  it('should log audit entries via RPC', async () => {
     const { logAudit } = await import('@/lib/audit');
 
     await logAudit({
@@ -96,13 +92,15 @@ describe('Security - Audit Logging', () => {
       details: { method: 'password' },
     });
 
-    expect(mockFrom).toHaveBeenCalledWith('audit_logs');
+    expect(mockRpc).toHaveBeenCalledWith('log_audit_event', expect.objectContaining({
+      p_action: 'login',
+      p_entity_type: 'auth',
+      p_entity_id: 'user-1',
+    }));
   });
 
   it('should handle audit log failures gracefully', async () => {
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockResolvedValue({ error: new Error('DB error') }),
-    });
+    mockRpc.mockResolvedValue({ error: new Error('DB error') });
 
     const { logAudit } = await import('@/lib/audit');
     

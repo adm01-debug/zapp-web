@@ -26,18 +26,13 @@ interface AuditLogParams {
 
 export async function logAudit({ action, entityType, entityId, details }: AuditLogParams) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) return;
-
-    const { error } = await supabase.from('audit_logs').insert([{
-      user_id: user.id,
-      action,
-      entity_type: entityType || null,
-      entity_id: entityId || null,
-      details: JSON.parse(JSON.stringify(details || {})),
-      user_agent: navigator.userAgent,
-    }]);
+    const { error } = await supabase.rpc('log_audit_event', {
+      p_action: action,
+      p_entity_type: entityType || null,
+      p_entity_id: entityId || null,
+      p_details: details ? JSON.parse(JSON.stringify(details)) : null,
+      p_user_agent: navigator.userAgent,
+    });
 
     if (error) {
       log.warn('Failed to log audit:', error.message);
