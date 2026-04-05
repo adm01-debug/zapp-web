@@ -128,7 +128,7 @@ const sections = [
     ]
   },
   {
-    id: 11, title: "Relatórios e Exportação", icon: Download, color: "text-teal-500",
+    id: 11, title: "Relatórios e Exportação", icon: Download, color: "text-info",
     items: [
       "Relatórios avançados", "Exportação avançada (wizard 3 passos)",
       "Exportar para PDF", "Exportar para Excel", "Exportar para CSV",
@@ -162,7 +162,7 @@ const sections = [
     ]
   },
   {
-    id: 15, title: "Templates WhatsApp Oficiais", icon: Layout, color: "text-sky-500",
+    id: 15, title: "Templates WhatsApp Oficiais", icon: Layout, color: "text-info",
     items: [
       "CRUD de templates oficiais", "Preview estilo WhatsApp",
       "Variáveis dinâmicas ({{1}}, {{2}})", "Categorias (utility, marketing, authentication)",
@@ -170,7 +170,7 @@ const sections = [
     ]
   },
   {
-    id: 16, title: "Grupos WhatsApp", icon: UsersRound, color: "text-lime-500",
+    id: 16, title: "Grupos WhatsApp", icon: UsersRound, color: "text-success",
     items: [
       "Visualização de grupos", "Sincronização de grupos",
       "Contagem de participantes", "Status de admin do bot"
@@ -185,7 +185,7 @@ const sections = [
     ]
   },
   {
-    id: 18, title: "Carteira de Clientes", icon: Wallet, color: "text-rose-500",
+    id: 18, title: "Carteira de Clientes", icon: Wallet, color: "text-destructive",
     items: [
       "Regras de carteira", "Atribuição automática por regras",
       "Prioridade de regras", "Ativação/desativação de regras"
@@ -343,7 +343,7 @@ const sections = [
     ]
   },
   {
-    id: 34, title: "Edge Functions", icon: Cloud, color: "text-sky-400",
+    id: 34, title: "Edge Functions", icon: Cloud, color: "text-info",
     items: [
       "evolution-api — Bridge para Evolution API",
       "evolution-webhook — Recebimento de webhooks",

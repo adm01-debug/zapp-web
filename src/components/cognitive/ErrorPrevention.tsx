@@ -245,7 +245,7 @@ export function PasswordStrengthMeter({ password, className }: PasswordStrengthP
     strength <= 0.2 ? 'bg-destructive' :
     strength <= 0.4 ? 'bg-warning' :
     strength <= 0.6 ? 'bg-warning' :
-    strength <= 0.8 ? 'bg-lime-500' :
+    strength <= 0.8 ? 'bg-success/70' :
     'bg-success';
   
   if (!password) return null;

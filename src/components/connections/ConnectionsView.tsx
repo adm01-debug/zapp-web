@@ -389,7 +389,7 @@ export function ConnectionsView() {
                                 </span>
                               )}
                               {(connection.retry_count ?? 0) > 0 && (
-                                <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-warning">
+                                <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">
                                   Retry {connection.retry_count}/{connection.max_retries || 5}
                                 </Badge>
                               )}
@@ -405,7 +405,7 @@ export function ConnectionsView() {
                                   'relative flex h-2 w-2',
                                 )}>
                                   {connection.health_status === 'healthy' && (
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
                                   )}
                                   <span className={cn(
                                     'relative inline-flex rounded-full h-2 w-2',

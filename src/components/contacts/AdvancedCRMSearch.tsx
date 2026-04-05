@@ -190,7 +190,7 @@ function ContactResultCard({
             'At Risk': 'bg-destructive/15 text-destructive border-destructive/30',
             Hibernating: 'bg-muted text-muted-foreground border-border',
             'Need Attention': 'bg-warning/15 text-warning border-amber-500/30',
-            Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',
+            Promising: 'bg-secondary/15 text-secondary border-secondary/30',
           };
           return (
             <Badge variant="outline" className={cn('text-[9px] py-0 px-1', rfmColors[contact.rfm_segment] || '')}>

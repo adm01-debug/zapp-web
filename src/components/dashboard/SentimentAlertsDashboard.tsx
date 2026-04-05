@@ -543,7 +543,7 @@ export function SentimentAlertsDashboard() {
                     { label: '0-20%', min: 0, max: 20, color: 'bg-destructive' },
                     { label: '21-40%', min: 21, max: 40, color: 'bg-warning' },
                     { label: '41-60%', min: 41, max: 60, color: 'bg-warning' },
-                    { label: '61-80%', min: 61, max: 80, color: 'bg-lime-500' },
+                    { label: '61-80%', min: 61, max: 80, color: 'bg-success/70' },
                     { label: '81-100%', min: 81, max: 100, color: 'bg-success' },
                   ];
 

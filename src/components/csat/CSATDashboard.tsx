@@ -11,7 +11,7 @@ const ratingColors: Record<number, string> = {
   1: 'bg-destructive',
   2: 'bg-warning',
   3: 'bg-warning',
-  4: 'bg-emerald-400',
+  4: 'bg-success/70',
   5: 'bg-success',
 };
 
@@ -66,7 +66,7 @@ export function CSATDashboard() {
                   key={star}
                   className={cn(
                     'w-4 h-4',
-                    star <= Math.round(avgScore) ? 'fill-yellow-400 text-warning' : 'text-muted-foreground/20'
+                    star <= Math.round(avgScore) ? 'fill-warning text-warning' : 'text-muted-foreground/20'
                   )}
                 />
               ))}
@@ -82,7 +82,7 @@ export function CSATDashboard() {
               return (
                 <div key={rating} className="flex items-center gap-2 text-sm">
                   <span className="w-4 text-muted-foreground">{rating}</span>
-                  <Star className="w-3 h-3 fill-yellow-400 text-warning" />
+                  <Star className="w-3 h-3 fill-warning text-warning" />
                   <div className="flex-1">
                     <Progress value={percentage} className={cn('h-2', `[&>div]:${ratingColors[rating]}`)} />
                   </div>
@@ -107,7 +107,7 @@ export function CSATDashboard() {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className={cn('w-3 h-3', star <= survey.rating ? 'fill-yellow-400 text-warning' : 'text-muted-foreground/20')}
+                        className={cn('w-3 h-3', star <= survey.rating ? 'fill-warning text-warning' : 'text-muted-foreground/20')}
                       />
                     ))}
                   </div>

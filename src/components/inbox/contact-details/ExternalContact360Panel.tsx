@@ -59,23 +59,23 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string | 
 // ─── RFM Badge ───────────────────────────────────────────────
 function RFMBadge({ rfm }: { rfm: Contact360RFM }) {
   const segmentColors: Record<string, string> = {
-    Champions: 'bg-success/15 text-success border-emerald-500/30',
+    Champions: 'bg-success/15 text-success border-success/30',
     'Loyal Customers': 'bg-info/15 text-info border-info/30',
-    'Potential Loyalist': 'bg-sky-500/15 text-sky-600 border-sky-500/30',
-    'Recent Customers': 'bg-accent/15 text-violet-600 border-violet-500/30',
-    Promising: 'bg-indigo-500/15 text-indigo-600 border-indigo-500/30',
-    'Need Attention': 'bg-warning/15 text-warning border-amber-500/30',
+    'Potential Loyalist': 'bg-primary/15 text-primary border-primary/30',
+    'Recent Customers': 'bg-accent/15 text-accent border-accent/30',
+    Promising: 'bg-secondary/15 text-secondary border-secondary/30',
+    'Need Attention': 'bg-warning/15 text-warning border-warning/30',
     'About to Sleep': 'bg-warning/15 text-warning border-warning/30',
     'At Risk': 'bg-destructive/15 text-destructive border-destructive/30',
     Hibernating: 'bg-muted text-muted-foreground border-border',
     Lost: 'bg-muted/50 text-muted-foreground border-border/50',
-    "Can't Lose Them": 'bg-rose-500/15 text-rose-600 border-rose-500/30',
+    "Can't Lose Them": 'bg-destructive/15 text-destructive border-destructive/30',
   };
   const barColors: Record<string, string> = {
     Champions: 'bg-success', 'Loyal Customers': 'bg-info',
     'Potential Loyalist': 'bg-primary', 'At Risk': 'bg-destructive',
     Hibernating: 'bg-muted-foreground', Lost: 'bg-muted-foreground/60',
-    "Can't Lose Them": 'bg-rose-500',
+    "Can't Lose Them": 'bg-destructive',
   };
   const color = segmentColors[rfm.segment_code || ''] || 'bg-muted/30 text-muted-foreground border-border/30';
   const barColor = barColors[rfm.segment_code || ''] || 'bg-primary';
