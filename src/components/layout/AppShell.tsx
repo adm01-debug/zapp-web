@@ -120,7 +120,7 @@ export function AppShell({
                 className={cn(
                   'absolute top-3 right-3 z-30 w-8 h-8 rounded-lg flex items-center justify-center',
                   'text-muted-foreground/50 hover:text-foreground hover:bg-muted/60 transition-all',
-                  'border border-border/30 hover:border-border/60 backdrop-blur-sm bg-card/50'
+                  'border border-border/30 hover:border-border/60 bg-card'
                 )}
                 aria-label={isZen ? 'Sair do modo zen' : 'Modo zen'}
               >

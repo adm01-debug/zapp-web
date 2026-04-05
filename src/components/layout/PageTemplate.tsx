@@ -52,7 +52,7 @@ export function PageTemplate({
     >
       {/* ─── Header ─── */}
       <header className={cn(
-        'flex flex-col gap-3 shrink-0 border-b border-border/40 bg-card/50 backdrop-blur-sm',
+        'flex flex-col gap-3 shrink-0 border-b border-border/40 bg-card',
         padded ? 'px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4' : 'px-4 pt-4 pb-3'
       )}>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
