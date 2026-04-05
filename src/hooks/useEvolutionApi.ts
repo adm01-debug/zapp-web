@@ -21,7 +21,7 @@ export type {
 export function useEvolutionApi() {
   const [isLoading, setIsLoading] = useState(false);
   const mountedRef = useRef(true);
-  const inflightRef = useRef<Map<string, Promise<any>>>(new Map());
+  const inflightRef = useRef<Map<string, Promise<unknown>>>(new Map());
 
   useEffect(() => {
     mountedRef.current = true;
