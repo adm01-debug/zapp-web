@@ -196,19 +196,53 @@ describe('useRealtimeMessages', () => {
       }),
     ];
 
-    let result: any;
-    await act(async () => {
-      const rendered = renderHook(() => useRealtimeMessages());
-      result = rendered.result;
-      // Allow all async effects to settle
-      await new Promise((r) => setTimeout(r, 100));
+    // Spy on mock to trace calls
+    const originalIn = vi.fn((_: string, ids: string[]) => {
+      return Promise.resolve({
+        data: ids.map((id) => contactsById[id]).filter(Boolean),
+        error: null,
+      });
     });
+
+    // Override contacts query to add proper .in() support at top level
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'contacts') {
+        const selectFn = vi.fn(() => ({
+          order: vi.fn(() => ({
+            limit: vi.fn().mockResolvedValue({ data: seededContacts, error: null }),
+          })),
+          in: originalIn,
+          eq: vi.fn((_: string, value: string) => ({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: contactsById[value] ?? null,
+              error: null,
+            }),
+          })),
+        }));
+        return { select: selectFn };
+      }
+      if (table === 'messages') return makeMessagesQuery();
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          }),
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        }),
+        insert: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+    });
+
+    const { result } = renderHook(() => useRealtimeMessages());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     }, { timeout: 10000 });
 
-    expect(result.current.conversations.map((conversation: any) => conversation.contact.id)).toContain(
+    expect(result.current.conversations.map((c: any) => c.contact.id)).toContain(
       hiddenActiveContact.id
     );
   });
