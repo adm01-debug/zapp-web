@@ -173,7 +173,12 @@ export function AgentsView() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <Avatar className="w-12 h-12 ring-2 ring-border/30">
+                          <Avatar className={cn(
+                            "w-12 h-12 ring-2 transition-all duration-200",
+                            agent.status === 'online' && 'ring-status-online/50',
+                            agent.status === 'away' && 'ring-status-away/50',
+                            agent.status === 'offline' && 'ring-border/30'
+                          )}>
                             <AvatarImage src={agent.avatar_url || undefined} />
                             <AvatarFallback className="bg-primary/10 text-primary">
                               {agent.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
@@ -247,8 +252,12 @@ export function AgentsView() {
                             <Badge
                               key={queue.id}
                               variant="outline"
-                              className="text-xs border-border/30"
-                              style={{ borderColor: queue.color, color: queue.color }}
+                              className="text-xs font-medium"
+                              style={{ 
+                                borderColor: queue.color, 
+                                color: queue.color,
+                                backgroundColor: `${queue.color}15`
+                              }}
                             >
                               {queue.name}
                             </Badge>
