@@ -35,7 +35,7 @@ const aiFeatures: AIFeature[] = [
     description: 'IA gera respostas personalizadas para cada conversa',
     icon: Sparkles,
     action: 'inbox',
-    gradient: 'from-primary to-amber-500',
+    gradient: 'from-primary to-warning',
     badge: 'Popular',
   },
   {
@@ -61,7 +61,7 @@ const aiFeatures: AIFeature[] = [
     description: 'Gere resumos de conversas longas instantaneamente',
     icon: FileText,
     action: 'inbox',
-    gradient: 'from-info to-cyan-400',
+    gradient: 'from-info to-info',
   },
   {
     id: 'transcription',
@@ -69,7 +69,7 @@ const aiFeatures: AIFeature[] = [
     description: 'Converta mensagens de áudio em texto',
     icon: Mic,
     action: 'inbox',
-    gradient: 'from-success to-emerald-400',
+    gradient: 'from-success to-success',
   },
   {
     id: 'trends',
@@ -77,7 +77,7 @@ const aiFeatures: AIFeature[] = [
     description: 'Acompanhe a evolução do sentimento dos clientes',
     icon: TrendingUp,
     route: '/sentiment-alerts',
-    gradient: 'from-coins to-amber-400',
+    gradient: 'from-coins to-warning',
   },
 ];
 

@@ -66,7 +66,7 @@ function RankBadge({ rank, previousRank }: { rank: number; previousRank: number 
     switch (rank) {
       case 1:
         return {
-          bg: 'bg-gradient-to-br from-primary to-amber-500',
+          bg: 'bg-gradient-to-br from-primary to-warning',
           shadow: 'shadow-[0_0_15px_hsl(var(--primary)/0.4)]',
           icon: Crown,
           iconColor: 'text-primary-foreground',

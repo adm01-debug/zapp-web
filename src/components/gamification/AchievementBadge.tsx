@@ -50,13 +50,13 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.RESOLUTION]: {
     icon: Target,
-    gradient: 'from-success to-emerald-400',
+    gradient: 'from-success to-success',
     bgGlow: 'shadow-green-500/30',
     rarity: 'common',
   },
   [ACHIEVEMENT_TYPES.PERFECT_RATING]: {
     icon: Star,
-    gradient: 'from-warning to-amber-400',
+    gradient: 'from-warning to-warning',
     bgGlow: 'shadow-yellow-400/30',
     rarity: 'rare',
   },
@@ -68,7 +68,7 @@ const BADGE_CONFIG: Record<string, {
   },
   [ACHIEVEMENT_TYPES.DAILY_GOAL]: {
     icon: Trophy,
-    gradient: 'from-teal-400 to-cyan-400',
+    gradient: 'from-info to-info',
     bgGlow: 'shadow-teal-400/30',
     rarity: 'common',
   },
@@ -182,7 +182,7 @@ export function AchievementBadge({
         {/* Rarity glow effect */}
         {config.rarity === 'legendary' && (
           <motion.div
-            className="absolute inset-0 rounded-xl bg-gradient-to-br from-warning/20 to-amber-400/20"
+            className="absolute inset-0 rounded-xl bg-gradient-to-br from-warning/20 to-warning/20"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           />

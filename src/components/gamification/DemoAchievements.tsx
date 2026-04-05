@@ -50,13 +50,13 @@ export function DemoAchievements() {
       label: 'Resolução',
       icon: Target,
       action: () => triggerResolution(),
-      gradient: 'from-success to-emerald-400',
+      gradient: 'from-success to-success',
     },
     {
       label: 'Nota 5 ⭐',
       icon: Star,
       action: () => triggerPerfectRating(),
-      gradient: 'from-warning to-amber-400',
+      gradient: 'from-warning to-warning',
     },
     {
       label: 'Level Up!',
@@ -68,7 +68,7 @@ export function DemoAchievements() {
       label: 'Meta Diária',
       icon: Trophy,
       action: () => triggerDailyGoal('50 atendimentos'),
-      gradient: 'from-teal-400 to-cyan-400',
+      gradient: 'from-info to-info',
     },
   ];
 

@@ -135,7 +135,7 @@ export function AchievementsPanel() {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-warning to-amber-500 flex items-center justify-center shadow-lg shadow-yellow-500/30">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-warning to-warning flex items-center justify-center shadow-lg shadow-warning/30">
               <Trophy className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>

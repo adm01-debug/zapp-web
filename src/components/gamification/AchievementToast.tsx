@@ -46,7 +46,7 @@ const achievementConfigs: Record<AchievementType, AchievementConfig> = {
   resolution: {
     icon: Target,
     title: 'Problema Resolvido!',
-    gradient: 'from-primary via-green-400 to-emerald-400',
+    gradient: 'from-primary via-success to-success',
     glowColor: 'hsl(142 72% 50% / 0.5)',
     particles: 'bg-success',
   },

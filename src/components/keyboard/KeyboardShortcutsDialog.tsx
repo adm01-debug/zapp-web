@@ -38,7 +38,7 @@ const categoryConfig = {
     icon: Zap, 
     label: 'Ações Rápidas', 
     description: 'Executar ações comuns',
-    gradient: 'from-amber-500/20 to-amber-600/10'
+    gradient: 'from-warning/20 to-warning/10'
   },
   selection: { 
     icon: MousePointerClick, 
