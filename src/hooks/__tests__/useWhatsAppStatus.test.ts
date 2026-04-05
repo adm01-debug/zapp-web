@@ -68,7 +68,8 @@ describe('useWhatsAppStatus', () => {
   // ========== NO CONNECTION ==========
   it('sets error when no WhatsApp connection available', async () => {
     mockMaybeSingle
-      .mockResolvedValueOnce({ data: null }) // contact lookup
+      .mockResolvedValueOnce({ data: null }) // contact lookup (original phone)
+      .mockResolvedValueOnce({ data: null }) // contact lookup (cleaned phone fallback)
       .mockResolvedValueOnce({ data: null }); // fallback connection
 
     const { result } = renderHook(() => useWhatsAppStatus('+5511999999999'));
