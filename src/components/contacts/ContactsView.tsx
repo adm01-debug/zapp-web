@@ -2,11 +2,9 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
-import { ContactsEmptyState } from '@/components/ui/contextual-empty-states';
 import { ContactForm } from '@/components/contacts/ContactForm';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Button } from '@/components/ui/button';
@@ -14,84 +12,33 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import {
-  Search,
-  Plus,
-  MoreVertical,
-  MessageSquare,
-  Edit,
-  Trash2,
-  Download,
-  Upload,
-  Mail,
-  Phone,
-  Tag,
-  Calendar,
-  Filter,
-  RefreshCw,
-  Building,
-  Briefcase,
-  Users,
-  UserCheck,
-  Truck,
-  Wrench,
-  Star,
-  Handshake,
-  MoreHorizontal,
-  X,
-  CalendarDays,
-  SortAsc,
-  CheckCircle2,
-  Copy,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
+  Search, Plus, Download, Upload, Phone, Tag, Filter, RefreshCw,
+  Building, Briefcase, Users, UserCheck, Truck, Wrench, Star,
+  Handshake, MoreHorizontal, X, CalendarDays, SortAsc, CheckCircle2,
+  Copy, ChevronLeft, ChevronRight, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, subDays, subMonths, isAfter } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
+import { CONTACT_TYPES } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
 import { AdvancedCRMSearch } from '@/components/contacts/AdvancedCRMSearch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
-import { Sparkles, CheckSquare } from 'lucide-react';
 import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
-import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useContactsCRUD } from './useContactsCRUD';
+import { ContactsTable, CONTACT_TYPE_ICONS } from './ContactsTable';
 // Contact type used in view (extends the CRUD Contact)
 interface ViewContact {
   id: string;
