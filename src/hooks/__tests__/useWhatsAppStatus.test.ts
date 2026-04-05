@@ -183,8 +183,8 @@ describe('useWhatsAppStatus', () => {
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
-    // Should include matched and broadcast, exclude non-match
-    expect(result.current.statusMessages.length).toBe(2);
+    // Should include only the matched phone, exclude non-match and broadcast (no phone match)
+    expect(result.current.statusMessages.length).toBe(1);
   });
 
   // ========== PROMISE.ALLSETTLED ==========
