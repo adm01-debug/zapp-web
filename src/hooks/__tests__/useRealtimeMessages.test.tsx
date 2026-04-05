@@ -116,12 +116,12 @@ function makeContactsQuery() {
       order: vi.fn(() => ({
         limit: vi.fn().mockResolvedValue({ data: seededContacts, error: null }),
       })),
-      in: vi.fn((_: string, ids: string[]) =>
-        Promise.resolve({
+      in: vi.fn((_: string, ids: string[]) => {
+        return Promise.resolve({
           data: ids.map((id) => contactsById[id]).filter(Boolean),
           error: null,
-        })
-      ),
+        });
+      }),
       eq: vi.fn((_: string, value: string) => ({
         maybeSingle: vi.fn().mockResolvedValue({
           data: contactsById[value] ?? null,
