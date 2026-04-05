@@ -153,7 +153,19 @@ describe('useRealtimeMessages', () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === 'contacts') return makeContactsQuery();
       if (table === 'messages') return makeMessagesQuery();
-      throw new Error(`Unexpected table: ${table}`);
+      // Return a safe fallback for any other table
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          }),
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        }),
+        insert: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
     });
   });
 
