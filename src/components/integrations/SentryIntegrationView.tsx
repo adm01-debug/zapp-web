@@ -73,7 +73,7 @@ export function SentryIntegrationView() {
     <div className="space-y-6 p-6 max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#362D59]">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[hsl(255_35%_27%)]">
             <Bug className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
