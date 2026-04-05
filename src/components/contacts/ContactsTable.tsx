@@ -88,7 +88,10 @@ export function ContactsTable({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.02 }}
-                className="border-b border-border/10 last:border-0 hover:bg-muted/40 transition-all duration-150 cursor-pointer group"
+                className={cn(
+                  "border-b border-border/10 last:border-0 hover:bg-muted/40 transition-all duration-150 cursor-pointer group",
+                  selectedIds.includes(contact.id) && "bg-primary/5 border-l-2 border-l-primary"
+                )}
                 onClick={() => onOpenChat(contact.id)}
               >
                 <td className="p-4" onClick={(e) => e.stopPropagation()}>
