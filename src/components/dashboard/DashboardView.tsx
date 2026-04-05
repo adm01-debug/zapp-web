@@ -76,7 +76,7 @@ export function DashboardView() {
   // Loading skeleton
   if (isLoading || !stats) {
     return (
-      <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+      <div className="p-6 space-y-6 overflow-y-auto h-full w-full relative bg-background">
         <AuroraBorealis />
         <FloatingParticles />
         <div className="space-y-6 relative z-10">
@@ -184,7 +184,7 @@ export function DashboardView() {
                   >
                     <Target className="w-5 h-5 text-secondary" />
                   </motion.div>
-                  <CardTitle className="font-display text-lg text-foreground">Desafios do Dia</CardTitle>
+                  <h2 className="font-display text-lg font-semibold text-foreground">Desafios do Dia</h2>
                 </div>
                 <AnimatedBadge value="2/4" variant="achievement" size="sm" />
               </div>
@@ -263,7 +263,7 @@ export function DashboardView() {
                 >
                   <Sparkles className="w-5 h-5 text-secondary" />
                 </motion.div>
-                <CardTitle className="font-display text-lg text-foreground">Status das Filas</CardTitle>
+                <h2 className="font-display text-lg font-semibold text-foreground">Status das Filas</h2>
               </div>
             </CardHeader>
             <CardContent className="p-6">
@@ -346,7 +346,7 @@ export function DashboardView() {
                 <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center glow-purple-pulse-slow">
                   <MessageSquare className="w-5 h-5 text-secondary" />
                 </div>
-                <CardTitle className="font-display text-lg text-foreground">Atividade Recente</CardTitle>
+                <h2 className="font-display text-lg font-semibold text-foreground">Atividade Recente</h2>
               </div>
             </CardHeader>
             <CardContent className="p-4">
@@ -416,7 +416,7 @@ export function DashboardView() {
   };
 
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
+    <div className="p-6 space-y-6 overflow-y-auto h-full w-full relative bg-background">
       {/* Aurora Borealis Effect */}
       <AuroraBorealis />
       
@@ -453,7 +453,7 @@ export function DashboardView() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                className="font-display text-2xl font-bold text-foreground neon-underline"
+                className="font-display text-2xl font-bold tracking-tight text-foreground neon-underline"
               >
                 Dashboard
               </motion.h1>

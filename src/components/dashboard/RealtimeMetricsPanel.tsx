@@ -89,9 +89,9 @@ export function RealtimeMetricsPanel() {
             >
               <Activity className="w-4 h-4 text-primary" />
             </motion.div>
-            <CardTitle className="font-display text-base text-foreground">
+            <h2 className="font-display text-base font-semibold text-foreground">
               Métricas em Tempo Real
-            </CardTitle>
+            </h2>
           </div>
           <div className="flex items-center gap-2">
             {lastMessageAt && (
@@ -102,12 +102,25 @@ export function RealtimeMetricsPanel() {
             <Badge
               variant="outline"
               className={cn(
-                'text-xs gap-1',
+                'text-xs gap-1.5 font-semibold',
                 isConnected ? 'border-success/50 text-success' : 'border-destructive/50 text-destructive'
               )}
             >
-              {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-              {isConnected ? 'Live' : 'Offline'}
+              {isConnected ? (
+                <motion.div
+                  className="relative flex items-center justify-center"
+                >
+                  <motion.span
+                    className="absolute w-3 h-3 rounded-full bg-success/40"
+                    animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  <Wifi className="w-3 h-3 relative z-10" />
+                </motion.div>
+              ) : (
+                <WifiOff className="w-3 h-3" />
+              )}
+              {isConnected ? 'Ao Vivo' : 'Offline'}
             </Badge>
           </div>
         </div>
@@ -120,7 +133,8 @@ export function RealtimeMetricsPanel() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="flex flex-col items-center p-3 rounded-xl bg-muted/30 border border-border/30 hover:border-primary/20 transition-all"
+              whileHover={{ scale: 1.04, y: -2 }}
+              className="flex flex-col items-center p-3 rounded-xl bg-muted/30 border border-border/30 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 cursor-default"
             >
               <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center mb-2', metric.bg)}>
                 <metric.icon className={cn('w-4 h-4', metric.color)} />
