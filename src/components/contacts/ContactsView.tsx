@@ -2,11 +2,9 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
-import { ContactsEmptyState } from '@/components/ui/contextual-empty-states';
 import { ContactForm } from '@/components/contacts/ContactForm';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Button } from '@/components/ui/button';
@@ -14,112 +12,33 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import {
-  Search,
-  Plus,
-  MoreVertical,
-  MessageSquare,
-  Edit,
-  Trash2,
-  Download,
-  Upload,
-  Mail,
-  Phone,
-  Tag,
-  Calendar,
-  Filter,
-  RefreshCw,
-  Building,
-  Briefcase,
-  Users,
-  UserCheck,
-  Truck,
-  Wrench,
-  Star,
-  Handshake,
-  MoreHorizontal,
-  X,
-  CalendarDays,
-  SortAsc,
-  CheckCircle2,
-  Copy,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
+  Search, Plus, Download, Upload, Phone, Tag, Filter, RefreshCw,
+  Building, Briefcase, Users, UserCheck, Truck, Wrench, Star,
+  Handshake, MoreHorizontal, X, CalendarDays, SortAsc, CheckCircle2,
+  Copy, ChevronLeft, ChevronRight, Sparkles, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, subDays, subMonths, isAfter } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CONTACT_TYPES, getContactTypeInfo } from '@/utils/whatsappFileTypes';
+import { CONTACT_TYPES } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
 import { AdvancedCRMSearch } from '@/components/contacts/AdvancedCRMSearch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
-import { Sparkles, CheckSquare } from 'lucide-react';
 import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
-import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useContactsCRUD } from './useContactsCRUD';
-// Contact type used in view (extends the CRUD Contact)
-interface ViewContact {
-  id: string;
-  name: string;
-  nickname: string | null;
-  surname: string | null;
-  job_title: string | null;
-  company: string | null;
-  phone: string;
-  email: string | null;
-  avatar_url: string | null;
-  tags: string[] | null;
-  notes: string | null;
-  contact_type: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-// Contact type icons mapping
-const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
-  cliente: <Users className="w-4 h-4" />,
-  fornecedor: <Truck className="w-4 h-4" />,
-  colaborador: <UserCheck className="w-4 h-4" />,
-  prestador_servico: <Wrench className="w-4 h-4" />,
-  lead: <Star className="w-4 h-4" />,
-  parceiro: <Handshake className="w-4 h-4" />,
-  outros: <MoreHorizontal className="w-4 h-4" />,
-};
+import { ContactsTable, CONTACT_TYPE_ICONS } from './ContactsTable';
 
 // Date filter options
 const DATE_FILTERS = [
@@ -565,180 +484,14 @@ export function ContactsView() {
               onSecondaryAction={search ? () => { clearSearch(); } : undefined}
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-secondary/20 bg-secondary/5">
-                     <th className="p-4 w-10">
-                       <Checkbox
-                         checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
-                         onCheckedChange={(checked) => {
-                           setSelectedIds(checked ? filteredContacts.map(c => c.id) : []);
-                         }}
-                         aria-label="Selecionar todos"
-                       />
-                     </th>
-                     <th className="text-left p-4 font-medium text-muted-foreground">Contato</th>
-                     <th className="text-left p-4 font-medium text-muted-foreground">Tipo</th>
-                     <th className="text-left p-4 font-medium text-muted-foreground">Telefone</th>
-                     <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                     <th className="text-left p-4 font-medium text-muted-foreground">Empresa/Cargo</th>
-                     <th className="text-left p-4 font-medium text-muted-foreground">Etiquetas</th>
-                     <th className="text-left p-4 font-medium text-muted-foreground">Criado em</th>
-                     <th className="text-right p-4 font-medium text-muted-foreground">Ações</th>
-                   </tr>
-                </thead>
-                <tbody>
-                  {filteredContacts.map((contact, index) => {
-                    const typeInfo = getContactTypeInfo(contact.contact_type || 'cliente');
-                    return (
-                      <motion.tr
-                        key={contact.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.02 }}
-                        className="border-b border-secondary/10 last:border-0 hover:bg-secondary/5 transition-colors cursor-pointer"
-                        onClick={() => openContactChat(contact.id)}
-                      >
-                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedIds.includes(contact.id)}
-                            onCheckedChange={(checked) => {
-                              setSelectedIds(prev =>
-                                checked ? [...prev, contact.id] : prev.filter(id => id !== contact.id)
-                              );
-                            }}
-                            aria-label={`Selecionar ${contact.name}`}
-                          />
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={contact.avatar_url || undefined} />
-                              <AvatarFallback className="bg-primary/10 text-primary">
-                                {contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <span className="font-medium block">{contact.name} {contact.surname || ''}</span>
-                              {contact.nickname && (
-                                <span className="text-xs text-muted-foreground">({contact.nickname})</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "flex items-center gap-1.5 w-fit",
-                              typeInfo.color.replace('bg-', 'border-'),
-                              typeInfo.color.replace('bg-', 'text-').replace('-500', '-600')
-                            )}
-                          >
-                            {CONTACT_TYPE_ICONS[typeInfo.value]}
-                            {typeInfo.label}
-                          </Badge>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Phone className="w-4 h-4" />
-                            {contact.phone}
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          {contact.email ? (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Mail className="w-4 h-4" />
-                              {contact.email}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground/50">-</span>
-                          )}
-                        </td>
-                        <td className="p-4">
-                          {(contact.company || contact.job_title) ? (
-                            <div className="space-y-1">
-                              {contact.company && (
-                                <div className="flex items-center gap-1 text-sm">
-                                  <Building className="w-3 h-3" />
-                                  {contact.company}
-                                </div>
-                              )}
-                              {contact.job_title && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Briefcase className="w-3 h-3" />
-                                  {contact.job_title}
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground/50">-</span>
-                          )}
-                        </td>
-                        <td className="p-4">
-                          <div className="flex flex-wrap gap-1">
-                            {contact.tags?.map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="p-4 text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            {format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                          </div>
-                        </td>
-                        <td className="p-4 text-right">
-                          <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="w-8 h-8"
-                                onClick={() => openContactChat(contact.id)}
-                                title="Iniciar conversa"
-                              >
-                                <MessageSquare className="w-4 h-4" />
-                              </Button>
-                            </motion.div>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                                  <Button variant="ghost" size="icon" className="w-8 h-8">
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </motion.div>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditDialog(contact)}>
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Tag className="w-4 h-4 mr-2" />
-                                  Gerenciar etiquetas
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => setDeleteTarget(contact)}
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <ContactsTable
+              contacts={filteredContacts}
+              selectedIds={selectedIds}
+              onSelectIds={setSelectedIds}
+              onOpenChat={openContactChat}
+              onEdit={openEditDialog}
+              onDelete={setDeleteTarget}
+            />
           )}
         </CardContent>
       </Card>

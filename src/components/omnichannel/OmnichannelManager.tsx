@@ -20,9 +20,9 @@ const ChannelRoutingRules = lazy(() => import('./ChannelRoutingRules').then(m =>
 
 const channelConfig = {
   whatsapp: { label: 'WhatsApp', icon: MessageSquare, color: 'text-success', bg: 'bg-success/10' },
-  instagram: { label: 'Instagram', icon: Instagram, color: 'text-pink-500', bg: 'bg-pink-500/10' },
+  instagram: { label: 'Instagram', icon: Instagram, color: 'text-accent', bg: 'bg-accent/10' },
   telegram: { label: 'Telegram', icon: Send, color: 'text-info', bg: 'bg-info/10' },
-  messenger: { label: 'Messenger', icon: MessagesSquare, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+  messenger: { label: 'Messenger', icon: MessagesSquare, color: 'text-primary', bg: 'bg-primary/10' },
   webchat: { label: 'Web Chat', icon: Globe, color: 'text-warning', bg: 'bg-warning/10' },
   email: { label: 'Gmail', icon: MessageSquare, color: 'text-destructive', bg: 'bg-destructive/10' },
 };
