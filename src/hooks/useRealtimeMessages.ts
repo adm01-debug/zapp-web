@@ -204,6 +204,12 @@ export function useRealtimeMessages() {
         return;
       }
 
+      // Respect global notification toggle — skip everything if disabled
+      const notificationsActive = notifSettings.soundEnabled || notifSettings.browserNotifications;
+      if (!notificationsActive && isQuietHours()) {
+        return;
+      }
+
       if (soundEnabledRef.current) {
         playNotificationSound('message');
       }
@@ -216,16 +222,19 @@ export function useRealtimeMessages() {
         );
       }
 
-      setNewMessageNotification({
-        id: message.id,
-        contactId: contact.id,
-        contactName: contact.name,
-        contactAvatar: contact.avatar_url,
-        message: message.content,
-        timestamp: new Date(),
-      });
+      // Only show in-app notification toast if notifications are enabled
+      if (notificationsActive && !isQuietHours()) {
+        setNewMessageNotification({
+          id: message.id,
+          contactId: contact.id,
+          contactName: contact.name,
+          contactAvatar: contact.avatar_url,
+          message: message.content,
+          timestamp: new Date(),
+        });
+      }
     },
-    [notifSettings.browserNotifications, isQuietHours]
+    [notifSettings.soundEnabled, notifSettings.browserNotifications, isQuietHours]
   );
 
   const hydrateConversationForMessage = useCallback(
