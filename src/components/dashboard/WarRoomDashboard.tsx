@@ -223,7 +223,7 @@ export function WarRoomDashboard({
             <h1 className="text-2xl font-bold">War Room</h1>
           </div>
           <Badge variant="outline" className="gap-1">
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-success motion-safe:animate-pulse" />
             Ao vivo
           </Badge>
           <span className="text-sm text-muted-foreground">

@@ -151,6 +151,13 @@ export function OnboardingChecklist({ onNavigate, onDismiss, compact = false }: 
   const { user } = useAuth();
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  
+  // Auto-collapse after 8 seconds to free screen space
+  useEffect(() => {
+    if (!isExpanded) return;
+    const timer = setTimeout(() => setIsExpanded(false), 8000);
+    return () => clearTimeout(timer);
+  }, [isExpanded]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 

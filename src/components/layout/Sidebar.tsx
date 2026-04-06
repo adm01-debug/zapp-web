@@ -64,7 +64,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       <div className={cn('flex items-center h-[56px] shrink-0 px-3', collapsed ? 'justify-center' : 'justify-between')}>
         <button
           onClick={() => onViewChange('inbox')}
-          className="w-[36px] h-[36px] rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 transition-colors shrink-0"
+          className="w-[36px] h-[36px] rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
           aria-label="ZAPP — Ir para Inbox"
         >
           <span className="text-primary-foreground font-bold text-sm tracking-tight">Z</span>
@@ -77,7 +77,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
             <TooltipTrigger asChild>
               <button
                 onClick={toggle}
-                className="w-[28px] h-[28px] rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
+                className="w-[28px] h-[28px] rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
                 aria-label="Recolher menu"
               >
                 <PanelLeftClose className="w-[15px] h-[15px]" />
@@ -97,7 +97,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
             <TooltipTrigger asChild>
               <button
                 onClick={toggle}
-                className="w-[38px] h-[38px] rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all border border-border/40 hover:border-border"
+                className="w-[38px] h-[38px] rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all border border-border/40 hover:border-border focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
                 aria-label="Expandir menu"
               >
                 <PanelLeftOpen className="w-[16px] h-[16px]" />
@@ -212,19 +212,19 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
         )}
 
         <div className={cn(
-          'flex items-center gap-0.5 rounded-xl border border-border/50 bg-muted/25 px-1 py-1 shadow-sm',
+          'flex items-center gap-1 rounded-xl border border-border/50 bg-muted/25 px-1.5 py-1.5 shadow-sm',
           collapsed ? 'flex-col' : 'flex-row self-stretch mx-2'
         )}>
-          <ScreenProtectionToggle className="w-[32px] h-[32px]" />
-          <PushNotificationToggle className="w-[32px] h-[32px]" />
-          <SoundMuteToggle className="w-[32px] h-[32px]" />
+          <ScreenProtectionToggle className="w-[36px] h-[36px]" />
+          <PushNotificationToggle className="w-[36px] h-[36px]" />
+          <SoundMuteToggle className="w-[36px] h-[36px]" />
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
                 className={cn(
-                  "w-[32px] h-[32px] rounded-lg flex items-center justify-center transition-all duration-200",
-                  "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "w-[36px] h-[36px] rounded-lg flex items-center justify-center transition-all duration-200",
+                  "text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none",
                   isDark && "text-primary"
                 )}
                 aria-label={isDark ? 'Modo claro' : 'Modo escuro'}
@@ -244,7 +244,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
             <PopoverTrigger asChild>
               <button
                 className={cn(
-                  'relative group flex items-center gap-2.5 rounded-lg transition-colors hover:bg-muted/40',
+                  'relative group flex items-center gap-2.5 rounded-lg transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
                   collapsed ? 'justify-center p-1' : 'w-full px-3 py-1.5'
                 )}
                 aria-label="Status e perfil"
