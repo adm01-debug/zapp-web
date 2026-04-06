@@ -298,7 +298,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
                   </button>
                 ))}
               </div>
-              <div className="mt-1 pt-1 border-t border-border/50">
+              <div className="mt-1 pt-1 border-t border-border/50 space-y-0.5">
                 <button
                   onClick={() => { onViewChange('settings'); setStatusOpen(false); }}
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
@@ -306,6 +306,15 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
                   <Settings className="w-3.5 h-3.5" />
                   Configurações
                 </button>
+                {onLogout && (
+                  <button
+                    onClick={() => { onLogout(); setStatusOpen(false); }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Sair da conta
+                  </button>
+                )}
               </div>
             </PopoverContent>
           </Popover>
