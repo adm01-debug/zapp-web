@@ -283,6 +283,5 @@ describe('Dashboard – Edge Cases', () => {
     await waitFor(() => {
       expect(screen.getByText('1500ms')).toBeInTheDocument();
     });
-    });
   });
 });
