@@ -120,7 +120,7 @@ export function PageTemplate({
           padded && 'p-4 sm:p-6',
           className
         )}
-        style={{ contentVisibility: 'auto' }}
+        style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 500px' }}
       >
         {children}
       </motion.div>
