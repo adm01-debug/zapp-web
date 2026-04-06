@@ -1,11 +1,13 @@
 import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
 import { AiConversationAnalysisSchema, parseBody } from "../_shared/schemas.ts";
+import { callAiWithTracking, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   const log = new Logger("ai-conversation-analysis");
+  const userId = extractUserIdFromRequest(req);
 
   try {
     const parsed = parseBody(AiConversationAnalysisSchema, await req.json());
@@ -43,13 +45,11 @@ Responda em português brasileiro de forma clara e objetiva.`;
 
     log.info("Calling AI for conversation analysis");
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const { response, data } = await callAiWithTracking({
+      functionName: 'ai-conversation-analysis',
+      userId,
+      apiKey: LOVABLE_API_KEY,
+      body: {
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -81,26 +81,23 @@ Responda em português brasileiro de forma clara e objetiva.`;
           }
         ],
         tool_choice: { type: "function", function: { name: "analyze_conversation" } }
-      }),
+      },
     });
 
-    if (!response.ok) {
+    if (!response.ok || !data) {
       if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429, req);
       if (response.status === 402) return errorResponse("Payment required. Please add credits to your workspace.", 402, req);
-      const errorText = await response.text();
-      log.error("AI gateway error", { status: response.status, error: errorText });
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    const toolCall = (data.choices as Array<{message: {tool_calls?: Array<{function: {arguments: string}}>; content?: string}}>)?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       const analysisData = JSON.parse(toolCall.function.arguments);
       log.done(200);
       return jsonResponse(analysisData, 200, req);
     }
 
-    const content = data.choices?.[0]?.message?.content;
+    const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
     log.done(200);
     return jsonResponse({
       summary: content || 'Unable to analyze conversation',

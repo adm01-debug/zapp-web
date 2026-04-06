@@ -89,6 +89,7 @@ const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<Rec
   'media-migration': Views.MediaMigrationTool,
   'sicoob-bridge': Views.SicoobBridgeDashboard,
   'crm360': Views.CRM360ExplorerView,
+  'ai-usage': Views.AIUsageDashboard,
 };
 
 // Views that need custom props

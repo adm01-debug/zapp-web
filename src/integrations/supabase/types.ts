@@ -266,6 +266,69 @@ export type Database = {
           },
         ]
       }
+      ai_usage_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          function_name: string
+          id: string
+          input_tokens: number | null
+          metadata: Json | null
+          model: string | null
+          output_tokens: number | null
+          profile_id: string | null
+          status: string
+          total_tokens: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          function_name: string
+          id?: string
+          input_tokens?: number | null
+          metadata?: Json | null
+          model?: string | null
+          output_tokens?: number | null
+          profile_id?: string | null
+          status?: string
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          input_tokens?: number | null
+          metadata?: Json | null
+          model?: string | null
+          output_tokens?: number | null
+          profile_id?: string | null
+          status?: string
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_usage_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allowed_countries: {
         Row: {
           added_by: string | null

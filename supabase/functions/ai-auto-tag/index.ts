@@ -4,12 +4,14 @@ import {
   sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv, Logger,
 } from "../_shared/validation.ts";
 import { AiAutoTagSchema, parseBody } from "../_shared/schemas.ts";
+import { callAiWithTracking, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   const log = new Logger("ai-auto-tag");
+  const userId = extractUserIdFromRequest(req);
 
   try {
     const ip = getClientIP(req);
@@ -61,13 +63,11 @@ Deno.serve(async (req) => {
 
     log.info("Classifying conversation", { contactId: validContactId, msgCount: conversationMessages.length });
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const { response, data } = await callAiWithTracking({
+      functionName: 'ai-auto-tag',
+      userId,
+      apiKey: LOVABLE_API_KEY,
+      body: {
         model: "google/gemini-3-flash-preview",
         messages: [
           {
@@ -95,19 +95,16 @@ Responda APENAS em JSON:
           { role: "user", content: conversationText }
         ],
         temperature: 0.3,
-      }),
+      },
     });
 
-    if (!response.ok) {
+    if (!response.ok || !data) {
       if (response.status === 429) return errorResponse("Rate limit exceeded", 429, req);
       if (response.status === 402) return errorResponse("Payment required", 402, req);
-      const errText = await response.text();
-      log.error("AI error", { status: response.status, detail: errText.substring(0, 200) });
       throw new Error(`AI error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const content = (data.choices as Array<{message: {content: string}}>)?.[0]?.message?.content;
 
     let result;
     try {

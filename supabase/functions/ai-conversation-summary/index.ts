@@ -1,12 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
 import { AiConversationSummarySchema, parseBody } from "../_shared/schemas.ts";
+import { callAiWithTracking, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   const log = new Logger("ai-conversation-summary");
+  const userId = extractUserIdFromRequest(req);
 
   try {
     const parsed = parseBody(AiConversationSummarySchema, await req.json());
@@ -58,13 +60,11 @@ Foque em:
 - Identificar riscos de churn/insatisfação
 - Sugerir ações concretas e mensuráveis`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const { response, data } = await callAiWithTracking({
+      functionName: 'ai-conversation-summary',
+      userId,
+      apiKey: LOVABLE_API_KEY,
+      body: {
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -105,23 +105,22 @@ Foque em:
           }
         ],
         tool_choice: { type: "function", function: { name: "generate_analysis" } }
-      }),
+      },
     });
 
-    if (!response.ok) {
+    if (!response.ok || !data) {
       if (response.status === 429) return errorResponse("Rate limit exceeded", 429, req);
       if (response.status === 402) return errorResponse("Payment required", 402, req);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    const toolCall = (data.choices as Array<{message: {tool_calls?: Array<{function: {arguments: string}}>; content?: string}}>)?.[0]?.message?.tool_calls?.[0];
 
     let analysisData;
     if (toolCall?.function?.arguments) {
       analysisData = JSON.parse(toolCall.function.arguments);
     } else {
-      const content = data.choices?.[0]?.message?.content;
+      const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
       analysisData = { summary: content, status: 'pendente', keyPoints: [], sentiment: 'neutro', sentimentScore: 50, customerSatisfaction: 3, topics: [], urgency: 'normal' };
     }
 
