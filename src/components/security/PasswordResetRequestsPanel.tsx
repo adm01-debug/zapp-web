@@ -79,6 +79,7 @@ export function PasswordResetRequestsPanel() {
   const fetchRequests = async () => {
     try {
       const { data, error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe view not in generated types
         .from('password_reset_requests_safe' as any)
         .select('*')
         .order('created_at', { ascending: false });

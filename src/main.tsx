@@ -15,9 +15,13 @@ initWebVitals();
 // Accessibility auditing in development mode
 if (import.meta.env.DEV) {
   import('@axe-core/react').then((axe) => {
-    axe.default(React, ReactDOM, 1000, undefined, undefined, (results: { violations?: unknown[] }) => {
-      if (results?.violations?.length) {
-        log.warn(`[A11Y] ${results.violations.length} accessibility violation(s) detected`);
+    axe.default(React, ReactDOM, 1000, undefined, undefined, (results) => {
+      const violations = results?.violations;
+      if (violations?.length) {
+        log.warn(`[A11Y] ${violations.length} accessibility violation(s) detected`);
+        violations.forEach((v) => {
+          log.warn(`[A11Y] ${String(v.impact || 'UNKNOWN').toUpperCase()}: ${v.id} — ${v.description} (${v.nodes.length} element(s))`);
+        });
       }
     });
     log.info('[A11Y] axe-core accessibility auditing enabled');

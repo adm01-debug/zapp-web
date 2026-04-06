@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 // Route prefetch configuration
-const routePrefetchConfig: Record<string, () => Promise<any>> = {
+const routePrefetchConfig: Record<string, () => Promise<unknown>> = {
   dashboard: () => import('@/components/dashboard/DashboardView'),
   contacts: () => import('@/components/contacts/ContactsView'),
   agents: () => import('@/components/agents/AgentsView'),
@@ -30,7 +30,7 @@ export function usePrefetchData() {
   const queryClient = useQueryClient();
 
   const prefetchQuery = useCallback(
-    async (queryKey: string[], queryFn: () => Promise<any>) => {
+    async (queryKey: string[], queryFn: () => Promise<unknown>) => {
       await queryClient.prefetchQuery({
         queryKey,
         queryFn,

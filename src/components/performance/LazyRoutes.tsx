@@ -146,6 +146,7 @@ export function LazyView({ children, fallbackType = 'default' }: LazyViewProps) 
 }
 
 // HOC for creating lazy components with custom fallback
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic HOC requires any for ComponentType inference
 export function withLazyLoading<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   fallbackType: LazyLoadFallbackProps['type'] = 'default'

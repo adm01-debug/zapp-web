@@ -37,7 +37,7 @@ function WithHeader({ viewId, children }: WithHeaderProps) {
 }
 
 // Declarative route map — easier to maintain than switch/case
-const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
+const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<Record<string, never>>>> = {
   'inbox': Views.RealtimeInboxView,
   'dashboard': Views.DashboardView,
   'agents': Views.AgentsView,
