@@ -47,7 +47,7 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
   unreadNotifications,
   showChecklist,
   loading,
-}: AppShellProps) {
+}, _ref) {
   const isMobile = useIsMobile();
   const { isZen, toggleZen } = useZenMode();
   const isInboxView = currentView === 'inbox' || currentView === 'team-chat';
