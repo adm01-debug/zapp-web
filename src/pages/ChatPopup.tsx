@@ -69,7 +69,7 @@ function mapToLegacyMessages(msgs: RawMessage[], contactId: string): Message[] {
 
 export default function ChatPopup() {
   const { contactId } = useParams<{ contactId: string }>();
-  const [contact, setContact] = useState<{ id: string; name: string; phone: string; avatar_url?: string | null; email?: string | null } | null>(null);
+  const [contact, setContact] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMaximized, setIsMaximized] = useState(false);
   const { messages, loading: messagesLoading } = useMessages({
