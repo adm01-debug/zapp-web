@@ -154,7 +154,8 @@ interface VideoPreviewProps {
   isSent: boolean;
 }
 
-export function VideoPreview({ url, caption, isSent }: VideoPreviewProps) {
+export const VideoPreview = forwardRef<HTMLDivElement, VideoPreviewProps>(
+  function VideoPreview({ url, caption, isSent }, ref) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [showFullscreen, setShowFullscreen] = useState(false);
