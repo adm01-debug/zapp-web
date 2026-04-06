@@ -1,12 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { handleCors, errorResponse, jsonResponse, checkRateLimit, getClientIP, requireEnv, Logger } from "../_shared/validation.ts";
 import { AiSuggestReplySchema, parseBody } from "../_shared/schemas.ts";
+import { callAiWithTracking, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   const log = new Logger("ai-suggest-reply");
+  const userId = extractUserIdFromRequest(req);
 
   try {
     const ip = getClientIP(req);
@@ -98,13 +100,11 @@ Responda APENAS em formato JSON com a seguinte estrutura:
         }))
       : [];
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const { response, data } = await callAiWithTracking({
+      functionName: 'ai-suggest-reply',
+      userId,
+      apiKey: LOVABLE_API_KEY,
+      body: {
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
@@ -112,23 +112,20 @@ Responda APENAS em formato JSON com a seguinte estrutura:
           { role: "user", content: "Gere 3 sugestões de resposta contextualizadas para a última mensagem do cliente." }
         ],
         temperature: 0.7,
-      }),
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      log.error("AI gateway error", { status: response.status, detail: errorText.substring(0, 300) });
+    if (!response.ok || !data) {
       if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429, req);
       if (response.status === 402) return errorResponse("Payment required. Please add credits.", 402, req);
-      throw new Error(`AI gateway error [${response.status}]: ${errorText}`);
+      throw new Error(`AI gateway error [${response.status}]`);
     }
 
-    const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
     let suggestions;
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const jsonMatch = (content as string).match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         suggestions = JSON.parse(jsonMatch[0]);
       } else {

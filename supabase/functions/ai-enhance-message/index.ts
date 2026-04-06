@@ -3,6 +3,7 @@ import {
   sanitizeString, isValidUUID, checkRateLimit, getClientIP, requireEnv, Logger,
 } from "../_shared/validation.ts";
 import { AiEnhanceMessageSchema, parseBody } from "../_shared/schemas.ts";
+import { callAiWithTracking, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 
 const tonePrompts: Record<string, string> = {
   professional: "Reescreva a mensagem abaixo de forma mais profissional, clara e educada. Mantenha o mesmo significado mas use linguagem corporativa e polida.",
@@ -18,6 +19,7 @@ Deno.serve(async (req) => {
   if (cors) return cors;
 
   const log = new Logger("ai-enhance-message");
+  const userId = extractUserIdFromRequest(req);
 
   try {
     const ip = getClientIP(req);
@@ -33,13 +35,11 @@ Deno.serve(async (req) => {
 
     log.info("Enhancing message", { tone, len: message.length });
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const { response, data } = await callAiWithTracking({
+      functionName: 'ai-enhance-message',
+      userId,
+      apiKey: LOVABLE_API_KEY,
+      body: {
         model: "google/gemini-3-flash-preview",
         messages: [
           {
@@ -48,19 +48,16 @@ Deno.serve(async (req) => {
           },
           { role: "user", content: message },
         ],
-      }),
+      },
     });
 
-    if (!response.ok) {
+    if (!response.ok || !data) {
       if (response.status === 429) return errorResponse("Limite de requisições excedido. Tente novamente em alguns segundos.", 429, req);
       if (response.status === 402) return errorResponse("Créditos de IA esgotados. Adicione créditos nas configurações.", 402, req);
-      const errorText = await response.text();
-      log.error("AI gateway error", { status: response.status, detail: errorText.substring(0, 300) });
       throw new Error("Erro ao processar com IA");
     }
 
-    const data = await response.json();
-    const enhancedMessage = data.choices?.[0]?.message?.content?.trim();
+    const enhancedMessage = (data.choices as Array<{message: {content: string}}>)?.[0]?.message?.content?.trim();
     if (!enhancedMessage) throw new Error("Resposta vazia da IA");
 
     log.done(200);
