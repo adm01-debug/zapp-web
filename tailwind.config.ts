@@ -18,6 +18,7 @@ export default {
         display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       fontSize: {
+        // Fluid responsive sizes (CSS custom properties)
         "fluid-xs": "var(--text-xs)",
         "fluid-sm": "var(--text-sm)",
         "fluid-base": "var(--text-base)",
@@ -26,6 +27,21 @@ export default {
         "fluid-2xl": "var(--text-2xl)",
         "fluid-3xl": "var(--text-3xl)",
         "fluid-4xl": "var(--text-4xl)",
+        // Modular typographic scale (1.25 ratio)
+        "2xs": ["0.625rem", { lineHeight: "0.875rem", letterSpacing: "0.02em" }],
+        xs: ["0.75rem", { lineHeight: "1rem", letterSpacing: "0.01em" }],
+        sm: ["0.875rem", { lineHeight: "1.25rem", letterSpacing: "0.01em" }],
+        base: ["1rem", { lineHeight: "1.5rem", letterSpacing: "0" }],
+        lg: ["1.125rem", { lineHeight: "1.75rem", letterSpacing: "-0.01em" }],
+        xl: ["1.25rem", { lineHeight: "1.875rem", letterSpacing: "-0.01em" }],
+        "2xl": ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.02em" }],
+        "3xl": ["1.875rem", { lineHeight: "2.25rem", letterSpacing: "-0.02em" }],
+        "4xl": ["2.25rem", { lineHeight: "2.5rem", letterSpacing: "-0.03em" }],
+        "5xl": ["3rem", { lineHeight: "3.25rem", letterSpacing: "-0.03em" }],
+        "6xl": ["3.75rem", { lineHeight: "4rem", letterSpacing: "-0.04em" }],
+        "7xl": ["4.5rem", { lineHeight: "4.75rem", letterSpacing: "-0.04em" }],
+        "8xl": ["6rem", { lineHeight: "6.25rem", letterSpacing: "-0.05em" }],
+        "9xl": ["8rem", { lineHeight: "8.25rem", letterSpacing: "-0.05em" }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -169,23 +185,7 @@ export default {
         section: "var(--spacing-section)",
         "section-lg": "var(--spacing-section-lg)",
       },
-      fontSize: {
-        // Escala tipográfica modular (1.25 ratio)
-        "2xs": ["0.625rem", { lineHeight: "0.875rem", letterSpacing: "0.02em" }],   // 10px
-        xs: ["0.75rem", { lineHeight: "1rem", letterSpacing: "0.01em" }],           // 12px
-        sm: ["0.875rem", { lineHeight: "1.25rem", letterSpacing: "0.01em" }],       // 14px
-        base: ["1rem", { lineHeight: "1.5rem", letterSpacing: "0" }],               // 16px
-        lg: ["1.125rem", { lineHeight: "1.75rem", letterSpacing: "-0.01em" }],      // 18px
-        xl: ["1.25rem", { lineHeight: "1.875rem", letterSpacing: "-0.01em" }],      // 20px
-        "2xl": ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.02em" }],        // 24px
-        "3xl": ["1.875rem", { lineHeight: "2.25rem", letterSpacing: "-0.02em" }],   // 30px
-        "4xl": ["2.25rem", { lineHeight: "2.5rem", letterSpacing: "-0.03em" }],     // 36px
-        "5xl": ["3rem", { lineHeight: "3.25rem", letterSpacing: "-0.03em" }],       // 48px
-        "6xl": ["3.75rem", { lineHeight: "4rem", letterSpacing: "-0.04em" }],       // 60px
-        "7xl": ["4.5rem", { lineHeight: "4.75rem", letterSpacing: "-0.04em" }],     // 72px
-        "8xl": ["6rem", { lineHeight: "6.25rem", letterSpacing: "-0.05em" }],       // 96px
-        "9xl": ["8rem", { lineHeight: "8.25rem", letterSpacing: "-0.05em" }],       // 128px
-      },
+      /* fontSize unified above — single definition */
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

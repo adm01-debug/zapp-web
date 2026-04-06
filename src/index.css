@@ -683,6 +683,8 @@ select:focus-visible {
     font-family: var(--font-display);
   }
 
+  /* ===== SEMANTIC TYPOGRAPHY TOKENS ===== */
+  /* Display — hero sections, page titles */
   .text-display {
     font-family: var(--font-display);
     @apply text-3xl md:text-4xl font-bold tracking-tight;
@@ -696,6 +698,52 @@ select:focus-visible {
   .text-display-2xl {
     font-family: var(--font-display);
     @apply text-5xl md:text-6xl font-extrabold tracking-tighter;
+  }
+
+  /* Heading — section and card titles */
+  .text-heading {
+    font-family: var(--font-display);
+    @apply text-xl md:text-2xl font-semibold tracking-tight;
+  }
+
+  .text-heading-sm {
+    font-family: var(--font-display);
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  /* Subheading — secondary titles, subtitles */
+  .text-subheading {
+    font-family: var(--font-display);
+    @apply text-base md:text-lg font-medium;
+  }
+
+  /* Body — main content text */
+  .text-body {
+    font-family: var(--font-sans);
+    @apply text-base leading-relaxed;
+  }
+
+  .text-body-sm {
+    font-family: var(--font-sans);
+    @apply text-sm leading-relaxed;
+  }
+
+  /* Caption — labels, metadata, timestamps */
+  .text-caption {
+    font-family: var(--font-sans);
+    @apply text-xs leading-normal text-muted-foreground;
+  }
+
+  /* Overline — section labels, categories */
+  .text-overline {
+    font-family: var(--font-sans);
+    @apply text-xs font-semibold uppercase tracking-widest text-muted-foreground;
+  }
+
+  /* Code — inline and block code */
+  .text-code {
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    @apply text-sm;
   }
 
   .scrollbar-thin {
@@ -1465,7 +1513,8 @@ select:focus-visible {
 
 /* ===== LARGE TEXT MODE ===== */
 .large-text {
-  font-size: 120%;
+  font-size: 1.125em;
+  line-height: 1.6;
 }
 
 .large-text h1 { font-size: 2.5rem; }
@@ -1592,10 +1641,7 @@ select:focus-visible {
   }
 }
 
-.large-text {
-  font-size: 1.125em;
-  line-height: 1.6;
-}
+/* .large-text unified above — see LARGE TEXT MODE section */
 
 .touch-target {
   min-width: 44px;
