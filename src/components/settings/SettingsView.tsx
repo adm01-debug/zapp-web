@@ -160,6 +160,7 @@ export function SettingsView() {
           <NPSDashboard />
         </TabsContent>
       </Tabs>
+      )}
     </PageTemplate>
   );
 }
