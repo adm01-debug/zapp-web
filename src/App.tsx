@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, useRef } from "react";
+import { lazy, Suspense, useEffect, useState, useRef, forwardRef } from "react";
 import { getLogger } from "@/lib/logger";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -169,11 +169,11 @@ function AppContent() {
 const DeferredHooks = lazy(() =>
   import('@/hooks/useServiceWorker').then(swMod =>
     import('@/hooks/useScreenProtection').then(spMod => ({
-      default: function DeferredHooksInner() {
+      default: forwardRef(function DeferredHooksInner(_props: Record<string, never>, _ref: React.ForwardedRef<unknown>) {
         swMod.useServiceWorker();
         spMod.useScreenProtection();
         return null;
-      }
+      })
     }))
   )
 );

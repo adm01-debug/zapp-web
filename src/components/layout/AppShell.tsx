@@ -1,4 +1,4 @@
-import { Suspense, useCallback } from 'react';
+import { Suspense, useCallback, forwardRef } from 'react';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -31,7 +31,7 @@ interface AppShellProps {
   loading: boolean;
 }
 
-export function AppShell({
+export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppShell({
   currentView,
   setCurrentView,
   userId,
@@ -47,7 +47,7 @@ export function AppShell({
   unreadNotifications,
   showChecklist,
   loading,
-}: AppShellProps) {
+}, _ref) {
   const isMobile = useIsMobile();
   const { isZen, toggleZen } = useZenMode();
   const isInboxView = currentView === 'inbox' || currentView === 'team-chat';
@@ -174,4 +174,4 @@ export function AppShell({
       />
     </div>
   );
-}
+});

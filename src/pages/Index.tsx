@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, forwardRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +21,7 @@ import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indic
 import { EvolutionDisconnectBanner } from '@/components/alerts/EvolutionDisconnectBanner';
 import { toast } from 'sonner';
 
-function IndexContent() {
+const IndexContent = forwardRef<HTMLDivElement>(function IndexContent(_props, _ref) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile, loading, signOut } = useAuth();
@@ -228,7 +228,7 @@ function IndexContent() {
       </GoalNotificationProvider>
     </SLANotificationProvider>
   );
-}
+});
 
 function LoadingSplash() {
   return (
@@ -261,7 +261,7 @@ function LoadingSplash() {
   );
 }
 
-const Index = () => {
+const Index = forwardRef<HTMLDivElement>(function Index(_props, _ref) {
   const { user, loading } = useAuth();
   const { completeOnboarding } = useOnboarding();
 
@@ -283,6 +283,6 @@ const Index = () => {
       <IndexContent />
     </TourProvider>
   );
-};
+});
 
 export default Index;
