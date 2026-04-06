@@ -17,6 +17,7 @@ import { useScheduledMessages } from '@/hooks/useScheduledMessages';
 import { useMessageSignature } from '@/hooks/useMessageSignature';
 import { useChatMediaSending } from './useChatMediaSending';
 import { CRMAutoSync } from './CRMAutoSync';
+import { useAmbientColor } from '@/hooks/useAmbientColor';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
