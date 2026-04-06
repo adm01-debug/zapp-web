@@ -1,4 +1,5 @@
-import { Suspense } from 'react';
+import { Suspense, useCallback } from 'react';
+import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
