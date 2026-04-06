@@ -10,12 +10,11 @@ import { AIUsageDashboard } from '../AIUsageDashboard';
 import { BrowserRouter } from 'react-router-dom';
 
 // ─── Mocks ────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockFrom = vi.fn<any>();
+const mockFrom = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: (...args: any[]) => mockFrom(...args),
+    from: (table: string) => mockFrom(table),
   },
 }));
 
