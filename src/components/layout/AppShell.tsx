@@ -51,6 +51,10 @@ export function AppShell({
   const isMobile = useIsMobile();
   const { isZen, toggleZen } = useZenMode();
   const isInboxView = currentView === 'inbox' || currentView === 'team-chat';
+  const { startTransition } = useViewTransition();
+  const handleViewChange = useCallback((viewId: string) => {
+    startTransition(() => setCurrentView(viewId));
+  }, [startTransition, setCurrentView]);
 
   // Mobile edge-swipe navigation
   useSwipeNavigation({
