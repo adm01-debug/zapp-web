@@ -16,6 +16,27 @@ interface AppearanceSettingsProps {
   updateSettings: (updates: Partial<AppearanceSettingsProps['settings']>) => void;
   onResetOnboarding: () => void;
 }
+function DensitySelector() {
+  const { density, setDensity } = useDensity();
+  const options: { value: DensityMode; label: string; desc: string }[] = [
+    { value: 'comfortable', label: 'Confortável', desc: 'Espaçamento padrão' },
+    { value: 'compact', label: 'Compacto', desc: 'Mais conteúdo visível' },
+    { value: 'dense', label: 'Denso', desc: 'Máxima densidade' },
+  ];
+  return (
+    <Select value={density} onValueChange={(v) => setDensity(v as DensityMode)}>
+      <SelectTrigger><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>
+            <span className="font-medium">{o.label}</span>
+            <span className="ml-2 text-muted-foreground text-xs">— {o.desc}</span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 export function AppearanceSettings({ settings, updateSettings, onResetOnboarding }: AppearanceSettingsProps) {
   return (
