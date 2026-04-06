@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { 
@@ -154,14 +154,15 @@ interface VideoPreviewProps {
   isSent: boolean;
 }
 
-export function VideoPreview({ url, caption, isSent }: VideoPreviewProps) {
+export const VideoPreview = forwardRef<HTMLDivElement, VideoPreviewProps>(
+  function VideoPreview({ url, caption, isSent }, ref) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <>
+    <div ref={ref}>
       <div className="space-y-2">
         <motion.div
           whileHover={{ scale: 1.02 }}
@@ -242,9 +243,9 @@ export function VideoPreview({ url, caption, isSent }: VideoPreviewProps) {
           />
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
-}
+});
 
 // Video Fullscreen Modal
 interface VideoFullscreenProps {
