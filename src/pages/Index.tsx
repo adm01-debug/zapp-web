@@ -228,7 +228,7 @@ const IndexContent = forwardRef<HTMLDivElement>(function IndexContent(_props, _r
       </GoalNotificationProvider>
     </SLANotificationProvider>
   );
-}
+});
 
 function LoadingSplash() {
   return (
