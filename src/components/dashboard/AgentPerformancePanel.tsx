@@ -79,7 +79,7 @@ export function AgentPerformancePanel() {
           <Trophy className="w-5 h-5 text-primary" />
           Ranking de Performance
           <Badge variant="outline" className="ml-auto gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-success motion-safe:animate-pulse" />
             Ao vivo
           </Badge>
         </CardTitle>
