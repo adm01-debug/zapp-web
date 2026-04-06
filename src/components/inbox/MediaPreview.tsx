@@ -243,9 +243,9 @@ export const VideoPreview = forwardRef<HTMLDivElement, VideoPreviewProps>(
           />
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
-}
+});
 
 // Video Fullscreen Modal
 interface VideoFullscreenProps {
