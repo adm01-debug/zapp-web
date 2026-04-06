@@ -376,6 +376,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
         )}
       </div>
     </motion.div>
+    </QuickPeek>
   );
 }
 
