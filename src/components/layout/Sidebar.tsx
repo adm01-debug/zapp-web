@@ -212,19 +212,19 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
         )}
 
         <div className={cn(
-          'flex items-center gap-0.5 rounded-xl border border-border/50 bg-muted/25 px-1 py-1 shadow-sm',
+          'flex items-center gap-1 rounded-xl border border-border/50 bg-muted/25 px-1.5 py-1.5 shadow-sm',
           collapsed ? 'flex-col' : 'flex-row self-stretch mx-2'
         )}>
-          <ScreenProtectionToggle className="w-[32px] h-[32px]" />
-          <PushNotificationToggle className="w-[32px] h-[32px]" />
-          <SoundMuteToggle className="w-[32px] h-[32px]" />
+          <ScreenProtectionToggle className="w-[36px] h-[36px]" />
+          <PushNotificationToggle className="w-[36px] h-[36px]" />
+          <SoundMuteToggle className="w-[36px] h-[36px]" />
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
                 className={cn(
-                  "w-[32px] h-[32px] rounded-lg flex items-center justify-center transition-all duration-200",
-                  "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "w-[36px] h-[36px] rounded-lg flex items-center justify-center transition-all duration-200",
+                  "text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none",
                   isDark && "text-primary"
                 )}
                 aria-label={isDark ? 'Modo claro' : 'Modo escuro'}
