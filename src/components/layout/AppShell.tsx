@@ -1,4 +1,5 @@
-import { Suspense } from 'react';
+import { Suspense, useCallback } from 'react';
+import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
@@ -50,6 +51,10 @@ export function AppShell({
   const isMobile = useIsMobile();
   const { isZen, toggleZen } = useZenMode();
   const isInboxView = currentView === 'inbox' || currentView === 'team-chat';
+  const { startTransition } = useViewTransition();
+  const handleViewChange = useCallback((viewId: string) => {
+    startTransition(() => setCurrentView(viewId));
+  }, [startTransition, setCurrentView]);
 
   // Mobile edge-swipe navigation
   useSwipeNavigation({
@@ -90,7 +95,7 @@ export function AppShell({
       {!isMobile && !isZen && (
         <Sidebar
           currentView={currentView}
-          onViewChange={setCurrentView}
+          onViewChange={handleViewChange}
           currentAgent={{
             name: profile?.name || userEmail || 'Usuário',
             avatar: profile?.avatar_url || undefined,
@@ -134,7 +139,7 @@ export function AppShell({
         )}
         {showChecklist && currentView === 'dashboard' && (
           <div className="absolute top-4 right-4 z-20 w-96 max-w-[calc(100%-2rem)]">
-            <OnboardingChecklist onNavigate={setCurrentView} />
+            <OnboardingChecklist onNavigate={handleViewChange} />
           </div>
         )}
 
@@ -147,7 +152,7 @@ export function AppShell({
                 onGoBack={goBack}
                 onGoForward={goForward}
                 breadcrumbTrail={breadcrumbTrail}
-                onNavigateTo={setCurrentView}
+                onNavigateTo={handleViewChange}
               />
         </Suspense>
       </main>

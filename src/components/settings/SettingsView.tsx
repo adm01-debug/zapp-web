@@ -1,5 +1,6 @@
 import { NPSDashboard } from '@/components/nps/NPSDashboard';
 import { FollowUpSequences } from '@/components/settings/FollowUpSequences';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -44,6 +45,43 @@ export function SettingsView() {
         </Button>
       }
     >
+      {isLoading ? (
+        <div className="space-y-4">
+          {/* Skeleton tabs bar */}
+          <div className="flex gap-2 overflow-hidden">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-9 w-24 rounded-md flex-shrink-0" />
+            ))}
+          </div>
+          {/* Skeleton form fields matching settings layout */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+            <Skeleton className="h-5 w-48" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-3.5 w-20" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+              ))}
+            </div>
+            <div className="pt-2 flex gap-3">
+              <Skeleton className="h-9 w-28 rounded-md" />
+              <Skeleton className="h-9 w-20 rounded-md" />
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+            <Skeleton className="h-5 w-36" />
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-6 w-11 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
       <Tabs defaultValue="schedule" className="space-y-4">
         {/* Scrollable tabs with fade edges and scroll indicators */}
         <div className="relative group">
@@ -122,6 +160,7 @@ export function SettingsView() {
           <NPSDashboard />
         </TabsContent>
       </Tabs>
+      )}
     </PageTemplate>
   );
 }

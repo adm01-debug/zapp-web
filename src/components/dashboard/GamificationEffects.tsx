@@ -240,7 +240,7 @@ export function StatCardWithGamification({
       whileHover={{ y: -4, scale: 1.02 }}
       className="group relative"
     >
-      <div className="card-glow-purple relative overflow-hidden border border-secondary/30 hover:border-secondary/60 h-full rounded-2xl bg-card p-5 transition-all duration-300">
+      <div className="card-glow-purple relative overflow-hidden border border-secondary/30 hover:border-secondary/60 h-full rounded-2xl bg-card p-5 transition-all duration-300 hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.2)]">
         {/* Purple gradient hover glow */}
         <motion.div 
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"

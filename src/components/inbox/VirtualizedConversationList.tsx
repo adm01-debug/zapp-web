@@ -1,4 +1,5 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
+import { QuickPeek } from '@/components/ui/quick-peek';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -180,7 +181,23 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
     );
   }
 
+  const quickPeekPreview = (
+    <div className="space-y-1.5">
+      <p className="text-xs font-medium text-foreground">{conversation.contact.name}</p>
+      {conversation.lastMessage?.content && (
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">
+          {conversation.lastMessage.content}
+        </p>
+      )}
+      <div className="flex items-center gap-2 text-[10px] text-muted-foreground/60 pt-1 border-t border-border/30">
+        <span>{conversation.unreadCount > 0 ? `${conversation.unreadCount} não lidas` : 'Sem novas'}</span>
+        {conversation.status && <span>• {conversation.status === 'resolved' ? 'Resolvido' : 'Aberto'}</span>}
+      </div>
+    </div>
+  );
+
   return (
+    <QuickPeek preview={quickPeekPreview} enabled={!isSelected} delay={500}>
     <motion.div
       onClick={() => onSelect(conversation)}
       whileHover={{ x: 2 }}
@@ -359,6 +376,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
         )}
       </div>
     </motion.div>
+    </QuickPeek>
   );
 }
 
