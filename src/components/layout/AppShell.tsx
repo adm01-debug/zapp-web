@@ -95,7 +95,7 @@ export function AppShell({
       {!isMobile && !isZen && (
         <Sidebar
           currentView={currentView}
-          onViewChange={setCurrentView}
+          onViewChange={handleViewChange}
           currentAgent={{
             name: profile?.name || userEmail || 'Usuário',
             avatar: profile?.avatar_url || undefined,
@@ -139,7 +139,7 @@ export function AppShell({
         )}
         {showChecklist && currentView === 'dashboard' && (
           <div className="absolute top-4 right-4 z-20 w-96 max-w-[calc(100%-2rem)]">
-            <OnboardingChecklist onNavigate={setCurrentView} />
+            <OnboardingChecklist onNavigate={handleViewChange} />
           </div>
         )}
 
@@ -152,7 +152,7 @@ export function AppShell({
                 onGoBack={goBack}
                 onGoForward={goForward}
                 breadcrumbTrail={breadcrumbTrail}
-                onNavigateTo={setCurrentView}
+                onNavigateTo={handleViewChange}
               />
         </Suspense>
       </main>
