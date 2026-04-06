@@ -200,6 +200,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
 
       <div className="flex items-start gap-3 relative z-10">
         <div className="relative flex-shrink-0">
+          <ChannelBadge type={conversation.contact.contact_type} />
           <Avatar className={cn(
             "w-11 h-11 ring-2 transition-all",
             isSelected ? "ring-primary/40" : "ring-border/30"
