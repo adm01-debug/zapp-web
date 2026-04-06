@@ -21,7 +21,7 @@ import { OfflineIndicator, ConnectionToast } from '@/components/ui/offline-indic
 import { EvolutionDisconnectBanner } from '@/components/alerts/EvolutionDisconnectBanner';
 import { toast } from 'sonner';
 
-function IndexContent() {
+const IndexContent = forwardRef<HTMLDivElement>(function IndexContent(_props, _ref) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile, loading, signOut } = useAuth();
