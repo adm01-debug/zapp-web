@@ -142,23 +142,23 @@ export function AIUsageDashboard() {
 
   // Timeline data
   const timelineData = useMemo(() => {
-    const buckets = new Map<string, Record<string, number>>();
-    const bucketSize = timeFilter === '1h' ? 5 : timeFilter === '6h' ? 30 : timeFilter === '24h' ? 60 : 360; // minutes
+    const buckets = new Map<string, Record<string, string | number>>();
+    const bucketSize = timeFilter === '1h' ? 5 : timeFilter === '6h' ? 30 : timeFilter === '24h' ? 60 : 360;
     
     logs.forEach(l => {
       const date = new Date(l.created_at);
       const bucketTime = new Date(Math.floor(date.getTime() / (bucketSize * 60000)) * bucketSize * 60000);
       const key = bucketTime.toISOString();
       const bucket = buckets.get(key) || { time: key };
-      bucket[l.function_name] = (bucket[l.function_name] || 0) + 1;
+      bucket[l.function_name] = ((bucket[l.function_name] as number) || 0) + 1;
       buckets.set(key, bucket);
     });
 
     return Array.from(buckets.values())
-      .sort((a, b) => a.time.localeCompare(b.time))
+      .sort((a, b) => String(a.time).localeCompare(String(b.time)))
       .map(b => ({
         ...b,
-        time: format(new Date(b.time), timeFilter === '1h' || timeFilter === '6h' ? 'HH:mm' : 'dd/MM HH:mm', { locale: ptBR }),
+        time: format(new Date(String(b.time)), timeFilter === '1h' || timeFilter === '6h' ? 'HH:mm' : 'dd/MM HH:mm', { locale: ptBR }),
       }));
   }, [logs, timeFilter]);
 
