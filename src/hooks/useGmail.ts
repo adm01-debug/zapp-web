@@ -119,7 +119,7 @@ export function useGmail(accountId?: string) {
         const { data, error } = await supabase
           .rpc('get_own_gmail_accounts');
         if (error) throw error;
-        return (data || []).map((a: any) => ({
+        return (data || []).map((a: Record<string, unknown>) => ({
           id: a.id,
           email_address: a.email_address,
           is_active: a.is_active,
