@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 type TimeFilter = '1h' | '6h' | '24h' | '7d' | '30d';
+const LOGS_PER_PAGE = 50;
 
 interface UsageLog {
   id: string;
