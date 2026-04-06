@@ -222,6 +222,16 @@ export function AdminView() {
                   </Select>
                 </div>
               </div>
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Permitir Download</Label>
+                  <p className="text-xs text-muted-foreground">Habilita download de arquivos e imagens para este usuário</p>
+                </div>
+                <Switch
+                  checked={editingUser.can_download ?? false}
+                  onCheckedChange={(checked) => setEditingUser({ ...editingUser, can_download: checked })}
+                />
+              </div>
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
                 <Button onClick={onSaveUser} disabled={savingUser} className="bg-whatsapp hover:bg-whatsapp-dark">
