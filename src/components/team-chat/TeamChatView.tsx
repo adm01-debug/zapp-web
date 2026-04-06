@@ -51,13 +51,29 @@ export function TeamChatView() {
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <EmptyState
-              icon={MessageSquare}
-              title="Chat da Equipe"
-              description="Selecione uma conversa ou inicie uma nova para conversar com seus colegas"
-              illustration="messages"
-              size="sm"
-            />
+            <div className="text-center max-w-sm p-8">
+              <div className="relative w-20 h-20 mx-auto mb-5">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Users className="w-9 h-9 text-primary/70" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center animate-bounce">
+                  <MessageSquare className="w-4 h-4 text-accent-foreground/60" />
+                </div>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Chat da Equipe</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                Selecione uma conversa ou inicie uma nova para conversar com seus colegas
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => setShowNewDialog(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Nova conversa
+              </Button>
+            </div>
           </div>
         )}
       </div>
