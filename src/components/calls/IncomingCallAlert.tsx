@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, PhoneOff, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,8 @@ import { useIncomingCallListener, type IncomingCall } from '@/hooks/useIncomingC
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { cn } from '@/lib/utils';
 
-export function IncomingCallAlert() {
+export const IncomingCallAlert = forwardRef<HTMLDivElement>(
+  function IncomingCallAlert(_props, ref) {
   const { incomingCall, dismissCall } = useIncomingCallListener();
   const { settings: notifSettings, isQuietHours } = useNotificationSettings();
   const [showDialog, setShowDialog] = useState(false);
