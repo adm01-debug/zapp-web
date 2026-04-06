@@ -29,7 +29,7 @@ export function NewMessageIndicator({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -50, scale: 0.9 }}
           transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          className="fixed top-4 right-4 z-[100] max-w-sm"
+          className="fixed top-20 right-4 z-[100] max-w-sm"
         >
           <motion.div
             className={cn(
