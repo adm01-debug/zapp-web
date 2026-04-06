@@ -24,26 +24,18 @@ export function PushNotificationToggle({ className }: { className?: string }) {
 
   const handleToggle = () => {
     if (isEnabled) {
-      // Disable everything
+      // Disable all — only persist DB-mapped fields
       updateSettings({
         soundEnabled: false,
         browserNotifications: false,
-        newMessageSound: false,
-        mentionSound: false,
-        slaBreachSound: false,
-        desktopAlerts: false,
         sentimentAlertEnabled: false,
         transcriptionNotificationEnabled: false,
       });
     } else {
-      // Re-enable everything
+      // Re-enable all — only persist DB-mapped fields
       updateSettings({
         soundEnabled: true,
         browserNotifications: true,
-        newMessageSound: true,
-        mentionSound: true,
-        slaBreachSound: true,
-        desktopAlerts: true,
         sentimentAlertEnabled: true,
         transcriptionNotificationEnabled: true,
       });
