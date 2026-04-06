@@ -17,6 +17,7 @@ export interface UserWithRole {
   phone: string | null;
   access_level: string | null;
   max_chats: number | null;
+  can_download: boolean;
   is_active: boolean | null;
   created_at: string;
 }
