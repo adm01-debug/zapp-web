@@ -460,7 +460,7 @@ export function DashboardView() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                className="font-display text-2xl font-bold tracking-tight text-foreground neon-underline"
+                className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground neon-underline"
               >
                 {greeting}{userName ? `, ${userName}` : ''}
               </motion.h1>
