@@ -424,8 +424,11 @@ export function AIUsageDashboard() {
         {/* Logs Tab */}
         <TabsContent value="logs">
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">Últimas Chamadas</CardTitle>
+              <span className="text-xs text-muted-foreground">
+                {logs.length} registros • Página {logsPage + 1} de {Math.max(1, Math.ceil(logs.length / LOGS_PER_PAGE))}
+              </span>
             </CardHeader>
             <CardContent>
               <div className="border rounded-lg overflow-auto max-h-[500px]">
@@ -442,7 +445,7 @@ export function AIUsageDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.slice(0, 100).map(l => {
+                    {logs.slice(logsPage * LOGS_PER_PAGE, (logsPage + 1) * LOGS_PER_PAGE).map(l => {
                       const profile = l.user_id ? profileMap.get(l.user_id) : null;
                       return (
                         <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30">
@@ -472,6 +475,29 @@ export function AIUsageDashboard() {
                   </tbody>
                 </table>
               </div>
+              {logs.length > LOGS_PER_PAGE && (
+                <div className="flex items-center justify-between mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={logsPage === 0}
+                    onClick={() => setLogsPage(p => p - 1)}
+                  >
+                    ← Anterior
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {logsPage * LOGS_PER_PAGE + 1}–{Math.min((logsPage + 1) * LOGS_PER_PAGE, logs.length)} de {logs.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={(logsPage + 1) * LOGS_PER_PAGE >= logs.length}
+                    onClick={() => setLogsPage(p => p + 1)}
+                  >
+                    Próximo →
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
