@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useDownloadPermission } from '@/hooks/useDownloadPermission';
+import { toast } from 'sonner';
 
 interface ImagePreviewProps {
   src: string;
@@ -11,6 +13,29 @@ interface ImagePreviewProps {
 
 export function ImagePreview({ src, alt = 'Image', onClose }: ImagePreviewProps) {
   const [isZoomed, setIsZoomed] = useState(false);
+  const { canDownload } = useDownloadPermission();
+
+  const handleDownload = async () => {
+    if (!canDownload) {
+      toast.error('🔒 Download bloqueado por política de segurança', {
+        description: 'O download de arquivos está desabilitado para proteção de dados. Solicite permissão ao administrador.',
+      });
+      return;
+    }
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = alt || 'image';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Download iniciado!');
+    } catch {
+      toast.error('Erro ao baixar imagem');
+    }
+  };
 
   return (
     <motion.div
@@ -38,11 +63,10 @@ export function ImagePreview({ src, alt = 'Image', onClose }: ImagePreviewProps)
           <Button
             variant="secondary"
             size="icon"
-            disabled
-            className="opacity-50 cursor-not-allowed"
+            className={!canDownload ? 'opacity-50 cursor-not-allowed' : ''}
             onClick={(e) => {
               e.stopPropagation();
-              import('sonner').then(({ toast }) => toast.error('🔒 Download bloqueado por política de segurança'));
+              handleDownload();
             }}
           >
             <Download className="w-4 h-4" />
