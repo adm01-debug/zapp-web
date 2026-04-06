@@ -156,6 +156,7 @@ export function useAdminData(activeTab: 'users' | 'audit' | 'crm') {
         avatar_url: avatarUrl,
         access_level: editingUser.access_level,
         max_chats: editingUser.max_chats,
+        can_download: editingUser.can_download,
       })
       .eq('id', editingUser.id);
 
