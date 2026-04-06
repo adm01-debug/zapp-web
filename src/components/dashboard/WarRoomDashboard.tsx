@@ -334,7 +334,7 @@ export function WarRoomDashboard({
         <Card className={cn(hasCriticalAlerts && "border-destructive")}>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Bell className={cn("w-5 h-5", hasCriticalAlerts && "text-destructive animate-bounce")} />
+              <Bell className={cn("w-5 h-5", hasCriticalAlerts && "text-destructive motion-safe:animate-bounce")} />
               Alertas
               {alerts.filter(a => a.isNew).length > 0 && (
                 <Badge variant="destructive" className="ml-auto">

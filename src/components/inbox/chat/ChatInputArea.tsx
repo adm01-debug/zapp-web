@@ -571,7 +571,7 @@ export function ChatInputArea({
                     "rounded-full shrink-0 disabled:opacity-40 touch-manipulation active:scale-95 transition-all",
                     "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40",
                     isMobile ? "w-11 h-11" : "w-10 h-10",
-                    sendAnimation && "animate-pulse"
+                    sendAnimation && "motion-safe:animate-pulse"
                   )}
                   aria-label={editingMessage ? "Confirmar edição" : "Enviar mensagem"}
                 >
@@ -601,7 +601,7 @@ export function ChatInputArea({
                   onClick={onRecordToggle}
                   aria-label={isRecordingAudio ? "Parar gravação" : "Gravar áudio"}
                 >
-                  <Mic className={cn("w-5 h-5", isRecordingAudio && "animate-pulse")} />
+                  <Mic className={cn("w-5 h-5", isRecordingAudio && "motion-safe:animate-pulse")} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">{isRecordingAudio ? 'Parar gravação' : 'Gravar áudio'}</TooltipContent>

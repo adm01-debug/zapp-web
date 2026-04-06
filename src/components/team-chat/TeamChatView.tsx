@@ -56,7 +56,7 @@ export function TeamChatView() {
                 <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <Users className="w-9 h-9 text-primary/70" />
                 </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center animate-bounce">
+                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center motion-safe:animate-bounce">
                   <MessageSquare className="w-4 h-4 text-accent-foreground/60" />
                 </div>
               </div>
