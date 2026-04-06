@@ -4,10 +4,11 @@ import { TeamConversationList } from './TeamConversationList';
 import { TeamChatPanel } from './TeamChatPanel';
 import { TeamMemberDetails } from './TeamMemberDetails';
 import { NewConversationDialog } from './NewConversationDialog';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Users, Plus } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { useTeamChatNotifications } from '@/hooks/useTeamChatNotifications';
+import { Button } from '@/components/ui/button';
 
 export function TeamChatView() {
   const { data: conversations = [], isLoading } = useTeamConversations();
