@@ -3,11 +3,20 @@
  * Covers: rendering, KPIs, filters, charts, CSV export, edge cases,
  * error handling, security, accessibility, performance, and data integrity.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AIUsageDashboard } from '../AIUsageDashboard';
 import { BrowserRouter } from 'react-router-dom';
+
+// ─── ResizeObserver polyfill for jsdom ────────────────────────
+beforeAll(() => {
+  global.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+});
 
 // ─── Mocks ────────────────────────────────────────────────────
 const mockFrom = vi.fn();
