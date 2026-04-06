@@ -66,6 +66,7 @@ function getTimeRange(filter: TimeFilter): Date {
 }
 
 export function AIUsageDashboard() {
+  const [logsPage, setLogsPage] = useState(0);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
 
   const { data: logs = [], isLoading, refetch } = useQuery({
