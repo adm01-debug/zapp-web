@@ -58,12 +58,13 @@ export function AppearanceSettings({ settings, updateSettings, onResetOnboarding
             </Select>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-base">Modo compacto</Label>
-              <p className="text-sm text-muted-foreground">Reduz espaçamentos para mostrar mais conteúdo</p>
-            </div>
-            <Switch checked={settings.compact_mode} onCheckedChange={(checked) => updateSettings({ compact_mode: checked })} />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <LayoutGrid className="w-4 h-4 text-primary" />
+              Densidade da interface
+            </Label>
+            <p className="text-sm text-muted-foreground">Controle o espaçamento geral da UI</p>
+            <DensitySelector />
           </div>
 
           <div className="pt-4 border-t border-border">
