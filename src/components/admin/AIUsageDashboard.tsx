@@ -162,16 +162,24 @@ export function AIUsageDashboard() {
       }));
   }, [logs, timeFilter]);
 
+  const escapeCsvField = (value: string | number | null | undefined): string => {
+    const str = String(value ?? '-');
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
   const handleExportCSV = () => {
     if (logs.length === 0) { toast.warning('Nenhum dado para exportar'); return; }
     const headers = ['Data', 'Usuário', 'Função', 'Modelo', 'Tokens Entrada', 'Tokens Saída', 'Total Tokens', 'Duração (ms)', 'Status'];
     const rows = logs.map(l => {
       const profile = l.user_id ? profileMap.get(l.user_id) : null;
       return [
-        format(new Date(l.created_at), 'dd/MM/yyyy HH:mm:ss'),
-        profile?.name || profile?.email || l.user_id || '-',
-        FUNCTION_LABELS[l.function_name] || l.function_name,
-        l.model || '-',
+        escapeCsvField(format(new Date(l.created_at), 'dd/MM/yyyy HH:mm:ss')),
+        escapeCsvField(profile?.name || profile?.email || l.user_id || '-'),
+        escapeCsvField(FUNCTION_LABELS[l.function_name] || l.function_name),
+        escapeCsvField(l.model || '-'),
         l.input_tokens, l.output_tokens, l.total_tokens,
         l.duration_ms || '-', l.status,
       ].join(',');
