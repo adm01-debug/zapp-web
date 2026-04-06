@@ -284,7 +284,46 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
             )}
           </div>
 
-          <div className="mt-2">
+          {/* Quick actions on hover */}
+          <div className="flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/10 transition-all"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Resolver</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Transferir</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-warning hover:bg-warning/10 transition-all"
+                  >
+                    <Archive className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Arquivar</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          <div className="mt-1">
             <SLAIndicator
               firstMessageAt={conversation.createdAt}
               firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
