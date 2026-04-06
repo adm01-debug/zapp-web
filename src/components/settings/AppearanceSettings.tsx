@@ -6,8 +6,6 @@ import { Palette, RefreshCw, GraduationCap, LayoutGrid } from 'lucide-react';
 import { AvatarUpload } from '@/components/settings/AvatarUpload';
 import { motion } from '@/components/ui/motion';
 import { useDensity, type DensityMode } from '@/hooks/useDensity';
-import { AvatarUpload } from '@/components/settings/AvatarUpload';
-import { motion } from '@/components/ui/motion';
 
 interface AppearanceSettingsProps {
   settings: {
