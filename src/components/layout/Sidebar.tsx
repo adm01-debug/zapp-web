@@ -205,6 +205,12 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       <div className="flex flex-col items-center gap-1.5 pt-1.5 pb-3 shrink-0">
         <div className="mx-3 h-px bg-border/40 self-stretch" />
 
+        {!collapsed && (
+          <div className="px-3 self-stretch flex items-center gap-1.5 pb-0.5">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">Controles rápidos</span>
+          </div>
+        )}
+
         <div className={cn(
           'flex items-center gap-0.5 rounded-xl border border-border/50 bg-muted/25 px-1 py-1 shadow-sm',
           collapsed ? 'flex-col' : 'flex-row self-stretch mx-2'
