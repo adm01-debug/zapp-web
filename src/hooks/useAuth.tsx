@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(data as Profile);
       }
     } catch (err: unknown) {
-      // Silently handle - profile may not exist yet for new users
+      console.warn('[Auth] Failed to fetch profile for user:', userId, err);
     } finally {
       fetchingRef.current = false;
     }
