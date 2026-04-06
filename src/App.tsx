@@ -169,11 +169,11 @@ function AppContent() {
 const DeferredHooks = lazy(() =>
   import('@/hooks/useServiceWorker').then(swMod =>
     import('@/hooks/useScreenProtection').then(spMod => ({
-      default: function DeferredHooksInner() {
+      default: forwardRef(function DeferredHooksInner(_props: Record<string, never>, _ref: React.ForwardedRef<unknown>) {
         swMod.useServiceWorker();
         spMod.useScreenProtection();
         return null;
-      }
+      })
     }))
   )
 );
