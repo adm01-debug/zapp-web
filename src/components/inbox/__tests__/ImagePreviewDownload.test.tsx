@@ -75,13 +75,14 @@ describe('ImagePreview - Permissão de Download', () => {
     );
   });
 
-  it('NÃO mostra opacidade quando tem permissão de download', () => {
+  it('NÃO mostra classe de bloqueio quando tem permissão de download', () => {
     mockCanDownload.mockReturnValue(true);
     render(<ImagePreview src="https://example.com/img.jpg" alt="Test" />);
 
     const buttons = screen.getAllByRole('button');
     const downloadBtn = buttons[1];
-    expect(downloadBtn.className).not.toContain('opacity-50');
+    // Should not have cursor-not-allowed when allowed
+    expect(downloadBtn.className).not.toContain('cursor-not-allowed');
   });
 
   it('botão de zoom funciona independente da permissão de download', () => {
