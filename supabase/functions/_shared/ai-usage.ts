@@ -47,6 +47,25 @@ export function extractUserIdFromRequest(req: Request): string | null {
   }
 }
 
+/** Resolve profile_id from user_id via profiles table */
+async function resolveProfileId(
+  supabase: ReturnType<typeof createClient>,
+  userId: string | null | undefined
+): Promise<string | null> {
+  if (!userId) return null;
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1)
+      .maybeSingle();
+    return data?.id || null;
+  } catch {
+    return null;
+  }
+}
+
 /** Log AI usage to database (fire-and-forget, non-blocking) */
 export async function logAiUsage(entry: AiUsageEntry): Promise<void> {
   try {
@@ -56,9 +75,12 @@ export async function logAiUsage(entry: AiUsageEntry): Promise<void> {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // Auto-resolve profile_id if not provided
+    const profileId = entry.profileId || await resolveProfileId(supabase, entry.userId);
+
     await supabase.from('ai_usage_logs').insert({
       user_id: entry.userId || null,
-      profile_id: entry.profileId || null,
+      profile_id: profileId,
       function_name: entry.functionName,
       model: entry.model || null,
       input_tokens: entry.inputTokens || 0,
