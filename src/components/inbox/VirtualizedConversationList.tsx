@@ -23,6 +23,8 @@ import {
   Instagram,
   Mail,
   Phone,
+  UserCheck,
+  Archive,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
