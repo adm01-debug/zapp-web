@@ -320,26 +320,8 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
           </Popover>
         )}
 
-        {onLogout && (
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onLogout}
-                className={cn(
-                  'rounded-lg flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors',
-                  collapsed ? 'w-[32px] h-[32px] justify-center' : 'w-full h-[32px] px-3'
-                )}
-                aria-label="Sair da conta"
-              >
-                <LogOut className="w-4 h-4 shrink-0" />
-                {!collapsed && <span className="text-xs">Sair</span>}
-              </button>
-            </TooltipTrigger>
-            {collapsed && (
-              <TooltipContent side="right" sideOffset={8} className="text-xs">Sair</TooltipContent>
-            )}
-          </Tooltip>
-        )}
+
+
       </div>
     </aside>
   );
