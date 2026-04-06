@@ -23,9 +23,28 @@ interface PageTemplateProps {
   fullBleed?: boolean;
 }
 
+const easeSmooth = [0.4, 0, 0.2, 1] as const;
+
 const pageVariants = {
+  initial: { opacity: 0, y: 8 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: easeSmooth as unknown as [number, number, number, number],
+      staggerChildren: 0.06,
+    },
+  },
+};
+
+const childVariants = {
   initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: easeSmooth as unknown as [number, number, number, number] },
+  },
 };
 
 export function PageTemplate({
@@ -44,17 +63,19 @@ export function PageTemplate({
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
       className={cn(
         'flex flex-col w-full h-full overflow-hidden',
         !fullBleed && 'max-w-full'
       )}
     >
       {/* ─── Header ─── */}
-      <header className={cn(
-        'flex flex-col gap-3 shrink-0 border-b border-border/40 bg-card',
-        padded ? 'px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4' : 'px-4 pt-4 pb-3'
-      )}>
+      <motion.header
+        variants={childVariants}
+        className={cn(
+          'flex flex-col gap-3 shrink-0 border-b border-border/40 bg-card',
+          padded ? 'px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4' : 'px-4 pt-4 pb-3'
+        )}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           {/* Title block */}
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -64,11 +85,11 @@ export function PageTemplate({
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight truncate">
+              <h1 className="text-fluid-lg sm:text-fluid-xl font-bold text-foreground tracking-tight truncate leading-tight">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-xs sm:text-sm text-muted-foreground truncate mt-0.5">
+                <p className="text-fluid-xs sm:text-fluid-sm text-muted-foreground truncate mt-0.5 leading-normal">
                   {subtitle}
                 </p>
               )}
@@ -89,18 +110,20 @@ export function PageTemplate({
             {filters}
           </div>
         )}
-      </header>
+      </motion.header>
 
       {/* ─── Content ─── */}
-      <div
+      <motion.div
+        variants={childVariants}
         className={cn(
           'flex-1 overflow-y-auto overflow-x-hidden min-h-0',
           padded && 'p-4 sm:p-6',
           className
         )}
+        style={{ contentVisibility: 'auto' }}
       >
         {children}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

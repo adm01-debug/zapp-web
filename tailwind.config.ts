@@ -17,6 +17,16 @@ export default {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
+      fontSize: {
+        "fluid-xs": "var(--text-xs)",
+        "fluid-sm": "var(--text-sm)",
+        "fluid-base": "var(--text-base)",
+        "fluid-lg": "var(--text-lg)",
+        "fluid-xl": "var(--text-xl)",
+        "fluid-2xl": "var(--text-2xl)",
+        "fluid-3xl": "var(--text-3xl)",
+        "fluid-4xl": "var(--text-4xl)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
