@@ -46,7 +46,7 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
       aria-label={badgeCount ? `${item.label} (${badgeCount} não lidas)` : item.label}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative rounded-full flex items-center gap-2.5 transition-all duration-150 group/item',
+        'relative rounded-full flex items-center gap-2.5 transition-all duration-200 ease-out group/item',
         collapsed ? 'w-[38px] h-[38px] justify-center' : 'w-full h-[36px] px-3 rounded-xl',
         isActive
           ? 'text-secondary-foreground'
@@ -57,7 +57,7 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
         <>
           <div
             className={cn(
-              'absolute inset-0 bg-secondary/20 border border-secondary/30 shadow-[0_0_12px_hsl(var(--secondary)/0.3)] transition-all duration-150',
+              'absolute inset-0 bg-secondary/20 border border-secondary/30 shadow-[0_0_12px_hsl(var(--secondary)/0.3)] transition-all duration-300 ease-out',
               collapsed ? 'rounded-full' : 'rounded-xl'
             )}
           />
