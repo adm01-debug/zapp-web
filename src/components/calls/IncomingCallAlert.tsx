@@ -160,4 +160,4 @@ export const IncomingCallAlert = forwardRef<HTMLDivElement>(
       </motion.div>
     </AnimatePresence>
   );
-}
+});
