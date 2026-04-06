@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 type TimeFilter = '1h' | '6h' | '24h' | '7d' | '30d';
+const LOGS_PER_PAGE = 50;
 
 interface UsageLog {
   id: string;
@@ -65,6 +66,7 @@ function getTimeRange(filter: TimeFilter): Date {
 }
 
 export function AIUsageDashboard() {
+  const [logsPage, setLogsPage] = useState(0);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
 
   const { data: logs = [], isLoading, refetch } = useQuery({
@@ -162,16 +164,24 @@ export function AIUsageDashboard() {
       }));
   }, [logs, timeFilter]);
 
+  const escapeCsvField = (value: string | number | null | undefined): string => {
+    const str = String(value ?? '-');
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
   const handleExportCSV = () => {
     if (logs.length === 0) { toast.warning('Nenhum dado para exportar'); return; }
     const headers = ['Data', 'Usuário', 'Função', 'Modelo', 'Tokens Entrada', 'Tokens Saída', 'Total Tokens', 'Duração (ms)', 'Status'];
     const rows = logs.map(l => {
       const profile = l.user_id ? profileMap.get(l.user_id) : null;
       return [
-        format(new Date(l.created_at), 'dd/MM/yyyy HH:mm:ss'),
-        profile?.name || profile?.email || l.user_id || '-',
-        FUNCTION_LABELS[l.function_name] || l.function_name,
-        l.model || '-',
+        escapeCsvField(format(new Date(l.created_at), 'dd/MM/yyyy HH:mm:ss')),
+        escapeCsvField(profile?.name || profile?.email || l.user_id || '-'),
+        escapeCsvField(FUNCTION_LABELS[l.function_name] || l.function_name),
+        escapeCsvField(l.model || '-'),
         l.input_tokens, l.output_tokens, l.total_tokens,
         l.duration_ms || '-', l.status,
       ].join(',');
@@ -414,8 +424,11 @@ export function AIUsageDashboard() {
         {/* Logs Tab */}
         <TabsContent value="logs">
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">Últimas Chamadas</CardTitle>
+              <span className="text-xs text-muted-foreground">
+                {logs.length} registros • Página {logsPage + 1} de {Math.max(1, Math.ceil(logs.length / LOGS_PER_PAGE))}
+              </span>
             </CardHeader>
             <CardContent>
               <div className="border rounded-lg overflow-auto max-h-[500px]">
@@ -432,7 +445,7 @@ export function AIUsageDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.slice(0, 100).map(l => {
+                    {logs.slice(logsPage * LOGS_PER_PAGE, (logsPage + 1) * LOGS_PER_PAGE).map(l => {
                       const profile = l.user_id ? profileMap.get(l.user_id) : null;
                       return (
                         <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30">
@@ -462,6 +475,29 @@ export function AIUsageDashboard() {
                   </tbody>
                 </table>
               </div>
+              {logs.length > LOGS_PER_PAGE && (
+                <div className="flex items-center justify-between mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={logsPage === 0}
+                    onClick={() => setLogsPage(p => p - 1)}
+                  >
+                    ← Anterior
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {logsPage * LOGS_PER_PAGE + 1}–{Math.min((logsPage + 1) * LOGS_PER_PAGE, logs.length)} de {logs.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={(logsPage + 1) * LOGS_PER_PAGE >= logs.length}
+                    onClick={() => setLogsPage(p => p + 1)}
+                  >
+                    Próximo →
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
