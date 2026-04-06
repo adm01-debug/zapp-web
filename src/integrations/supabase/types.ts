@@ -3345,6 +3345,7 @@ export type Database = {
           access_level: string | null
           avatar_url: string | null
           birthday: string | null
+          can_download: boolean
           created_at: string
           department: string | null
           email: string | null
@@ -3366,6 +3367,7 @@ export type Database = {
           access_level?: string | null
           avatar_url?: string | null
           birthday?: string | null
+          can_download?: boolean
           created_at?: string
           department?: string | null
           email?: string | null
@@ -3387,6 +3389,7 @@ export type Database = {
           access_level?: string | null
           avatar_url?: string | null
           birthday?: string | null
+          can_download?: boolean
           created_at?: string
           department?: string | null
           email?: string | null

@@ -1,12 +1,12 @@
 /**
- * ExportDropdown - BLOQUEADO por política de segurança.
- * Exportação de dados desabilitada para proteção de dados.
+ * ExportDropdown - Controlado por permissão de download do usuário.
  */
 
 import { Button } from '@/components/ui/button';
-import { ShieldAlert } from 'lucide-react';
+import { Download, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useDownloadPermission } from '@/hooks/useDownloadPermission';
 
 interface ExportDropdownProps {
   onExport?: (format: string) => void;
@@ -16,25 +16,42 @@ interface ExportDropdownProps {
   itemCount?: number;
 }
 
-export function ExportDropdown(_props: ExportDropdownProps) {
+export function ExportDropdown({ onExport, isExporting, disabled }: ExportDropdownProps) {
+  const { canDownload } = useDownloadPermission();
+
+  if (!canDownload) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 opacity-50 cursor-not-allowed"
+            disabled
+            onClick={() => toast.error('🔒 Exportação bloqueada por política de segurança')}
+          >
+            <ShieldAlert className="h-4 w-4 text-destructive" />
+            <span className="hidden sm:inline">Exportação Bloqueada</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Exportação desabilitada — solicite permissão ao administrador</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 opacity-50 cursor-not-allowed"
-          disabled
-          onClick={() => toast.error('🔒 Exportação bloqueada por política de segurança')}
-        >
-          <ShieldAlert className="h-4 w-4 text-destructive" />
-          <span className="hidden sm:inline">Exportação Bloqueada</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Exportação desabilitada para proteção de dados</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      variant="outline"
+      size="sm"
+      className="gap-2"
+      disabled={disabled || isExporting}
+      onClick={() => onExport?.('csv')}
+    >
+      <Download className="h-4 w-4" />
+      <span className="hidden sm:inline">Exportar</span>
+    </Button>
   );
 }
 
