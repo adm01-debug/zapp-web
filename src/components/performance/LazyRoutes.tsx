@@ -146,7 +146,7 @@ export function LazyView({ children, fallbackType = 'default' }: LazyViewProps) 
 }
 
 // HOC for creating lazy components with custom fallback
-export function withLazyLoading<T extends ComponentType<any>>(
+export function withLazyLoading<T extends ComponentType<Record<string, unknown>>>(
   importFn: () => Promise<{ default: T }>,
   fallbackType: LazyLoadFallbackProps['type'] = 'default'
 ) {
