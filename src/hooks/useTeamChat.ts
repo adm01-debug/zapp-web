@@ -100,7 +100,7 @@ export function useTeamConversations() {
         .limit(convIds.length * 2); // Heuristic: at most 2x conversations
 
       // Build last-message map (first occurrence per conversation_id is the latest)
-      const lastMessageMap = new Map<string, any>();
+      const lastMessageMap = new Map<string, { id: string; conversation_id: string; content: string; sender_id: string; created_at: string }>();
       for (const msg of recentMessages || []) {
         if (!lastMessageMap.has(msg.conversation_id)) {
           lastMessageMap.set(msg.conversation_id, msg);
