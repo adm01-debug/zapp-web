@@ -467,7 +467,7 @@ describe('AIUsageDashboard – Edge Cases', () => {
 // ═══════════════════════════════════════════════════════════════
 describe('AIUsageDashboard – Error Handling', () => {
   it('handles Supabase query error', async () => {
-    mockFrom.mockImplementation((table: string) => {
+    mockFrom.mockImplementation((table: unknown) => {
       if (table === 'ai_usage_logs') {
         return {
           select: vi.fn().mockReturnValue({
