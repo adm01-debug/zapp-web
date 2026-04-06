@@ -19,11 +19,42 @@ import {
   AlertCircle,
   Loader2,
   ExternalLink,
+  MessageCircle,
+  Instagram,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+/** Small channel icon badge rendered on conversation avatars */
+function ChannelBadge({ type }: { type?: string | null }) {
+  const iconClass = 'w-2.5 h-2.5 text-primary-foreground';
+  let Icon = MessageCircle;
+  let bgColor = 'bg-[hsl(142,70%,45%)]'; // WhatsApp green default
+
+  if (type === 'instagram') {
+    Icon = Instagram;
+    bgColor = 'bg-[hsl(330,80%,55%)]';
+  } else if (type === 'email') {
+    Icon = Mail;
+    bgColor = 'bg-[hsl(220,70%,55%)]';
+  } else if (type === 'phone' || type === 'call') {
+    Icon = Phone;
+    bgColor = 'bg-[hsl(200,70%,50%)]';
+  }
+
+  return (
+    <span className={cn(
+      'absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-sidebar z-10',
+      bgColor
+    )}>
+      <Icon className={iconClass} />
+    </span>
+  );
+}
 
 interface VirtualizedConversationListProps {
   conversations: Conversation[];
