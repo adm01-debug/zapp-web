@@ -57,7 +57,7 @@ function makeProfiles(count: number) {
 }
 
 function setupMocks(logs: unknown[] = [], profiles: unknown[] = []) {
-  mockFrom.mockImplementation((table: string) => {
+  mockFrom.mockImplementation((table: unknown) => {
     if (table === 'ai_usage_logs') {
       return {
         select: vi.fn().mockReturnValue({
