@@ -1,7 +1,9 @@
+import { forwardRef } from 'react';
 import { useSLANotifications } from '@/hooks/useSLANotifications';
 
-export const SLANotificationProvider = ({ children }: { children: React.ReactNode }) => {
-  useSLANotifications();
-  
-  return <>{children}</>;
-};
+export const SLANotificationProvider = forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+  function SLANotificationProvider({ children }, _ref) {
+    useSLANotifications();
+    return <>{children}</>;
+  }
+);
