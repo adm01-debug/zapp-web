@@ -162,7 +162,7 @@ export const VideoPreview = forwardRef<HTMLDivElement, VideoPreviewProps>(
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <>
+    <div ref={ref}>
       <div className="space-y-2">
         <motion.div
           whileHover={{ scale: 1.02 }}
