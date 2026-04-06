@@ -266,9 +266,11 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     if (files.length > 0 && fileUploaderRef.current) fileUploaderRef.current.handleExternalFiles(files);
   };
 
+  const ambient = useAmbientColor(conversation.sentiment);
+
   // ── Render ──
   return (
-    <div className="flex h-full min-h-0 min-w-0 overflow-hidden bg-background relative" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
+    <div className={`flex h-full min-h-0 min-w-0 overflow-hidden relative ${ambient.className}`} style={{ backgroundColor: ambient.bgTint }} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
       <ChatDragOverlay isDraggingOver={isDraggingOver} />
       <CRMAutoSync conversation={conversation} messageCount={messages.length} messages={messages} />
 
