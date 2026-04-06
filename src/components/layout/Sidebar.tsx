@@ -73,7 +73,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
           <span className="text-sm font-bold text-foreground tracking-tight ml-2 mr-auto">ZAPP</span>
         )}
         {!collapsed && (
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={toggle}
@@ -93,7 +93,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       {/* ─── Expand Button (collapsed only) ─── */}
       {collapsed && (
         <div className="flex justify-center my-1">
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={toggle}
@@ -129,7 +129,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
 
       {/* ─── ⌘K Search ─── */}
       <div className={cn('flex my-1.5', collapsed ? 'justify-center px-[11px]' : 'px-2')}>
-        <Tooltip delayDuration={0}>
+        <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <button
               onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
@@ -212,7 +212,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
           <ScreenProtectionToggle className="w-[32px] h-[32px]" />
           <PushNotificationToggle className="w-[32px] h-[32px]" />
           <SoundMuteToggle className="w-[32px] h-[32px]" />
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
