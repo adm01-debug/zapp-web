@@ -244,7 +244,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
             <PopoverTrigger asChild>
               <button
                 className={cn(
-                  'relative group flex items-center gap-2.5 rounded-lg transition-colors hover:bg-muted/40',
+                  'relative group flex items-center gap-2.5 rounded-lg transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
                   collapsed ? 'justify-center p-1' : 'w-full px-3 py-1.5'
                 )}
                 aria-label="Status e perfil"
