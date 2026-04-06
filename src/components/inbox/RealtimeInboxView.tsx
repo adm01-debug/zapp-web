@@ -527,7 +527,7 @@ export function RealtimeInboxView() {
           </Suspense>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-background min-h-0 overflow-hidden">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center p-8 max-w-xs">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center p-8 max-w-sm">
               <div className="relative w-20 h-20 mx-auto mb-5">
                 <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <MessageSquare className="w-9 h-9 text-primary/70" />
@@ -537,7 +537,12 @@ export function RealtimeInboxView() {
                 </motion.div>
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Selecione uma conversa</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">Escolha uma conversa na lista ao lado para visualizar e responder mensagens</p>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">Escolha uma conversa na lista ao lado para visualizar e responder mensagens</p>
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-xs text-muted-foreground/60">
+                  Dica: Use <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">↑</kbd> <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">↓</kbd> para navegar e <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">Enter</kbd> para abrir
+                </p>
+              </div>
             </motion.div>
           </div>
         )}

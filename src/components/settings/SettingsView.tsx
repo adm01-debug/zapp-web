@@ -45,9 +45,9 @@ export function SettingsView() {
       }
     >
       <Tabs defaultValue="schedule" className="space-y-4">
-        {/* Scrollable tabs with fade edges */}
-        <div className="relative">
-          <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
+        {/* Scrollable tabs with fade edges and scroll indicators */}
+        <div className="relative group">
+          <div className="overflow-x-auto scrollbar-none -mx-1 px-1 scroll-smooth" id="settings-tabs-scroll">
             <TabsList className="bg-muted/50 inline-flex w-max gap-1 p-1">
               <TabsTrigger value="schedule" className="gap-2 whitespace-nowrap"><Clock className="w-4 h-4" />Horário</TabsTrigger>
               <TabsTrigger value="messages" className="gap-2 whitespace-nowrap"><MessageSquare className="w-4 h-4" />Mensagens</TabsTrigger>
@@ -62,8 +62,13 @@ export function SettingsView() {
               <TabsTrigger value="nps" className="gap-2 whitespace-nowrap"><TrendingUp className="w-4 h-4" />NPS</TabsTrigger>
             </TabsList>
           </div>
-          {/* Fade edges */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" />
+          {/* Fade edges — left and right */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-card to-transparent opacity-0 transition-opacity" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent" />
+          {/* Scroll hint text */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1">
+            <span className="text-[9px] text-muted-foreground/40 animate-pulse">›</span>
+          </div>
         </div>
 
         <TabsContent value="schedule">

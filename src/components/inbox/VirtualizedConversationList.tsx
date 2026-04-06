@@ -19,11 +19,44 @@ import {
   AlertCircle,
   Loader2,
   ExternalLink,
+  MessageCircle,
+  Instagram,
+  Mail,
+  Phone,
+  UserCheck,
+  Archive,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+/** Small channel icon badge rendered on conversation avatars */
+function ChannelBadge({ type }: { type?: string | null }) {
+  const iconClass = 'w-2.5 h-2.5 text-primary-foreground';
+  let Icon = MessageCircle;
+  let bgColor = 'bg-[hsl(142,70%,45%)]'; // WhatsApp green default
+
+  if (type === 'instagram') {
+    Icon = Instagram;
+    bgColor = 'bg-[hsl(330,80%,55%)]';
+  } else if (type === 'email') {
+    Icon = Mail;
+    bgColor = 'bg-[hsl(220,70%,55%)]';
+  } else if (type === 'phone' || type === 'call') {
+    Icon = Phone;
+    bgColor = 'bg-[hsl(200,70%,50%)]';
+  }
+
+  return (
+    <span className={cn(
+      'absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-sidebar z-10',
+      bgColor
+    )}>
+      <Icon className={iconClass} />
+    </span>
+  );
+}
 
 interface VirtualizedConversationListProps {
   conversations: Conversation[];
@@ -73,7 +106,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.15 }}
         className={cn(
-          'relative p-2 rounded-lg cursor-pointer transition-all duration-200 h-full mx-2',
+          'relative p-[var(--density-padding-x)] rounded-lg cursor-pointer transition-all duration-200 h-full mx-2',
           isSelected 
             ? 'bg-primary/10 border border-primary/30' 
             : 'hover:bg-muted/30 border border-transparent'
@@ -88,6 +121,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
 
         <div className="flex items-center gap-2 relative z-10">
           <div className="relative flex-shrink-0">
+            <ChannelBadge type={conversation.contact.contact_type} />
             <Avatar className="w-8 h-8">
               <AvatarImage src={conversation.contact.avatar} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
@@ -153,7 +187,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group h-full mx-2',
+        'relative p-[var(--density-padding-x)] rounded-xl cursor-pointer transition-all duration-200 group h-full mx-2',
         isSelected 
           ? 'bg-primary/10 border border-primary/30' 
           : 'hover:bg-muted/30 border border-transparent'
@@ -168,6 +202,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
 
       <div className="flex items-start gap-3 relative z-10">
         <div className="relative flex-shrink-0">
+          <ChannelBadge type={conversation.contact.contact_type} />
           <Avatar className={cn(
             "w-11 h-11 ring-2 transition-all",
             isSelected ? "ring-primary/40" : "ring-border/30"
@@ -249,7 +284,46 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
             )}
           </div>
 
-          <div className="mt-2">
+          {/* Quick actions on hover */}
+          <div className="flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/10 transition-all"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Resolver</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Transferir</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-warning hover:bg-warning/10 transition-all"
+                  >
+                    <Archive className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Arquivar</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          <div className="mt-1">
             <SLAIndicator
               firstMessageAt={conversation.createdAt}
               firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null}
