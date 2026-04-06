@@ -185,7 +185,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group h-full mx-2',
+        'relative p-[var(--density-padding-x)] rounded-xl cursor-pointer transition-all duration-200 group h-full mx-2',
         isSelected 
           ? 'bg-primary/10 border border-primary/30' 
           : 'hover:bg-muted/30 border border-transparent'
