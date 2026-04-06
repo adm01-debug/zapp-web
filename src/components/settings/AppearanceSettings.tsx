@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Palette, RefreshCw, GraduationCap } from 'lucide-react';
+import { Palette, RefreshCw, GraduationCap, LayoutGrid } from 'lucide-react';
 import { AvatarUpload } from '@/components/settings/AvatarUpload';
 import { motion } from '@/components/ui/motion';
+import { useDensity, type DensityMode } from '@/hooks/useDensity';
 
 interface AppearanceSettingsProps {
   settings: {
@@ -15,6 +15,27 @@ interface AppearanceSettingsProps {
   };
   updateSettings: (updates: Partial<AppearanceSettingsProps['settings']>) => void;
   onResetOnboarding: () => void;
+}
+function DensitySelector() {
+  const { density, setDensity } = useDensity();
+  const options: { value: DensityMode; label: string; desc: string }[] = [
+    { value: 'comfortable', label: 'Confortável', desc: 'Espaçamento padrão' },
+    { value: 'compact', label: 'Compacto', desc: 'Mais conteúdo visível' },
+    { value: 'dense', label: 'Denso', desc: 'Máxima densidade' },
+  ];
+  return (
+    <Select value={density} onValueChange={(v) => setDensity(v as DensityMode)}>
+      <SelectTrigger><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>
+            <span className="font-medium">{o.label}</span>
+            <span className="ml-2 text-muted-foreground text-xs">— {o.desc}</span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 export function AppearanceSettings({ settings, updateSettings, onResetOnboarding }: AppearanceSettingsProps) {
@@ -58,12 +79,13 @@ export function AppearanceSettings({ settings, updateSettings, onResetOnboarding
             </Select>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-base">Modo compacto</Label>
-              <p className="text-sm text-muted-foreground">Reduz espaçamentos para mostrar mais conteúdo</p>
-            </div>
-            <Switch checked={settings.compact_mode} onCheckedChange={(checked) => updateSettings({ compact_mode: checked })} />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <LayoutGrid className="w-4 h-4 text-primary" />
+              Densidade da interface
+            </Label>
+            <p className="text-sm text-muted-foreground">Controle o espaçamento geral da UI</p>
+            <DensitySelector />
           </div>
 
           <div className="pt-4 border-t border-border">

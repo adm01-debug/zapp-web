@@ -73,7 +73,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
           <span className="text-sm font-bold text-foreground tracking-tight ml-2 mr-auto">ZAPP</span>
         )}
         {!collapsed && (
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={toggle}
@@ -93,7 +93,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       {/* ─── Expand Button (collapsed only) ─── */}
       {collapsed && (
         <div className="flex justify-center my-1">
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={toggle}
@@ -129,7 +129,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
 
       {/* ─── ⌘K Search ─── */}
       <div className={cn('flex my-1.5', collapsed ? 'justify-center px-[11px]' : 'px-2')}>
-        <Tooltip delayDuration={0}>
+        <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <button
               onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
@@ -212,7 +212,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
           <ScreenProtectionToggle className="w-[32px] h-[32px]" />
           <PushNotificationToggle className="w-[32px] h-[32px]" />
           <SoundMuteToggle className="w-[32px] h-[32px]" />
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
@@ -298,7 +298,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
                   </button>
                 ))}
               </div>
-              <div className="mt-1 pt-1 border-t border-border/50">
+              <div className="mt-1 pt-1 border-t border-border/50 space-y-0.5">
                 <button
                   onClick={() => { onViewChange('settings'); setStatusOpen(false); }}
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
@@ -306,31 +306,22 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
                   <Settings className="w-3.5 h-3.5" />
                   Configurações
                 </button>
+                {onLogout && (
+                  <button
+                    onClick={() => { onLogout(); setStatusOpen(false); }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Sair da conta
+                  </button>
+                )}
               </div>
             </PopoverContent>
           </Popover>
         )}
 
-        {onLogout && (
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onLogout}
-                className={cn(
-                  'rounded-lg flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors',
-                  collapsed ? 'w-[32px] h-[32px] justify-center' : 'w-full h-[32px] px-3'
-                )}
-                aria-label="Sair da conta"
-              >
-                <LogOut className="w-4 h-4 shrink-0" />
-                {!collapsed && <span className="text-xs">Sair</span>}
-              </button>
-            </TooltipTrigger>
-            {collapsed && (
-              <TooltipContent side="right" sideOffset={8} className="text-xs">Sair</TooltipContent>
-            )}
-          </Tooltip>
-        )}
+
+
       </div>
     </aside>
   );

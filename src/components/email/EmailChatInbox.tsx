@@ -33,12 +33,21 @@ export function EmailChatInbox() {
   // No account
   if (!activeAccount) {
     return (
-      <div className="flex flex-col items-center justify-center h-full py-16">
-        <Mail className="w-14 h-14 text-muted-foreground/20 mb-4" />
-        <h3 className="text-base font-semibold mb-1">Gmail não conectado</h3>
-        <p className="text-sm text-muted-foreground text-center max-w-xs">
-          Conecte sua conta Gmail nas Integrações para usar o Email Chat.
+      <div className="flex flex-col items-center justify-center h-full py-16 px-6">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+          <Mail className="w-8 h-8 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold mb-2 text-foreground">Gmail não conectado</h3>
+        <p className="text-sm text-muted-foreground text-center max-w-xs mb-6">
+          Conecte sua conta Gmail para gerenciar e-mails diretamente pela plataforma, com interface de chat.
         </p>
+        <button
+          onClick={() => document.dispatchEvent(new CustomEvent('navigate-to', { detail: 'integrations' }))}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+        >
+          <Mail className="w-4 h-4" />
+          Conectar Gmail
+        </button>
       </div>
     );
   }

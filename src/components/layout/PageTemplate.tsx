@@ -117,10 +117,10 @@ export function PageTemplate({
         variants={childVariants}
         className={cn(
           'flex-1 overflow-y-auto overflow-x-hidden min-h-0',
-          padded && 'p-4 sm:p-6',
+          padded && 'p-[var(--density-padding-x)] sm:p-[calc(var(--density-padding-x)*1.5)]',
           className
         )}
-        style={{ contentVisibility: 'auto' }}
+        style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 500px' }}
       >
         {children}
       </motion.div>
