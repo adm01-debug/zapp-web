@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, forwardRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { useNavigate } from 'react-router-dom';
@@ -261,7 +261,7 @@ function LoadingSplash() {
   );
 }
 
-const Index = () => {
+const Index = forwardRef<HTMLDivElement>(function Index(_props, _ref) {
   const { user, loading } = useAuth();
   const { completeOnboarding } = useOnboarding();
 
@@ -283,6 +283,6 @@ const Index = () => {
       <IndexContent />
     </TourProvider>
   );
-};
+});
 
 export default Index;
