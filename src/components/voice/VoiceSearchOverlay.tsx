@@ -268,8 +268,8 @@ export function VoiceSearchOverlay({
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center text-sm font-medium px-3 py-2 rounded-xl"
                     style={{
-                      background: `linear-gradient(135deg, ${colors.primary}15, ${colors.secondary}15)`,
-                      border: `1px solid ${colors.primary}25`,
+                      background: `linear-gradient(135deg, ${colors.primary.replace('hsl(', 'hsla(').replace(')', ', 0.08)')}, ${colors.secondary.replace('hsl(', 'hsla(').replace(')', ', 0.08)')})`,
+                      border: `1px solid ${colors.primary.replace('hsl(', 'hsla(').replace(')', ', 0.15)')}`,
                       color: 'rgba(255,255,255,0.85)',
                     }}
                   >
