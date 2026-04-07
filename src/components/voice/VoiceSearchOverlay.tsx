@@ -390,7 +390,6 @@ export function VoiceSearchOverlay({
             </div>
           </div>
         </motion.div>
-      </motion.div>
       </motion.div>}
     </AnimatePresence>,
     document.body
