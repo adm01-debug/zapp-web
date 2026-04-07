@@ -36,14 +36,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-interface MediaTypeIconProps {
-  type: string | null;
-}
-
-function MediaTypeIcon({ type }: MediaTypeIconProps) {
-  return null; // simplified
-}
-
 const DRAFT_KEY_PREFIX = 'team_draft_';
 const CHAR_LIMIT = 10000;
 
