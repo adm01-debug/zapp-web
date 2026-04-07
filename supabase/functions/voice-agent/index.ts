@@ -8,14 +8,35 @@ const TranscriptSchema = z.object({
 const SYSTEM_PROMPT = `Você é um assistente de voz inteligente para um sistema de CRM e atendimento ao cliente via WhatsApp.
 Sua função é interpretar comandos de voz e retornar uma ação estruturada.
 
-CONTEXTO: Sistema de gestão de conversas (inbox), contatos, campanhas, equipe de agentes, filas de atendimento, análise de sentimento, chatbot builder e dashboards de métricas.
+CONTEXTO: Sistema completo de gestão de conversas (inbox), contatos, campanhas, equipe de agentes, filas de atendimento, análise de sentimento, chatbot builder, dashboards de métricas, base de conhecimento, automações, VoIP, grupos de WhatsApp e CRM 360°.
 
 AÇÕES DISPONÍVEIS:
 - search: Buscar contatos, conversas ou informações
-- navigate: Navegar para uma seção do sistema (inbox, dashboard, contacts, campaigns, team, settings, sentiment-alerts, chatbot-builder, queues, knowledge-base, calls, automations)
-- filter: Filtrar conversas ou contatos
-- answer: Responder uma pergunta sobre o sistema ou dar informações gerais
+- navigate: Navegar para uma seção do sistema
+- filter: Filtrar conversas ou contatos por critérios
+- sort: Ordenar listas por critérios específicos
 - clear: Limpar filtros ou busca atual
+- answer: Responder uma pergunta sobre o sistema ou dar informações gerais
+
+ROTAS DISPONÍVEIS PARA NAVEGAÇÃO:
+- inbox: Caixa de entrada de mensagens
+- dashboard: Painel principal com métricas
+- contacts: Lista de contatos
+- campaigns: Campanhas de mensagens
+- team: Gerenciamento de equipe
+- settings: Configurações do sistema
+- sentiment-alerts: Alertas de sentimento por IA
+- chatbot-builder: Construtor de chatbot
+- queues: Filas de atendimento
+- knowledge-base: Base de conhecimento
+- calls: Central de chamadas VoIP
+- automations: Regras de automação
+- groups: Grupos de WhatsApp
+- tags: Gerenciamento de etiquetas
+- wallet: Carteira de clientes
+- crm360: CRM 360° completo
+- reports: Relatórios e análises
+- security: Painel de segurança
 
 Responda SEMPRE usando a ferramenta execute_voice_command.
 Seja conciso, amigável e responda em português brasileiro.
@@ -61,7 +82,7 @@ Deno.serve(async (req) => {
               properties: {
                 action: {
                   type: 'string',
-                  enum: ['search', 'filter', 'navigate', 'clear', 'answer'],
+                  enum: ['search', 'filter', 'navigate', 'sort', 'clear', 'answer'],
                 },
                 response: {
                   type: 'string',
@@ -70,11 +91,21 @@ Deno.serve(async (req) => {
                 data: {
                   type: 'object',
                   properties: {
-                    query: { type: 'string', description: 'Search query' },
+                    query: { type: 'string', description: 'Search query text' },
                     route: {
                       type: 'string',
                       description: 'Route to navigate to',
-                      enum: ['inbox', 'dashboard', 'contacts', 'campaigns', 'team', 'settings', 'sentiment-alerts', 'chatbot-builder', 'queues', 'knowledge-base', 'calls', 'automations'],
+                      enum: [
+                        'inbox', 'dashboard', 'contacts', 'campaigns', 'team', 'settings',
+                        'sentiment-alerts', 'chatbot-builder', 'queues', 'knowledge-base',
+                        'calls', 'automations', 'groups', 'tags', 'wallet', 'crm360',
+                        'reports', 'security',
+                      ],
+                    },
+                    sortBy: {
+                      type: 'string',
+                      description: 'Sort criterion',
+                      enum: ['newest', 'oldest', 'name', 'priority'],
                     },
                     filters: {
                       type: 'object',
@@ -83,6 +114,8 @@ Deno.serve(async (req) => {
                         assigned: { type: 'boolean' },
                         unread: { type: 'boolean' },
                         contactType: { type: 'string' },
+                        category: { type: 'string' },
+                        status: { type: 'string' },
                       },
                     },
                   },
