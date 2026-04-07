@@ -20,6 +20,9 @@ import {
   BarChart3,
   RefreshCw,
   Brain,
+  Award,
+  Heart,
+  Smile,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
