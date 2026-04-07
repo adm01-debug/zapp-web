@@ -274,6 +274,7 @@ export function ChatHeader({
               conversation.contact.phone
             )}
           </p>
+          <QueuePositionNotifier contactId={conversation.contact.id} className="mt-0.5" />
         </div>
       </div>
 
