@@ -212,12 +212,14 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
         voiceId={voiceId}
         speed={speed}
         showSearch={showSearch}
+        isMuted={isMuted}
         onBack={onBack}
         onToggleDetails={onToggleDetails}
         onToggleSearch={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
         onAddMembers={() => setShowAddMembers(true)}
         onVoiceChange={setVoiceId}
         onSpeedChange={setSpeed}
+        onToggleMute={() => muteMutation.mutate({ conversationId: conversation.id, muted: !isMuted })}
       />
 
       {/* Search bar */}
