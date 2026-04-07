@@ -372,18 +372,21 @@ export function TeamChatInputArea({
           )}
         </div>
 
-        {/* Mobile: secondary tools row */}
-        {isMobile && hasText && (
+        {/* Mobile: secondary tools row - always visible for quick access */}
+        {isMobile && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-1.5 mt-1.5 overflow-x-auto scrollbar-none pb-0.5"
+            className="flex items-center gap-1 mt-1.5 overflow-x-auto scrollbar-none pb-0.5"
+            role="toolbar"
+            aria-label="Ferramentas de formatação"
           >
             <AIRewriteButton inputValue={text} onRewrite={(newText) => setText(newText)} />
-            <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
-            <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
             <StickerPicker onSendSticker={onSendSticker} />
+            <AudioMemePicker onSendAudio={onSendAudioMeme} />
+            <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
+            <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
+            <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
           </motion.div>
         )}
       </div>
