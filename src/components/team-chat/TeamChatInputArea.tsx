@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -28,7 +28,6 @@ import {
   X,
   Loader2,
   Plus,
-  Zap,
 } from 'lucide-react';
 import {
   Popover,
@@ -179,7 +178,7 @@ export function TeamChatInputArea({
   const handleVoiceDictation = useCallback((transcript: string) => {
     setText(text ? `${text} ${transcript}` : transcript);
     textareaRef.current?.focus();
-  }, [setText]);
+  }, [text, setText]);
 
   return (
     <>
@@ -242,7 +241,7 @@ export function TeamChatInputArea({
 
         {/* Main input row */}
         <div className="flex items-end gap-1.5" role="toolbar" aria-label="Barra de mensagem">
-          {/* + Menu */}
+          {/* + Menu (attach/options) */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -292,12 +291,17 @@ export function TeamChatInputArea({
                 isMobile ? "px-3 py-2.5 text-[16px] min-h-[42px] max-h-[200px]" : "px-3 py-2 min-h-[40px] max-h-[200px]",
                 isOverLimit && "border-destructive/50 focus:border-destructive focus:ring-destructive/20"
               )}
+              aria-label="Digite sua mensagem"
+              aria-describedby={charCount > 0 ? "team-char-counter" : undefined}
             />
             {charCount > 100 && (
-              <span className={cn(
-                "absolute bottom-1 right-2 text-[10px] select-none pointer-events-none",
-                isOverLimit ? "text-destructive font-medium" : isNearLimit ? "text-warning" : "text-muted-foreground/50"
-              )}>
+              <span
+                id="team-char-counter"
+                className={cn(
+                  "absolute bottom-1 right-2 text-[10px] select-none pointer-events-none",
+                  isOverLimit ? "text-destructive font-medium" : isNearLimit ? "text-warning" : "text-muted-foreground/50"
+                )}
+              >
                 {charCount}/{CHAR_LIMIT}
               </span>
             )}
@@ -354,7 +358,6 @@ export function TeamChatInputArea({
               <StickerPicker onSendSticker={onSendSticker} />
               <AudioMemePicker onSendAudio={onSendAudioMeme} />
               <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
-              <TeamFileUploader conversationId={conversationId} onFileSent={onFileSent} />
               <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
               <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
               <TextToAudioButton inputValue={text} onAudioReady={onAudioSend} />
