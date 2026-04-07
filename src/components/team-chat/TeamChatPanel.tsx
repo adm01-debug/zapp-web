@@ -214,7 +214,19 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
   const handleStartEdit = (msg: TeamMessage) => { setEditingId(msg.id); setEditText(msg.content); };
   const handleSaveEdit = () => {
     if (!editingId || !editText.trim()) return;
-    editMutation.mutate({ messageId: editingId, content: editText.trim(), conversationId: conversation.id });
+    const savedId = editingId;
+    const savedText = editText;
+    editMutation.mutate(
+      { messageId: editingId, content: editText.trim(), conversationId: conversation.id },
+      {
+        onError: (err) => {
+          log.error('Failed to edit message:', err);
+          toast.error('Falha ao editar mensagem.');
+          setEditingId(savedId);
+          setEditText(savedText);
+        },
+      }
+    );
     setEditingId(null); setEditText('');
   };
   const handleCancelEdit = () => { setEditingId(null); setEditText(''); };
