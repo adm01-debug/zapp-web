@@ -406,7 +406,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
-                <MediaGallery contactId={contact.id} />
+                <MediaGallery contactId={contact.id} open={true} onOpenChange={() => {}} />
               </AccordionContent>
             </AccordionItem>
           </motion.div>
