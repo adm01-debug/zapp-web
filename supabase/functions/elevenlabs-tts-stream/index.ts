@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const { text, voiceId, modelId, languageCode, applyTextNormalization } = parsed.data;
     const ELEVENLABS_API_KEY = requireEnv("ELEVENLABS_API_KEY");
 
-    const selectedVoiceId = voiceId || 'EXAVITQu4vr4xnSDxMaL';
+    const selectedVoiceId = voiceId || 'TY3h8ANhQUsJaa0Bga5F';
     const selectedModel = modelId || 'eleven_flash_v2_5';
 
     log.info(`Streaming TTS: "${text.substring(0, 50)}..." voice: ${selectedVoiceId}`);

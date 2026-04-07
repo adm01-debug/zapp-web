@@ -2,8 +2,8 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { log } from '@/lib/logger';
 
-// Default voice: Sarah
-const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
+// Default voice: Custom voice from Voice Library
+const DEFAULT_VOICE_ID = 'TY3h8ANhQUsJaa0Bga5F';
 
 interface UseTextToSpeechOptions {
   initialVoiceId?: string;
