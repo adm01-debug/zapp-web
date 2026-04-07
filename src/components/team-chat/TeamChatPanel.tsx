@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('TeamChatPanel');
-import { TeamConversation, useTeamMessages, useSendTeamMessage, useDeleteTeamMessage, useEditTeamMessage, TeamMessage } from '@/hooks/useTeamChat';
+import { TeamConversation, useTeamMessages, useSendTeamMessage, useDeleteTeamMessage, useEditTeamMessage, useToggleMuteConversation, TeamMessage } from '@/hooks/useTeamChat';
 import { useAuth } from '@/hooks/useAuth';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
@@ -99,6 +99,11 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
   const sendMutation = useSendTeamMessage();
   const deleteMutation = useDeleteTeamMessage();
   const editMutation = useEditTeamMessage();
+  const muteMutation = useToggleMuteConversation();
+
+  // Determine if current user has muted this conversation
+  const currentMember = conversation.members?.find(m => m.profile_id === profile?.id);
+  const isMuted = currentMember?.is_muted ?? false;
   const [text, setText] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -207,12 +212,14 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
         voiceId={voiceId}
         speed={speed}
         showSearch={showSearch}
+        isMuted={isMuted}
         onBack={onBack}
         onToggleDetails={onToggleDetails}
         onToggleSearch={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
         onAddMembers={() => setShowAddMembers(true)}
         onVoiceChange={setVoiceId}
         onSpeedChange={setSpeed}
+        onToggleMute={() => muteMutation.mutate({ conversationId: conversation.id, muted: !isMuted })}
       />
 
       {/* Search bar */}

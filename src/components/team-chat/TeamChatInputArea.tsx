@@ -1,5 +1,9 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { TeamMessage } from '@/hooks/useTeamChat';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { getLogger } from '@/lib/logger';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -31,14 +35,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-
-interface MediaTypeIconProps {
-  type: string | null;
-}
-
-function MediaTypeIcon({ type }: MediaTypeIconProps) {
-  return null; // simplified
-}
 
 const DRAFT_KEY_PREFIX = 'team_draft_';
 const CHAR_LIMIT = 10000;
@@ -76,9 +72,12 @@ export function TeamChatInputArea({
   onSendCustomEmoji,
   onFileSent,
 }: TeamChatInputAreaProps) {
+  const { profile } = useAuth();
+  const log = useMemo(() => getLogger('TeamChatInputArea'), []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showRichToolbar, setShowRichToolbar] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const [pasteUploading, setPasteUploading] = useState(false);
   const [sendAnimation, setSendAnimation] = useState(false);
   const isMobile = useIsMobile();
 
@@ -126,18 +125,40 @@ export function TeamChatInputArea({
     } catch { /* private mode */ }
   }, [conversationId]);
 
-  // Paste images
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+  // Paste images from clipboard
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
-    if (!items) return;
+    if (!items || !profile || pasteUploading) return;
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.startsWith('image/')) {
-        // TODO: handle paste image upload
         e.preventDefault();
+        const file = items[i].getAsFile();
+        if (!file) return;
+
+        setPasteUploading(true);
+        try {
+          const ext = file.type.split('/')[1] || 'png';
+          const path = `${profile.id}/${conversationId}/${Date.now()}_paste.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from('team-chat-files')
+            .upload(path, file, { contentType: file.type });
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from('team-chat-files')
+            .getPublicUrl(path);
+
+          onFileSent(urlData.publicUrl, 'image', `📋 Imagem colada`);
+        } catch (err) {
+          log.error('Paste image upload error:', err);
+          toast.error('Erro ao enviar imagem colada');
+        } finally {
+          setPasteUploading(false);
+        }
         return;
       }
     }
-  }, []);
+  }, [profile, conversationId, pasteUploading, onFileSent, log]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -333,7 +354,6 @@ export function TeamChatInputArea({
               <StickerPicker onSendSticker={onSendSticker} />
               <AudioMemePicker onSendAudio={onSendAudioMeme} />
               <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
-              <TeamFileUploader conversationId={conversationId} onFileSent={onFileSent} />
               <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
               <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
               <TextToAudioButton inputValue={text} onAudioReady={onAudioSend} />
