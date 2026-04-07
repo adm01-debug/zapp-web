@@ -20,15 +20,11 @@ import {
   PanelRightOpen,
   PanelRightClose,
   Search,
-  Brain,
   MoreVertical,
-  PhoneCall,
-  Video,
   Archive,
   Bell,
   BellOff,
   Pin,
-  ExternalLink,
 } from 'lucide-react';
 
 interface TeamChatHeaderProps {
@@ -37,12 +33,14 @@ interface TeamChatHeaderProps {
   voiceId: string;
   speed: number;
   showSearch: boolean;
+  isMuted?: boolean;
   onBack: () => void;
   onToggleDetails?: () => void;
   onToggleSearch: () => void;
   onAddMembers: () => void;
   onVoiceChange: (voiceId: string) => void;
   onSpeedChange: (speed: number) => void;
+  onToggleMute?: () => void;
 }
 
 export function TeamChatHeader({
@@ -51,12 +49,14 @@ export function TeamChatHeader({
   voiceId,
   speed,
   showSearch,
+  isMuted,
   onBack,
   onToggleDetails,
   onToggleSearch,
   onAddMembers,
   onVoiceChange,
   onSpeedChange,
+  onToggleMute,
 }: TeamChatHeaderProps) {
   return (
     <div className="flex items-center justify-between px-3 md:px-5 h-[56px] md:h-[65px] pr-24 border-b border-border bg-card shrink-0">
@@ -137,16 +137,27 @@ export function TeamChatHeader({
             <TooltipContent side="bottom">Mais ações</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
-            <DropdownMenuItem>
+            {onToggleMute && (
+              <DropdownMenuItem onClick={onToggleMute}>
+                {isMuted ? (
+                  <>
+                    <Bell className="w-4 h-4 mr-2" />
+                    Ativar notificações
+                  </>
+                ) : (
+                  <>
+                    <BellOff className="w-4 h-4 mr-2" />
+                    Silenciar
+                  </>
+                )}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled className="opacity-50">
               <Pin className="w-4 h-4 mr-2" />
               Fixar conversa
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <BellOff className="w-4 h-4 mr-2" />
-              Silenciar
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem disabled className="opacity-50">
               <Archive className="w-4 h-4 mr-2" />
               Arquivar
             </DropdownMenuItem>
