@@ -710,12 +710,9 @@ describe('Team Chat — Exhaustive Audit', () => {
       // Import + popover + mobile = 3 (no longer in desktop secondary tools)
       expect(matches!.length).toBeLessThanOrEqual(4);
     });
-    });
 
-    it('should not have duplicate MediaTypeIcon in InputArea (unused)', () => {
-      // InputArea defines MediaTypeIcon but returns null
-      expect(inputSrc).toContain('function MediaTypeIcon');
-      expect(inputSrc).toContain('return null; // simplified');
+    it('FIXED: MediaTypeIcon dead code removed from InputArea', () => {
+      expect(inputSrc).not.toContain('function MediaTypeIcon');
     });
 
     it('should import from correct module paths', () => {
