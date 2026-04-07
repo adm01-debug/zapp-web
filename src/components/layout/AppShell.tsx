@@ -1,5 +1,5 @@
 import { Suspense, useCallback, forwardRef } from 'react';
-import zenTargetIcon from '@/assets/zen-target.png';
+import { Target } from 'lucide-react';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -132,7 +132,7 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
                 )}
                 aria-label={isZen ? 'Sair do modo zen' : 'Modo zen'}
               >
-                {isZen ? <Minimize2 className="w-3.5 h-3.5" /> : <img src={zenTargetIcon} alt="" className="w-4 h-4" />}
+                {isZen ? <Minimize2 className="w-3.5 h-3.5" /> : <Target className="w-4 h-4" />}
                 <span className="text-[11px] font-medium tracking-wide">
                   {isZen ? 'Sair' : 'Zen'}
                 </span>
