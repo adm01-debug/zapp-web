@@ -275,15 +275,17 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') { setShowSearch(false); setSearchQuery(''); } }}
                 placeholder="Buscar nas mensagens..."
                 className="h-8 text-sm"
+                aria-label="Buscar mensagens na conversa"
               />
               {searchQuery && (
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   {filteredMessages.length} resultado{filteredMessages.length !== 1 ? 's' : ''}
                 </span>
               )}
-              <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setShowSearch(false); setSearchQuery(''); }}>
+              <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setShowSearch(false); setSearchQuery(''); }} aria-label="Fechar busca">
                 <X className="w-3.5 h-3.5" />
               </Button>
             </div>
@@ -292,7 +294,7 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
       </AnimatePresence>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5" onScroll={checkNearBottom}>
+      <div ref={scrollRef} className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5" onScroll={checkNearBottom} role="log" aria-label="Mensagens da conversa" aria-live="polite">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
