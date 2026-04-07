@@ -31,14 +31,17 @@ export function VoiceCopilotButton() {
       setIsExpanded(false);
     },
     onMessage: (message: unknown) => {
-      const msg = message as Record<string, any>;
-      if (msg?.user_transcription_event?.user_transcript) {
-        const text = msg.user_transcription_event.user_transcript;
-        setTranscripts(prev => [...prev.slice(-9), { role: 'user', text, timestamp: new Date() }]);
+      if (typeof message !== 'object' || message === null) return;
+      const msg = message as Record<string, Record<string, unknown> | undefined>;
+      const userText = typeof msg.user_transcription_event?.user_transcript === 'string'
+        ? msg.user_transcription_event.user_transcript : null;
+      const agentText = typeof msg.agent_response_event?.agent_response === 'string'
+        ? msg.agent_response_event.agent_response : null;
+      if (userText) {
+        setTranscripts(prev => [...prev.slice(-9), { role: 'user', text: userText, timestamp: new Date() }]);
       }
-      if (msg?.agent_response_event?.agent_response) {
-        const text = msg.agent_response_event.agent_response;
-        setTranscripts(prev => [...prev.slice(-9), { role: 'agent', text, timestamp: new Date() }]);
+      if (agentText) {
+        setTranscripts(prev => [...prev.slice(-9), { role: 'agent', text: agentText, timestamp: new Date() }]);
       }
     },
     onError: (error) => {
