@@ -71,6 +71,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [showCatalogDirect, setShowCatalogDirect] = useState(false);
   const [showWhisper, setShowWhisper] = useState(false);
+  const [showTemplatesWithVars, setShowTemplatesWithVars] = useState(false);
+  const [showRealtimeTranscription, setShowRealtimeTranscription] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
