@@ -129,11 +129,13 @@ export function AudioFrequencyVisualizer({ phase }: AudioFrequencyVisualizerProp
         // Color per bar — alternating primary/secondary/accent
         const colorIdx = i % 3;
         const color = colorIdx === 0 ? c.primary : colorIdx === 1 ? c.secondary : c.accent;
+        // Convert hsl(...) to hsla(..., 0.5) for gradient stop
+        const colorFaded = color.replace('hsl(', 'hsla(').replace(')', ', 0.5)');
 
         // Gradient per bar for depth
         const grad = ctx.createLinearGradient(x, y, x, y + h);
         grad.addColorStop(0, color);
-        grad.addColorStop(1, `${color}80`);
+        grad.addColorStop(1, colorFaded);
 
         ctx.fillStyle = grad;
         ctx.globalAlpha = active ? 0.9 : 0.5;
