@@ -97,19 +97,23 @@ export function VoiceSearchOverlay({
 
   // Auto-start listening
   const hasAutoStarted = useRef(false);
+  const startingRef = useRef(false);
   useEffect(() => {
-    if (isOpen && phase === 'idle' && !hasAutoStarted.current) {
+    if (isOpen && phase === 'idle' && !hasAutoStarted.current && !startingRef.current) {
       hasAutoStarted.current = true;
+      startingRef.current = true;
       setShowSuggestions(false);
-      const timer = setTimeout(() => onStartListening(), 80);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        onStartListening().finally(() => { startingRef.current = false; });
+      }, 80);
+      return () => { clearTimeout(timer); startingRef.current = false; };
     }
     if (isOpen && phase === 'idle' && hasAutoStarted.current) {
       const timer = setTimeout(() => setShowSuggestions(true), 600);
       return () => clearTimeout(timer);
     }
     if (phase !== 'idle') setShowSuggestions(false);
-    if (!isOpen) { hasAutoStarted.current = false; setShowSuggestions(false); }
+    if (!isOpen) { hasAutoStarted.current = false; startingRef.current = false; setShowSuggestions(false); }
   }, [isOpen, phase, onStartListening]);
 
   const handleOrbClick = useCallback(() => {
