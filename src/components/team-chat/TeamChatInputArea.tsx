@@ -354,7 +354,6 @@ export function TeamChatInputArea({
               <StickerPicker onSendSticker={onSendSticker} />
               <AudioMemePicker onSendAudio={onSendAudioMeme} />
               <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
-              <TeamFileUploader conversationId={conversationId} onFileSent={onFileSent} />
               <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
               <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
               <TextToAudioButton inputValue={text} onAudioReady={onAudioSend} />
