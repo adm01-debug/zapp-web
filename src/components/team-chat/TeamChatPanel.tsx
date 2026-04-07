@@ -255,7 +255,7 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
   return (
     <div className="flex flex-col h-full w-full relative">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 border-b border-border bg-card">
+      <div className="flex items-center gap-3 p-3 pr-24 border-b border-border bg-card">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={onBack}>
           <ArrowLeft className="w-4 h-4" />
         </Button>
