@@ -1,4 +1,5 @@
 import { Suspense, useCallback, forwardRef } from 'react';
+import monkIcon from '@/assets/monk-zen.png';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -131,7 +132,7 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
                 )}
                 aria-label={isZen ? 'Sair do modo zen' : 'Modo zen'}
               >
-                {isZen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                {isZen ? <Minimize2 className="w-3.5 h-3.5" /> : <img src={monkIcon} alt="" className="w-4 h-4 invert opacity-60" />}
                 <span className="text-[11px] font-medium tracking-wide">
                   {isZen ? 'Sair' : 'Zen'}
                 </span>
