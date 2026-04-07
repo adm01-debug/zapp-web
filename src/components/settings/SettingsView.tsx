@@ -1,12 +1,19 @@
 import { NPSDashboard } from '@/components/nps/NPSDashboard';
 import { FollowUpSequences } from '@/components/settings/FollowUpSequences';
+import { QuickRepliesManager } from '@/components/inbox/QuickRepliesManager';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Clock, MessageSquare, Bell, Palette, Save, RefreshCw, Loader2,
   Keyboard, Volume2, ArrowRight, Package, Globe, TrendingUp, Settings,
+  Tags, MessageSquareHeart, Bot, Brain, Users,
 } from 'lucide-react';
+import { AIAutoTagsConfig } from '@/components/settings/AIAutoTagsConfig';
+import { CSATAutoConfig } from '@/components/settings/CSATAutoConfig';
+import { ChatbotL1Config } from '@/components/settings/ChatbotL1Config';
+import { LanguageSelector } from '@/components/settings/LanguageSelector';
+import { SkillBasedRoutingSettings } from '@/components/settings/SkillBasedRoutingSettings';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
 import { ElevenLabsDialogue } from '@/components/voice/ElevenLabsDialogue';
 import { ElevenLabsVoiceDesign } from '@/components/voice/ElevenLabsVoiceDesign';
@@ -98,6 +105,10 @@ export function SettingsView() {
               <TabsTrigger value="followup" className="gap-2 whitespace-nowrap"><ArrowRight className="w-4 h-4" />Follow-up</TabsTrigger>
               <TabsTrigger value="media" className="gap-2 whitespace-nowrap"><Package className="w-4 h-4" />Mídia</TabsTrigger>
               <TabsTrigger value="nps" className="gap-2 whitespace-nowrap"><TrendingUp className="w-4 h-4" />NPS</TabsTrigger>
+              <TabsTrigger value="ai-tags" className="gap-2 whitespace-nowrap"><Tags className="w-4 h-4" />Tags IA</TabsTrigger>
+              <TabsTrigger value="csat" className="gap-2 whitespace-nowrap"><MessageSquareHeart className="w-4 h-4" />CSAT</TabsTrigger>
+              <TabsTrigger value="chatbot-l1" className="gap-2 whitespace-nowrap"><Bot className="w-4 h-4" />Chatbot L1</TabsTrigger>
+              <TabsTrigger value="routing" className="gap-2 whitespace-nowrap"><Users className="w-4 h-4" />Roteamento</TabsTrigger>
             </TabsList>
           </div>
           {/* Fade edges — left and right */}
@@ -114,7 +125,10 @@ export function SettingsView() {
         </TabsContent>
 
         <TabsContent value="messages">
-          <MessagesSettings settings={settings} updateSettings={updateSettings} />
+          <div className="space-y-6">
+            <MessagesSettings settings={settings} updateSettings={updateSettings} />
+            <QuickRepliesManager compact={false} />
+          </div>
         </TabsContent>
 
         <TabsContent value="automation">
@@ -158,6 +172,22 @@ export function SettingsView() {
 
         <TabsContent value="nps">
           <NPSDashboard />
+        </TabsContent>
+
+        <TabsContent value="ai-tags">
+          <AIAutoTagsConfig />
+        </TabsContent>
+
+        <TabsContent value="csat">
+          <CSATAutoConfig />
+        </TabsContent>
+
+        <TabsContent value="chatbot-l1">
+          <ChatbotL1Config />
+        </TabsContent>
+
+        <TabsContent value="routing">
+          <SkillBasedRoutingSettings />
         </TabsContent>
       </Tabs>
       )}

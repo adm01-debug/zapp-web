@@ -20,6 +20,9 @@ import {
   BarChart3,
   RefreshCw,
   Brain,
+  Award,
+  Heart,
+  Smile,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
@@ -37,6 +40,9 @@ import { DemandPrediction } from './DemandPrediction';
 import { ActivityHeatmap } from './ActivityHeatmap';
 import ConversationHeatmap from './ConversationHeatmap';
 import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
+import { AgentPerformancePanel } from './AgentPerformancePanel';
+import { SatisfactionMetrics } from './SatisfactionMetrics';
+import { SentimentTrendChart } from './SentimentTrendChart';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
@@ -44,6 +50,7 @@ import { ProgressiveDisclosureDashboard } from './ProgressiveDisclosureDashboard
 import { DraggableWidgetContainer } from './DraggableWidgetContainer';
 import { DashboardFilters, DashboardFiltersState, getDefaultFilters } from './DashboardFilters';
 import { Button } from '@/components/ui/button';
+import { ParallaxContainer } from '@/components/effects/ParallaxContainer';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -431,11 +438,11 @@ export function DashboardView() {
       {/* Floating Particles Background */}
       <FloatingParticles />
 
-      {/* Background decorations */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      {/* Background decorations with parallax */}
+      <ParallaxContainer speed={0.3} direction="up" className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -left-24 w-64 h-64 bg-primary/8 rounded-full blur-3xl" />
-      </div>
+      </ParallaxContainer>
 
       {/* Header with Level Progress */}
       <motion.div
@@ -531,6 +538,18 @@ export function DashboardView() {
             <Clock className="w-4 h-4" />
             Métricas SLA
           </TabsTrigger>
+          <TabsTrigger value="team" className="flex items-center gap-2">
+            <Award className="w-4 h-4" />
+            Equipe
+          </TabsTrigger>
+          <TabsTrigger value="satisfaction" className="flex items-center gap-2">
+            <Heart className="w-4 h-4" />
+            Satisfação
+          </TabsTrigger>
+          <TabsTrigger value="sentiment" className="flex items-center gap-2">
+            <Smile className="w-4 h-4" />
+            Sentimento
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -565,6 +584,18 @@ export function DashboardView() {
 
         <TabsContent value="sla">
           <SLAMetricsDashboard />
+        </TabsContent>
+
+        <TabsContent value="team" className="space-y-6">
+          <AgentPerformancePanel />
+        </TabsContent>
+
+        <TabsContent value="satisfaction" className="space-y-6">
+          <SatisfactionMetrics />
+        </TabsContent>
+
+        <TabsContent value="sentiment" className="space-y-6">
+          <SentimentTrendChart />
         </TabsContent>
       </Tabs>
     </div>

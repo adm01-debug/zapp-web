@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Globe, Users, MessageCircle, RotateCcw, Key } from 'lucide-react';
 import { toast } from 'sonner';
+import { LanguageSelector } from '@/components/settings/LanguageSelector';
 
 export function GlobalSettingsSection() {
   const { settings, isLoading, getSetting, updateSetting } = useGlobalSettings();
@@ -52,13 +53,18 @@ export function GlobalSettingsSection() {
   return (
     <Card className="border border-secondary/20 bg-card hover:border-secondary/30 transition-all">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Globe className="w-5 h-5 text-primary" />
-          Configurações Globais
-        </CardTitle>
-        <CardDescription>
-          Configurações que se aplicam a todo o sistema
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              Configurações Globais
+            </CardTitle>
+            <CardDescription>
+              Configurações que se aplicam a todo o sistema
+            </CardDescription>
+          </div>
+          <LanguageSelector />
+        </div>
       </CardHeader>
       <CardContent className="space-y-5">
         {booleanSettings.map(({ key, label, desc, icon: Icon }) => (
