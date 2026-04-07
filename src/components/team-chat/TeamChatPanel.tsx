@@ -155,13 +155,31 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
   const handleSend = () => {
     const trimmed = text.trim();
     if (!trimmed || sendMutation.isPending) return;
-    sendMutation.mutate({ conversationId: conversation.id, content: trimmed, replyToId: replyTo?.id });
+    sendMutation.mutate(
+      { conversationId: conversation.id, content: trimmed, replyToId: replyTo?.id },
+      {
+        onError: (err) => {
+          log.error('Failed to send message:', err);
+          toast.error('Falha ao enviar mensagem. Tente novamente.');
+          // Restore text so user doesn't lose their message
+          setText(trimmed);
+        },
+      }
+    );
     setText('');
     setReplyTo(null);
   };
 
   const handleSendMedia = (mediaUrl: string, mediaType: string, content?: string) => {
-    sendMutation.mutate({ conversationId: conversation.id, content: content || '', mediaUrl, mediaType, replyToId: replyTo?.id });
+    sendMutation.mutate(
+      { conversationId: conversation.id, content: content || '', mediaUrl, mediaType, replyToId: replyTo?.id },
+      {
+        onError: (err) => {
+          log.error('Failed to send media:', err);
+          toast.error('Falha ao enviar mídia. Tente novamente.');
+        },
+      }
+    );
     setReplyTo(null);
   };
 
@@ -184,7 +202,15 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
     }
   };
 
-  const handleDelete = (msgId: string) => deleteMutation.mutate({ messageId: msgId, conversationId: conversation.id });
+  const handleDelete = (msgId: string) => deleteMutation.mutate(
+    { messageId: msgId, conversationId: conversation.id },
+    {
+      onError: (err) => {
+        log.error('Failed to delete message:', err);
+        toast.error('Falha ao excluir mensagem.');
+      },
+    }
+  );
   const handleStartEdit = (msg: TeamMessage) => { setEditingId(msg.id); setEditText(msg.content); };
   const handleSaveEdit = () => {
     if (!editingId || !editText.trim()) return;
