@@ -142,9 +142,13 @@ export function StickerManager({ onSend, mode = 'manager' }: StickerManagerProps
 
         {/* Category Bar */}
         <StickerCategoryBar
-          selected={category}
-          onChange={setCategory}
           stickers={stickers}
+          activeCategory={category}
+          showFavorites={showFavorites}
+          showRecent={showRecent}
+          onCategoryChange={setCategory}
+          onToggleFavorites={() => setShowFavorites(!showFavorites)}
+          onToggleRecent={() => setShowRecent(!showRecent)}
         />
 
         {/* Upload Preview */}
