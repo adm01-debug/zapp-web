@@ -162,44 +162,38 @@ export function VoiceSearchOverlay({
         {/* Particles */}
         {!prefersReduced && <FloatingParticles phase={phase} />}
 
-        {/* ============ MAIN CARD with GLOWING BORDER ============ */}
+        {/* ============ MAIN CARD with GLOW BLOOM ============ */}
         <motion.div
           className="relative z-10 flex flex-col items-center gap-5 p-8 rounded-3xl max-w-[340px] w-full mx-4 overflow-visible"
-          style={{
-            background: 'transparent',
-          }}
+          style={{ background: 'transparent' }}
           initial={prefersReduced ? {} : { scale: 0.9, y: 20 }}
           animate={prefersReduced ? {} : { scale: 1, y: 0 }}
           transition={prefersReduced ? {} : { duration: 0.4, ease: 'easeOut' }}
         >
-          {/* ---- Animated glowing border — neon, vivid, always visible ---- */}
-          <div className="absolute -inset-[2px] rounded-3xl pointer-events-none overflow-hidden">
-            <motion.div
-              className="absolute -inset-[50%]"
-              style={{
-                background: `conic-gradient(from 0deg, ${colors.primary}, ${colors.secondary}, ${colors.accent}, ${colors.primary})`,
-              }}
-              animate={prefersReduced ? {} : { rotate: [0, 360] }}
-              transition={prefersReduced ? {} : { duration: 6, repeat: Infinity, ease: 'linear' }}
-            />
-          </div>
-          {/* Inner card fill */}
-          <div
-            className="absolute inset-[2px] rounded-[22px] pointer-events-none"
-            style={{ background: 'rgb(8, 8, 18)' }}
-          />
-
-          {/* ---- Outer glow bloom ---- */}
+          {/* ---- Outer glow bloom — light radiating from card edges ---- */}
           <motion.div
-            className="absolute -inset-3 rounded-[30px] pointer-events-none"
+            className="absolute -inset-6 rounded-[36px] pointer-events-none"
             style={{
-              filter: 'blur(18px)',
-              background: `radial-gradient(ellipse at center, ${colors.glow1}35, ${colors.glow2}20, transparent 70%)`,
+              filter: 'blur(28px)',
+              background: `radial-gradient(ellipse at center, ${colors.glow1}40, ${colors.glow2}25, transparent 70%)`,
             }}
             animate={prefersReduced ? {} : {
-              opacity: isActive ? [0.5, 0.8, 0.5] : [0.3, 0.5, 0.3],
+              opacity: isActive ? [0.5, 0.9, 0.5] : [0.3, 0.6, 0.3],
+              scale: isActive ? [1, 1.05, 1] : [1, 1.02, 1],
             }}
-            transition={prefersReduced ? {} : { duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            transition={prefersReduced ? {} : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          {/* ---- Tight edge glow — subtle halo right at the border ---- */}
+          <div
+            className="absolute -inset-[1px] rounded-3xl pointer-events-none"
+            style={{
+              boxShadow: `0 0 20px 4px ${colors.glow1}30, 0 0 60px 12px ${colors.glow2}18, inset 0 0 20px 2px ${colors.glow1}08`,
+            }}
+          />
+          {/* Inner card fill */}
+          <div
+            className="absolute inset-0 rounded-3xl pointer-events-none"
+            style={{ background: 'rgba(8, 8, 18, 0.92)' }}
           />
 
           {/* ---- Card Content (z-10 to be above border layers) ---- */}
