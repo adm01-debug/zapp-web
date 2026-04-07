@@ -335,6 +335,18 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         </Suspense>
 
         {showCatalogDirect && <ExternalProductCatalog onSendProduct={handleSendProduct} open={showCatalogDirect} onOpenChange={setShowCatalogDirect} />}
+
+        {showRealtimeTranscription && (
+          <Suspense fallback={null}>
+            <div className="px-3 mb-2">
+              <RealtimeTranscription
+                onTranscript={(text, isFinal) => { if (isFinal) setInputValue(prev => prev + ' ' + text); }}
+                onStatusChange={() => {}}
+                className="w-full"
+              />
+            </div>
+          </Suspense>
+        )}
       </div>
 
       {showAIAssistant && (
