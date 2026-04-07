@@ -68,16 +68,31 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
       case 'navigate':
         if (action.data?.route) {
           handleViewChange(action.data.route);
+          toast.success(`Navegando para ${action.data.route}`);
         }
         break;
       case 'search':
         if (action.data?.query) {
           handleViewChange('contacts');
+          toast.info(`Buscando: "${action.data.query}"`);
         }
         break;
-      case 'answer':
-      case 'clear':
       case 'filter':
+        if (action.data?.filters) {
+          handleViewChange('inbox');
+          toast.info('Filtros aplicados por comando de voz');
+        }
+        break;
+      case 'sort':
+        if (action.data?.sortBy) {
+          toast.info(`Ordenação alterada: ${action.data.sortBy}`);
+        }
+        break;
+      case 'clear':
+        toast.info('Filtros limpos');
+        break;
+      case 'answer':
+        // Verbal response already given via TTS
         break;
     }
   }, [handleViewChange]);
