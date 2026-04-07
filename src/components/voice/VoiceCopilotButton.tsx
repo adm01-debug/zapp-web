@@ -174,10 +174,37 @@ export function VoiceCopilotButton() {
   const isConnected = conversation.status === 'connected';
   const isSpeaking = conversation.isSpeaking;
 
+  const handleDragEnd = useCallback((_: any, info: PanInfo) => {
+    setIsDragging(false);
+    const newX = position.x + info.offset.x;
+    const newY = position.y + info.offset.y;
+    setPosition({ x: newX, y: newY });
+    savePosition(newX, newY);
+  }, [position]);
+
+  const handleClick = useCallback(() => {
+    if (isDragging) return;
+    if (isConnected) stopConversation();
+    else startConversation();
+  }, [isDragging, isConnected, stopConversation, startConversation]);
+
   return (
     <>
-      {/* Floating button */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      {/* Full-screen drag constraints */}
+      <div ref={constraintsRef} className="fixed inset-0 z-40 pointer-events-none" />
+
+      {/* Draggable floating container */}
+      <motion.div
+        drag
+        dragMomentum={false}
+        dragConstraints={constraintsRef}
+        dragElastic={0.1}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={handleDragEnd}
+        initial={position}
+        style={{ x: position.x, y: position.y }}
+        className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 touch-none"
+      >
         {/* Expanded panel */}
         <AnimatePresence>
           {isExpanded && (
@@ -186,6 +213,7 @@ export function VoiceCopilotButton() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.9 }}
               className="w-80 max-h-96 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+              onPointerDown={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="flex items-center justify-between p-3 border-b border-border bg-gradient-to-r from-primary/10 to-secondary/10">
@@ -282,38 +310,40 @@ export function VoiceCopilotButton() {
           )}
         </AnimatePresence>
 
-        {/* Main FAB */}
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button
-            onClick={isConnected ? stopConversation : startConversation}
-            disabled={isConnecting}
-            className={cn(
-              "h-14 w-14 rounded-full shadow-lg transition-all",
-              isConnected
-                ? "bg-destructive hover:bg-destructive/90"
-                : "bg-gradient-to-br from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
-            )}
-            size="icon"
-          >
-            {isConnecting ? (
-              <Loader2 className="w-6 h-6 text-primary-foreground animate-spin" />
-            ) : isConnected ? (
-              <MicOff className="w-6 h-6 text-primary-foreground" />
-            ) : (
-              <Mic className="w-6 h-6 text-primary-foreground" />
-            )}
-          </Button>
-        </motion.div>
+        {/* Main FAB - draggable */}
+        <div className="relative">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              onClick={handleClick}
+              disabled={isConnecting}
+              className={cn(
+                "h-14 w-14 rounded-full shadow-lg transition-all cursor-grab active:cursor-grabbing",
+                isConnected
+                  ? "bg-destructive hover:bg-destructive/90"
+                  : "bg-gradient-to-br from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+              )}
+              size="icon"
+            >
+              {isConnecting ? (
+                <Loader2 className="w-6 h-6 text-primary-foreground animate-spin" />
+              ) : isConnected ? (
+                <MicOff className="w-6 h-6 text-primary-foreground" />
+              ) : (
+                <Mic className="w-6 h-6 text-primary-foreground" />
+              )}
+            </Button>
+          </motion.div>
 
-        {/* Pulse ring */}
-        {isConnected && (
-          <motion.div
-            className="absolute bottom-0 right-0 w-14 h-14 rounded-full border-2 border-destructive/40 pointer-events-none"
-            animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        )}
-      </div>
+          {/* Pulse ring */}
+          {isConnected && (
+            <motion.div
+              className="absolute inset-0 w-14 h-14 rounded-full border-2 border-destructive/40 pointer-events-none"
+              animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          )}
+        </div>
+      </motion.div>
     </>
   );
 }
