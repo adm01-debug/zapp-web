@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { log } from '@/lib/logger';
+import { useNavigate } from 'react-router-dom';
 
 interface TranscriptEntry {
   role: 'user' | 'agent';
@@ -18,6 +19,7 @@ export function VoiceCopilotButton() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
+  const navigate = useNavigate();
 
   const conversation = useConversation({
     onConnect: () => {
@@ -29,14 +31,17 @@ export function VoiceCopilotButton() {
       setIsExpanded(false);
     },
     onMessage: (message: unknown) => {
-      const msg = message as Record<string, any>;
-      if (msg?.user_transcription_event?.user_transcript) {
-        const text = msg.user_transcription_event.user_transcript;
-        setTranscripts(prev => [...prev.slice(-9), { role: 'user', text, timestamp: new Date() }]);
+      if (typeof message !== 'object' || message === null) return;
+      const msg = message as Record<string, Record<string, unknown> | undefined>;
+      const userText = typeof msg.user_transcription_event?.user_transcript === 'string'
+        ? msg.user_transcription_event.user_transcript : null;
+      const agentText = typeof msg.agent_response_event?.agent_response === 'string'
+        ? msg.agent_response_event.agent_response : null;
+      if (userText) {
+        setTranscripts(prev => [...prev.slice(-9), { role: 'user', text: userText, timestamp: new Date() }]);
       }
-      if (msg?.agent_response_event?.agent_response) {
-        const text = msg.agent_response_event.agent_response;
-        setTranscripts(prev => [...prev.slice(-9), { role: 'agent', text, timestamp: new Date() }]);
+      if (agentText) {
+        setTranscripts(prev => [...prev.slice(-9), { role: 'agent', text: agentText, timestamp: new Date() }]);
       }
     },
     onError: (error) => {
@@ -81,7 +86,11 @@ export function VoiceCopilotButton() {
           'filas': '/#queues',
         };
         const route = routes[params.page.toLowerCase()] || `/#${params.page}`;
-        window.location.hash = route.replace('/#', '');
+        if (route.startsWith('/#')) {
+          window.location.hash = route.replace('/#', '');
+        } else {
+          navigate(route);
+        }
         return `Navegado para ${params.page}`;
       },
       listAgents: async () => {

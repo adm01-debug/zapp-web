@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import type { VoiceAgentPhase } from '@/hooks/voice/types';
 
 interface FloatingParticlesProps {
@@ -30,6 +30,10 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
   const particlesRef = useRef<Particle[]>([]);
   const animRef = useRef<number>(0);
   const dimsRef = useRef({ w: 0, h: 0 });
+  const prefersReduced = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    []
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -43,12 +47,29 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
       const h = canvas.offsetHeight;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
-      // Reset transform before applying new scale to prevent cumulative scaling
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       dimsRef.current = { w, h };
     };
     resize();
     window.addEventListener('resize', resize);
+
+    // Reduced motion: draw static dots once, no animation loop
+    if (prefersReduced) {
+      const config = PHASE_CONFIG[phase] || PHASE_CONFIG.idle;
+      const { w, h } = dimsRef.current;
+      ctx.clearRect(0, 0, w, h);
+      const count = Math.min(config.count, 15); // fewer for static view
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        const hue = config.hueRange[0] + Math.random() * (config.hueRange[1] - config.hueRange[0]);
+        ctx.beginPath();
+        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 80%, 70%, 0.4)`;
+        ctx.fill();
+      }
+      return () => window.removeEventListener('resize', resize);
+    }
 
     const config = PHASE_CONFIG[phase] || PHASE_CONFIG.idle;
     const { w, h } = dimsRef.current;
@@ -100,13 +121,16 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
       }
 
       // Constellation lines
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
+      // Limit constellation checks to avoid O(n²) on large counts
+      const maxCheck = Math.min(particles.length, 30);
+      for (let i = 0; i < maxCheck; i++) {
+        for (let j = i + 1; j < maxCheck; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            const lineAlpha = (1 - dist / 120) * 0.15;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 14400) { // 120²
+            const dist = Math.sqrt(distSq);
+            const lineAlpha = (1 - dist / 120) * 0.12;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);

@@ -63,7 +63,26 @@ export function VoiceSearchOverlay({
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => closeButtonRef.current?.focus(), 100);
-      return () => clearTimeout(timer);
+      
+      // Full focus trap: cycle Tab within overlay
+      const trapFocus = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+        const overlay = document.querySelector('[role="dialog"][aria-modal="true"]');
+        if (!overlay) return;
+        const focusable = overlay.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+        } else {
+          if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      };
+      window.addEventListener('keydown', trapFocus);
+      return () => { clearTimeout(timer); window.removeEventListener('keydown', trapFocus); };
     }
   }, [isOpen]);
 
@@ -78,19 +97,23 @@ export function VoiceSearchOverlay({
 
   // Auto-start listening
   const hasAutoStarted = useRef(false);
+  const startingRef = useRef(false);
   useEffect(() => {
-    if (isOpen && phase === 'idle' && !hasAutoStarted.current) {
+    if (isOpen && phase === 'idle' && !hasAutoStarted.current && !startingRef.current) {
       hasAutoStarted.current = true;
+      startingRef.current = true;
       setShowSuggestions(false);
-      const timer = setTimeout(() => onStartListening(), 80);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        onStartListening().finally(() => { startingRef.current = false; });
+      }, 80);
+      return () => { clearTimeout(timer); startingRef.current = false; };
     }
     if (isOpen && phase === 'idle' && hasAutoStarted.current) {
       const timer = setTimeout(() => setShowSuggestions(true), 600);
       return () => clearTimeout(timer);
     }
     if (phase !== 'idle') setShowSuggestions(false);
-    if (!isOpen) { hasAutoStarted.current = false; setShowSuggestions(false); }
+    if (!isOpen) { hasAutoStarted.current = false; startingRef.current = false; setShowSuggestions(false); }
   }, [isOpen, phase, onStartListening]);
 
   const handleOrbClick = useCallback(() => {
@@ -109,13 +132,12 @@ export function VoiceSearchOverlay({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const isActive = phase === 'listening' || phase === 'speaking' || phase === 'processing';
 
   return createPortal(
-    <AnimatePresence>
-      <motion.div
+    <AnimatePresence mode="wait">
+      {isOpen && <motion.div
+        key="voice-overlay"
         className="fixed inset-0 z-[9999] flex items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -368,7 +390,7 @@ export function VoiceSearchOverlay({
             </div>
           </div>
         </motion.div>
-      </motion.div>
+      </motion.div>}
     </AnimatePresence>,
     document.body
   );
