@@ -20,7 +20,7 @@ import { Package, Layers, MapPin, Clock, Zap, PenTool, Check } from 'lucide-reac
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
-type QuickReplyItem = { id: string; shortcut: string; content: string; category: string };
+type QuickReplyItem = { id: string; title: string; shortcut: string; content: string; category: string };
 
 interface SecondaryToolbarProps {
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
