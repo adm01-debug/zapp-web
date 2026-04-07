@@ -476,6 +476,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                     )}
                   </div>
                   </SwipeableMessage>
+                  </MessageContextMenu>
                 </StaggeredItem>
               );
             })}
