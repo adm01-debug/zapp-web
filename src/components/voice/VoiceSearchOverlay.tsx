@@ -63,7 +63,26 @@ export function VoiceSearchOverlay({
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => closeButtonRef.current?.focus(), 100);
-      return () => clearTimeout(timer);
+      
+      // Full focus trap: cycle Tab within overlay
+      const trapFocus = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+        const overlay = document.querySelector('[role="dialog"][aria-modal="true"]');
+        if (!overlay) return;
+        const focusable = overlay.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+        } else {
+          if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      };
+      window.addEventListener('keydown', trapFocus);
+      return () => { clearTimeout(timer); window.removeEventListener('keydown', trapFocus); };
     }
   }, [isOpen]);
 
