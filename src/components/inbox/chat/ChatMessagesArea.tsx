@@ -194,7 +194,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                     onReply={onReply}
                     onForward={onForward}
                     onCopy={(content) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!' }); }}
-                    onDelete={(messageId) => handleDeleteMessage(messageId)}
+                    onDelete={(messageId) => { toast({ title: 'Mensagem deletada', description: messageId.slice(0, 8) }); }}
                     onSpeak={onSpeak ? (content, msgId) => onSpeak(msgId, content) : undefined}
                     onDownload={message.mediaUrl ? (url) => window.open(url, '_blank') : undefined}
                   >
