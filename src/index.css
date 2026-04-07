@@ -292,7 +292,7 @@ html, body, #root {
     --shadow-glow-purple: 0 4px 14px hsl(258 75% 58% / 0.3);
     --shadow-header: 0 1px 3px hsl(230 25% 12% / 0.06);
 
-    /* ===== GLASS ===== */
+    /* ===== GLASS — Solid ===== */
     --glass-bg: 0 0% 100% / 1;
     --glass-border: 230 20% 88% / 1;
 
