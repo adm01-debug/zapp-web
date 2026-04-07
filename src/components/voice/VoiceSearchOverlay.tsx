@@ -153,7 +153,7 @@ export function VoiceSearchOverlay({
         <motion.div
           className="absolute inset-0 pointer-events-none"
           animate={{
-            background: `radial-gradient(ellipse 60% 50% at 50% 45%, ${colors.glow1}12 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 60% 50% at 50% 45%, ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.07)')} 0%, transparent 70%)`,
             opacity: isActive ? [0.3, 0.6, 0.3] : 0.15,
           }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
