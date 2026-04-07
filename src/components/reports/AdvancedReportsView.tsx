@@ -1,65 +1,31 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExportButton } from './ExportButton';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  AreaChart,
-  Area,
-} from 'recharts';
-import {
-  BarChart3,
-  TrendingUp,
-  Users,
-  MessageSquare,
-  Tag,
-  Calendar,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  GitCompare,
-} from 'lucide-react';
-import { format } from 'date-fns';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useReportsData } from './useReportsData';
+import {
+  ComparisonSummaryChart, PeriodAreaChart, DistributionPieChart,
+  DailyMessagesChart, AgentsChart, ContactsCharts,
+} from './ReportCharts';
+import {
+  BarChart3, TrendingUp, Users, MessageSquare, Tag, Calendar,
+  ArrowUpRight, ArrowDownRight, Clock, GitCompare,
+} from 'lucide-react';
+import { format } from 'date-fns';
 
 const PERIOD_OPTIONS = [
   { value: '7', label: 'Últimos 7 dias' },
   { value: '14', label: 'Últimos 14 dias' },
   { value: '30', label: 'Últimos 30 dias' },
   { value: '90', label: 'Últimos 90 dias' },
-];
-
-const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
 ];
 
 export function AdvancedReportsView() {
@@ -76,6 +42,13 @@ export function AdvancedReportsView() {
     to: new Date(dateRange.from.getTime() - 86400000),
   };
 
+  const summaryStats = [
+    { label: 'Total de Mensagens', value: stats.totalMessages, prevValue: stats.prevTotalMessages, icon: MessageSquare, trend: stats.messagesTrend },
+    { label: 'Mensagens Enviadas', value: stats.sentMessages, prevValue: stats.prevSentMessages, icon: TrendingUp, trend: stats.sentTrend },
+    { label: 'Novos Contatos', value: stats.totalContacts, prevValue: stats.prevTotalContacts, icon: Users, trend: stats.contactsTrend },
+    { label: 'Média por Dia', value: stats.avgMessagesPerDay, prevValue: stats.prevAvgMessagesPerDay, icon: Clock },
+  ];
+
   return (
     <div className="p-6 space-y-6 overflow-auto h-full">
       {/* Header */}
@@ -85,126 +58,52 @@ export function AdvancedReportsView() {
             <BarChart3 className="w-7 h-7 text-primary" />
             Relatórios Avançados
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Análise detalhada de atendimentos por período, agente e tags
-          </p>
+          <p className="text-muted-foreground mt-1">Análise detalhada de atendimentos por período, agente e tags</p>
         </div>
-
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Compare Toggle */}
           <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border">
             <GitCompare className="w-4 h-4 text-muted-foreground" />
-            <Label htmlFor="compare-mode" className="text-sm cursor-pointer">
-              Comparar períodos
-            </Label>
-            <Switch
-              id="compare-mode"
-              checked={compareEnabled}
-              onCheckedChange={setCompareEnabled}
-            />
+            <Label htmlFor="compare-mode" className="text-sm cursor-pointer">Comparar períodos</Label>
+            <Switch id="compare-mode" checked={compareEnabled} onCheckedChange={setCompareEnabled} />
           </div>
-
           <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-40">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-40"><Calendar className="w-4 h-4 mr-2" /><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PERIOD_OPTIONS.map(opt => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
+              {PERIOD_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
             </SelectContent>
           </Select>
-
           <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-            <SelectTrigger className="w-40">
-              <Users className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Agente" />
-            </SelectTrigger>
+            <SelectTrigger className="w-40"><Users className="w-4 h-4 mr-2" /><SelectValue placeholder="Agente" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os agentes</SelectItem>
-              {agents.map(agent => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
-                </SelectItem>
-              ))}
+              {agents.map(agent => <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>)}
             </SelectContent>
           </Select>
-
           <ExportButton getData={getExportData} disabled={isLoading} />
         </div>
       </div>
 
-      {/* Comparison Period Indicator */}
+      {/* Comparison Indicator */}
       {compareEnabled && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="bg-muted/30 border rounded-lg p-4"
-        >
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-muted/30 border rounded-lg p-4">
           <div className="flex items-center gap-3 text-sm">
             <GitCompare className="w-4 h-4 text-primary" />
             <span className="text-muted-foreground">Comparando:</span>
-            <Badge variant="outline" className="gap-1">
-              <span className="font-medium">Atual:</span>
-              {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}
-            </Badge>
+            <Badge variant="outline" className="gap-1"><span className="font-medium">Atual:</span> {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}</Badge>
             <span className="text-muted-foreground">vs</span>
-            <Badge variant="secondary" className="gap-1">
-              <span className="font-medium">Anterior:</span>
-              {format(previousDateRange.from, 'dd/MM/yyyy')} - {format(previousDateRange.to, 'dd/MM/yyyy')}
-            </Badge>
+            <Badge variant="secondary" className="gap-1"><span className="font-medium">Anterior:</span> {format(previousDateRange.from, 'dd/MM/yyyy')} - {format(previousDateRange.to, 'dd/MM/yyyy')}</Badge>
           </div>
         </motion.div>
       )}
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { 
-            label: 'Total de Mensagens', 
-            value: stats.totalMessages, 
-            prevValue: stats.prevTotalMessages,
-            icon: MessageSquare,
-            trend: stats.messagesTrend,
-          },
-          { 
-            label: 'Mensagens Enviadas', 
-            value: stats.sentMessages, 
-            prevValue: stats.prevSentMessages,
-            icon: TrendingUp,
-            trend: stats.sentTrend,
-          },
-          { 
-            label: 'Novos Contatos', 
-            value: stats.totalContacts, 
-            prevValue: stats.prevTotalContacts,
-            icon: Users,
-            trend: stats.contactsTrend,
-          },
-          { 
-            label: 'Média por Dia', 
-            value: stats.avgMessagesPerDay, 
-            prevValue: stats.prevAvgMessagesPerDay,
-            icon: Clock,
-          },
-        ].map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
+        {summaryStats.map((stat, index) => (
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
             <Card className="relative overflow-hidden">
               <CardContent className="p-6">
                 {isLoading ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-8 w-16" />
-                  </div>
+                  <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-8 w-16" /></div>
                 ) : (
                   <>
                     <div className="flex items-center justify-between">
@@ -212,27 +111,16 @@ export function AdvancedReportsView() {
                       <stat.icon className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="flex items-end gap-2 mt-2">
-                      <p className="text-3xl font-bold text-foreground">
-                        {stat.value.toLocaleString()}
-                      </p>
+                      <p className="text-3xl font-bold text-foreground">{stat.value.toLocaleString()}</p>
                       {stat.trend !== undefined && (
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            'text-xs',
-                            stat.trend >= 0 ? 'text-success border-success' : 'text-destructive border-destructive'
-                          )}
-                        >
+                        <Badge variant="outline" className={cn('text-xs', stat.trend >= 0 ? 'text-success border-success' : 'text-destructive border-destructive')}>
                           {stat.trend >= 0 ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
                           {Math.abs(stat.trend).toFixed(1)}%
                         </Badge>
                       )}
                     </div>
-                    {/* Comparison value */}
                     {compareEnabled && stat.prevValue !== undefined && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Período anterior: <span className="font-medium">{stat.prevValue.toLocaleString()}</span>
-                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">Período anterior: <span className="font-medium">{stat.prevValue.toLocaleString()}</span></p>
                     )}
                   </>
                 )}
@@ -246,483 +134,36 @@ export function AdvancedReportsView() {
       {/* Charts */}
       <Tabs defaultValue="messages" className="space-y-4">
         <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="messages" className="gap-2">
-            <MessageSquare className="w-4 h-4" />
-            Mensagens
-          </TabsTrigger>
-          <TabsTrigger value="agents" className="gap-2">
-            <Users className="w-4 h-4" />
-            Agentes
-          </TabsTrigger>
-          <TabsTrigger value="contacts" className="gap-2">
-            <Tag className="w-4 h-4" />
-            Contatos
-          </TabsTrigger>
+          <TabsTrigger value="messages" className="gap-2"><MessageSquare className="w-4 h-4" />Mensagens</TabsTrigger>
+          <TabsTrigger value="agents" className="gap-2"><Users className="w-4 h-4" />Agentes</TabsTrigger>
+          <TabsTrigger value="contacts" className="gap-2"><Tag className="w-4 h-4" />Contatos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="messages" className="space-y-4">
-          {/* Comparison Summary Bar Chart */}
-          {compareEnabled && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              <Card className="border-primary/20 bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <GitCompare className="w-4 h-4 text-primary" />
-                    Comparação de Métricas: Atual vs Anterior
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-[250px] w-full" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={comparisonSummary} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                        <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={120} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                          }}
-                        />
-                        <Legend />
-                        <Bar dataKey="atual" name="Período Atual" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="anterior" name="Período Anterior" fill="hsl(var(--muted-foreground))" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Side by Side Charts when comparison is enabled */}
           {compareEnabled ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Current Period Chart */}
-              <Card className="border-primary/30">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Período Atual</CardTitle>
-                    <Badge className="bg-primary/20 text-primary border-primary/30">
-                      {format(dateRange.from, 'dd/MM')} - {format(dateRange.to, 'dd/MM')}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-[250px] w-full" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <AreaChart data={chartData.daily}>
-                        <defs>
-                          <linearGradient id="colorEnviadasCurrent" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="total"
-                          stroke="hsl(var(--primary))"
-                          fill="url(#colorEnviadasCurrent)"
-                          strokeWidth={2}
-                          name="Total"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  )}
-                  <div className="mt-3 flex items-center justify-center gap-6 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-primary" />
-                      <span className="text-muted-foreground">Total:</span>
-                      <span className="font-bold">{stats.totalMessages}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Previous Period Chart */}
-              <Card className="border-muted-foreground/30">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Período Anterior</CardTitle>
-                    <Badge variant="secondary">
-                      {format(previousDateRange.from, 'dd/MM')} - {format(previousDateRange.to, 'dd/MM')}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-[250px] w-full" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <AreaChart data={previousChartData.daily}>
-                        <defs>
-                          <linearGradient id="colorEnviadasPrev" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="total"
-                          stroke="hsl(var(--muted-foreground))"
-                          fill="url(#colorEnviadasPrev)"
-                          strokeWidth={2}
-                          name="Total"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  )}
-                  <div className="mt-3 flex items-center justify-center gap-6 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-muted-foreground" />
-                      <span className="text-muted-foreground">Total:</span>
-                      <span className="font-bold">{stats.prevTotalMessages}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Current Distribution Pie */}
-              <Card className="border-primary/30">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Distribuição Atual</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-[200px] w-full" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={chartData.bySender}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={70}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {chartData.bySender.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                          }}
-                        />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Previous Distribution Pie */}
-              <Card className="border-muted-foreground/30">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Distribuição Anterior</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-[200px] w-full" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={previousChartData.bySender}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={70}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {previousChartData.bySender.map((_, index) => (
-                            <Cell key={`cell-prev-${index}`} fill={index === 0 ? 'hsl(var(--chart-4))' : 'hsl(var(--chart-5))'} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                          }}
-                        />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <>
+              <ComparisonSummaryChart data={comparisonSummary} isLoading={isLoading} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <PeriodAreaChart data={chartData.daily} label="Período Atual" dateLabel={`${format(dateRange.from, 'dd/MM')} - ${format(dateRange.to, 'dd/MM')}`}
+                  gradientId="colorEnviadasCurrent" color="hsl(var(--primary))" total={stats.totalMessages} isLoading={isLoading} variant="primary" />
+                <PeriodAreaChart data={previousChartData.daily} label="Período Anterior" dateLabel={`${format(previousDateRange.from, 'dd/MM')} - ${format(previousDateRange.to, 'dd/MM')}`}
+                  gradientId="colorEnviadasPrev" color="hsl(var(--muted-foreground))" total={stats.prevTotalMessages} isLoading={isLoading} variant="secondary" />
+                <DistributionPieChart data={chartData.bySender} label="Distribuição Atual" isLoading={isLoading} variant="primary" />
+                <DistributionPieChart data={previousChartData.bySender} label="Distribuição Anterior" isLoading={isLoading}
+                  colors={['hsl(var(--chart-4))', 'hsl(var(--chart-5))']} variant="secondary" />
+              </div>
+            </>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Daily Messages Chart */}
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-base">Mensagens por Dia</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-[300px] w-full" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <AreaChart data={chartData.daily}>
-                        <defs>
-                          <linearGradient id="colorEnviadas" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                          </linearGradient>
-                          <linearGradient id="colorRecebidas" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="enviadas"
-                          stroke="hsl(var(--primary))"
-                          fill="url(#colorEnviadas)"
-                          strokeWidth={2}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="recebidas"
-                          stroke="hsl(var(--chart-2))"
-                          fill="url(#colorRecebidas)"
-                          strokeWidth={2}
-                        />
-                        <Legend />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Messages Distribution Pie */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Distribuição</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <Skeleton className="h-[300px] w-full" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={chartData.bySender}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {chartData.bySender.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                          }}
-                        />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <DailyMessagesChart data={chartData} isLoading={isLoading} />
           )}
         </TabsContent>
 
         <TabsContent value="agents" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Mensagens por Agente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-[400px] w-full" />
-              ) : chartData.byAgent.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={chartData.byAgent} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={120} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Bar dataKey="mensagens" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                  Nenhum dado disponível para o período selecionado
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <AgentsChart data={chartData.byAgent} isLoading={isLoading} />
         </TabsContent>
 
         <TabsContent value="contacts" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* New Contacts Over Time */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Novos Contatos por Dia</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={contactsChartData.daily}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                        }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="novos" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--primary))' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Contacts by Type */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Contatos por Tipo</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : contactsChartData.byType.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={contactsChartData.byType}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {contactsChartData.byType.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    Nenhum dado disponível
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Contacts by Tag */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Contatos por Tag</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : contactsChartData.byTag.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={contactsChartData.byTag}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                        }}
-                      />
-                      <Bar dataKey="contatos" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    Nenhum dado de tags disponível
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          <ContactsCharts data={contactsChartData} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </div>
