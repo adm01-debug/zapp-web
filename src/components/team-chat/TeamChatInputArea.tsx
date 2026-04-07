@@ -296,10 +296,13 @@ export function TeamChatInputArea({
               aria-describedby={charCount > 0 ? "team-char-counter" : undefined}
             />
             {charCount > 100 && (
-              <span className={cn(
-                "absolute bottom-1 right-2 text-[10px] select-none pointer-events-none",
-                isOverLimit ? "text-destructive font-medium" : isNearLimit ? "text-warning" : "text-muted-foreground/50"
-              )}>
+              <span
+                id="team-char-counter"
+                className={cn(
+                  "absolute bottom-1 right-2 text-[10px] select-none pointer-events-none",
+                  isOverLimit ? "text-destructive font-medium" : isNearLimit ? "text-warning" : "text-muted-foreground/50"
+                )}
+              >
                 {charCount}/{CHAR_LIMIT}
               </span>
             )}
