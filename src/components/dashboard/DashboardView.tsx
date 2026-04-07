@@ -23,6 +23,7 @@ import {
   Award,
   Heart,
   Smile,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
