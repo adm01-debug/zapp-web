@@ -292,6 +292,8 @@ export function TeamChatInputArea({
                 isMobile ? "px-3 py-2.5 text-[16px] min-h-[42px] max-h-[200px]" : "px-3 py-2 min-h-[40px] max-h-[200px]",
                 isOverLimit && "border-destructive/50 focus:border-destructive focus:ring-destructive/20"
               )}
+              aria-label="Digite sua mensagem"
+              aria-describedby={charCount > 0 ? "team-char-counter" : undefined}
             />
             {charCount > 100 && (
               <span className={cn(
