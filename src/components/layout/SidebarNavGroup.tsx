@@ -56,7 +56,7 @@ export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, on
   );
 
   return (
-    <div className="flex flex-col w-full border-t border-border/20 first:border-t-0 pt-1.5 mt-0.5 first:mt-0 first:pt-0">
+    <div className="flex flex-col w-full border-t border-border/40 first:border-t-0 pt-1.5 mt-0.5 first:mt-0 first:pt-0">
       {collapsed ? (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>{triggerButton}</TooltipTrigger>

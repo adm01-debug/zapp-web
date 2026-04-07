@@ -155,7 +155,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       {/* ─── Favorites Section ─── */}
       {favoriteItems.length > 0 && (
         <>
-          <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
+          <div className={cn('mx-3 h-px bg-border', collapsed ? 'my-1' : 'my-1.5')} />
           {!collapsed && (
             <div className="px-3 flex items-center gap-1.5">
               <Star className="w-[10px] h-[10px] text-warning fill-warning" />
@@ -180,7 +180,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       )}
 
       {/* ─── Section Divider ─── */}
-      <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
+      <div className={cn('mx-3 h-px bg-border', collapsed ? 'my-1' : 'my-1.5')} />
 
       {/* ─── Collapsible Groups ─── */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scroll-smooth [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/40 hover:[&::-webkit-scrollbar-thumb]:bg-border/70">
@@ -203,7 +203,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
 
       {/* ─── Bottom Controls ─── */}
       <div className="flex flex-col items-center gap-1.5 pt-1.5 pb-3 shrink-0">
-        <div className="mx-3 h-px bg-border/40 self-stretch" />
+        <div className="mx-3 h-px bg-border self-stretch" />
 
         {!collapsed && (
           <div className="px-3 self-stretch flex items-center gap-1.5 pb-0.5">
@@ -212,7 +212,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
         )}
 
         <div className={cn(
-          'flex items-center gap-1 rounded-xl border border-border/50 bg-muted/25 px-1.5 py-1.5 shadow-sm',
+          'flex items-center gap-1 rounded-xl border border-border bg-muted/50 px-1.5 py-1.5 shadow-sm',
           collapsed ? 'flex-col' : 'flex-row self-stretch mx-2'
         )}>
           <ScreenProtectionToggle className="w-[36px] h-[36px]" />
