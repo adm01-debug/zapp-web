@@ -1,36 +1,42 @@
 
-# Plano: Consumo de IA por Usuário
+# Copiloto de Voz IA
 
-## 1. Tabela `ai_usage_logs`
-Criar tabela para registrar cada chamada de IA:
-- `user_id` — quem fez a chamada
-- `function_name` — qual edge function (ai-suggest-reply, ai-enhance-message, etc.)
-- `model` — modelo usado (gemini-flash, gpt-5, etc.)
-- `input_tokens` / `output_tokens` — tokens consumidos
-- `duration_ms` — tempo de resposta
-- `status` — sucesso ou erro
-- `created_at` — quando ocorreu
+## Arquitetura
+O copiloto usa **ElevenLabs Conversational AI** (já integrado) para voz bidirecional + **Lovable AI Gateway** para inteligência/raciocínio sobre dados do sistema.
 
-## 2. Atualizar Edge Functions de IA
-Adicionar logging de consumo nas 8 funções que usam LLM:
-- `ai-suggest-reply`
-- `ai-enhance-message`
-- `ai-conversation-analysis`
-- `ai-conversation-summary`
-- `ai-auto-tag`
-- `ai-transcribe-audio`
-- `sentiment-alert`
-- `chatbot-l1`
+## Componentes
 
-Cada chamada registrará tokens, modelo e duração automaticamente.
+### 1. Edge Function: `voice-copilot`
+- Recebe comandos transcritos do agente ElevenLabs via client tools
+- Consulta dados do sistema (contatos, conversas, métricas, filas)
+- Executa ações (atribuir conversa, criar nota, buscar contato, transferir fila)
+- Usa Lovable AI para interpretar intenções e formular respostas
 
-## 3. Dashboard Admin de Consumo
-Criar painel em Configurações > Admin com:
-- **Resumo geral** — total de chamadas, tokens e custo estimado
-- **Ranking por usuário** — quem mais consome
-- **Gráfico temporal** — uso ao longo do tempo
-- **Filtros** — por período, função e usuário
-- **Exportação** — CSV dos dados
+### 2. Edge Function: `elevenlabs-agent-token`
+- Gera token de conversa para o agente ElevenLabs
+- Requer um Agent ID configurado no painel ElevenLabs
 
-## Resultado
-O admin terá visibilidade total sobre o consumo de IA de cada agente do sistema.
+### 3. Componente: `VoiceCopilotButton`
+- Botão flutuante acessível de qualquer tela
+- Animação de onda quando ativo
+- Indicadores de status (ouvindo, processando, falando)
+- Mostra transcrição em tempo real
+
+### 4. Client Tools (executados no navegador)
+- `searchContacts` - Busca contatos por nome/telefone
+- `getConversationSummary` - Resume uma conversa
+- `assignConversation` - Atribui conversa a agente
+- `navigateTo` - Navega entre seções do sistema
+- `getMetrics` - Retorna métricas do dashboard
+- `createNote` - Cria nota em contato
+
+## Requisito
+- O usuário precisa criar um **ElevenLabs Agent** no painel da ElevenLabs e fornecer o **Agent ID**
+- As client tools precisam ser configuradas no painel do agente ElevenLabs
+
+## Fluxo
+1. Usuário clica no botão do copiloto
+2. Solicita permissão de microfone
+3. Conecta ao agente ElevenLabs via WebRTC
+4. Usuário fala → agente transcreve → processa via tools → responde por voz
+5. Ações são executadas no sistema em tempo real

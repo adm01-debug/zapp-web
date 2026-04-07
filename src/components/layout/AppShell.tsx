@@ -1,4 +1,4 @@
-import { Suspense, useCallback, forwardRef } from 'react';
+import { Suspense, useCallback, forwardRef, lazy } from 'react';
 import { Target } from 'lucide-react';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useZenMode } from '@/hooks/useZenMode';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+const VoiceCopilotButton = lazy(() => import('@/components/voice/VoiceCopilotButton').then(m => ({ default: m.VoiceCopilotButton })));
 
 interface AppShellProps {
   currentView: string;
@@ -162,6 +163,13 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
               />
         </Suspense>
       </main>
+
+      {/* Voice Copilot - floating button */}
+      {!isMobile && (
+        <Suspense fallback={null}>
+          <VoiceCopilotButton />
+        </Suspense>
+      )}
 
       {/* Accessible live region for screen reader announcements */}
       <div
