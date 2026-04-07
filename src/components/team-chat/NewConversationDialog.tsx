@@ -62,15 +62,22 @@ export function NewConversationDialog({ open, onOpenChange, onCreated }: Props) 
 
   const handleCreate = async () => {
     if (selectedIds.length === 0) return;
-    const result = await createMutation.mutateAsync({
-      type: tab,
-      name: tab === 'group' ? groupName || undefined : undefined,
-      memberIds: selectedIds,
-    });
-    setSelectedIds([]);
-    setGroupName('');
-    setSearch('');
-    onCreated(result.id);
+    if (tab === 'group' && selectedIds.length < 2) {
+      return; // Groups need at least 2 other members
+    }
+    try {
+      const result = await createMutation.mutateAsync({
+        type: tab,
+        name: tab === 'group' ? groupName.trim() || undefined : undefined,
+        memberIds: selectedIds,
+      });
+      setSelectedIds([]);
+      setGroupName('');
+      setSearch('');
+      onCreated(result.id);
+    } catch {
+      // Error handled by mutation's onError
+    }
   };
 
   return (
@@ -93,9 +100,12 @@ export function NewConversationDialog({ open, onOpenChange, onCreated }: Props) 
           <div className="mt-3 space-y-3">
             {tab === 'group' && (
               <Input
-                placeholder="Nome do grupo"
+                placeholder="Nome do grupo (ex: Marketing, Suporte...)"
                 value={groupName}
                 onChange={e => setGroupName(e.target.value)}
+                maxLength={60}
+                aria-label="Nome do grupo"
+                autoFocus
               />
             )}
 
@@ -106,10 +116,11 @@ export function NewConversationDialog({ open, onOpenChange, onCreated }: Props) 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="pl-8"
+                aria-label="Buscar colegas"
               />
             </div>
 
-            <div className="max-h-60 overflow-auto space-y-0.5 border rounded-lg p-1">
+            <div className="max-h-60 overflow-auto space-y-0.5 border rounded-lg p-1" role="listbox" aria-label="Lista de colegas">
               {isLoading ? (
                 <div className="text-center py-4 text-muted-foreground text-sm">Carregando...</div>
               ) : filtered.length === 0 ? (
@@ -153,14 +164,17 @@ export function NewConversationDialog({ open, onOpenChange, onCreated }: Props) 
 
         <Button
           onClick={handleCreate}
-          disabled={selectedIds.length === 0 || createMutation.isPending}
-          className="w-full mt-2"
+          disabled={selectedIds.length === 0 || createMutation.isPending || (tab === 'group' && selectedIds.length < 2)}
+          className="w-full mt-2 rounded-xl"
         >
           {createMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
           ) : null}
-          {tab === 'direct' ? 'Iniciar Conversa' : `Criar Grupo (${selectedIds.length})`}
+          {tab === 'direct' ? 'Iniciar Conversa' : `Criar Grupo (${selectedIds.length} membro${selectedIds.length !== 1 ? 's' : ''})`}
         </Button>
+        {tab === 'group' && selectedIds.length > 0 && selectedIds.length < 2 && (
+          <p className="text-xs text-muted-foreground text-center mt-1">Selecione pelo menos 2 membros para criar um grupo</p>
+        )}
       </DialogContent>
     </Dialog>
   );
