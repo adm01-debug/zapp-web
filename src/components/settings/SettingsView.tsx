@@ -104,6 +104,10 @@ export function SettingsView() {
               <TabsTrigger value="followup" className="gap-2 whitespace-nowrap"><ArrowRight className="w-4 h-4" />Follow-up</TabsTrigger>
               <TabsTrigger value="media" className="gap-2 whitespace-nowrap"><Package className="w-4 h-4" />Mídia</TabsTrigger>
               <TabsTrigger value="nps" className="gap-2 whitespace-nowrap"><TrendingUp className="w-4 h-4" />NPS</TabsTrigger>
+              <TabsTrigger value="ai-tags" className="gap-2 whitespace-nowrap"><Tags className="w-4 h-4" />Tags IA</TabsTrigger>
+              <TabsTrigger value="csat" className="gap-2 whitespace-nowrap"><MessageSquareHeart className="w-4 h-4" />CSAT</TabsTrigger>
+              <TabsTrigger value="chatbot-l1" className="gap-2 whitespace-nowrap"><Bot className="w-4 h-4" />Chatbot L1</TabsTrigger>
+              <TabsTrigger value="routing" className="gap-2 whitespace-nowrap"><Users className="w-4 h-4" />Roteamento</TabsTrigger>
             </TabsList>
           </div>
           {/* Fade edges — left and right */}
