@@ -36,6 +36,9 @@ export function VoiceCopilotButton() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState<{ x: number; y: number }>(() => loadSavedPosition() || { x: 0, y: 0 });
+  const constraintsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const conversation = useConversation({
