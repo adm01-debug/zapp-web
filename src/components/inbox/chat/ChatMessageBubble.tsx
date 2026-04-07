@@ -12,6 +12,7 @@ import { AudioMessagePlayer } from '../AudioMessagePlayer';
 import { InteractiveMessageDisplay, ButtonResponseBadge } from '../InteractiveMessage';
 import { QuotedMessage } from '../ReplyQuote';
 import { TextToSpeechButton } from '../TextToSpeechButton';
+import { TextWithLinks } from '../LinkPreview';
 
 // Lazy-load mapbox-heavy LocationMessage component
 const LocationMessageDisplay = lazy(() => import('../LocationMessage').then(m => ({ default: m.LocationMessageDisplay })));
