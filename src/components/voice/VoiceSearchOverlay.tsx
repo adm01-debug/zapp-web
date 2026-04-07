@@ -166,38 +166,42 @@ export function VoiceSearchOverlay({
           animate={prefersReduced ? {} : { scale: 1, y: 0 }}
           transition={prefersReduced ? {} : { duration: 0.4, ease: 'easeOut' }}
         >
-          {/* ---- Animated glowing border — thick, vivid, breathing ---- */}
+          {/* ---- Animated glowing border — neon, vivid, always visible ---- */}
           <motion.div
-            className="absolute -inset-[1.5px] rounded-3xl pointer-events-none"
+            className="absolute -inset-[2px] rounded-3xl pointer-events-none"
             style={{
-              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary}90, ${colors.accent}, ${colors.primary}90)`,
-              backgroundSize: '400% 400%',
+              background: `conic-gradient(from 0deg, ${colors.primary}, ${colors.secondary}, ${colors.accent}, ${colors.primary})`,
             }}
             animate={prefersReduced ? {} : {
-              backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-              opacity: [0.6, 1, 0.6],
+              rotate: [0, 360],
+              opacity: [0.7, 1, 0.7],
             }}
             transition={prefersReduced ? {} : {
-              duration: 5,
-              repeat: Infinity,
-              ease: 'easeInOut',
+              rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
+              opacity: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
             }}
           />
           {/* Inner card fill — solid dark to mask the border gradient */}
           <div
-            className="absolute inset-[1.5px] rounded-[22px] pointer-events-none"
-            style={{ background: 'rgba(10, 10, 20, 0.95)' }}
+            className="absolute inset-[2px] rounded-[22px] pointer-events-none"
+            style={{ background: 'rgb(8, 8, 18)' }}
           />
 
           {/* ---- Outer glow bloom ---- */}
           <motion.div
-            className="absolute -inset-6 rounded-[36px] pointer-events-none"
-            style={{ filter: 'blur(24px)' }}
-            animate={{
-              background: `radial-gradient(ellipse at center, ${colors.glow1}30, ${colors.glow2}15, transparent 70%)`,
-              opacity: isActive ? [0.4, 0.7, 0.4] : [0.2, 0.35, 0.2],
+            className="absolute -inset-3 rounded-[30px] pointer-events-none"
+            style={{
+              filter: 'blur(16px)',
+              background: `conic-gradient(from 0deg, ${colors.glow1}40, ${colors.glow2}25, ${colors.glow1}40)`,
             }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            animate={prefersReduced ? {} : {
+              rotate: [0, 360],
+              opacity: isActive ? [0.5, 0.8, 0.5] : [0.3, 0.5, 0.3],
+            }}
+            transition={prefersReduced ? {} : {
+              rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
+              opacity: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+            }}
           />
 
           {/* ---- Card Content (z-10 to be above border layers) ---- */}
