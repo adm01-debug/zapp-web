@@ -21,12 +21,14 @@ import { ThemeInitializer } from "@/components/ThemeInitializer";
 // Deferred non-critical providers loaded after first paint
 const RealtimeSentimentAlertProvider = lazy(() => import("@/components/notifications/RealtimeSentimentAlertProvider").then(m => ({ default: m.RealtimeSentimentAlertProvider })));
 const IncomingCallAlert = lazy(() => import("@/components/calls/IncomingCallAlert").then(m => ({ default: m.IncomingCallAlert })));
+const EasterEggsProvider = lazy(() => import("@/components/effects/EasterEggs").then(m => ({ default: m.EasterEggsProvider })));
 
-function DeferredProviders() {
+function DeferredProviders({ children }: { children?: React.ReactNode }) {
   return (
     <Suspense fallback={null}>
       <RealtimeSentimentAlertProvider />
       <IncomingCallAlert />
+      <EasterEggsProvider>{children ?? null}</EasterEggsProvider>
     </Suspense>
   );
 }
