@@ -134,14 +134,14 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
             <button
               onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
               className={cn(
-                'rounded-lg flex items-center gap-2 text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/40 hover:border-border',
+                'rounded-lg flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/60 hover:border-border',
                 collapsed ? 'w-[40px] h-[30px] justify-center' : 'w-full h-[32px] px-3'
               )}
               aria-label="Buscar módulo (Ctrl+K)"
             >
               <Search className="w-[14px] h-[14px] shrink-0" />
-              {!collapsed && <span className="text-xs text-muted-foreground/60">Buscar...</span>}
-              {!collapsed && <kbd className="ml-auto px-1 py-0.5 rounded bg-muted text-[9px] font-mono text-muted-foreground/50">⌘K</kbd>}
+              {!collapsed && <span className="text-xs text-muted-foreground">Buscar...</span>}
+              {!collapsed && <kbd className="ml-auto px-1 py-0.5 rounded bg-muted text-[9px] font-mono text-muted-foreground">⌘K</kbd>}
             </button>
           </TooltipTrigger>
           {collapsed && (
@@ -155,11 +155,11 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       {/* ─── Favorites Section ─── */}
       {favoriteItems.length > 0 && (
         <>
-          <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
+          <div className={cn('mx-3 h-px bg-border', collapsed ? 'my-1' : 'my-1.5')} />
           {!collapsed && (
             <div className="px-3 flex items-center gap-1.5">
               <Star className="w-[10px] h-[10px] text-warning fill-warning" />
-              <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">Favoritos</span>
+              <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Favoritos</span>
             </div>
           )}
           <nav className={cn('flex flex-col gap-0.5', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Favoritos">
@@ -180,10 +180,10 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
       )}
 
       {/* ─── Section Divider ─── */}
-      <div className={cn('mx-3 h-px bg-border/40', collapsed ? 'my-1' : 'my-1.5')} />
+      <div className={cn('mx-3 h-px bg-border', collapsed ? 'my-1' : 'my-1.5')} />
 
       {/* ─── Collapsible Groups ─── */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scroll-smooth [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/40 hover:[&::-webkit-scrollbar-thumb]:bg-border/70">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scroll-smooth [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-primary/50">
         <div className={cn('flex flex-col gap-1.5 py-1', collapsed ? 'items-center px-[11px]' : 'px-2')}>
           {sidebarGroups.map((group) => (
             <SidebarNavGroup
@@ -203,16 +203,16 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
 
       {/* ─── Bottom Controls ─── */}
       <div className="flex flex-col items-center gap-1.5 pt-1.5 pb-3 shrink-0">
-        <div className="mx-3 h-px bg-border/40 self-stretch" />
+        <div className="mx-3 h-px bg-border self-stretch" />
 
         {!collapsed && (
           <div className="px-3 self-stretch flex items-center gap-1.5 pb-0.5">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">Controles rápidos</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Controles rápidos</span>
           </div>
         )}
 
         <div className={cn(
-          'flex items-center gap-1 rounded-xl border border-border/50 bg-muted/25 px-1.5 py-1.5 shadow-sm',
+          'flex items-center gap-1 rounded-xl border border-border bg-muted/50 px-1.5 py-1.5 shadow-sm',
           collapsed ? 'flex-col' : 'flex-row self-stretch mx-2'
         )}>
           <ScreenProtectionToggle className="w-[36px] h-[36px]" />

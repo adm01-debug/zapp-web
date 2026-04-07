@@ -50,7 +50,7 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
         collapsed ? 'w-[38px] h-[38px] justify-center' : 'w-full h-[36px] px-3 rounded-xl',
         isActive
           ? 'text-secondary-foreground'
-          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.97]'
+          : 'text-sidebar-foreground/80 hover:bg-muted/60 hover:text-foreground active:scale-[0.97]'
       )}
     >
       {isActive && (
@@ -80,7 +80,7 @@ export const SidebarNavItem = React.memo(function SidebarNavItem({ item, current
           onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.id); }}
           className={cn(
             'relative z-20 ml-auto w-5 h-5 rounded flex items-center justify-center transition-all opacity-0 group-hover/item:opacity-100',
-            isFavorite ? 'opacity-100 text-warning' : 'text-muted-foreground/30 hover:text-warning'
+            isFavorite ? 'opacity-100 text-warning' : 'text-muted-foreground hover:text-warning'
           )}
           aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
         >

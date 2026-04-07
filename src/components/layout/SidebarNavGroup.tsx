@@ -33,7 +33,7 @@ export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, on
         collapsed ? 'w-full h-[30px] justify-center gap-0.5' : 'w-full h-[30px] px-2.5 gap-2',
         hasActiveItem
           ? 'text-primary'
-          : 'text-muted-foreground/40 hover:text-muted-foreground/70'
+          : 'text-muted-foreground hover:text-foreground'
       )}
       aria-expanded={isOpen}
       aria-label={`${label} — ${isOpen ? 'recolher' : 'expandir'}`}
@@ -49,14 +49,14 @@ export function SidebarNavGroup({ label, icon: GroupIcon, items, currentView, on
       )}
       <ChevronRight className={cn(
         'transition-transform duration-250 ease-out shrink-0',
-        collapsed ? 'w-[8px] h-[8px]' : 'w-[11px] h-[11px] ml-auto opacity-40 group-hover/trigger:opacity-70',
+        collapsed ? 'w-[8px] h-[8px]' : 'w-[11px] h-[11px] ml-auto opacity-60 group-hover/trigger:opacity-100',
         isOpen && 'rotate-90'
       )} />
     </button>
   );
 
   return (
-    <div className="flex flex-col w-full border-t border-border/20 first:border-t-0 pt-1.5 mt-0.5 first:mt-0 first:pt-0">
+    <div className="flex flex-col w-full border-t border-border/40 first:border-t-0 pt-1.5 mt-0.5 first:mt-0 first:pt-0">
       {collapsed ? (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>{triggerButton}</TooltipTrigger>
