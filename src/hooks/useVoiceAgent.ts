@@ -21,39 +21,68 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
   const [agentResponse, setAgentResponse] = useState('');
   const [error, setError] = useState('');
 
-  // Stabilize callbacks via refs to avoid dependency churn
   const onActionRef = useRef(options?.onAction);
   const onErrorRef = useRef(options?.onError);
   const ttsRef = useRef<TtsPlayback | null>(null);
   const phaseRef = useRef<VoiceAgentPhase>('idle');
   const bootTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const autoRestartRef = useRef<ReturnType<typeof setTimeout>>();
+  const errorResetRef = useRef<ReturnType<typeof setTimeout>>();
+  const mountedRef = useRef(true);
+  const processingAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     onActionRef.current = options?.onAction;
     onErrorRef.current = options?.onError;
   }, [options?.onAction, options?.onError]);
 
-  // Keep phaseRef in sync
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
 
+  // Track mount status for async safety
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-  // Process committed transcript — extracted to stable ref to avoid stale closures
+  // Safe state setter — only updates if still mounted
+  const safeSetPhase = useCallback((p: VoiceAgentPhase) => {
+    if (mountedRef.current) setPhase(p);
+  }, []);
+
+  const clearAllTimers = useCallback(() => {
+    clearTimeout(bootTimeoutRef.current);
+    clearTimeout(autoRestartRef.current);
+    clearTimeout(errorResetRef.current);
+  }, []);
+
   const handleTranscript = useCallback(async (text: string) => {
+    // Abort any in-flight processing
+    processingAbortRef.current?.abort();
+    const abortCtrl = new AbortController();
+    processingAbortRef.current = abortCtrl;
+
     const startTime = Date.now();
-    setPhase('processing');
-    setAgentResponse('');
+    safeSetPhase('processing');
+    if (mountedRef.current) setAgentResponse('');
 
     try {
-      const result = await withRetry(() => processVoiceTranscript(text, supabaseUrl, supabaseKey));
-      setAgentResponse(result.response);
+      const result = await withRetry(() => {
+        if (abortCtrl.signal.aborted) throw new Error('Aborted');
+        return processVoiceTranscript(text, supabaseUrl, supabaseKey);
+      });
 
-      // Play TTS
-      setPhase('speaking');
+      if (abortCtrl.signal.aborted || !mountedRef.current) return;
+
+      setAgentResponse(result.response);
+      safeSetPhase('speaking');
+
       try {
         const tts = playTtsAudio(result.response, supabaseUrl, supabaseKey);
         ttsRef.current = tts;
@@ -62,7 +91,8 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
         log.warn('TTS playback failed, continuing silently', ttsErr);
       }
 
-      // Log telemetry (fire-and-forget)
+      if (!mountedRef.current) return;
+
       logVoiceCommand({
         transcript: text,
         action: result.action,
@@ -72,21 +102,21 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
         success: true,
       });
 
-      // Trigger action callback
       onActionRef.current?.(result);
 
-      // Return to listening after speaking
-      setPhase('idle');
+      safeSetPhase('idle');
       autoRestartRef.current = setTimeout(() => {
-        if (scribe.isConnected) {
-          setPhase('listening');
+        if (mountedRef.current && scribe.isConnected) {
+          safeSetPhase('listening');
         }
       }, AUTO_RESTART_DELAY_MS);
     } catch (err) {
+      if (abortCtrl.signal.aborted || !mountedRef.current) return;
+
       const msg = friendlyErrorMessage(err);
       log.error('Voice processing error:', err);
       setError(msg);
-      setPhase('error');
+      safeSetPhase('error');
       onErrorRef.current?.(msg);
 
       logVoiceCommand({
@@ -97,33 +127,36 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
         success: false,
       });
 
-      setTimeout(() => {
+      errorResetRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
         setError('');
-        setPhase(scribe.isConnected ? 'listening' : 'idle');
+        safeSetPhase(scribe.isConnected ? 'listening' : 'idle');
       }, ERROR_RESET_DELAY_MS);
     }
-  }, [supabaseUrl, supabaseKey]);
+  }, [supabaseUrl, supabaseKey, safeSetPhase]);
 
   const scribe = useScribe({
     modelId: 'scribe_v2_realtime',
     commitStrategy: CommitStrategy.VAD,
     onPartialTranscript: (data) => {
-      setPartialTranscript(data.text);
+      if (mountedRef.current) setPartialTranscript(data.text);
     },
     onCommittedTranscript: (data) => {
       if (data.text.trim()) {
-        setFinalTranscript(data.text);
-        setPartialTranscript('');
+        if (mountedRef.current) {
+          setFinalTranscript(data.text);
+          setPartialTranscript('');
+        }
         handleTranscript(data.text);
       }
     },
   });
 
   const startListening = useCallback(async () => {
-    // Use ref to avoid stale closure on phase
-    if (phaseRef.current === 'booting') return;
+    if (phaseRef.current === 'booting' || phaseRef.current === 'processing') return;
 
-    setPhase('booting');
+    clearAllTimers();
+    safeSetPhase('booting');
     setPartialTranscript('');
     setFinalTranscript('');
     setAgentResponse('');
@@ -135,14 +168,17 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
         throw new Error(tokenError?.message || 'Failed to get STT token');
       }
 
-      // Set timeout for connection
+      if (!mountedRef.current) return;
+
       bootTimeoutRef.current = setTimeout(() => {
-        if (phaseRef.current === 'booting') {
+        if (phaseRef.current === 'booting' && mountedRef.current) {
           setError('Conexão com microfone demorou demais.');
-          setPhase('error');
-          setTimeout(() => {
-            setError('');
-            setPhase('idle');
+          safeSetPhase('error');
+          errorResetRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              setError('');
+              safeSetPhase('idle');
+            }
           }, ERROR_RESET_DELAY_MS);
         }
       }, SESSION_START_TIMEOUT_MS);
@@ -157,57 +193,62 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
       });
 
       clearTimeout(bootTimeoutRef.current);
-      setPhase('listening');
+      if (!mountedRef.current) return;
+      safeSetPhase('listening');
 
-      // Haptic feedback on mobile
       if (navigator.vibrate) navigator.vibrate(50);
     } catch (err) {
       clearTimeout(bootTimeoutRef.current);
+      if (!mountedRef.current) return;
       const msg = friendlyErrorMessage(err);
       setError(msg);
-      setPhase('error');
+      safeSetPhase('error');
       onErrorRef.current?.(msg);
 
-      setTimeout(() => {
-        setError('');
-        setPhase('idle');
+      errorResetRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setError('');
+          safeSetPhase('idle');
+        }
       }, ERROR_RESET_DELAY_MS);
     }
-  }, [scribe]);
+  }, [scribe, clearAllTimers, safeSetPhase]);
 
   const stopListening = useCallback(() => {
     scribe.disconnect();
-    setPhase('idle');
+    safeSetPhase('idle');
     setPartialTranscript('');
     clearTimeout(autoRestartRef.current);
-  }, [scribe]);
+  }, [scribe, safeSetPhase]);
 
   const stopSpeaking = useCallback(() => {
     ttsRef.current?.stop();
     ttsRef.current = null;
-    setPhase(scribe.isConnected ? 'listening' : 'idle');
-  }, [scribe]);
+    safeSetPhase(scribe.isConnected ? 'listening' : 'idle');
+  }, [scribe, safeSetPhase]);
 
   const reset = useCallback(() => {
+    processingAbortRef.current?.abort();
     scribe.disconnect();
     ttsRef.current?.stop();
     ttsRef.current = null;
-    clearTimeout(bootTimeoutRef.current);
-    clearTimeout(autoRestartRef.current);
-    setPhase('idle');
+    clearAllTimers();
+    safeSetPhase('idle');
     setPartialTranscript('');
     setFinalTranscript('');
     setAgentResponse('');
     setError('');
-  }, [scribe]);
+  }, [scribe, clearAllTimers, safeSetPhase]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      processingAbortRef.current?.abort();
       scribe.disconnect();
       ttsRef.current?.stop();
       clearTimeout(bootTimeoutRef.current);
       clearTimeout(autoRestartRef.current);
+      clearTimeout(errorResetRef.current);
     };
   }, [scribe]);
 
