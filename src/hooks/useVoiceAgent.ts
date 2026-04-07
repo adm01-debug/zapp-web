@@ -21,10 +21,11 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
   const [agentResponse, setAgentResponse] = useState('');
   const [error, setError] = useState('');
 
+  // Stabilize callbacks via refs to avoid dependency churn
   const onActionRef = useRef(options?.onAction);
   const onErrorRef = useRef(options?.onError);
   const ttsRef = useRef<TtsPlayback | null>(null);
-  const processTranscriptRef = useRef<((text: string) => Promise<void>) | null>(null);
+  const phaseRef = useRef<VoiceAgentPhase>('idle');
   const bootTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const autoRestartRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -33,26 +34,16 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
     onErrorRef.current = options?.onError;
   }, [options?.onAction, options?.onError]);
 
+  // Keep phaseRef in sync
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
+
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-  const scribe = useScribe({
-    modelId: 'scribe_v2_realtime',
-    commitStrategy: CommitStrategy.VAD,
-    onPartialTranscript: (data) => {
-      setPartialTranscript(data.text);
-    },
-    onCommittedTranscript: (data) => {
-      if (data.text.trim()) {
-        setFinalTranscript(data.text);
-        setPartialTranscript('');
-        processTranscriptRef.current?.(data.text);
-      }
-    },
-  });
-
-  // Process committed transcript
-  processTranscriptRef.current = async (text: string) => {
+  // Process committed transcript — extracted to stable ref to avoid stale closures
+  const handleTranscript = useCallback(async (text: string) => {
     const startTime = Date.now();
     setPhase('processing');
     setAgentResponse('');
@@ -71,7 +62,7 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
         log.warn('TTS playback failed, continuing silently', ttsErr);
       }
 
-      // Log telemetry
+      // Log telemetry (fire-and-forget)
       logVoiceCommand({
         transcript: text,
         action: result.action,
@@ -84,7 +75,7 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
       // Trigger action callback
       onActionRef.current?.(result);
 
-      // Return to idle and auto-restart
+      // Return to listening after speaking
       setPhase('idle');
       autoRestartRef.current = setTimeout(() => {
         if (scribe.isConnected) {
@@ -111,9 +102,27 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
         setPhase(scribe.isConnected ? 'listening' : 'idle');
       }, ERROR_RESET_DELAY_MS);
     }
-  };
+  }, [supabaseUrl, supabaseKey]);
+
+  const scribe = useScribe({
+    modelId: 'scribe_v2_realtime',
+    commitStrategy: CommitStrategy.VAD,
+    onPartialTranscript: (data) => {
+      setPartialTranscript(data.text);
+    },
+    onCommittedTranscript: (data) => {
+      if (data.text.trim()) {
+        setFinalTranscript(data.text);
+        setPartialTranscript('');
+        handleTranscript(data.text);
+      }
+    },
+  });
 
   const startListening = useCallback(async () => {
+    // Use ref to avoid stale closure on phase
+    if (phaseRef.current === 'booting') return;
+
     setPhase('booting');
     setPartialTranscript('');
     setFinalTranscript('');
@@ -128,7 +137,7 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
 
       // Set timeout for connection
       bootTimeoutRef.current = setTimeout(() => {
-        if (phase === 'booting') {
+        if (phaseRef.current === 'booting') {
           setError('Conexão com microfone demorou demais.');
           setPhase('error');
           setTimeout(() => {
@@ -164,7 +173,7 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
         setPhase('idle');
       }, ERROR_RESET_DELAY_MS);
     }
-  }, [scribe, phase]);
+  }, [scribe]);
 
   const stopListening = useCallback(() => {
     scribe.disconnect();

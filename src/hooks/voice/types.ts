@@ -10,6 +10,8 @@ export interface VoiceAgentAction {
       assigned?: boolean;
       unread?: boolean;
       contactType?: string;
+      category?: string;
+      status?: string;
     };
   };
 }
