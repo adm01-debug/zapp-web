@@ -426,3 +426,26 @@ export function useCreateTeamConversation() {
     },
   });
 }
+
+export function useToggleMuteConversation() {
+  const { profile } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ conversationId, muted }: { conversationId: string; muted: boolean }) => {
+      if (!profile) throw new Error('Not authenticated');
+      const { error } = await supabase
+        .from('team_conversation_members')
+        .update({ is_muted: muted })
+        .eq('conversation_id', conversationId)
+        .eq('profile_id', profile.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team-conversations'] });
+    },
+    onError: () => {
+      toast({ title: 'Erro ao alterar silenciar', variant: 'destructive' });
+    },
+  });
+}
