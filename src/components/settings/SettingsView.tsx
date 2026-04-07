@@ -169,6 +169,22 @@ export function SettingsView() {
         <TabsContent value="nps">
           <NPSDashboard />
         </TabsContent>
+
+        <TabsContent value="ai-tags">
+          <AIAutoTagsConfig />
+        </TabsContent>
+
+        <TabsContent value="csat">
+          <CSATAutoConfig />
+        </TabsContent>
+
+        <TabsContent value="chatbot-l1">
+          <ChatbotL1Config />
+        </TabsContent>
+
+        <TabsContent value="routing">
+          <SkillBasedRoutingSettings />
+        </TabsContent>
       </Tabs>
       )}
     </PageTemplate>
