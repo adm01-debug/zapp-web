@@ -1,48 +1,27 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
-import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
-import { StickerPicker } from '../StickerPicker';
-import { AudioMemePicker } from '../AudioMemePicker';
-import { CustomEmojiPicker } from '../CustomEmojiPicker';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RichTextToolbar, RichTextToggle } from './RichTextToolbar';
+import { RichTextToolbar } from './RichTextToolbar';
 import { AIRewriteButton } from './AIRewriteButton';
-import { TextToAudioButton } from '../TextToAudioButton';
 import { MentionAutocomplete, useMentions } from './MentionAutocomplete';
 import { MarkdownPreview } from './MarkdownPreview';
 import { ReplyPreview } from '../ReplyQuote';
 import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
-import { FileUploader, FileUploaderRef } from '../FileUploader';
-import { AISuggestions } from '../AISuggestions';
-import { MessageTemplates } from '../MessageTemplates';
-import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
+import { FileUploaderRef } from '../FileUploader';
 import { ExternalProduct } from '@/hooks/useExternalCatalog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SecondaryToolbar, TertiaryToolsMenu } from './ChatInputToolbars';
+import { StickerPicker } from '../StickerPicker';
+import { CustomEmojiPicker } from '../CustomEmojiPicker';
+import { RichTextToggle } from './RichTextToolbar';
+import { FileUploader } from '../FileUploader';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Send,
-  Mic,
-  Clock,
-  MapPin,
-  Package,
-  Layers,
-  Paperclip,
-  Pencil,
-  X,
-  Check,
-  Plus,
-  Zap,
-  Loader2,
-  PenTool,
+  Send, Mic, Pencil, X, Check, Plus, Loader2,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
