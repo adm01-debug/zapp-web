@@ -99,6 +99,11 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
   const sendMutation = useSendTeamMessage();
   const deleteMutation = useDeleteTeamMessage();
   const editMutation = useEditTeamMessage();
+  const muteMutation = useToggleMuteConversation();
+
+  // Determine if current user has muted this conversation
+  const currentMember = conversation.members?.find(m => m.profile_id === profile?.id);
+  const isMuted = currentMember?.is_muted ?? false;
   const [text, setText] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
