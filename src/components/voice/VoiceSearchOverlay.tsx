@@ -1,6 +1,6 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, AlertTriangle, Loader2, MessageCircle } from 'lucide-react';
 import type { VoiceAgentPhase } from '@/hooks/voice/types';
 import { VoiceOrb } from './VoiceOrb';
@@ -31,14 +31,14 @@ const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string }> =
 };
 
 const SUGGESTION_COMMANDS = [
-  '💬 "Abrir a inbox"',
-  '📊 "Mostrar o dashboard"',
-  '🔍 "Buscar contato João"',
-  '👥 "Ir para equipe"',
-  '📈 "Alertas de sentimento"',
-  '🤖 "Abrir chatbot builder"',
-  '📞 "Central de chamadas"',
-  '🏷️ "Gerenciar tags"',
+  { icon: '💬', text: 'Abrir a inbox' },
+  { icon: '📊', text: 'Mostrar o dashboard' },
+  { icon: '🔍', text: 'Buscar contato João' },
+  { icon: '👥', text: 'Ir para equipe' },
+  { icon: '📈', text: 'Alertas de sentimento' },
+  { icon: '🤖', text: 'Abrir chatbot builder' },
+  { icon: '📞', text: 'Central de chamadas' },
+  { icon: '🏷️', text: 'Gerenciar tags' },
 ];
 
 export function VoiceSearchOverlay({
@@ -55,26 +55,48 @@ export function VoiceSearchOverlay({
 }: VoiceSearchOverlayProps) {
   const colors = usePhaseColors(phase);
   const meta = PHASE_META[phase];
+  const prefersReduced = useReducedMotion();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // ESC to close
+  // Focus trap: focus close button when overlay opens
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => closeButtonRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // ESC to close, Space on orb
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
     };
     if (isOpen) window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
-  // Auto-start listening when overlay opens (skip showing idle suggestions)
+  // Auto-start listening when overlay opens
   const hasAutoStarted = useRef(false);
   useEffect(() => {
     if (isOpen && phase === 'idle' && !hasAutoStarted.current) {
       hasAutoStarted.current = true;
+      setShowSuggestions(false);
       const timer = setTimeout(() => onStartListening(), 80);
       return () => clearTimeout(timer);
     }
+    // Show suggestions only after returning to idle (not initial boot)
+    if (isOpen && phase === 'idle' && hasAutoStarted.current) {
+      const timer = setTimeout(() => setShowSuggestions(true), 600);
+      return () => clearTimeout(timer);
+    }
+    if (phase !== 'idle') setShowSuggestions(false);
     if (!isOpen) {
       hasAutoStarted.current = false;
+      setShowSuggestions(false);
     }
   }, [isOpen, phase, onStartListening]);
 
@@ -82,35 +104,48 @@ export function VoiceSearchOverlay({
     if (phase === 'idle') onStartListening();
     else if (phase === 'listening') onStopListening();
     else if (phase === 'speaking') onStopSpeaking();
-    // Haptic feedback
     if (navigator.vibrate) navigator.vibrate(30);
   }, [phase, onStartListening, onStopListening, onStopSpeaking]);
 
+  // Prevent body scroll while open
+  useEffect(() => {
+    if (isOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const motionProps = prefersReduced
+    ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.1 } }
+    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.3 } };
+
+  const cardMotion = prefersReduced
+    ? {}
+    : { initial: { scale: 0.9, y: 20 }, animate: { scale: 1, y: 0 }, transition: { duration: 0.4, ease: 'easeOut' as const } };
 
   return createPortal(
     <AnimatePresence>
       <motion.div
         className="fixed inset-0 z-[9999] flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        {...motionProps}
         role="dialog"
         aria-modal="true"
         aria-label="Assistente de voz"
       >
-        {/* Backdrop with breathing effect */}
+        {/* Backdrop */}
         <motion.div
           className="absolute inset-0"
           style={{ backgroundColor: 'rgba(8, 8, 18, 0.95)', backdropFilter: 'blur(24px)' }}
-          animate={{ opacity: [0.92, 0.97, 0.92] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          animate={prefersReduced ? {} : { opacity: [0.92, 0.97, 0.92] }}
+          transition={prefersReduced ? {} : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           onClick={onClose}
         />
 
-        {/* Particles */}
-        <FloatingParticles phase={phase} />
+        {/* Particles — skip if reduced motion */}
+        {!prefersReduced && <FloatingParticles phase={phase} />}
 
         {/* Main card */}
         <motion.div
@@ -118,22 +153,17 @@ export function VoiceSearchOverlay({
           style={{
             background: 'rgba(15, 15, 25, 0.8)',
             backdropFilter: 'blur(40px)',
-          }}
-          initial={{ scale: 0.9, y: 20 }}
-          animate={{
-            scale: 1,
-            y: 0,
             border: `1px solid ${colors.primary}30`,
-            boxShadow: `0 0 40px ${colors.glow1}20, 0 0 80px ${colors.glow2}10`,
+            boxShadow: prefersReduced ? 'none' : `0 0 40px ${colors.glow1}20, 0 0 80px ${colors.glow2}10`,
           }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          {...cardMotion}
         >
           {/* Title */}
           <div className="text-center">
             <motion.h2
               className="text-lg font-bold text-white/90"
               key={meta.title}
-              initial={{ opacity: 0, y: -5 }}
+              initial={{ opacity: 0, y: prefersReduced ? 0 : -5 }}
               animate={{ opacity: 1, y: 0 }}
             >
               {meta.title}
@@ -170,7 +200,6 @@ export function VoiceSearchOverlay({
           {/* Transcript area */}
           <div className="w-full min-h-[60px] space-y-2" aria-live="polite" aria-atomic="true">
             <AnimatePresence mode="wait">
-              {/* Partial transcript */}
               {partialTranscript && (
                 <motion.div
                   key="partial"
@@ -183,11 +212,10 @@ export function VoiceSearchOverlay({
                 </motion.div>
               )}
 
-              {/* Final transcript */}
               {finalTranscript && !partialTranscript && (
                 <motion.div
                   key="final"
-                  initial={{ opacity: 0, y: 5 }}
+                  initial={{ opacity: 0, y: prefersReduced ? 0 : 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="text-center text-sm text-white/80 font-medium"
                 >
@@ -195,11 +223,10 @@ export function VoiceSearchOverlay({
                 </motion.div>
               )}
 
-              {/* Agent response */}
               {agentResponse && (
                 <motion.div
                   key="response"
-                  initial={{ opacity: 0, y: 5 }}
+                  initial={{ opacity: 0, y: prefersReduced ? 0 : 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="text-center text-sm font-medium px-3 py-2 rounded-xl"
                   style={{
@@ -213,7 +240,6 @@ export function VoiceSearchOverlay({
                 </motion.div>
               )}
 
-              {/* Processing indicator */}
               {phase === 'processing' && !agentResponse && (
                 <motion.div
                   key="processing"
@@ -226,7 +252,6 @@ export function VoiceSearchOverlay({
                 </motion.div>
               )}
 
-              {/* Booting indicator */}
               {phase === 'booting' && (
                 <motion.div
                   key="booting"
@@ -239,7 +264,6 @@ export function VoiceSearchOverlay({
                 </motion.div>
               )}
 
-              {/* Error */}
               {error && (
                 <motion.div
                   key="error"
@@ -255,28 +279,30 @@ export function VoiceSearchOverlay({
             </AnimatePresence>
           </div>
 
-          {/* Suggestions (idle, not booting) */}
+          {/* Suggestions — only after returning to idle, not during boot */}
           <AnimatePresence>
-            {phase === 'idle' && !agentResponse && (
+            {showSuggestions && phase === 'idle' && !agentResponse && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: prefersReduced ? 0 : 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: prefersReduced ? 0 : -8 }}
+                transition={{ duration: 0.3 }}
                 className="w-full space-y-1"
               >
                 <p className="text-[10px] text-white/25 text-center uppercase tracking-wider mb-2">
-                  Sugestões
+                  Sugestões de comandos
                 </p>
                 <div className="grid grid-cols-2 gap-1.5">
                   {SUGGESTION_COMMANDS.map((cmd, i) => (
                     <motion.div
-                      key={cmd}
-                      initial={{ opacity: 0, y: 5 }}
+                      key={cmd.text}
+                      initial={{ opacity: 0, y: prefersReduced ? 0 : 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      className="text-[10px] text-white/30 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-center hover:bg-white/[0.06] hover:text-white/40 transition-colors cursor-default"
+                      transition={{ delay: prefersReduced ? 0 : i * 0.04 }}
+                      className="text-[10px] text-white/30 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-center hover:bg-white/[0.06] hover:text-white/40 transition-colors cursor-default select-none"
                     >
-                      {cmd}
+                      <span className="mr-1">{cmd.icon}</span>
+                      <span>"{cmd.text}"</span>
                     </motion.div>
                   ))}
                 </div>
@@ -291,8 +317,9 @@ export function VoiceSearchOverlay({
               {' '}para fechar
             </span>
             <button
+              ref={closeButtonRef}
               onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white/30"
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent"
               aria-label="Fechar assistente de voz"
             >
               <X className="w-4 h-4 text-white/40" />

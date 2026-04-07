@@ -11,9 +11,23 @@ export function playTtsAudio(
   const controller = new AbortController();
   let audioElement: HTMLAudioElement | null = null;
   let objectUrl: string | null = null;
+  let stopped = false;
+
+  const cleanup = () => {
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.removeAttribute('src');
+      audioElement.load(); // Release browser media resources
+      audioElement = null;
+    }
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+      objectUrl = null;
+    }
+  };
 
   const promise = (async () => {
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 12000);
 
     try {
       const response = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
@@ -30,31 +44,38 @@ export function playTtsAudio(
       clearTimeout(timeout);
 
       if (!response.ok) {
+        // Consume body to prevent leaks
+        await response.text().catch(() => '');
         throw new Error(`TTS error: ${response.status}`);
       }
 
+      if (stopped) return;
+
       const blob = await response.blob();
+      if (stopped) return;
+
       objectUrl = URL.createObjectURL(blob);
       audioElement = new Audio(objectUrl);
 
       await new Promise<void>((resolve, reject) => {
-        if (!audioElement) return reject(new Error('No audio element'));
+        if (!audioElement || stopped) return resolve();
         audioElement.onended = () => resolve();
         audioElement.onerror = () => reject(new Error('Audio playback error'));
         audioElement.play().catch(reject);
       });
+    } catch (err) {
+      if (stopped || controller.signal.aborted) return; // Silently resolve on intentional stop
+      throw err;
     } finally {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      clearTimeout(timeout);
+      cleanup();
     }
   })();
 
   const stop = () => {
+    stopped = true;
     controller.abort();
-    if (audioElement) {
-      audioElement.pause();
-      audioElement.currentTime = 0;
-    }
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    cleanup();
   };
 
   return { promise, stop };

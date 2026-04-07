@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { VoiceAgentPhase } from '@/hooks/voice/types';
 import { usePhaseColors } from './usePhaseColors';
 
@@ -9,16 +9,40 @@ interface SpectrumWaveformProps {
 
 export function SpectrumWaveform({ phase }: SpectrumWaveformProps) {
   const colors = usePhaseColors(phase);
+  const prefersReduced = useReducedMotion();
   const isActive = phase === 'listening' || phase === 'speaking' || phase === 'processing';
   const barCount = 15;
 
-  // Pre-compute random factors once so they don't jitter on re-render
   const barFactors = useMemo(
     () => Array.from({ length: barCount }, () => 0.5 + Math.random() * 0.5),
-    // Recalculate only when phase changes to get a fresh pattern per phase
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [phase]
   );
+
+  // For reduced motion, show static bars at different heights
+  if (prefersReduced) {
+    return (
+      <div className="flex items-center justify-center gap-[3px] h-8">
+        {Array.from({ length: barCount }).map((_, i) => {
+          const distFromCenter = Math.abs(i - (barCount - 1) / 2);
+          const height = isActive ? Math.max(4, 20 - distFromCenter * 2.5) : 4;
+          const colorIndex = i % 3;
+          const color = colorIndex === 0 ? colors.primary : colorIndex === 1 ? colors.secondary : colors.accent;
+          return (
+            <div
+              key={i}
+              className="rounded-full transition-all duration-500"
+              style={{
+                width: 3,
+                height,
+                background: `linear-gradient(to top, ${color}, ${color}80)`,
+              }}
+            />
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center gap-[3px] h-8">
