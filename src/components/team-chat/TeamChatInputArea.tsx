@@ -132,18 +132,40 @@ export function TeamChatInputArea({
     } catch { /* private mode */ }
   }, [conversationId]);
 
-  // Paste images
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+  // Paste images from clipboard
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
-    if (!items) return;
+    if (!items || !profile || pasteUploading) return;
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.startsWith('image/')) {
-        // TODO: handle paste image upload
         e.preventDefault();
+        const file = items[i].getAsFile();
+        if (!file) return;
+
+        setPasteUploading(true);
+        try {
+          const ext = file.type.split('/')[1] || 'png';
+          const path = `${profile.id}/${conversationId}/${Date.now()}_paste.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from('team-chat-files')
+            .upload(path, file, { contentType: file.type });
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from('team-chat-files')
+            .getPublicUrl(path);
+
+          onFileSent(urlData.publicUrl, 'image', `📋 Imagem colada`);
+        } catch (err) {
+          log.error('Paste image upload error:', err);
+          toast.error('Erro ao enviar imagem colada');
+        } finally {
+          setPasteUploading(false);
+        }
         return;
       }
     }
-  }, []);
+  }, [profile, conversationId, pasteUploading, onFileSent, log]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
