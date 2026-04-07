@@ -280,6 +280,7 @@ export function ChatHeader({
       </div>
 
       <div className="flex items-center gap-1">
+        <RealtimeCollaboration contactId={conversation.contact.id} className="mr-1" />
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
