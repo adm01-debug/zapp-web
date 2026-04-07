@@ -81,6 +81,9 @@ export function TeamChatInputArea({
 }: TeamChatInputAreaProps) {
   const { profile } = useAuth();
   const log = useMemo(() => getLogger('TeamChatInputArea'), []);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [showRichToolbar, setShowRichToolbar] = useState(false);
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [pasteUploading, setPasteUploading] = useState(false);
   const [sendAnimation, setSendAnimation] = useState(false);
   const isMobile = useIsMobile();
