@@ -125,7 +125,11 @@ export function VoiceCopilotButton() {
       const { data, error } = await supabase.functions.invoke('elevenlabs-agent-token');
 
       if (error || !data?.token) {
-        throw new Error(error?.message || 'Não foi possível obter token do agente');
+        const errMsg = error?.message || '';
+        const isAuthError = errMsg.includes('401') || errMsg.toLowerCase().includes('invalid') || errMsg.toLowerCase().includes('api key');
+        throw new Error(isAuthError 
+          ? 'Chave da ElevenLabs inválida. Atualize em Settings → Connectors.' 
+          : 'Não foi possível obter token do agente');
       }
 
       await conversation.startSession({
