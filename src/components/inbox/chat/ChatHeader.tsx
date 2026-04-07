@@ -11,6 +11,7 @@ import { VoiceSelector } from '../VoiceSelector';
 import { SpeedSelector } from '../SpeedSelector';
 import { KeyboardShortcutsHelp } from '../KeyboardShortcutsHelp';
 import { QueuePositionNotifier } from '../QueuePositionNotifier';
+import { RealtimeCollaboration } from '../RealtimeCollaboration';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { useContactIntelligence } from '@/hooks/useContactIntelligence';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
