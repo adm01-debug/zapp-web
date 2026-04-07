@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { log } from '@/lib/logger';
+import { useNavigate } from 'react-router-dom';
 
 interface TranscriptEntry {
   role: 'user' | 'agent';
@@ -18,6 +19,7 @@ export function VoiceCopilotButton() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
+  const navigate = useNavigate();
 
   const conversation = useConversation({
     onConnect: () => {
@@ -71,17 +73,17 @@ export function VoiceCopilotButton() {
       navigateTo: (params: { page: string }) => {
         const routes: Record<string, string> = {
           'inbox': '/#inbox',
-          'dashboard': '/#dashboard',
-          'contatos': '/#contacts',
-          'campanhas': '/#campaigns',
-          'equipe': '/#team',
-          'configurações': '/#settings',
+          'dashboard': '/dashboard',
+          'contatos': '/contacts',
+          'campanhas': '/campaigns',
+          'equipe': '/team',
+          'configurações': '/settings',
           'sentimento': '/sentiment-alerts',
-          'chatbot': '/#chatbot-builder',
-          'filas': '/#queues',
+          'chatbot': '/chatbot-builder',
+          'filas': '/queues',
         };
-        const route = routes[params.page.toLowerCase()] || `/#${params.page}`;
-        window.location.hash = route.replace('/#', '');
+        const route = routes[params.page.toLowerCase()] || `/${params.page}`;
+        navigate(route.startsWith('/') ? route : `/${route}`);
         return `Navegado para ${params.page}`;
       },
       listAgents: async () => {
