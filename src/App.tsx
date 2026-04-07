@@ -29,7 +29,9 @@ function DeferredProviders({ children }: { children?: React.ReactNode }) {
     <Suspense fallback={null}>
       <RealtimeSentimentAlertProvider />
       <IncomingCallAlert />
-      <EasterEggsProvider>{children ?? null}</EasterEggsProvider>
+      <InAppNotificationProvider>
+        <EasterEggsProvider>{children ?? null}</EasterEggsProvider>
+      </InAppNotificationProvider>
     </Suspense>
   );
 }
