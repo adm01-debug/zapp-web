@@ -379,6 +379,8 @@ export function ChatHeader({
           onSpeedChange={onSpeedChange}
         />
 
+        <KeyboardShortcutsHelp />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
