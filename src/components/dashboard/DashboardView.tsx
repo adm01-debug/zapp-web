@@ -537,6 +537,18 @@ export function DashboardView() {
             <Clock className="w-4 h-4" />
             Métricas SLA
           </TabsTrigger>
+          <TabsTrigger value="team" className="flex items-center gap-2">
+            <Award className="w-4 h-4" />
+            Equipe
+          </TabsTrigger>
+          <TabsTrigger value="satisfaction" className="flex items-center gap-2">
+            <Heart className="w-4 h-4" />
+            Satisfação
+          </TabsTrigger>
+          <TabsTrigger value="sentiment" className="flex items-center gap-2">
+            <Smile className="w-4 h-4" />
+            Sentimento
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
