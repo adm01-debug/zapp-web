@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('TeamChatPanel');
-import { TeamConversation, useTeamMessages, useSendTeamMessage, useDeleteTeamMessage, useEditTeamMessage, TeamMessage } from '@/hooks/useTeamChat';
+import { TeamConversation, useTeamMessages, useSendTeamMessage, useDeleteTeamMessage, useEditTeamMessage, useToggleMuteConversation, TeamMessage } from '@/hooks/useTeamChat';
 import { useAuth } from '@/hooks/useAuth';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useUserSettings } from '@/hooks/useUserSettings';
