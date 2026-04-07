@@ -16,10 +16,21 @@ export function logVoiceCommand(params: VoiceCommandLogParams) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // voice_command_logs is not in the generated types yet, use unknown cast
-      await (supabase as unknown as { from: (table: string) => { insert: (row: Record<string, unknown>) => Promise<unknown> } })
-        .from('voice_command_logs')
-        .insert({
+      // voice_command_logs may not be in generated types yet — use rpc or raw fetch
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/voice_command_logs`;
+      const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || key;
+
+      await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: key,
+          Authorization: `Bearer ${token}`,
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
           user_id: user.id,
           transcript: params.transcript,
           action: params.action,
@@ -27,7 +38,8 @@ export function logVoiceCommand(params: VoiceCommandLogParams) {
           data: params.data || {},
           duration_ms: params.durationMs,
           success: params.success ?? true,
-        });
+        }),
+      });
     } catch {
       // Silently fail — analytics should never break UX
     }
