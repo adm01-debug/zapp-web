@@ -35,7 +35,7 @@ export function SpectrumWaveform({ phase }: SpectrumWaveformProps) {
               style={{
                 width: 3,
                 height,
-                background: `linear-gradient(to top, ${color}, ${color}80)`,
+                background: `linear-gradient(to top, ${color}, ${color.replace('hsl(', 'hsla(').replace(')', ', 0.5)')})`,
               }}
             />
           );
@@ -58,7 +58,7 @@ export function SpectrumWaveform({ phase }: SpectrumWaveformProps) {
             className="rounded-full"
             style={{
               width: 3,
-              background: `linear-gradient(to top, ${color}, ${color}80)`,
+              background: `linear-gradient(to top, ${color}, ${color.replace('hsl(', 'hsla(').replace(')', ', 0.5)')})`,
             }}
             animate={{
               height: isActive
