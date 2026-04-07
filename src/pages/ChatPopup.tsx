@@ -4,28 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMessages } from '@/hooks/useMessages';
 import type { Database } from '@/integrations/supabase/types';
 import { Conversation, Message } from '@/types/chat';
+import { log } from '@/lib/logger';
 
 type ContactRow = Database['public']['Tables']['contacts']['Row'];
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
   Minus,
   Maximize2,
   Minimize2,
   X,
-  Phone,
-  Search,
-  MoreVertical,
   MessageSquare,
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -136,6 +126,35 @@ export default function ChatPopup() {
     [contactId]
   );
 
+  const handleSendAudio = useCallback(
+    async (blob: Blob) => {
+      if (!contactId) return;
+      try {
+        const fileName = `audio_${contactId}_${Date.now()}.webm`;
+        const { error: uploadError } = await supabase.storage
+          .from('whatsapp-media')
+          .upload(fileName, blob, { contentType: blob.type || 'audio/webm' });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = await supabase.storage
+          .from('whatsapp-media')
+          .getPublicUrl(fileName);
+
+        await supabase.from('messages').insert({
+          contact_id: contactId,
+          content: '🎵 Mensagem de áudio',
+          sender: 'agent',
+          message_type: 'audio',
+          media_url: urlData.publicUrl,
+        });
+      } catch (err) {
+        log.error('Failed to send audio from popup:', err);
+      }
+    },
+    [contactId]
+  );
+
   const handleClose = () => window.close();
 
   const handleToggleMaximize = () => {
@@ -148,13 +167,6 @@ export default function ChatPopup() {
       setIsMaximized(true);
     }
   };
-
-  const initials = contact?.name
-    ?.split(' ')
-    .map((n: string) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
   // ── Loading State ──
   if (loading) {
@@ -194,81 +206,18 @@ export default function ChatPopup() {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="h-screen bg-background flex flex-col overflow-hidden">
-        {/* ── Unified Header ── */}
-        <div className="flex items-center justify-between px-3 h-12 bg-card/80 backdrop-blur-sm border-b border-border shrink-0 select-none">
-          {/* Left: Avatar + Info */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="relative shrink-0">
-              <Avatar className="w-8 h-8 ring-1 ring-border">
-                <AvatarImage src={contact.avatar_url} />
-                <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-bold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-success border-2 border-card" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-sm font-semibold text-foreground truncate leading-tight">
-                {contact.name}
-              </h1>
-              <p className="text-[11px] text-muted-foreground leading-tight flex items-center gap-1">
-                <span className="truncate">{contact.phone}</span>
-                {contact.tags?.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="h-3.5 text-[9px] px-1 py-0 font-normal"
-                  >
-                    {contact.tags[0]}
-                  </Badge>
-                )}
-              </p>
-            </div>
-          </div>
-
-          {/* Right: Actions */}
+        {/* ── Thin Window Controls Bar ── */}
+        <div className="flex items-center justify-end px-2 h-8 bg-card/60 border-b border-border/50 shrink-0 select-none">
           <div className="flex items-center gap-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 text-muted-foreground hover:text-foreground rounded-lg"
-                >
-                  <Search className="w-3.5 h-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                Buscar
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-7 h-7 text-muted-foreground hover:text-foreground rounded-lg"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                Ligar
-              </TooltipContent>
-            </Tooltip>
-
-            <div className="w-px h-4 bg-border mx-0.5" />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-7 h-7 text-muted-foreground hover:text-foreground rounded-lg"
+                  className="w-6 h-6 text-muted-foreground hover:text-foreground rounded"
                   onClick={() => window.resizeTo(440, 48)}
-                  title="Minimizar"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-3 h-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
@@ -281,13 +230,13 @@ export default function ChatPopup() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 text-muted-foreground hover:text-foreground rounded-lg"
+                  className="w-6 h-6 text-muted-foreground hover:text-foreground rounded"
                   onClick={handleToggleMaximize}
                 >
                   {isMaximized ? (
-                    <Minimize2 className="w-3.5 h-3.5" />
+                    <Minimize2 className="w-3 h-3" />
                   ) : (
-                    <Maximize2 className="w-3.5 h-3.5" />
+                    <Maximize2 className="w-3 h-3" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -301,10 +250,10 @@ export default function ChatPopup() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 text-muted-foreground hover:text-destructive rounded-lg"
+                  className="w-6 h-6 text-muted-foreground hover:text-destructive rounded"
                   onClick={handleClose}
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
@@ -314,7 +263,7 @@ export default function ChatPopup() {
           </div>
         </div>
 
-        {/* ── Chat Content ── */}
+        {/* ── Full Chat Content (with full header & all features) ── */}
         <div className="flex-1 min-h-0 overflow-hidden">
           <Suspense
             fallback={
@@ -333,7 +282,7 @@ export default function ChatPopup() {
               conversation={conversation}
               messages={legacyMessages}
               onSendMessage={handleSendMessage}
-              hideHeader
+              onSendAudio={handleSendAudio}
             />
           </Suspense>
         </div>
