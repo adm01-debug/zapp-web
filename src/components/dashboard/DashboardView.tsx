@@ -50,6 +50,7 @@ import { ProgressiveDisclosureDashboard } from './ProgressiveDisclosureDashboard
 import { DraggableWidgetContainer } from './DraggableWidgetContainer';
 import { DashboardFilters, DashboardFiltersState, getDefaultFilters } from './DashboardFilters';
 import { Button } from '@/components/ui/button';
+import { ParallaxContainer } from '@/components/effects/ParallaxContainer';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
