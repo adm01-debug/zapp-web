@@ -635,8 +635,9 @@ describe('Team Chat — Exhaustive Audit', () => {
   // 17. KNOWN GAPS (documenting for future)
   // ═══════════════════════════════════════════
   describe('Known Gaps & Future Work', () => {
-    it('GAP: clipboard image paste is stubbed (TODO)', () => {
-      expect(inputSrc).toContain('TODO: handle paste image upload');
+    it('FIXED: clipboard image paste now uploads to storage', () => {
+      expect(inputSrc).not.toContain('TODO: handle paste image upload');
+      expect(inputSrc).toContain('supabase.storage');
     });
 
     it('GAP: audio recording uses WebM (Safari incompatible)', () => {
@@ -671,11 +672,12 @@ describe('Team Chat — Exhaustive Audit', () => {
       expect(panelSrc).not.toMatch(/pinnedMessages|isPinned/i);
     });
 
-    it('GAP: More Actions dropdown items are non-functional (no handlers)', () => {
-      // Pin, Mute, Archive in header dropdown don't have onClick handlers
-      const hasFixarHandler = headerSrc.match(/Fixar conversa.*onClick/s);
-      // They use DropdownMenuItem which has onClick but no handler passed
-      expect(headerSrc).toContain('Fixar conversa');
+    it('FIXED: Mute toggle is functional, Pin/Archive marked as disabled', () => {
+      expect(headerSrc).toContain('onToggleMute');
+      expect(headerSrc).toContain('Ativar notificações');
+      expect(headerSrc).toContain('Silenciar');
+      // Pin and Archive are disabled until backend support is added
+      expect(headerSrc).toMatch(/disabled.*Fixar conversa/s);
     });
 
     it('FIXED: TTS is now integrated (was a gap)', () => {
