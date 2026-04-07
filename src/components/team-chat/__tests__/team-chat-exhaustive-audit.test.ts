@@ -704,12 +704,12 @@ describe('Team Chat — Exhaustive Audit', () => {
   // 18. DUPLICATE/REDUNDANT CODE
   // ═══════════════════════════════════════════
   describe('Code Quality', () => {
-    it('BUG: TeamFileUploader appears twice in desktop input (inline + popover)', () => {
-      // The + menu popover AND the secondary tools row both have TeamFileUploader
+    it('FIXED: TeamFileUploader no longer duplicated (only in + menu and mobile)', () => {
       const matches = inputSrc.match(/TeamFileUploader/g);
-      // There are 3 instances: import + popover + inline tools + mobile
       expect(matches).toBeTruthy();
-      expect(matches!.length).toBeGreaterThanOrEqual(3);
+      // Import + popover + mobile = 3 (no longer in desktop secondary tools)
+      expect(matches!.length).toBeLessThanOrEqual(4);
+    });
     });
 
     it('should not have duplicate MediaTypeIcon in InputArea (unused)', () => {
