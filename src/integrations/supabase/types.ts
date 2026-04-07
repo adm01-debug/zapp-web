@@ -4817,6 +4817,42 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_command_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          data: Json | null
+          duration_ms: number | null
+          id: string
+          response: string | null
+          success: boolean | null
+          transcript: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          data?: Json | null
+          duration_ms?: number | null
+          id?: string
+          response?: string | null
+          success?: boolean | null
+          transcript: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          data?: Json | null
+          duration_ms?: number | null
+          id?: string
+          response?: string | null
+          success?: boolean | null
+          transcript?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       warroom_alerts: {
         Row: {
           alert_type: string
