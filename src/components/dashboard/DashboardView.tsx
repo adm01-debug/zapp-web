@@ -603,6 +603,10 @@ export function DashboardView() {
         <TabsContent value="sentiment" className="space-y-6">
           <SentimentTrendChart />
         </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6">
+          <ScheduledReportsManager />
+        </TabsContent>
       </Tabs>
     </div>
   );
