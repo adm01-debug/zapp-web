@@ -132,7 +132,7 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
                 )}
                 aria-label={isZen ? 'Sair do modo zen' : 'Modo zen'}
               >
-                {isZen ? <Minimize2 className="w-3.5 h-3.5" /> : <img src={monkIcon} alt="" className="w-4 h-4 invert opacity-60" />}
+                {isZen ? <Minimize2 className="w-3.5 h-3.5" /> : <img src={zenTargetIcon} alt="" className="w-4 h-4" />}
                 <span className="text-[11px] font-medium tracking-wide">
                   {isZen ? 'Sair' : 'Zen'}
                 </span>
