@@ -121,13 +121,16 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
       }
 
       // Constellation lines
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
+      // Limit constellation checks to avoid O(n²) on large counts
+      const maxCheck = Math.min(particles.length, 30);
+      for (let i = 0; i < maxCheck; i++) {
+        for (let j = i + 1; j < maxCheck; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            const lineAlpha = (1 - dist / 120) * 0.15;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 14400) { // 120²
+            const dist = Math.sqrt(distSq);
+            const lineAlpha = (1 - dist / 120) * 0.12;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
