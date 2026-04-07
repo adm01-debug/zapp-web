@@ -36,7 +36,8 @@ const InteractiveMessageBuilder = lazy(() => import('./InteractiveMessageBuilder
 const ForwardMessageDialog = lazy(() => import('./ForwardMessageDialog').then(m => ({ default: m.ForwardMessageDialog })));
 const LocationPicker = lazy(() => import('./LocationPicker').then(m => ({ default: m.LocationPicker })));
 const AIConversationAssistant = lazy(() => import('./AIConversationAssistant').then(m => ({ default: m.AIConversationAssistant })));
-
+const TemplatesWithVariables = lazy(() => import('./TemplatesWithVariables').then(m => ({ default: m.TemplatesWithVariables })));
+const RealtimeTranscription = lazy(() => import('./RealtimeTranscription').then(m => ({ default: m.RealtimeTranscription })));
 interface ChatPanelProps {
   conversation: Conversation;
   messages: Message[];
