@@ -125,19 +125,20 @@ export function VoiceSearchOverlay({
         aria-modal="true"
         aria-label="Assistente de voz"
       >
-        {/* ============ BREATHING BACKDROP — slow inhale/exhale ============ */}
+        {/* ============ BREATHING GLASS BACKDROP ============ */}
         <motion.div
           className="absolute inset-0"
           style={{
-            backdropFilter: 'blur(32px)',
+            backdropFilter: 'blur(24px) saturate(1.2)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.2)',
           }}
           animate={prefersReduced ? {
-            background: 'radial-gradient(ellipse at center, rgba(20, 20, 45, 0.80) 0%, rgba(2, 2, 8, 0.98) 100%)',
+            backgroundColor: 'rgba(8, 8, 20, 0.75)',
           } : {
-            background: [
-              'radial-gradient(ellipse at center, rgba(30, 30, 60, 0.70) 0%, rgba(2, 2, 8, 0.92) 100%)',
-              'radial-gradient(ellipse at center, rgba(6, 6, 14, 0.97) 0%, rgba(0, 0, 4, 1) 100%)',
-              'radial-gradient(ellipse at center, rgba(30, 30, 60, 0.70) 0%, rgba(2, 2, 8, 0.92) 100%)',
+            backgroundColor: [
+              'rgba(12, 12, 30, 0.55)',
+              'rgba(4, 4, 12, 0.82)',
+              'rgba(12, 12, 30, 0.55)',
             ],
           }}
           transition={prefersReduced ? {} : {
