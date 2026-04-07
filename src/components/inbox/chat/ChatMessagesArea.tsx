@@ -3,6 +3,7 @@ import { getLogger } from '@/lib/logger';
 
 const log = getLogger('ChatMessagesArea');
 import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
+import { MessageContextMenu } from '../MessageContextMenu';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
@@ -188,6 +189,15 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
 
               return (
                 <StaggeredItem key={message.id}>
+                  <MessageContextMenu
+                    message={message}
+                    onReply={onReply}
+                    onForward={onForward}
+                    onCopy={(content) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!' }); }}
+                    onDelete={(messageId) => { toast({ title: 'Mensagem deletada', description: messageId.slice(0, 8) }); }}
+                    onSpeak={onSpeak ? (content, msgId) => onSpeak(msgId, content) : undefined}
+                    onDownload={message.mediaUrl ? (url) => window.open(url, '_blank') : undefined}
+                  >
                   <SwipeableMessage
                     onSwipeRight={() => onReply(message)}
                     onSwipeLeft={() => onForward(message)}
@@ -466,6 +476,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                     )}
                   </div>
                   </SwipeableMessage>
+                  </MessageContextMenu>
                 </StaggeredItem>
               );
             })}

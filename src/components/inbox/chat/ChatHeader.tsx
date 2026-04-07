@@ -9,6 +9,9 @@ import { TypingIndicatorCompact } from '../TypingIndicator';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
 import { SpeedSelector } from '../SpeedSelector';
+import { KeyboardShortcutsHelp } from '../KeyboardShortcutsHelp';
+import { QueuePositionNotifier } from '../QueuePositionNotifier';
+import { RealtimeCollaboration } from '../RealtimeCollaboration';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { useContactIntelligence } from '@/hooks/useContactIntelligence';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
@@ -272,10 +275,12 @@ export function ChatHeader({
               conversation.contact.phone
             )}
           </p>
+          <QueuePositionNotifier contactId={conversation.contact.id} className="mt-0.5" />
         </div>
       </div>
 
       <div className="flex items-center gap-1">
+        <RealtimeCollaboration contactId={conversation.contact.id} className="mr-1" />
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -377,6 +382,8 @@ export function ChatHeader({
           speed={speed}
           onSpeedChange={onSpeedChange}
         />
+
+        <KeyboardShortcutsHelp />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

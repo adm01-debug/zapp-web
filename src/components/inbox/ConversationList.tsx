@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { SLAIndicator } from './SLAIndicator';
+import { ConversationContextMenu } from './ConversationContextMenu';
 import { useExternalContact360Batch, CRMBatchResult } from '@/hooks/useExternalContact360Batch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
@@ -165,6 +166,10 @@ export function ConversationList({
 
               return (
                 <StaggeredItem key={conversation.id}>
+                  <ConversationContextMenu
+                    conversationId={conversation.id}
+                    contactName={conversation.contact.name}
+                  >
                   <motion.div
                     onClick={() => onSelect(conversation)}
                     whileHover={{ x: 2 }}
@@ -284,6 +289,7 @@ export function ConversationList({
                       )}
                     </div>
                   </motion.div>
+                  </ConversationContextMenu>
                 </StaggeredItem>
               );
             })}

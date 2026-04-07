@@ -28,6 +28,7 @@ import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
 
 const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
 const TransferDialog = lazy(() => import('./TransferDialog').then(m => ({ default: m.TransferDialog })));
+const WhisperMode = lazy(() => import('./WhisperMode').then(m => ({ default: m.WhisperMode })));
 const ScheduleMessageDialog = lazy(() => import('./ScheduleMessageDialog').then(m => ({ default: m.ScheduleMessageDialog })));
 const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => ({ default: m.CallDialog })));
 const GlobalSearch = lazy(() => import('./GlobalSearch').then(m => ({ default: m.GlobalSearch })));
@@ -68,6 +69,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [showCatalogDirect, setShowCatalogDirect] = useState(false);
+  const [showWhisper, setShowWhisper] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -296,6 +298,12 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart} />
 
         <ChatQuickRepliesPopover show={showQuickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => setShowQuickReplies(false)} />
+
+        {showWhisper && (
+          <Suspense fallback={null}>
+            <WhisperMode contactId={conversation.contact.id} className="mx-3 mb-2" />
+          </Suspense>
+        )}
 
         <ChatInputArea inputValue={inputValue} replyToMessage={replyToMessage} editingMessage={editingMessage} isRecordingAudio={isRecordingAudio}
           showSlashCommands={showSlashCommands} contactId={conversation.contact.id} contactPhone={conversation.contact.phone}

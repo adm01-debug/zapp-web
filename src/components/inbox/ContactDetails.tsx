@@ -5,7 +5,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone } from 'lucide-react';
+import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -13,6 +13,7 @@ import { ContactHeaderSection } from './contact-details/ContactHeaderSection';
 import { ContactInfoSection } from './contact-details/ContactInfoSection';
 import { AssignmentSection } from './contact-details/AssignmentSection';
 import { ContactStatsSection } from './contact-details/ContactStatsSection';
+import { MediaGallery } from './MediaGallery';
 import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
@@ -394,6 +395,18 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <ContactStatsSection contactId={contact.id} />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="media" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <Image className="w-3.5 h-3.5" />
+                  Mídia Compartilhada
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <MediaGallery contactId={contact.id} open={true} onOpenChange={() => {}} />
               </AccordionContent>
             </AccordionItem>
           </motion.div>

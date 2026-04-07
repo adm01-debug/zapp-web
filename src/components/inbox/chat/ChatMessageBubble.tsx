@@ -12,6 +12,7 @@ import { AudioMessagePlayer } from '../AudioMessagePlayer';
 import { InteractiveMessageDisplay, ButtonResponseBadge } from '../InteractiveMessage';
 import { QuotedMessage } from '../ReplyQuote';
 import { TextToSpeechButton } from '../TextToSpeechButton';
+import { TextWithLinks } from '../LinkPreview';
 
 // Lazy-load mapbox-heavy LocationMessage component
 const LocationMessageDisplay = lazy(() => import('../LocationMessage').then(m => ({ default: m.LocationMessageDisplay })));
@@ -274,7 +275,7 @@ export function ChatMessageBubble({
 
           {/* Text content */}
           {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && message.type !== 'sticker' && (
-            <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+            <TextWithLinks text={message.content} className="text-sm whitespace-pre-wrap leading-relaxed" maxPreviews={2} />
           )}
 
           {/* Timestamp and status */}
