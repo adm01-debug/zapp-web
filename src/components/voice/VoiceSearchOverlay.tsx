@@ -125,18 +125,23 @@ export function VoiceSearchOverlay({
         aria-modal="true"
         aria-label="Assistente de voz"
       >
-        {/* ============ BREATHING BACKDROP ============ */}
+        {/* ============ BREATHING BACKDROP — slow inhale/exhale ============ */}
         <motion.div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(15, 15, 30, 0.88) 0%, rgba(5, 5, 12, 0.96) 100%)',
             backdropFilter: 'blur(32px)',
           }}
-          animate={prefersReduced ? {} : {
-            opacity: [0.88, 0.95, 0.88],
+          animate={prefersReduced ? {
+            background: 'radial-gradient(ellipse at center, rgba(20, 20, 45, 0.80) 0%, rgba(2, 2, 8, 0.98) 100%)',
+          } : {
+            background: [
+              'radial-gradient(ellipse at center, rgba(30, 30, 60, 0.70) 0%, rgba(2, 2, 8, 0.92) 100%)',
+              'radial-gradient(ellipse at center, rgba(6, 6, 14, 0.97) 0%, rgba(0, 0, 4, 1) 100%)',
+              'radial-gradient(ellipse at center, rgba(30, 30, 60, 0.70) 0%, rgba(2, 2, 8, 0.92) 100%)',
+            ],
           }}
           transition={prefersReduced ? {} : {
-            duration: 4,
+            duration: 8,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
@@ -148,9 +153,9 @@ export function VoiceSearchOverlay({
           className="absolute inset-0 pointer-events-none"
           animate={{
             background: `radial-gradient(ellipse 60% 50% at 50% 45%, ${colors.glow1}12 0%, transparent 70%)`,
-            opacity: isActive ? [0.4, 0.7, 0.4] : 0.2,
+            opacity: isActive ? [0.3, 0.6, 0.3] : 0.15,
           }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
         />
 
         {/* Particles */}
