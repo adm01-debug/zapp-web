@@ -132,13 +132,12 @@ export function VoiceSearchOverlay({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const isActive = phase === 'listening' || phase === 'speaking' || phase === 'processing';
 
   return createPortal(
-    <AnimatePresence>
-      <motion.div
+    <AnimatePresence mode="wait">
+      {isOpen && <motion.div
+        key="voice-overlay"
         className="fixed inset-0 z-[9999] flex items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -392,6 +391,7 @@ export function VoiceSearchOverlay({
           </div>
         </motion.div>
       </motion.div>
+      </motion.div>}
     </AnimatePresence>,
     document.body
   );
