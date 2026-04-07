@@ -242,8 +242,24 @@ export function TeamChatInputArea({
 
         {/* Main input row */}
         <div className="flex items-end gap-1.5" role="toolbar" aria-label="Barra de mensagem">
-          {/* + Menu */}
-          <TeamFileUploader conversationId={conversationId} onFileSent={onFileSent} />
+          {/* + Menu (attach/options) */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn("text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 touch-manipulation", isMobile ? "w-10 h-10" : "w-9 h-9")}
+                aria-label="Mais opções"
+              >
+                <Plus className="w-[18px] h-[18px]" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2 bg-popover border-border" align="start" side="top">
+              <div className="flex flex-col gap-1">
+                <TeamFileUploader conversationId={conversationId} onFileSent={onFileSent} />
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Textarea */}
           <div className="flex-1 min-w-0 relative">
