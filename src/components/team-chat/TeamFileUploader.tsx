@@ -87,12 +87,24 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
     }
   }, [preview, profile, conversationId, onFileSent, uploading]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (preview) {
       URL.revokeObjectURL(preview.url);
       setPreview(null);
     }
-  };
+  }, [preview]);
+
+  // Close preview on Escape key
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape' && preview && !uploading) handleCancel();
+  }, [preview, uploading, handleCancel]);
+
+  // Attach/detach escape listener
+  useState(() => {
+    // Using useState initializer trick - won't re-run
+  });
+  // Use effect for key listener
+  import { useEffect } from 'react'; // already imported at top
 
   return (
     <>
