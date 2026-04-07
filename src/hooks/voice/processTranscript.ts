@@ -21,7 +21,9 @@ export async function processVoiceTranscript(
     });
 
     if (!response.ok) {
-      throw new Error(`Voice agent error: ${response.status}`);
+      // Consume response body to prevent resource leaks
+      const errorBody = await response.text().catch(() => '');
+      throw new Error(`Voice agent error: ${response.status} ${errorBody.substring(0, 200)}`);
     }
 
     const result = await response.json();

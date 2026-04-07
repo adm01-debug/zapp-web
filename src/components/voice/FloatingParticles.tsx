@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import type { VoiceAgentPhase } from '@/hooks/voice/types';
-import { usePhaseColors } from './usePhaseColors';
 
 interface FloatingParticlesProps {
   phase: VoiceAgentPhase;
@@ -30,6 +29,7 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animRef = useRef<number>(0);
+  const dimsRef = useRef({ w: 0, h: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,18 +38,29 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
     if (!ctx) return;
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      const dpr = window.devicePixelRatio;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      // Reset transform before applying new scale to prevent cumulative scaling
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      dimsRef.current = { w, h };
     };
     resize();
     window.addEventListener('resize', resize);
 
     const config = PHASE_CONFIG[phase] || PHASE_CONFIG.idle;
-    const w = canvas.offsetWidth;
-    const h = canvas.offsetHeight;
+    const { w, h } = dimsRef.current;
 
-    // Initialize particles
+    // Update existing particles' velocities and hues for new phase
+    for (const p of particlesRef.current) {
+      p.vx = (Math.random() - 0.5) * config.speed;
+      p.vy = (Math.random() - 0.5) * config.speed;
+      p.hue = config.hueRange[0] + Math.random() * (config.hueRange[1] - config.hueRange[0]);
+    }
+
+    // Add or trim particles to match target count
     while (particlesRef.current.length < config.count) {
       particlesRef.current.push({
         x: Math.random() * w,
@@ -65,7 +76,8 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
     particlesRef.current = particlesRef.current.slice(0, config.count);
 
     const animate = () => {
-      ctx.clearRect(0, 0, w, h);
+      const { w: cw, h: ch } = dimsRef.current;
+      ctx.clearRect(0, 0, cw, ch);
       const particles = particlesRef.current;
 
       for (const p of particles) {
@@ -73,9 +85,9 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
         p.y += p.vy;
         p.life++;
 
-        if (p.life > p.maxLife || p.x < 0 || p.x > w || p.y < 0 || p.y > h) {
-          p.x = Math.random() * w;
-          p.y = Math.random() * h;
+        if (p.life > p.maxLife || p.x < 0 || p.x > cw || p.y < 0 || p.y > ch) {
+          p.x = Math.random() * cw;
+          p.y = Math.random() * ch;
           p.life = 0;
           p.hue = config.hueRange[0] + Math.random() * (config.hueRange[1] - config.hueRange[0]);
         }
@@ -94,11 +106,11 @@ export function FloatingParticles({ phase }: FloatingParticlesProps) {
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 120) {
-            const alpha = (1 - dist / 120) * 0.15;
+            const lineAlpha = (1 - dist / 120) * 0.15;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `hsla(${particles[i].hue}, 60%, 60%, ${alpha})`;
+            ctx.strokeStyle = `hsla(${particles[i].hue}, 60%, 60%, ${lineAlpha})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
