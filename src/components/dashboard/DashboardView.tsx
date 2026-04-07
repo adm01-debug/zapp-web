@@ -53,8 +53,9 @@ export function DashboardView() {
   const { profile } = useAuth();
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? '☀️ Bom dia' : hour < 18 ? '🌤️ Boa tarde' : '🌙 Boa noite';
+  const greetingText = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
   const userName = profile?.name?.split(' ')[0] || '';
+  const greeting = userName ? `${greetingText}, ${userName}! 👋` : `${greetingText}! 👋`;
   
   const { stats, isLoading, refetch } = useDashboardData({
     dateRange: filters.dateRange,
