@@ -73,17 +73,21 @@ export function VoiceCopilotButton() {
       navigateTo: (params: { page: string }) => {
         const routes: Record<string, string> = {
           'inbox': '/#inbox',
-          'dashboard': '/dashboard',
-          'contatos': '/contacts',
-          'campanhas': '/campaigns',
-          'equipe': '/team',
-          'configurações': '/settings',
+          'dashboard': '/#dashboard',
+          'contatos': '/#contacts',
+          'campanhas': '/#campaigns',
+          'equipe': '/#team',
+          'configurações': '/#settings',
           'sentimento': '/sentiment-alerts',
-          'chatbot': '/chatbot-builder',
-          'filas': '/queues',
+          'chatbot': '/#chatbot-builder',
+          'filas': '/#queues',
         };
-        const route = routes[params.page.toLowerCase()] || `/${params.page}`;
-        navigate(route.startsWith('/') ? route : `/${route}`);
+        const route = routes[params.page.toLowerCase()] || `/#${params.page}`;
+        if (route.startsWith('/#')) {
+          window.location.hash = route.replace('/#', '');
+        } else {
+          navigate(route);
+        }
         return `Navegado para ${params.page}`;
       },
       listAgents: async () => {
