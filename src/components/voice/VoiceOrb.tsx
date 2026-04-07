@@ -15,9 +15,10 @@ export function VoiceOrb({ phase, size = 200 }: VoiceOrbProps) {
   const coreSize = size * 0.325;
   const highlightSize = size * 0.16;
 
+  const repeatForever = Infinity;
   const pulseTransition = prefersReduced
     ? { duration: 0 }
-    : { duration: isActive ? 2 : 4, repeat: Infinity as const, ease: 'easeInOut' as const };
+    : { duration: isActive ? 2 : 4, repeat: repeatForever, ease: 'easeInOut' };
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
