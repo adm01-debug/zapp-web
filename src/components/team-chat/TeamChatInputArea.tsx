@@ -156,7 +156,7 @@ export function TeamChatInputArea({
   }, [hasText, isOverLimit, isPending, conversationId, isMobile, onSend]);
 
   const handleVoiceDictation = useCallback((transcript: string) => {
-    setText(prev => prev ? `${prev} ${transcript}` : transcript);
+    setText(text ? `${text} ${transcript}` : transcript);
     textareaRef.current?.focus();
   }, [setText]);
 
