@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Users, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, forwardRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,7 +18,7 @@ interface Props {
   onNewConversation: () => void;
 }
 
-export function TeamConversationList({ conversations, isLoading, selectedId, onSelect, onNewConversation }: Props) {
+export const TeamConversationList = forwardRef<HTMLDivElement, Props>(function TeamConversationList({ conversations, isLoading, selectedId, onSelect, onNewConversation }, _ref) {
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
