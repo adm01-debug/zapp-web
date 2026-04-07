@@ -166,6 +166,10 @@ export function ConversationList({
 
               return (
                 <StaggeredItem key={conversation.id}>
+                  <ConversationContextMenu
+                    conversationId={conversation.id}
+                    contactName={conversation.name}
+                  >
                   <motion.div
                     onClick={() => onSelect(conversation)}
                     whileHover={{ x: 2 }}
