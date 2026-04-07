@@ -46,7 +46,7 @@ ROTAS DISPONÍVEIS PARA NAVEGAÇÃO (use exatamente o valor da rota):
 - wallet (carteira, wallet, carteira de clientes)
 - crm360 (CRM, CRM 360, visão 360)
 - reports (relatórios, reports, análises)
-- security (segurança, proteção, auditoria)
+- security (segurança, proteção, auditoria, logs de auditoria, audit)
 
 REGRA IMPORTANTE: Quando o usuário pedir para "abrir", "ir para", "mostrar" ou "navegar para" qualquer seção listada acima, SEMPRE use action="navigate" com a rota correspondente. NUNCA use action="answer" para pedidos de navegação.
 
