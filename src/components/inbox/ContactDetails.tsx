@@ -13,6 +13,7 @@ import { ContactHeaderSection } from './contact-details/ContactHeaderSection';
 import { ContactInfoSection } from './contact-details/ContactInfoSection';
 import { AssignmentSection } from './contact-details/AssignmentSection';
 import { ContactStatsSection } from './contact-details/ContactStatsSection';
+import { MediaGallery } from './MediaGallery';
 import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
