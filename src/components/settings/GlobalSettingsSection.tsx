@@ -61,7 +61,10 @@ export function GlobalSettingsSection() {
             </CardTitle>
             <CardDescription>
               Configurações que se aplicam a todo o sistema
-        </CardDescription>
+            </CardDescription>
+          </div>
+          <LanguageSelector />
+        </div>
       </CardHeader>
       <CardContent className="space-y-5">
         {booleanSettings.map(({ key, label, desc, icon: Icon }) => (
