@@ -64,8 +64,12 @@ export const TeamConversationList = forwardRef<HTMLDivElement, Props>(function T
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center text-muted-foreground text-sm py-8 px-4">
-            {search ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}
+          <div className="flex flex-col items-center justify-center text-center text-muted-foreground text-sm py-12 px-4 gap-2">
+            <Users className="w-8 h-8 text-muted-foreground/40" />
+            <p>{search ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}</p>
+            {!search && (
+              <p className="text-xs text-muted-foreground/60">Clique em + para iniciar uma nova conversa</p>
+            )}
           </div>
         ) : (
           <div className="space-y-0.5 p-1">
