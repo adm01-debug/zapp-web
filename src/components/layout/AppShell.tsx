@@ -1,5 +1,5 @@
-import { Suspense, useCallback, forwardRef, lazy } from 'react';
-import { Target } from 'lucide-react';
+import { Suspense, useCallback, forwardRef, lazy, useState } from 'react';
+import { Target, Mic } from 'lucide-react';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -13,7 +13,10 @@ import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useZenMode } from '@/hooks/useZenMode';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-const VoiceCopilotButton = lazy(() => import('@/components/voice/VoiceCopilotButton').then(m => ({ default: m.VoiceCopilotButton })));
+import { toast } from 'sonner';
+import type { VoiceAgentAction } from '@/hooks/voice/types';
+
+const LazyVoiceOverlay = lazy(() => import('@/components/voice/VoiceSearchOverlayConnected'));
 
 interface AppShellProps {
   currentView: string;
@@ -54,9 +57,30 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
   const { isZen, toggleZen } = useZenMode();
   const isInboxView = currentView === 'inbox' || currentView === 'team-chat';
   const { startTransition } = useViewTransition();
+  const [voiceOpen, setVoiceOpen] = useState(false);
+
   const handleViewChange = useCallback((viewId: string) => {
     startTransition(() => setCurrentView(viewId));
   }, [startTransition, setCurrentView]);
+
+  const handleVoiceAction = useCallback((action: VoiceAgentAction) => {
+    switch (action.action) {
+      case 'navigate':
+        if (action.data?.route) {
+          handleViewChange(action.data.route);
+        }
+        break;
+      case 'search':
+        if (action.data?.query) {
+          handleViewChange('contacts');
+        }
+        break;
+      case 'answer':
+      case 'clear':
+      case 'filter':
+        break;
+    }
+  }, [handleViewChange]);
 
   // Mobile edge-swipe navigation
   useSwipeNavigation({
@@ -164,10 +188,33 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(function AppSh
         </Suspense>
       </main>
 
-      {/* Voice Copilot - floating button */}
+      {/* Voice Copilot FAB */}
       {!isMobile && (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setVoiceOpen(true)}
+              className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center"
+              aria-label="Assistente de voz"
+            >
+              <Mic className="w-6 h-6" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left" sideOffset={8}>
+            Assistente de Voz IA
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {/* Voice Overlay (lazy loaded) */}
+      {voiceOpen && (
         <Suspense fallback={null}>
-          <VoiceCopilotButton />
+          <LazyVoiceOverlay
+            isOpen={voiceOpen}
+            onClose={() => setVoiceOpen(false)}
+            onAction={handleVoiceAction}
+            onError={(msg) => toast.error(msg)}
+          />
         </Suspense>
       )}
 
