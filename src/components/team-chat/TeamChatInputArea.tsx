@@ -256,7 +256,20 @@ export function TeamChatInputArea({
             </PopoverTrigger>
             <PopoverContent className="w-56 p-2 bg-popover border-border" align="start" side="top">
               <div className="flex flex-col gap-1">
-                <TeamFileUploader conversationId={conversationId} onFileSent={onFileSent} />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start gap-2 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    // Trigger the file input via the toolbar's TeamFileUploader
+                    const fileInput = document.querySelector<HTMLInputElement>('.team-file-upload-input');
+                    fileInput?.click();
+                  }}
+                  aria-label="Enviar arquivo"
+                >
+                  <Zap className="w-4 h-4" />
+                  Enviar Arquivo
+                </Button>
               </div>
             </PopoverContent>
           </Popover>
