@@ -170,6 +170,14 @@ export function VoiceOrb({ phase, size = 200 }: VoiceOrbProps) {
             <Volume2 className="w-6 h-6 text-white drop-shadow-lg" />
           </motion.div>
         )}
+        {phase === 'error' && (
+          <motion.div
+            animate={prefersReduced ? {} : { rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+          >
+            <Mic className="w-6 h-6 text-red-300 drop-shadow-lg" />
+          </motion.div>
+        )}
       </div>
     </div>
   );
