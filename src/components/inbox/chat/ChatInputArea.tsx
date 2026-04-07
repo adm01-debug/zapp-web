@@ -490,63 +490,25 @@ export function ChatInputArea({
             </Tooltip>
           </div>
 
-          {/* Secondary icons: 3-AI, 4-Stickers, 5-AudioMemes, 6-CustomEmoji, 7-Catalog, 8-Attach, 9-RichText, 10-Dictation, 11-TTS */}
+          {/* Secondary icons toolbar (desktop) */}
           {!isMobile && (
-            <div className="flex items-center gap-0.5 shrink-0">
-              <AIRewriteButton
-                inputValue={inputValue}
-                onRewrite={(newText) => {
-                  const el = inputRef.current;
-                  if (!el) return;
-                  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-                  if (nativeSetter) {
-                    nativeSetter.call(el, newText);
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                  }
-                }}
-              />
-              <StickerPicker onSendSticker={onSendSticker} />
-              <AudioMemePicker onSendAudio={onSendAudioMeme} />
-              <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
-              {onOpenCatalog && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 text-muted-foreground hover:text-primary transition-colors"
-                      onClick={onOpenCatalog}
-                      aria-label="Catálogo de produtos"
-                    >
-                      <Package className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
-                </Tooltip>
-              )}
-              <FileUploader
-                ref={fileUploaderRef}
-                instanceName={instanceName || ''}
-                recipientNumber={contactPhone}
-                contactId={contactId}
-                connectionId={undefined}
-                onFileSelect={(file, category) => {
-                  toast({
-                    title: 'Arquivo selecionado',
-                    description: `${file.name} (${category}) será enviado.`,
-                  });
-                }}
-                onFileSent={() => {
-                  toast({
-                    title: 'Arquivo enviado!',
-                    description: 'O arquivo foi enviado com sucesso.',
-                  });
-                }}
-              />
-              <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
-              <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
-              <TextToAudioButton inputValue={inputValue} onAudioReady={onAudioSend} />
-            </div>
+            <SecondaryToolbar
+              inputRef={inputRef}
+              inputValue={inputValue}
+              showRichToolbar={showRichToolbar}
+              onToggleRichToolbar={() => setShowRichToolbar(!showRichToolbar)}
+              isRecordingAudio={isRecordingAudio}
+              onSendSticker={onSendSticker}
+              onSendAudioMeme={onSendAudioMeme}
+              onSendCustomEmoji={onSendCustomEmoji}
+              onOpenCatalog={onOpenCatalog}
+              onAudioSend={onAudioSend}
+              fileUploaderRef={fileUploaderRef}
+              instanceName={instanceName}
+              contactPhone={contactPhone}
+              contactId={contactId}
+              onVoiceDictation={handleVoiceDictation}
+            />
           )}
 
           {/* Mobile: attach */}
