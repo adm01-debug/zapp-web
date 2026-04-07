@@ -78,12 +78,12 @@ export function StickerManager({ onSend, mode = 'manager' }: StickerManagerProps
   }, [onSend]);
 
   const filteredStickers = useMemo(() => {
-    return stickers.filter(s => {
-      const matchesSearch = !search || (s.name?.toLowerCase().includes(search.toLowerCase()));
-      const matchesCategory = category === 'all' || s.category === category;
-      return matchesSearch && matchesCategory;
-    });
-  }, [stickers, search, category]);
+    let filtered = stickers;
+    if (showFavorites) filtered = filtered.filter(s => s.is_favorite);
+    if (category) filtered = filtered.filter(s => s.category === category);
+    if (search) filtered = filtered.filter(s => s.name?.toLowerCase().includes(search.toLowerCase()));
+    return filtered;
+  }, [stickers, search, category, showFavorites]);
 
   const favoriteCount = useMemo(() => stickers.filter(s => s.is_favorite).length, [stickers]);
 
