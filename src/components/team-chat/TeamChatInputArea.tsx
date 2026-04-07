@@ -79,9 +79,9 @@ export function TeamChatInputArea({
   onSendCustomEmoji,
   onFileSent,
 }: TeamChatInputAreaProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [showRichToolbar, setShowRichToolbar] = useState(false);
-  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const { profile } = useAuth();
+  const log = useMemo(() => getLogger('TeamChatInputArea'), []);
+  const [pasteUploading, setPasteUploading] = useState(false);
   const [sendAnimation, setSendAnimation] = useState(false);
   const isMobile = useIsMobile();
 
