@@ -438,11 +438,11 @@ export function DashboardView() {
       {/* Floating Particles Background */}
       <FloatingParticles />
 
-      {/* Background decorations */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      {/* Background decorations with parallax */}
+      <ParallaxContainer speed={0.3} direction="up" className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -left-24 w-64 h-64 bg-primary/8 rounded-full blur-3xl" />
-      </div>
+      </ParallaxContainer>
 
       {/* Header with Level Progress */}
       <motion.div
