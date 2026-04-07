@@ -1,48 +1,27 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
-import { AdvancedMessageMenu } from '../AdvancedMessageMenu';
-import { StickerPicker } from '../StickerPicker';
-import { AudioMemePicker } from '../AudioMemePicker';
-import { CustomEmojiPicker } from '../CustomEmojiPicker';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RichTextToolbar, RichTextToggle } from './RichTextToolbar';
+import { RichTextToolbar } from './RichTextToolbar';
 import { AIRewriteButton } from './AIRewriteButton';
-import { TextToAudioButton } from '../TextToAudioButton';
 import { MentionAutocomplete, useMentions } from './MentionAutocomplete';
 import { MarkdownPreview } from './MarkdownPreview';
 import { ReplyPreview } from '../ReplyQuote';
 import { SlashCommands, SlashCommand } from '../SlashCommands';
 import { AudioRecorder } from '../AudioRecorder';
-import { FileUploader, FileUploaderRef } from '../FileUploader';
-import { AISuggestions } from '../AISuggestions';
-import { MessageTemplates } from '../MessageTemplates';
-import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
+import { FileUploaderRef } from '../FileUploader';
 import { ExternalProduct } from '@/hooks/useExternalCatalog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SecondaryToolbar, TertiaryToolsMenu } from './ChatInputToolbars';
+import { StickerPicker } from '../StickerPicker';
+import { CustomEmojiPicker } from '../CustomEmojiPicker';
+import { RichTextToggle } from './RichTextToolbar';
+import { FileUploader } from '../FileUploader';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Send,
-  Mic,
-  Clock,
-  MapPin,
-  Package,
-  Layers,
-  Paperclip,
-  Pencil,
-  X,
-  Check,
-  Plus,
-  Zap,
-  Loader2,
-  PenTool,
+  Send, Mic, Pencil, X, Check, Plus, Loader2,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -255,125 +234,28 @@ export function ChatInputArea({
     setTimeout(() => setSendAnimation(false), 400);
   }, [hasText, isOverLimit, contactId, isMobile, onSend]);
 
-  // Memoize quick replies list
-  const quickRepliesList = useMemo(() => (
-    quickReplies.slice(0, 50).map((reply) => (
-      <button
-        key={reply.id}
-        onClick={() => onQuickReply(reply)}
-        className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">{reply.title}</span>
-          <Badge variant="outline" className="text-[10px] border-border">
-            {reply.shortcut}
-          </Badge>
-        </div>
-      </button>
-    ))
-  ), [quickReplies, onQuickReply]);
-
-  // Tertiary tools (inside "+" menu)
+  // Tertiary tools menu (rendered via extracted component)
   const tertiaryTools = useMemo(() => (
-    <div className="flex flex-col gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onOpenInteractiveBuilder}
-        aria-label="Mensagem interativa"
-      >
-        <Layers className="w-4 h-4" />
-        Mensagem Interativa
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onOpenLocationPicker}
-        aria-label="Enviar localização"
-      >
-        <MapPin className="w-4 h-4" />
-        Localização
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onOpenSchedule}
-        aria-label="Agendar mensagem"
-      >
-        <Clock className="w-4 h-4" />
-        Agendar
-      </Button>
-      <ExternalProductCatalog
-        onSendProduct={onSendProduct}
-        trigger={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="justify-start gap-2 text-muted-foreground hover:text-foreground w-full"
-            aria-label="Catálogo de produtos"
-          >
-            <Package className="w-4 h-4" />
-            Catálogo
-          </Button>
-        }
-      />
-      <AdvancedMessageMenu
-        instanceName={instanceName || ''}
-        recipientNumber={contactPhone}
-        onPollSent={onPollSent}
-        onContactSent={onContactSent}
-      />
-      <AISuggestions
-        messages={messages.map(m => ({
-          id: m.id,
-          content: m.content,
-          sender: m.sender,
-          timestamp: m.timestamp
-        }))}
-        contactName={contactName}
-        onSelectSuggestion={onSelectSuggestion}
-      />
-      <MessageTemplates onSelectTemplate={onSelectTemplate} />
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="justify-start gap-2 text-muted-foreground hover:text-foreground w-full" aria-label="Respostas rápidas">
-            <Zap className="w-4 h-4" />
-            Respostas Rápidas
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 p-0 bg-popover border-border" align="start" side="top">
-          <div className="p-3 border-b border-border">
-            <h4 className="font-medium text-sm text-foreground">Respostas Rápidas</h4>
-          </div>
-          <div className="max-h-64 overflow-y-auto p-2 space-y-1">
-            {quickRepliesList}
-          </div>
-        </PopoverContent>
-      </Popover>
-      {onToggleSignature && (
-        <>
-          <div className="border-t border-border/50 my-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "justify-start gap-2 w-full",
-              signatureEnabled ? "text-primary hover:text-primary" : "text-muted-foreground hover:text-foreground"
-            )}
-            onClick={onToggleSignature}
-            aria-label={signatureEnabled ? "Desativar assinatura" : "Ativar assinatura"}
-          >
-            <PenTool className="w-4 h-4" />
-            {signatureEnabled ? `Assinatura: ${signatureName || 'Ativa'}` : 'Assinar mensagens'}
-            {signatureEnabled && <Check className="w-3.5 h-3.5 ml-auto" />}
-          </Button>
-        </>
-      )}
-    </div>
-  ), [instanceName, contactPhone, contactName, messages, quickRepliesList, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate, signatureEnabled, signatureName, onToggleSignature]);
+    <TertiaryToolsMenu
+      instanceName={instanceName}
+      contactPhone={contactPhone}
+      contactName={contactName}
+      messages={messages}
+      quickReplies={quickReplies}
+      onOpenInteractiveBuilder={onOpenInteractiveBuilder}
+      onOpenLocationPicker={onOpenLocationPicker}
+      onOpenSchedule={onOpenSchedule}
+      onSendProduct={onSendProduct}
+      onSelectSuggestion={onSelectSuggestion}
+      onSelectTemplate={onSelectTemplate}
+      onQuickReply={onQuickReply}
+      signatureEnabled={signatureEnabled}
+      signatureName={signatureName}
+      onToggleSignature={onToggleSignature}
+      onPollSent={onPollSent}
+      onContactSent={onContactSent}
+    />
+  ), [instanceName, contactPhone, contactName, messages, quickReplies, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate, signatureEnabled, signatureName, onToggleSignature]);
 
   return (
     <>
@@ -608,63 +490,25 @@ export function ChatInputArea({
             </Tooltip>
           </div>
 
-          {/* Secondary icons: 3-AI, 4-Stickers, 5-AudioMemes, 6-CustomEmoji, 7-Catalog, 8-Attach, 9-RichText, 10-Dictation, 11-TTS */}
+          {/* Secondary icons toolbar (desktop) */}
           {!isMobile && (
-            <div className="flex items-center gap-0.5 shrink-0">
-              <AIRewriteButton
-                inputValue={inputValue}
-                onRewrite={(newText) => {
-                  const el = inputRef.current;
-                  if (!el) return;
-                  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-                  if (nativeSetter) {
-                    nativeSetter.call(el, newText);
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                  }
-                }}
-              />
-              <StickerPicker onSendSticker={onSendSticker} />
-              <AudioMemePicker onSendAudio={onSendAudioMeme} />
-              <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
-              {onOpenCatalog && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 text-muted-foreground hover:text-primary transition-colors"
-                      onClick={onOpenCatalog}
-                      aria-label="Catálogo de produtos"
-                    >
-                      <Package className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
-                </Tooltip>
-              )}
-              <FileUploader
-                ref={fileUploaderRef}
-                instanceName={instanceName || ''}
-                recipientNumber={contactPhone}
-                contactId={contactId}
-                connectionId={undefined}
-                onFileSelect={(file, category) => {
-                  toast({
-                    title: 'Arquivo selecionado',
-                    description: `${file.name} (${category}) será enviado.`,
-                  });
-                }}
-                onFileSent={() => {
-                  toast({
-                    title: 'Arquivo enviado!',
-                    description: 'O arquivo foi enviado com sucesso.',
-                  });
-                }}
-              />
-              <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
-              <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
-              <TextToAudioButton inputValue={inputValue} onAudioReady={onAudioSend} />
-            </div>
+            <SecondaryToolbar
+              inputRef={inputRef}
+              inputValue={inputValue}
+              showRichToolbar={showRichToolbar}
+              onToggleRichToolbar={() => setShowRichToolbar(!showRichToolbar)}
+              isRecordingAudio={isRecordingAudio}
+              onSendSticker={onSendSticker}
+              onSendAudioMeme={onSendAudioMeme}
+              onSendCustomEmoji={onSendCustomEmoji}
+              onOpenCatalog={onOpenCatalog}
+              onAudioSend={onAudioSend}
+              fileUploaderRef={fileUploaderRef}
+              instanceName={instanceName}
+              contactPhone={contactPhone}
+              contactId={contactId}
+              onVoiceDictation={handleVoiceDictation}
+            />
           )}
 
           {/* Mobile: attach */}

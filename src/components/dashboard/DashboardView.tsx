@@ -23,6 +23,7 @@ import {
   Award,
   Heart,
   Smile,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedBadge, StatCardWithGamification, LevelProgress } from './GamificationEffects';
@@ -43,6 +44,7 @@ import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
 import { AgentPerformancePanel } from './AgentPerformancePanel';
 import { SatisfactionMetrics } from './SatisfactionMetrics';
 import { SentimentTrendChart } from './SentimentTrendChart';
+import { ScheduledReportsManager } from './ScheduledReportsManager';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
@@ -550,6 +552,10 @@ export function DashboardView() {
             <Smile className="w-4 h-4" />
             Sentimento
           </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Relatórios
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -596,6 +602,10 @@ export function DashboardView() {
 
         <TabsContent value="sentiment" className="space-y-6">
           <SentimentTrendChart />
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6">
+          <ScheduledReportsManager />
         </TabsContent>
       </Tabs>
     </div>

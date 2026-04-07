@@ -1,6 +1,7 @@
 import { NPSDashboard } from '@/components/nps/NPSDashboard';
 import { FollowUpSequences } from '@/components/settings/FollowUpSequences';
 import { QuickRepliesManager } from '@/components/inbox/QuickRepliesManager';
+import { StickerManager } from '@/components/inbox/stickers/StickerManager';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -167,7 +168,10 @@ export function SettingsView() {
         </TabsContent>
 
         <TabsContent value="media">
-          <MediaLibraryAdmin />
+          <div className="space-y-6">
+            <MediaLibraryAdmin />
+            <StickerManager mode="manager" />
+          </div>
         </TabsContent>
 
         <TabsContent value="nps">
