@@ -134,14 +134,14 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
             <button
               onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
               className={cn(
-                'rounded-lg flex items-center gap-2 text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/40 hover:border-border',
+                'rounded-lg flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all border border-dashed border-border/60 hover:border-border',
                 collapsed ? 'w-[40px] h-[30px] justify-center' : 'w-full h-[32px] px-3'
               )}
               aria-label="Buscar módulo (Ctrl+K)"
             >
               <Search className="w-[14px] h-[14px] shrink-0" />
-              {!collapsed && <span className="text-xs text-muted-foreground/60">Buscar...</span>}
-              {!collapsed && <kbd className="ml-auto px-1 py-0.5 rounded bg-muted text-[9px] font-mono text-muted-foreground/50">⌘K</kbd>}
+              {!collapsed && <span className="text-xs text-muted-foreground">Buscar...</span>}
+              {!collapsed && <kbd className="ml-auto px-1 py-0.5 rounded bg-muted text-[9px] font-mono text-muted-foreground">⌘K</kbd>}
             </button>
           </TooltipTrigger>
           {collapsed && (
@@ -159,7 +159,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
           {!collapsed && (
             <div className="px-3 flex items-center gap-1.5">
               <Star className="w-[10px] h-[10px] text-warning fill-warning" />
-              <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">Favoritos</span>
+              <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Favoritos</span>
             </div>
           )}
           <nav className={cn('flex flex-col gap-0.5', collapsed ? 'items-center px-[11px]' : 'px-2')} aria-label="Favoritos">
@@ -207,7 +207,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
 
         {!collapsed && (
           <div className="px-3 self-stretch flex items-center gap-1.5 pb-0.5">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">Controles rápidos</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Controles rápidos</span>
           </div>
         )}
 
