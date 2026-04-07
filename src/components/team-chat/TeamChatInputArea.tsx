@@ -28,7 +28,6 @@ import {
   X,
   Loader2,
   Plus,
-  Zap,
 } from 'lucide-react';
 import {
   Popover,
