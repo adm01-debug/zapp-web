@@ -168,7 +168,7 @@ export function ConversationList({
                 <StaggeredItem key={conversation.id}>
                   <ConversationContextMenu
                     conversationId={conversation.id}
-                    contactName={conversation.name}
+                    contactName={conversation.contact.name}
                   >
                   <motion.div
                     onClick={() => onSelect(conversation)}
