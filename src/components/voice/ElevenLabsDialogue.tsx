@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, Play, Loader2, Users, Mic } from 'lucide-react';
 
 const VOICES = [
+  { id: 'TY3h8ANhQUsJaa0Bga5F', name: 'Voz Principal (F)' },
   { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah (F)' },
   { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George (M)' },
   { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura (F)' },

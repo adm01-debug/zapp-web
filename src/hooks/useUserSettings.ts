@@ -4,8 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { log } from '@/lib/logger';
 
-// Default ElevenLabs voice: Sarah
-const DEFAULT_TTS_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
+// Default ElevenLabs voice: Custom system voice
+const DEFAULT_TTS_VOICE_ID = 'TY3h8ANhQUsJaa0Bga5F';
 const DEFAULT_TTS_SPEED = 1.0;
 
 export interface UserSettings {
