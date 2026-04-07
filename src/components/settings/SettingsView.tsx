@@ -6,7 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Clock, MessageSquare, Bell, Palette, Save, RefreshCw, Loader2,
   Keyboard, Volume2, ArrowRight, Package, Globe, TrendingUp, Settings,
+  Tags, MessageSquareHeart, Bot, Brain, Users,
 } from 'lucide-react';
+import { AIAutoTagsConfig } from '@/components/settings/AIAutoTagsConfig';
+import { CSATAutoConfig } from '@/components/settings/CSATAutoConfig';
+import { ChatbotL1Config } from '@/components/settings/ChatbotL1Config';
+import { LanguageSelector } from '@/components/settings/LanguageSelector';
+import { SkillBasedRoutingSettings } from '@/components/settings/SkillBasedRoutingSettings';
 import { SoundCustomizationPanel } from '@/components/settings/SoundCustomizationPanel';
 import { ElevenLabsDialogue } from '@/components/voice/ElevenLabsDialogue';
 import { ElevenLabsVoiceDesign } from '@/components/voice/ElevenLabsVoiceDesign';
