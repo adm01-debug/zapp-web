@@ -289,6 +289,7 @@ export function ConversationList({
                       )}
                     </div>
                   </motion.div>
+                  </ConversationContextMenu>
                 </StaggeredItem>
               );
             })}
