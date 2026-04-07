@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('TeamFileUploader');
@@ -95,16 +95,14 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
   }, [preview]);
 
   // Close preview on Escape key
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape' && preview && !uploading) handleCancel();
+  useEffect(() => {
+    if (!preview) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !uploading) handleCancel();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [preview, uploading, handleCancel]);
-
-  // Attach/detach escape listener
-  useState(() => {
-    // Using useState initializer trick - won't re-run
-  });
-  // Use effect for key listener
-  import { useEffect } from 'react'; // already imported at top
 
   return (
     <>
