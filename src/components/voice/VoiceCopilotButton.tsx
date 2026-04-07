@@ -30,18 +30,15 @@ export function VoiceCopilotButton() {
       log.info('Voice Copilot disconnected');
       setIsExpanded(false);
     },
-    onMessage: (message) => {
-      if (message.type === 'user_transcript') {
-        const text = (message as any).user_transcription_event?.user_transcript;
-        if (text) {
-          setTranscripts(prev => [...prev.slice(-9), { role: 'user', text, timestamp: new Date() }]);
-        }
+    onMessage: (message: unknown) => {
+      const msg = message as Record<string, any>;
+      if (msg?.user_transcription_event?.user_transcript) {
+        const text = msg.user_transcription_event.user_transcript;
+        setTranscripts(prev => [...prev.slice(-9), { role: 'user', text, timestamp: new Date() }]);
       }
-      if (message.type === 'agent_response') {
-        const text = (message as any).agent_response_event?.agent_response;
-        if (text) {
-          setTranscripts(prev => [...prev.slice(-9), { role: 'agent', text, timestamp: new Date() }]);
-        }
+      if (msg?.agent_response_event?.agent_response) {
+        const text = msg.agent_response_event.agent_response;
+        setTranscripts(prev => [...prev.slice(-9), { role: 'agent', text, timestamp: new Date() }]);
       }
     },
     onError: (error) => {
