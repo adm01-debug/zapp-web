@@ -158,45 +158,44 @@ export function VoiceSearchOverlay({
 
         {/* ============ MAIN CARD with GLOWING BORDER ============ */}
         <motion.div
-          className="relative z-10 flex flex-col items-center gap-5 p-8 rounded-3xl max-w-xs w-full mx-4"
+          className="relative z-10 flex flex-col items-center gap-5 p-8 rounded-3xl max-w-[340px] w-full mx-4 overflow-visible"
           style={{
-            background: 'rgba(12, 12, 22, 0.85)',
-            backdropFilter: 'blur(40px)',
+            background: 'transparent',
           }}
           initial={prefersReduced ? {} : { scale: 0.9, y: 20 }}
           animate={prefersReduced ? {} : { scale: 1, y: 0 }}
           transition={prefersReduced ? {} : { duration: 0.4, ease: 'easeOut' }}
         >
-          {/* ---- Animated glowing border (behind card) ---- */}
+          {/* ---- Animated glowing border — thick, vivid, breathing ---- */}
           <motion.div
-            className="absolute -inset-[1px] rounded-3xl pointer-events-none"
+            className="absolute -inset-[1.5px] rounded-3xl pointer-events-none"
             style={{
-              background: `linear-gradient(135deg, ${colors.primary}50, ${colors.secondary}30, ${colors.accent}50, ${colors.primary}30)`,
-              backgroundSize: '300% 300%',
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary}90, ${colors.accent}, ${colors.primary}90)`,
+              backgroundSize: '400% 400%',
             }}
             animate={prefersReduced ? {} : {
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-              opacity: [0.5, 0.8, 0.5],
+              backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+              opacity: [0.6, 1, 0.6],
             }}
             transition={prefersReduced ? {} : {
-              duration: 4,
+              duration: 5,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
           />
-          {/* Inner background to mask the border gradient */}
+          {/* Inner card fill — solid dark to mask the border gradient */}
           <div
-            className="absolute inset-[1px] rounded-[22px] pointer-events-none"
-            style={{ background: 'rgba(12, 12, 22, 0.92)' }}
+            className="absolute inset-[1.5px] rounded-[22px] pointer-events-none"
+            style={{ background: 'rgba(10, 10, 20, 0.95)' }}
           />
 
-          {/* ---- Outer glow shadow ---- */}
+          {/* ---- Outer glow bloom ---- */}
           <motion.div
-            className="absolute -inset-4 rounded-[32px] pointer-events-none"
-            style={{ filter: 'blur(20px)' }}
+            className="absolute -inset-6 rounded-[36px] pointer-events-none"
+            style={{ filter: 'blur(24px)' }}
             animate={{
-              background: `radial-gradient(ellipse at center, ${colors.glow1}20, transparent 70%)`,
-              opacity: isActive ? [0.3, 0.6, 0.3] : [0.15, 0.25, 0.15],
+              background: `radial-gradient(ellipse at center, ${colors.glow1}30, ${colors.glow2}15, transparent 70%)`,
+              opacity: isActive ? [0.4, 0.7, 0.4] : [0.2, 0.35, 0.2],
             }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
