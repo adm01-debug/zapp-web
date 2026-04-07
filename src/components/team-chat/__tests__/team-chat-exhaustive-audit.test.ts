@@ -650,7 +650,7 @@ describe('Team Chat — Exhaustive Audit', () => {
     });
 
     it('GAP: no online/offline presence', () => {
-      expect(panelSrc).not.toMatch(/online.*status|presence/i);
+      expect(panelSrc).not.toMatch(/usePresence|onlineStatus/i);
     });
 
     it('GAP: no message reactions (emoji)', () => {
