@@ -1,4 +1,5 @@
 import { Suspense, useCallback, forwardRef } from 'react';
+import monkIcon from '@/assets/monk-zen.png';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
