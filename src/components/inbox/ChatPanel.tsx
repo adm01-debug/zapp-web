@@ -299,6 +299,12 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         <ChatQuickRepliesPopover show={showQuickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => setShowQuickReplies(false)} />
 
+        {showWhisper && (
+          <Suspense fallback={null}>
+            <WhisperMode contactId={conversation.contact.id} className="mx-3 mb-2" />
+          </Suspense>
+        )}
+
         <ChatInputArea inputValue={inputValue} replyToMessage={replyToMessage} editingMessage={editingMessage} isRecordingAudio={isRecordingAudio}
           showSlashCommands={showSlashCommands} contactId={conversation.contact.id} contactPhone={conversation.contact.phone}
           contactName={conversation.contact.name} instanceName={instanceName} messages={messages} quickReplies={dbQuickReplies} isSending={isSending}
