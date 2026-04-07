@@ -1,13 +1,30 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useConversation } from '@elevenlabs/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Loader2, X, Volume2 } from 'lucide-react';
+import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
+import { Mic, MicOff, Loader2, X, Volume2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { log } from '@/lib/logger';
 import { useNavigate } from 'react-router-dom';
+
+const POSITION_STORAGE_KEY = 'voice-copilot-position';
+
+function loadSavedPosition(): { x: number; y: number } | null {
+  try {
+    const saved = localStorage.getItem(POSITION_STORAGE_KEY);
+    if (saved) {
+      const pos = JSON.parse(saved);
+      if (typeof pos.x === 'number' && typeof pos.y === 'number') return pos;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+function savePosition(x: number, y: number) {
+  localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify({ x, y }));
+}
 
 interface TranscriptEntry {
   role: 'user' | 'agent';
