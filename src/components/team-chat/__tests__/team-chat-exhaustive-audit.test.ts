@@ -64,9 +64,11 @@ describe('Team Chat — Exhaustive Audit', () => {
       expect(inputSrc).toMatch(/clipboardData/);
     });
 
-    it('BUG: paste image handler is a TODO stub', () => {
-      // This is a known gap - paste image does nothing yet
-      expect(inputSrc).toContain('TODO: handle paste image upload');
+    it('FIXED: paste image handler uploads to storage', () => {
+      expect(inputSrc).not.toContain('TODO: handle paste image upload');
+      expect(inputSrc).toContain('setPasteUploading');
+      expect(inputSrc).toContain('team-chat-files');
+      expect(inputSrc).toContain('_paste.');
     });
 
     it('should have haptic feedback on mobile send', () => {
