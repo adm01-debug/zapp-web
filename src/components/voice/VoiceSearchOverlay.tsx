@@ -183,11 +183,12 @@ export function VoiceSearchOverlay({
             }}
             transition={prefersReduced ? {} : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           />
-          {/* ---- Tight edge glow — subtle halo right at the border ---- */}
+          {/* ---- Tight edge glow + thin border ---- */}
           <div
             className="absolute -inset-[1px] rounded-3xl pointer-events-none"
             style={{
-              boxShadow: `0 0 20px 4px ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.19)')}, 0 0 60px 12px ${colors.glow2.replace('hsl(', 'hsla(').replace(')', ', 0.1)')}, inset 0 0 20px 2px ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.03)')}`,
+              border: `1px solid ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.18)')}`,
+              boxShadow: `0 0 30px 8px ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.3)')}, 0 0 80px 20px ${colors.glow2.replace('hsl(', 'hsla(').replace(')', ', 0.18)')}, inset 0 0 30px 4px ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.06)')}`,
             }}
           />
           {/* Inner card fill */}
