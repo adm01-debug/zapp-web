@@ -43,6 +43,7 @@ import { RealtimeMetricsPanel } from './RealtimeMetricsPanel';
 import { AgentPerformancePanel } from './AgentPerformancePanel';
 import { SatisfactionMetrics } from './SatisfactionMetrics';
 import { SentimentTrendChart } from './SentimentTrendChart';
+import { ScheduledReportsManager } from './ScheduledReportsManager';
 import { useDashboardData, formatResponseTime } from '@/hooks/useDashboardData';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
