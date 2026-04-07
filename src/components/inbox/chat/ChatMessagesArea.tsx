@@ -189,6 +189,15 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
 
               return (
                 <StaggeredItem key={message.id}>
+                  <MessageContextMenu
+                    message={message}
+                    onReply={onReply}
+                    onForward={onForward}
+                    onCopy={(content) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!' }); }}
+                    onDelete={(messageId) => handleDeleteMessage(messageId)}
+                    onSpeak={onSpeak ? (content, msgId) => onSpeak(msgId, content) : undefined}
+                    onDownload={message.mediaUrl ? (url) => window.open(url, '_blank') : undefined}
+                  >
                   <SwipeableMessage
                     onSwipeRight={() => onReply(message)}
                     onSwipeLeft={() => onForward(message)}
