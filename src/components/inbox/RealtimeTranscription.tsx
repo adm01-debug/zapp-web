@@ -55,11 +55,15 @@ export function RealtimeTranscription({
       const { data, error } = await supabase.functions.invoke('elevenlabs-scribe-token');
 
       if (error) {
-        throw new Error(error.message || 'Failed to get token');
+        const errMsg = error?.message || String(error);
+        const isAuthError = errMsg.includes('401') || errMsg.toLowerCase().includes('invalid');
+        throw new Error(isAuthError 
+          ? 'Chave da ElevenLabs inválida. Atualize nas configurações.' 
+          : errMsg);
       }
 
       if (!data?.token) {
-        throw new Error('No token received');
+        throw new Error('Token de transcrição não recebido');
       }
 
       tokenRef.current = data.token;

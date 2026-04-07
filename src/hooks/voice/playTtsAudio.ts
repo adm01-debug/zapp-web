@@ -45,8 +45,13 @@ export function playTtsAudio(
 
       if (!response.ok) {
         // Consume body to prevent leaks
-        await response.text().catch(() => '');
-        throw new Error(`TTS error: ${response.status}`);
+        const errorBody = await response.text().catch(() => '');
+        // Gracefully skip TTS on auth errors (invalid/missing API key)
+        if (response.status === 401 || response.status === 403) {
+          console.warn('[TTS] ElevenLabs API key invalid — skipping audio playback');
+          return;
+        }
+        throw new Error(`TTS error: ${response.status} ${errorBody.substring(0, 100)}`);
       }
 
       if (stopped) return;

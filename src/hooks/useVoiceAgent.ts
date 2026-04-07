@@ -164,8 +164,19 @@ export function useVoiceAgent(options?: UseVoiceAgentOptions): UseVoiceAgentRetu
 
     try {
       const { data, error: tokenError } = await supabase.functions.invoke('elevenlabs-scribe-token');
-      if (tokenError || !data?.token) {
-        throw new Error(tokenError?.message || 'Failed to get STT token');
+      
+      // Detect API key issues and give a user-friendly message
+      if (tokenError) {
+        const errMsg = typeof tokenError === 'object' && tokenError !== null 
+          ? (tokenError as Record<string, unknown>).message || JSON.stringify(tokenError) 
+          : String(tokenError);
+        const isAuthError = String(errMsg).includes('401') || String(errMsg).toLowerCase().includes('invalid') || String(errMsg).toLowerCase().includes('api key');
+        throw new Error(isAuthError 
+          ? 'Chave da ElevenLabs inválida ou expirada. Atualize nas configurações do conector.' 
+          : String(errMsg));
+      }
+      if (!data?.token) {
+        throw new Error('Não foi possível obter token de transcrição. Verifique a configuração da ElevenLabs.');
       }
 
       if (!mountedRef.current) return;

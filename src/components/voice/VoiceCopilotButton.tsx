@@ -50,28 +50,27 @@ export function VoiceCopilotButton() {
     },
     clientTools: {
       searchContacts: async (params: { query: string }) => {
-        const { data } = await supabase.functions.invoke('voice-copilot-action', {
-          body: { action: 'search_contacts', params }
-        });
-        return JSON.stringify(data?.result || []);
+        const { data } = await supabase
+          .from('contacts')
+          .select('id, name, phone, email, company')
+          .or(`name.ilike.%${params.query}%,phone.ilike.%${params.query}%,email.ilike.%${params.query}%`)
+          .limit(5);
+        return JSON.stringify(data || []);
       },
       getConversationSummary: async (params: { contactId: string }) => {
-        const { data } = await supabase.functions.invoke('voice-copilot-action', {
-          body: { action: 'get_conversation_summary', params }
-        });
-        return JSON.stringify(data?.result || {});
+        const { data } = await supabase
+          .from('conversation_analyses')
+          .select('summary, sentiment, topics, urgency')
+          .eq('contact_id', params.contactId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return JSON.stringify(data || { summary: 'Nenhuma análise encontrada.' });
       },
       getDashboardMetrics: async () => {
-        const { data } = await supabase.functions.invoke('voice-copilot-action', {
-          body: { action: 'get_dashboard_metrics', params: {} }
-        });
-        return JSON.stringify(data?.result || {});
-      },
-      assignConversation: async (params: { contactId: string; agentName: string }) => {
-        const { data } = await supabase.functions.invoke('voice-copilot-action', {
-          body: { action: 'assign_conversation', params }
-        });
-        return JSON.stringify(data?.result || {});
+        const { count: totalContacts } = await supabase.from('contacts').select('*', { count: 'exact', head: true });
+        const { count: openConversations } = await supabase.from('contacts').select('*', { count: 'exact', head: true }).is('assigned_to', null);
+        return JSON.stringify({ totalContacts, openConversations });
       },
       navigateTo: (params: { page: string }) => {
         const routes: Record<string, string> = {
@@ -84,6 +83,10 @@ export function VoiceCopilotButton() {
           'sentimento': '/sentiment-alerts',
           'chatbot': '/#chatbot-builder',
           'filas': '/#queues',
+          'wallet': '/#wallet',
+          'security': '/#security',
+          'reports': '/#reports',
+          'crm360': '/#crm360',
         };
         const route = routes[params.page.toLowerCase()] || `/#${params.page}`;
         if (route.startsWith('/#')) {
@@ -94,16 +97,19 @@ export function VoiceCopilotButton() {
         return `Navegado para ${params.page}`;
       },
       listAgents: async () => {
-        const { data } = await supabase.functions.invoke('voice-copilot-action', {
-          body: { action: 'list_agents', params: {} }
-        });
-        return JSON.stringify(data?.result || []);
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, name, email, role, is_active')
+          .eq('is_active', true)
+          .limit(20);
+        return JSON.stringify(data || []);
       },
       getQueueStatus: async () => {
-        const { data } = await supabase.functions.invoke('voice-copilot-action', {
-          body: { action: 'get_queue_status', params: {} }
-        });
-        return JSON.stringify(data?.result || []);
+        const { data } = await supabase
+          .from('queues')
+          .select('id, name, is_active')
+          .eq('is_active', true);
+        return JSON.stringify(data || []);
       },
     },
   });
@@ -119,7 +125,11 @@ export function VoiceCopilotButton() {
       const { data, error } = await supabase.functions.invoke('elevenlabs-agent-token');
 
       if (error || !data?.token) {
-        throw new Error(error?.message || 'Não foi possível obter token do agente');
+        const errMsg = error?.message || '';
+        const isAuthError = errMsg.includes('401') || errMsg.toLowerCase().includes('invalid') || errMsg.toLowerCase().includes('api key');
+        throw new Error(isAuthError 
+          ? 'Chave da ElevenLabs inválida. Atualize em Settings → Connectors.' 
+          : 'Não foi possível obter token do agente');
       }
 
       await conversation.startSession({
