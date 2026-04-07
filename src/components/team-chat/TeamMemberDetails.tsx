@@ -150,7 +150,7 @@ export function TeamMemberDetails({ conversation, onClose }: TeamMemberDetailsPr
   const roleBadge = memberProfile ? getRoleBadge(memberProfile.role) : null;
 
   return (
-    <div className="w-[300px] border-l border-border flex flex-col bg-card h-full">
+    <div className="w-[300px] border-l border-border flex flex-col bg-card h-full" role="complementary" aria-label="Detalhes da conversa">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-border">
         <h3 className="text-sm font-semibold flex items-center gap-1.5">
@@ -158,10 +158,10 @@ export function TeamMemberDetails({ conversation, onClose }: TeamMemberDetailsPr
           {conversation.type === 'direct' ? 'Detalhes do Colaborador' : 'Detalhes do Grupo'}
         </h3>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleAll} title="Recolher/Expandir">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleAll} title="Recolher/Expandir" aria-label="Recolher ou expandir todas as seções">
             <ChevronsDownUp className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose} aria-label="Fechar painel de detalhes">
             <X className="w-3.5 h-3.5" />
           </Button>
         </div>

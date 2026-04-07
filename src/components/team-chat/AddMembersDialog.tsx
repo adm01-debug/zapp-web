@@ -103,6 +103,8 @@ export function AddMembersDialog({ open, onOpenChange, conversation }: Props) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-8"
+              aria-label="Buscar colegas para adicionar"
+              autoFocus
             />
           </div>
 
@@ -112,7 +114,7 @@ export function AddMembersDialog({ open, onOpenChange, conversation }: Props) {
             </p>
           )}
 
-          <div className="max-h-60 overflow-auto space-y-0.5 border rounded-lg p-1">
+          <div className="max-h-60 overflow-auto space-y-0.5 border rounded-lg p-1" role="listbox" aria-label="Colegas disponíveis">
             {isLoading ? (
               <div className="text-center py-4 text-muted-foreground text-sm">Carregando...</div>
             ) : filtered.length === 0 ? (
@@ -151,14 +153,14 @@ export function AddMembersDialog({ open, onOpenChange, conversation }: Props) {
         <Button
           onClick={handleAdd}
           disabled={selectedIds.length === 0 || addMutation.isPending}
-          className="w-full mt-2"
+          className="w-full mt-2 rounded-xl"
         >
           {addMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
           ) : (
             <UserPlus className="w-4 h-4 mr-2" />
           )}
-          Adicionar {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}
+          Adicionar {selectedIds.length > 0 ? `(${selectedIds.length} membro${selectedIds.length !== 1 ? 's' : ''})` : ''}
         </Button>
       </DialogContent>
     </Dialog>
