@@ -24,6 +24,7 @@ export interface ElevenLabsVoice {
 
 // Top ElevenLabs voices with sample texts
 export const ELEVENLABS_VOICES: ElevenLabsVoice[] = [
+  { id: 'TY3h8ANhQUsJaa0Bga5F', name: 'Voz Principal', description: 'Voz padrão do sistema', gender: 'female', accent: 'Personalizada', sampleText: 'Olá! Eu sou a voz principal do sistema.' },
   { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', description: 'Suave e natural', gender: 'female', accent: 'Americano', sampleText: 'Olá! Eu sou a Sarah, uma voz suave e natural.' },
   { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger', description: 'Profissional e claro', gender: 'male', accent: 'Americano', sampleText: 'Olá! Eu sou o Roger, uma voz profissional e clara.' },
   { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', description: 'Amigável e calorosa', gender: 'female', accent: 'Americano', sampleText: 'Olá! Eu sou a Laura, uma voz amigável e calorosa.' },
