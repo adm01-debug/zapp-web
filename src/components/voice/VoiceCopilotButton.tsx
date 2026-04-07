@@ -7,7 +7,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { log } from '@/lib/logger';
-import { useNavigate } from 'react-router-dom';
 
 interface TranscriptEntry {
   role: 'user' | 'agent';
@@ -19,7 +18,6 @@ export function VoiceCopilotButton() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
-  const navigate = useNavigate();
 
   const conversation = useConversation({
     onConnect: () => {

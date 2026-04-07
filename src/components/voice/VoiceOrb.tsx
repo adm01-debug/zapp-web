@@ -83,7 +83,7 @@ export function VoiceOrb({ phase, size = 200 }: VoiceOrbProps) {
                 top: '50%',
                 width: 1,
                 height: size * 0.35,
-                background: `linear-gradient(to top, ${colors.primary}40, transparent)`,
+                background: `linear-gradient(to top, ${colors.primary.replace('hsl(', 'hsla(').replace(')', ', 0.25)')}, transparent)`,
                 transformOrigin: 'bottom center',
                 transform: `rotate(${i * 45}deg) translateY(-${size * 0.15}px)`,
               }}
