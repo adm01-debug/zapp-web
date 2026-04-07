@@ -59,9 +59,9 @@ export function TeamChatHeader({
   onToggleMute,
 }: TeamChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-3 md:px-5 h-[56px] md:h-[65px] pr-24 border-b border-border bg-card shrink-0">
+    <div className="flex items-center justify-between px-3 md:px-5 h-[56px] md:h-[65px] pr-24 border-b border-border bg-card shrink-0" role="banner" aria-label="Cabeçalho da conversa">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
-        <Button variant="ghost" size="icon" className="md:hidden shrink-0 w-8 h-8" onClick={onBack}>
+        <Button variant="ghost" size="icon" className="md:hidden shrink-0 w-8 h-8" onClick={onBack} aria-label="Voltar para lista de conversas">
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <Avatar className="w-9 h-9 md:w-10 md:h-10 shrink-0">
