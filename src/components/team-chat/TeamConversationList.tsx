@@ -50,7 +50,7 @@ export const TeamConversationList = forwardRef<HTMLDivElement, Props>(function T
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto" role="listbox" aria-label="Lista de conversas">
         {isLoading ? (
           <div className="space-y-1 p-2">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -64,8 +64,12 @@ export const TeamConversationList = forwardRef<HTMLDivElement, Props>(function T
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center text-muted-foreground text-sm py-8 px-4">
-            {search ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}
+          <div className="flex flex-col items-center justify-center text-center text-muted-foreground text-sm py-12 px-4 gap-2">
+            <Users className="w-8 h-8 text-muted-foreground/40" />
+            <p>{search ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}</p>
+            {!search && (
+              <p className="text-xs text-muted-foreground/60">Clique em + para iniciar uma nova conversa</p>
+            )}
           </div>
         ) : (
           <div className="space-y-0.5 p-1">
@@ -73,9 +77,13 @@ export const TeamConversationList = forwardRef<HTMLDivElement, Props>(function T
               <button
                 key={conv.id}
                 onClick={() => onSelect(conv.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(conv.id); } }}
+                role="option"
+                aria-selected={selectedId === conv.id}
+                aria-label={`Conversa com ${conv.name || 'Sem nome'}${(conv.unread_count ?? 0) > 0 ? `, ${conv.unread_count} não lidas` : ''}`}
                 className={cn(
                   "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
-                  "hover:bg-accent/50",
+                  "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1",
                   selectedId === conv.id && "bg-accent"
                 )}
               >

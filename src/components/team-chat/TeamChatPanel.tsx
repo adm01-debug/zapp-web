@@ -155,13 +155,31 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
   const handleSend = () => {
     const trimmed = text.trim();
     if (!trimmed || sendMutation.isPending) return;
-    sendMutation.mutate({ conversationId: conversation.id, content: trimmed, replyToId: replyTo?.id });
+    sendMutation.mutate(
+      { conversationId: conversation.id, content: trimmed, replyToId: replyTo?.id },
+      {
+        onError: (err) => {
+          log.error('Failed to send message:', err);
+          toast.error('Falha ao enviar mensagem. Tente novamente.');
+          // Restore text so user doesn't lose their message
+          setText(trimmed);
+        },
+      }
+    );
     setText('');
     setReplyTo(null);
   };
 
   const handleSendMedia = (mediaUrl: string, mediaType: string, content?: string) => {
-    sendMutation.mutate({ conversationId: conversation.id, content: content || '', mediaUrl, mediaType, replyToId: replyTo?.id });
+    sendMutation.mutate(
+      { conversationId: conversation.id, content: content || '', mediaUrl, mediaType, replyToId: replyTo?.id },
+      {
+        onError: (err) => {
+          log.error('Failed to send media:', err);
+          toast.error('Falha ao enviar mídia. Tente novamente.');
+        },
+      }
+    );
     setReplyTo(null);
   };
 
@@ -184,11 +202,31 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
     }
   };
 
-  const handleDelete = (msgId: string) => deleteMutation.mutate({ messageId: msgId, conversationId: conversation.id });
+  const handleDelete = (msgId: string) => deleteMutation.mutate(
+    { messageId: msgId, conversationId: conversation.id },
+    {
+      onError: (err) => {
+        log.error('Failed to delete message:', err);
+        toast.error('Falha ao excluir mensagem.');
+      },
+    }
+  );
   const handleStartEdit = (msg: TeamMessage) => { setEditingId(msg.id); setEditText(msg.content); };
   const handleSaveEdit = () => {
     if (!editingId || !editText.trim()) return;
-    editMutation.mutate({ messageId: editingId, content: editText.trim(), conversationId: conversation.id });
+    const savedId = editingId;
+    const savedText = editText;
+    editMutation.mutate(
+      { messageId: editingId, content: editText.trim(), conversationId: conversation.id },
+      {
+        onError: (err) => {
+          log.error('Failed to edit message:', err);
+          toast.error('Falha ao editar mensagem.');
+          setEditingId(savedId);
+          setEditText(savedText);
+        },
+      }
+    );
     setEditingId(null); setEditText('');
   };
   const handleCancelEdit = () => { setEditingId(null); setEditText(''); };
@@ -237,15 +275,17 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') { setShowSearch(false); setSearchQuery(''); } }}
                 placeholder="Buscar nas mensagens..."
                 className="h-8 text-sm"
+                aria-label="Buscar mensagens na conversa"
               />
               {searchQuery && (
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   {filteredMessages.length} resultado{filteredMessages.length !== 1 ? 's' : ''}
                 </span>
               )}
-              <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setShowSearch(false); setSearchQuery(''); }}>
+              <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setShowSearch(false); setSearchQuery(''); }} aria-label="Fechar busca">
                 <X className="w-3.5 h-3.5" />
               </Button>
             </div>
@@ -254,7 +294,7 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
       </AnimatePresence>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5" onScroll={checkNearBottom}>
+      <div ref={scrollRef} className="flex-1 overflow-auto p-4 space-y-1 bg-muted/5" onScroll={checkNearBottom} role="log" aria-label="Mensagens da conversa" aria-live="polite">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (

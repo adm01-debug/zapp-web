@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('TeamFileUploader');
@@ -38,6 +38,13 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
 
     if (file.size > MAX_FILE_SIZE) {
       toast.error(`Arquivo muito grande. Máximo: ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+      if (inputRef.current) inputRef.current.value = '';
+      return;
+    }
+
+    if (file.size === 0) {
+      toast.error('Arquivo vazio não pode ser enviado.');
+      if (inputRef.current) inputRef.current.value = '';
       return;
     }
 
@@ -80,12 +87,22 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
     }
   }, [preview, profile, conversationId, onFileSent, uploading]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (preview) {
       URL.revokeObjectURL(preview.url);
       setPreview(null);
     }
-  };
+  }, [preview]);
+
+  // Close preview on Escape key
+  useEffect(() => {
+    if (!preview) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !uploading) handleCancel();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [preview, uploading, handleCancel]);
 
   return (
     <>
@@ -95,6 +112,7 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
         accept={ACCEPT_TYPES}
         className="hidden"
         onChange={handleFileSelect}
+        aria-label="Selecionar arquivo para enviar"
       />
       
       <Button
@@ -111,7 +129,7 @@ export function TeamFileUploader({ conversationId, onFileSent, disabled }: TeamF
       {/* Preview overlay */}
       {preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="bg-card rounded-xl p-4 max-w-sm w-full mx-4 space-y-3 shadow-xl border border-border">
+          <div className="bg-card rounded-xl p-4 max-w-sm w-full mx-4 space-y-3 shadow-xl border border-border" role="dialog" aria-label="Preview do arquivo">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-foreground">Enviar arquivo</h4>
               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleCancel}>
