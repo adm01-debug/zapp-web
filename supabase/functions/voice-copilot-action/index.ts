@@ -21,10 +21,16 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'search_contacts': {
         const { query } = params;
+        // Sanitize input: remove SQL wildcards and special chars
+        const sanitized = String(query || '').replace(/[%_\\]/g, '').trim();
+        if (!sanitized) {
+          result = [];
+          break;
+        }
         const { data, error } = await supabase
           .from('contacts')
           .select('id, name, phone, email, company, ai_sentiment, assigned_to')
-          .or(`name.ilike.%${query}%,phone.ilike.%${query}%,email.ilike.%${query}%`)
+          .or(`name.ilike.%${sanitized}%,phone.ilike.%${sanitized}%,email.ilike.%${sanitized}%`)
           .limit(5);
         if (error) throw error;
         result = data;

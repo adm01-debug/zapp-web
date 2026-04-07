@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertTriangle, Loader2, MessageCircle } from 'lucide-react';
@@ -65,13 +65,18 @@ export function VoiceSearchOverlay({
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
-  // Auto-start listening when overlay opens
+  // Auto-start listening when overlay opens (skip showing idle suggestions)
+  const hasAutoStarted = useRef(false);
   useEffect(() => {
-    if (isOpen && phase === 'idle') {
-      const timer = setTimeout(() => onStartListening(), 120);
+    if (isOpen && phase === 'idle' && !hasAutoStarted.current) {
+      hasAutoStarted.current = true;
+      const timer = setTimeout(() => onStartListening(), 80);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]); // intentionally only on isOpen change
+    if (!isOpen) {
+      hasAutoStarted.current = false;
+    }
+  }, [isOpen, phase, onStartListening]);
 
   const handleOrbClick = useCallback(() => {
     if (phase === 'idle') onStartListening();
