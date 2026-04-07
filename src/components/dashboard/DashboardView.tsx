@@ -53,8 +53,9 @@ export function DashboardView() {
   const { profile } = useAuth();
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? '☀️ Bom dia' : hour < 18 ? '🌤️ Boa tarde' : '🌙 Boa noite';
+  const greetingText = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
   const userName = profile?.name?.split(' ')[0] || '';
+  const greeting = userName ? `${greetingText}, ${userName}! 👋` : `${greetingText}! 👋`;
   
   const { stats, isLoading, refetch } = useDashboardData({
     dateRange: filters.dateRange,
@@ -462,7 +463,7 @@ export function DashboardView() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground neon-underline"
               >
-                {greeting}{userName ? `, ${userName}` : ''}
+                {greeting}
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0 }}
