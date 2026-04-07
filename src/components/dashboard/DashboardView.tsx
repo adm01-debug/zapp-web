@@ -584,6 +584,18 @@ export function DashboardView() {
         <TabsContent value="sla">
           <SLAMetricsDashboard />
         </TabsContent>
+
+        <TabsContent value="team" className="space-y-6">
+          <AgentPerformancePanel />
+        </TabsContent>
+
+        <TabsContent value="satisfaction" className="space-y-6">
+          <SatisfactionMetrics />
+        </TabsContent>
+
+        <TabsContent value="sentiment" className="space-y-6">
+          <SentimentTrendChart />
+        </TabsContent>
       </Tabs>
     </div>
   );
