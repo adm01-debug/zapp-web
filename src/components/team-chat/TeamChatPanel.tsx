@@ -234,12 +234,14 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
     navigator.clipboard.writeText(content).then(() => toast.success('Mensagem copiada!')).catch(() => toast.error('Erro ao copiar'));
   };
 
-  // Filter messages by search
-  const filteredMessages = searchQuery.trim()
-    ? messages.filter(m => m.content?.toLowerCase().includes(searchQuery.toLowerCase()))
-    : messages;
+  // Filter messages by search (memoized)
+  const filteredMessages = useMemo(() => {
+    if (!searchQuery.trim()) return messages;
+    const q = searchQuery.toLowerCase();
+    return messages.filter(m => m.content?.toLowerCase().includes(q));
+  }, [messages, searchQuery]);
 
-  const dateGroups = new Set<string>();
+  const dateGroups = useMemo(() => new Set<string>(), [filteredMessages]);
 
   return (
     <div className="flex flex-col h-full w-full relative">
