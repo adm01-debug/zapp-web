@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { Mic, Volume2 } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Mic, Volume2, Loader2, Zap } from 'lucide-react';
 import type { VoiceAgentPhase } from '@/hooks/voice/types';
 import { usePhaseColors } from './usePhaseColors';
 
@@ -10,9 +10,14 @@ interface VoiceOrbProps {
 
 export function VoiceOrb({ phase, size = 200 }: VoiceOrbProps) {
   const colors = usePhaseColors(phase);
+  const prefersReduced = useReducedMotion();
   const isActive = phase === 'listening' || phase === 'speaking' || phase === 'processing';
   const coreSize = size * 0.325;
   const highlightSize = size * 0.16;
+
+  const pulseTransition = prefersReduced
+    ? { duration: 0 }
+    : { duration: isActive ? 2 : 4, repeat: Infinity as const, ease: 'easeInOut' as const };
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -23,70 +28,74 @@ export function VoiceOrb({ phase, size = 200 }: VoiceOrbProps) {
           background: `radial-gradient(circle, ${colors.glow1} 0%, ${colors.glow2} 50%, transparent 70%)`,
           filter: 'blur(25px)',
         }}
-        animate={{
+        animate={prefersReduced ? {} : {
           scale: isActive ? [1, 1.15, 1] : [1, 1.05, 1],
           opacity: isActive ? [0.6, 0.8, 0.6] : [0.3, 0.4, 0.3],
         }}
-        transition={{ duration: isActive ? 2 : 4, repeat: Infinity, ease: 'easeInOut' }}
+        transition={pulseTransition}
       />
 
-      {/* Flowing wave rings */}
-      <svg className="absolute inset-0" viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible' }}>
-        <defs>
-          <filter id="waveBlur">
-            <feGaussianBlur stdDeviation="1" />
-          </filter>
-        </defs>
-        {[92, 78, 65].map((radius, i) => {
-          const r = (radius / 200) * size;
-          const cx = size / 2;
-          const cy = size / 2;
-          return (
-            <motion.circle
-              key={i}
-              cx={cx}
-              cy={cy}
-              r={r}
-              fill="none"
-              stroke={i === 0 ? colors.primary : i === 1 ? colors.secondary : colors.accent}
-              strokeWidth={1}
-              strokeOpacity={isActive ? 0.4 : 0.15}
-              filter="url(#waveBlur)"
-              animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
-              transition={{ duration: 10 + i * 4, repeat: Infinity, ease: 'linear' }}
-              style={{ transformOrigin: `${cx}px ${cy}px` }}
-            />
-          );
-        })}
-      </svg>
+      {/* Flowing wave rings — skip if reduced motion */}
+      {!prefersReduced && (
+        <svg className="absolute inset-0" viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible' }}>
+          <defs>
+            <filter id="voiceOrbWaveBlur">
+              <feGaussianBlur stdDeviation="1" />
+            </filter>
+          </defs>
+          {[92, 78, 65].map((radius, i) => {
+            const r = (radius / 200) * size;
+            const cx = size / 2;
+            const cy = size / 2;
+            return (
+              <motion.circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={r}
+                fill="none"
+                stroke={i === 0 ? colors.primary : i === 1 ? colors.secondary : colors.accent}
+                strokeWidth={1}
+                strokeOpacity={isActive ? 0.4 : 0.15}
+                filter="url(#voiceOrbWaveBlur)"
+                animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
+                transition={{ duration: 10 + i * 4, repeat: Infinity, ease: 'linear' }}
+                style={{ transformOrigin: `${cx}px ${cy}px` }}
+              />
+            );
+          })}
+        </svg>
+      )}
 
-      {/* Light rays */}
-      <motion.div
-        className="absolute inset-0"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-      >
-        {Array.from({ length: 8 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{
-              left: '50%',
-              top: '50%',
-              width: 1,
-              height: size * 0.35,
-              background: `linear-gradient(to top, ${colors.primary}40, transparent)`,
-              transformOrigin: 'bottom center',
-              transform: `rotate(${i * 45}deg) translateY(-${size * 0.15}px)`,
-            }}
-            animate={{
-              opacity: isActive ? [0.2, 0.5, 0.2] : [0.05, 0.15, 0.05],
-              scaleY: isActive ? [0.8, 1.1, 0.8] : [0.6, 0.8, 0.6],
-            }}
-            transition={{ duration: 3 + i * 0.3, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        ))}
-      </motion.div>
+      {/* Light rays — skip if reduced motion */}
+      {!prefersReduced && (
+        <motion.div
+          className="absolute inset-0"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+        >
+          {Array.from({ length: 8 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute"
+              style={{
+                left: '50%',
+                top: '50%',
+                width: 1,
+                height: size * 0.35,
+                background: `linear-gradient(to top, ${colors.primary}40, transparent)`,
+                transformOrigin: 'bottom center',
+                transform: `rotate(${i * 45}deg) translateY(-${size * 0.15}px)`,
+              }}
+              animate={{
+                opacity: isActive ? [0.2, 0.5, 0.2] : [0.05, 0.15, 0.05],
+                scaleY: isActive ? [0.8, 1.1, 0.8] : [0.6, 0.8, 0.6],
+              }}
+              transition={{ duration: 3 + i * 0.3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          ))}
+        </motion.div>
+      )}
 
       {/* Core orb */}
       <motion.div
@@ -103,10 +112,10 @@ export function VoiceOrb({ phase, size = 200 }: VoiceOrbProps) {
             inset 0 0 ${size * 0.1}px rgba(255,255,255,0.1)
           `,
         }}
-        animate={{
+        animate={prefersReduced ? {} : {
           scale: isActive ? [1, 1.08, 1] : [1, 1.03, 1],
         }}
-        transition={{ duration: isActive ? 1.5 : 3, repeat: Infinity, ease: 'easeInOut' }}
+        transition={prefersReduced ? {} : { duration: isActive ? 1.5 : 3, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       {/* Specular highlight */}
@@ -131,17 +140,31 @@ export function VoiceOrb({ phase, size = 200 }: VoiceOrbProps) {
           top: (size - coreSize) / 2,
         }}
       >
+        {phase === 'idle' && (
+          <Mic className="w-6 h-6 text-white/60 drop-shadow-lg" />
+        )}
+        {phase === 'booting' && (
+          <Loader2 className="w-6 h-6 text-white animate-spin drop-shadow-lg" />
+        )}
         {phase === 'listening' && (
           <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
+            animate={prefersReduced ? {} : { scale: [1, 1.2, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
           >
             <Mic className="w-6 h-6 text-white drop-shadow-lg" />
           </motion.div>
         )}
+        {phase === 'processing' && (
+          <motion.div
+            animate={prefersReduced ? {} : { rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          >
+            <Zap className="w-6 h-6 text-white drop-shadow-lg" />
+          </motion.div>
+        )}
         {phase === 'speaking' && (
           <motion.div
-            animate={{ scale: [1, 1.15, 1] }}
+            animate={prefersReduced ? {} : { scale: [1, 1.15, 1] }}
             transition={{ duration: 0.8, repeat: Infinity }}
           >
             <Volume2 className="w-6 h-6 text-white drop-shadow-lg" />
