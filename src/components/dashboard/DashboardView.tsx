@@ -551,6 +551,10 @@ export function DashboardView() {
             <Smile className="w-4 h-4" />
             Sentimento
           </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Relatórios
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
