@@ -243,36 +243,7 @@ export function TeamChatInputArea({
         {/* Main input row */}
         <div className="flex items-end gap-1.5" role="toolbar" aria-label="Barra de mensagem">
           {/* + Menu */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn("text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 touch-manipulation", isMobile ? "w-10 h-10" : "w-9 h-9")}
-                aria-label="Mais opções"
-              >
-                <Plus className="w-[18px] h-[18px]" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-2 bg-popover border-border" align="start" side="top">
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-                  onClick={() => {
-                    // Trigger the file input via the toolbar's TeamFileUploader
-                    const fileInput = document.querySelector<HTMLInputElement>('.team-file-upload-input');
-                    fileInput?.click();
-                  }}
-                  aria-label="Enviar arquivo"
-                >
-                  <Zap className="w-4 h-4" />
-                  Enviar Arquivo
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <TeamFileUploader conversationId={conversationId} onFileSent={onFileSent} />
 
           {/* Textarea */}
           <div className="flex-1 min-w-0 relative">
