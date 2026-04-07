@@ -1,5 +1,6 @@
 import { NPSDashboard } from '@/components/nps/NPSDashboard';
 import { FollowUpSequences } from '@/components/settings/FollowUpSequences';
+import { QuickRepliesManager } from '@/components/inbox/QuickRepliesManager';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -124,7 +125,10 @@ export function SettingsView() {
         </TabsContent>
 
         <TabsContent value="messages">
-          <MessagesSettings settings={settings} updateSettings={updateSettings} />
+          <div className="space-y-6">
+            <MessagesSettings settings={settings} updateSettings={updateSettings} />
+            <QuickRepliesManager compact={false} />
+          </div>
         </TabsContent>
 
         <TabsContent value="automation">
