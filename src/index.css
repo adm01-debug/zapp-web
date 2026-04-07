@@ -889,24 +889,22 @@ select:focus-visible {
     transform: translateY(-1px);
   }
 
-  /* Glass Card — frosted premium */
+  /* Glass Card — solid premium */
   .glass-card {
     @apply rounded-xl p-6 border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
-    backdrop-filter: blur(16px) saturate(1.6);
   }
 
   .glass-card:hover {
-    border-color: hsl(var(--primary) / 0.2);
-    box-shadow: 0 8px 32px hsl(var(--primary) / 0.06);
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.1);
   }
 
   .glass-panel {
     @apply border transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
-    backdrop-filter: blur(20px) saturate(1.8);
     box-shadow: var(--shadow-lg);
   }
 
