@@ -24,7 +24,9 @@ interface StickerManagerProps {
 export function StickerManager({ onSend, mode = 'manager' }: StickerManagerProps) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<string>('all');
+  const [category, setCategory] = useState<string | null>(null);
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [showRecent, setShowRecent] = useState(false);
   const [gridSize, setGridSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
 
