@@ -175,11 +175,11 @@ export function VoiceSearchOverlay({
             className="absolute -inset-6 rounded-[36px] pointer-events-none"
             style={{
               filter: 'blur(28px)',
-              background: `radial-gradient(ellipse at center, ${colors.glow1}40, ${colors.glow2}25, transparent 70%)`,
+              background: `radial-gradient(ellipse at center, ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.25)')}, ${colors.glow2.replace('hsl(', 'hsla(').replace(')', ', 0.15)')}, transparent 70%)`,
             }}
             animate={prefersReduced ? {} : {
-              opacity: isActive ? [0.5, 0.9, 0.5] : [0.3, 0.6, 0.3],
-              scale: isActive ? [1, 1.05, 1] : [1, 1.02, 1],
+              opacity: isActive ? [0.6, 1, 0.6] : [0.4, 0.7, 0.4],
+              scale: isActive ? [1, 1.06, 1] : [1, 1.03, 1],
             }}
             transition={prefersReduced ? {} : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -187,7 +187,7 @@ export function VoiceSearchOverlay({
           <div
             className="absolute -inset-[1px] rounded-3xl pointer-events-none"
             style={{
-              boxShadow: `0 0 20px 4px ${colors.glow1}30, 0 0 60px 12px ${colors.glow2}18, inset 0 0 20px 2px ${colors.glow1}08`,
+              boxShadow: `0 0 20px 4px ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.19)')}, 0 0 60px 12px ${colors.glow2.replace('hsl(', 'hsla(').replace(')', ', 0.1)')}, inset 0 0 20px 2px ${colors.glow1.replace('hsl(', 'hsla(').replace(')', ', 0.03)')}`,
             }}
           />
           {/* Inner card fill */}
