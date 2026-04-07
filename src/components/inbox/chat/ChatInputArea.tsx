@@ -234,125 +234,28 @@ export function ChatInputArea({
     setTimeout(() => setSendAnimation(false), 400);
   }, [hasText, isOverLimit, contactId, isMobile, onSend]);
 
-  // Memoize quick replies list
-  const quickRepliesList = useMemo(() => (
-    quickReplies.slice(0, 50).map((reply) => (
-      <button
-        key={reply.id}
-        onClick={() => onQuickReply(reply)}
-        className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">{reply.title}</span>
-          <Badge variant="outline" className="text-[10px] border-border">
-            {reply.shortcut}
-          </Badge>
-        </div>
-      </button>
-    ))
-  ), [quickReplies, onQuickReply]);
-
-  // Tertiary tools (inside "+" menu)
+  // Tertiary tools menu (rendered via extracted component)
   const tertiaryTools = useMemo(() => (
-    <div className="flex flex-col gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onOpenInteractiveBuilder}
-        aria-label="Mensagem interativa"
-      >
-        <Layers className="w-4 h-4" />
-        Mensagem Interativa
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onOpenLocationPicker}
-        aria-label="Enviar localização"
-      >
-        <MapPin className="w-4 h-4" />
-        Localização
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onOpenSchedule}
-        aria-label="Agendar mensagem"
-      >
-        <Clock className="w-4 h-4" />
-        Agendar
-      </Button>
-      <ExternalProductCatalog
-        onSendProduct={onSendProduct}
-        trigger={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="justify-start gap-2 text-muted-foreground hover:text-foreground w-full"
-            aria-label="Catálogo de produtos"
-          >
-            <Package className="w-4 h-4" />
-            Catálogo
-          </Button>
-        }
-      />
-      <AdvancedMessageMenu
-        instanceName={instanceName || ''}
-        recipientNumber={contactPhone}
-        onPollSent={onPollSent}
-        onContactSent={onContactSent}
-      />
-      <AISuggestions
-        messages={messages.map(m => ({
-          id: m.id,
-          content: m.content,
-          sender: m.sender,
-          timestamp: m.timestamp
-        }))}
-        contactName={contactName}
-        onSelectSuggestion={onSelectSuggestion}
-      />
-      <MessageTemplates onSelectTemplate={onSelectTemplate} />
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="justify-start gap-2 text-muted-foreground hover:text-foreground w-full" aria-label="Respostas rápidas">
-            <Zap className="w-4 h-4" />
-            Respostas Rápidas
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 p-0 bg-popover border-border" align="start" side="top">
-          <div className="p-3 border-b border-border">
-            <h4 className="font-medium text-sm text-foreground">Respostas Rápidas</h4>
-          </div>
-          <div className="max-h-64 overflow-y-auto p-2 space-y-1">
-            {quickRepliesList}
-          </div>
-        </PopoverContent>
-      </Popover>
-      {onToggleSignature && (
-        <>
-          <div className="border-t border-border/50 my-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "justify-start gap-2 w-full",
-              signatureEnabled ? "text-primary hover:text-primary" : "text-muted-foreground hover:text-foreground"
-            )}
-            onClick={onToggleSignature}
-            aria-label={signatureEnabled ? "Desativar assinatura" : "Ativar assinatura"}
-          >
-            <PenTool className="w-4 h-4" />
-            {signatureEnabled ? `Assinatura: ${signatureName || 'Ativa'}` : 'Assinar mensagens'}
-            {signatureEnabled && <Check className="w-3.5 h-3.5 ml-auto" />}
-          </Button>
-        </>
-      )}
-    </div>
-  ), [instanceName, contactPhone, contactName, messages, quickRepliesList, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate, signatureEnabled, signatureName, onToggleSignature]);
+    <TertiaryToolsMenu
+      instanceName={instanceName}
+      contactPhone={contactPhone}
+      contactName={contactName}
+      messages={messages}
+      quickReplies={quickReplies}
+      onOpenInteractiveBuilder={onOpenInteractiveBuilder}
+      onOpenLocationPicker={onOpenLocationPicker}
+      onOpenSchedule={onOpenSchedule}
+      onSendProduct={onSendProduct}
+      onSelectSuggestion={onSelectSuggestion}
+      onSelectTemplate={onSelectTemplate}
+      onQuickReply={onQuickReply}
+      signatureEnabled={signatureEnabled}
+      signatureName={signatureName}
+      onToggleSignature={onToggleSignature}
+      onPollSent={onPollSent}
+      onContactSent={onContactSent}
+    />
+  ), [instanceName, contactPhone, contactName, messages, quickReplies, onOpenInteractiveBuilder, onOpenLocationPicker, onOpenSchedule, onSendProduct, onSelectSuggestion, onSelectTemplate, signatureEnabled, signatureName, onToggleSignature]);
 
   return (
     <>
