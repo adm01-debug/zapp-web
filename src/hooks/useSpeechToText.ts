@@ -19,7 +19,9 @@ interface SpeechToTextReturn {
   toggleListening: () => void;
 }
 
-type SpeechRecognitionCtor = new () => globalThis.SpeechRecognition;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SpeechRecognitionInstance = any;
+type SpeechRecognitionCtor = new () => SpeechRecognitionInstance;
 
 function getSpeechRecognition(): SpeechRecognitionCtor | null {
   if (typeof window === 'undefined') return null;
@@ -31,7 +33,7 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
   const { language = 'pt-BR', continuous = true, onResult, onEnd } = options;
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const onResultRef = useRef(onResult);
   const onEndRef = useRef(onEnd);
 
