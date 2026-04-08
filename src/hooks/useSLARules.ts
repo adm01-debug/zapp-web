@@ -66,7 +66,8 @@ export function useSLARules(scope?: SLARuleScope) {
 
   const createMutation = useMutation({
     mutationFn: async (form: SLARuleForm) => {
-      const { error } = await supabase.from('sla_rules').insert({
+      // Build base payload with typed fields; metadata uses Json cast for forward-compat
+      const base = {
         name: form.name,
         first_response_minutes: form.first_response_minutes,
         resolution_minutes: form.resolution_minutes,
@@ -77,12 +78,12 @@ export function useSLARules(scope?: SLARuleScope) {
         contact_type: form.contact_type || null,
         queue_id: form.queue_id || null,
         agent_id: form.agent_id || null,
-      });
+      };
+      const payload = form.metadata
+        ? { ...base, metadata: form.metadata as unknown as Json }
+        : base;
+      const { error } = await supabase.from('sla_rules').insert(payload);
       if (error) throw error;
-      // Update metadata separately if provided (column may not be in generated types yet)
-      if (form.metadata && Object.keys(form.metadata).length > 0) {
-        // metadata is stored via the same insert — handled by DB default
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sla-rules'] });
