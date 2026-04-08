@@ -383,5 +383,18 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
         </TooltipProvider>
       </div>
     </motion.div>
+
+    {showCallDialog && (
+      <Suspense fallback={null}>
+        <CallDialog
+          open={showCallDialog}
+          onOpenChange={setShowCallDialog}
+          contact={{ id: contact.id, name: contact.name, phone: contact.phone, avatar: contact.avatar }}
+          direction="outbound"
+          onEnd={() => setShowCallDialog(false)}
+        />
+      </Suspense>
+    )}
+    </>
   );
 }
