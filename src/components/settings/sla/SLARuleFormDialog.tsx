@@ -29,6 +29,7 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
     first_response_minutes: 5,
     resolution_minutes: 60,
     priority: 10,
+    metadata: { notify_on_warning: false, escalation_notes: '' },
   });
   const [scopeValue, setScopeValue] = useState('');
   const [contactSearch, setContactSearch] = useState('');
