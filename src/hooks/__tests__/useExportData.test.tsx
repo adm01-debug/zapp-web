@@ -1,5 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+import { AuthProvider } from '@/hooks/useAuth';
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: {
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      getSession: vi.fn(() => Promise.resolve({ data: { session: null } })),
+    },
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+      })),
+    })),
+  },
+}));
 
 vi.mock('xlsx', () => ({
   utils: {
