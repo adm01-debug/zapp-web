@@ -253,6 +253,9 @@ export function ChatSearchBar({
                 >
                   {f.icon}
                   {f.label}
+                  {(debouncedQuery.trim() || f.key !== 'all') && filterCounts[f.key] > 0 && (
+                    <span className="ml-0.5 text-[9px] opacity-70">{filterCounts[f.key]}</span>
+                  )}
                 </Badge>
               ))}
             </div>
