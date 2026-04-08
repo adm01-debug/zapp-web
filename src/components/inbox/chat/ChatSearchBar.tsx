@@ -77,6 +77,7 @@ export function ChatSearchBar({
       setFilter('all');
       setActiveIndex(0);
       onHighlightChangeRef.current(new Set(), null);
+      onSearchQueryChange?.('');
     }
   }, [isOpen]);
 
