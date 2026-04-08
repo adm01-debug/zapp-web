@@ -207,7 +207,7 @@ export function useNetworkStatus() {
     window.addEventListener('offline', handleOffline);
 
     // Connection API
-    const connection = navigator.connection;
+    const connection = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean; addEventListener?: Function; removeEventListener?: Function } }).connection;
     if (connection) {
       setConnectionType(connection.effectiveType);
       setIsSlowConnection(

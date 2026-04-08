@@ -19,7 +19,7 @@ interface SpeechToTextReturn {
   toggleListening: () => void;
 }
 
-type SpeechRecognitionCtor = new () => SpeechRecognition;
+type SpeechRecognitionCtor = new () => globalThis.SpeechRecognition;
 
 function getSpeechRecognition(): SpeechRecognitionCtor | null {
   if (typeof window === 'undefined') return null;
