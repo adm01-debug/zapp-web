@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HighlightedText } from './HighlightedText';
+import { format } from 'date-fns';
 import {
   Search,
   X,
