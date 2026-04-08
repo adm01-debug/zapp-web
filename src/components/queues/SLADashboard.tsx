@@ -268,9 +268,10 @@ export const SLADashboard = () => {
                   <Users className="h-6 w-6 text-warning" />
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                {periodLabels[period]}
-              </p>
+              <div className="flex items-center gap-3 mt-3">
+                <p className="text-sm text-muted-foreground flex-1">{periodLabels[period]}</p>
+                {sparkConversations.length >= 2 && <Sparkline data={sparkConversations} width={64} height={20} color="hsl(var(--warning))" />}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
