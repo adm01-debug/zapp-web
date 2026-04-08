@@ -313,7 +313,7 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
                 className="gap-2 text-xs"
               >
                 <Headphones className="w-3.5 h-3.5 text-info" />
-                Ligar via VoIP
+                Ligar via Telefone
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
