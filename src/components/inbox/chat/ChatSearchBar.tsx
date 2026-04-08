@@ -26,6 +26,7 @@ interface ChatSearchBarProps {
   onClose: () => void;
   onNavigateToMessage: (messageId: string) => void;
   onHighlightChange: (messageIds: Set<string>, activeId: string | null) => void;
+  onSearchQueryChange?: (query: string) => void;
 }
 
 const URL_REGEX = /https?:\/\/\S+/i;
@@ -51,6 +52,7 @@ export function ChatSearchBar({
   onClose,
   onNavigateToMessage,
   onHighlightChange,
+  onSearchQueryChange,
 }: ChatSearchBarProps) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<SearchFilter>('all');
@@ -67,21 +69,27 @@ export function ChatSearchBar({
 
   // Focus input on open, reset state on close
   useEffect(() => {
+    let focusTimer: ReturnType<typeof setTimeout> | null = null;
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      focusTimer = setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setQuery('');
       setDebouncedQuery('');
       setFilter('all');
       setActiveIndex(0);
       onHighlightChangeRef.current(new Set(), null);
+      onSearchQueryChange?.('');
     }
+    return () => { if (focusTimer) clearTimeout(focusTimer); };
   }, [isOpen]);
 
   // Debounce query
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedQuery(query), 200);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(query);
+      onSearchQueryChange?.(query);
+    }, 200);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
@@ -111,6 +119,32 @@ export function ChatSearchBar({
       return searchable.includes(q);
     });
   }, [messages, debouncedQuery, filter]);
+
+  // Compute counts per filter type for chips
+  const filterCounts = useMemo(() => {
+    const activeMessages = messages.filter((m) => !m.is_deleted);
+    const matchesQuery = (msg: Message) => {
+      if (!debouncedQuery.trim()) return true;
+      const q = normalizeText(debouncedQuery);
+      return normalizeText([msg.content, msg.transcription, msg.mediaUrl].filter(Boolean).join(' ')).includes(q);
+    };
+
+    const counts: Record<SearchFilter, number> = {
+      all: 0, text: 0, image: 0, video: 0, audio: 0, document: 0, link: 0,
+    };
+
+    for (const msg of activeMessages) {
+      if (!matchesQuery(msg)) continue;
+      counts.all++;
+      if (msg.type === 'text') counts.text++;
+      if (msg.type === 'image') counts.image++;
+      if (msg.type === 'video') counts.video++;
+      if (msg.type === 'audio') counts.audio++;
+      if (msg.type === 'document') counts.document++;
+      if (URL_REGEX.test(msg.content || '')) counts.link++;
+    }
+    return counts;
+  }, [messages, debouncedQuery]);
 
   // Update highlights when results or activeIndex change
   useEffect(() => {
@@ -151,9 +185,9 @@ export function ChatSearchBar({
           transition={{ duration: 0.2, ease: 'easeInOut' }}
           className="overflow-hidden border-b border-border bg-card shrink-0"
         >
-          <div className="px-3 py-2 space-y-2">
+          <div className="px-2 md:px-3 py-2 space-y-1.5 md:space-y-2">
             {/* Search input row */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <Input
                 ref={inputRef}
@@ -161,7 +195,7 @@ export function ChatSearchBar({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Buscar na conversa..."
-                className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0"
+                className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 min-w-0"
               />
 
               {/* Result counter */}
@@ -178,7 +212,7 @@ export function ChatSearchBar({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7"
+                  className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
                   onClick={navigateUp}
                   disabled={results.length === 0}
                 >
@@ -187,7 +221,7 @@ export function ChatSearchBar({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7"
+                  className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
                   onClick={navigateDown}
                   disabled={results.length === 0}
                 >
@@ -198,7 +232,7 @@ export function ChatSearchBar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-7 h-7 shrink-0"
+                className="w-8 h-8 md:w-7 md:h-7 shrink-0 touch-manipulation"
                 onClick={onClose}
               >
                 <X className="w-4 h-4" />
@@ -221,6 +255,9 @@ export function ChatSearchBar({
                 >
                   {f.icon}
                   {f.label}
+                  {(debouncedQuery.trim() || f.key !== 'all') && filterCounts[f.key] > 0 && (
+                    <span className="ml-0.5 text-[9px] opacity-70">{filterCounts[f.key]}</span>
+                  )}
                 </Badge>
               ))}
             </div>

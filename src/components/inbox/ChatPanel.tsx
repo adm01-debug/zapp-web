@@ -65,6 +65,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [showChatSearch, setShowChatSearch] = useState(false);
   const [highlightedMessageIds, setHighlightedMessageIds] = useState<Set<string>>(new Set());
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
@@ -104,6 +105,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   useEffect(() => { initResolve(); }, [conversation.contact.id]);
   useEffect(() => { messagesAreaRef.current?.scrollToBottom(); }, [messages, isContactTyping]);
+
+  // Reset chat search when switching conversations
+  useEffect(() => {
+    setShowChatSearch(false);
+    setHighlightedMessageIds(new Set());
+    setActiveHighlightId(null);
+    setSearchQuery('');
+  }, [conversation.id]);
 
   // Global Ctrl+F handler for chat search
   useEffect(() => {
@@ -311,6 +320,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onClose={() => setShowChatSearch(false)}
           onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
+          onSearchQueryChange={setSearchQuery}
         />
 
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
@@ -324,7 +334,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''} contactAvatar={conversation.contact.avatar || undefined}
           onSpeak={speak} onStop={stop} onReply={handleReplyToMessage} onForward={handleForwardMessage} onCopy={handleCopyMessage}
           onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart}
-          highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} />
+          highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} searchQuery={searchQuery} />
 
         <ChatQuickRepliesPopover show={showQuickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => setShowQuickReplies(false)} />
 
