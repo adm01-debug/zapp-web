@@ -32,8 +32,14 @@ CREATE TABLE public.connection_transfers (
 
 ALTER TABLE public.connection_transfers ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Authenticated users can view transfers"
-ON public.connection_transfers FOR SELECT TO authenticated USING (true);
+-- Agents can only see transfers where they are source or target agent
+CREATE POLICY "Users can view their transfers"
+ON public.connection_transfers FOR SELECT TO authenticated
+USING (
+  source_agent_id IN (SELECT id FROM public.profiles WHERE user_id = auth.uid())
+  OR target_agent_id IN (SELECT id FROM public.profiles WHERE user_id = auth.uid())
+  OR EXISTS (SELECT 1 FROM public.profiles WHERE user_id = auth.uid() AND role IN ('admin', 'supervisor'))
+);
 
 CREATE POLICY "Authenticated users can create transfers"
 ON public.connection_transfers FOR INSERT TO authenticated

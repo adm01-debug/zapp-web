@@ -354,9 +354,12 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     incrementUseCount(reply.id);
   };
 
+  const [isTransferring, setIsTransferring] = useState(false);
+
   const handleTransfer = async (type: 'agent' | 'queue' | 'connection', targetId: string, message?: string) => {
     if (type === 'connection') {
-      // Cross-connection transfer via Edge Function
+      if (isTransferring) return; // Double-click guard
+      setIsTransferring(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Not authenticated');
@@ -372,16 +375,20 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         if (response.error) throw new Error(response.error.message);
 
-        toast({
-          title: 'Transferido para outra conexão!',
-          description: response.data?.message || 'O cliente receberá uma mensagem do novo número.',
-        });
+        const data = response.data;
+        if (data?.success === false) {
+          toast({ title: 'Transferência parcial', description: data.error, variant: 'destructive' });
+        } else {
+          toast({ title: 'Transferido!', description: data?.message || 'Conversa transferida com sucesso.' });
+        }
       } catch (err) {
         toast({
           title: 'Erro na transferência',
           description: err instanceof Error ? err.message : 'Falha ao transferir conversa',
           variant: 'destructive',
         });
+      } finally {
+        setIsTransferring(false);
       }
     } else {
       toast({
