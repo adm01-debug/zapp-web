@@ -5,6 +5,7 @@ import { Message } from '@/types/chat';
 
 const makeMockMessage = (overrides: Partial<Message> = {}): Message => ({
   id: crypto.randomUUID(),
+  conversationId: 'conv-1',
   content: 'mensagem padrão',
   sender: 'contact' as const,
   senderName: 'João',
@@ -13,7 +14,7 @@ const makeMockMessage = (overrides: Partial<Message> = {}): Message => ({
   status: 'delivered',
   is_deleted: false,
   ...overrides,
-});
+} as Message);
 
 const buildMessages = (): Message[] => [
   makeMockMessage({ id: 'm1', content: 'Olá, tudo bem?', type: 'text' }),
