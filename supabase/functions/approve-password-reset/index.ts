@@ -122,19 +122,10 @@ serve(async (req) => {
     console.log("Password reset approved, link generated");
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Solicitação aprovada",
-        resetLink: resetData.properties?.action_link 
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: "Solicitação aprovada e email enviado",
-        resetLink: resetData.properties?.action_link 
+        resetLink: resetData.properties?.action_link
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
