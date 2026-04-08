@@ -88,6 +88,10 @@ export function AIProvidersManager() {
         onSave={() => saveMutation.mutate(form)}
         toggleUseFor={toggleUseFor}
       />
+
+      {/* Health Monitoring */}
+      <AIProviderHealthPanel />
+    </div>
     </div>
   );
 }
