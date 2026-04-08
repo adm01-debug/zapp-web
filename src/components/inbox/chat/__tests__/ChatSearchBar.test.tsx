@@ -29,14 +29,14 @@ const MESSAGES: Message[] = [
 ];
 
 describe('ChatSearchBar', () => {
-  let onClose: () => void;
-  let onNavigateToMessage: (messageId: string) => void;
-  let onHighlightChange: (messageIds: Set<string>, activeId: string | null) => void;
+  let onClose: ReturnType<typeof vi.fn>;
+  let onNavigateToMessage: ReturnType<typeof vi.fn>;
+  let onHighlightChange: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    onClose = vi.fn();
-    onNavigateToMessage = vi.fn();
-    onHighlightChange = vi.fn();
+    onClose = vi.fn() as any;
+    onNavigateToMessage = vi.fn() as any;
+    onHighlightChange = vi.fn() as any;
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
