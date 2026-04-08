@@ -413,7 +413,18 @@ export const SLADashboard = () => {
       </div>
 
       {/* Configuração de Prazos */}
-      <SLAConfigurationManager />
+      <Tabs defaultValue="global" className="w-full">
+        <TabsList className="bg-muted/50 p-1">
+          <TabsTrigger value="global">Configuração Global</TabsTrigger>
+          <TabsTrigger value="granular">Regras Granulares</TabsTrigger>
+        </TabsList>
+        <TabsContent value="global">
+          <SLAConfigurationManager />
+        </TabsContent>
+        <TabsContent value="granular">
+          <SLARulesManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
