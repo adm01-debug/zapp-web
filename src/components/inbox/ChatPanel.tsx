@@ -105,6 +105,18 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   useEffect(() => { initResolve(); }, [conversation.contact.id]);
   useEffect(() => { messagesAreaRef.current?.scrollToBottom(); }, [messages, isContactTyping]);
 
+  // Global Ctrl+F handler for chat search
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setShowChatSearch(true);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   // ── Handlers ──
   const EDIT_WINDOW_MINUTES = 15;
 
