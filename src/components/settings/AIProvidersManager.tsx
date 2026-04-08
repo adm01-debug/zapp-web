@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -93,7 +94,7 @@ export function AIProvidersManager() {
         api_key_secret_name: payload.api_key_secret_name || null,
         model: payload.model || null,
         system_prompt: payload.system_prompt || null,
-        config: payload.config || {},
+        config: (payload.config || {}) as unknown as Json,
         is_active: payload.is_active,
         is_default: payload.is_default,
         use_for: payload.use_for,
