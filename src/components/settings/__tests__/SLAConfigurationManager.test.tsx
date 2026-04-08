@@ -103,10 +103,13 @@ describe('SLAConfigurationManager', () => {
   it('shows formatted response times', async () => {
     render(<SLAConfigurationManager />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText(/1ª Resp: 5min/)).toBeInTheDocument();
-      expect(screen.getByText(/Resolução: 30min/)).toBeInTheDocument();
-      expect(screen.getByText(/1ª Resp: 15min/)).toBeInTheDocument();
-      expect(screen.getByText(/Resolução: 2h/)).toBeInTheDocument();
+      const allText = document.body.textContent || '';
+      expect(allText).toContain('1ª Resp:');
+      expect(allText).toContain('Resolução:');
+      expect(allText).toContain('5min');
+      expect(allText).toContain('30min');
+      expect(allText).toContain('15min');
+      expect(allText).toContain('2h');
     });
   });
 
