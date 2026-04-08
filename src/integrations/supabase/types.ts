@@ -4314,6 +4314,86 @@ export type Database = {
         }
         Relationships: []
       }
+      sla_rules: {
+        Row: {
+          agent_id: string | null
+          company: string | null
+          contact_id: string | null
+          contact_type: string | null
+          created_at: string
+          first_response_minutes: number
+          id: string
+          is_active: boolean
+          job_title: string | null
+          name: string
+          priority: number
+          queue_id: string | null
+          resolution_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          company?: string | null
+          contact_id?: string | null
+          contact_type?: string | null
+          created_at?: string
+          first_response_minutes?: number
+          id?: string
+          is_active?: boolean
+          job_title?: string | null
+          name: string
+          priority?: number
+          queue_id?: string | null
+          resolution_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          company?: string | null
+          contact_id?: string | null
+          contact_type?: string | null
+          created_at?: string
+          first_response_minutes?: number
+          id?: string
+          is_active?: boolean
+          job_title?: string | null
+          name?: string
+          priority?: number
+          queue_id?: string | null
+          resolution_minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_rules_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_rules_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_rules_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_rules_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stickers: {
         Row: {
           category: string | null
