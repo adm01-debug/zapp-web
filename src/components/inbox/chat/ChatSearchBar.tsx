@@ -83,7 +83,10 @@ export function ChatSearchBar({
   // Debounce query
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedQuery(query), 200);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(query);
+      onSearchQueryChange?.(query);
+    }, 200);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
