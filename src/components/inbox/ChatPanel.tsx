@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { toast as sonnerToast } from 'sonner';
 import { undoToast } from '@/lib/undoToast';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { FileUploaderRef } from './FileUploader';
@@ -78,6 +79,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [showWhisper, setShowWhisper] = useState(false);
   const [showTemplatesWithVars, setShowTemplatesWithVars] = useState(false);
   const [showRealtimeTranscription, setShowRealtimeTranscription] = useState(false);
+  const [summaryData, setSummaryData] = useState<Record<string, unknown> | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  const [hasSummary, setHasSummary] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -113,6 +117,39 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     setActiveHighlightId(null);
     setSearchQuery('');
   }, [conversation.id]);
+
+  // Reset summary when switching conversations
+  useEffect(() => {
+    setSummaryData(null);
+    setHasSummary(false);
+  }, [conversation.id]);
+
+  const canGenerateSummary = messages.length >= 10;
+
+  const handleGenerateSummary = async () => {
+    if (!canGenerateSummary) {
+      sonnerToast.error('A conversa precisa ter pelo menos 10 mensagens para gerar um resumo.');
+      return;
+    }
+    setIsSummaryLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-conversation-summary', {
+        body: {
+          messages: messages.map(m => ({ sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() })),
+          contactName: conversation.contact.name,
+        },
+      });
+      if (error) throw error;
+      setSummaryData(data);
+      setHasSummary(true);
+      sonnerToast.success('Resumo gerado com sucesso!');
+    } catch (error) {
+      log.error('Error generating summary:', error);
+      sonnerToast.error('Erro ao gerar resumo. Tente novamente.');
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  };
 
   // Global Ctrl+F handler for chat search (toggle)
   useEffect(() => {
@@ -311,7 +348,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             voiceId={voiceId} speed={speed} onToggleAIAssistant={() => setShowAIAssistant(!showAIAssistant)} onToggleDetails={onToggleDetails}
             onStartCall={() => { setCallDirection('outbound'); setShowCallDialog(true); }} onOpenSearch={() => setShowChatSearch(true)}
             onOpenTransfer={() => setShowTransferDialog(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
-            onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack} />
+            onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
+            onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary} />
         )}
 
         <ChatSearchBar
@@ -325,9 +363,11 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
 
-        <Suspense fallback={null}>
-          <ConversationSummary messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))} contactName={conversation.contact.name} />
-        </Suspense>
+        {hasSummary && summaryData && (
+          <Suspense fallback={null}>
+            <ConversationSummary messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))} contactName={conversation.contact.name} initialSummary={summaryData} />
+          </Suspense>
+        )}
 
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
           ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}

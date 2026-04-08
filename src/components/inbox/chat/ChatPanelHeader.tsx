@@ -34,6 +34,8 @@ import {
   Brain,
   Info,
   ExternalLink,
+  FileText,
+  Loader2,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 
@@ -53,6 +55,9 @@ interface ChatPanelHeaderProps {
   onVoiceChange: (voiceId: string) => void;
   onSpeedChange: (speed: number) => void;
   onBack?: () => void;
+  onGenerateSummary?: () => void;
+  isSummaryLoading?: boolean;
+  canGenerateSummary?: boolean;
 }
 
 export function ChatPanelHeader({
@@ -71,6 +76,9 @@ export function ChatPanelHeader({
   onVoiceChange,
   onSpeedChange,
   onBack,
+  onGenerateSummary,
+  isSummaryLoading,
+  canGenerateSummary,
 }: ChatPanelHeaderProps) {
   const isMobile = useIsMobile();
   
@@ -158,6 +166,27 @@ export function ChatPanelHeader({
           </TooltipTrigger>
           <TooltipContent side="bottom">Assistente IA</TooltipContent>
         </Tooltip>
+
+        {canGenerateSummary && onGenerateSummary && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                onClick={onGenerateSummary}
+                disabled={isSummaryLoading}
+              >
+                {isSummaryLoading ? (
+                  <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                ) : (
+                  <FileText className="w-[18px] h-[18px]" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Gerar resumo da conversa</TooltipContent>
+          </Tooltip>
+        )}
 
         {onToggleDetails && (
           <Tooltip>

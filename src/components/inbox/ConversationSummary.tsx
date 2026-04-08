@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { 
@@ -37,6 +37,7 @@ interface SummaryData {
 interface ConversationSummaryProps {
   messages: Message[];
   contactName: string;
+  initialSummary?: Record<string, unknown> | null;
 }
 
 const statusConfig = {
@@ -52,11 +53,19 @@ const sentimentConfig = {
   negativo: { label: 'Negativo', icon: ThumbsDown, className: 'text-destructive' },
 };
 
-export function ConversationSummary({ messages, contactName }: ConversationSummaryProps) {
-  const [summary, setSummary] = useState<SummaryData | null>(null);
+export function ConversationSummary({ messages, contactName, initialSummary }: ConversationSummaryProps) {
+  const [summary, setSummary] = useState<SummaryData | null>((initialSummary as unknown as SummaryData) ?? null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!!initialSummary);
+  const [hasGenerated, setHasGenerated] = useState(!!initialSummary);
+
+  useEffect(() => {
+    if (initialSummary) {
+      setSummary(initialSummary as unknown as SummaryData);
+      setHasGenerated(true);
+      setIsExpanded(true);
+    }
+  }, [initialSummary]);
 
   const canGenerateSummary = messages.length >= 10;
 
@@ -93,32 +102,16 @@ export function ConversationSummary({ messages, contactName }: ConversationSumma
     }
   };
 
-  if (!canGenerateSummary && !hasGenerated) {
+  if (!hasGenerated || !summary) {
     return null;
   }
 
-  const StatusIcon = summary ? statusConfig[summary.status].icon : Clock;
-  const SentimentIcon = summary ? sentimentConfig[summary.sentiment].icon : Minus;
+  const StatusIcon = statusConfig[summary.status].icon;
+  const SentimentIcon = sentimentConfig[summary.sentiment].icon;
 
   return (
     <div className="px-4 py-2">
-      {!hasGenerated ? (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={generateSummary}
-          disabled={isLoading}
-          className="w-full gap-2 border-primary/30 hover:border-primary/50 hover:bg-primary/10"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <FileText className="h-4 w-4" />
-          )}
-          {isLoading ? 'Gerando resumo...' : 'Gerar resumo da conversa'}
-        </Button>
-      ) : (
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader 
             className="py-3 px-4 cursor-pointer hover:bg-muted/30 transition-colors"
             onClick={() => setIsExpanded(!isExpanded)}
@@ -217,7 +210,6 @@ export function ConversationSummary({ messages, contactName }: ConversationSumma
             )}
           </AnimatePresence>
         </Card>
-      )}
     </div>
   );
 }
