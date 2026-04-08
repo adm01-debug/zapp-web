@@ -41,6 +41,7 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
         first_response_minutes: editingRule.first_response_minutes,
         resolution_minutes: editingRule.resolution_minutes,
         priority: editingRule.priority,
+        metadata: editingRule.metadata || { notify_on_warning: false, escalation_notes: '' },
       });
       setScopeValue(
         editingRule.contact_id || editingRule.company || editingRule.job_title ||
