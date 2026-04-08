@@ -324,13 +324,17 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
                 variant="outline"
                 size="icon"
                 className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                onClick={() => contact.email && copyToClipboard(contact.email, 'Email')}
+                onClick={() => {
+                  if (contact.email) {
+                    window.location.hash = '#email-chat';
+                  }
+                }}
                 disabled={!contact.email}
               >
                 <Mail className="w-4 h-4 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">{contact.email || 'Sem email'}</TooltipContent>
+            <TooltipContent side="top">{contact.email ? 'Abrir email' : 'Sem email'}</TooltipContent>
           </Tooltip>
 
           {/* Sync CRM */}
