@@ -239,6 +239,9 @@ function RuleFormDialog({ open, onOpenChange, scope, editingRule }: {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{editingRule ? 'Editar Regra de SLA' : 'Nova Regra de SLA'}</DialogTitle>
+          <DialogDescription>
+            {editingRule ? 'Atualize os prazos e escopo desta regra.' : 'Defina prazos específicos de resposta e resolução para este escopo.'}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
