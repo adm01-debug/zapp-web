@@ -25,6 +25,7 @@ export function AudioMessagePlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -448,6 +449,28 @@ export function AudioMessagePlayer({
             )}
           </div>
         </div>
+
+        {/* Speed toggle button */}
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <button
+            onClick={() => {
+              const speeds = [1, 1.25, 1.5, 1.75, 2, 0.5, 0.75];
+              const nextIndex = (speeds.indexOf(playbackRate) + 1) % speeds.length;
+              const newRate = speeds[nextIndex];
+              setPlaybackRate(newRate);
+              if (audioRef.current) audioRef.current.playbackRate = newRate;
+            }}
+            className={cn(
+              'h-6 px-1.5 rounded-full text-[10px] font-semibold transition-colors',
+              isSent
+                ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground'
+                : 'bg-primary/10 hover:bg-primary/20 text-primary'
+            )}
+            title="Velocidade de reprodução"
+          >
+            {playbackRate}x
+          </button>
+        </motion.div>
 
         {/* Transcription toggle button */}
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>

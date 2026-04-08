@@ -255,6 +255,16 @@ interface VideoFullscreenProps {
 
 function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
   const [isMuted, setIsMuted] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const cycleSpeed = () => {
+    const speeds = [1, 1.25, 1.5, 1.75, 2, 0.5, 0.75];
+    const nextIndex = (speeds.indexOf(playbackRate) + 1) % speeds.length;
+    const newRate = speeds[nextIndex];
+    setPlaybackRate(newRate);
+    if (videoRef.current) videoRef.current.playbackRate = newRate;
+  };
 
   return (
     <motion.div
@@ -281,6 +291,19 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Button
             variant="secondary"
+            size="sm"
+            className="h-9 px-3 font-semibold text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              cycleSpeed();
+            }}
+          >
+            {playbackRate}x
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="secondary"
             size="icon"
             disabled
             className="opacity-50 cursor-not-allowed"
@@ -301,6 +324,7 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
 
       {/* Video */}
       <video
+        ref={videoRef}
         src={url}
         controls
         controlsList="nodownload"
@@ -308,6 +332,9 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
         muted={isMuted}
         onContextMenu={(e) => e.preventDefault()}
         onClick={(e) => e.stopPropagation()}
+        onLoadedMetadata={() => {
+          if (videoRef.current) videoRef.current.playbackRate = playbackRate;
+        }}
         className="max-w-[90vw] max-h-[85vh] rounded-lg shadow-2xl"
       />
     </motion.div>
