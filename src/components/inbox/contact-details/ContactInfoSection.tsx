@@ -98,7 +98,57 @@ function EditableField({ value, icon, onSave, placeholder, label }: EditableFiel
   );
 }
 
-export function ContactInfoSection({ contact, enrichedData }: ContactInfoSectionProps) {
+const CONTACT_TYPES = [
+  { value: 'cliente', label: 'Cliente', icon: Users, color: 'text-info' },
+  { value: 'colaborador', label: 'Colaborador', icon: UserCheck, color: 'text-success' },
+  { value: 'fornecedor', label: 'Fornecedor', icon: Truck, color: 'text-secondary' },
+  { value: 'prestador_servico', label: 'Prestador de Serviço', icon: Wrench, color: 'text-warning' },
+  { value: 'transportadora', label: 'Transportadora', icon: Truck, color: 'text-info' },
+];
+
+function ContactTypeSelector({ value, onChange }: { value: string; onChange: (v: string) => Promise<void> }) {
+  const [saving, setSaving] = useState(false);
+  const current = CONTACT_TYPES.find((t) => t.value === value) || CONTACT_TYPES[0];
+  const Icon = current.icon;
+
+  const handleChange = async (v: string) => {
+    if (v === value) return;
+    setSaving(true);
+    try {
+      await onChange(v);
+      toast.success('Tipo de contato atualizado!');
+    } catch {
+      toast.error('Erro ao atualizar tipo');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 bg-muted/20 rounded-lg p-1.5">
+      <Icon className={`w-4 h-4 ml-1 shrink-0 ${current.color}`} />
+      <Select value={value} onValueChange={handleChange} disabled={saving}>
+        <SelectTrigger className="h-7 text-xs border-0 bg-transparent focus:ring-0 px-1 gap-1 flex-1">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {CONTACT_TYPES.map((t) => {
+            const TIcon = t.icon;
+            return (
+              <SelectItem key={t.value} value={t.value}>
+                <span className="flex items-center gap-2">
+                  <TIcon className={`w-3.5 h-3.5 ${t.color}`} />
+                  <span className="text-xs">{t.label}</span>
+                </span>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
