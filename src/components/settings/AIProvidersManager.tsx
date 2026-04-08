@@ -103,7 +103,7 @@ export function AIProvidersManager() {
         const { error } = await supabase.from('ai_providers').update(record).eq('id', editingId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('ai_providers').insert(record as any);
+        const { error } = await supabase.from('ai_providers').insert(record as never);
         if (error) throw error;
       }
     },
