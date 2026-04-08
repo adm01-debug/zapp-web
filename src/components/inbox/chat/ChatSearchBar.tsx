@@ -210,13 +210,14 @@ export function ChatSearchBar({
               )}
 
               {/* Navigate arrows */}
-              <div className="flex items-center gap-0.5 shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0" role="group" aria-label="Navegar entre resultados">
                 <Button
                   variant="ghost"
                   size="icon"
                   className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
                   onClick={navigateUp}
                   disabled={results.length === 0}
+                  aria-label="Resultado anterior"
                 >
                   <ChevronUp className="w-4 h-4" />
                 </Button>
@@ -226,6 +227,7 @@ export function ChatSearchBar({
                   className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
                   onClick={navigateDown}
                   disabled={results.length === 0}
+                  aria-label="Próximo resultado"
                 >
                   <ChevronDown className="w-4 h-4" />
                 </Button>
