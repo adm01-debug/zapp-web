@@ -7,7 +7,7 @@ import { TypingIndicatorCompact } from '../TypingIndicator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
-import { SpeedSelector } from '../SpeedSelector';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -213,10 +213,6 @@ export function ChatPanelHeader({
         <VoiceSelector
           selectedVoiceId={voiceId}
           onVoiceChange={onVoiceChange}
-        />
-        <SpeedSelector
-          speed={speed}
-          onSpeedChange={onSpeedChange}
         />
 
 

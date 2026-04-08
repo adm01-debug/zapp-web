@@ -8,7 +8,7 @@ import { motion } from '@/components/ui/motion';
 import { TypingIndicatorCompact } from '../TypingIndicator';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
-import { SpeedSelector } from '../SpeedSelector';
+
 import { KeyboardShortcutsHelp } from '../KeyboardShortcutsHelp';
 import { QueuePositionNotifier } from '../QueuePositionNotifier';
 import { RealtimeCollaboration } from '../RealtimeCollaboration';
@@ -377,10 +377,6 @@ export function ChatHeader({
         <VoiceSelector
           selectedVoiceId={voiceId}
           onVoiceChange={onVoiceChange}
-        />
-        <SpeedSelector
-          speed={speed}
-          onSpeedChange={onSpeedChange}
         />
 
         <KeyboardShortcutsHelp />
