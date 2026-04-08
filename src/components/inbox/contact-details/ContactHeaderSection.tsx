@@ -248,8 +248,13 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
       )}
       <p className="text-xs text-muted-foreground mt-0.5 font-mono tracking-tight">{contact.phone}</p>
 
-      {/* Badges row */}
+      {/* Badges row - contact type first, then sentiment */}
       <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
+        {contactType && contactTypeConfig[contactType] && (
+          <Badge variant="outline" className={`text-[10px] ${contactTypeConfig[contactType].color}`}>
+            {contactTypeConfig[contactType].label}
+          </Badge>
+        )}
         {isVip && (
           <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30">
             <Crown className="w-3 h-3 mr-0.5" />
@@ -264,23 +269,6 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
         {priority && priorityConfig[priority] && (
           <Badge variant="outline" className={`text-[10px] ${priorityConfig[priority].color}`}>
             {priorityConfig[priority].label}
-          </Badge>
-        )}
-      </div>
-
-      {/* Vendedor responsável */}
-      {crmCustomer?.vendedor_nome && (
-        <Badge variant="secondary" className="text-[10px] bg-muted/30 text-muted-foreground mt-1.5">
-          <User className="w-3 h-3 mr-0.5" />
-          {crmCustomer.vendedor_nome}
-        </Badge>
-      )}
-
-      {/* Contact type badge + Action icons row */}
-      <div className="flex items-center gap-1.5 mt-3">
-        {contactType && contactTypeConfig[contactType] && (
-          <Badge variant="outline" className={`text-[10px] ${contactTypeConfig[contactType].color}`}>
-            {contactTypeConfig[contactType].label}
           </Badge>
         )}
       </div>
