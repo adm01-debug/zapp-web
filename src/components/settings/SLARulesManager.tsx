@@ -143,7 +143,7 @@ function RuleFormDialog({ open, onOpenChange, scope, editingRule }: {
   const [contactSearch, setContactSearch] = useState('');
 
   // Reset form when opening
-  useState(() => {
+  useEffect(() => {
     if (open && editingRule) {
       setForm({
         name: editingRule.name,
@@ -158,8 +158,9 @@ function RuleFormDialog({ open, onOpenChange, scope, editingRule }: {
     } else if (open) {
       setForm({ name: '', first_response_minutes: 5, resolution_minutes: 60, priority: 10 });
       setScopeValue('');
+      setContactSearch('');
     }
-  });
+  }, [open, editingRule]);
 
   // Fetch scope options
   const { data: companies = [] } = useQuery({
