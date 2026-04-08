@@ -245,6 +245,33 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
               className="mt-1"
             />
           </div>
+
+          <Separator className="my-1" />
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <Bell className="w-3.5 h-3.5" /> Escalação
+            </p>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={form.metadata?.notify_on_warning ?? false}
+                onCheckedChange={v => setForm(f => ({ ...f, metadata: { ...f.metadata, notify_on_warning: v } }))}
+              />
+              <Label className="text-xs">Notificar ao atingir limite de aviso (70%)</Label>
+            </div>
+            <div>
+              <Label className="text-xs font-medium flex items-center gap-1">
+                <FileText className="w-3 h-3" /> Notas de Escalação
+              </Label>
+              <Textarea
+                value={form.metadata?.escalation_notes || ''}
+                onChange={e => setForm(f => ({ ...f, metadata: { ...f.metadata, escalation_notes: e.target.value } }))}
+                placeholder="Ex: Escalar para gerente se violado..."
+                className="mt-1 text-xs min-h-[60px]"
+                maxLength={500}
+              />
+            </div>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
