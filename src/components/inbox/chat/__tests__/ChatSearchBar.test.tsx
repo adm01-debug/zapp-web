@@ -29,9 +29,9 @@ const MESSAGES: Message[] = [
 ];
 
 describe('ChatSearchBar', () => {
-  let onClose: ReturnType<typeof vi.fn>;
-  let onNavigateToMessage: ReturnType<typeof vi.fn>;
-  let onHighlightChange: ReturnType<typeof vi.fn>;
+  let onClose: () => void;
+  let onNavigateToMessage: (messageId: string) => void;
+  let onHighlightChange: (messageIds: Set<string>, activeId: string | null) => void;
 
   beforeEach(() => {
     onClose = vi.fn();
