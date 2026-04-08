@@ -1,0 +1,237 @@
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useSLARules, SLARuleForm, SLARule, SLARuleScope } from '@/hooks/useSLARules';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { Search } from 'lucide-react';
+import { CONTACT_TYPES, SCOPE_LABELS } from './sla-utils';
+
+interface SLARuleFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  scope: SLARuleScope;
+  editingRule: SLARule | null;
+}
+
+export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SLARuleFormDialogProps) {
+  const { createRule, updateRule, isCreating, isUpdating } = useSLARules(scope);
+  const [form, setForm] = useState<SLARuleForm>({
+    name: '',
+    first_response_minutes: 5,
+    resolution_minutes: 60,
+    priority: 10,
+  });
+  const [scopeValue, setScopeValue] = useState('');
+  const [contactSearch, setContactSearch] = useState('');
+
+  useEffect(() => {
+    if (open && editingRule) {
+      setForm({
+        name: editingRule.name,
+        first_response_minutes: editingRule.first_response_minutes,
+        resolution_minutes: editingRule.resolution_minutes,
+        priority: editingRule.priority,
+      });
+      setScopeValue(
+        editingRule.contact_id || editingRule.company || editingRule.job_title ||
+        editingRule.contact_type || editingRule.queue_id || editingRule.agent_id || ''
+      );
+    } else if (open) {
+      setForm({ name: '', first_response_minutes: 5, resolution_minutes: 60, priority: 10 });
+      setScopeValue('');
+      setContactSearch('');
+    }
+  }, [open, editingRule]);
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ['sla-scope-companies'],
+    queryFn: async () => {
+      const { data } = await supabase.from('contacts').select('company').not('company', 'is', null);
+      return [...new Set((data || []).map(d => d.company).filter(Boolean))] as string[];
+    },
+    enabled: open && scope === 'company',
+  });
+
+  const { data: jobTitles = [] } = useQuery({
+    queryKey: ['sla-scope-jobtitles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('contacts').select('job_title').not('job_title', 'is', null);
+      return [...new Set((data || []).map(d => d.job_title).filter(Boolean))] as string[];
+    },
+    enabled: open && scope === 'job_title',
+  });
+
+  const { data: queues = [] } = useQuery({
+    queryKey: ['sla-scope-queues'],
+    queryFn: async () => {
+      const { data } = await supabase.from('queues').select('id, name');
+      return data || [];
+    },
+    enabled: open && scope === 'queue',
+  });
+
+  const { data: agents = [] } = useQuery({
+    queryKey: ['sla-scope-agents'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, name').eq('is_active', true);
+      return data || [];
+    },
+    enabled: open && scope === 'agent',
+  });
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['sla-scope-contacts', contactSearch],
+    queryFn: async () => {
+      const { data } = await supabase.from('contacts').select('id, name, phone')
+        .or(`name.ilike.%${contactSearch}%,phone.ilike.%${contactSearch}%`)
+        .limit(20);
+      return data || [];
+    },
+    enabled: open && scope === 'contact' && contactSearch.length >= 2,
+  });
+
+  const handleSave = () => {
+    const payload: SLARuleForm = { ...form };
+    if (scope === 'contact') payload.contact_id = scopeValue || null;
+    else if (scope === 'company') payload.company = scopeValue || null;
+    else if (scope === 'job_title') payload.job_title = scopeValue || null;
+    else if (scope === 'contact_type') payload.contact_type = scopeValue || null;
+    else if (scope === 'queue') payload.queue_id = scopeValue || null;
+    else if (scope === 'agent') payload.agent_id = scopeValue || null;
+
+    if (!form.name || !scopeValue) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (editingRule) {
+      updateRule({ ...payload, id: editingRule.id });
+    } else {
+      createRule(payload);
+    }
+    onOpenChange(false);
+  };
+
+  const renderScopeSelector = () => {
+    if (scope === 'contact') {
+      return (
+        <div className="space-y-2 mt-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome ou telefone..."
+              value={contactSearch}
+              onChange={e => setContactSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {contacts.length > 0 && (
+            <div className="border rounded-xl max-h-32 overflow-auto">
+              {contacts.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => { setScopeValue(c.id); setContactSearch(c.name); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors ${scopeValue === c.id ? 'bg-primary/10 font-medium' : ''}`}
+                >
+                  {c.name} — {c.phone}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const options = scope === 'contact_type'
+      ? CONTACT_TYPES.map(t => ({ id: t, label: t }))
+      : scope === 'company'
+      ? companies.map(c => ({ id: c, label: c }))
+      : scope === 'job_title'
+      ? jobTitles.map(j => ({ id: j, label: j }))
+      : scope === 'queue'
+      ? queues.map(q => ({ id: q.id, label: q.name }))
+      : agents.map(a => ({ id: a.id, label: a.name }));
+
+    return (
+      <Select value={scopeValue} onValueChange={setScopeValue}>
+        <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+        <SelectContent>
+          {options.map(o => <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{editingRule ? 'Editar Regra de SLA' : 'Nova Regra de SLA'}</DialogTitle>
+          <DialogDescription>
+            {editingRule
+              ? 'Atualize os prazos e escopo desta regra.'
+              : 'Defina prazos específicos de resposta e resolução para este escopo.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs font-medium">Nome da Regra</Label>
+            <Input
+              value={form.name}
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              placeholder="Ex: SLA VIP — Empresa X"
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs font-medium">{SCOPE_LABELS[scope]}</Label>
+            {renderScopeSelector()}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-medium">1ª Resposta (min)</Label>
+              <Input
+                type="number" min={1}
+                value={form.first_response_minutes}
+                onChange={e => setForm(f => ({ ...f, first_response_minutes: parseInt(e.target.value) || 1 }))}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-medium">Resolução (min)</Label>
+              <Input
+                type="number" min={1}
+                value={form.resolution_minutes}
+                onChange={e => setForm(f => ({ ...f, resolution_minutes: parseInt(e.target.value) || 1 }))}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs font-medium">Prioridade (maior = mais prioritário)</Label>
+            <Input
+              type="number" min={0} max={100}
+              value={form.priority}
+              onChange={e => setForm(f => ({ ...f, priority: parseInt(e.target.value) || 0 }))}
+              className="mt-1"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={isCreating || isUpdating}>
+            {editingRule ? 'Salvar' : 'Criar'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
