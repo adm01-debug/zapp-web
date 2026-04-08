@@ -19,29 +19,33 @@ interface SpeechToTextReturn {
   toggleListening: () => void;
 }
 
+type SpeechRecognitionCtor = new () => SpeechRecognition;
+
+function getSpeechRecognition(): SpeechRecognitionCtor | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as Record<string, unknown>;
+  return (w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null) as SpeechRecognitionCtor | null;
+}
+
 export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToTextReturn {
   const { language = 'pt-BR', continuous = true, onResult, onEnd } = options;
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const recognitionRef = useRef<InstanceType<typeof SpeechRecognition> | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const onResultRef = useRef(onResult);
   const onEndRef = useRef(onEnd);
 
-  // Keep refs in sync to avoid stale closures
   useEffect(() => { onResultRef.current = onResult; }, [onResult]);
   useEffect(() => { onEndRef.current = onEnd; }, [onEnd]);
 
-  const SpeechRecognitionCtor = typeof window !== 'undefined'
-    ? (window as unknown as Record<string, unknown>).SpeechRecognition as typeof globalThis.SpeechRecognition | undefined
-      ?? (window as unknown as Record<string, unknown>).webkitSpeechRecognition as typeof globalThis.SpeechRecognition | undefined
-    : null;
-
-  const isSupported = !!SpeechRecognition;
+  const Ctor = getSpeechRecognition();
+  const isSupported = !!Ctor;
 
   const startListening = useCallback(() => {
-    if (!SpeechRecognition) return;
+    const SR = getSpeechRecognition();
+    if (!SR) return;
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.lang = language;
     recognition.continuous = continuous;
     recognition.interimResults = true;
@@ -82,9 +86,8 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
     setIsListening(true);
     setTranscript('');
 
-    // Haptic feedback
     if (navigator.vibrate) navigator.vibrate(15);
-  }, [SpeechRecognition, language, continuous]);
+  }, [language, continuous]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -102,7 +105,6 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
     }
   }, [isListening, startListening, stopListening]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (recognitionRef.current) {
