@@ -40,6 +40,11 @@ const FILTERS: { key: SearchFilter; label: string; icon: React.ReactNode }[] = [
   { key: 'link', label: 'Links', icon: <Link2 className="w-3 h-3" /> },
 ];
 
+/** Normalize text for accent-insensitive search */
+function normalizeText(text: string): string {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 export function ChatSearchBar({
   messages,
   isOpen,
@@ -54,7 +59,13 @@ export function ChatSearchBar({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
-  // Focus input on open
+  // Stable refs for callbacks to avoid useEffect dep issues
+  const onHighlightChangeRef = useRef(onHighlightChange);
+  const onNavigateToMessageRef = useRef(onNavigateToMessage);
+  onHighlightChangeRef.current = onHighlightChange;
+  onNavigateToMessageRef.current = onNavigateToMessage;
+
+  // Focus input on open, reset state on close
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -63,7 +74,7 @@ export function ChatSearchBar({
       setDebouncedQuery('');
       setFilter('all');
       setActiveIndex(0);
-      onHighlightChange(new Set(), null);
+      onHighlightChangeRef.current(new Set(), null);
     }
   }, [isOpen]);
 
@@ -74,11 +85,14 @@ export function ChatSearchBar({
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
-  // Search logic
+  // Search logic — excludes deleted messages, accent-insensitive
   const results = useMemo(() => {
     if (!debouncedQuery.trim() && filter === 'all') return [];
 
     return messages.filter((msg) => {
+      // Skip deleted messages
+      if (msg.is_deleted) return false;
+
       // Filter by type
       if (filter === 'link') {
         if (!URL_REGEX.test(msg.content || '')) return false;
@@ -89,26 +103,24 @@ export function ChatSearchBar({
       // If no query, show all of the filtered type
       if (!debouncedQuery.trim()) return filter !== 'all';
 
-      const q = debouncedQuery.toLowerCase();
-      const searchable = [
-        msg.content,
-        msg.transcription,
-        msg.mediaUrl,
-      ].filter(Boolean).join(' ').toLowerCase();
+      const q = normalizeText(debouncedQuery);
+      const searchable = normalizeText(
+        [msg.content, msg.transcription, msg.mediaUrl].filter(Boolean).join(' ')
+      );
 
       return searchable.includes(q);
     });
   }, [messages, debouncedQuery, filter]);
 
-  // Update highlights when results change
+  // Update highlights when results or activeIndex change
   useEffect(() => {
     const ids = new Set(results.map((r) => r.id));
     const activeId = results[activeIndex]?.id || null;
-    onHighlightChange(ids, activeId);
-    if (activeId) onNavigateToMessage(activeId);
+    onHighlightChangeRef.current(ids, activeId);
+    if (activeId) onNavigateToMessageRef.current(activeId);
   }, [results, activeIndex]);
 
-  // Reset active index when results change
+  // Reset active index when search criteria change
   useEffect(() => {
     setActiveIndex(0);
   }, [debouncedQuery, filter]);
