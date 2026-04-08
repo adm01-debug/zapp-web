@@ -96,12 +96,10 @@ export function useExternalCatalog() {
   const productsQuery = useQuery({
     queryKey: ['external-catalog', 'products', filters],
     queryFn: async () => {
-      console.log('[catalog] fetching products with filters:', JSON.stringify(filters));
       const result = await invokeAction<{ data: ExternalProduct[]; meta: { total: number; duration_ms: number } }>(
         'list_products',
         filters as Record<string, unknown>
       );
-      console.log('[catalog] got', result.data?.length, 'products, total:', result.meta?.total);
       return result;
     },
     enabled: ready,

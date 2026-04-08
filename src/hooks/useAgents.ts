@@ -24,13 +24,15 @@ export interface AgentWithStats extends AgentProfile {
   queues: Array<{ id: string; name: string; color: string }>;
 }
 
-// Simulated presence status - in a real app, this would come from Supabase Presence
+// Presence status derived from user_sessions.last_activity_at
+// Thresholds: <5min = online, <30min = away, else offline
 const getAgentStatus = (lastActivity?: string): 'online' | 'away' | 'offline' => {
   if (!lastActivity) return 'offline';
   const now = new Date();
   const lastActive = new Date(lastActivity);
+  if (isNaN(lastActive.getTime())) return 'offline';
   const diffMinutes = (now.getTime() - lastActive.getTime()) / (1000 * 60);
-  
+
   if (diffMinutes < 5) return 'online';
   if (diffMinutes < 30) return 'away';
   return 'offline';
@@ -93,12 +95,31 @@ export function useAgents() {
     },
   });
 
+  // Fetch real session activity for presence
+  const { data: sessionActivity } = useQuery({
+    queryKey: ['agents-sessions'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_sessions')
+        .select('user_id, last_activity_at')
+        .eq('is_active', true)
+        .order('last_activity_at', { ascending: false });
+
+      // Build map: user_id → most recent activity
+      const activityMap: Record<string, string> = {};
+      (data || []).forEach(s => {
+        if (!activityMap[s.user_id]) activityMap[s.user_id] = s.last_activity_at;
+      });
+      return activityMap;
+    },
+    refetchInterval: 30_000, // Refresh every 30s for near-realtime status
+  });
+
   // Combine data into AgentWithStats
   const agents: AgentWithStats[] = useMemo(() => {
     if (!profiles) return [];
 
     return profiles.map((profile) => {
-      // Get queues for this agent
       const agentQueues = queuesData?.members
         ?.filter((m) => m.profile_id === profile.id)
         .map((m) => {
@@ -107,11 +128,11 @@ export function useAgents() {
         })
         .filter(Boolean) as Array<{ id: string; name: string; color: string }> || [];
 
-      // Get active chats count
       const activeChats = activeChatsData?.[profile.id] || 0;
 
-      // Simulate status based on updated_at
-      const status = getAgentStatus(profile.updated_at);
+      // Use real session activity, fallback to profile.updated_at
+      const lastActivity = sessionActivity?.[profile.user_id] || profile.updated_at;
+      const status = getAgentStatus(lastActivity);
 
       return {
         ...profile,
@@ -120,7 +141,7 @@ export function useAgents() {
         queues: agentQueues,
       };
     });
-  }, [profiles, queuesData, activeChatsData]);
+  }, [profiles, queuesData, activeChatsData, sessionActivity]);
 
   const isLoading = loadingProfiles || loadingQueues;
 

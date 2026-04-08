@@ -262,8 +262,15 @@ export function useQueueAnalytics(queueId: string, dateRange: DateRange): QueueA
     const assigned = contacts.filter(c => c.assigned_to).length;
     const waiting = total - assigned;
 
-    // Estimate resolved as 70% of assigned (since we don't have resolved status)
-    const resolved = Math.floor(assigned * 0.7);
+    // Query real resolution data from conversation_sla
+    const contactIds = contacts.map(c => c.id);
+    const { data: slaData } = await supabase
+      .from('conversation_sla')
+      .select('contact_id, resolved_at')
+      .in('contact_id', contactIds);
+
+    const resolvedIds = new Set((slaData || []).filter(s => s.resolved_at).map(s => s.contact_id));
+    const resolved = contacts.filter(c => resolvedIds.has(c.id)).length;
     const inProgress = assigned - resolved;
 
     const resolvedPercent = Math.round((resolved / total) * 100);
