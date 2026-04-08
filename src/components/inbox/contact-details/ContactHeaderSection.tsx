@@ -326,6 +326,22 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
                 size="icon"
                 className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
                 onClick={() => {
+                  toast.info('Chamada de vídeo em breve');
+                }}
+              >
+                <Video className="w-4 h-4 text-primary" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Chamada de vídeo</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                onClick={() => {
                   if (contact.email) {
                     window.location.hash = '#email-chat';
                   }
