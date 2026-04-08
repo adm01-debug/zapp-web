@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
-import { Phone, Mail, Calendar, Building, Briefcase, Pencil, Check, X, Plus, Copy } from 'lucide-react';
+import { Phone, Mail, Calendar, Building, Briefcase, Pencil, Check, X, Plus, Copy, Users, UserCheck, Truck, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
