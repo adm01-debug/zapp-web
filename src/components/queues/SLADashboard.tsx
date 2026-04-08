@@ -178,7 +178,7 @@ export const SLADashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="border-l-4 border-l-blue-500">
+          <Card className="border-l-4 border-l-info">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -210,7 +210,7 @@ export const SLADashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="border-l-4 border-l-purple-500">
+          <Card className="border-l-4 border-l-primary">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>

@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { CONTACT_TYPES, SCOPE_LABELS } from './sla-utils';
+import { cn } from '@/lib/utils';
 
 interface SLARuleFormDialogProps {
   open: boolean;
@@ -95,7 +96,22 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
     enabled: open && scope === 'contact' && contactSearch.length >= 2,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = (): boolean => {
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = 'Nome é obrigatório';
+    if (!scopeValue) e.scope = `Selecione um(a) ${SCOPE_LABELS[scope].toLowerCase()}`;
+    if (form.first_response_minutes < 1) e.fr = 'Mínimo 1 minuto';
+    if (form.resolution_minutes < 1) e.res = 'Mínimo 1 minuto';
+    if (form.resolution_minutes <= form.first_response_minutes) e.res = 'Deve ser maior que 1ª Resposta';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleSave = () => {
+    if (!validate()) return;
+
     const payload: SLARuleForm = { ...form };
     if (scope === 'contact') payload.contact_id = scopeValue || null;
     else if (scope === 'company') payload.company = scopeValue || null;
@@ -103,11 +119,6 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
     else if (scope === 'contact_type') payload.contact_type = scopeValue || null;
     else if (scope === 'queue') payload.queue_id = scopeValue || null;
     else if (scope === 'agent') payload.agent_id = scopeValue || null;
-
-    if (!form.name || !scopeValue) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
-    }
 
     if (editingRule) {
       updateRule({ ...payload, id: editingRule.id });
@@ -183,15 +194,18 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
             <Label className="text-xs font-medium">Nome da Regra</Label>
             <Input
               value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              onChange={e => { setForm(f => ({ ...f, name: e.target.value })); setErrors(e2 => ({ ...e2, name: '' })); }}
               placeholder="Ex: SLA VIP — Empresa X"
-              className="mt-1"
+              className={cn('mt-1', errors.name && 'border-destructive')}
+              aria-invalid={!!errors.name}
             />
+            {errors.name && <p className="text-[11px] text-destructive mt-1">{errors.name}</p>}
           </div>
 
           <div>
             <Label className="text-xs font-medium">{SCOPE_LABELS[scope]}</Label>
             {renderScopeSelector()}
+            {errors.scope && <p className="text-[11px] text-destructive mt-1">{errors.scope}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -201,8 +215,9 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
                 type="number" min={1}
                 value={form.first_response_minutes}
                 onChange={e => setForm(f => ({ ...f, first_response_minutes: parseInt(e.target.value) || 1 }))}
-                className="mt-1"
+                className={cn('mt-1', errors.fr && 'border-destructive')}
               />
+              {errors.fr && <p className="text-[11px] text-destructive mt-1">{errors.fr}</p>}
             </div>
             <div>
               <Label className="text-xs font-medium">Resolução (min)</Label>
@@ -210,8 +225,9 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
                 type="number" min={1}
                 value={form.resolution_minutes}
                 onChange={e => setForm(f => ({ ...f, resolution_minutes: parseInt(e.target.value) || 1 }))}
-                className="mt-1"
+                className={cn('mt-1', errors.res && 'border-destructive')}
               />
+              {errors.res && <p className="text-[11px] text-destructive mt-1">{errors.res}</p>}
             </div>
           </div>
 
@@ -228,6 +244,7 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={handleSave} disabled={isCreating || isUpdating}>
+            {(isCreating || isUpdating) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {editingRule ? 'Salvar' : 'Criar'}
           </Button>
         </DialogFooter>
