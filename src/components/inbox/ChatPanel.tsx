@@ -348,7 +348,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             voiceId={voiceId} speed={speed} onToggleAIAssistant={() => setShowAIAssistant(!showAIAssistant)} onToggleDetails={onToggleDetails}
             onStartCall={() => { setCallDirection('outbound'); setShowCallDialog(true); }} onOpenSearch={() => setShowChatSearch(true)}
             onOpenTransfer={() => setShowTransferDialog(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
-            onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack} />
+            onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
+            onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary} />
         )}
 
         <ChatSearchBar
@@ -362,9 +363,11 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
 
-        <Suspense fallback={null}>
-          <ConversationSummary messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))} contactName={conversation.contact.name} />
-        </Suspense>
+        {hasSummary && summaryData && (
+          <Suspense fallback={null}>
+            <ConversationSummary messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))} contactName={conversation.contact.name} initialSummary={summaryData} />
+          </Suspense>
+        )}
 
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
           ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}
