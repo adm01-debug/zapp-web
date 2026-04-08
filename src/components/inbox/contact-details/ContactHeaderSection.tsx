@@ -297,23 +297,6 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
               <Button
                 variant="outline"
                 size="icon"
-                className="w-9 h-9 border-border/30 hover:border-success/50 hover:bg-success/10"
-                onClick={() => {
-                  const cleanPhone = contact.phone.replace(/\D/g, '');
-                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
-                }}
-              >
-                <MessageSquare className="w-4 h-4 text-success" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">WhatsApp</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
                 className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
                 onClick={() => copyToClipboard(contact.phone, 'Telefone')}
               >
