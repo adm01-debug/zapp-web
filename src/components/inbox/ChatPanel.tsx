@@ -65,6 +65,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [showChatSearch, setShowChatSearch] = useState(false);
   const [highlightedMessageIds, setHighlightedMessageIds] = useState<Set<string>>(new Set());
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
