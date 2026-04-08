@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Activity, CheckCircle, XCircle, AlertTriangle, Clock, Zap, TrendingUp } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Activity, CheckCircle, XCircle, AlertTriangle, Clock, Zap, TrendingUp, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -81,14 +82,29 @@ export function AIProviderHealthPanel() {
   if (isLoading) {
     return (
       <Card className="border-border/60">
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-3">
-            <div className="h-5 w-48 bg-muted rounded" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-20 bg-muted rounded-xl" />
-              ))}
-            </div>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Skeleton className="w-4 h-4 rounded" />
+            <Skeleton className="h-5 w-40" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-border/50 p-3 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="w-3.5 h-3.5 rounded" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <Skeleton className="h-6 w-12" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-32" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-7 w-full rounded-lg" />
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -126,8 +142,8 @@ export function AIProviderHealthPanel() {
           ))}
         </div>
 
-        {/* Recent calls log */}
-        {recentLogs.length > 0 && (
+        {/* Recent calls log or empty state */}
+        {recentLogs.length > 0 ? (
           <div className="space-y-1.5 max-h-48 overflow-y-auto">
             <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
               <TrendingUp className="w-3 h-3" /> Chamadas Recentes
@@ -164,6 +180,16 @@ export function AIProviderHealthPanel() {
                 </div>
               );
             })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="p-3 rounded-2xl bg-primary/5 mb-3">
+              <Sparkles className="w-8 h-8 text-primary/40" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">Nenhuma chamada registrada</p>
+            <p className="text-xs text-muted-foreground/60 mt-1 max-w-[280px]">
+              As métricas aparecerão aqui assim que funcionalidades de IA forem utilizadas.
+            </p>
           </div>
         )}
       </CardContent>
