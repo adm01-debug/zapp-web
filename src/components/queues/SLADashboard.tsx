@@ -104,9 +104,36 @@ export const SLADashboard = () => {
 
   if (!data) {
     return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">Nenhum dado de SLA disponível</p>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center py-24"
+      >
+        <div className="relative mb-6">
+          <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center">
+            <Target className="w-10 h-10 text-muted-foreground/40" />
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-primary/60" />
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum dado de SLA encontrado</h3>
+        <p className="text-sm text-muted-foreground max-w-md text-center leading-relaxed">
+          Os dados aparecerão aqui quando conversas forem monitoradas pelo sistema de SLA.
+          Configure prazos na aba de configuração abaixo para começar.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-6 gap-2 rounded-xl"
+          onClick={() => {
+            const el = document.querySelector('[value="global"]');
+            if (el instanceof HTMLElement) el.click();
+          }}
+        >
+          <Settings2 className="w-4 h-4" />
+          Configurar SLA
+        </Button>
+      </motion.div>
     );
   }
 
