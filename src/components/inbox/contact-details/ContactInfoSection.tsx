@@ -171,10 +171,6 @@ export function ContactInfoSection({ contact, enrichedData }: ContactInfoSection
         </div>
       </div>
 
-      {/* Contact Type Badge (read-only) */}
-      <div className="flex items-center gap-2 px-1">
-        <ContactTypeBadge value={enrichedData?.contact_type || 'cliente'} />
-      </div>
 
       {/* Client since */}
       <div className="flex items-center gap-2.5 text-xs text-muted-foreground bg-muted/10 rounded-lg p-2">
