@@ -81,6 +81,7 @@ interface ChatMessagesAreaProps {
   onEditStart?: (message: Message) => void;
   highlightedMessageIds?: Set<string>;
   activeHighlightId?: string | null;
+  searchQuery?: string;
 }
 
 export interface ChatMessagesAreaRef {
