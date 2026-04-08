@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SLAConfigurationManager } from '@/components/settings/SLAConfigurationManager';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -408,6 +409,9 @@ export const SLADashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Configuração de Prazos */}
+      <SLAConfigurationManager />
     </div>
   );
 };
