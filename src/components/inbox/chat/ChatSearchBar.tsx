@@ -118,6 +118,32 @@ export function ChatSearchBar({
     });
   }, [messages, debouncedQuery, filter]);
 
+  // Compute counts per filter type for chips
+  const filterCounts = useMemo(() => {
+    const activeMessages = messages.filter((m) => !m.is_deleted);
+    const matchesQuery = (msg: Message) => {
+      if (!debouncedQuery.trim()) return true;
+      const q = normalizeText(debouncedQuery);
+      return normalizeText([msg.content, msg.transcription, msg.mediaUrl].filter(Boolean).join(' ')).includes(q);
+    };
+
+    const counts: Record<SearchFilter, number> = {
+      all: 0, text: 0, image: 0, video: 0, audio: 0, document: 0, link: 0,
+    };
+
+    for (const msg of activeMessages) {
+      if (!matchesQuery(msg)) continue;
+      counts.all++;
+      if (msg.type === 'text') counts.text++;
+      if (msg.type === 'image') counts.image++;
+      if (msg.type === 'video') counts.video++;
+      if (msg.type === 'audio') counts.audio++;
+      if (msg.type === 'document') counts.document++;
+      if (URL_REGEX.test(msg.content || '')) counts.link++;
+    }
+    return counts;
+  }, [messages, debouncedQuery]);
+
   // Update highlights when results or activeIndex change
   useEffect(() => {
     const ids = new Set(results.map((r) => r.id));
