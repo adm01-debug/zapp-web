@@ -142,8 +142,8 @@ describe('SLARulesManager', () => {
 });
 
 describe('SLA formatMinutes utility', () => {
-  it('formats minutes correctly', () => {
-    const { formatSLAMinutes } = require('../sla/sla-utils');
+  it('formats minutes correctly', async () => {
+    const { formatSLAMinutes } = await import('../sla/sla-utils');
     expect(formatSLAMinutes(5)).toBe('5min');
     expect(formatSLAMinutes(30)).toBe('30min');
     expect(formatSLAMinutes(59)).toBe('59min');
