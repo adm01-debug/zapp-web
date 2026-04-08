@@ -4,13 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Phone,
+  PhoneCall,
+  Headphones,
+  Copy,
   Mail,
   Building,
   Briefcase,
   Ban,
   Star,
   Archive,
-  
   Crown,
   User,
   MoreHorizontal,
@@ -275,19 +277,47 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
       </div>
       <div className="flex items-center gap-1 mt-2">
         <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                onClick={() => copyToClipboard(contact.phone, 'Telefone')}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                  >
+                    <Phone className="w-4 h-4 text-primary" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top">Opções de chamada</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="center" className="min-w-[160px]">
+              <DropdownMenuItem onClick={() => copyToClipboard(contact.phone, 'Telefone')} className="gap-2 text-xs">
+                <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                Copiar telefone
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const cleanPhone = contact.phone.replace(/\D/g, '');
+                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                }}
+                className="gap-2 text-xs"
               >
-                <Phone className="w-4 h-4 text-primary" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Copiar telefone</TooltipContent>
-          </Tooltip>
+                <PhoneCall className="w-3.5 h-3.5 text-success" />
+                Ligar via WhatsApp
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('start-voip-call', { detail: { phone: contact.phone, name: contact.name } }));
+                }}
+                className="gap-2 text-xs"
+              >
+                <Headphones className="w-3.5 h-3.5 text-info" />
+                Ligar via VoIP
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Tooltip>
             <TooltipTrigger asChild>
