@@ -202,7 +202,7 @@ export function ChatSearchBar({
 
               {/* Result counter */}
               {(debouncedQuery.trim() || filter !== 'all') && (
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                <span id="search-result-count" className="text-xs text-muted-foreground whitespace-nowrap" aria-live="polite">
                   {results.length > 0
                     ? `${activeIndex + 1} de ${results.length}`
                     : 'Nenhum resultado'}
