@@ -10,7 +10,7 @@ import {
   Ban,
   Star,
   Archive,
-  MessageSquare,
+  
   Crown,
   User,
   MoreHorizontal,
@@ -144,17 +144,6 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
         </div>
         <div className="flex items-center gap-1">
           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-success/10" onClick={() => {
-                  const cleanPhone = contact.phone.replace(/\D/g, '');
-                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
-                }}>
-                  <MessageSquare className="w-3.5 h-3.5 text-success" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>WhatsApp</TooltipContent>
-            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-primary/10" onClick={() => copyToClipboard(contact.phone, 'Telefone')}>
