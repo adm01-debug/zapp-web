@@ -102,32 +102,16 @@ export function ConversationSummary({ messages, contactName, initialSummary }: C
     }
   };
 
-  if (!canGenerateSummary && !hasGenerated) {
+  if (!hasGenerated || !summary) {
     return null;
   }
 
-  const StatusIcon = summary ? statusConfig[summary.status].icon : Clock;
-  const SentimentIcon = summary ? sentimentConfig[summary.sentiment].icon : Minus;
+  const StatusIcon = statusConfig[summary.status].icon;
+  const SentimentIcon = sentimentConfig[summary.sentiment].icon;
 
   return (
     <div className="px-4 py-2">
-      {!hasGenerated ? (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={generateSummary}
-          disabled={isLoading}
-          className="w-full gap-2 border-primary/30 hover:border-primary/50 hover:bg-primary/10"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <FileText className="h-4 w-4" />
-          )}
-          {isLoading ? 'Gerando resumo...' : 'Gerar resumo da conversa'}
-        </Button>
-      ) : (
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader 
             className="py-3 px-4 cursor-pointer hover:bg-muted/30 transition-colors"
             onClick={() => setIsExpanded(!isExpanded)}
