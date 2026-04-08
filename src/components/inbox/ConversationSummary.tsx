@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { 
@@ -54,7 +54,7 @@ const sentimentConfig = {
 };
 
 export function ConversationSummary({ messages, contactName, initialSummary }: ConversationSummaryProps) {
-  const [summary, setSummary] = useState<SummaryData | null>(initialSummary as SummaryData | null);
+  const [summary, setSummary] = useState<SummaryData | null>((initialSummary as unknown as SummaryData) ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(!!initialSummary);
   const [hasGenerated, setHasGenerated] = useState(!!initialSummary);
