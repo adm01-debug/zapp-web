@@ -243,7 +243,11 @@ export default function Auth() {
       </div>
 
       {/* Auth Form - Right Side */}
-      <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto">
+        {/* Mobile Hero Benefits */}
+        <div className="lg:hidden w-full max-w-md relative z-10 mb-4">
+          <HeroBenefits />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
