@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,13 +30,13 @@ interface ChatSearchBarProps {
 }
 
 const FILTERS: { key: SearchFilter; label: string; icon: React.ReactNode }[] = [
-  { key: 'all', label: 'Todos', icon: <Search className="w-3 h-3" /> },
-  { key: 'text', label: 'Textos', icon: <FileText className="w-3 h-3" /> },
-  { key: 'image', label: 'Imagens', icon: <Image className="w-3 h-3" /> },
-  { key: 'video', label: 'Vídeos', icon: <Video className="w-3 h-3" /> },
-  { key: 'audio', label: 'Áudios', icon: <Music className="w-3 h-3" /> },
-  { key: 'document', label: 'Documentos', icon: <File className="w-3 h-3" /> },
-  { key: 'link', label: 'Links', icon: <Link2 className="w-3 h-3" /> },
+  { key: 'all', label: 'Todos', icon: <Search className="w-3.5 h-3.5" /> },
+  { key: 'text', label: 'Textos', icon: <FileText className="w-3.5 h-3.5" /> },
+  { key: 'image', label: 'Imagens', icon: <Image className="w-3.5 h-3.5" /> },
+  { key: 'video', label: 'Vídeos', icon: <Video className="w-3.5 h-3.5" /> },
+  { key: 'audio', label: 'Áudios', icon: <Music className="w-3.5 h-3.5" /> },
+  { key: 'document', label: 'Documentos', icon: <File className="w-3.5 h-3.5" /> },
+  { key: 'link', label: 'Links', icon: <Link2 className="w-3.5 h-3.5" /> },
 ];
 
 const TYPE_ICON_MAP: Record<string, typeof FileText> = {
@@ -78,7 +77,6 @@ export function ChatSearchBar({
     onSearchQueryChange,
   });
 
-  // Focus input on open
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => inputRef.current?.focus(), 100);
@@ -86,7 +84,6 @@ export function ChatSearchBar({
     }
   }, [isOpen]);
 
-  // Auto-scroll preview list to active item
   useEffect(() => {
     if (!previewListRef.current || results.length === 0) return;
     const clampedIdx = Math.min(activeIndex, Math.min(results.length, 5) - 1);
@@ -109,12 +106,12 @@ export function ChatSearchBar({
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
-         className="overflow-hidden border-b border-border bg-background/95 backdrop-blur-sm shrink-0"
+          className="overflow-hidden border-b border-border/50 bg-background shrink-0"
         >
-          <div className="px-3 md:px-4 py-2.5 space-y-2" role="search" aria-label="Buscar na conversa">
+          <div className="px-3 md:px-4 py-3 space-y-2.5" role="search" aria-label="Buscar na conversa">
             {/* Search input row */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 min-w-0 flex items-center gap-2 bg-muted/50 rounded-lg px-3 h-9 border border-border/50 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all">
+            <div className="flex items-center gap-1.5">
+              <div className="relative flex-1 min-w-0 flex items-center gap-2.5 bg-muted rounded-xl px-3.5 h-10 border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200">
                 <Search className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
                 <Input
                   ref={inputRef}
@@ -124,74 +121,101 @@ export function ChatSearchBar({
                   placeholder="Buscar na conversa..."
                   aria-label="Buscar mensagens"
                   aria-describedby="search-result-count"
-                  className="h-full text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 min-w-0"
+                  className="h-full text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 min-w-0 placeholder:text-muted-foreground/60"
                 />
                 {query && (
                   <button
                     onClick={() => setQuery('')}
-                    className="p-0.5 rounded-full hover:bg-background/80 transition-colors shrink-0"
+                    className="p-1 rounded-full hover:bg-background transition-colors shrink-0"
                     aria-label="Limpar busca"
                   >
                     <X className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
                 )}
-                {/* Result counter inside input */}
                 {(debouncedQuery.trim() || filter !== 'all') && (
-                  <span id="search-result-count" className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0 tabular-nums" aria-live="polite">
-                    {results.length > 0
-                      ? `${activeIndex + 1}/${results.length}`
-                      : '0'}
+                  <span
+                    id="search-result-count"
+                    className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0 tabular-nums font-medium"
+                    aria-live="polite"
+                  >
+                    {results.length > 0 ? `${activeIndex + 1}/${results.length}` : '0'}
                   </span>
                 )}
               </div>
 
               {/* Navigate arrows */}
-              <div className="flex items-center shrink-0" role="group" aria-label="Navegar entre resultados">
-                <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md touch-manipulation" onClick={navigateUp} disabled={results.length === 0} aria-label="Resultado anterior">
+              <div className="flex items-center shrink-0 bg-muted rounded-xl border border-border" role="group" aria-label="Navegar entre resultados">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-8 h-10 rounded-l-xl rounded-r-none hover:bg-accent touch-manipulation"
+                  onClick={navigateUp}
+                  disabled={results.length === 0}
+                  aria-label="Resultado anterior"
+                >
                   <ChevronUp className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md touch-manipulation" onClick={navigateDown} disabled={results.length === 0} aria-label="Próximo resultado">
+                <div className="w-px h-5 bg-border" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-8 h-10 rounded-r-xl rounded-l-none hover:bg-accent touch-manipulation"
+                  onClick={navigateDown}
+                  disabled={results.length === 0}
+                  aria-label="Próximo resultado"
+                >
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </div>
 
-              <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md shrink-0 touch-manipulation" onClick={onClose} aria-label="Fechar busca">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-8 h-10 rounded-xl shrink-0 touch-manipulation hover:bg-destructive/10 hover:text-destructive"
+                onClick={onClose}
+                aria-label="Fechar busca"
+              >
                 <X className="w-4 h-4" />
               </Button>
             </div>
 
             {/* Filter chips */}
-            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none" role="tablist" aria-label="Filtros de tipo de mensagem">
-              {FILTERS.map((f) => (
-                <Badge
-                  key={f.key}
-                  role="tab"
-                  aria-selected={filter === f.key}
-                  tabIndex={0}
-                  variant={filter === f.key ? 'default' : 'outline'}
-                  className={cn(
-                    'cursor-pointer whitespace-nowrap text-[11px] px-2.5 py-1 gap-1.5 transition-all duration-150 shrink-0 rounded-full font-medium',
-                    filter === f.key
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-                      : 'bg-transparent border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground'
-                  )}
-                  onClick={() => setFilter(f.key)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilter(f.key); } }}
-                >
-                  {f.icon}
-                  {f.label}
-                  {(debouncedQuery.trim() || f.key !== 'all') && filterCounts[f.key] > 0 && (
-                    <span className={cn(
-                      "min-w-[16px] h-4 flex items-center justify-center rounded-full text-[9px] font-semibold",
-                      filter === f.key
-                        ? "bg-primary-foreground/20 text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                    )}>
-                      {filterCounts[f.key]}
-                    </span>
-                  )}
-                </Badge>
-              ))}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-1 px-1" role="tablist" aria-label="Filtros de tipo de mensagem">
+              {FILTERS.map((f) => {
+                const isActive = filter === f.key;
+                const count = filterCounts[f.key];
+                const showCount = (debouncedQuery.trim() || f.key !== 'all') && count > 0;
+
+                return (
+                  <button
+                    key={f.key}
+                    role="tab"
+                    aria-selected={isActive}
+                    tabIndex={0}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 whitespace-nowrap text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-150 shrink-0 select-none',
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+                        : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    )}
+                    onClick={() => setFilter(f.key)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilter(f.key); } }}
+                  >
+                    {f.icon}
+                    <span>{f.label}</span>
+                    {showCount && (
+                      <span className={cn(
+                        "min-w-[18px] h-[18px] flex items-center justify-center rounded-md text-[10px] font-bold leading-none",
+                        isActive
+                          ? "bg-primary-foreground/20 text-primary-foreground"
+                          : "bg-background text-foreground"
+                      )}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Empty state */}
@@ -199,9 +223,9 @@ export function ChatSearchBar({
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground"
+                className="flex items-center gap-2.5 px-3 py-2 text-muted-foreground bg-muted/50 rounded-lg"
               >
-                <Search className="w-3.5 h-3.5 opacity-50" />
+                <Search className="w-4 h-4 opacity-40" />
                 <span className="text-xs">
                   {debouncedQuery.trim()
                     ? `Nenhum resultado para "${debouncedQuery.trim().slice(0, 30)}${debouncedQuery.trim().length > 30 ? '…' : ''}"`
@@ -212,10 +236,11 @@ export function ChatSearchBar({
 
             {/* Results preview */}
             {debouncedQuery.trim() && results.length > 0 && (
-              <div ref={previewListRef} className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
+              <div ref={previewListRef} className="max-h-[140px] overflow-y-auto scrollbar-thin space-y-0.5 rounded-lg bg-muted/30 p-1">
                 {results.slice(0, 5).map((msg, idx) => {
                   const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);
                   const TypeIcon = TYPE_ICON_MAP[msg.type] || FileText;
+                  const isActive = activeIndex === idx;
                   return (
                     <motion.button
                       key={msg.id}
@@ -227,28 +252,33 @@ export function ChatSearchBar({
                         onNavigateToMessage(msg.id);
                       }}
                       className={cn(
-                        'w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left transition-colors text-xs',
-                        activeIndex === idx
-                          ? 'bg-primary/10 text-foreground'
-                          : 'hover:bg-muted/60 text-muted-foreground'
+                        'w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left transition-all duration-150 text-xs',
+                        isActive
+                          ? 'bg-primary/15 text-foreground ring-1 ring-primary/20'
+                          : 'hover:bg-muted text-muted-foreground'
                       )}
                     >
-                      <TypeIcon className="w-3 h-3 shrink-0 opacity-50" />
-                      <span className="text-[10px] text-muted-foreground/60 shrink-0 w-10">
+                      <TypeIcon className={cn("w-3.5 h-3.5 shrink-0", isActive ? "text-primary" : "opacity-50")} />
+                      <span className="text-[10px] text-muted-foreground shrink-0 w-10 tabular-nums">
                         {format(msg.timestamp, 'HH:mm')}
                       </span>
                       <span className="truncate flex-1">
                         <HighlightedText text={snippet} query={debouncedQuery} />
                         {(msg.content || '').length > 80 && '…'}
                       </span>
-                      <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0">
+                      <span className={cn(
+                        "text-[9px] px-1.5 py-0.5 rounded-md shrink-0 font-medium",
+                        msg.sender === 'agent'
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      )}>
                         {msg.sender === 'agent' ? 'Você' : 'Contato'}
-                      </Badge>
+                      </span>
                     </motion.button>
                   );
                 })}
                 {results.length > 5 && (
-                  <span className="text-[10px] text-muted-foreground/60 px-2 block">
+                  <span className="text-[10px] text-muted-foreground px-2.5 py-1 block">
                     +{results.length - 5} resultados — use ↑↓ para navegar
                   </span>
                 )}
