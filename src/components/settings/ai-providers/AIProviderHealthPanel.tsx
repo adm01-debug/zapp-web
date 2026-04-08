@@ -1,13 +1,19 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Activity, CheckCircle, XCircle, AlertTriangle, Clock, Zap, TrendingUp, Radio } from 'lucide-react';
+import {
+  Activity, CheckCircle, XCircle, AlertTriangle, Clock,
+  Zap, TrendingUp, Radio, Download,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from '@/hooks/use-toast';
 
 interface UsageLog {
   id: string;
@@ -23,6 +29,12 @@ interface UsageLog {
   metadata: Record<string, unknown> | null;
 }
 
+function getHealthColor(good: boolean, warn: boolean): string {
+  if (good) return 'text-primary';
+  if (warn) return 'text-accent-foreground';
+  return 'text-destructive';
+}
+
 function getStatusColor(status: string): string {
   switch (status) {
     case 'success': return 'text-primary';
@@ -32,10 +44,33 @@ function getStatusColor(status: string): string {
   }
 }
 
-function getHealthColor(good: boolean, warn: boolean): string {
-  if (good) return 'text-primary';
-  if (warn) return 'text-accent-foreground';
-  return 'text-destructive';
+function exportCSV(logs: UsageLog[]) {
+  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const headers = ['Data', 'Status', 'Provider', 'Modelo', 'Latência (ms)', 'Tokens Input', 'Tokens Output', 'Total Tokens', 'Erro'];
+  const rows = logs.map(l => {
+    const pt = (l.metadata as Record<string, unknown>)?.provider_type as string || '';
+    return [
+      format(new Date(l.created_at), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR }),
+      l.status,
+      pt,
+      l.model || '',
+      String(l.duration_ms || ''),
+      String(l.input_tokens || 0),
+      String(l.output_tokens || 0),
+      String(l.total_tokens || 0),
+      l.error_message || '',
+    ].map(escape).join(',');
+  });
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ai-usage-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast({ title: 'CSV exportado!' });
 }
 
 export function AIProviderHealthPanel() {
@@ -47,23 +82,36 @@ export function AIProviderHealthPanel() {
         .select('*')
         .eq('function_name', 'ai-proxy')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
       if (error) throw error;
       return (data || []) as unknown as UsageLog[];
     },
     refetchInterval: 30000,
   });
 
-  const stats = {
-    total: recentLogs.length,
-    success: recentLogs.filter(l => l.status === 'success').length,
-    fallback: recentLogs.filter(l => l.status === 'fallback').length,
-    error: recentLogs.filter(l => l.status === 'error').length,
-    avgLatency: recentLogs.length > 0
-      ? Math.round(recentLogs.reduce((sum, l) => sum + (l.duration_ms || 0), 0) / recentLogs.length)
-      : 0,
-    totalTokens: recentLogs.reduce((sum, l) => sum + (l.total_tokens || 0), 0),
-  };
+  const stats = useMemo(() => {
+    const total = recentLogs.length;
+    const success = recentLogs.filter(l => l.status === 'success').length;
+    const fallback = recentLogs.filter(l => l.status === 'fallback').length;
+    const error = recentLogs.filter(l => l.status === 'error').length;
+    const avgLatency = total > 0
+      ? Math.round(recentLogs.reduce((sum, l) => sum + (l.duration_ms || 0), 0) / total)
+      : 0;
+    const totalTokens = recentLogs.reduce((sum, l) => sum + (l.total_tokens || 0), 0);
+
+    // Provider breakdown
+    const byProvider = new Map<string, { calls: number; tokens: number; errors: number }>();
+    for (const log of recentLogs) {
+      const pt = (log.metadata as Record<string, unknown>)?.provider_type as string || 'lovable_ai';
+      const entry = byProvider.get(pt) || { calls: 0, tokens: 0, errors: 0 };
+      entry.calls++;
+      entry.tokens += log.total_tokens || 0;
+      if (log.status === 'error') entry.errors++;
+      byProvider.set(pt, entry);
+    }
+
+    return { total, success, fallback, error, avgLatency, totalTokens, byProvider };
+  }, [recentLogs]);
 
   const successRate = stats.total > 0 ? Math.round((stats.success / stats.total) * 100) : 100;
 
@@ -122,9 +170,22 @@ export function AIProviderHealthPanel() {
         <CardTitle className="flex items-center gap-2 text-base">
           <Activity className="w-4 h-4 text-primary" />
           Saúde dos Provedores
-          <Badge variant="outline" className="ml-auto text-xs font-normal">
-            Últimas {stats.total} chamadas
-          </Badge>
+          <div className="ml-auto flex items-center gap-2">
+            <Badge variant="outline" className="text-xs font-normal">
+              Últimas {stats.total} chamadas
+            </Badge>
+            {recentLogs.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-lg"
+                onClick={() => exportCSV(recentLogs)}
+                title="Exportar CSV"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -142,10 +203,34 @@ export function AIProviderHealthPanel() {
                 <kpi.icon className={cn('w-3.5 h-3.5', kpi.color)} />
                 <span className="text-[11px] text-muted-foreground">{kpi.label}</span>
               </div>
-              <p className={cn('text-lg font-bold', kpi.color)}>{kpi.value}</p>
+              <p className={cn('text-lg font-bold tabular-nums', kpi.color)}>{kpi.value}</p>
             </motion.div>
           ))}
         </div>
+
+        {/* Provider breakdown */}
+        {stats.byProvider.size > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground font-medium">Uso por Provedor</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {Array.from(stats.byProvider.entries()).map(([provider, data]) => (
+                <div
+                  key={provider}
+                  className="flex items-center justify-between gap-2 text-xs py-2 px-3 rounded-xl border border-border/40 bg-muted/30"
+                >
+                  <span className="font-medium truncate">{provider.replace('_', ' ')}</span>
+                  <div className="flex items-center gap-3 shrink-0 tabular-nums text-muted-foreground">
+                    <span>{data.calls} calls</span>
+                    <span>{data.tokens > 1000 ? `${(data.tokens / 1000).toFixed(1)}k` : data.tokens} tkns</span>
+                    {data.errors > 0 && (
+                      <span className="text-destructive">{data.errors} erros</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent calls log */}
         {recentLogs.length > 0 ? (
@@ -170,17 +255,17 @@ export function AIProviderHealthPanel() {
                     <XCircle className="w-3 h-3 text-destructive shrink-0" />
                   )}
                   <span className="text-muted-foreground truncate flex-1">
-                    {providerType}{isFallback && ' → fallback'}
+                    {providerType.replace('_', ' ')}{isFallback && ' → fallback'}
                   </span>
                   {log.model && (
                     <span className="font-mono text-[10px] text-muted-foreground/70 truncate max-w-[120px]">
                       {log.model}
                     </span>
                   )}
-                  <span className="text-muted-foreground/60 shrink-0">
+                  <span className="text-muted-foreground/60 shrink-0 tabular-nums">
                     {log.duration_ms}ms
                   </span>
-                  <span className="text-muted-foreground/40 shrink-0">
+                  <span className="text-muted-foreground/40 shrink-0 tabular-nums">
                     {format(new Date(log.created_at), 'HH:mm', { locale: ptBR })}
                   </span>
                 </div>
