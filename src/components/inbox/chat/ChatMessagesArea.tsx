@@ -159,15 +159,16 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }));
 
   // Group messages by date — memoized to avoid recalculation on highlight changes
-  const groupedMessages = useMemo(() => messages.reduce((groups, message) => {
-    const dateKey = format(message.timestamp, 'yyyy-MM-dd');
-    if (!groups[dateKey]) {
-      groups[dateKey] = [];
-    }
-    groups[dateKey].push(message);
-    return groups;
-
-
+  const groupedMessages = useMemo(() => {
+    return messages.reduce((groups, message) => {
+      const dateKey = format(message.timestamp, 'yyyy-MM-dd');
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(message);
+      return groups;
+    }, {} as Record<string, Message[]>);
+  }, [messages]);
 
   return (
     <div ref={scrollContainerRef} className="flex-1 min-h-0 min-w-0 overflow-y-auto px-4 py-6 md:px-8 space-y-4 scrollbar-thin bg-background/50 relative">
