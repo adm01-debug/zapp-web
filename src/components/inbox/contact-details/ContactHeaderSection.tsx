@@ -4,13 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Phone,
+  PhoneCall,
+  Headphones,
+  Copy,
   Mail,
   Building,
   Briefcase,
   Ban,
   Star,
   Archive,
-  
   Crown,
   User,
   MoreHorizontal,
