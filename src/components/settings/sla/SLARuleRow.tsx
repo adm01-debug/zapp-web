@@ -82,12 +82,12 @@ export function SLARuleRow({ rule, scope, scopeLabel, index, onEdit, onDelete, o
           </span>
         </div>
       </div>
-      <Button size="icon" variant="ghost" className="h-8 w-8 rounded-xl hover:bg-primary/10" onClick={onEdit}>
+      <Button size="icon" variant="ghost" className="h-8 w-8 rounded-xl hover:bg-primary/10" onClick={onEdit} aria-label={`Editar regra ${rule.name}`}>
         <Edit2 className="w-3.5 h-3.5" />
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button size="icon" variant="ghost" className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+          <Button size="icon" variant="ghost" className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10" aria-label={`Excluir regra ${rule.name}`}>
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </AlertDialogTrigger>
