@@ -114,12 +114,12 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     setSearchQuery('');
   }, [conversation.id]);
 
-  // Global Ctrl+F handler for chat search
+  // Global Ctrl+F handler for chat search (toggle)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        setShowChatSearch(true);
+        setShowChatSearch(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
