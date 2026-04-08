@@ -10,6 +10,7 @@ import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
 import { MessageContextActions } from '../MessageContextActions';
 import { ChatWatermark } from './ChatWatermark';
 import { cn } from '@/lib/utils';
+import { HighlightedText } from './HighlightedText';
 import { Message, InteractiveButton } from '@/types/chat';
 import { motion, StaggeredList, StaggeredItem } from '@/components/ui/motion';
 import { TypingIndicator } from '../TypingIndicator';
@@ -443,7 +444,13 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                         )}
 
                         {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && message.type !== 'sticker' && (
-                          <p className="text-[13.5px] whitespace-pre-wrap leading-[1.45]">{message.content}</p>
+                          <p className="text-[13.5px] whitespace-pre-wrap leading-[1.45]">
+                            {searchQuery && highlightedMessageIds?.has(message.id) ? (
+                              <HighlightedText text={message.content} query={searchQuery} />
+                            ) : (
+                              message.content
+                            )}
+                          </p>
                         )}
 
                         {/* Timestamp + status — inline bottom-right */}
