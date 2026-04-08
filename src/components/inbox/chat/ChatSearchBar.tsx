@@ -316,6 +316,7 @@ export function ChatSearchBar({
                           : 'hover:bg-muted/60 text-muted-foreground'
                       )}
                     >
+                      <TypeIcon className="w-3 h-3 shrink-0 opacity-50" />
                       <span className="text-[10px] text-muted-foreground/60 shrink-0 w-10">
                         {format(msg.timestamp, 'HH:mm')}
                       </span>
