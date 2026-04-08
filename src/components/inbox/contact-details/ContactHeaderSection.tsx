@@ -13,6 +13,7 @@ import {
   Ban,
   Star,
   Archive,
+  Video,
   Crown,
   User,
   MoreHorizontal,
