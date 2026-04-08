@@ -11,6 +11,7 @@ export function AIProvidersManager() {
   const {
     providers, isLoading, dialogOpen, setDialogOpen, editingId,
     form, setForm, testing, saveMutation, deleteMutation,
+    toggleActiveMutation, toggleDefaultMutation,
     handleTest, openEdit, openNew, toggleUseFor,
   } = useAIProviders();
 
