@@ -193,15 +193,18 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
             <Label className="text-xs font-medium">Nome da Regra</Label>
             <Input
               value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              onChange={e => { setForm(f => ({ ...f, name: e.target.value })); setErrors(e2 => ({ ...e2, name: '' })); }}
               placeholder="Ex: SLA VIP — Empresa X"
-              className="mt-1"
+              className={cn('mt-1', errors.name && 'border-destructive')}
+              aria-invalid={!!errors.name}
             />
+            {errors.name && <p className="text-[11px] text-destructive mt-1">{errors.name}</p>}
           </div>
 
           <div>
             <Label className="text-xs font-medium">{SCOPE_LABELS[scope]}</Label>
             {renderScopeSelector()}
+            {errors.scope && <p className="text-[11px] text-destructive mt-1">{errors.scope}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -211,8 +214,9 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
                 type="number" min={1}
                 value={form.first_response_minutes}
                 onChange={e => setForm(f => ({ ...f, first_response_minutes: parseInt(e.target.value) || 1 }))}
-                className="mt-1"
+                className={cn('mt-1', errors.fr && 'border-destructive')}
               />
+              {errors.fr && <p className="text-[11px] text-destructive mt-1">{errors.fr}</p>}
             </div>
             <div>
               <Label className="text-xs font-medium">Resolução (min)</Label>
@@ -220,8 +224,9 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
                 type="number" min={1}
                 value={form.resolution_minutes}
                 onChange={e => setForm(f => ({ ...f, resolution_minutes: parseInt(e.target.value) || 1 }))}
-                className="mt-1"
+                className={cn('mt-1', errors.res && 'border-destructive')}
               />
+              {errors.res && <p className="text-[11px] text-destructive mt-1">{errors.res}</p>}
             </div>
           </div>
 
@@ -238,6 +243,7 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={handleSave} disabled={isCreating || isUpdating}>
+            {(isCreating || isUpdating) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {editingRule ? 'Salvar' : 'Criar'}
           </Button>
         </DialogFooter>
