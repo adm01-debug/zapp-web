@@ -73,6 +73,8 @@ export function AIProvidersManager() {
               onTest={handleTest}
               onEdit={openEdit}
               onDelete={(id) => deleteMutation.mutate(id)}
+              onToggleActive={(id, v) => toggleActiveMutation.mutate({ id, is_active: v })}
+              onToggleDefault={(id, v) => toggleDefaultMutation.mutate({ id, is_default: v })}
               index={i}
             />
           ))}
