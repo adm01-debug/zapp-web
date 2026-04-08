@@ -53,6 +53,9 @@ interface TestRow extends Record<string, unknown> {
   score: number;
 }
 
+const wrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(AuthProvider, null, children);
+
 describe('useExportData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
