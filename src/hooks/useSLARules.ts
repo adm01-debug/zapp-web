@@ -36,9 +36,10 @@ export interface SLARuleForm {
 
 export function useSLARules(scope?: SLARuleScope) {
   const queryClient = useQueryClient();
+  const queryKey = ['sla-rules', scope];
 
   const { data: rules = [], isLoading } = useQuery({
-    queryKey: ['sla-rules', scope],
+    queryKey,
     queryFn: async () => {
       let query = supabase.from('sla_rules').select('*').order('priority', { ascending: false });
 
@@ -106,11 +107,20 @@ export function useSLARules(scope?: SLARuleScope) {
       const { error } = await supabase.from('sla_rules').delete().eq('id', id);
       if (error) throw error;
     },
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<SLARule[]>(queryKey);
+      queryClient.setQueryData<SLARule[]>(queryKey, old => (old || []).filter(r => r.id !== id));
+      return { previous };
+    },
+    onError: (err: Error, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+      toast.error(err.message);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sla-rules'] });
       toast.success('Regra de SLA removida');
     },
-    onError: (err: Error) => toast.error(err.message),
   });
 
   const toggleMutation = useMutation({
@@ -118,7 +128,18 @@ export function useSLARules(scope?: SLARuleScope) {
       const { error } = await supabase.from('sla_rules').update({ is_active }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sla-rules'] }),
+    onMutate: async ({ id, is_active }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<SLARule[]>(queryKey);
+      queryClient.setQueryData<SLARule[]>(queryKey, old =>
+        (old || []).map(r => r.id === id ? { ...r, is_active } : r)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['sla-rules'] }),
   });
 
   return {
