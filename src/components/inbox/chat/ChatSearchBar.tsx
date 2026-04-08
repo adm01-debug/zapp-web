@@ -183,9 +183,9 @@ export function ChatSearchBar({
           transition={{ duration: 0.2, ease: 'easeInOut' }}
           className="overflow-hidden border-b border-border bg-card shrink-0"
         >
-          <div className="px-3 py-2 space-y-2">
+          <div className="px-2 md:px-3 py-2 space-y-1.5 md:space-y-2">
             {/* Search input row */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <Input
                 ref={inputRef}
@@ -193,7 +193,7 @@ export function ChatSearchBar({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Buscar na conversa..."
-                className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0"
+                className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 min-w-0"
               />
 
               {/* Result counter */}
