@@ -158,13 +158,15 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     },
   }));
 
-  // Group messages by date
-  const groupedMessages = messages.reduce((groups, message) => {
+  // Group messages by date — memoized to avoid recalculation on highlight changes
+  const groupedMessages = useMemo(() => messages.reduce((groups, message) => {
     const dateKey = format(message.timestamp, 'yyyy-MM-dd');
     if (!groups[dateKey]) {
       groups[dateKey] = [];
     }
     groups[dateKey].push(message);
+    return groups;
+  }, {} as Record<string, Message[]>), [messages]);
     return groups;
   }, {} as Record<string, Message[]>);
 
