@@ -399,7 +399,8 @@ export const SLADashboard = () => {
 
       {/* SLA Overview Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+        <Card className="rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
@@ -434,10 +435,12 @@ export const SLADashboard = () => {
                 <span>{data.overall.resolution.breached} atrasados</span>
               </div>
             </div>
-          </CardContent>
+        </CardContent>
         </Card>
+        </motion.div>
 
-        <Card>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+        <Card className="rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
@@ -446,33 +449,34 @@ export const SLADashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.7 }} className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors">
                 <p className="text-sm text-muted-foreground">Violações 1ª Resposta</p>
                 <p className="text-2xl font-bold text-destructive">
                   {data.overall.firstResponse.breached}
                 </p>
-              </div>
-              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+              </motion.div>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.8 }} className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors">
                 <p className="text-sm text-muted-foreground">Violações Resolução</p>
                 <p className="text-2xl font-bold text-destructive">
                   {data.overall.resolution.breached}
                 </p>
-              </div>
-              <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+              </motion.div>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.9 }} className="p-4 rounded-xl bg-success/10 border border-success/20 hover:bg-success/15 transition-colors">
                 <p className="text-sm text-muted-foreground">No Prazo 1ª Resposta</p>
                 <p className="text-2xl font-bold text-success">
                   {data.overall.firstResponse.onTime}
                 </p>
-              </div>
-              <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+              </motion.div>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.0 }} className="p-4 rounded-xl bg-success/10 border border-success/20 hover:bg-success/15 transition-colors">
                 <p className="text-sm text-muted-foreground">No Prazo Resolução</p>
                 <p className="text-2xl font-bold text-success">
                   {data.overall.resolution.onTime}
                 </p>
-              </div>
+              </motion.div>
             </div>
           </CardContent>
         </Card>
+        </motion.div>
       </div>
 
       {/* Configuração de Prazos */}
