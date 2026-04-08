@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Clock, AlertTriangle, CheckCircle, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useSLACalculation, formatTimeRemaining, SLAStatus } from '@/hooks/useSLACalculation';
 
 interface SLAIndicatorProps {
   firstMessageAt: Date;
@@ -19,124 +19,10 @@ interface SLAIndicatorProps {
   compact?: boolean;
 }
 
-type SLAStatus = 'ok' | 'warning' | 'breached';
-
-interface SLAState {
-  firstResponse: {
-    status: SLAStatus;
-    remainingMs: number;
-    breached: boolean;
-  };
-  resolution: {
-    status: SLAStatus;
-    remainingMs: number;
-    breached: boolean;
-  };
-}
-
-function formatTimeRemaining(ms: number): string {
-  const absMs = Math.abs(ms);
-  const totalSeconds = Math.floor(absMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours > 0) {
-    return `${hours}h ${remainingMinutes}m`;
-  }
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
-  }
-  return `${seconds}s`;
-}
-
-function calculateSLAState(
-  firstMessageAt: Date,
-  firstResponseAt: Date | null | undefined,
-  resolvedAt: Date | null | undefined,
-  firstResponseMinutes: number,
-  resolutionMinutes: number
-): SLAState {
-  const now = new Date();
-  const firstResponseDeadline = new Date(firstMessageAt.getTime() + firstResponseMinutes * 60 * 1000);
-  const resolutionDeadline = new Date(firstMessageAt.getTime() + resolutionMinutes * 60 * 1000);
-
-  // First Response SLA
-  let firstResponseStatus: SLAStatus = 'ok';
-  let firstResponseRemaining = firstResponseDeadline.getTime() - now.getTime();
-  let firstResponseBreached = false;
-
-  if (firstResponseAt) {
-    // Already responded
-    firstResponseBreached = firstResponseAt > firstResponseDeadline;
-    firstResponseStatus = firstResponseBreached ? 'breached' : 'ok';
-    firstResponseRemaining = 0;
-  } else {
-    // Still waiting for response
-    const warningThreshold = firstResponseMinutes * 60 * 1000 * 0.3; // 30% remaining
-    if (firstResponseRemaining <= 0) {
-      firstResponseStatus = 'breached';
-      firstResponseBreached = true;
-    } else if (firstResponseRemaining <= warningThreshold) {
-      firstResponseStatus = 'warning';
-    }
-  }
-
-  // Resolution SLA
-  let resolutionStatus: SLAStatus = 'ok';
-  let resolutionRemaining = resolutionDeadline.getTime() - now.getTime();
-  let resolutionBreached = false;
-
-  if (resolvedAt) {
-    // Already resolved
-    resolutionBreached = resolvedAt > resolutionDeadline;
-    resolutionStatus = resolutionBreached ? 'breached' : 'ok';
-    resolutionRemaining = 0;
-  } else {
-    // Still open
-    const warningThreshold = resolutionMinutes * 60 * 1000 * 0.3; // 30% remaining
-    if (resolutionRemaining <= 0) {
-      resolutionStatus = 'breached';
-      resolutionBreached = true;
-    } else if (resolutionRemaining <= warningThreshold) {
-      resolutionStatus = 'warning';
-    }
-  }
-
-  return {
-    firstResponse: {
-      status: firstResponseStatus,
-      remainingMs: firstResponseRemaining,
-      breached: firstResponseBreached,
-    },
-    resolution: {
-      status: resolutionStatus,
-      remainingMs: resolutionRemaining,
-      breached: resolutionBreached,
-    },
-  };
-}
-
-const statusStyles = {
-  ok: {
-    bg: 'bg-success/10',
-    text: 'text-success',
-    border: 'border-success/30',
-    icon: CheckCircle,
-  },
-  warning: {
-    bg: 'bg-warning/10',
-    text: 'text-warning',
-    border: 'border-warning/30',
-    icon: Clock,
-  },
-  breached: {
-    bg: 'bg-destructive/10',
-    text: 'text-destructive',
-    border: 'border-destructive/30',
-    icon: AlertTriangle,
-  },
+const statusStyles: Record<SLAStatus, { bg: string; text: string; border: string; icon: React.ElementType }> = {
+  ok: { bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', icon: CheckCircle },
+  warning: { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/30', icon: Clock },
+  breached: { bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', icon: AlertTriangle },
 };
 
 export function SLAIndicator({
@@ -148,37 +34,13 @@ export function SLAIndicator({
   className,
   compact = false,
 }: SLAIndicatorProps) {
-  const [slaState, setSlaState] = useState<SLAState>(() =>
-    calculateSLAState(firstMessageAt, firstResponseAt, resolvedAt, firstResponseMinutes, resolutionMinutes)
-  );
+  const sla = useSLACalculation({ firstMessageAt, firstResponseAt, resolvedAt, firstResponseMinutes, resolutionMinutes });
 
-  useEffect(() => {
-    // Update SLA state every second if not completed
-    if (firstResponseAt && resolvedAt) return;
+  // Fully resolved and OK → hide
+  if (resolvedAt && sla.worstStatus === 'ok') return null;
 
-    const interval = setInterval(() => {
-      setSlaState(
-        calculateSLAState(firstMessageAt, firstResponseAt, resolvedAt, firstResponseMinutes, resolutionMinutes)
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [firstMessageAt, firstResponseAt, resolvedAt, firstResponseMinutes, resolutionMinutes]);
-
-  // Determine the worst status to show
-  const worstStatus = slaState.resolution.status === 'breached' || slaState.firstResponse.status === 'breached'
-    ? 'breached'
-    : slaState.resolution.status === 'warning' || slaState.firstResponse.status === 'warning'
-    ? 'warning'
-    : 'ok';
-
-  const style = statusStyles[worstStatus];
+  const style = statusStyles[sla.worstStatus];
   const Icon = style.icon;
-
-  // If fully resolved and OK, don't show indicator
-  if (resolvedAt && worstStatus === 'ok') {
-    return null;
-  }
 
   if (compact) {
     return (
@@ -190,23 +52,19 @@ export function SLAIndicator({
               animate={{ scale: 1 }}
               className={cn(
                 'flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border',
-                style.bg,
-                style.text,
-                style.border,
-                worstStatus === 'breached' && 'animate-pulse',
+                style.bg, style.text, style.border,
+                sla.worstStatus === 'breached' && 'animate-pulse',
                 className
               )}
             >
               <Icon className="w-3 h-3" />
-              {!firstResponseAt && slaState.firstResponse.remainingMs > 0 && (
-                <span>{formatTimeRemaining(slaState.firstResponse.remainingMs)}</span>
+              {!firstResponseAt && sla.firstResponse.remainingMs > 0 && (
+                <span>{formatTimeRemaining(sla.firstResponse.remainingMs)}</span>
               )}
-              {firstResponseAt && !resolvedAt && slaState.resolution.remainingMs > 0 && (
-                <span>{formatTimeRemaining(slaState.resolution.remainingMs)}</span>
+              {firstResponseAt && !resolvedAt && sla.resolution.remainingMs > 0 && (
+                <span>{formatTimeRemaining(sla.resolution.remainingMs)}</span>
               )}
-              {(slaState.firstResponse.breached || slaState.resolution.breached) && (
-                <span>SLA</span>
-              )}
+              {(sla.firstResponse.breached || sla.resolution.breached) && <span>SLA</span>}
             </motion.div>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-xs">
@@ -215,14 +73,12 @@ export function SLAIndicator({
                 <Timer className="w-3 h-3" />
                 <span className="font-medium">Primeira Resposta:</span>
                 {firstResponseAt ? (
-                  <span className={slaState.firstResponse.breached ? 'text-destructive' : 'text-success'}>
-                    {slaState.firstResponse.breached ? 'Violado' : 'OK'}
+                  <span className={sla.firstResponse.breached ? 'text-destructive' : 'text-success'}>
+                    {sla.firstResponse.breached ? 'Violado' : 'OK'}
                   </span>
                 ) : (
-                  <span className={statusStyles[slaState.firstResponse.status].text}>
-                    {slaState.firstResponse.status === 'breached' 
-                      ? 'Violado' 
-                      : formatTimeRemaining(slaState.firstResponse.remainingMs)}
+                  <span className={statusStyles[sla.firstResponse.status].text}>
+                    {sla.firstResponse.status === 'breached' ? 'Violado' : formatTimeRemaining(sla.firstResponse.remainingMs)}
                   </span>
                 )}
               </div>
@@ -230,14 +86,12 @@ export function SLAIndicator({
                 <Clock className="w-3 h-3" />
                 <span className="font-medium">Resolução:</span>
                 {resolvedAt ? (
-                  <span className={slaState.resolution.breached ? 'text-destructive' : 'text-success'}>
-                    {slaState.resolution.breached ? 'Violado' : 'OK'}
+                  <span className={sla.resolution.breached ? 'text-destructive' : 'text-success'}>
+                    {sla.resolution.breached ? 'Violado' : 'OK'}
                   </span>
                 ) : (
-                  <span className={statusStyles[slaState.resolution.status].text}>
-                    {slaState.resolution.status === 'breached'
-                      ? 'Violado'
-                      : formatTimeRemaining(slaState.resolution.remainingMs)}
+                  <span className={statusStyles[sla.resolution.status].text}>
+                    {sla.resolution.status === 'breached' ? 'Violado' : formatTimeRemaining(sla.resolution.remainingMs)}
                   </span>
                 )}
               </div>
@@ -250,30 +104,26 @@ export function SLAIndicator({
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      {/* First Response SLA */}
       {!firstResponseAt && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className={cn(
             'flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium border',
-            statusStyles[slaState.firstResponse.status].bg,
-            statusStyles[slaState.firstResponse.status].text,
-            statusStyles[slaState.firstResponse.status].border,
-            slaState.firstResponse.status === 'breached' && 'animate-pulse'
+            statusStyles[sla.firstResponse.status].bg,
+            statusStyles[sla.firstResponse.status].text,
+            statusStyles[sla.firstResponse.status].border,
+            sla.firstResponse.status === 'breached' && 'animate-pulse'
           )}
         >
           <Timer className="w-3.5 h-3.5" />
           <span>1ª Resp:</span>
           <span className="font-bold">
-            {slaState.firstResponse.status === 'breached' 
-              ? 'Violado' 
-              : formatTimeRemaining(slaState.firstResponse.remainingMs)}
+            {sla.firstResponse.status === 'breached' ? 'Violado' : formatTimeRemaining(sla.firstResponse.remainingMs)}
           </span>
         </motion.div>
       )}
 
-      {/* Resolution SLA */}
       {!resolvedAt && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -281,18 +131,16 @@ export function SLAIndicator({
           transition={{ delay: 0.1 }}
           className={cn(
             'flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium border',
-            statusStyles[slaState.resolution.status].bg,
-            statusStyles[slaState.resolution.status].text,
-            statusStyles[slaState.resolution.status].border,
-            slaState.resolution.status === 'breached' && 'animate-pulse'
+            statusStyles[sla.resolution.status].bg,
+            statusStyles[sla.resolution.status].text,
+            statusStyles[sla.resolution.status].border,
+            sla.resolution.status === 'breached' && 'animate-pulse'
           )}
         >
           <Clock className="w-3.5 h-3.5" />
           <span>Resolução:</span>
           <span className="font-bold">
-            {slaState.resolution.status === 'breached'
-              ? 'Violado'
-              : formatTimeRemaining(slaState.resolution.remainingMs)}
+            {sla.resolution.status === 'breached' ? 'Violado' : formatTimeRemaining(sla.resolution.remainingMs)}
           </span>
         </motion.div>
       )}
