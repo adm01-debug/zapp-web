@@ -79,6 +79,8 @@ interface ChatMessagesAreaProps {
   onScrollToMessage: (messageId: string) => void;
   onInteractiveButtonClick: (button: InteractiveButton) => void;
   onEditStart?: (message: Message) => void;
+  highlightedMessageIds?: Set<string>;
+  activeHighlightId?: string | null;
 }
 
 export interface ChatMessagesAreaRef {
@@ -105,6 +107,8 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   onScrollToMessage,
   onInteractiveButtonClick,
   onEditStart,
+  highlightedMessageIds,
+  activeHighlightId,
 }, ref) => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -205,9 +209,12 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                   <div
                     ref={(el) => { messageRefs.current[message.id] = el; }}
                     className={cn(
-                      'flex group gap-2.5 transition-all duration-200',
+                      'flex group gap-2.5 transition-all duration-300',
                       isSent ? 'justify-end' : 'justify-start',
-                      !isLastInGroup && 'mb-0.5'
+                      !isLastInGroup && 'mb-0.5',
+                      highlightedMessageIds?.has(message.id) && 'relative',
+                      activeHighlightId === message.id && 'ring-2 ring-yellow-400 ring-offset-1 ring-offset-background rounded-2xl',
+                      highlightedMessageIds?.has(message.id) && activeHighlightId !== message.id && 'bg-yellow-400/10 rounded-2xl',
                     )}
                   >
                     {/* Avatar — received messages (left), only on last in group */}

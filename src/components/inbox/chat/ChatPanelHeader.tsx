@@ -139,7 +139,7 @@ export function ChatPanelHeader({
               <Search className="w-[18px] h-[18px]" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Buscar (Ctrl+K)</TooltipContent>
+          <TooltipContent side="bottom">Buscar na conversa (Ctrl+F)</TooltipContent>
         </Tooltip>
 
         <Tooltip>

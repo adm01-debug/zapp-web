@@ -25,6 +25,7 @@ import { ChatMessagesArea, ChatMessagesAreaRef } from './chat/ChatMessagesArea';
 import { ChatInputArea } from './chat/ChatInputArea';
 import { ChatDragOverlay } from './chat/ChatDragOverlay';
 import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
+import { ChatSearchBar } from './chat/ChatSearchBar';
 
 const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
 const TransferDialog = lazy(() => import('./TransferDialog').then(m => ({ default: m.TransferDialog })));
@@ -61,6 +62,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const [showChatSearch, setShowChatSearch] = useState(false);
+  const [highlightedMessageIds, setHighlightedMessageIds] = useState<Set<string>>(new Set());
+  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
   const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
@@ -177,6 +181,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     if (showSlashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
     if (e.key === 'k' && e.ctrlKey) { e.preventDefault(); setShowGlobalSearch(true); }
+    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setShowChatSearch(true); }
     if (e.key === 'Escape' && showSlashCommands) setShowSlashCommands(false);
   };
 
@@ -283,10 +288,18 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         {!hideHeader && (
           <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={showAIAssistant} showDetails={showDetails}
             voiceId={voiceId} speed={speed} onToggleAIAssistant={() => setShowAIAssistant(!showAIAssistant)} onToggleDetails={onToggleDetails}
-            onStartCall={() => { setCallDirection('outbound'); setShowCallDialog(true); }} onOpenSearch={() => setShowGlobalSearch(true)}
+            onStartCall={() => { setCallDirection('outbound'); setShowCallDialog(true); }} onOpenSearch={() => setShowChatSearch(true)}
             onOpenTransfer={() => setShowTransferDialog(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack} />
         )}
+
+        <ChatSearchBar
+          messages={messages}
+          isOpen={showChatSearch}
+          onClose={() => setShowChatSearch(false)}
+          onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
+          onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
+        />
 
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
 
@@ -298,7 +311,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}
           contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''} contactAvatar={conversation.contact.avatar || undefined}
           onSpeak={speak} onStop={stop} onReply={handleReplyToMessage} onForward={handleForwardMessage} onCopy={handleCopyMessage}
-          onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart} />
+          onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart}
+          highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} />
 
         <ChatQuickRepliesPopover show={showQuickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => setShowQuickReplies(false)} />
 
