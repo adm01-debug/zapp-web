@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { VoiceSelector } from '@/components/inbox/VoiceSelector';
-import { SpeedSelector } from '@/components/inbox/SpeedSelector';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,7 +123,7 @@ export function TeamChatHeader({
         )}
 
         <VoiceSelector selectedVoiceId={voiceId} onVoiceChange={onVoiceChange} />
-        <SpeedSelector speed={speed} onSpeedChange={onSpeedChange} />
+        
 
         <DropdownMenu>
           <Tooltip>
