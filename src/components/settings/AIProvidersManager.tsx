@@ -92,6 +92,5 @@ export function AIProvidersManager() {
       {/* Health Monitoring */}
       <AIProviderHealthPanel />
     </div>
-    </div>
   );
 }
