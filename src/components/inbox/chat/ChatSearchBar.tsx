@@ -52,6 +52,7 @@ export function ChatSearchBar({
   onClose,
   onNavigateToMessage,
   onHighlightChange,
+  onSearchQueryChange,
 }: ChatSearchBarProps) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<SearchFilter>('all');
