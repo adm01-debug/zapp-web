@@ -110,6 +110,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   onEditStart,
   highlightedMessageIds,
   activeHighlightId,
+  searchQuery,
 }, ref) => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
