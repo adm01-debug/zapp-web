@@ -151,6 +151,12 @@ export function ContactInfoSection({ contact, enrichedData }: ContactInfoSection
         </div>
       </div>
 
+      {/* Contact Type */}
+      <ContactTypeSelector
+        value={enrichedData?.contact_type || 'cliente'}
+        onChange={(v) => updateContact('contact_type', v)}
+      />
+
       {/* Client since */}
       <div className="flex items-center gap-2.5 text-xs text-muted-foreground bg-muted/10 rounded-lg p-2">
         <Calendar className="w-3.5 h-3.5 text-primary" />
