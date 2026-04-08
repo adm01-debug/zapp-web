@@ -317,7 +317,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         <ChatSearchBar
           messages={messages}
           isOpen={showChatSearch}
-          onClose={() => setShowChatSearch(false)}
+          onClose={() => { setShowChatSearch(false); setTimeout(() => inputRef.current?.focus(), 150); }}
           onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
           onSearchQueryChange={setSearchQuery}

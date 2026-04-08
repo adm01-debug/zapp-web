@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Message } from '@/types/chat';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HighlightedText } from './HighlightedText';
 import { format } from 'date-fns';
+import { useChatSearch, SearchFilter } from '@/hooks/useChatSearch';
 import {
   Search,
   X,
@@ -20,8 +21,6 @@ import {
   Link2,
 } from 'lucide-react';
 
-type SearchFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
-
 interface ChatSearchBarProps {
   messages: Message[];
   isOpen: boolean;
@@ -30,8 +29,6 @@ interface ChatSearchBarProps {
   onHighlightChange: (messageIds: Set<string>, activeId: string | null) => void;
   onSearchQueryChange?: (query: string) => void;
 }
-
-const URL_REGEX = /https?:\/\/\S+/i;
 
 const FILTERS: { key: SearchFilter; label: string; icon: React.ReactNode }[] = [
   { key: 'all', label: 'Todos', icon: <Search className="w-3 h-3" /> },
@@ -43,10 +40,12 @@ const FILTERS: { key: SearchFilter; label: string; icon: React.ReactNode }[] = [
   { key: 'link', label: 'Links', icon: <Link2 className="w-3 h-3" /> },
 ];
 
-/** Normalize text for accent-insensitive search */
-function normalizeText(text: string): string {
-  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
+const TYPE_ICON_MAP: Record<string, typeof FileText> = {
+  image: Image,
+  video: Video,
+  audio: Music,
+  document: File,
+};
 
 export function ChatSearchBar({
   messages,
@@ -56,120 +55,43 @@ export function ChatSearchBar({
   onHighlightChange,
   onSearchQueryChange,
 }: ChatSearchBarProps) {
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<SearchFilter>('all');
-  const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const previewListRef = useRef<HTMLDivElement>(null);
 
-  // Stable refs for callbacks to avoid useEffect dep issues
-  const onHighlightChangeRef = useRef(onHighlightChange);
-  const onNavigateToMessageRef = useRef(onNavigateToMessage);
-  onHighlightChangeRef.current = onHighlightChange;
-  onNavigateToMessageRef.current = onNavigateToMessage;
+  const {
+    query,
+    setQuery,
+    filter,
+    setFilter,
+    activeIndex,
+    setActiveIndex,
+    debouncedQuery,
+    results,
+    filterCounts,
+    navigateUp,
+    navigateDown,
+  } = useChatSearch({
+    messages,
+    isOpen,
+    onHighlightChange,
+    onNavigateToMessage,
+    onSearchQueryChange,
+  });
 
-  // Focus input on open, reset state on close
+  // Focus input on open
   useEffect(() => {
-    let focusTimer: ReturnType<typeof setTimeout> | null = null;
     if (isOpen) {
-      focusTimer = setTimeout(() => inputRef.current?.focus(), 100);
-    } else {
-      setQuery('');
-      setDebouncedQuery('');
-      setFilter('all');
-      setActiveIndex(0);
-      onHighlightChangeRef.current(new Set(), null);
-      onSearchQueryChange?.('');
+      const timer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
     }
-    return () => { if (focusTimer) clearTimeout(focusTimer); };
   }, [isOpen]);
 
-  // Debounce query
+  // Auto-scroll preview list to active item
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setDebouncedQuery(query);
-      onSearchQueryChange?.(query);
-    }, 200);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query]);
-
-  // Search logic — excludes deleted messages, accent-insensitive
-  const results = useMemo(() => {
-    if (!debouncedQuery.trim() && filter === 'all') return [];
-
-    return messages.filter((msg) => {
-      // Skip deleted messages
-      if (msg.is_deleted) return false;
-
-      // Filter by type
-      if (filter === 'link') {
-        if (!URL_REGEX.test(msg.content || '')) return false;
-      } else if (filter !== 'all') {
-        if (msg.type !== filter) return false;
-      }
-
-      // If no query, show all of the filtered type
-      if (!debouncedQuery.trim()) return filter !== 'all';
-
-      const q = normalizeText(debouncedQuery);
-      const searchable = normalizeText(
-        [msg.content, msg.transcription, msg.mediaUrl].filter(Boolean).join(' ')
-      );
-
-      return searchable.includes(q);
-    });
-  }, [messages, debouncedQuery, filter]);
-
-  // Compute counts per filter type for chips
-  const filterCounts = useMemo(() => {
-    const activeMessages = messages.filter((m) => !m.is_deleted);
-    const matchesQuery = (msg: Message) => {
-      if (!debouncedQuery.trim()) return true;
-      const q = normalizeText(debouncedQuery);
-      return normalizeText([msg.content, msg.transcription, msg.mediaUrl].filter(Boolean).join(' ')).includes(q);
-    };
-
-    const counts: Record<SearchFilter, number> = {
-      all: 0, text: 0, image: 0, video: 0, audio: 0, document: 0, link: 0,
-    };
-
-    for (const msg of activeMessages) {
-      if (!matchesQuery(msg)) continue;
-      counts.all++;
-      if (msg.type === 'text') counts.text++;
-      if (msg.type === 'image') counts.image++;
-      if (msg.type === 'video') counts.video++;
-      if (msg.type === 'audio') counts.audio++;
-      if (msg.type === 'document') counts.document++;
-      if (URL_REGEX.test(msg.content || '')) counts.link++;
-    }
-    return counts;
-  }, [messages, debouncedQuery]);
-
-  // Update highlights when results or activeIndex change
-  useEffect(() => {
-    const ids = new Set(results.map((r) => r.id));
-    const activeId = results[activeIndex]?.id || null;
-    onHighlightChangeRef.current(ids, activeId);
-    if (activeId) onNavigateToMessageRef.current(activeId);
-  }, [results, activeIndex]);
-
-  // Reset active index when search criteria change
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [debouncedQuery, filter]);
-
-  const navigateUp = useCallback(() => {
-    if (results.length === 0) return;
-    setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
-  }, [results.length]);
-
-  const navigateDown = useCallback(() => {
-    if (results.length === 0) return;
-    setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
-  }, [results.length]);
+    if (!previewListRef.current || activeIndex < 0 || activeIndex >= 5) return;
+    const activeEl = previewListRef.current.children[activeIndex] as HTMLElement | undefined;
+    activeEl?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [activeIndex]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') { e.preventDefault(); onClose(); }
@@ -213,35 +135,15 @@ export function ChatSearchBar({
 
               {/* Navigate arrows */}
               <div className="flex items-center gap-0.5 shrink-0" role="group" aria-label="Navegar entre resultados">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
-                  onClick={navigateUp}
-                  disabled={results.length === 0}
-                  aria-label="Resultado anterior"
-                >
+                <Button variant="ghost" size="icon" className="w-8 h-8 md:w-7 md:h-7 touch-manipulation" onClick={navigateUp} disabled={results.length === 0} aria-label="Resultado anterior">
                   <ChevronUp className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
-                  onClick={navigateDown}
-                  disabled={results.length === 0}
-                  aria-label="Próximo resultado"
-                >
+                <Button variant="ghost" size="icon" className="w-8 h-8 md:w-7 md:h-7 touch-manipulation" onClick={navigateDown} disabled={results.length === 0} aria-label="Próximo resultado">
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-8 h-8 md:w-7 md:h-7 shrink-0 touch-manipulation"
-                onClick={onClose}
-                aria-label="Fechar busca"
-              >
+              <Button variant="ghost" size="icon" className="w-8 h-8 md:w-7 md:h-7 shrink-0 touch-manipulation" onClick={onClose} aria-label="Fechar busca">
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -288,30 +190,26 @@ export function ChatSearchBar({
                 </span>
               </motion.div>
             )}
-            {/* Results preview — max 3 visible */}
+
+            {/* Results preview */}
             {debouncedQuery.trim() && results.length > 0 && (
-              <div className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
-                {results.slice(0, 5).map((msg, sliceIdx) => {
-                  const realIdx = sliceIdx;
+              <div ref={previewListRef} className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
+                {results.slice(0, 5).map((msg, idx) => {
                   const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);
-                  const TypeIcon = msg.type === 'image' ? Image
-                    : msg.type === 'video' ? Video
-                    : msg.type === 'audio' ? Music
-                    : msg.type === 'document' ? File
-                    : FileText;
+                  const TypeIcon = TYPE_ICON_MAP[msg.type] || FileText;
                   return (
                     <motion.button
                       key={msg.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: sliceIdx * 0.03 }}
+                      transition={{ delay: idx * 0.03 }}
                       onClick={() => {
-                        setActiveIndex(realIdx);
+                        setActiveIndex(idx);
                         onNavigateToMessage(msg.id);
                       }}
                       className={cn(
                         'w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left transition-colors text-xs',
-                        activeIndex === realIdx
+                        activeIndex === idx
                           ? 'bg-primary/10 text-foreground'
                           : 'hover:bg-muted/60 text-muted-foreground'
                       )}

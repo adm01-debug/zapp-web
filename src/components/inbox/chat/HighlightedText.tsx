@@ -18,32 +18,18 @@ function normalize(s: string): string {
  * This mapping lets us accurately slice the original string.
  */
 function buildIndexMap(original: string): number[] {
-  const nfd = original.normalize('NFD');
   const map: number[] = [];
-  let origIdx = 0;
-  let nfdIdx = 0;
-
-  // Walk through the NFD string. Each NFD code unit maps back to an original char.
-  // We need to track which original char each NFD char came from.
-  const origChars = [...original]; // correctly splits by code point
-  let nfdOffset = 0;
+  const origChars = [...original];
 
   for (let oi = 0; oi < origChars.length; oi++) {
-    const origChar = origChars[oi];
-    const nfdOfChar = origChar.normalize('NFD');
+    const nfdOfChar = origChars[oi].normalize('NFD');
     for (let ci = 0; ci < nfdOfChar.length; ci++) {
-      const ch = nfdOfChar[ci];
-      // Check if this is a combining diacritic (will be stripped)
-      const isCombining = /[\u0300-\u036f]/.test(ch);
-      if (!isCombining) {
-        // This char survives stripping — map normalized index → original index
+      if (!/[\u0300-\u036f]/.test(nfdOfChar[ci])) {
         map.push(oi);
       }
     }
   }
-  // Final sentinel: maps to end of original
   map.push(origChars.length);
-
   return map;
 }
 
