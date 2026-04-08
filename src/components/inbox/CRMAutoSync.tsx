@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { useSyncToCRM } from '@/hooks/useSyncToCRM';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { RefreshCw, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { log } from '@/lib/logger';
@@ -170,36 +171,43 @@ export function CRMSyncButton({ conversation, messageCount }: { conversation: Co
 
   if (contactNotFound) {
     return (
-      <Button variant="outline" size="sm" disabled className="text-xs gap-1.5 h-7 opacity-50">
-        <RefreshCw className="w-3 h-3 text-muted-foreground" />
-        Sem CRM
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="outline" size="icon" disabled className="w-9 h-9 opacity-50 border-border/30">
+            <RefreshCw className="w-4 h-4 text-muted-foreground" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top">Contato não encontrado no CRM</TooltipContent>
+      </Tooltip>
     );
   }
 
+  const tooltipText = isSyncing
+    ? 'Sincronizando...'
+    : lastResult?.synced
+      ? `Sincronizado ${lastSyncTime ? formatDistanceToNow(lastSyncTime, { addSuffix: true, locale: ptBR }) : ''}`
+      : 'Sincronizar com CRM externo';
+
   return (
-    <div className="flex items-center gap-1.5">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleSync}
-        disabled={isSyncing}
-        className="text-xs gap-1.5 h-7"
-      >
-        {isSyncing ? (
-          <Loader2 className="w-3 h-3 animate-spin" />
-        ) : lastResult?.synced ? (
-          <CheckCircle2 className="w-3 h-3 text-success" />
-        ) : (
-          <RefreshCw className="w-3 h-3" />
-        )}
-        CRM
-      </Button>
-      {lastSyncTime && (
-        <span className="text-[10px] text-muted-foreground">
-          {formatDistanceToNow(lastSyncTime, { addSuffix: true, locale: ptBR })}
-        </span>
-      )}
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleSync}
+          disabled={isSyncing}
+          className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
+        >
+          {isSyncing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : lastResult?.synced ? (
+            <CheckCircle2 className="w-4 h-4 text-success" />
+          ) : (
+            <RefreshCw className="w-4 h-4" />
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top">{tooltipText}</TooltipContent>
+    </Tooltip>
   );
 }
