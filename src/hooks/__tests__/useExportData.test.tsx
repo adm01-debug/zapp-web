@@ -54,8 +54,13 @@ interface TestRow extends Record<string, unknown> {
   score: number;
 }
 
-const wrapper = ({ children }: { children: React.ReactNode }) =>
-  React.createElement(AuthProvider, null, children);
+const createWrapper = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient },
+      React.createElement(AuthProvider, null, children)
+    );
+};
 
 describe('useExportData', () => {
   beforeEach(() => {
