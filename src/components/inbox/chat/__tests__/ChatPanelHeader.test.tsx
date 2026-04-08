@@ -8,7 +8,7 @@ import { BrowserRouter } from 'react-router-dom';
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 vi.mock('@/lib/popupManager', () => ({ openChatPopup: vi.fn() }));
 
-const mockConversation: Conversation = {
+const mockConversation = {
   id: 'conv-1',
   contact: {
     id: 'c-1',
@@ -21,9 +21,10 @@ const mockConversation: Conversation = {
   status: 'open',
   priority: 'medium',
   channel: 'whatsapp',
+  tags: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-} as Conversation;
+} as unknown as Conversation;
 
 const baseProps = {
   conversation: mockConversation,
@@ -111,7 +112,7 @@ describe('ChatPanelHeader - Summary Button', () => {
     const buttons = screen.getAllByRole('button');
     const summaryBtn = buttons.find(b => b.querySelector('.lucide-loader-2'));
     expect(summaryBtn).toBeDefined();
-    expect(summaryBtn!.disabled).toBe(true);
+    expect((summaryBtn as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('summary button is positioned between Brain and Info icons', () => {

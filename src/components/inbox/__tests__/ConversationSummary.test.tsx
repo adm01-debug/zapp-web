@@ -15,7 +15,7 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 const makeMessages = (count: number) =>
   Array.from({ length: count }, (_, i) => ({
     id: `m${i}`,
-    sender: i % 2 === 0 ? 'contact' : 'agent',
+    sender: (i % 2 === 0 ? 'contact' : 'agent') as 'contact' | 'agent',
     content: `Message ${i}`,
     created_at: new Date().toISOString(),
   }));
