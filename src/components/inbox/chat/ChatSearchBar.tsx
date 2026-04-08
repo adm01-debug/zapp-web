@@ -1,12 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HighlightedText } from './HighlightedText';
 import { format } from 'date-fns';
-import { useChatSearch, SearchFilter } from '@/hooks/useChatSearch';
+import { ptBR } from 'date-fns/locale';
+import { useChatSearch, SearchFilter, DatePreset } from '@/hooks/useChatSearch';
 import {
   Search,
   X,
@@ -18,6 +21,7 @@ import {
   Music,
   File,
   Link2,
+  CalendarDays,
 } from 'lucide-react';
 
 interface ChatSearchBarProps {
@@ -39,12 +43,30 @@ const FILTERS: { key: SearchFilter; label: string; icon: React.ReactNode }[] = [
   { key: 'link', label: 'Links', icon: <Link2 className="w-3.5 h-3.5" /> },
 ];
 
+const DATE_PRESETS: { key: DatePreset; label: string }[] = [
+  { key: 'all', label: 'Qualquer data' },
+  { key: 'today', label: 'Hoje' },
+  { key: '7d', label: 'Últimos 7 dias' },
+  { key: '30d', label: 'Últimos 30 dias' },
+  { key: 'custom', label: 'Personalizado' },
+];
+
 const TYPE_ICON_MAP: Record<string, typeof FileText> = {
   image: Image,
   video: Video,
   audio: Music,
   document: File,
 };
+
+function DatePresetLabel({ preset, from, to }: { preset: DatePreset; from: Date | null; to: Date | null }) {
+  if (preset === 'custom' && from) {
+    const fromStr = format(from, 'dd/MM/yy');
+    const toStr = to ? format(to, 'dd/MM/yy') : 'agora';
+    return <span>{fromStr} — {toStr}</span>;
+  }
+  const found = DATE_PRESETS.find((p) => p.key === preset);
+  return <span>{found?.label ?? 'Data'}</span>;
+}
 
 export function ChatSearchBar({
   messages,
@@ -56,6 +78,7 @@ export function ChatSearchBar({
 }: ChatSearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewListRef = useRef<HTMLDivElement>(null);
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
 
   const {
     query,
@@ -69,6 +92,13 @@ export function ChatSearchBar({
     filterCounts,
     navigateUp,
     navigateDown,
+    datePreset,
+    setDatePreset,
+    customDateFrom,
+    setCustomDateFrom,
+    customDateTo,
+    setCustomDateTo,
+    hasDateFilter,
   } = useChatSearch({
     messages,
     isOpen,
@@ -132,7 +162,7 @@ export function ChatSearchBar({
                     <X className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
                 )}
-                {(debouncedQuery.trim() || filter !== 'all') && (
+                {(debouncedQuery.trim() || filter !== 'all' || hasDateFilter) && (
                   <span
                     id="search-result-count"
                     className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0 tabular-nums font-medium"
@@ -179,12 +209,12 @@ export function ChatSearchBar({
               </Button>
             </div>
 
-            {/* Filter chips */}
+            {/* Filter chips + date filter */}
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-1 px-1" role="tablist" aria-label="Filtros de tipo de mensagem">
               {FILTERS.map((f) => {
                 const isActive = filter === f.key;
                 const count = filterCounts[f.key];
-                const showCount = (debouncedQuery.trim() || f.key !== 'all') && count > 0;
+                const showCount = (debouncedQuery.trim() || f.key !== 'all' || hasDateFilter) && count > 0;
 
                 return (
                   <button
@@ -216,10 +246,115 @@ export function ChatSearchBar({
                   </button>
                 );
               })}
+
+              {/* Date filter */}
+              <div className="w-px h-4 bg-border shrink-0 mx-0.5" />
+              <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className={cn(
+                      'inline-flex items-center gap-1.5 whitespace-nowrap text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-150 shrink-0 select-none',
+                      hasDateFilter
+                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+                        : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    )}
+                  >
+                    <CalendarDays className="w-3.5 h-3.5" />
+                    <DatePresetLabel preset={datePreset} from={customDateFrom} to={customDateTo} />
+                    {hasDateFilter && (
+                      <span
+                        role="button"
+                        className="ml-0.5 p-0.5 rounded-full hover:bg-primary-foreground/20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDatePreset('all');
+                          setCustomDateFrom(null);
+                          setCustomDateTo(null);
+                        }}
+                        aria-label="Remover filtro de data"
+                      >
+                        <X className="w-3 h-3" />
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                  <div className="p-2 space-y-1 border-b border-border">
+                    {DATE_PRESETS.filter((p) => p.key !== 'custom').map((p) => (
+                      <button
+                        key={p.key}
+                        className={cn(
+                          'w-full text-left text-xs px-3 py-1.5 rounded-md transition-colors',
+                          datePreset === p.key
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-muted text-foreground'
+                        )}
+                        onClick={() => {
+                          setDatePreset(p.key);
+                          setCustomDateFrom(null);
+                          setCustomDateTo(null);
+                          if (p.key !== 'custom') setDatePopoverOpen(false);
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p-2">
+                    <p className="text-[11px] text-muted-foreground font-medium px-1 mb-1.5">Período personalizado</p>
+                    <div className="flex gap-2">
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-muted-foreground px-1">De</span>
+                        <Calendar
+                          mode="single"
+                          selected={customDateFrom ?? undefined}
+                          onSelect={(day) => {
+                            setCustomDateFrom(day ?? null);
+                            setDatePreset('custom');
+                          }}
+                          disabled={(date) => date > new Date()}
+                          locale={ptBR}
+                          className="rounded-md border p-1"
+                          classNames={{
+                            day_selected: 'bg-primary text-primary-foreground',
+                            head_cell: 'text-[10px]',
+                            cell: 'h-7 w-7 text-[11px]',
+                            day: 'h-7 w-7 text-[11px]',
+                            caption_label: 'text-xs font-medium',
+                            nav_button: 'h-6 w-6',
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-muted-foreground px-1">Até</span>
+                        <Calendar
+                          mode="single"
+                          selected={customDateTo ?? undefined}
+                          onSelect={(day) => {
+                            setCustomDateTo(day ?? null);
+                            setDatePreset('custom');
+                          }}
+                          disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
+                          locale={ptBR}
+                          className="rounded-md border p-1"
+                          classNames={{
+                            day_selected: 'bg-primary text-primary-foreground',
+                            head_cell: 'text-[10px]',
+                            cell: 'h-7 w-7 text-[11px]',
+                            day: 'h-7 w-7 text-[11px]',
+                            caption_label: 'text-xs font-medium',
+                            nav_button: 'h-6 w-6',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Empty state */}
-            {(debouncedQuery.trim() || filter !== 'all') && results.length === 0 && (
+            {(debouncedQuery.trim() || filter !== 'all' || hasDateFilter) && results.length === 0 && (
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -229,13 +364,15 @@ export function ChatSearchBar({
                 <span className="text-xs">
                   {debouncedQuery.trim()
                     ? `Nenhum resultado para "${debouncedQuery.trim().slice(0, 30)}${debouncedQuery.trim().length > 30 ? '…' : ''}"`
-                    : `Nenhuma mensagem do tipo "${FILTERS.find(f => f.key === filter)?.label}"`}
+                    : hasDateFilter && filter === 'all'
+                      ? 'Nenhuma mensagem neste período'
+                      : `Nenhuma mensagem do tipo "${FILTERS.find(f => f.key === filter)?.label}"`}
                 </span>
               </motion.div>
             )}
 
             {/* Results preview */}
-            {debouncedQuery.trim() && results.length > 0 && (
+            {(debouncedQuery.trim() || hasDateFilter) && results.length > 0 && (
               <div ref={previewListRef} className="max-h-[140px] overflow-y-auto scrollbar-thin space-y-0.5 rounded-lg bg-muted/30 p-1">
                 {results.slice(0, 5).map((msg, idx) => {
                   const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);

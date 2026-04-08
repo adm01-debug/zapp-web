@@ -3,11 +3,33 @@ import { Message } from '@/types/chat';
 
 export type SearchFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
 
+export type DatePreset = 'all' | 'today' | '7d' | '30d' | 'custom';
+
 const URL_REGEX = /https?:\/\/\S+/i;
 
 /** Normalize text for accent-insensitive search */
 function normalizeText(text: string): string {
   return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function startOfDay(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getPresetRange(preset: DatePreset): { from: Date | null; to: Date | null } {
+  const now = new Date();
+  switch (preset) {
+    case 'today':
+      return { from: startOfDay(now), to: null };
+    case '7d':
+      return { from: startOfDay(new Date(now.getTime() - 7 * 86400000)), to: null };
+    case '30d':
+      return { from: startOfDay(new Date(now.getTime() - 30 * 86400000)), to: null };
+    default:
+      return { from: null, to: null };
+  }
 }
 
 interface UseChatSearchOptions {
@@ -31,11 +53,26 @@ export function useChatSearch({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
+  // Date filter state
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [customDateFrom, setCustomDateFrom] = useState<Date | null>(null);
+  const [customDateTo, setCustomDateTo] = useState<Date | null>(null);
+
   // Stable refs for callbacks
   const onHighlightChangeRef = useRef(onHighlightChange);
   const onNavigateToMessageRef = useRef(onNavigateToMessage);
   onHighlightChangeRef.current = onHighlightChange;
   onNavigateToMessageRef.current = onNavigateToMessage;
+
+  // Compute effective date range
+  const dateRange = useMemo(() => {
+    if (datePreset === 'custom') {
+      return { from: customDateFrom, to: customDateTo };
+    }
+    return getPresetRange(datePreset);
+  }, [datePreset, customDateFrom, customDateTo]);
+
+  const hasDateFilter = datePreset !== 'all';
 
   // Reset state on close
   useEffect(() => {
@@ -44,6 +81,9 @@ export function useChatSearch({
       setDebouncedQuery('');
       setFilter('all');
       setActiveIndex(0);
+      setDatePreset('all');
+      setCustomDateFrom(null);
+      setCustomDateTo(null);
       onHighlightChangeRef.current(new Set(), null);
       onSearchQueryChange?.('');
     }
@@ -59,20 +99,41 @@ export function useChatSearch({
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
-  // Search logic — excludes deleted messages, accent-insensitive
+  // Date filter helper
+  const matchesDateRange = useCallback((msg: Message): boolean => {
+    if (!hasDateFilter) return true;
+    const msgDate = new Date(msg.timestamp);
+    if (dateRange.from && msgDate < dateRange.from) return false;
+    if (dateRange.to) {
+      const endOfTo = new Date(dateRange.to);
+      endOfTo.setHours(23, 59, 59, 999);
+      if (msgDate > endOfTo) return false;
+    }
+    return true;
+  }, [hasDateFilter, dateRange]);
+
+  // Search logic — excludes deleted messages, accent-insensitive, date-filtered
   const results = useMemo(() => {
-    if (!debouncedQuery.trim() && filter === 'all') return [];
+    const hasQuery = debouncedQuery.trim().length > 0;
+    const hasTypeFilter = filter !== 'all';
+
+    if (!hasQuery && !hasTypeFilter && !hasDateFilter) return [];
 
     return messages.filter((msg) => {
       if (msg.is_deleted) return false;
 
+      // Date filter
+      if (!matchesDateRange(msg)) return false;
+
+      // Type filter
       if (filter === 'link') {
         if (!URL_REGEX.test(msg.content || '')) return false;
       } else if (filter !== 'all') {
         if (msg.type !== filter) return false;
       }
 
-      if (!debouncedQuery.trim()) return filter !== 'all';
+      // Text query filter
+      if (!hasQuery) return hasTypeFilter || hasDateFilter;
 
       const q = normalizeText(debouncedQuery);
       const searchable = normalizeText(
@@ -81,11 +142,11 @@ export function useChatSearch({
 
       return searchable.includes(q);
     });
-  }, [messages, debouncedQuery, filter]);
+  }, [messages, debouncedQuery, filter, hasDateFilter, matchesDateRange]);
 
   // Compute counts per filter type for chips
   const filterCounts = useMemo(() => {
-    const activeMessages = messages.filter((m) => !m.is_deleted);
+    const activeMessages = messages.filter((m) => !m.is_deleted && matchesDateRange(m));
     const matchesQuery = (msg: Message) => {
       if (!debouncedQuery.trim()) return true;
       const q = normalizeText(debouncedQuery);
@@ -109,7 +170,7 @@ export function useChatSearch({
       if (URL_REGEX.test(msg.content || '')) counts.link++;
     }
     return counts;
-  }, [messages, debouncedQuery]);
+  }, [messages, debouncedQuery, matchesDateRange]);
 
   // Update highlights
   useEffect(() => {
@@ -122,7 +183,7 @@ export function useChatSearch({
   // Reset active index on criteria change
   useEffect(() => {
     setActiveIndex(0);
-  }, [debouncedQuery, filter]);
+  }, [debouncedQuery, filter, datePreset, customDateFrom, customDateTo]);
 
   const navigateUp = useCallback(() => {
     if (results.length === 0) return;
@@ -146,5 +207,12 @@ export function useChatSearch({
     filterCounts,
     navigateUp,
     navigateDown,
+    datePreset,
+    setDatePreset,
+    customDateFrom,
+    setCustomDateFrom,
+    customDateTo,
+    setCustomDateTo,
+    hasDateFilter,
   };
 }
