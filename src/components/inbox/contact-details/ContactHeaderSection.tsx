@@ -253,11 +253,6 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
             VIP
           </Badge>
         )}
-        {contactType && contactTypeConfig[contactType] && (
-          <Badge variant="outline" className={`text-[10px] ${contactTypeConfig[contactType].color}`}>
-            {contactTypeConfig[contactType].label}
-          </Badge>
-        )}
         {sentiment && sentimentConfig[sentiment] && (
           <Badge variant="outline" className={`text-[10px] ${sentimentConfig[sentiment].color}`}>
             {sentimentConfig[sentiment].emoji} {sentimentConfig[sentiment].label}
@@ -278,8 +273,15 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
         </Badge>
       )}
 
-      {/* Action icons row - compact */}
-      <div className="flex items-center gap-1 mt-3">
+      {/* Contact type badge + Action icons row */}
+      <div className="flex items-center gap-1.5 mt-3">
+        {contactType && contactTypeConfig[contactType] && (
+          <Badge variant="outline" className={`text-[10px] ${contactTypeConfig[contactType].color}`}>
+            {contactTypeConfig[contactType].label}
+          </Badge>
+        )}
+      </div>
+      <div className="flex items-center gap-1 mt-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
