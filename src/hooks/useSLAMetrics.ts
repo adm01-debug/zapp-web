@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, subDays, startOfWeek, startOfMonth } from 'date-fns';
-import { log } from '@/lib/logger';
 
 export type PeriodFilter = 'today' | 'week' | 'month' | 'all';
 
@@ -21,7 +20,7 @@ interface AgentSLAMetric {
   overallRate: number;
 }
 
-interface SLADashboardData {
+export interface SLADashboardData {
   overall: {
     firstResponse: SLAMetric;
     resolution: SLAMetric;
@@ -31,156 +30,100 @@ interface SLADashboardData {
   byAgent: AgentSLAMetric[];
 }
 
-export const useSLAMetrics = (period: PeriodFilter = 'today') => {
-  const [data, setData] = useState<SLADashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+function getStartDate(period: PeriodFilter): Date {
+  const now = new Date();
+  switch (period) {
+    case 'today': return startOfDay(now);
+    case 'week': return startOfWeek(now, { weekStartsOn: 1 });
+    case 'month': return startOfMonth(now);
+    case 'all': return subDays(now, 365);
+  }
+}
 
-  const getDateRange = () => {
-    const now = new Date();
-    switch (period) {
-      case 'today':
-        return startOfDay(now);
-      case 'week':
-        return startOfWeek(now, { weekStartsOn: 1 });
-      case 'month':
-        return startOfMonth(now);
-      case 'all':
-        return subDays(now, 365);
-      default:
-        return startOfDay(now);
-    }
+function buildMetric(onTime: number, breached: number): SLAMetric {
+  const total = onTime + breached;
+  return { total, onTime, breached, rate: total > 0 ? (onTime / total) * 100 : 100 };
+}
+
+async function fetchSLAMetrics(period: PeriodFilter): Promise<SLADashboardData> {
+  const startDate = getStartDate(period).toISOString();
+
+  const [slaResult, profilesResult] = await Promise.all([
+    supabase
+      .from('conversation_sla')
+      .select('*, contacts!inner(assigned_to)')
+      .gte('created_at', startDate),
+    supabase.from('profiles').select('id, name, avatar_url'),
+  ]);
+
+  if (slaResult.error) throw slaResult.error;
+  if (profilesResult.error) throw profilesResult.error;
+
+  const slaData = slaResult.data || [];
+  const profiles = profilesResult.data || [];
+
+  // Overall
+  const frOnTime = slaData.filter(s => s.first_response_at && !s.first_response_breached).length;
+  const frBreached = slaData.filter(s => s.first_response_breached).length;
+  const resOnTime = slaData.filter(s => s.resolved_at && !s.resolution_breached).length;
+  const resBreached = slaData.filter(s => s.resolution_breached).length;
+
+  const firstResponse = buildMetric(frOnTime, frBreached);
+  const resolution = buildMetric(resOnTime, resBreached);
+  const totalConversations = slaData.length;
+  const combinedTotal = firstResponse.total + resolution.total;
+
+  const overall = {
+    firstResponse,
+    resolution,
+    totalConversations,
+    overallRate: combinedTotal > 0
+      ? ((frOnTime + resOnTime) / combinedTotal) * 100
+      : 100,
   };
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      setLoading(true);
-      try {
-        const startDate = getDateRange().toISOString();
+  // By agent
+  const agentMap = new Map<string, { frOn: number; frBr: number; resOn: number; resBr: number }>();
 
-        // Fetch conversation SLA data
-        const { data: slaData, error: slaError } = await supabase
-          .from('conversation_sla')
-          .select(`
-            *,
-            contacts!inner(
-              assigned_to
-            )
-          `)
-          .gte('created_at', startDate);
+  for (const sla of slaData) {
+    const agentId = sla.contacts?.assigned_to;
+    if (!agentId) continue;
 
-        if (slaError) throw slaError;
+    const stats = agentMap.get(agentId) || { frOn: 0, frBr: 0, resOn: 0, resBr: 0 };
+    if (sla.first_response_at && !sla.first_response_breached) stats.frOn++;
+    if (sla.first_response_breached) stats.frBr++;
+    if (sla.resolved_at && !sla.resolution_breached) stats.resOn++;
+    if (sla.resolution_breached) stats.resBr++;
+    agentMap.set(agentId, stats);
+  }
 
-        // Fetch agent profiles
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name, avatar_url');
+  const byAgent: AgentSLAMetric[] = Array.from(agentMap.entries())
+    .map(([agentId, s]) => {
+      const profile = profiles.find(p => p.id === agentId);
+      const fr = buildMetric(s.frOn, s.frBr);
+      const res = buildMetric(s.resOn, s.resBr);
+      const total = fr.total + res.total;
+      return {
+        agentId,
+        agentName: profile?.name || 'Agente',
+        avatarUrl: profile?.avatar_url || undefined,
+        firstResponse: fr,
+        resolution: res,
+        overallRate: total > 0 ? ((s.frOn + s.resOn) / total) * 100 : 100,
+      };
+    })
+    .sort((a, b) => b.overallRate - a.overallRate);
 
-        if (profilesError) throw profilesError;
+  return { overall, byAgent };
+}
 
-        // Calculate overall metrics
-        const totalConversations = slaData?.length || 0;
-        
-        const firstResponseOnTime = slaData?.filter(s => s.first_response_at && !s.first_response_breached).length || 0;
-        const firstResponseBreached = slaData?.filter(s => s.first_response_breached).length || 0;
-        const firstResponseTotal = firstResponseOnTime + firstResponseBreached;
-        
-        const resolutionOnTime = slaData?.filter(s => s.resolved_at && !s.resolution_breached).length || 0;
-        const resolutionBreached = slaData?.filter(s => s.resolution_breached).length || 0;
-        const resolutionTotal = resolutionOnTime + resolutionBreached;
-
-        const overall = {
-          firstResponse: {
-            total: firstResponseTotal,
-            onTime: firstResponseOnTime,
-            breached: firstResponseBreached,
-            rate: firstResponseTotal > 0 ? (firstResponseOnTime / firstResponseTotal) * 100 : 100
-          },
-          resolution: {
-            total: resolutionTotal,
-            onTime: resolutionOnTime,
-            breached: resolutionBreached,
-            rate: resolutionTotal > 0 ? (resolutionOnTime / resolutionTotal) * 100 : 100
-          },
-          totalConversations,
-          overallRate: totalConversations > 0 
-            ? ((firstResponseOnTime + resolutionOnTime) / (firstResponseTotal + resolutionTotal || 1)) * 100 
-            : 100
-        };
-
-        // Calculate by agent
-        const agentMap = new Map<string, {
-          firstResponseOnTime: number;
-          firstResponseBreached: number;
-          resolutionOnTime: number;
-          resolutionBreached: number;
-        }>();
-
-        slaData?.forEach(sla => {
-          const agentId = sla.contacts?.assigned_to;
-          if (!agentId) return;
-
-          if (!agentMap.has(agentId)) {
-            agentMap.set(agentId, {
-              firstResponseOnTime: 0,
-              firstResponseBreached: 0,
-              resolutionOnTime: 0,
-              resolutionBreached: 0
-            });
-          }
-
-          const agent = agentMap.get(agentId)!;
-          
-          if (sla.first_response_at && !sla.first_response_breached) {
-            agent.firstResponseOnTime++;
-          }
-          if (sla.first_response_breached) {
-            agent.firstResponseBreached++;
-          }
-          if (sla.resolved_at && !sla.resolution_breached) {
-            agent.resolutionOnTime++;
-          }
-          if (sla.resolution_breached) {
-            agent.resolutionBreached++;
-          }
-        });
-
-        const byAgent: AgentSLAMetric[] = Array.from(agentMap.entries()).map(([agentId, stats]) => {
-          const profile = profiles?.find(p => p.id === agentId);
-          const frTotal = stats.firstResponseOnTime + stats.firstResponseBreached;
-          const resTotal = stats.resolutionOnTime + stats.resolutionBreached;
-          
-          return {
-            agentId,
-            agentName: profile?.name || 'Agente',
-            avatarUrl: profile?.avatar_url || undefined,
-            firstResponse: {
-              total: frTotal,
-              onTime: stats.firstResponseOnTime,
-              breached: stats.firstResponseBreached,
-              rate: frTotal > 0 ? (stats.firstResponseOnTime / frTotal) * 100 : 100
-            },
-            resolution: {
-              total: resTotal,
-              onTime: stats.resolutionOnTime,
-              breached: stats.resolutionBreached,
-              rate: resTotal > 0 ? (stats.resolutionOnTime / resTotal) * 100 : 100
-            },
-            overallRate: (frTotal + resTotal) > 0 
-              ? ((stats.firstResponseOnTime + stats.resolutionOnTime) / (frTotal + resTotal)) * 100 
-              : 100
-          };
-        }).sort((a, b) => b.overallRate - a.overallRate);
-
-        setData({ overall, byAgent });
-      } catch (error) {
-        log.error('Error fetching SLA metrics:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMetrics();
-  }, [period]);
+export const useSLAMetrics = (period: PeriodFilter = 'today') => {
+  const { data = null, isLoading: loading } = useQuery({
+    queryKey: ['sla-metrics', period],
+    queryFn: () => fetchSLAMetrics(period),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
 
   return { data, loading };
 };
