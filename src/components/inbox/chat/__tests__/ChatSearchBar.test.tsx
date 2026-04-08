@@ -297,25 +297,26 @@ describe('ChatSearchBar', () => {
     expect(lastCall[0].size).toBe(0);
   });
 
-  it('debounces search - does not fire immediately', async () => {
+  it('debounces search - rapid typing only triggers final query', async () => {
     renderBar();
     const input = screen.getByPlaceholderText('Buscar na conversa...');
     
-    const callsBefore = onHighlightChange.mock.calls.length;
-    fireEvent.change(input, { target: { value: 'Olá' } });
-    
-    // Advance only 50ms - debounce hasn't fired yet
+    // Type rapidly
+    fireEvent.change(input, { target: { value: 'O' } });
     await act(async () => { vi.advanceTimersByTime(50); });
-    
-    // The highlight change from the initial render effect is expected,
-    // but the search results should not have updated yet
+    fireEvent.change(input, { target: { value: 'Ol' } });
+    await act(async () => { vi.advanceTimersByTime(50); });
     fireEvent.change(input, { target: { value: 'Olá bom' } });
+    
+    // Wait for debounce
     await act(async () => { vi.advanceTimersByTime(250); });
 
-    // Final result should match "Olá bom" not "Olá"
+    // Final result should match "Olá bom" not just "Ol"
     const lastCall = onHighlightChange.mock.calls[onHighlightChange.mock.calls.length - 1];
-    expect(lastCall[0].has('1')).toBe(true); // "Olá, bom dia!" matches
-    expect(lastCall[0].has('9')).toBe(false); // "Olá novamente!" doesn't match "Olá bom"
+    // "Olá, bom dia!" contains "olá bom"
+    expect(lastCall[0].has('1')).toBe(true);
+    // "Olá novamente!" does NOT contain "olá bom"
+    expect(lastCall[0].has('9')).toBe(false);
   });
 
   it('audio filter shows only audio messages', async () => {
