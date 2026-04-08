@@ -11,6 +11,7 @@ import {
   Tags, MessageSquareHeart, Bot, Brain, Users,
 } from 'lucide-react';
 import { AIAutoTagsConfig } from '@/components/settings/AIAutoTagsConfig';
+import { AIProvidersManager } from '@/components/settings/AIProvidersManager';
 import { CSATAutoConfig } from '@/components/settings/CSATAutoConfig';
 import { ChatbotL1Config } from '@/components/settings/ChatbotL1Config';
 import { LanguageSelector } from '@/components/settings/LanguageSelector';
@@ -110,6 +111,7 @@ export function SettingsView() {
               <TabsTrigger value="csat" className="gap-2 whitespace-nowrap"><MessageSquareHeart className="w-4 h-4" />CSAT</TabsTrigger>
               <TabsTrigger value="chatbot-l1" className="gap-2 whitespace-nowrap"><Bot className="w-4 h-4" />Chatbot L1</TabsTrigger>
               <TabsTrigger value="routing" className="gap-2 whitespace-nowrap"><Users className="w-4 h-4" />Roteamento</TabsTrigger>
+              <TabsTrigger value="ai-providers" className="gap-2 whitespace-nowrap"><Brain className="w-4 h-4" />Gestão IA</TabsTrigger>
             </TabsList>
           </div>
           {/* Fade edges — left and right */}
@@ -192,6 +194,10 @@ export function SettingsView() {
 
         <TabsContent value="routing">
           <SkillBasedRoutingSettings />
+        </TabsContent>
+
+        <TabsContent value="ai-providers">
+          <AIProvidersManager />
         </TabsContent>
       </Tabs>
       )}
