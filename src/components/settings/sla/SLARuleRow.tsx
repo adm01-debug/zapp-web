@@ -1,8 +1,9 @@
-import { SLARule, SLARuleScope } from '@/hooks/useSLARules';
+import { SLARule, SLARuleScope, SLARuleMetadata } from '@/hooks/useSLARules';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Clock, Target, Edit2, Trash2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Clock, Target, Edit2, Trash2, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatSLAMinutes } from './sla-utils';
 import {
