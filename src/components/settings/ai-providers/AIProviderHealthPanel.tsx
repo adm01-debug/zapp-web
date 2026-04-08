@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Activity, CheckCircle, XCircle, AlertTriangle, Clock, Zap, TrendingUp } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Activity, CheckCircle, XCircle, AlertTriangle, Clock, Zap, TrendingUp, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -20,6 +21,21 @@ interface UsageLog {
   error_message: string | null;
   created_at: string;
   metadata: Record<string, unknown> | null;
+}
+
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'success': return 'text-primary';
+    case 'fallback': return 'text-accent-foreground';
+    case 'error': return 'text-destructive';
+    default: return 'text-muted-foreground';
+  }
+}
+
+function getHealthColor(good: boolean, warn: boolean): string {
+  if (good) return 'text-primary';
+  if (warn) return 'text-accent-foreground';
+  return 'text-destructive';
 }
 
 export function AIProviderHealthPanel() {
@@ -56,19 +72,19 @@ export function AIProviderHealthPanel() {
       label: 'Taxa de Sucesso',
       value: `${successRate}%`,
       icon: successRate >= 95 ? CheckCircle : successRate >= 80 ? AlertTriangle : XCircle,
-      color: successRate >= 95 ? 'text-emerald-500' : successRate >= 80 ? 'text-amber-500' : 'text-destructive',
+      color: getHealthColor(successRate >= 95, successRate >= 80),
     },
     {
       label: 'Latência Média',
       value: `${stats.avgLatency}ms`,
       icon: Clock,
-      color: stats.avgLatency < 2000 ? 'text-emerald-500' : stats.avgLatency < 5000 ? 'text-amber-500' : 'text-destructive',
+      color: getHealthColor(stats.avgLatency < 2000, stats.avgLatency < 5000),
     },
     {
       label: 'Fallbacks',
       value: String(stats.fallback),
       icon: AlertTriangle,
-      color: stats.fallback === 0 ? 'text-emerald-500' : 'text-amber-500',
+      color: getHealthColor(stats.fallback === 0, true),
     },
     {
       label: 'Tokens Usados',
@@ -81,14 +97,19 @@ export function AIProviderHealthPanel() {
   if (isLoading) {
     return (
       <Card className="border-border/60">
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-3">
-            <div className="h-5 w-48 bg-muted rounded" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-20 bg-muted rounded-xl" />
-              ))}
-            </div>
+        <CardHeader className="pb-3">
+          <Skeleton className="h-5 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
+            ))}
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-7 rounded-lg" />
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -127,7 +148,7 @@ export function AIProviderHealthPanel() {
         </div>
 
         {/* Recent calls log */}
-        {recentLogs.length > 0 && (
+        {recentLogs.length > 0 ? (
           <div className="space-y-1.5 max-h-48 overflow-y-auto">
             <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
               <TrendingUp className="w-3 h-3" /> Chamadas Recentes
@@ -135,15 +156,16 @@ export function AIProviderHealthPanel() {
             {recentLogs.slice(0, 10).map(log => {
               const providerType = (log.metadata as Record<string, unknown>)?.provider_type as string || 'lovable_ai';
               const isFallback = log.status === 'fallback';
+              const statusColor = getStatusColor(log.status);
               return (
                 <div
                   key={log.id}
                   className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   {log.status === 'success' ? (
-                    <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
+                    <CheckCircle className={cn('w-3 h-3 shrink-0', statusColor)} />
                   ) : log.status === 'fallback' ? (
-                    <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+                    <AlertTriangle className={cn('w-3 h-3 shrink-0', statusColor)} />
                   ) : (
                     <XCircle className="w-3 h-3 text-destructive shrink-0" />
                   )}
@@ -164,6 +186,14 @@ export function AIProviderHealthPanel() {
                 </div>
               );
             })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <Radio className="w-8 h-8 text-muted-foreground/20 mb-2" />
+            <p className="text-sm text-muted-foreground">Nenhuma chamada registrada ainda.</p>
+            <p className="text-xs text-muted-foreground/60 mt-0.5">
+              As métricas aparecerão aqui quando o proxy de IA for utilizado.
+            </p>
           </div>
         )}
       </CardContent>

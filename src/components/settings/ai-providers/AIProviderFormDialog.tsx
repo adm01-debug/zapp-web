@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import type { ProviderFormData, ProviderType } from './types';
 import { USE_FOR_OPTIONS } from './types';
 
@@ -21,9 +22,49 @@ interface AIProviderFormDialogProps {
   toggleUseFor: (val: string) => void;
 }
 
+function useFormValidation(form: ProviderFormData) {
+  return useMemo(() => {
+    const errors: Record<string, string> = {};
+
+    if (!form.name.trim()) {
+      errors.name = 'Nome é obrigatório.';
+    }
+
+    if (form.provider_type !== 'lovable_ai') {
+      if (!form.api_endpoint?.trim()) {
+        errors.api_endpoint = 'Endpoint da API é obrigatório.';
+      } else {
+        try {
+          new URL(form.api_endpoint);
+        } catch {
+          errors.api_endpoint = 'URL inválida. Informe uma URL completa (https://...).';
+        }
+      }
+    }
+
+    if (form.use_for.length === 0) {
+      errors.use_for = 'Selecione pelo menos uma funcionalidade.';
+    }
+
+    return { errors, isValid: Object.keys(errors).length === 0 };
+  }, [form.name, form.provider_type, form.api_endpoint, form.use_for]);
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+      <AlertCircle className="w-3 h-3 shrink-0" />
+      {message}
+    </p>
+  );
+}
+
 export function AIProviderFormDialog({
   open, onOpenChange, form, setForm, editingId, isPending, onSave, toggleUseFor,
 }: AIProviderFormDialogProps) {
+  const { errors, isValid } = useFormValidation(form);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl">
@@ -39,6 +80,7 @@ export function AIProviderFormDialog({
               placeholder="Ex: Gemini Pro, Agente de Vendas"
               className="rounded-xl"
             />
+            <FieldError message={errors.name} />
           </div>
 
           <div className="space-y-1.5">
@@ -80,6 +122,7 @@ export function AIProviderFormDialog({
                   placeholder="https://api.openai.com/v1/chat/completions"
                   className="rounded-xl"
                 />
+                <FieldError message={errors.api_endpoint} />
                 <p className="text-xs text-muted-foreground">
                   URL completa do endpoint de chat/completions da API.
                 </p>
@@ -125,7 +168,7 @@ export function AIProviderFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Usar para</Label>
+            <Label>Usar para *</Label>
             <div className="flex flex-wrap gap-3">
               {USE_FOR_OPTIONS.map(opt => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
@@ -137,6 +180,7 @@ export function AIProviderFormDialog({
                 </label>
               ))}
             </div>
+            <FieldError message={errors.use_for} />
           </div>
 
           <div className="flex items-center gap-6 pt-2">
@@ -163,7 +207,7 @@ export function AIProviderFormDialog({
           </Button>
           <Button
             onClick={onSave}
-            disabled={!form.name || isPending}
+            disabled={!isValid || isPending}
             className="rounded-xl"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
