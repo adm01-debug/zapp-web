@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { ProviderFormData, ProviderType } from './types';
 import { USE_FOR_OPTIONS } from './types';
 
@@ -22,34 +23,6 @@ interface AIProviderFormDialogProps {
   toggleUseFor: (val: string) => void;
 }
 
-function useFormValidation(form: ProviderFormData) {
-  return useMemo(() => {
-    const errors: Record<string, string> = {};
-
-    if (!form.name.trim()) {
-      errors.name = 'Nome é obrigatório.';
-    }
-
-    if (form.provider_type !== 'lovable_ai') {
-      if (!form.api_endpoint?.trim()) {
-        errors.api_endpoint = 'Endpoint da API é obrigatório.';
-      } else {
-        try {
-          new URL(form.api_endpoint);
-        } catch {
-          errors.api_endpoint = 'URL inválida. Informe uma URL completa (https://...).';
-        }
-      }
-    }
-
-    if (form.use_for.length === 0) {
-      errors.use_for = 'Selecione pelo menos uma funcionalidade.';
-    }
-
-    return { errors, isValid: Object.keys(errors).length === 0 };
-  }, [form.name, form.provider_type, form.api_endpoint, form.use_for]);
-}
-
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return (
@@ -60,10 +33,32 @@ function FieldError({ message }: { message?: string }) {
   );
 }
 
+function isValidUrl(url: string | null): boolean {
+  if (!url) return false;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function AIProviderFormDialog({
   open, onOpenChange, form, setForm, editingId, isPending, onSave, toggleUseFor,
 }: AIProviderFormDialogProps) {
-  const { errors, isValid } = useFormValidation(form);
+  const { errors, isValid } = useMemo(() => {
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = 'Nome é obrigatório.';
+    if (form.provider_type !== 'lovable_ai') {
+      if (!form.api_endpoint?.trim()) {
+        errs.api_endpoint = 'Endpoint é obrigatório para provedores externos.';
+      } else if (!isValidUrl(form.api_endpoint)) {
+        errs.api_endpoint = 'URL inválida. Use o formato https://...';
+      }
+    }
+    if (form.use_for.length === 0) errs.use_for = 'Selecione ao menos uma funcionalidade.';
+    return { errors: errs, isValid: Object.keys(errs).length === 0 };
+  }, [form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,7 +73,7 @@ export function AIProviderFormDialog({
               value={form.name}
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
               placeholder="Ex: Gemini Pro, Agente de Vendas"
-              className="rounded-xl"
+              className={cn('rounded-xl', errors.name && 'border-destructive focus-visible:ring-destructive')}
             />
             <FieldError message={errors.name} />
           </div>
@@ -120,12 +115,14 @@ export function AIProviderFormDialog({
                   value={form.api_endpoint || ''}
                   onChange={e => setForm(p => ({ ...p, api_endpoint: e.target.value }))}
                   placeholder="https://api.openai.com/v1/chat/completions"
-                  className="rounded-xl"
+                  className={cn('rounded-xl', errors.api_endpoint && 'border-destructive focus-visible:ring-destructive')}
                 />
                 <FieldError message={errors.api_endpoint} />
-                <p className="text-xs text-muted-foreground">
-                  URL completa do endpoint de chat/completions da API.
-                </p>
+                {!errors.api_endpoint && (
+                  <p className="text-xs text-muted-foreground">
+                    URL completa do endpoint de chat/completions da API.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
