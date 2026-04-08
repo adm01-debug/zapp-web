@@ -251,23 +251,24 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
       {/* Badges row - contact type first, then sentiment */}
       <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
         {contactType && contactTypeConfig[contactType] && (
-          <Badge variant="outline" className={`text-[10px] ${contactTypeConfig[contactType].color}`}>
+          <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${contactTypeConfig[contactType].color}`}>
             {contactTypeConfig[contactType].label}
           </Badge>
         )}
         {isVip && (
-          <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30">
+          <Badge variant="outline" className="text-[10px] font-medium h-5 px-2 bg-warning/15 text-warning border-warning/30">
             <Crown className="w-3 h-3 mr-0.5" />
             VIP
           </Badge>
         )}
         {sentiment && sentimentConfig[sentiment] && (
-          <Badge variant="outline" className={`text-[10px] ${sentimentConfig[sentiment].color}`}>
-            {sentimentConfig[sentiment].emoji} {sentimentConfig[sentiment].label}
+          <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${sentimentConfig[sentiment].color}`}>
+            <span className="mr-0.5">{sentimentConfig[sentiment].emoji}</span>
+            {sentimentConfig[sentiment].label}
           </Badge>
         )}
         {priority && priorityConfig[priority] && (
-          <Badge variant="outline" className={`text-[10px] ${priorityConfig[priority].color}`}>
+          <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${priorityConfig[priority].color}`}>
             {priorityConfig[priority].label}
           </Badge>
         )}
