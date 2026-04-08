@@ -65,7 +65,7 @@ export function useSLARules(scope?: SLARuleScope) {
 
   const createMutation = useMutation({
     mutationFn: async (form: SLARuleForm) => {
-      const { error } = await supabase.from('sla_rules').insert({
+      const payload = {
         name: form.name,
         first_response_minutes: form.first_response_minutes,
         resolution_minutes: form.resolution_minutes,
@@ -76,8 +76,9 @@ export function useSLARules(scope?: SLARuleScope) {
         contact_type: form.contact_type || null,
         queue_id: form.queue_id || null,
         agent_id: form.agent_id || null,
-        metadata: form.metadata || {},
-      });
+        metadata: (form.metadata || {}) as unknown,
+      };
+      const { error } = await supabase.from('sla_rules').insert(payload as any);
       if (error) throw error;
     },
     onSuccess: () => {
