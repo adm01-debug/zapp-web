@@ -6,7 +6,6 @@ import {
   Phone,
   PhoneCall,
   Headphones,
-  Copy,
   Mail,
   Building,
   Briefcase,
