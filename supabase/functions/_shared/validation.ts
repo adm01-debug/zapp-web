@@ -55,10 +55,15 @@ export class Logger {
   }
 }
 
-const ALLOWED_ORIGINS = [
-  'https://pronto-talk-suite.lovable.app',
-  'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
-];
+// CORS origins: configurable via ALLOWED_ORIGINS env var (comma-separated)
+const ALLOWED_ORIGINS: string[] = (() => {
+  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
+  if (envOrigins) return envOrigins.split(',').map((o: string) => o.trim()).filter(Boolean);
+  return [
+    'https://pronto-talk-suite.lovable.app',
+    'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
+  ];
+})();
 
 /** Build CORS headers with origin validation */
 export function getCorsHeaders(req?: Request): Record<string, string> {

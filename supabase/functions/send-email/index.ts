@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getCorsHeaders, handleCors } from "../_shared/validation.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 interface EmailRequest {
   to: string | string[];
@@ -24,9 +20,9 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+  const corsHeaders = getCorsHeaders(req);
 
   try {
     if (!RESEND_API_KEY) {
@@ -43,7 +39,7 @@ serve(async (req) => {
     }
 
     const payload: Record<string, unknown> = {
-      from: body.from || "ZAPP System <noreply@zapp.com>",
+      from: body.from || Deno.env.get("EMAIL_FROM") || "ZAPP System <noreply@zapp.com>",
       to: Array.isArray(body.to) ? body.to : [body.to],
       subject: body.subject,
     };
