@@ -189,6 +189,8 @@ export function useAIProviders() {
     testing,
     saveMutation,
     deleteMutation,
+    toggleActiveMutation,
+    toggleDefaultMutation,
     handleTest,
     openEdit,
     openNew,
