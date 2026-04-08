@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('ChatMessagesArea');
@@ -158,15 +158,17 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     },
   }));
 
-  // Group messages by date
-  const groupedMessages = messages.reduce((groups, message) => {
-    const dateKey = format(message.timestamp, 'yyyy-MM-dd');
-    if (!groups[dateKey]) {
-      groups[dateKey] = [];
-    }
-    groups[dateKey].push(message);
-    return groups;
-  }, {} as Record<string, Message[]>);
+  // Group messages by date — memoized to avoid recalculation on highlight changes
+  const groupedMessages = useMemo(() => {
+    return messages.reduce((groups, message) => {
+      const dateKey = format(message.timestamp, 'yyyy-MM-dd');
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(message);
+      return groups;
+    }, {} as Record<string, Message[]>);
+  }, [messages]);
 
   return (
     <div ref={scrollContainerRef} className="flex-1 min-h-0 min-w-0 overflow-y-auto px-4 py-6 md:px-8 space-y-4 scrollbar-thin bg-background/50 relative">
@@ -220,8 +222,8 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       isSent ? 'justify-end' : 'justify-start',
                       !isLastInGroup && 'mb-0.5',
                       highlightedMessageIds?.has(message.id) && 'relative',
-                      activeHighlightId === message.id && 'ring-2 ring-[hsl(var(--warning))] ring-offset-1 ring-offset-background rounded-2xl',
-                      highlightedMessageIds?.has(message.id) && activeHighlightId !== message.id && 'bg-[hsl(var(--warning)/0.1)] rounded-2xl',
+                      activeHighlightId === message.id && 'ring-2 ring-[hsl(var(--warning))] ring-offset-1 ring-offset-background rounded-2xl animate-[pulse_1.5s_ease-in-out_1]',
+                      highlightedMessageIds?.has(message.id) && activeHighlightId !== message.id && 'bg-[hsl(var(--warning)/0.08)] rounded-2xl',
                     )}
                   >
                     {/* Avatar — received messages (left), only on last in group */}

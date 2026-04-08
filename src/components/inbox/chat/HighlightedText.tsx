@@ -12,8 +12,45 @@ function normalize(s: string): string {
 }
 
 /**
- * Renders text with matching substrings highlighted in yellow.
+ * Build a mapping from normalized-string index → original-string index.
+ * After NFD decomposition and diacritic removal, some original characters
+ * map to fewer normalized characters (e.g., "é" → NFD "e\u0301" → stripped "e").
+ * This mapping lets us accurately slice the original string.
+ */
+function buildIndexMap(original: string): number[] {
+  const nfd = original.normalize('NFD');
+  const map: number[] = [];
+  let origIdx = 0;
+  let nfdIdx = 0;
+
+  // Walk through the NFD string. Each NFD code unit maps back to an original char.
+  // We need to track which original char each NFD char came from.
+  const origChars = [...original]; // correctly splits by code point
+  let nfdOffset = 0;
+
+  for (let oi = 0; oi < origChars.length; oi++) {
+    const origChar = origChars[oi];
+    const nfdOfChar = origChar.normalize('NFD');
+    for (let ci = 0; ci < nfdOfChar.length; ci++) {
+      const ch = nfdOfChar[ci];
+      // Check if this is a combining diacritic (will be stripped)
+      const isCombining = /[\u0300-\u036f]/.test(ch);
+      if (!isCombining) {
+        // This char survives stripping — map normalized index → original index
+        map.push(oi);
+      }
+    }
+  }
+  // Final sentinel: maps to end of original
+  map.push(origChars.length);
+
+  return map;
+}
+
+/**
+ * Renders text with matching substrings highlighted.
  * Accent-insensitive and case-insensitive.
+ * Uses index mapping to correctly handle multi-byte/accented characters.
  */
 export const HighlightedText = memo(function HighlightedText({
   text,
@@ -26,32 +63,46 @@ export const HighlightedText = memo(function HighlightedText({
 
   const normalizedText = normalize(text);
   const normalizedQuery = normalize(query);
-  const parts: { text: string; highlight: boolean }[] = [];
-  let lastIndex = 0;
 
+  if (!normalizedQuery || !normalizedText.includes(normalizedQuery)) {
+    return <span className={className}>{text}</span>;
+  }
+
+  // Build index map: normalizedIdx → original char index
+  const origChars = [...text];
+  const indexMap = buildIndexMap(text);
+
+  const parts: { text: string; highlight: boolean }[] = [];
+  let lastOrigIdx = 0;
   let searchStart = 0;
-  while (searchStart < normalizedText.length) {
+
+  while (searchStart <= normalizedText.length - normalizedQuery.length) {
     const matchIndex = normalizedText.indexOf(normalizedQuery, searchStart);
     if (matchIndex === -1) break;
 
+    const matchEnd = matchIndex + normalizedQuery.length;
+    // Map back to original string positions
+    const origStart = indexMap[matchIndex];
+    const origEnd = indexMap[matchEnd] ?? origChars.length;
+
     // Add text before match
-    if (matchIndex > lastIndex) {
-      parts.push({ text: text.slice(lastIndex, matchIndex), highlight: false });
+    if (origStart > lastOrigIdx) {
+      parts.push({ text: origChars.slice(lastOrigIdx, origStart).join(''), highlight: false });
     }
 
-    // Add matched text (use original casing)
+    // Add matched text (original casing/accents preserved)
     parts.push({
-      text: text.slice(matchIndex, matchIndex + normalizedQuery.length),
+      text: origChars.slice(origStart, origEnd).join(''),
       highlight: true,
     });
 
-    lastIndex = matchIndex + normalizedQuery.length;
-    searchStart = lastIndex;
+    lastOrigIdx = origEnd;
+    searchStart = matchEnd;
   }
 
   // Add remaining text
-  if (lastIndex < text.length) {
-    parts.push({ text: text.slice(lastIndex), highlight: false });
+  if (lastOrigIdx < origChars.length) {
+    parts.push({ text: origChars.slice(lastOrigIdx).join(''), highlight: false });
   }
 
   if (parts.length === 0) {

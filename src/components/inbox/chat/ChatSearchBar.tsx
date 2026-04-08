@@ -251,6 +251,9 @@ export function ChatSearchBar({
               {FILTERS.map((f) => (
                 <Badge
                   key={f.key}
+                  role="tab"
+                  aria-selected={filter === f.key}
+                  tabIndex={0}
                   variant={filter === f.key ? 'default' : 'outline'}
                   className={cn(
                     'cursor-pointer whitespace-nowrap text-[10px] px-2 py-0.5 gap-1 transition-colors shrink-0',
@@ -259,6 +262,7 @@ export function ChatSearchBar({
                       : 'hover:bg-muted'
                   )}
                   onClick={() => setFilter(f.key)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilter(f.key); } }}
                 >
                   {f.icon}
                   {f.label}
@@ -287,25 +291,32 @@ export function ChatSearchBar({
             {/* Results preview — max 3 visible */}
             {debouncedQuery.trim() && results.length > 0 && (
               <div className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
-                {results.slice(0, 5).map((msg, idx) => {
+                {results.slice(0, 5).map((msg, sliceIdx) => {
+                  const realIdx = sliceIdx;
                   const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);
+                  const TypeIcon = msg.type === 'image' ? Image
+                    : msg.type === 'video' ? Video
+                    : msg.type === 'audio' ? Music
+                    : msg.type === 'document' ? File
+                    : FileText;
                   return (
                     <motion.button
                       key={msg.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: idx * 0.03 }}
+                      transition={{ delay: sliceIdx * 0.03 }}
                       onClick={() => {
-                        setActiveIndex(results.indexOf(msg));
+                        setActiveIndex(realIdx);
                         onNavigateToMessage(msg.id);
                       }}
                       className={cn(
                         'w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left transition-colors text-xs',
-                        activeIndex === results.indexOf(msg)
+                        activeIndex === realIdx
                           ? 'bg-primary/10 text-foreground'
                           : 'hover:bg-muted/60 text-muted-foreground'
                       )}
                     >
+                      <TypeIcon className="w-3 h-3 shrink-0 opacity-50" />
                       <span className="text-[10px] text-muted-foreground/60 shrink-0 w-10">
                         {format(msg.timestamp, 'HH:mm')}
                       </span>
