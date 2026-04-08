@@ -46,7 +46,7 @@ export function EasterEggsProvider({ children }: EasterEggsProviderProps) {
       }
 
       // Detect typed secret codes
-      if (e.key.length === 1 && /[a-z]/i.test(e.key)) {
+      if (e.key && e.key.length === 1 && /[a-z]/i.test(e.key)) {
         const newTyped = (typedText + e.key.toLowerCase()).slice(-10);
         setTypedText(newTyped);
         
