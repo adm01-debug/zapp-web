@@ -306,17 +306,15 @@ describe('ChatSearchBar', () => {
     await act(async () => { vi.advanceTimersByTime(50); });
     fireEvent.change(input, { target: { value: 'Ol' } });
     await act(async () => { vi.advanceTimersByTime(50); });
-    fireEvent.change(input, { target: { value: 'Olá bom' } });
+    fireEvent.change(input, { target: { value: 'Olá novamente' } });
     
     // Wait for debounce
     await act(async () => { vi.advanceTimersByTime(250); });
 
-    // Final result should match "Olá bom" not just "Ol"
+    // Final result should match "Olá novamente" only
     const lastCall = onHighlightChange.mock.calls[onHighlightChange.mock.calls.length - 1];
-    // "Olá, bom dia!" contains "olá bom"
-    expect(lastCall[0].has('1')).toBe(true);
-    // "Olá novamente!" does NOT contain "olá bom"
-    expect(lastCall[0].has('9')).toBe(false);
+    expect(lastCall[0].has('9')).toBe(true);   // "Olá novamente!" matches
+    expect(lastCall[0].has('1')).toBe(false);   // "Olá, bom dia!" doesn't match "Olá novamente"
   });
 
   it('audio filter shows only audio messages', async () => {
