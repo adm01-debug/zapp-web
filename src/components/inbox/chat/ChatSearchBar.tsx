@@ -292,8 +292,13 @@ export function ChatSearchBar({
             {debouncedQuery.trim() && results.length > 0 && (
               <div className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
                 {results.slice(0, 5).map((msg, sliceIdx) => {
-                  const realIdx = sliceIdx; // sliceIdx matches results index since we slice from 0
+                  const realIdx = sliceIdx;
                   const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);
+                  const TypeIcon = msg.type === 'image' ? Image
+                    : msg.type === 'video' ? Video
+                    : msg.type === 'audio' ? Music
+                    : msg.type === 'document' ? File
+                    : FileText;
                   return (
                     <motion.button
                       key={msg.id}
