@@ -111,6 +111,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     setShowChatSearch(false);
     setHighlightedMessageIds(new Set());
     setActiveHighlightId(null);
+    setSearchQuery('');
   }, [conversation.id]);
 
   // Global Ctrl+F handler for chat search
