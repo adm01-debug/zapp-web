@@ -44,6 +44,7 @@ export const OmnichannelInbox = lazy(() => import('@/components/omnichannel/Omni
 export const AuditLogDashboard = lazy(() => import('@/components/security/AuditLogDashboard').then(m => ({ default: m.AuditLogDashboard })));
 export const AdminTelemetriaPage = lazy(() => import('@/pages/AdminTelemetriaPage'));
 export const NPSDashboard = lazy(() => import('@/components/nps/NPSDashboard').then(m => ({ default: m.NPSDashboard })));
+export const SLADashboardView = lazy(() => import('@/components/queues/SLADashboard').then(m => ({ default: m.SLADashboard })));
 export const TeamChatView = lazy(() => import('@/components/team-chat/TeamChatView').then(m => ({ default: m.TeamChatView })));
 export const GmailInboxView = lazy(() => import('@/components/gmail/GmailInboxView'));
 export const EmailChatView = lazy(() => import('@/components/email/EmailChatInbox').then(m => ({ default: m.EmailChatInbox })));
