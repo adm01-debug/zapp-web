@@ -30,6 +30,7 @@ import {
   Gauge,
   Mic,
   Trophy,
+  Target,
   TrendingDown,
   Tags,
   Cpu,
