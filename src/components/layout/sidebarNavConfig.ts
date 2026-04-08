@@ -30,6 +30,7 @@ import {
   Gauge,
   Mic,
   Trophy,
+  Target,
   TrendingDown,
   Tags,
   Cpu,
@@ -113,6 +114,7 @@ export const analyticsNav: readonly NavItemConfig[] = [
   { id: 'telemetry', icon: Activity, label: 'Telemetria BD' },
   { id: 'ai-usage', icon: Brain, label: 'Consumo IA' },
   { id: 'nps', icon: Gauge, label: 'NPS' },
+  { id: 'sla', icon: Target, label: 'SLA' },
 ] as const;
 
 // ── System & Admin ────────────────────────────────────────
