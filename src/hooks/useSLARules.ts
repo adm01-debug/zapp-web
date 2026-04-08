@@ -38,6 +38,7 @@ export interface SLARuleForm {
   contact_type?: string | null;
   queue_id?: string | null;
   agent_id?: string | null;
+  metadata?: SLARuleMetadata;
 }
 
 export function useSLARules(scope?: SLARuleScope) {
