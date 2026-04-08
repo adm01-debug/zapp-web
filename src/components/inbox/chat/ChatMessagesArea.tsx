@@ -222,8 +222,8 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                       isSent ? 'justify-end' : 'justify-start',
                       !isLastInGroup && 'mb-0.5',
                       highlightedMessageIds?.has(message.id) && 'relative',
-                      activeHighlightId === message.id && 'ring-2 ring-[hsl(var(--warning))] ring-offset-1 ring-offset-background rounded-2xl',
-                      highlightedMessageIds?.has(message.id) && activeHighlightId !== message.id && 'bg-[hsl(var(--warning)/0.1)] rounded-2xl',
+                      activeHighlightId === message.id && 'ring-2 ring-[hsl(var(--warning))] ring-offset-1 ring-offset-background rounded-2xl animate-[pulse_1.5s_ease-in-out_1]',
+                      highlightedMessageIds?.has(message.id) && activeHighlightId !== message.id && 'bg-[hsl(var(--warning)/0.08)] rounded-2xl',
                     )}
                   >
                     {/* Avatar — received messages (left), only on last in group */}
