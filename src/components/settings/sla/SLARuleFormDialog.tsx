@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { CONTACT_TYPES, SCOPE_LABELS } from './sla-utils';
 
 interface SLARuleFormDialogProps {
@@ -95,7 +95,22 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
     enabled: open && scope === 'contact' && contactSearch.length >= 2,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = (): boolean => {
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = 'Nome é obrigatório';
+    if (!scopeValue) e.scope = `Selecione um(a) ${SCOPE_LABELS[scope].toLowerCase()}`;
+    if (form.first_response_minutes < 1) e.fr = 'Mínimo 1 minuto';
+    if (form.resolution_minutes < 1) e.res = 'Mínimo 1 minuto';
+    if (form.resolution_minutes <= form.first_response_minutes) e.res = 'Deve ser maior que 1ª Resposta';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleSave = () => {
+    if (!validate()) return;
+
     const payload: SLARuleForm = { ...form };
     if (scope === 'contact') payload.contact_id = scopeValue || null;
     else if (scope === 'company') payload.company = scopeValue || null;
@@ -103,11 +118,6 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
     else if (scope === 'contact_type') payload.contact_type = scopeValue || null;
     else if (scope === 'queue') payload.queue_id = scopeValue || null;
     else if (scope === 'agent') payload.agent_id = scopeValue || null;
-
-    if (!form.name || !scopeValue) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
-    }
 
     if (editingRule) {
       updateRule({ ...payload, id: editingRule.id });
