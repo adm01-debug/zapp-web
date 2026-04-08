@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { toast } from 'sonner';
 import { Search, Loader2 } from 'lucide-react';
 import { CONTACT_TYPES, SCOPE_LABELS } from './sla-utils';
+import { cn } from '@/lib/utils';
 
 interface SLARuleFormDialogProps {
   open: boolean;
