@@ -325,7 +325,7 @@ export const SLADashboard = () => {
       </div>
 
       {/* SLA by Agent */}
-      <Card>
+      <Card className="rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -334,9 +334,15 @@ export const SLADashboard = () => {
         </CardHeader>
         <CardContent>
           {data.byAgent.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              Nenhum dado de agente disponível
-            </p>
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="w-14 h-14 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                <Users className="w-7 h-7 text-muted-foreground/40" />
+              </div>
+              <p className="font-medium text-foreground mb-1">Sem dados de agentes</p>
+              <p className="text-sm text-muted-foreground text-center max-w-sm">
+                Métricas individuais aparecerão quando agentes forem atribuídos a conversas monitoradas.
+              </p>
+            </div>
           ) : (
             <div className="space-y-4">
               {data.byAgent.map((agent, index) => (
