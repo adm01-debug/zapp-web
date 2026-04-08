@@ -147,10 +147,13 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
           top: elementTop - (containerHeight / 2) + (elementHeight / 2),
           behavior: 'smooth',
         });
-        element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
-        setTimeout(() => {
-          element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
-        }, 2000);
+        // Only add temporary ring if NOT already highlighted by search
+        if (!element.dataset.searchHighlight) {
+          element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+          }, 2000);
+        }
       }
     },
   }));
