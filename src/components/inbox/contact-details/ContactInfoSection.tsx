@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Phone, Mail, Calendar, Building, Briefcase, Pencil, Check, X, Plus, Copy, Users, UserCheck, Truck, Wrench } from 'lucide-react';
+import { Phone, Mail, Calendar, Building, Briefcase, Pencil, Check, X, Plus, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
