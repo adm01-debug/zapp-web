@@ -266,6 +266,75 @@ export type Database = {
           },
         ]
       }
+      ai_providers: {
+        Row: {
+          api_endpoint: string | null
+          api_key_secret_name: string | null
+          config: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          model: string | null
+          name: string
+          provider_type: Database["public"]["Enums"]["ai_provider_type"]
+          system_prompt: string | null
+          updated_at: string
+          use_for: string[]
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key_secret_name?: string | null
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          model?: string | null
+          name: string
+          provider_type?: Database["public"]["Enums"]["ai_provider_type"]
+          system_prompt?: string | null
+          updated_at?: string
+          use_for?: string[]
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key_secret_name?: string | null
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          model?: string | null
+          name?: string
+          provider_type?: Database["public"]["Enums"]["ai_provider_type"]
+          system_prompt?: string | null
+          updated_at?: string
+          use_for?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_providers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_providers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_usage_logs: {
         Row: {
           created_at: string
@@ -5913,6 +5982,12 @@ export type Database = {
       validate_reset_token: { Args: { p_token: string }; Returns: string }
     }
     Enums: {
+      ai_provider_type:
+        | "lovable_ai"
+        | "openai_compatible"
+        | "google_gemini"
+        | "custom_webhook"
+        | "custom_agent"
       app_role: "admin" | "supervisor" | "agent" | "special_agent"
       channel_type:
         | "whatsapp"
@@ -6054,6 +6129,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ai_provider_type: [
+        "lovable_ai",
+        "openai_compatible",
+        "google_gemini",
+        "custom_webhook",
+        "custom_agent",
+      ],
       app_role: ["admin", "supervisor", "agent", "special_agent"],
       channel_type: [
         "whatsapp",
