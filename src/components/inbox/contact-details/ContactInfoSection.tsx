@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Phone, Mail, Calendar, Building, Briefcase, Pencil, Check, X, Plus, Copy, Users, UserCheck, Truck, Wrench } from 'lucide-react';
+import { Phone, Mail, Calendar, Building, Briefcase, Pencil, Check, X, Plus, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -98,26 +97,6 @@ function EditableField({ value, icon, onSave, placeholder, label }: EditableFiel
   );
 }
 
-const CONTACT_TYPE_CONFIG: Record<string, { label: string; icon: typeof Users; color: string; bg: string }> = {
-  cliente: { label: 'Cliente', icon: Users, color: 'text-info', bg: 'bg-info/10 border-info/20' },
-  colaborador: { label: 'Colaborador', icon: UserCheck, color: 'text-success', bg: 'bg-success/10 border-success/20' },
-  fornecedor: { label: 'Fornecedor', icon: Truck, color: 'text-secondary', bg: 'bg-secondary/10 border-secondary/20' },
-  prestador_servico: { label: 'Prestador de Serviço', icon: Wrench, color: 'text-warning', bg: 'bg-warning/10 border-warning/20' },
-  transportadora: { label: 'Transportadora', icon: Truck, color: 'text-info', bg: 'bg-info/10 border-info/20' },
-};
-
-function ContactTypeBadge({ value }: { value: string }) {
-  const config = CONTACT_TYPE_CONFIG[value] || CONTACT_TYPE_CONFIG.cliente;
-  const Icon = config.icon;
-
-  return (
-    <Badge variant="outline" className={`${config.bg} ${config.color} border text-[11px] font-medium gap-1 px-2 py-0.5`}>
-      <Icon className="w-3 h-3" />
-      {config.label}
-    </Badge>
-  );
-}
-
 export function ContactInfoSection({ contact, enrichedData }: ContactInfoSectionProps) {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -171,10 +150,6 @@ export function ContactInfoSection({ contact, enrichedData }: ContactInfoSection
         </div>
       </div>
 
-      {/* Contact Type Badge (read-only) */}
-      <div className="flex items-center gap-2 px-1">
-        <ContactTypeBadge value={enrichedData?.contact_type || 'cliente'} />
-      </div>
 
       {/* Client since */}
       <div className="flex items-center gap-2.5 text-xs text-muted-foreground bg-muted/10 rounded-lg p-2">

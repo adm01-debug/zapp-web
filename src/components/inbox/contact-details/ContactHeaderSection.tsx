@@ -50,9 +50,12 @@ const priorityConfig: Record<string, { label: string; color: string }> = {
 
 const contactTypeConfig: Record<string, { label: string; color: string }> = {
   customer: { label: 'Cliente', color: 'bg-primary/15 text-primary border-primary/30' },
+  cliente: { label: 'Cliente', color: 'bg-primary/15 text-primary border-primary/30' },
   lead: { label: 'Lead', color: 'bg-info/15 text-info border-info/30' },
   employee: { label: 'Colaborador', color: 'bg-success/15 text-success border-success/30' },
+  colaborador: { label: 'Colaborador', color: 'bg-success/15 text-success border-success/30' },
   supplier: { label: 'Fornecedor', color: 'bg-warning/15 text-warning border-warning/30' },
+  fornecedor: { label: 'Fornecedor', color: 'bg-warning/15 text-warning border-warning/30' },
 };
 
 interface ContactHeaderSectionProps {
