@@ -293,6 +293,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack} />
         )}
 
+        <ChatSearchBar
+          messages={messages}
+          isOpen={showChatSearch}
+          onClose={() => setShowChatSearch(false)}
+          onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
+          onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
+        />
+
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
 
         <Suspense fallback={null}>
