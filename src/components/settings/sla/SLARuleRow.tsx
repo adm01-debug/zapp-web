@@ -55,6 +55,21 @@ export function SLARuleRow({ rule, scope, scopeLabel, index, onEdit, onDelete, o
           {displayLabel && (
             <Badge variant="secondary" className="text-[10px] truncate max-w-[150px]">{displayLabel}</Badge>
           )}
+          {hasEscalation && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-warning/20">
+                    <Bell className="w-2.5 h-2.5 text-warning" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs max-w-[200px]">
+                  {meta.notify_on_warning && <p>Notifica ao atingir aviso</p>}
+                  {meta.escalation_notes && <p className="text-muted-foreground mt-0.5">{meta.escalation_notes}</p>}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
           <span className="flex items-center gap-1">
