@@ -69,8 +69,9 @@ export function ChatSearchBar({
 
   // Focus input on open, reset state on close
   useEffect(() => {
+    let focusTimer: ReturnType<typeof setTimeout> | null = null;
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      focusTimer = setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setQuery('');
       setDebouncedQuery('');
@@ -79,6 +80,7 @@ export function ChatSearchBar({
       onHighlightChangeRef.current(new Set(), null);
       onSearchQueryChange?.('');
     }
+    return () => { if (focusTimer) clearTimeout(focusTimer); };
   }, [isOpen]);
 
   // Debounce query
