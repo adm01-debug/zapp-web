@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/select';
 import { Sparkles, RefreshCw, Download, Check, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AIAvatarGeneratorProps {
   contactName: string;

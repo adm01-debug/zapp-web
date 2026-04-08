@@ -104,12 +104,27 @@ export function N8nIntegrationView() {
   const testWorkflow = async (workflow: N8nWorkflow) => {
     try {
       toast.info(`Testando webhook: ${workflow.name}...`);
-      // Simulate webhook test
-      await new Promise(r => setTimeout(r, 1500));
-      setWorkflows(prev => prev.map(w => w.id === workflow.id ? { ...w, lastTriggered: new Date().toISOString() } : w));
-      toast.success(`Webhook "${workflow.name}" testado com sucesso!`);
+      // Actually POST to the webhook URL
+      const response = await fetch(workflow.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: workflow.triggerEvent,
+          test: true,
+          timestamp: new Date().toISOString(),
+          source: 'zapp-web',
+        }),
+      });
+      const updated = workflows.map(w => w.id === workflow.id ? { ...w, lastTriggered: new Date().toISOString() } : w);
+      setWorkflows(updated);
+      await persistConfig(webhookBaseUrl, isConnected, updated);
+      if (response.ok) {
+        toast.success(`Webhook "${workflow.name}" testado com sucesso! (${response.status})`);
+      } else {
+        toast.error(`Webhook respondeu com erro: ${response.status}`);
+      }
     } catch {
-      toast.error('Falha ao testar webhook');
+      toast.error('Falha ao conectar ao webhook. Verifique a URL.');
     }
   };
 

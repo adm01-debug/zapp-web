@@ -8,7 +8,6 @@
  * Can be used standalone or embedded in a Dialog.
  */
 import { useState, useCallback, memo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAdvancedContactSearch } from '@/hooks/useAdvancedContactSearch';
 import { Badge } from '@/components/ui/badge';

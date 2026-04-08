@@ -93,9 +93,24 @@ export function GoogleSheetsIntegrationView() {
 
   const runSync = async (sync: SheetSync) => {
     toast.info(`Sincronizando "${sync.name}"...`);
-    await new Promise(r => setTimeout(r, 2000));
-    setSyncs(prev => prev.map(s => s.id === sync.id ? { ...s, lastSyncAt: new Date().toISOString() } : s));
-    toast.success(`"${sync.name}" sincronizado!`);
+    try {
+      // Export data from Supabase to prepare for Google Sheets sync
+      const { data, error } = await supabase
+        .from(sync.dataSource === 'contacts' ? 'contacts' : 'messages')
+        .select('*')
+        .limit(500);
+
+      if (error) throw error;
+
+      const now = new Date().toISOString();
+      const updated = syncs.map(s => s.id === sync.id ? { ...s, lastSyncAt: now } : s);
+      setSyncs(updated);
+      await persistConfig(apiKey, isConnected, updated);
+
+      toast.success(`"${sync.name}" preparado: ${data?.length || 0} registros. Configure a API do Google Sheets para completar a sincronização.`);
+    } catch (err) {
+      toast.error(`Erro ao sincronizar: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
+    }
   };
 
   const directionIcon = (d: string) => {
