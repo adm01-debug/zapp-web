@@ -1,5 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+import { AuthProvider } from '@/hooks/useAuth';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: {
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      getSession: vi.fn(() => Promise.resolve({ data: { session: null } })),
+    },
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+      })),
+    })),
+  },
+}));
 
 vi.mock('xlsx', () => ({
   utils: {
@@ -35,6 +54,14 @@ interface TestRow extends Record<string, unknown> {
   score: number;
 }
 
+const createWrapper = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient },
+      React.createElement(AuthProvider, null, children)
+    );
+};
+
 describe('useExportData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,35 +80,40 @@ describe('useExportData', () => {
 
   it('initializes with isExporting=false', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper: createWrapper() }
     );
     expect(result.current.isExporting).toBe(false);
   });
 
   it('exposes exportCSV function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportCSV).toBe('function');
   });
 
   it('exposes exportExcel function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportExcel).toBe('function');
   });
 
   it('exposes exportPDF function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportPDF).toBe('function');
   });
 
   it('exposes exportData function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportData).toBe('function');
   });
