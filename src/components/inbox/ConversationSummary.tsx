@@ -210,7 +210,6 @@ export function ConversationSummary({ messages, contactName, initialSummary }: C
             )}
           </AnimatePresence>
         </Card>
-      )}
     </div>
   );
 }
