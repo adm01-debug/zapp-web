@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Calendar, Link2, CheckCircle2, Clock, Bell, ExternalLink, Settings } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+const SETTINGS_KEY = 'google_calendar_integration';
 
 export function GoogleCalendarIntegration() {
   const [connected, setConnected] = useState(false);
@@ -16,12 +19,41 @@ export function GoogleCalendarIntegration() {
   const [reminderMinutes, setReminderMinutes] = useState('15');
   const [calendarId, setCalendarId] = useState('');
 
-  const handleConnect = () => {
-    toast.info('A integração com Google Calendar requer configuração de OAuth. Configure as credenciais nas variáveis de ambiente.');
+  // Load persisted config
+  useEffect(() => {
+    supabase.from('global_settings').select('value').eq('key', SETTINGS_KEY).maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) {
+          const cfg = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+          setConnected(cfg.connected || false);
+          setAutoSync(cfg.autoSync ?? true);
+          setReminderMinutes(cfg.reminderMinutes || '15');
+          setCalendarId(cfg.calendarId || '');
+        }
+      });
+  }, []);
+
+  const persistConfig = async (cfg: Record<string, unknown>) => {
+    await supabase.from('global_settings').upsert({
+      key: SETTINGS_KEY,
+      value: JSON.stringify(cfg),
+    }, { onConflict: 'key' });
   };
 
-  const handleDisconnect = () => {
+  const handleConnect = async () => {
+    if (!calendarId.trim()) {
+      toast.info('Informe o ID do calendário (ex: seu-email@gmail.com) para conectar.');
+      return;
+    }
+    setConnected(true);
+    await persistConfig({ connected: true, autoSync, reminderMinutes, calendarId });
+    toast.success('Google Calendar configurado! Para OAuth completo, configure GOOGLE_CLIENT_ID nas variáveis de ambiente.');
+  };
+
+  const handleDisconnect = async () => {
     setConnected(false);
+    setCalendarId('');
+    await persistConfig({ connected: false, autoSync: true, reminderMinutes: '15', calendarId: '' });
     toast.success('Google Calendar desconectado');
   };
 
@@ -89,7 +121,7 @@ export function GoogleCalendarIntegration() {
                 Criar eventos automaticamente ao agendar mensagens
               </p>
             </div>
-            <Switch checked={autoSync} onCheckedChange={setAutoSync} />
+            <Switch checked={autoSync} onCheckedChange={(v) => { setAutoSync(v); persistConfig({ connected, autoSync: v, reminderMinutes, calendarId }); }} />
           </div>
 
           <Separator className="bg-border/30" />

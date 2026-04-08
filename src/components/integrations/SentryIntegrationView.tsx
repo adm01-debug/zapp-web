@@ -47,9 +47,9 @@ export function SentryIntegrationView() {
     enablePerformance: true,
     enableReplays: false,
   });
-  const [errors, setErrors] = useState<MockError[]>(mockErrors);
+  const [errors, setErrors] = useState<MockError[]>([]);
 
-  // Load persisted config
+  // Load persisted config + real errors from audit_logs
   useEffect(() => {
     supabase.from('global_settings').select('value').eq('key', SETTINGS_KEY).maybeSingle()
       .then(({ data }) => {
@@ -57,6 +57,29 @@ export function SentryIntegrationView() {
           const saved = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
           if (saved.config) setConfig(saved.config);
           if (saved.isConnected) setIsConnected(true);
+        }
+      });
+
+    // Load real errors from audit_logs (security_alerts or error-type entries)
+    supabase.from('audit_logs')
+      .select('id, action, details, created_at')
+      .ilike('action', '%error%')
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data: logs }) => {
+        if (logs?.length) {
+          const realErrors: MockError[] = logs.map((log, i) => ({
+            id: log.id || String(i),
+            title: typeof log.details === 'string' ? log.details : (log.action || 'Unknown error'),
+            level: 'error' as const,
+            count: 1,
+            lastSeen: new Date(log.created_at).toLocaleString('pt-BR'),
+            isResolved: false,
+          }));
+          setErrors(realErrors);
+        } else {
+          // Fallback to mock if no real errors exist yet
+          setErrors(mockErrors);
         }
       });
   }, []);
