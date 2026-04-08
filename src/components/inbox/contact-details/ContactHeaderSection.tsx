@@ -277,20 +277,16 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
       <div className="flex items-center gap-1 mt-2">
         <TooltipProvider>
           <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                  >
-                    <Phone className="w-4 h-4 text-primary" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="top">Opções de chamada</TooltipContent>
-            </Tooltip>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                title="Opções de chamada"
+              >
+                <Phone className="w-4 h-4 text-primary" />
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="min-w-[160px]">
               <DropdownMenuItem
                 onClick={() => {
