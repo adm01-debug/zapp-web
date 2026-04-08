@@ -79,6 +79,8 @@ interface ChatMessagesAreaProps {
   onScrollToMessage: (messageId: string) => void;
   onInteractiveButtonClick: (button: InteractiveButton) => void;
   onEditStart?: (message: Message) => void;
+  highlightedMessageIds?: Set<string>;
+  activeHighlightId?: string | null;
 }
 
 export interface ChatMessagesAreaRef {
