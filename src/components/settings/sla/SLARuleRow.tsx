@@ -42,12 +42,14 @@ export function SLARuleRow({ rule, scope, scopeLabel, index, onEdit, onDelete, o
 
   return (
     <motion.div
+      role="listitem"
+      aria-label={`Regra SLA: ${rule.name}, ${rule.is_active ? 'ativa' : 'inativa'}`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.2 }}
       className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 hover:bg-muted/50 border border-transparent hover:border-border/50 transition-all duration-200"
     >
-      <Switch checked={rule.is_active} onCheckedChange={onToggle} />
+      <Switch checked={rule.is_active} onCheckedChange={onToggle} aria-label={`Ativar/desativar regra ${rule.name}`} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm truncate text-foreground">{rule.name}</span>
