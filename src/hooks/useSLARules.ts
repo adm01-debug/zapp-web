@@ -95,7 +95,7 @@ export function useSLARules(scope?: SLARuleScope) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...form }: SLARuleForm & { id: string }) => {
-      const payload = {
+      const base = {
         name: form.name,
         first_response_minutes: form.first_response_minutes,
         resolution_minutes: form.resolution_minutes,
@@ -106,9 +106,11 @@ export function useSLARules(scope?: SLARuleScope) {
         contact_type: form.contact_type || null,
         queue_id: form.queue_id || null,
         agent_id: form.agent_id || null,
-        metadata: (form.metadata || {}) as unknown,
       };
-      const { error } = await supabase.from('sla_rules').update(payload as any).eq('id', id);
+      const payload = form.metadata
+        ? { ...base, metadata: form.metadata as unknown as Json }
+        : base;
+      const { error } = await supabase.from('sla_rules').update(payload).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
