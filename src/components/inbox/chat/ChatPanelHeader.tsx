@@ -89,16 +89,6 @@ export function ChatPanelHeader({
             <ArrowLeft className="w-5 h-5" />
           </Button>
         )}
-        <div className="relative shrink-0">
-          <Avatar className="w-9 h-9 md:w-10 md:h-10">
-            <AvatarImage src={conversation.contact.avatar} />
-            <AvatarFallback className="bg-primary/15 text-primary font-semibold text-sm">
-              {conversation.contact.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-          {/* Online status dot */}
-          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[hsl(var(--online))] border-2 border-card" />
-        </div>
         <div>
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground text-[15px]">
@@ -112,16 +102,6 @@ export function ChatPanelHeader({
               resolutionMinutes={conversation.priority === 'high' ? 30 : 60}
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            {isContactTyping ? (
-              <TypingIndicatorCompact isVisible={true} />
-            ) : (
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--online))]" />
-                Online
-              </span>
-            )}
-          </p>
         </div>
       </div>
 
