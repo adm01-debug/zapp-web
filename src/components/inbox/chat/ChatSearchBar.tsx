@@ -90,7 +90,7 @@ export function ChatSearchBar({
   useEffect(() => {
     if (!previewListRef.current || activeIndex < 0 || activeIndex >= 5) return;
     const activeEl = previewListRef.current.children[activeIndex] as HTMLElement | undefined;
-    activeEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    activeEl?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
   }, [activeIndex]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
