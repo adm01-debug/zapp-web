@@ -34,6 +34,8 @@ import {
   Brain,
   Info,
   ExternalLink,
+  FileText,
+  Loader2,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 
@@ -53,6 +55,9 @@ interface ChatPanelHeaderProps {
   onVoiceChange: (voiceId: string) => void;
   onSpeedChange: (speed: number) => void;
   onBack?: () => void;
+  onGenerateSummary?: () => void;
+  isSummaryLoading?: boolean;
+  canGenerateSummary?: boolean;
 }
 
 export function ChatPanelHeader({
