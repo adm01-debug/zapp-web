@@ -174,10 +174,10 @@ export const SLADashboard = () => {
                   <Target className={cn("h-6 w-6", getRateColor(data.overall.overallRate))} />
                 </div>
               </div>
-              <Progress 
-                value={data.overall.overallRate} 
-                className="mt-3 h-2"
-              />
+              <div className="flex items-center gap-3 mt-3">
+                <Progress value={data.overall.overallRate} className="h-2 flex-1" />
+                {sparkOverall.length >= 2 && <Sparkline data={sparkOverall} width={64} height={20} color="hsl(var(--primary))" />}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
