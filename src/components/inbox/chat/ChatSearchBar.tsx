@@ -245,7 +245,7 @@ export function ChatSearchBar({
             </div>
 
             {/* Filter chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5" role="tablist" aria-label="Filtros de tipo de mensagem">
               {FILTERS.map((f) => (
                 <Badge
                   key={f.key}
