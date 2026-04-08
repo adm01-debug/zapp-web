@@ -319,6 +319,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onClose={() => setShowChatSearch(false)}
           onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
+          onSearchQueryChange={setSearchQuery}
         />
 
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
@@ -332,7 +333,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''} contactAvatar={conversation.contact.avatar || undefined}
           onSpeak={speak} onStop={stop} onReply={handleReplyToMessage} onForward={handleForwardMessage} onCopy={handleCopyMessage}
           onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart}
-          highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} />
+          highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} searchQuery={searchQuery} />
 
         <ChatQuickRepliesPopover show={showQuickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => setShowQuickReplies(false)} />
 
