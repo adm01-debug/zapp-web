@@ -143,6 +143,42 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
 
 // Persist media (image/video/audio/document) to Supabase Storage
 // deno-lint-ignore no-explicit-any
+// Validate that downloaded bytes match expected media format (not encrypted/corrupted)
+function isValidMediaBytes(bytes: Uint8Array, messageType: string): boolean {
+  if (bytes.length < 4) return false;
+
+  // OGG container (audio): starts with "OggS" (0x4F676753)
+  if (messageType === 'audio') {
+    const isOgg = bytes[0] === 0x4F && bytes[1] === 0x67 && bytes[2] === 0x67 && bytes[3] === 0x53;
+    // MP3: starts with 0xFFFA, 0xFFFB, 0xFFF3, 0xFFF2 or ID3 tag
+    const isMp3 = (bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0) ||
+                  (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33); // ID3
+    // WebM/Matroska (Opus audio): starts with 0x1A45DFA3
+    const isWebm = bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3;
+    // RIFF/WAV: starts with "RIFF"
+    const isWav = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46;
+    return isOgg || isMp3 || isWebm || isWav;
+  }
+
+  // Image: JPEG (0xFFD8FF), PNG (0x89504E47), WebP (RIFF...WEBP)
+  if (messageType === 'image') {
+    const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+    const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+    const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46;
+    return isJpeg || isPng || isWebp;
+  }
+
+  // Video: MP4 (ftyp at offset 4), WebM (0x1A45DFA3)
+  if (messageType === 'video') {
+    const isMp4 = bytes.length >= 8 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70;
+    const isWebm = bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3;
+    return isMp4 || isWebm;
+  }
+
+  // Documents: accept anything (PDFs, etc.) - too many formats to validate
+  return true;
+}
+
 async function persistMediaToStorage(
   supabase: any,
   cdnUrl: string,
@@ -160,6 +196,12 @@ async function persistMediaToStorage(
     const bytes = new Uint8Array(arrayBuf);
     if (bytes.length < 100) {
       console.error(`[MEDIA] File too small (${bytes.length} bytes)`);
+      return null;
+    }
+
+    // Validate the downloaded bytes are actual media, not encrypted WhatsApp data
+    if (!isValidMediaBytes(bytes, messageType)) {
+      console.warn(`[MEDIA] Downloaded ${messageType} file (${bytes.length} bytes) appears encrypted or corrupted — magic bytes: ${Array.from(bytes.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join(' ')}. Falling back to API.`);
       return null;
     }
 
