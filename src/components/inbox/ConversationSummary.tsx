@@ -53,11 +53,19 @@ const sentimentConfig = {
   negativo: { label: 'Negativo', icon: ThumbsDown, className: 'text-destructive' },
 };
 
-export function ConversationSummary({ messages, contactName }: ConversationSummaryProps) {
-  const [summary, setSummary] = useState<SummaryData | null>(null);
+export function ConversationSummary({ messages, contactName, initialSummary }: ConversationSummaryProps) {
+  const [summary, setSummary] = useState<SummaryData | null>(initialSummary as SummaryData | null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!!initialSummary);
+  const [hasGenerated, setHasGenerated] = useState(!!initialSummary);
+
+  useEffect(() => {
+    if (initialSummary) {
+      setSummary(initialSummary as SummaryData);
+      setHasGenerated(true);
+      setIsExpanded(true);
+    }
+  }, [initialSummary]);
 
   const canGenerateSummary = messages.length >= 10;
 
