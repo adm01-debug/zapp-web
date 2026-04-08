@@ -251,6 +251,9 @@ export function ChatSearchBar({
               {FILTERS.map((f) => (
                 <Badge
                   key={f.key}
+                  role="tab"
+                  aria-selected={filter === f.key}
+                  tabIndex={0}
                   variant={filter === f.key ? 'default' : 'outline'}
                   className={cn(
                     'cursor-pointer whitespace-nowrap text-[10px] px-2 py-0.5 gap-1 transition-colors shrink-0',
@@ -259,6 +262,7 @@ export function ChatSearchBar({
                       : 'hover:bg-muted'
                   )}
                   onClick={() => setFilter(f.key)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilter(f.key); } }}
                 >
                   {f.icon}
                   {f.label}
