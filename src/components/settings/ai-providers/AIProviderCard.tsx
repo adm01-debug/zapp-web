@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Pencil, Trash2, TestTube, Loader2, Star } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import type { AIProvider } from './types';
@@ -19,10 +21,15 @@ interface AIProviderCardProps {
   onTest: (p: AIProvider) => void;
   onEdit: (p: AIProvider) => void;
   onDelete: (id: string) => void;
+  onToggleActive: (id: string, is_active: boolean) => void;
+  onToggleDefault: (id: string, is_default: boolean) => void;
   index: number;
 }
 
-export function AIProviderCard({ provider: p, testing, onTest, onEdit, onDelete, index }: AIProviderCardProps) {
+export function AIProviderCard({
+  provider: p, testing, onTest, onEdit, onDelete,
+  onToggleActive, onToggleDefault, index,
+}: AIProviderCardProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const meta = PROVIDER_LABELS[p.provider_type] || PROVIDER_LABELS.custom_agent;
   const Icon = meta.icon;
@@ -55,7 +62,6 @@ export function AIProviderCard({ provider: p, testing, onTest, onEdit, onDelete,
                     <Badge variant="outline" className={cn('text-xs', meta.color)}>
                       {meta.label}
                     </Badge>
-                    {!p.is_active && <Badge variant="destructive" className="text-xs">Inativo</Badge>}
                   </div>
                   {p.description && (
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{p.description}</p>
@@ -71,6 +77,40 @@ export function AIProviderCard({ provider: p, testing, onTest, onEdit, onDelete,
                         {p.model}
                       </span>
                     )}
+                  </div>
+
+                  {/* Inline toggles */}
+                  <div className="flex items-center gap-5 mt-3 pt-2 border-t border-border/30">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <Switch
+                            checked={p.is_active}
+                            onCheckedChange={(v) => onToggleActive(p.id, v)}
+                            className="scale-90"
+                          />
+                          <span className="text-xs text-muted-foreground">Ativo</span>
+                        </label>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        {p.is_active ? 'Desativar provedor' : 'Ativar provedor'}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <Switch
+                            checked={p.is_default}
+                            onCheckedChange={(v) => onToggleDefault(p.id, v)}
+                            className="scale-90"
+                          />
+                          <span className="text-xs text-muted-foreground">Padrão</span>
+                        </label>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        {p.is_default ? 'Remover como padrão' : 'Definir como padrão'}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </div>
@@ -105,7 +145,6 @@ export function AIProviderCard({ provider: p, testing, onTest, onEdit, onDelete,
         </Card>
       </motion.div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
