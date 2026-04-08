@@ -76,6 +76,7 @@ export function useSLARules(scope?: SLARuleScope) {
         contact_type: form.contact_type || null,
         queue_id: form.queue_id || null,
         agent_id: form.agent_id || null,
+        metadata: form.metadata || {},
       });
       if (error) throw error;
     },
