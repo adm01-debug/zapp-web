@@ -20,7 +20,8 @@ import {
   Target,
   TrendingUp,
   Users,
-  History
+  History,
+  Settings2
 } from 'lucide-react';
 import { useSLAMetrics, PeriodFilter } from '@/hooks/useSLAMetrics';
 import { useSLAHistory } from '@/hooks/useSLAHistory';
