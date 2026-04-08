@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, Workflow, Trash2, Edit, Eye, Play, Copy, ArrowRight,
+  Plus, Workflow, Trash2, Edit, Eye, Play, Copy, ArrowRight, Download, Upload,
   Type, ListChecks, CalendarDays, Image, ToggleLeft, Smartphone,
   GripVertical, X, ChevronDown, ChevronUp, Send
 } from 'lucide-react';
@@ -110,6 +110,50 @@ export function WhatsAppFlowsBuilder() {
     fetchFlows();
   };
 
+  const exportFlowJSON = (flow: WhatsAppFlow) => {
+    // Convert internal format to WhatsApp Flows JSON format
+    const waFlowData = {
+      version: '3.1',
+      screens: flow.screens.map((screen: any) => ({
+        id: screen.id,
+        title: screen.title,
+        layout: {
+          type: 'SingleColumnLayout',
+          children: (screen.layout || []).map((comp: any) => ({
+            type: comp.type,
+            ...(comp.text ? { text: comp.text } : {}),
+            ...(comp.label ? { label: comp.label } : {}),
+            ...(comp.input_type ? { 'input-type': comp.input_type } : {}),
+            ...(comp.required !== undefined ? { required: comp.required } : {}),
+          })),
+        },
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(waFlowData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${flow.name.replace(/\s+/g, '_')}_flow.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: 'Flow exportado como JSON!' });
+  };
+
+  const publishFlow = async (flowId: string) => {
+    // Mark as published in DB (actual WhatsApp Business API publish requires Graph API call)
+    const { error } = await supabase.from('whatsapp_flows').update({
+      status: 'published',
+    }).eq('id', flowId);
+
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Flow publicado!', description: 'Status atualizado. Para publicar no WhatsApp Business, exporte o JSON e envie via Graph API.' });
+      fetchFlows();
+    }
+  };
+
   const deleteFlow = async (id: string) => {
     await supabase.from('whatsapp_flows').delete().eq('id', id);
     if (selectedFlow?.id === id) setSelectedFlow(null);
@@ -194,7 +238,17 @@ export function WhatsAppFlowsBuilder() {
                         <Workflow className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive"
+                        <Button variant="ghost" size="icon" className="h-6 w-6" title="Exportar JSON"
+                          onClick={(e) => { e.stopPropagation(); exportFlowJSON(flow); }}>
+                          <Download className="w-3 h-3" />
+                        </Button>
+                        {flow.status !== 'published' && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-green-600" title="Publicar"
+                            onClick={(e) => { e.stopPropagation(); publishFlow(flow.id); }}>
+                            <Upload className="w-3 h-3" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" title="Excluir"
                           onClick={(e) => { e.stopPropagation(); deleteFlow(flow.id); }}>
                           <Trash2 className="w-3 h-3" />
                         </Button>

@@ -65,8 +65,23 @@ export function PaymentLinksView() {
     const amount = parseFloat(formAmount);
     if (isNaN(amount) || amount <= 0) return;
 
-    // Generate a simple payment URL (in production would integrate with Stripe/payment provider)
-    const paymentUrl = `${window.location.origin}/pay/${crypto.randomUUID().slice(0, 8)}`;
+    // Generate payment URL/code based on method
+    let paymentUrl: string;
+    const linkId = crypto.randomUUID().slice(0, 12);
+    if (formMethod === 'pix') {
+      // PIX Copia e Cola (simplified EMV format)
+      const txId = linkId.replace(/-/g, '').slice(0, 25);
+      const merchantName = 'ZAPP';
+      const city = 'SAOPAULO';
+      // Build PIX static QR payload
+      paymentUrl = `00020126580014BR.GOV.BCB.PIX0136${txId}520400005303986` +
+        `54${String(amount.toFixed(2).length).padStart(2, '0')}${amount.toFixed(2)}` +
+        `5802BR59${String(merchantName.length).padStart(2, '0')}${merchantName}` +
+        `60${String(city.length).padStart(2, '0')}${city}6207050${String(txId.length).padStart(2, '0')}${txId}6304`;
+      // NOTE: Real PIX needs CRC16-CCITT checksum appended + real PIX key from settings
+    } else {
+      paymentUrl = `${window.location.origin}/pay/${linkId}`;
+    }
 
     const { error } = await supabase.from('payment_links').insert({
       title: formTitle,
@@ -90,6 +105,19 @@ export function PaymentLinksView() {
   const copyLink = (url: string) => {
     navigator.clipboard.writeText(url);
     toast({ title: 'Link copiado!' });
+  };
+
+  const markAsPaid = async (id: string) => {
+    const { error } = await supabase.from('payment_links').update({
+      status: 'paid',
+      paid_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Pagamento confirmado!' });
+      fetchData();
+    }
   };
 
   const deleteLink = async (id: string) => {
@@ -183,11 +211,16 @@ export function PaymentLinksView() {
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       {link.payment_url && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyLink(link.payment_url!)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyLink(link.payment_url!)} title="Copiar link/PIX">
                           <Copy className="w-3.5 h-3.5" />
                         </Button>
                       )}
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteLink(link.id)}>
+                      {link.status === 'pending' && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600" onClick={() => markAsPaid(link.id)} title="Confirmar pagamento">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteLink(link.id)} title="Excluir">
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>

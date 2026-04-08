@@ -101,11 +101,97 @@ serve(async (req) => {
             }
           }
 
-          // Handle incoming messages (optional - can be extended)
+          // Handle incoming messages from WhatsApp Cloud API
           if (value.messages) {
             for (const message of value.messages) {
-              console.log(`Received message from ${message.from}: ${message.type}`);
-              // Messages can be processed here if needed
+              const phone = message.from?.replace(/\D/g, '') || '';
+              const pushName = value.contacts?.[0]?.profile?.name || phone;
+              const phoneNumberId = value.metadata?.phone_number_id;
+
+              console.log(`Processing incoming message from ${phone} (${pushName}): ${message.type}`);
+
+              if (!phone) continue;
+
+              // Find WhatsApp connection by phone_number_id
+              let connectionId: string | null = null;
+              if (phoneNumberId) {
+                const { data: conn } = await supabase
+                  .from('whatsapp_connections')
+                  .select('id')
+                  .eq('instance_id', phoneNumberId)
+                  .maybeSingle();
+                connectionId = conn?.id || null;
+              }
+
+              // Find or create contact
+              let contactQuery = supabase.from('contacts').select('id').eq('phone', phone);
+              if (connectionId) contactQuery = contactQuery.eq('whatsapp_connection_id', connectionId);
+              const { data: existingContact } = await contactQuery.maybeSingle();
+
+              let contactId: string;
+              if (existingContact) {
+                contactId = existingContact.id;
+              } else {
+                const { data: newContact } = await supabase
+                  .from('contacts')
+                  .insert({ name: pushName, phone, whatsapp_connection_id: connectionId })
+                  .select('id')
+                  .single();
+                if (!newContact) continue;
+                contactId = newContact.id;
+              }
+
+              // Extract message content
+              let content = '';
+              let messageType = 'text';
+              let mediaUrl: string | undefined;
+
+              switch (message.type) {
+                case 'text':
+                  content = message.text?.body || '';
+                  break;
+                case 'image':
+                  content = message.image?.caption || '[Imagem]';
+                  messageType = 'image';
+                  mediaUrl = message.image?.id; // Media ID — needs download via Graph API
+                  break;
+                case 'video':
+                  content = message.video?.caption || '[Vídeo]';
+                  messageType = 'video';
+                  break;
+                case 'audio':
+                  content = '[Áudio]';
+                  messageType = 'audio';
+                  break;
+                case 'document':
+                  content = message.document?.filename || '[Documento]';
+                  messageType = 'document';
+                  break;
+                case 'sticker':
+                  content = '[Figurinha]';
+                  messageType = 'sticker';
+                  break;
+                default:
+                  content = `[${message.type}]`;
+              }
+
+              // Save message
+              const { error: msgError } = await supabase.from('messages').insert({
+                contact_id: contactId,
+                whatsapp_connection_id: connectionId,
+                sender: 'contact',
+                content,
+                message_type: messageType,
+                media_url: mediaUrl || null,
+                external_id: message.id,
+                channel_type: 'whatsapp',
+              });
+
+              if (msgError) {
+                console.error('Error saving incoming message:', msgError.message);
+              } else {
+                console.log(`Saved incoming message from ${phone}: ${content.slice(0, 50)}`);
+              }
             }
           }
         }
