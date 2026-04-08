@@ -6,7 +6,6 @@ import {
   Phone,
   PhoneCall,
   Headphones,
-  Copy,
   Mail,
   Building,
   Briefcase,
@@ -293,10 +292,6 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
               <TooltipContent side="top">Opções de chamada</TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="center" className="min-w-[160px]">
-              <DropdownMenuItem onClick={() => copyToClipboard(contact.phone, 'Telefone')} className="gap-2 text-xs">
-                <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                Copiar telefone
-              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
                   const cleanPhone = contact.phone.replace(/\D/g, '');
