@@ -277,20 +277,16 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
       <div className="flex items-center gap-1 mt-2">
         <TooltipProvider>
           <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                  >
-                    <Phone className="w-4 h-4 text-primary" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="top">Opções de chamada</TooltipContent>
-            </Tooltip>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                title="Opções de chamada"
+              >
+                <Phone className="w-4 h-4 text-primary" />
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="min-w-[160px]">
               <DropdownMenuItem
                 onClick={() => {
@@ -353,16 +349,11 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
 
           {/* More actions dropdown */}
           <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30">
-                    <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="top">Mais ações</TooltipContent>
-            </Tooltip>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30" title="Mais ações">
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="min-w-[140px]">
               <DropdownMenuItem onClick={() => onQuickAction?.('edit')} className="gap-2 text-xs">
                 <Briefcase className="w-3.5 h-3.5 text-primary" />
