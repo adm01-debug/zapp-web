@@ -37,6 +37,7 @@ interface SummaryData {
 interface ConversationSummaryProps {
   messages: Message[];
   contactName: string;
+  initialSummary?: Record<string, unknown> | null;
 }
 
 const statusConfig = {
