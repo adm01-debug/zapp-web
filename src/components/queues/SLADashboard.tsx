@@ -51,6 +51,13 @@ export const SLADashboard = () => {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<PeriodFilter>('today');
   const { data, loading } = useSLAMetrics(period);
+  const { data: historyData } = useSLAHistory('7d');
+
+  // Extract sparkline data from 7-day history
+  const sparkFR = historyData?.dailyData.map(d => d.totalConversations > 0 ? 100 - (d.firstResponseBreaches / d.totalConversations) * 100 : 100) || [];
+  const sparkRes = historyData?.dailyData.map(d => d.totalConversations > 0 ? 100 - (d.resolutionBreaches / d.totalConversations) * 100 : 100) || [];
+  const sparkOverall = historyData?.dailyData.map(d => d.slaRate) || [];
+  const sparkConversations = historyData?.dailyData.map(d => d.totalConversations) || [];
 
   const periodLabels: Record<PeriodFilter, string> = {
     today: 'Hoje',
