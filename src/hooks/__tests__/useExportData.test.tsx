@@ -81,7 +81,7 @@ describe('useExportData', () => {
   it('initializes with isExporting=false', () => {
     const { result } = renderHook(() =>
       useExportData<TestRow>({ columns, fileName: 'test' }),
-      { wrapper }
+      { wrapper: createWrapper() }
     );
     expect(result.current.isExporting).toBe(false);
   });
@@ -89,7 +89,7 @@ describe('useExportData', () => {
   it('exposes exportCSV function', () => {
     const { result } = renderHook(() =>
       useExportData<TestRow>({ columns, fileName: 'test' }),
-      { wrapper }
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportCSV).toBe('function');
   });
@@ -97,7 +97,7 @@ describe('useExportData', () => {
   it('exposes exportExcel function', () => {
     const { result } = renderHook(() =>
       useExportData<TestRow>({ columns, fileName: 'test' }),
-      { wrapper }
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportExcel).toBe('function');
   });
@@ -105,7 +105,7 @@ describe('useExportData', () => {
   it('exposes exportPDF function', () => {
     const { result } = renderHook(() =>
       useExportData<TestRow>({ columns, fileName: 'test' }),
-      { wrapper }
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportPDF).toBe('function');
   });
@@ -113,7 +113,7 @@ describe('useExportData', () => {
   it('exposes exportData function', () => {
     const { result } = renderHook(() =>
       useExportData<TestRow>({ columns, fileName: 'test' }),
-      { wrapper }
+      { wrapper: createWrapper() }
     );
     expect(typeof result.current.exportData).toBe('function');
   });
