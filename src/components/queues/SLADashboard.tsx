@@ -23,7 +23,9 @@ import {
   History
 } from 'lucide-react';
 import { useSLAMetrics, PeriodFilter } from '@/hooks/useSLAMetrics';
+import { useSLAHistory } from '@/hooks/useSLAHistory';
 import { ExportButton } from '@/components/reports/ExportButton';
+import { Sparkline } from '@/components/ui/sparkline';
 import { ReportData } from '@/utils/exportReport';
 import { cn } from '@/lib/utils';
 
