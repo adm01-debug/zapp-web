@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Zap, Plus, Trash2, Play, Pause, ExternalLink, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Zap, Plus, Trash2, Play, Pause, ExternalLink, RefreshCw, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface N8nWorkflow {
   id: string;
@@ -27,23 +28,49 @@ const triggerEvents = [
   { value: 'campaign.completed', label: 'Campanha Concluída' },
 ];
 
+const SETTINGS_KEY = 'n8n_integration';
+
 export function N8nIntegrationView() {
   const [webhookBaseUrl, setWebhookBaseUrl] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [workflows, setWorkflows] = useState<N8nWorkflow[]>([]);
   const [newWorkflow, setNewWorkflow] = useState({ name: '', webhookUrl: '', triggerEvent: 'message.received' });
   const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleConnect = () => {
+  // Load persisted config from Supabase global_settings
+  useEffect(() => {
+    supabase.from('global_settings').select('value').eq('key', SETTINGS_KEY).maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) {
+          const config = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+          setWebhookBaseUrl(config.webhookBaseUrl || '');
+          setIsConnected(config.isConnected || false);
+          setWorkflows(config.workflows || []);
+        }
+        setLoading(false);
+      });
+  }, []);
+
+  // Persist config to Supabase
+  const persistConfig = async (url: string, connected: boolean, wfs: N8nWorkflow[]) => {
+    await supabase.from('global_settings').upsert({
+      key: SETTINGS_KEY,
+      value: JSON.stringify({ webhookBaseUrl: url, isConnected: connected, workflows: wfs }),
+    }, { onConflict: 'key' });
+  };
+
+  const handleConnect = async () => {
     if (!webhookBaseUrl.trim()) {
       toast.error('Informe a URL base do n8n');
       return;
     }
     setIsConnected(true);
+    await persistConfig(webhookBaseUrl, true, workflows);
     toast.success('Conectado ao n8n com sucesso!');
   };
 
-  const handleAddWorkflow = () => {
+  const handleAddWorkflow = async () => {
     if (!newWorkflow.name || !newWorkflow.webhookUrl) {
       toast.error('Preencha todos os campos');
       return;
@@ -53,18 +80,24 @@ export function N8nIntegrationView() {
       ...newWorkflow,
       isActive: true,
     };
-    setWorkflows(prev => [...prev, workflow]);
+    const updated = [...workflows, workflow];
+    setWorkflows(updated);
     setNewWorkflow({ name: '', webhookUrl: '', triggerEvent: 'message.received' });
     setShowAddForm(false);
+    await persistConfig(webhookBaseUrl, isConnected, updated);
     toast.success('Workflow adicionado!');
   };
 
-  const toggleWorkflow = (id: string) => {
-    setWorkflows(prev => prev.map(w => w.id === id ? { ...w, isActive: !w.isActive } : w));
+  const toggleWorkflow = async (id: string) => {
+    const updated = workflows.map(w => w.id === id ? { ...w, isActive: !w.isActive } : w);
+    setWorkflows(updated);
+    await persistConfig(webhookBaseUrl, isConnected, updated);
   };
 
-  const removeWorkflow = (id: string) => {
-    setWorkflows(prev => prev.filter(w => w.id !== id));
+  const removeWorkflow = async (id: string) => {
+    const updated = workflows.filter(w => w.id !== id);
+    setWorkflows(updated);
+    await persistConfig(webhookBaseUrl, isConnected, updated);
     toast.success('Workflow removido');
   };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { FileSpreadsheet, Plus, Trash2, RefreshCw, Download, Upload, CheckCircle2, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SheetSync {
   id: string;
@@ -29,6 +30,8 @@ const dataSources = [
   { value: 'agents', label: 'Atendentes' },
 ];
 
+const SETTINGS_KEY = 'google_sheets_integration';
+
 export function GoogleSheetsIntegrationView() {
   const [apiKey, setApiKey] = useState('');
   const [isConnected, setIsConnected] = useState(false);
@@ -38,12 +41,32 @@ export function GoogleSheetsIntegrationView() {
     name: '', spreadsheetId: '', sheetName: 'Sheet1', syncDirection: 'export' as const, dataSource: 'contacts', syncInterval: 60
   });
 
-  const handleConnect = () => {
+  useEffect(() => {
+    supabase.from('global_settings').select('value').eq('key', SETTINGS_KEY).maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) {
+          const config = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+          setApiKey(config.apiKey || '');
+          setIsConnected(config.isConnected || false);
+          setSyncs(config.syncs || []);
+        }
+      });
+  }, []);
+
+  const persistConfig = async (key: string, connected: boolean, syncList: SheetSync[]) => {
+    await supabase.from('global_settings').upsert({
+      key: SETTINGS_KEY,
+      value: JSON.stringify({ apiKey: key, isConnected: connected, syncs: syncList }),
+    }, { onConflict: 'key' });
+  };
+
+  const handleConnect = async () => {
     if (!apiKey.trim()) {
       toast.error('Informe a chave da API do Google Sheets');
       return;
     }
     setIsConnected(true);
+    await persistConfig(apiKey, true, syncs);
     toast.success('Conectado ao Google Sheets!');
   };
 

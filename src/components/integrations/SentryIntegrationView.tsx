@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Bug, ShieldAlert, Activity, AlertTriangle, CheckCircle2, RefreshCw, TrendingUp, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SentryConfig {
   dsn: string;
@@ -34,6 +35,8 @@ const mockErrors: MockError[] = [
   { id: '4', title: 'RangeError: Maximum call stack exceeded', level: 'error', count: 2, lastSeen: '3h atrás', isResolved: true },
 ];
 
+const SETTINGS_KEY = 'sentry_integration';
+
 export function SentryIntegrationView() {
   const [isConnected, setIsConnected] = useState(false);
   const [config, setConfig] = useState<SentryConfig>({
@@ -46,12 +49,32 @@ export function SentryIntegrationView() {
   });
   const [errors, setErrors] = useState<MockError[]>(mockErrors);
 
-  const handleConnect = () => {
+  // Load persisted config
+  useEffect(() => {
+    supabase.from('global_settings').select('value').eq('key', SETTINGS_KEY).maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) {
+          const saved = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+          if (saved.config) setConfig(saved.config);
+          if (saved.isConnected) setIsConnected(true);
+        }
+      });
+  }, []);
+
+  const persistConfig = async (cfg: SentryConfig, connected: boolean) => {
+    await supabase.from('global_settings').upsert({
+      key: SETTINGS_KEY,
+      value: JSON.stringify({ config: cfg, isConnected: connected }),
+    }, { onConflict: 'key' });
+  };
+
+  const handleConnect = async () => {
     if (!config.dsn.trim()) {
       toast.error('Informe o DSN do Sentry');
       return;
     }
     setIsConnected(true);
+    await persistConfig(config, true);
     toast.success('Sentry conectado com sucesso!');
   };
 

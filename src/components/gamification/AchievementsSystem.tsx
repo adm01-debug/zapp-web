@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,123 +89,106 @@ export const AchievementsSystem = ({ userId, showCompact = false }: Achievements
   const { celebrate } = useCelebration();
 
   useEffect(() => {
-    // Load achievements
-    const timer = setTimeout(() => {
-      const mockAchievements: Achievement[] = [
-        {
-          id: '1',
-          name: 'Primeiro Contato',
-          description: 'Responda sua primeira mensagem',
-          icon: 'star',
-          category: 'messages',
-          rarity: 'common',
-          progress: 1,
-          target: 1,
-          xpReward: 50,
-          isUnlocked: true,
-          unlockedAt: new Date(Date.now() - 86400000 * 30),
-        },
-        {
-          id: '2',
-          name: 'Comunicador',
-          description: 'Envie 100 mensagens',
-          icon: 'trophy',
-          category: 'messages',
-          rarity: 'common',
-          progress: 100,
-          target: 100,
-          xpReward: 100,
-          isUnlocked: true,
-          unlockedAt: new Date(Date.now() - 86400000 * 20),
-        },
-        {
-          id: '3',
-          name: 'Velocista',
-          description: 'Responda em menos de 1 minuto 50 vezes',
-          icon: 'zap',
-          category: 'speed',
-          rarity: 'rare',
-          progress: 42,
-          target: 50,
-          xpReward: 200,
-          isUnlocked: false,
-        },
-        {
-          id: '4',
-          name: 'Maratonista',
-          description: 'Mantenha uma sequência de 7 dias ativos',
-          icon: 'flame',
-          category: 'streak',
-          rarity: 'rare',
-          progress: 7,
-          target: 7,
-          xpReward: 250,
-          isUnlocked: true,
-          unlockedAt: new Date(Date.now() - 86400000 * 5),
-          isNew: true,
-        },
-        {
-          id: '5',
-          name: 'Favorito dos Clientes',
-          description: 'Alcance 95% de satisfação em 100 avaliações',
-          icon: 'crown',
-          category: 'satisfaction',
-          rarity: 'epic',
-          progress: 67,
-          target: 100,
-          xpReward: 500,
-          isUnlocked: false,
-        },
-        {
-          id: '6',
-          name: 'Mestre do Atendimento',
-          description: 'Resolva 1000 conversas',
-          icon: 'medal',
-          category: 'messages',
-          rarity: 'epic',
-          progress: 756,
-          target: 1000,
-          xpReward: 750,
-          isUnlocked: false,
-        },
-        {
-          id: '7',
-          name: 'Lenda Viva',
-          description: 'Complete todas as conquistas',
-          icon: 'award',
-          category: 'special',
-          rarity: 'legendary',
-          progress: 5,
-          target: 10,
-          xpReward: 2000,
-          isUnlocked: false,
-        },
-        {
-          id: '8',
-          name: 'Flash',
-          description: 'Tempo médio de resposta menor que 30 segundos por uma semana',
-          icon: 'zap',
-          category: 'speed',
-          rarity: 'legendary',
-          progress: 3,
-          target: 7,
-          xpReward: 1500,
-          isUnlocked: false,
-        },
-      ];
+    // Load achievements from Supabase
+    async function loadAchievements() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setIsLoading(false); return; }
 
-      setAchievements(mockAchievements);
-      
-      const unlockedXP = mockAchievements
-        .filter(a => a.isUnlocked)
-        .reduce((sum, a) => sum + a.xpReward, 0);
-      setTotalXP(unlockedXP);
-      setLevel(Math.floor(unlockedXP / 500) + 1);
-      
-      setIsLoading(false);
-    }, 800);
+        const { data: profile } = await supabase
+          .from('profiles').select('id').eq('user_id', user.id).single();
+        if (!profile) { setIsLoading(false); return; }
 
-    return () => clearTimeout(timer);
+        // Fetch real achievements from DB
+        const { data: dbAchievements } = await supabase
+          .from('agent_achievements')
+          .select('*')
+          .eq('profile_id', profile.id)
+          .order('earned_at', { ascending: false });
+
+        // Fetch agent stats for progress tracking
+        const { data: stats } = await supabase
+          .from('agent_stats')
+          .select('*')
+          .eq('profile_id', profile.id)
+          .single();
+
+        // Define achievement definitions with real progress from DB
+        const totalMessages = stats?.total_messages_sent || 0;
+        const totalResolved = stats?.total_conversations_resolved || 0;
+        const currentStreak = stats?.current_streak || 0;
+        const csatScore = stats?.avg_csat_score || 0;
+        const avgResponseSec = stats?.avg_response_time_seconds || 999;
+        const earnedNames = new Set((dbAchievements || []).map(a => a.achievement_name));
+
+        const achievementDefs: Achievement[] = [
+          {
+            id: '1', name: 'Primeiro Contato', description: 'Responda sua primeira mensagem',
+            icon: 'star', category: 'messages', rarity: 'common',
+            progress: Math.min(totalMessages, 1), target: 1, xpReward: 50,
+            isUnlocked: earnedNames.has('Primeiro Contato') || totalMessages >= 1,
+            unlockedAt: dbAchievements?.find(a => a.achievement_name === 'Primeiro Contato')?.earned_at ? new Date(dbAchievements.find(a => a.achievement_name === 'Primeiro Contato')!.earned_at) : undefined,
+          },
+          {
+            id: '2', name: 'Comunicador', description: 'Envie 100 mensagens',
+            icon: 'trophy', category: 'messages', rarity: 'common',
+            progress: Math.min(totalMessages, 100), target: 100, xpReward: 100,
+            isUnlocked: earnedNames.has('Comunicador') || totalMessages >= 100,
+            unlockedAt: dbAchievements?.find(a => a.achievement_name === 'Comunicador')?.earned_at ? new Date(dbAchievements.find(a => a.achievement_name === 'Comunicador')!.earned_at) : undefined,
+          },
+          {
+            id: '3', name: 'Velocista', description: 'Responda em menos de 1 minuto 50 vezes',
+            icon: 'zap', category: 'speed', rarity: 'rare',
+            progress: Math.min(stats?.fast_responses || 0, 50), target: 50, xpReward: 200,
+            isUnlocked: earnedNames.has('Velocista'),
+          },
+          {
+            id: '4', name: 'Maratonista', description: 'Mantenha uma sequência de 7 dias ativos',
+            icon: 'flame', category: 'streak', rarity: 'rare',
+            progress: Math.min(currentStreak, 7), target: 7, xpReward: 250,
+            isUnlocked: earnedNames.has('Maratonista') || currentStreak >= 7,
+            isNew: currentStreak === 7,
+          },
+          {
+            id: '5', name: 'Favorito dos Clientes', description: 'Alcance 95% de satisfação em 100 avaliações',
+            icon: 'crown', category: 'satisfaction', rarity: 'epic',
+            progress: Math.round(csatScore * 20), target: 100, xpReward: 500,
+            isUnlocked: earnedNames.has('Favorito dos Clientes'),
+          },
+          {
+            id: '6', name: 'Mestre do Atendimento', description: 'Resolva 1000 conversas',
+            icon: 'medal', category: 'messages', rarity: 'epic',
+            progress: Math.min(totalResolved, 1000), target: 1000, xpReward: 750,
+            isUnlocked: earnedNames.has('Mestre do Atendimento') || totalResolved >= 1000,
+          },
+          {
+            id: '7', name: 'Lenda Viva', description: 'Complete todas as conquistas',
+            icon: 'award', category: 'special', rarity: 'legendary',
+            progress: (dbAchievements || []).length, target: 8, xpReward: 2000,
+            isUnlocked: earnedNames.has('Lenda Viva'),
+          },
+          {
+            id: '8', name: 'Flash', description: 'Tempo médio de resposta menor que 30 segundos por uma semana',
+            icon: 'zap', category: 'speed', rarity: 'legendary',
+            progress: avgResponseSec < 30 ? 7 : Math.min(Math.floor(30 / Math.max(avgResponseSec, 1) * 7), 6),
+            target: 7, xpReward: 1500,
+            isUnlocked: earnedNames.has('Flash'),
+          },
+        ];
+
+        setAchievements(achievementDefs);
+        const unlockedXP = achievementDefs.filter(a => a.isUnlocked).reduce((sum, a) => sum + a.xpReward, 0)
+          + (stats?.total_xp || 0);
+        setTotalXP(unlockedXP);
+        setLevel(Math.floor(unlockedXP / 500) + 1);
+      } catch (err) {
+        console.error('Failed to load achievements:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadAchievements();
   }, [userId]);
 
   const handleClaimAchievement = useCallback((achievement: Achievement) => {

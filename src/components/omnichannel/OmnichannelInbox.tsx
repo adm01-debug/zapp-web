@@ -62,6 +62,7 @@ export function OmnichannelInbox() {
     setLoading(true);
     try {
       // Fetch contacts with channel info
+      // Fetch contacts with their latest message
       const { data: contacts, error } = await supabase
         .from('contacts')
         .select('id, name, phone, channel_type, updated_at, assigned_to')
@@ -70,14 +71,41 @@ export function OmnichannelInbox() {
 
       if (error) throw error;
 
+      // Fetch last message for each contact (batch)
+      const contactIds = (contacts || []).map(c => c.id);
+      const { data: lastMessages } = contactIds.length > 0
+        ? await supabase.rpc('get_last_messages_for_contacts', { contact_ids: contactIds }).catch(() => ({ data: null }))
+        : { data: null };
+
+      // Fallback: fetch latest messages per contact if RPC doesn't exist
+      const messageMap: Record<string, { content: string; is_read: boolean }> = {};
+      if (!lastMessages && contactIds.length > 0) {
+        const { data: msgs } = await supabase
+          .from('messages')
+          .select('contact_id, content, is_read, created_at')
+          .in('contact_id', contactIds.slice(0, 50))
+          .order('created_at', { ascending: false });
+
+        // Keep only the latest per contact
+        (msgs || []).forEach(m => {
+          if (!messageMap[m.contact_id]) {
+            messageMap[m.contact_id] = { content: m.content, is_read: m.is_read };
+          }
+        });
+      } else if (lastMessages) {
+        (lastMessages as any[]).forEach((m: any) => {
+          messageMap[m.contact_id] = { content: m.content, is_read: m.is_read };
+        });
+      }
+
       const unified: UnifiedMessage[] = (contacts || []).map(contact => ({
         id: contact.id,
         contactName: contact.name,
-        contactPhone: contact.phone,
+        contactPhone: contact.phone || '',
         channelType: (contact.channel_type as ChannelType) || 'whatsapp',
-        lastMessage: '',
+        lastMessage: messageMap[contact.id]?.content || '',
         timestamp: contact.updated_at,
-        unread: false,
+        unread: messageMap[contact.id] ? !messageMap[contact.id].is_read : false,
         status: 'open',
         assignedTo: contact.assigned_to,
       }));
