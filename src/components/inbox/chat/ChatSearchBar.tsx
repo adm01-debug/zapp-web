@@ -284,6 +284,48 @@ export function ChatSearchBar({
                 </span>
               </motion.div>
             )}
+            {/* Results preview — max 3 visible */}
+            {debouncedQuery.trim() && results.length > 0 && (
+              <div className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
+                {results.slice(0, 5).map((msg, idx) => {
+                  const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);
+                  return (
+                    <motion.button
+                      key={msg.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: idx * 0.03 }}
+                      onClick={() => {
+                        setActiveIndex(results.indexOf(msg));
+                        onNavigateToMessage(msg.id);
+                      }}
+                      className={cn(
+                        'w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left transition-colors text-xs',
+                        activeIndex === results.indexOf(msg)
+                          ? 'bg-primary/10 text-foreground'
+                          : 'hover:bg-muted/60 text-muted-foreground'
+                      )}
+                    >
+                      <span className="text-[10px] text-muted-foreground/60 shrink-0 w-10">
+                        {format(msg.timestamp, 'HH:mm')}
+                      </span>
+                      <span className="truncate flex-1">
+                        <HighlightedText text={snippet} query={debouncedQuery} />
+                        {(msg.content || '').length > 80 && '…'}
+                      </span>
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0">
+                        {msg.sender === 'agent' ? 'Você' : 'Contato'}
+                      </Badge>
+                    </motion.button>
+                  );
+                })}
+                {results.length > 5 && (
+                  <span className="text-[10px] text-muted-foreground/60 px-2 block">
+                    +{results.length - 5} resultados — use ↑↓ para navegar
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
       )}
