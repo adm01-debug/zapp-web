@@ -74,7 +74,7 @@ export function ConversationList({
 
   const filteredConversations = conversations.filter((conv) => {
     const matchesSearch = conv.contact.name.toLowerCase().includes(search.toLowerCase()) ||
-      conv.contact.phone.includes(search);
+      conv.contact.phone?.includes(search);
     const matchesFilter = filter === 'all' || conv.status === filter;
     return matchesSearch && matchesFilter;
   });

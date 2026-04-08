@@ -512,8 +512,9 @@ serve(async (req) => {
               totalSynced++;
             } else if (insErr.code === '23505') {
               await supabase.from('contacts')
-                .update({ name: ct.name, avatar_url: ct.avatar_url, whatsapp_connection_id: ct.whatsapp_connection_id })
-                .eq('phone', ct.phone);
+                .update({ name: ct.name, avatar_url: ct.avatar_url })
+                .eq('phone', ct.phone)
+                .eq('whatsapp_connection_id', ct.whatsapp_connection_id);
               totalSynced++;
             }
           }

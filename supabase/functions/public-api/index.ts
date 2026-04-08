@@ -81,13 +81,14 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Find or create contact
+        // Find or create contact — scoped to the connection to support multi-connection
         const phone = number.replace(/\D/g, '');
         let { data: contact } = await supabase
           .from('contacts')
           .select('id')
           .eq('phone', phone)
-          .single();
+          .eq('whatsapp_connection_id', connection.id)
+          .maybeSingle();
 
         if (!contact) {
           const { data: newContact } = await supabase

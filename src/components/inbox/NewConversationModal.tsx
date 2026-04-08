@@ -101,15 +101,20 @@ export function NewConversationModal({ open, onOpenChange, onConversationStarted
           return;
         }
 
-        // Check if phone already exists
-        const { data: existingContact } = await supabase
+        // Check if phone already exists on the selected connection
+        let existingQuery = supabase
           .from('contacts')
           .select('id, name')
-          .eq('phone', newPhone.trim())
-          .maybeSingle();
+          .eq('phone', newPhone.trim());
+
+        if (selectedConnection) {
+          existingQuery = existingQuery.eq('whatsapp_connection_id', selectedConnection);
+        }
+
+        const { data: existingContact } = await existingQuery.maybeSingle();
 
         if (existingContact) {
-          toast.error(`Já existe um contato com este número: ${existingContact.name}`);
+          toast.error(`Já existe um contato com este número nesta conexão: ${existingContact.name}`);
           setIsSending(false);
           return;
         }

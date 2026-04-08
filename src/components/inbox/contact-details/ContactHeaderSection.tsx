@@ -147,7 +147,7 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-success/10" onClick={() => {
-                  const cleanPhone = contact.phone.replace(/\D/g, '');
+                  const cleanPhone = (contact.phone || '').replace(/\D/g, '');
                   window.open(`https://wa.me/${cleanPhone}`, '_blank');
                 }}>
                   <MessageSquare className="w-3.5 h-3.5 text-success" />
@@ -299,7 +299,7 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
                 size="icon"
                 className="w-9 h-9 border-border/30 hover:border-success/50 hover:bg-success/10"
                 onClick={() => {
-                  const cleanPhone = contact.phone.replace(/\D/g, '');
+                  const cleanPhone = (contact.phone || '').replace(/\D/g, '');
                   window.open(`https://wa.me/${cleanPhone}`, '_blank');
                 }}
               >

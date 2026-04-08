@@ -697,9 +697,8 @@ serve(async (req) => {
               await supabase.from('contacts').update({
                 name: pushName,
                 avatar_url: permanentAvatarUrl || null,
-                whatsapp_connection_id: connection.id,
                 updated_at: new Date().toISOString(),
-              }).eq('phone', phone);
+              }).eq('phone', phone).eq('whatsapp_connection_id', connection.id);
             }
           }
           console.log(`Contact synced: ${phone} (${pushName}) avatar: ${permanentAvatarUrl ? 'saved' : 'none'}`);

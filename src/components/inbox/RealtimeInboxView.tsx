@@ -257,7 +257,7 @@ export function RealtimeInboxView() {
       result = result.filter(
         (c) =>
           c.contact.name.toLowerCase().includes(searchLower) ||
-          c.contact.phone.includes(search) ||
+          c.contact.phone?.includes(search) ||
           c.contact.email?.toLowerCase().includes(searchLower)
       );
     }

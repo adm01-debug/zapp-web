@@ -5,7 +5,7 @@ export interface Contact {
   surname?: string;
   job_title?: string;
   company?: string;
-  phone: string;
+  phone: string | null;
   avatar?: string;
   email?: string;
   tags: string[];

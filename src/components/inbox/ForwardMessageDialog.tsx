@@ -102,7 +102,7 @@ export function ForwardMessageDialog({
 
   const filteredContacts = contacts.filter(contact =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.phone.includes(searchQuery)
+    contact.phone?.includes(searchQuery)
   );
 
   const filteredGroups = groups.filter(group =>
