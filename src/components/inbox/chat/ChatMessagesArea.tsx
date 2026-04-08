@@ -379,6 +379,11 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                               existingTranscription={message.transcription}
                               transcriptionStatus={message.transcriptionStatus}
                             />
+                            {searchQuery && highlightedMessageIds?.has(message.id) && message.transcription && (
+                              <p className="text-[11px] mt-1 px-1 italic text-muted-foreground">
+                                <HighlightedText text={message.transcription} query={searchQuery} />
+                              </p>
+                            )}
                           </div>
                         )}
 
