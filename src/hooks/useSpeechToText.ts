@@ -31,8 +31,9 @@ export function useSpeechToText(options: UseSpeechToTextOptions = {}): SpeechToT
   useEffect(() => { onResultRef.current = onResult; }, [onResult]);
   useEffect(() => { onEndRef.current = onEnd; }, [onEnd]);
 
-  const SpeechRecognition = typeof window !== 'undefined'
-    ? window.SpeechRecognition || window.webkitSpeechRecognition
+  const SpeechRecognitionCtor = typeof window !== 'undefined'
+    ? (window as unknown as Record<string, unknown>).SpeechRecognition as typeof globalThis.SpeechRecognition | undefined
+      ?? (window as unknown as Record<string, unknown>).webkitSpeechRecognition as typeof globalThis.SpeechRecognition | undefined
     : null;
 
   const isSupported = !!SpeechRecognition;

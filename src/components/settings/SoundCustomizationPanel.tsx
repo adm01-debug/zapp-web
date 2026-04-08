@@ -103,7 +103,7 @@ const SOUND_CATEGORIES = {
 // Simulate sound preview (in a real app, these would be actual audio files)
 const playSoundPreview = (soundId: string, category: string) => {
   // Create oscillator for demo
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   const audioContext = new AudioCtx!();
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
