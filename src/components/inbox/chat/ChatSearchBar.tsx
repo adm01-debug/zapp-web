@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/chat';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HighlightedText } from './HighlightedText';
+import { format } from 'date-fns';
 import {
   Search,
   X,
@@ -185,22 +187,24 @@ export function ChatSearchBar({
           transition={{ duration: 0.2, ease: 'easeInOut' }}
           className="overflow-hidden border-b border-border bg-card shrink-0"
         >
-          <div className="px-2 md:px-3 py-2 space-y-1.5 md:space-y-2">
+          <div className="px-2 md:px-3 py-2 space-y-1.5 md:space-y-2" role="search" aria-label="Buscar na conversa">
             {/* Search input row */}
             <div className="flex items-center gap-1.5 md:gap-2">
-              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
               <Input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Buscar na conversa..."
+                aria-label="Buscar mensagens"
+                aria-describedby="search-result-count"
                 className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 min-w-0"
               />
 
               {/* Result counter */}
               {(debouncedQuery.trim() || filter !== 'all') && (
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                <span id="search-result-count" className="text-xs text-muted-foreground whitespace-nowrap" aria-live="polite">
                   {results.length > 0
                     ? `${activeIndex + 1} de ${results.length}`
                     : 'Nenhum resultado'}
@@ -208,13 +212,14 @@ export function ChatSearchBar({
               )}
 
               {/* Navigate arrows */}
-              <div className="flex items-center gap-0.5 shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0" role="group" aria-label="Navegar entre resultados">
                 <Button
                   variant="ghost"
                   size="icon"
                   className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
                   onClick={navigateUp}
                   disabled={results.length === 0}
+                  aria-label="Resultado anterior"
                 >
                   <ChevronUp className="w-4 h-4" />
                 </Button>
@@ -224,6 +229,7 @@ export function ChatSearchBar({
                   className="w-8 h-8 md:w-7 md:h-7 touch-manipulation"
                   onClick={navigateDown}
                   disabled={results.length === 0}
+                  aria-label="Próximo resultado"
                 >
                   <ChevronDown className="w-4 h-4" />
                 </Button>
@@ -234,13 +240,14 @@ export function ChatSearchBar({
                 size="icon"
                 className="w-8 h-8 md:w-7 md:h-7 shrink-0 touch-manipulation"
                 onClick={onClose}
+                aria-label="Fechar busca"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
 
             {/* Filter chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5" role="tablist" aria-label="Filtros de tipo de mensagem">
               {FILTERS.map((f) => (
                 <Badge
                   key={f.key}
@@ -261,6 +268,64 @@ export function ChatSearchBar({
                 </Badge>
               ))}
             </div>
+
+            {/* Empty state */}
+            {(debouncedQuery.trim() || filter !== 'all') && results.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground"
+              >
+                <Search className="w-3.5 h-3.5 opacity-50" />
+                <span className="text-xs">
+                  {debouncedQuery.trim()
+                    ? `Nenhum resultado para "${debouncedQuery.trim().slice(0, 30)}${debouncedQuery.trim().length > 30 ? '…' : ''}"`
+                    : `Nenhuma mensagem do tipo "${FILTERS.find(f => f.key === filter)?.label}"`}
+                </span>
+              </motion.div>
+            )}
+            {/* Results preview — max 3 visible */}
+            {debouncedQuery.trim() && results.length > 0 && (
+              <div className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
+                {results.slice(0, 5).map((msg, idx) => {
+                  const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);
+                  return (
+                    <motion.button
+                      key={msg.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: idx * 0.03 }}
+                      onClick={() => {
+                        setActiveIndex(results.indexOf(msg));
+                        onNavigateToMessage(msg.id);
+                      }}
+                      className={cn(
+                        'w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left transition-colors text-xs',
+                        activeIndex === results.indexOf(msg)
+                          ? 'bg-primary/10 text-foreground'
+                          : 'hover:bg-muted/60 text-muted-foreground'
+                      )}
+                    >
+                      <span className="text-[10px] text-muted-foreground/60 shrink-0 w-10">
+                        {format(msg.timestamp, 'HH:mm')}
+                      </span>
+                      <span className="truncate flex-1">
+                        <HighlightedText text={snippet} query={debouncedQuery} />
+                        {(msg.content || '').length > 80 && '…'}
+                      </span>
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0">
+                        {msg.sender === 'agent' ? 'Você' : 'Contato'}
+                      </Badge>
+                    </motion.button>
+                  );
+                })}
+                {results.length > 5 && (
+                  <span className="text-[10px] text-muted-foreground/60 px-2 block">
+                    +{results.length - 5} resultados — use ↑↓ para navegar
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
       )}

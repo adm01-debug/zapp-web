@@ -147,10 +147,13 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
           top: elementTop - (containerHeight / 2) + (elementHeight / 2),
           behavior: 'smooth',
         });
-        element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
-        setTimeout(() => {
-          element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
-        }, 2000);
+        // Only add temporary ring if NOT already highlighted by search
+        if (!element.dataset.searchHighlight) {
+          element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+          }, 2000);
+        }
       }
     },
   }));
@@ -211,13 +214,14 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                   >
                   <div
                     ref={(el) => { messageRefs.current[message.id] = el; }}
+                    data-search-highlight={highlightedMessageIds?.has(message.id) ? 'true' : undefined}
                     className={cn(
                       'flex group gap-2.5 transition-all duration-300',
                       isSent ? 'justify-end' : 'justify-start',
                       !isLastInGroup && 'mb-0.5',
                       highlightedMessageIds?.has(message.id) && 'relative',
-                      activeHighlightId === message.id && 'ring-2 ring-yellow-400 ring-offset-1 ring-offset-background rounded-2xl',
-                      highlightedMessageIds?.has(message.id) && activeHighlightId !== message.id && 'bg-yellow-400/10 rounded-2xl',
+                      activeHighlightId === message.id && 'ring-2 ring-[hsl(var(--warning))] ring-offset-1 ring-offset-background rounded-2xl',
+                      highlightedMessageIds?.has(message.id) && activeHighlightId !== message.id && 'bg-[hsl(var(--warning)/0.1)] rounded-2xl',
                     )}
                   >
                     {/* Avatar — received messages (left), only on last in group */}
@@ -375,12 +379,26 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                               existingTranscription={message.transcription}
                               transcriptionStatus={message.transcriptionStatus}
                             />
+                            {searchQuery && highlightedMessageIds?.has(message.id) && message.transcription && (
+                              <p className="text-[11px] mt-1 px-1 italic text-muted-foreground">
+                                <HighlightedText text={message.transcription} query={searchQuery} />
+                              </p>
+                            )}
                           </div>
                         )}
 
                         {message.type === 'document' && message.mediaUrl && (
                           <div className="mb-1.5">
-                            <DocumentPreview url={message.mediaUrl} fileName={message.content || 'documento'} isSent={isSent} />
+                            <DocumentPreview url={message.mediaUrl} fileName={
+                              searchQuery && highlightedMessageIds?.has(message.id) && message.content
+                                ? undefined
+                                : (message.content || 'documento')
+                            } isSent={isSent} />
+                            {searchQuery && highlightedMessageIds?.has(message.id) && message.content && (
+                              <p className="text-[12px] mt-1 px-1">
+                                <HighlightedText text={message.content} query={searchQuery} />
+                              </p>
+                            )}
                           </div>
                         )}
 

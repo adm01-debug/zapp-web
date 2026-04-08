@@ -64,7 +64,7 @@ export const HighlightedText = memo(function HighlightedText({
         part.highlight ? (
           <mark
             key={i}
-            className="bg-yellow-300/60 dark:bg-yellow-500/40 text-inherit rounded-sm px-0.5"
+            className="bg-[hsl(var(--warning)/0.35)] dark:bg-[hsl(var(--warning)/0.25)] text-inherit rounded-sm px-0.5"
           >
             {part.text}
           </mark>
