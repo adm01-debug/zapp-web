@@ -235,15 +235,18 @@ export const SLADashboard = () => {
                   <CheckCircle2 className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              <div className="flex gap-4 mt-3 text-sm">
-                <span className="text-success flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {data.overall.resolution.onTime} no prazo
-                </span>
-                <span className="text-destructive flex items-center gap-1">
-                  <XCircle className="h-4 w-4" />
-                  {data.overall.resolution.breached} atrasados
-                </span>
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex gap-4 text-sm flex-1">
+                  <span className="text-success flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {data.overall.resolution.onTime} no prazo
+                  </span>
+                  <span className="text-destructive flex items-center gap-1">
+                    <XCircle className="h-4 w-4" />
+                    {data.overall.resolution.breached} atrasados
+                  </span>
+                </div>
+                {sparkRes.length >= 2 && <Sparkline data={sparkRes} width={64} height={20} color="hsl(var(--primary))" />}
               </div>
             </CardContent>
           </Card>
