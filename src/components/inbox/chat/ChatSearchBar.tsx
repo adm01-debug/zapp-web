@@ -109,13 +109,13 @@ export function ChatSearchBar({
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
-          className="overflow-hidden border-b border-border bg-card shrink-0"
+         className="overflow-hidden border-b border-border bg-background/95 backdrop-blur-sm shrink-0"
         >
-          <div className="px-2 md:px-3 py-2 space-y-1.5 md:space-y-2" role="search" aria-label="Buscar na conversa">
+          <div className="px-3 md:px-4 py-2.5 space-y-2" role="search" aria-label="Buscar na conversa">
             {/* Search input row */}
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <Search className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
-              <div className="relative flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 min-w-0 flex items-center gap-2 bg-muted/50 rounded-lg px-3 h-9 border border-border/50 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all">
+                <Search className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
                 <Input
                   ref={inputRef}
                   value={query}
@@ -124,45 +124,44 @@ export function ChatSearchBar({
                   placeholder="Buscar na conversa..."
                   aria-label="Buscar mensagens"
                   aria-describedby="search-result-count"
-                  className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 pr-6 min-w-0"
+                  className="h-full text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 min-w-0"
                 />
                 {query && (
                   <button
                     onClick={() => setQuery('')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
+                    className="p-0.5 rounded-full hover:bg-background/80 transition-colors shrink-0"
                     aria-label="Limpar busca"
                   >
-                    <X className="w-3 h-3 text-muted-foreground" />
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
+                )}
+                {/* Result counter inside input */}
+                {(debouncedQuery.trim() || filter !== 'all') && (
+                  <span id="search-result-count" className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0 tabular-nums" aria-live="polite">
+                    {results.length > 0
+                      ? `${activeIndex + 1}/${results.length}`
+                      : '0'}
+                  </span>
                 )}
               </div>
 
-              {/* Result counter */}
-              {(debouncedQuery.trim() || filter !== 'all') && (
-                <span id="search-result-count" className="text-xs text-muted-foreground whitespace-nowrap" aria-live="polite">
-                  {results.length > 0
-                    ? `${activeIndex + 1} de ${results.length}`
-                    : 'Nenhum resultado'}
-                </span>
-              )}
-
               {/* Navigate arrows */}
-              <div className="flex items-center gap-0.5 shrink-0" role="group" aria-label="Navegar entre resultados">
-                <Button variant="ghost" size="icon" className="w-8 h-8 md:w-7 md:h-7 touch-manipulation" onClick={navigateUp} disabled={results.length === 0} aria-label="Resultado anterior">
+              <div className="flex items-center shrink-0" role="group" aria-label="Navegar entre resultados">
+                <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md touch-manipulation" onClick={navigateUp} disabled={results.length === 0} aria-label="Resultado anterior">
                   <ChevronUp className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8 md:w-7 md:h-7 touch-manipulation" onClick={navigateDown} disabled={results.length === 0} aria-label="Próximo resultado">
+                <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md touch-manipulation" onClick={navigateDown} disabled={results.length === 0} aria-label="Próximo resultado">
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </div>
 
-              <Button variant="ghost" size="icon" className="w-8 h-8 md:w-7 md:h-7 shrink-0 touch-manipulation" onClick={onClose} aria-label="Fechar busca">
+              <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md shrink-0 touch-manipulation" onClick={onClose} aria-label="Fechar busca">
                 <X className="w-4 h-4" />
               </Button>
             </div>
 
             {/* Filter chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5" role="tablist" aria-label="Filtros de tipo de mensagem">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none" role="tablist" aria-label="Filtros de tipo de mensagem">
               {FILTERS.map((f) => (
                 <Badge
                   key={f.key}
@@ -171,10 +170,10 @@ export function ChatSearchBar({
                   tabIndex={0}
                   variant={filter === f.key ? 'default' : 'outline'}
                   className={cn(
-                    'cursor-pointer whitespace-nowrap text-[10px] px-2 py-0.5 gap-1 transition-colors shrink-0',
+                    'cursor-pointer whitespace-nowrap text-[11px] px-2.5 py-1 gap-1.5 transition-all duration-150 shrink-0 rounded-full font-medium',
                     filter === f.key
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'hover:bg-muted'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                      : 'bg-transparent border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
                   onClick={() => setFilter(f.key)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilter(f.key); } }}
@@ -182,7 +181,14 @@ export function ChatSearchBar({
                   {f.icon}
                   {f.label}
                   {(debouncedQuery.trim() || f.key !== 'all') && filterCounts[f.key] > 0 && (
-                    <span className="ml-0.5 text-[9px] opacity-70">{filterCounts[f.key]}</span>
+                    <span className={cn(
+                      "min-w-[16px] h-4 flex items-center justify-center rounded-full text-[9px] font-semibold",
+                      filter === f.key
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                    )}>
+                      {filterCounts[f.key]}
+                    </span>
                   )}
                 </Badge>
               ))}
