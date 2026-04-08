@@ -48,7 +48,7 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
         editingRule.contact_type || editingRule.queue_id || editingRule.agent_id || ''
       );
     } else if (open) {
-      setForm({ name: '', first_response_minutes: 5, resolution_minutes: 60, priority: 10 });
+      setForm({ name: '', first_response_minutes: 5, resolution_minutes: 60, priority: 10, metadata: { notify_on_warning: false, escalation_notes: '' } });
       setScopeValue('');
       setContactSearch('');
     }
