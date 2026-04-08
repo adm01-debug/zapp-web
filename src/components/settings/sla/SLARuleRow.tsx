@@ -37,6 +37,8 @@ export function SLARuleRow({ rule, scope, scopeLabel, index, onEdit, onDelete, o
     : rule.agent_id?.slice(0, 8) + '…';
 
   const displayLabel = scopeLabel || fallbackLabel;
+  const meta = (rule.metadata || {}) as SLARuleMetadata;
+  const hasEscalation = meta.notify_on_warning || !!meta.escalation_notes;
 
   return (
     <motion.div
