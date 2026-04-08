@@ -43,7 +43,7 @@ export function SpeedSelector({ speed, onSpeedChange, className }: SpeedSelector
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Velocidade de reprodução
+          Velocidade TTS (leitura de texto)
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {SPEED_OPTIONS.map((option) => (
