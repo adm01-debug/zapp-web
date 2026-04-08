@@ -70,6 +70,51 @@ export function useAIProviders() {
     onError: (e: Error) => toast({ title: 'Erro', description: e.message, variant: 'destructive' }),
   });
 
+  /** Optimistic toggle for is_active */
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from('ai_providers').update({ is_active }).eq('id', id);
+      if (error) throw error;
+    },
+    onMutate: async ({ id, is_active }) => {
+      await queryClient.cancelQueries({ queryKey: ['ai-providers'] });
+      const prev = queryClient.getQueryData<AIProvider[]>(['ai-providers']);
+      queryClient.setQueryData<AIProvider[]>(['ai-providers'], old =>
+        (old || []).map(p => p.id === id ? { ...p, is_active } : p)
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['ai-providers'], ctx.prev);
+      toast({ title: 'Erro ao alterar status', variant: 'destructive' });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['ai-providers'] }),
+  });
+
+  /** Optimistic toggle for is_default */
+  const toggleDefaultMutation = useMutation({
+    mutationFn: async ({ id, is_default }: { id: string; is_default: boolean }) => {
+      const { error } = await supabase.from('ai_providers').update({ is_default }).eq('id', id);
+      if (error) throw error;
+    },
+    onMutate: async ({ id, is_default }) => {
+      await queryClient.cancelQueries({ queryKey: ['ai-providers'] });
+      const prev = queryClient.getQueryData<AIProvider[]>(['ai-providers']);
+      queryClient.setQueryData<AIProvider[]>(['ai-providers'], old =>
+        (old || []).map(p => p.id === id ? { ...p, is_default } : p)
+      );
+      return { prev };
+    },
+    onSuccess: (_d, vars) => {
+      toast({ title: vars.is_default ? 'Definido como padrão!' : 'Removido como padrão.' });
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['ai-providers'], ctx.prev);
+      toast({ title: 'Erro ao alterar padrão', variant: 'destructive' });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['ai-providers'] }),
+  });
+
   const handleTest = async (provider: AIProvider) => {
     setTesting(provider.id);
     try {
