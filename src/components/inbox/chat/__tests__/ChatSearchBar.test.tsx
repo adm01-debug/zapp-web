@@ -29,14 +29,15 @@ const MESSAGES: Message[] = [
 ];
 
 describe('ChatSearchBar', () => {
-  let onClose: ReturnType<typeof vi.fn>;
-  let onNavigateToMessage: ReturnType<typeof vi.fn>;
-  let onHighlightChange: ReturnType<typeof vi.fn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let onClose: any;
+  let onNavigateToMessage: any;
+  let onHighlightChange: any;
 
   beforeEach(() => {
-    onClose = vi.fn() as any;
-    onNavigateToMessage = vi.fn() as any;
-    onHighlightChange = vi.fn() as any;
+    onClose = vi.fn();
+    onNavigateToMessage = vi.fn();
+    onHighlightChange = vi.fn();
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
