@@ -26,6 +26,7 @@ interface ChatSearchBarProps {
   onClose: () => void;
   onNavigateToMessage: (messageId: string) => void;
   onHighlightChange: (messageIds: Set<string>, activeId: string | null) => void;
+  onSearchQueryChange?: (query: string) => void;
 }
 
 const URL_REGEX = /https?:\/\/\S+/i;
