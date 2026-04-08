@@ -113,9 +113,10 @@ describe('ChatPanelHeader - Summary Button', () => {
       </Wrapper>
     );
     const buttons = screen.getAllByRole('button');
-    const summaryBtn = buttons.find(b => b.querySelector('.lucide-loader-2'));
+    // When loading, FileText is replaced by Loader2 with animate-spin
+    const summaryBtn = buttons.find(b => b.querySelector('.animate-spin'));
     expect(summaryBtn).toBeDefined();
-    expect((summaryBtn as HTMLButtonElement).disabled).toBe(true);
+    expect(summaryBtn!).toBeDisabled();
   });
 
   it('summary button is positioned between Brain and Info icons', () => {
