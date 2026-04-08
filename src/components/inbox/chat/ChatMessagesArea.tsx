@@ -166,9 +166,8 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     }
     groups[dateKey].push(message);
     return groups;
-  }, {} as Record<string, Message[]>), [messages]);
-    return groups;
-  }, {} as Record<string, Message[]>);
+
+
 
   return (
     <div ref={scrollContainerRef} className="flex-1 min-h-0 min-w-0 overflow-y-auto px-4 py-6 md:px-8 space-y-4 scrollbar-thin bg-background/50 relative">
