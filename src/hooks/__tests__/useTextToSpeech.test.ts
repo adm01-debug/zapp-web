@@ -33,7 +33,7 @@ describe('useTextToSpeech', () => {
 
   it('initializes with default voiceId', () => {
     const { result } = renderHook(() => useTextToSpeech());
-    expect(result.current.voiceId).toBe('EXAVITQu4vr4xnSDxMaL');
+    expect(result.current.voiceId).toBe('TY3h8ANhQUsJaa0Bga5F');
   });
 
   it('accepts custom initial voiceId', () => {
