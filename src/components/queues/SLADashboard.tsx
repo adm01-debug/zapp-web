@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SLAConfigurationManager } from '@/components/settings/SLAConfigurationManager';
 import { SLARulesManager } from '@/components/settings/SLARulesManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
