@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { Play, Pause, Loader2, FileText, Volume2, RefreshCw, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -23,6 +23,8 @@ export function AudioMessagePlayer({
   transcriptionStatus: initialStatus,
 }: AudioMessagePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -30,6 +32,7 @@ export function AudioMessagePlayer({
   const [transcriptionStatus, setTranscriptionStatus] = useState<string>(initialStatus || 'pending');
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(!!existingTranscription);
+  const [resolvedUrl, setResolvedUrl] = useState<string>(audioUrl);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Stable waveform heights - generated once per component instance
@@ -37,6 +40,36 @@ export function AudioMessagePlayer({
     () => Array.from({ length: 30 }, () => Math.random() * 60 + 20),
     []
   );
+
+  // Resolve the audio URL - handle signed URLs that might need refreshing
+  const resolveAudioUrl = useCallback(async (url: string): Promise<string> => {
+    // If it's a Supabase storage URL with a signed token, try to get a fresh one
+    if (url.includes('/storage/v1/') && url.includes('token=')) {
+      try {
+        // Extract the path from the URL
+        const buckets = ['whatsapp-media', 'audio-messages'];
+        for (const bucket of buckets) {
+          const marker = `/${bucket}/`;
+          const idx = url.indexOf(marker);
+          if (idx !== -1) {
+            const pathWithQuery = url.substring(idx + marker.length);
+            const path = pathWithQuery.split('?')[0];
+            const { data } = await supabase.storage
+              .from(bucket)
+              .createSignedUrl(path, 3600); // 1 hour
+            if (data?.signedUrl) {
+              return data.signedUrl;
+            }
+          }
+        }
+      } catch (e) {
+        log.error('Failed to refresh signed URL:', e);
+      }
+    }
+
+    // If it's a storage public URL without signed token, just return it
+    return url;
+  }, []);
 
   // Realtime subscription for transcription updates
   useEffect(() => {
@@ -75,11 +108,15 @@ export function AudioMessagePlayer({
     const handleLoadedMetadata = () => {
       const d = audio.duration;
       setDuration(isFinite(d) && !isNaN(d) ? d : 0);
+      setIsLoading(false);
+      setHasError(false);
     };
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      setProgress((audio.currentTime / audio.duration) * 100);
+      if (audio.duration && isFinite(audio.duration)) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+      }
     };
 
     const handleEnded = () => {
@@ -88,28 +125,125 @@ export function AudioMessagePlayer({
       setCurrentTime(0);
     };
 
+    const handleError = () => {
+      log.error('Audio playback error for message:', messageId, 'url:', resolvedUrl);
+      setIsPlaying(false);
+      setIsLoading(false);
+      setHasError(true);
+    };
+
+    const handleWaiting = () => {
+      setIsLoading(true);
+    };
+
+    const handleCanPlay = () => {
+      setIsLoading(false);
+    };
+
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('canplay', handleCanPlay);
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('canplay', handleCanPlay);
     };
-  }, []);
+  }, [resolvedUrl, messageId]);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
     if (isPlaying) {
       audio.pause();
-    } else {
-      audio.play();
+      setIsPlaying(false);
+      return;
     }
-    setIsPlaying(!isPlaying);
-  };
+
+    // If there was a previous error, try refreshing the URL first
+    if (hasError) {
+      setIsLoading(true);
+      setHasError(false);
+      try {
+        const freshUrl = await resolveAudioUrl(audioUrl);
+        setResolvedUrl(freshUrl);
+        audio.src = freshUrl;
+        audio.load();
+      } catch {
+        setHasError(true);
+        setIsLoading(false);
+        toast({
+          title: 'Erro ao carregar áudio',
+          description: 'Não foi possível obter o áudio. Tente novamente.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    try {
+      await audio.play();
+      setIsPlaying(true);
+      setIsLoading(false);
+      setHasError(false);
+    } catch (error) {
+      log.error('Audio play() failed:', error);
+      setIsPlaying(false);
+      setIsLoading(false);
+
+      // Try refreshing the signed URL and retry
+      try {
+        const freshUrl = await resolveAudioUrl(audioUrl);
+        if (freshUrl !== resolvedUrl) {
+          setResolvedUrl(freshUrl);
+          audio.src = freshUrl;
+          audio.load();
+
+          // Wait for canplay event before retrying
+          await new Promise<void>((resolve, reject) => {
+            const onCanPlay = () => {
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              resolve();
+            };
+            const onError = () => {
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              reject(new Error('Audio load failed'));
+            };
+            audio.addEventListener('canplay', onCanPlay);
+            audio.addEventListener('error', onError);
+          });
+
+          await audio.play();
+          setIsPlaying(true);
+          setHasError(false);
+        } else {
+          setHasError(true);
+          toast({
+            title: 'Erro ao reproduzir',
+            description: 'Não foi possível reproduzir o áudio. O arquivo pode estar indisponível.',
+            variant: 'destructive',
+          });
+        }
+      } catch {
+        setHasError(true);
+        toast({
+          title: 'Erro ao reproduzir',
+          description: 'Não foi possível reproduzir o áudio. Tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    }
+  }, [isPlaying, hasError, audioUrl, resolvedUrl, resolveAudioUrl]);
 
   const formatTime = (seconds: number) => {
     if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return '0:00';
@@ -136,7 +270,6 @@ export function AudioMessagePlayer({
         setTranscription(data.transcription);
         setTranscriptionStatus('completed');
         
-        // Update message in database with transcription
         await supabase
           .from('messages')
           .update({ 
@@ -170,7 +303,6 @@ export function AudioMessagePlayer({
 
   const isProcessing = transcriptionStatus === 'processing' || isTranscribing;
 
-  // Get status indicator
   const getStatusIndicator = () => {
     switch (transcriptionStatus) {
       case 'processing':
@@ -231,7 +363,7 @@ export function AudioMessagePlayer({
 
   return (
     <div className="space-y-2">
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+      <audio ref={audioRef} src={resolvedUrl} preload="metadata" crossOrigin="anonymous" />
       
       {/* Audio Player */}
       <div className={cn(
@@ -244,13 +376,20 @@ export function AudioMessagePlayer({
             size="icon"
             className={cn(
               'w-10 h-10 rounded-full',
-              isSent 
-                ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground' 
-                : 'bg-primary/10 hover:bg-primary/20 text-primary'
+              hasError
+                ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive'
+                : isSent 
+                  ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground' 
+                  : 'bg-primary/10 hover:bg-primary/20 text-primary'
             )}
             onClick={togglePlay}
+            disabled={isLoading}
           >
-            {isPlaying ? (
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : hasError ? (
+              <RefreshCw className="w-5 h-5" />
+            ) : isPlaying ? (
               <Pause className="w-5 h-5" />
             ) : (
               <Play className="w-5 h-5 ml-0.5" />
@@ -259,7 +398,7 @@ export function AudioMessagePlayer({
         </motion.div>
 
         <div className="flex-1 space-y-1">
-          {/* Waveform visualization (simplified as progress bar) */}
+          {/* Waveform visualization */}
           <div 
             className="relative h-8 cursor-pointer"
             onClick={handleSeek}
@@ -281,9 +420,11 @@ export function AudioMessagePlayer({
                     }}
                     className={cn(
                       'flex-1 rounded-full transition-colors',
-                      isActive
-                        ? isSent ? 'bg-primary-foreground' : 'bg-primary'
-                        : isSent ? 'bg-primary-foreground/30' : 'bg-muted-foreground/30'
+                      hasError
+                        ? 'bg-destructive/30'
+                        : isActive
+                          ? isSent ? 'bg-primary-foreground' : 'bg-primary'
+                          : isSent ? 'bg-primary-foreground/30' : 'bg-muted-foreground/30'
                     )}
                     style={{ height: `${height}%` }}
                   />
@@ -292,13 +433,19 @@ export function AudioMessagePlayer({
             </div>
           </div>
 
-          {/* Time display */}
+          {/* Time display & error */}
           <div className={cn(
             'flex justify-between text-[10px]',
-            isSent ? 'text-primary-foreground/70' : 'text-muted-foreground'
+            hasError ? 'text-destructive' : isSent ? 'text-primary-foreground/70' : 'text-muted-foreground'
           )}>
-            <span>{formatTime(currentTime)}</span>
-            <span>{duration ? formatTime(duration) : '--:--'}</span>
+            {hasError ? (
+              <span>Erro ao carregar — toque para tentar</span>
+            ) : (
+              <>
+                <span>{formatTime(currentTime)}</span>
+                <span>{duration ? formatTime(duration) : '--:--'}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -332,17 +479,14 @@ export function AudioMessagePlayer({
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className={cn(
-                  'absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full',
-                  isSent ? 'bg-success' : 'bg-success'
-                )}
+                className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-success"
               />
             )}
           </Button>
         </motion.div>
       </div>
 
-      {/* Status Indicator - Only show when processing or failed */}
+      {/* Status Indicator */}
       <AnimatePresence>
         {(transcriptionStatus === 'processing' || transcriptionStatus === 'failed') && (
           <motion.div
