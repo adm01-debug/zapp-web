@@ -76,6 +76,9 @@ export function ChatPanelHeader({
   onVoiceChange,
   onSpeedChange,
   onBack,
+  onGenerateSummary,
+  isSummaryLoading,
+  canGenerateSummary,
 }: ChatPanelHeaderProps) {
   const isMobile = useIsMobile();
   
