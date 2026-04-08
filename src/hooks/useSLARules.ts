@@ -2,6 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface SLARuleMetadata {
+  notify_on_warning?: boolean;
+  escalation_notes?: string;
+}
+
 export interface SLARule {
   id: string;
   name: string;
@@ -15,6 +20,7 @@ export interface SLARule {
   queue_id: string | null;
   agent_id: string | null;
   is_active: boolean;
+  metadata: SLARuleMetadata;
   created_at: string;
   updated_at: string;
 }
