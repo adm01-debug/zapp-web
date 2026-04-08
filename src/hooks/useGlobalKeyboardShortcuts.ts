@@ -72,7 +72,7 @@ export function useGlobalKeyboardShortcuts(customActions?: GlobalShortcutAction[
       const binding = getActiveBinding(shortcut);
       
       // Check if keys match
-      if (!binding.key) continue;
+      if (!binding.key || !event.key) continue;
       const keyMatches = event.key.toLowerCase() === binding.key.toLowerCase();
       const ctrlMatches = !!event.ctrlKey === !!binding.modifiers.ctrlKey;
       const shiftMatches = !!event.shiftKey === !!binding.modifiers.shiftKey;
