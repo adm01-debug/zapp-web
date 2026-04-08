@@ -85,6 +85,8 @@ export function SLAIndicator({
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div
+              role="status"
+              aria-label={`SLA ${sla.worstStatus === 'breached' ? 'violado' : sla.worstStatus === 'warning' ? 'em alerta' : 'dentro do prazo'}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               className={cn(
@@ -140,7 +142,7 @@ export function SLAIndicator({
   }
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div role="status" aria-label="Indicadores de SLA" className={cn('flex items-center gap-2', className)}>
       {!firstResponseAt && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
