@@ -3,32 +3,40 @@ import { getLogger } from '@/lib/logger';
 
 const log = getLogger('NetworkStatus');
 
+interface NetworkConnection extends EventTarget {
+  readonly effectiveType?: string;
+  readonly saveData?: boolean;
+}
+
+type NavWithConnection = Navigator & { connection?: NetworkConnection };
+
+const nav = navigator as NavWithConnection;
+
 interface NetworkStatus {
   isOnline: boolean;
-  wasOffline: boolean; // true if user was offline and came back
+  wasOffline: boolean;
   downSince: Date | null;
-  effectiveType?: string; // '4g', '3g', '2g', 'slow-2g'
+  effectiveType?: string;
 }
 
 /**
  * Hook to monitor network status with connection quality detection.
- * Provides offline/online state and recovery detection for UX improvements.
  */
 export function useNetworkStatus(): NetworkStatus {
   const [status, setStatus] = useState<NetworkStatus>({
     isOnline: navigator.onLine,
     wasOffline: false,
     downSince: navigator.onLine ? null : new Date(),
-    effectiveType: navigator.connection?.effectiveType,
+    effectiveType: nav.connection?.effectiveType,
   });
 
   const handleOnline = useCallback(() => {
     log.info('Network restored');
-    setStatus((prev) => ({
+    setStatus(() => ({
       isOnline: true,
       wasOffline: true,
       downSince: null,
-      effectiveType: navigator.connection?.effectiveType,
+      effectiveType: nav.connection?.effectiveType,
     }));
   }, []);
 
@@ -45,8 +53,7 @@ export function useNetworkStatus(): NetworkStatus {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Listen for connection quality changes
-    const connection = navigator.connection;
+    const connection = nav.connection;
     const handleConnectionChange = () => {
       setStatus((prev) => ({
         ...prev,
