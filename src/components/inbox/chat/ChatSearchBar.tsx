@@ -287,21 +287,22 @@ export function ChatSearchBar({
             {/* Results preview — max 3 visible */}
             {debouncedQuery.trim() && results.length > 0 && (
               <div className="max-h-[120px] overflow-y-auto scrollbar-thin space-y-0.5">
-                {results.slice(0, 5).map((msg, idx) => {
+                {results.slice(0, 5).map((msg, sliceIdx) => {
+                  const realIdx = sliceIdx; // sliceIdx matches results index since we slice from 0
                   const snippet = (msg.content || msg.transcription || msg.mediaUrl || '').slice(0, 80);
                   return (
                     <motion.button
                       key={msg.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: idx * 0.03 }}
+                      transition={{ delay: sliceIdx * 0.03 }}
                       onClick={() => {
-                        setActiveIndex(results.indexOf(msg));
+                        setActiveIndex(realIdx);
                         onNavigateToMessage(msg.id);
                       }}
                       className={cn(
                         'w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left transition-colors text-xs',
-                        activeIndex === results.indexOf(msg)
+                        activeIndex === realIdx
                           ? 'bg-primary/10 text-foreground'
                           : 'hover:bg-muted/60 text-muted-foreground'
                       )}
