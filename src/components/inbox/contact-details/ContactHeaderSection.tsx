@@ -1,3 +1,4 @@
+import { useState, lazy, Suspense } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,7 +76,11 @@ interface ContactHeaderSectionProps {
   onCollapseAll?: () => void;
 }
 
+const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => ({ default: m.CallDialog })));
+
 export function ContactHeaderSection({ contact, enrichedData, conversation, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
+  const [showCallDialog, setShowCallDialog] = useState(false);
+  const [callType, setCallType] = useState<'whatsapp' | 'voip'>('whatsapp');
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -290,8 +295,8 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
             <DropdownMenuContent align="center" className="min-w-[160px]">
               <DropdownMenuItem
                 onClick={() => {
-                  const cleanPhone = contact.phone.replace(/\D/g, '');
-                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                  setCallType('whatsapp');
+                  setShowCallDialog(true);
                 }}
                 className="gap-2 text-xs"
               >
@@ -300,6 +305,8 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
+                  setCallType('voip');
+                  setShowCallDialog(true);
                   window.dispatchEvent(new CustomEvent('start-voip-call', { detail: { phone: contact.phone, name: contact.name } }));
                 }}
                 className="gap-2 text-xs"
