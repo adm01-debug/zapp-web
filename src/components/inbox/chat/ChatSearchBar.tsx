@@ -266,6 +266,22 @@ export function ChatSearchBar({
                 </Badge>
               ))}
             </div>
+
+            {/* Empty state */}
+            {(debouncedQuery.trim() || filter !== 'all') && results.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground"
+              >
+                <Search className="w-3.5 h-3.5 opacity-50" />
+                <span className="text-xs">
+                  {debouncedQuery.trim()
+                    ? `Nenhum resultado para "${debouncedQuery.trim().slice(0, 30)}${debouncedQuery.trim().length > 30 ? '…' : ''}"`
+                    : `Nenhuma mensagem do tipo "${FILTERS.find(f => f.key === filter)?.label}"`}
+                </span>
+              </motion.div>
+            )}
           </div>
         </motion.div>
       )}
