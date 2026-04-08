@@ -118,6 +118,39 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     setSearchQuery('');
   }, [conversation.id]);
 
+  // Reset summary when switching conversations
+  useEffect(() => {
+    setSummaryData(null);
+    setHasSummary(false);
+  }, [conversation.id]);
+
+  const canGenerateSummary = messages.length >= 10;
+
+  const handleGenerateSummary = async () => {
+    if (!canGenerateSummary) {
+      sonnerToast.error('A conversa precisa ter pelo menos 10 mensagens para gerar um resumo.');
+      return;
+    }
+    setIsSummaryLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-conversation-summary', {
+        body: {
+          messages: messages.map(m => ({ sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() })),
+          contactName: conversation.contact.name,
+        },
+      });
+      if (error) throw error;
+      setSummaryData(data);
+      setHasSummary(true);
+      sonnerToast.success('Resumo gerado com sucesso!');
+    } catch (error) {
+      log.error('Error generating summary:', error);
+      sonnerToast.error('Erro ao gerar resumo. Tente novamente.');
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  };
+
   // Global Ctrl+F handler for chat search (toggle)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
