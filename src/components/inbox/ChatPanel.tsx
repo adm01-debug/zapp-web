@@ -354,11 +354,41 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     incrementUseCount(reply.id);
   };
 
-  const handleTransfer = (type: 'agent' | 'queue', targetId: string, message?: string) => {
-    toast({
-      title: 'Chat transferido!',
-      description: type === 'agent' ? 'O chat foi transferido para outro atendente.' : 'O chat foi transferido para outra fila.',
-    });
+  const handleTransfer = async (type: 'agent' | 'queue' | 'connection', targetId: string, message?: string) => {
+    if (type === 'connection') {
+      // Cross-connection transfer via Edge Function
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Not authenticated');
+
+        const response = await supabase.functions.invoke('transfer-conversation', {
+          body: {
+            source_contact_id: conversation.contact.id,
+            target_connection_id: targetId,
+            transfer_message: message,
+          },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+
+        if (response.error) throw new Error(response.error.message);
+
+        toast({
+          title: 'Transferido para outra conexão!',
+          description: response.data?.message || 'O cliente receberá uma mensagem do novo número.',
+        });
+      } catch (err) {
+        toast({
+          title: 'Erro na transferência',
+          description: err instanceof Error ? err.message : 'Falha ao transferir conversa',
+          variant: 'destructive',
+        });
+      }
+    } else {
+      toast({
+        title: 'Chat transferido!',
+        description: type === 'agent' ? 'O chat foi transferido para outro atendente.' : 'O chat foi transferido para outra fila.',
+      });
+    }
   };
 
   const handleScheduleMessage = async (message: string, scheduledAt: Date, attachment?: File) => {
