@@ -127,32 +127,6 @@ export function ChatPanelHeader({
 
       <div className="flex items-center gap-0.5">
         {/* Action buttons with standardized tooltips */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
-              onClick={onStartCall}
-            >
-              <PhoneCall className="w-[18px] h-[18px]" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Chamada de voz</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
-            >
-              <Video className="w-[18px] h-[18px]" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Chamada de vídeo</TooltipContent>
-        </Tooltip>
 
         <Tooltip>
           <TooltipTrigger asChild>
