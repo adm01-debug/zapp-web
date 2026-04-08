@@ -384,7 +384,16 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
 
                         {message.type === 'document' && message.mediaUrl && (
                           <div className="mb-1.5">
-                            <DocumentPreview url={message.mediaUrl} fileName={message.content || 'documento'} isSent={isSent} />
+                            <DocumentPreview url={message.mediaUrl} fileName={
+                              searchQuery && highlightedMessageIds?.has(message.id) && message.content
+                                ? undefined
+                                : (message.content || 'documento')
+                            } isSent={isSent} />
+                            {searchQuery && highlightedMessageIds?.has(message.id) && message.content && (
+                              <p className="text-[12px] mt-1 px-1">
+                                <HighlightedText text={message.content} query={searchQuery} />
+                              </p>
+                            )}
                           </div>
                         )}
 
