@@ -105,6 +105,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   useEffect(() => { initResolve(); }, [conversation.contact.id]);
   useEffect(() => { messagesAreaRef.current?.scrollToBottom(); }, [messages, isContactTyping]);
 
+  // Reset chat search when switching conversations
+  useEffect(() => {
+    setShowChatSearch(false);
+    setHighlightedMessageIds(new Set());
+    setActiveHighlightId(null);
+  }, [conversation.id]);
+
   // Global Ctrl+F handler for chat search
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
