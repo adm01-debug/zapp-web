@@ -19,11 +19,42 @@ interface SLAIndicatorProps {
   compact?: boolean;
 }
 
-const statusStyles: Record<SLAStatus, { bg: string; text: string; border: string; icon: React.ElementType }> = {
-  ok: { bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', icon: CheckCircle },
-  warning: { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/30', icon: Clock },
-  breached: { bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', icon: AlertTriangle },
+const statusStyles: Record<SLAStatus, { bg: string; text: string; border: string; icon: React.ElementType; ring: string }> = {
+  ok: { bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', icon: CheckCircle, ring: 'stroke-success' },
+  warning: { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/30', icon: Clock, ring: 'stroke-warning' },
+  breached: { bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', icon: AlertTriangle, ring: 'stroke-destructive' },
 };
+
+function SLAProgressRing({ status, percent, size = 28 }: { status: SLAStatus; percent: number; size?: number }) {
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (Math.max(0, Math.min(100, percent)) / 100) * circumference;
+
+  return (
+    <svg width={size} height={size} className="shrink-0 -rotate-90">
+      <circle
+        cx={size / 2} cy={size / 2} r={radius}
+        fill="none" strokeWidth={strokeWidth}
+        className="stroke-muted/30"
+      />
+      <motion.circle
+        cx={size / 2} cy={size / 2} r={radius}
+        fill="none" strokeWidth={strokeWidth} strokeLinecap="round"
+        className={statusStyles[status].ring}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: offset }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        strokeDasharray={circumference}
+      />
+    </svg>
+  );
+}
+
+function getPercent(remainingMs: number, totalMs: number, breached: boolean): number {
+  if (breached) return 0;
+  return Math.max(0, Math.min(100, (remainingMs / totalMs) * 100));
+}
 
 export function SLAIndicator({
   firstMessageAt,
@@ -36,13 +67,19 @@ export function SLAIndicator({
 }: SLAIndicatorProps) {
   const sla = useSLACalculation({ firstMessageAt, firstResponseAt, resolvedAt, firstResponseMinutes, resolutionMinutes });
 
-  // Fully resolved and OK → hide
   if (resolvedAt && sla.worstStatus === 'ok') return null;
 
   const style = statusStyles[sla.worstStatus];
   const Icon = style.icon;
 
+  const frTotalMs = firstResponseMinutes * 60_000;
+  const resTotalMs = resolutionMinutes * 60_000;
+
   if (compact) {
+    const activeStatus = !firstResponseAt ? sla.firstResponse : sla.resolution;
+    const activeTotalMs = !firstResponseAt ? frTotalMs : resTotalMs;
+    const activePercent = getPercent(activeStatus.remainingMs, activeTotalMs, activeStatus.breached);
+
     return (
       <TooltipProvider>
         <Tooltip>
@@ -57,7 +94,7 @@ export function SLAIndicator({
                 className
               )}
             >
-              <Icon className="w-3 h-3" />
+              <SLAProgressRing status={activeStatus.status} percent={activePercent} size={16} />
               {!firstResponseAt && sla.firstResponse.remainingMs > 0 && (
                 <span>{formatTimeRemaining(sla.firstResponse.remainingMs)}</span>
               )}
@@ -116,7 +153,11 @@ export function SLAIndicator({
             sla.firstResponse.status === 'breached' && 'animate-pulse'
           )}
         >
-          <Timer className="w-3.5 h-3.5" />
+          <SLAProgressRing
+            status={sla.firstResponse.status}
+            percent={getPercent(sla.firstResponse.remainingMs, frTotalMs, sla.firstResponse.breached)}
+            size={22}
+          />
           <span>1ª Resp:</span>
           <span className="font-bold">
             {sla.firstResponse.status === 'breached' ? 'Violado' : formatTimeRemaining(sla.firstResponse.remainingMs)}
@@ -137,7 +178,11 @@ export function SLAIndicator({
             sla.resolution.status === 'breached' && 'animate-pulse'
           )}
         >
-          <Clock className="w-3.5 h-3.5" />
+          <SLAProgressRing
+            status={sla.resolution.status}
+            percent={getPercent(sla.resolution.remainingMs, resTotalMs, sla.resolution.breached)}
+            size={22}
+          />
           <span>Resolução:</span>
           <span className="font-bold">
             {sla.resolution.status === 'breached' ? 'Violado' : formatTimeRemaining(sla.resolution.remainingMs)}

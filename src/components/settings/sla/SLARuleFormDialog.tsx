@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useSLARules, SLARuleForm, SLARule, SLARuleScope } from '@/hooks/useSLARules';
+import { useSLARules, SLARuleForm, SLARule, SLARuleScope, SLARuleMetadata } from '@/hooks/useSLARules';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Bell, FileText } from 'lucide-react';
 import { CONTACT_TYPES, SCOPE_LABELS } from './sla-utils';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +29,7 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
     first_response_minutes: 5,
     resolution_minutes: 60,
     priority: 10,
+    metadata: { notify_on_warning: false, escalation_notes: '' },
   });
   const [scopeValue, setScopeValue] = useState('');
   const [contactSearch, setContactSearch] = useState('');
@@ -37,13 +41,14 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
         first_response_minutes: editingRule.first_response_minutes,
         resolution_minutes: editingRule.resolution_minutes,
         priority: editingRule.priority,
+        metadata: editingRule.metadata || { notify_on_warning: false, escalation_notes: '' },
       });
       setScopeValue(
         editingRule.contact_id || editingRule.company || editingRule.job_title ||
         editingRule.contact_type || editingRule.queue_id || editingRule.agent_id || ''
       );
     } else if (open) {
-      setForm({ name: '', first_response_minutes: 5, resolution_minutes: 60, priority: 10 });
+      setForm({ name: '', first_response_minutes: 5, resolution_minutes: 60, priority: 10, metadata: { notify_on_warning: false, escalation_notes: '' } });
       setScopeValue('');
       setContactSearch('');
     }
@@ -239,6 +244,33 @@ export function SLARuleFormDialog({ open, onOpenChange, scope, editingRule }: SL
               onChange={e => setForm(f => ({ ...f, priority: parseInt(e.target.value) || 0 }))}
               className="mt-1"
             />
+          </div>
+
+          <Separator className="my-1" />
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <Bell className="w-3.5 h-3.5" /> Escalação
+            </p>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={form.metadata?.notify_on_warning ?? false}
+                onCheckedChange={v => setForm(f => ({ ...f, metadata: { ...f.metadata, notify_on_warning: v } }))}
+              />
+              <Label className="text-xs">Notificar ao atingir limite de aviso (70%)</Label>
+            </div>
+            <div>
+              <Label className="text-xs font-medium flex items-center gap-1">
+                <FileText className="w-3 h-3" /> Notas de Escalação
+              </Label>
+              <Textarea
+                value={form.metadata?.escalation_notes || ''}
+                onChange={e => setForm(f => ({ ...f, metadata: { ...f.metadata, escalation_notes: e.target.value } }))}
+                placeholder="Ex: Escalar para gerente se violado..."
+                className="mt-1 text-xs min-h-[60px]"
+                maxLength={500}
+              />
+            </div>
           </div>
         </div>
         <DialogFooter>

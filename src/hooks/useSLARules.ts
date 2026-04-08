@@ -2,6 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface SLARuleMetadata {
+  notify_on_warning?: boolean;
+  escalation_notes?: string;
+}
+
 export interface SLARule {
   id: string;
   name: string;
@@ -15,6 +20,7 @@ export interface SLARule {
   queue_id: string | null;
   agent_id: string | null;
   is_active: boolean;
+  metadata: SLARuleMetadata;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +38,7 @@ export interface SLARuleForm {
   contact_type?: string | null;
   queue_id?: string | null;
   agent_id?: string | null;
+  metadata?: SLARuleMetadata;
 }
 
 export function useSLARules(scope?: SLARuleScope) {
@@ -58,7 +65,7 @@ export function useSLARules(scope?: SLARuleScope) {
 
   const createMutation = useMutation({
     mutationFn: async (form: SLARuleForm) => {
-      const { error } = await supabase.from('sla_rules').insert({
+      const payload = {
         name: form.name,
         first_response_minutes: form.first_response_minutes,
         resolution_minutes: form.resolution_minutes,
@@ -69,7 +76,9 @@ export function useSLARules(scope?: SLARuleScope) {
         contact_type: form.contact_type || null,
         queue_id: form.queue_id || null,
         agent_id: form.agent_id || null,
-      });
+        metadata: (form.metadata || {}) as unknown,
+      };
+      const { error } = await supabase.from('sla_rules').insert(payload as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -82,7 +91,7 @@ export function useSLARules(scope?: SLARuleScope) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...form }: SLARuleForm & { id: string }) => {
-      const { error } = await supabase.from('sla_rules').update({
+      const payload = {
         name: form.name,
         first_response_minutes: form.first_response_minutes,
         resolution_minutes: form.resolution_minutes,
@@ -93,7 +102,9 @@ export function useSLARules(scope?: SLARuleScope) {
         contact_type: form.contact_type || null,
         queue_id: form.queue_id || null,
         agent_id: form.agent_id || null,
-      }).eq('id', id);
+        metadata: (form.metadata || {}) as unknown,
+      };
+      const { error } = await supabase.from('sla_rules').update(payload as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {

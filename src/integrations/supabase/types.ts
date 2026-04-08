@@ -4325,6 +4325,7 @@ export type Database = {
           id: string
           is_active: boolean
           job_title: string | null
+          metadata: Json | null
           name: string
           priority: number
           queue_id: string | null
@@ -4341,6 +4342,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           job_title?: string | null
+          metadata?: Json | null
           name: string
           priority?: number
           queue_id?: string | null
@@ -4357,6 +4359,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           job_title?: string | null
+          metadata?: Json | null
           name?: string
           priority?: number
           queue_id?: string | null

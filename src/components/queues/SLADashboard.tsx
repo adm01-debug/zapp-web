@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SLAConfigurationManager } from '@/components/settings/SLAConfigurationManager';
 import { SLARulesManager } from '@/components/settings/SLARulesManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,7 +23,9 @@ import {
   History
 } from 'lucide-react';
 import { useSLAMetrics, PeriodFilter } from '@/hooks/useSLAMetrics';
+import { useSLAHistory } from '@/hooks/useSLAHistory';
 import { ExportButton } from '@/components/reports/ExportButton';
+import { Sparkline } from '@/components/ui/sparkline';
 import { ReportData } from '@/utils/exportReport';
 import { cn } from '@/lib/utils';
 
@@ -49,6 +51,32 @@ export const SLADashboard = () => {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<PeriodFilter>('today');
   const { data, loading } = useSLAMetrics(period);
+  const { data: historyData } = useSLAHistory('7d');
+
+  // Extract sparkline data from 7-day history
+  const sparkFR = historyData?.dailyData.map(d => d.totalConversations > 0 ? 100 - (d.firstResponseBreaches / d.totalConversations) * 100 : 100) || [];
+  const sparkRes = historyData?.dailyData.map(d => d.totalConversations > 0 ? 100 - (d.resolutionBreaches / d.totalConversations) * 100 : 100) || [];
+  const sparkOverall = historyData?.dailyData.map(d => d.slaRate) || [];
+  const sparkConversations = historyData?.dailyData.map(d => d.totalConversations) || [];
+
+  // Keyboard shortcuts: 1=Hoje, 2=Semana, 3=Mês, 4=Todos, H=Histórico
+  const periodKeys: PeriodFilter[] = ['today', 'week', 'month', 'all'];
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (e.key >= '1' && e.key <= '4') {
+      e.preventDefault();
+      setPeriod(periodKeys[parseInt(e.key) - 1]);
+    }
+    if (e.key === 'h' || e.key === 'H') {
+      e.preventDefault();
+      navigate('/sla/history');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const periodLabels: Record<PeriodFilter, string> = {
     today: 'Hoje',
@@ -165,10 +193,10 @@ export const SLADashboard = () => {
                   <Target className={cn("h-6 w-6", getRateColor(data.overall.overallRate))} />
                 </div>
               </div>
-              <Progress 
-                value={data.overall.overallRate} 
-                className="mt-3 h-2"
-              />
+              <div className="flex items-center gap-3 mt-3">
+                <Progress value={data.overall.overallRate} className="h-2 flex-1" />
+                {sparkOverall.length >= 2 && <Sparkline data={sparkOverall} width={64} height={20} color="hsl(var(--primary))" />}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -191,15 +219,18 @@ export const SLADashboard = () => {
                   <Timer className="h-6 w-6 text-info" />
                 </div>
               </div>
-              <div className="flex gap-4 mt-3 text-sm">
-                <span className="text-success flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {data.overall.firstResponse.onTime} no prazo
-                </span>
-                <span className="text-destructive flex items-center gap-1">
-                  <XCircle className="h-4 w-4" />
-                  {data.overall.firstResponse.breached} atrasados
-                </span>
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex gap-4 text-sm flex-1">
+                  <span className="text-success flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {data.overall.firstResponse.onTime} no prazo
+                  </span>
+                  <span className="text-destructive flex items-center gap-1">
+                    <XCircle className="h-4 w-4" />
+                    {data.overall.firstResponse.breached} atrasados
+                  </span>
+                </div>
+                {sparkFR.length >= 2 && <Sparkline data={sparkFR} width={64} height={20} color="hsl(var(--info))" />}
               </div>
             </CardContent>
           </Card>
@@ -223,15 +254,18 @@ export const SLADashboard = () => {
                   <CheckCircle2 className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              <div className="flex gap-4 mt-3 text-sm">
-                <span className="text-success flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {data.overall.resolution.onTime} no prazo
-                </span>
-                <span className="text-destructive flex items-center gap-1">
-                  <XCircle className="h-4 w-4" />
-                  {data.overall.resolution.breached} atrasados
-                </span>
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex gap-4 text-sm flex-1">
+                  <span className="text-success flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {data.overall.resolution.onTime} no prazo
+                  </span>
+                  <span className="text-destructive flex items-center gap-1">
+                    <XCircle className="h-4 w-4" />
+                    {data.overall.resolution.breached} atrasados
+                  </span>
+                </div>
+                {sparkRes.length >= 2 && <Sparkline data={sparkRes} width={64} height={20} color="hsl(var(--primary))" />}
               </div>
             </CardContent>
           </Card>
@@ -253,9 +287,10 @@ export const SLADashboard = () => {
                   <Users className="h-6 w-6 text-warning" />
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                {periodLabels[period]}
-              </p>
+              <div className="flex items-center gap-3 mt-3">
+                <p className="text-sm text-muted-foreground flex-1">{periodLabels[period]}</p>
+                {sparkConversations.length >= 2 && <Sparkline data={sparkConversations} width={64} height={20} color="hsl(var(--warning))" />}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
