@@ -61,7 +61,7 @@ export function ConversationSummary({ messages, contactName, initialSummary }: C
 
   useEffect(() => {
     if (initialSummary) {
-      setSummary(initialSummary as SummaryData);
+      setSummary(initialSummary as unknown as SummaryData);
       setHasGenerated(true);
       setIsExpanded(true);
     }
