@@ -59,6 +59,25 @@ export const SLADashboard = () => {
   const sparkOverall = historyData?.dailyData.map(d => d.slaRate) || [];
   const sparkConversations = historyData?.dailyData.map(d => d.totalConversations) || [];
 
+  // Keyboard shortcuts: 1=Hoje, 2=Semana, 3=Mês, 4=Todos, H=Histórico
+  const periodKeys: PeriodFilter[] = ['today', 'week', 'month', 'all'];
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (e.key >= '1' && e.key <= '4') {
+      e.preventDefault();
+      setPeriod(periodKeys[parseInt(e.key) - 1]);
+    }
+    if (e.key === 'h' || e.key === 'H') {
+      e.preventDefault();
+      navigate('/sla/history');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   const periodLabels: Record<PeriodFilter, string> = {
     today: 'Hoje',
     week: 'Esta Semana',
