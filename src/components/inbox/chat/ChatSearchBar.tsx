@@ -88,10 +88,12 @@ export function ChatSearchBar({
 
   // Auto-scroll preview list to active item
   useEffect(() => {
-    if (!previewListRef.current || activeIndex < 0 || activeIndex >= 5) return;
-    const activeEl = previewListRef.current.children[activeIndex] as HTMLElement | undefined;
+    if (!previewListRef.current || results.length === 0) return;
+    const clampedIdx = Math.min(activeIndex, Math.min(results.length, 5) - 1);
+    if (clampedIdx < 0) return;
+    const activeEl = previewListRef.current.children[clampedIdx] as HTMLElement | undefined;
     activeEl?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
-  }, [activeIndex]);
+  }, [activeIndex, results.length]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') { e.preventDefault(); onClose(); }
@@ -113,16 +115,27 @@ export function ChatSearchBar({
             {/* Search input row */}
             <div className="flex items-center gap-1.5 md:gap-2">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
-              <Input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Buscar na conversa..."
-                aria-label="Buscar mensagens"
-                aria-describedby="search-result-count"
-                className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 min-w-0"
-              />
+              <div className="relative flex-1 min-w-0">
+                <Input
+                  ref={inputRef}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Buscar na conversa..."
+                  aria-label="Buscar mensagens"
+                  aria-describedby="search-result-count"
+                  className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0 px-0 pr-6 min-w-0"
+                />
+                {query && (
+                  <button
+                    onClick={() => setQuery('')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
+                    aria-label="Limpar busca"
+                  >
+                    <X className="w-3 h-3 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
 
               {/* Result counter */}
               {(debouncedQuery.trim() || filter !== 'all') && (
