@@ -107,7 +107,7 @@ export function ScopeRulesList({ scope }: ScopeRulesListProps) {
         </motion.div>
       ) : (
         <ScrollArea className="max-h-[400px]">
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="Lista de regras de SLA">
             {rules.map((rule, index) => (
               <SLARuleRow
                 key={rule.id}
