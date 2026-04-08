@@ -74,35 +74,40 @@ describe('useExportData', () => {
 
   it('initializes with isExporting=false', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper }
     );
     expect(result.current.isExporting).toBe(false);
   });
 
   it('exposes exportCSV function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper }
     );
     expect(typeof result.current.exportCSV).toBe('function');
   });
 
   it('exposes exportExcel function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper }
     );
     expect(typeof result.current.exportExcel).toBe('function');
   });
 
   it('exposes exportPDF function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper }
     );
     expect(typeof result.current.exportPDF).toBe('function');
   });
 
   it('exposes exportData function', () => {
     const { result } = renderHook(() =>
-      useExportData<TestRow>({ columns, fileName: 'test' })
+      useExportData<TestRow>({ columns, fileName: 'test' }),
+      { wrapper }
     );
     expect(typeof result.current.exportData).toBe('function');
   });
