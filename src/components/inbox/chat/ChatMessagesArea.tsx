@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('ChatMessagesArea');
