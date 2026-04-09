@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Confetti, useCelebration } from './Confetti';
 import { toast } from '@/hooks/use-toast';
@@ -25,7 +25,7 @@ const SECRET_CODES: Record<string, { name: string; action: string }> = {
   'lovable': { name: 'Lovable Easter Egg', action: 'lovable' },
 };
 
-export function EasterEggsProvider({ children }: EasterEggsProviderProps) {
+export const EasterEggsProvider = forwardRef<HTMLDivElement, EasterEggsProviderProps>(function EasterEggsProvider({ children }, _ref) {
   const [konamiProgress, setKonamiProgress] = useState<string[]>([]);
   const [typedText, setTypedText] = useState('');
   const [partyMode, setPartyMode] = useState(false);
@@ -280,7 +280,7 @@ export function EasterEggsProvider({ children }: EasterEggsProviderProps) {
       `}</style>
     </>
   );
-}
+});
 
 // Hook to trigger easter eggs programmatically
 export function useEasterEggs() {

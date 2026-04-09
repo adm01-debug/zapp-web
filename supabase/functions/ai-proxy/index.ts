@@ -2,7 +2,7 @@
  * AI Proxy Edge Function
  * Routes AI calls through admin-configured provider with automatic fallback to Lovable AI.
  */
-import { handleCors, errorResponse, jsonResponse, Logger, requireEnv } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, Logger, requireEnv, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 import { z, parseBody } from "../_shared/schemas.ts";
 import { logAiUsage, extractTokenUsage, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 import { callLovableAI, callOpenAICompatible, callCustomWebhook, withRetry } from "../_shared/ai-providers.ts";
@@ -102,6 +102,10 @@ Deno.serve(async (req) => {
   const userId = extractUserIdFromRequest(req);
 
   try {
+    const ip = getClientIP(req);
+    const { allowed } = checkRateLimit(`proxy:${ip}`, 30, 60_000);
+    if (!allowed) return errorResponse("Limite de requisições excedido. Tente novamente em 1 minuto.", 429, req);
+
     const parsed = parseBody(AiProxySchema, await req.json());
     if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
