@@ -82,12 +82,12 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
         ...m,
         isEdited: !!(m.updated_at && m.created_at && new Date(m.updated_at).getTime() - new Date(m.created_at).getTime() > 1000),
       }));
-      setMessages(mappedMessages);
+      if (mountedRef.current) setMessages(mappedMessages);
     } catch (err) {
       log.error('Error fetching messages:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch messages');
+      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Failed to fetch messages');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [contactId]);
 
