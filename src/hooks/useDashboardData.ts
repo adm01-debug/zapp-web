@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, endOfDay } from 'date-fns';
@@ -259,8 +260,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
     refetchInterval: 60000,
   });
 
-  // Compute dashboard stats
-  const stats: DashboardStats | null = (() => {
+  const stats: DashboardStats | null = useMemo(() => {
     if (!contactsQuery.data || !agentsQuery.data || !queuesQuery.data) return null;
 
     const contacts = contactsQuery.data;
@@ -268,20 +268,17 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
     const queues = queuesQuery.data;
     const queueCounts = contactsPerQueueQuery.data || {};
 
-    // Count conversations by status (using messages and assignment)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const openConversations = contacts.filter(c => c.assigned_to).length;
     const pendingConversations = contacts.filter(c => !c.assigned_to && c.queue_id).length;
     
-    // Count resolved today (contacts updated today with no unread messages)
     const resolvedToday = contacts.filter(c => {
       const updatedAt = new Date(c.updated_at);
       return updatedAt >= today && !c.assigned_to;
     }).length;
 
-    // Queue stats
     const queuesStats: QueueStats[] = queues.map(queue => {
       const members = queue.queue_members || [];
       const onlineMembers = members.filter((m: { is_active?: boolean; profiles?: { is_active?: boolean } }) => 
@@ -298,7 +295,6 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       };
     });
 
-    // Recent activity from messages
     const contactMessages = new Map<string, { id: string; contact_id: string; content: string; created_at: string; is_read: boolean | null; contacts?: { name?: string; phone?: string; avatar_url?: string | null } | null }>();
     messages.forEach((msg) => {
       const m = msg as { id: string; contact_id: string; content: string; created_at: string; is_read: boolean | null; contacts?: { name?: string; phone?: string; avatar_url?: string | null } | null };
@@ -331,7 +327,7 @@ export const useDashboardData = (filters: DashboardFilters = getDefaultFilters()
       queuesStats,
       recentActivity,
     };
-  })();
+  }, [contactsQuery.data, agentsQuery.data, queuesQuery.data, messagesQuery.data, contactsPerQueueQuery.data, slaQuery.data]);
 
   return {
     stats,

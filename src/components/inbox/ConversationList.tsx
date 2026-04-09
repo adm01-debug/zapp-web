@@ -102,7 +102,7 @@ export function ConversationList({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Conversas</h2>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10 text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="icon" aria-label="Filtrar conversas" className="hover:bg-primary/10 text-muted-foreground hover:text-foreground">
               <Filter className="w-4 h-4" />
             </Button>
           </motion.div>
@@ -174,12 +174,17 @@ export function ConversationList({
                     contactName={conversation.contact.name}
                   >
                   <motion.div
+                    role="option"
+                    tabIndex={0}
+                    aria-selected={isSelected}
+                    aria-label={`${conversation.contact.name}${conversation.unreadCount > 0 ? `, ${conversation.unreadCount} não lidas` : ''}`}
                     onClick={() => onSelect(conversation)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(conversation); } }}
                     whileHover={{ x: 2 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.15 }}
                     className={cn(
-                      'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group',
+                      'relative p-3 rounded-xl cursor-pointer transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
                       isSelected 
                         ? 'bg-primary/10 border border-primary/30' 
                         : 'hover:bg-muted/30 border border-transparent'

@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 import { AiClassifyTicketsSchema, parseBody } from "../_shared/schemas.ts";
 
 Deno.serve(async (req) => {
@@ -9,6 +9,10 @@ Deno.serve(async (req) => {
   const log = new Logger("ai-classify-tickets");
 
   try {
+    const ip = getClientIP(req);
+    const { allowed } = checkRateLimit(`classify:${ip}`, 15, 60_000);
+    if (!allowed) return errorResponse("Rate limit exceeded", 429, req);
+
     const supabaseUrl = requireEnv("SUPABASE_URL");
     const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
