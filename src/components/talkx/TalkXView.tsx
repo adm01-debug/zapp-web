@@ -3,19 +3,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Zap, Plus, Play, Pause, X, Trash2, Eye, Users, Clock,
   CheckCircle2, XCircle, Loader2, MessageSquare,
-  Send, BarChart3
+  Send, BarChart3, Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
 import { supabase } from '@/integrations/supabase/client';
 import { TalkXCampaignEditor } from './TalkXCampaignEditor';
 import { TalkXLiveMonitor } from './TalkXLiveMonitor';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
   draft: { label: 'Rascunho', variant: 'secondary', icon: MessageSquare },
