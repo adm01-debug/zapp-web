@@ -376,6 +376,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           <ObjectionDetector
             contactId={conversation.contact.id}
             lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
+            onSelectSuggestion={(text) => setInputValue(text)}
           />
         </Suspense>
 
