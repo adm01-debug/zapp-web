@@ -246,23 +246,55 @@ export default function TalkXView() {
                                   <Button size="sm" variant="outline" onClick={() => handleEditCampaign(campaign)}>
                                     Editar
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => startCampaign(campaign.id)}
-                                    disabled={campaign.total_recipients === 0}
-                                    className="gap-1"
-                                  >
-                                    <Play className="w-3.5 h-3.5" />
-                                    Iniciar
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="sm" disabled={campaign.total_recipients === 0} className="gap-1">
+                                        <Play className="w-3.5 h-3.5" />
+                                        Iniciar
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Iniciar campanha?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          As mensagens serão enviadas para {campaign.total_recipients} contatos. Esta ação não pode ser desfeita.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => startCampaign(campaign.id)}>
+                                          Iniciar envio
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                  <Button size="icon" variant="ghost" onClick={() => handleDuplicateCampaign(campaign)} title="Duplicar">
+                                    <Copy className="w-4 h-4" />
                                   </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="text-destructive"
-                                    onClick={() => deleteCampaign.mutate(campaign.id)}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="icon" variant="ghost" className="text-destructive">
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Excluir campanha?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          A campanha "{campaign.name}" será excluída permanentemente.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                          onClick={() => deleteCampaign.mutate(campaign.id)}
+                                        >
+                                          Excluir
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 </>
                               )}
                               {campaign.status === 'sending' && (
@@ -271,16 +303,42 @@ export default function TalkXView() {
                                     <Pause className="w-3.5 h-3.5" />
                                     Pausar
                                   </Button>
-                                  <Button size="sm" variant="destructive" onClick={() => cancelCampaign(campaign.id)} className="gap-1">
-                                    <X className="w-3.5 h-3.5" />
-                                    Cancelar
-                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="sm" variant="destructive" className="gap-1">
+                                        <X className="w-3.5 h-3.5" />
+                                        Cancelar
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Cancelar campanha?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          O envio será interrompido permanentemente. Mensagens já enviadas não serão afetadas.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Voltar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                          onClick={() => cancelCampaign(campaign.id)}
+                                        >
+                                          Confirmar cancelamento
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 </>
                               )}
                               {campaign.status === 'paused' && (
                                 <Button size="sm" onClick={() => startCampaign(campaign.id)} className="gap-1">
                                   <Play className="w-3.5 h-3.5" />
                                   Retomar
+                                </Button>
+                              )}
+                              {(campaign.status === 'completed' || campaign.status === 'cancelled') && (
+                                <Button size="icon" variant="ghost" onClick={() => handleDuplicateCampaign(campaign)} title="Duplicar">
+                                  <Copy className="w-4 h-4" />
                                 </Button>
                               )}
                               <Button
