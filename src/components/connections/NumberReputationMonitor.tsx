@@ -21,7 +21,7 @@ interface ReputationData {
 
 interface ConnectionInfo {
   id: string;
-  instance_name: string;
+  instance_id: string;
   phone_number: string | null;
 }
 
@@ -39,12 +39,12 @@ export function NumberReputationMonitor() {
 
     const { data: connections } = await supabase
       .from('whatsapp_connections')
-      .select('id, instance_name, phone_number');
+      .select('id, instance_id, phone_number');
 
     if (reps && connections) {
       setReputations(reps.map(r => ({
         ...r,
-        connection: connections.find(c => c.id === r.whatsapp_connection_id),
+        connection: connections.find(c => c.id === r.whatsapp_connection_id) as ConnectionInfo | undefined,
       })));
     }
     setLoading(false);
