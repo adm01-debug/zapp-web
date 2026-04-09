@@ -46,6 +46,11 @@ import { ContactListItem } from './ContactListItem';
 import { ContactStatsCards } from './ContactStatsCards';
 import { ContactQuickPeek } from './ContactQuickPeek';
 import { ContactViewSwitcher, type ContactViewMode } from './ContactViewSwitcher';
+import { ContactImportDialog } from './ContactImportDialog';
+import { ContactMergeDialog } from './ContactMergeDialog';
+import { ContactGroupedList } from './ContactGroupedList';
+import { ContactCompareDialog } from './ContactCompareDialog';
+import { FilterPresets, type FilterPreset } from './FilterPresets';
 
 // Date filter options
 const DATE_FILTERS = [
