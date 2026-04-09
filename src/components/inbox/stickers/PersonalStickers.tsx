@@ -64,7 +64,7 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
     return s.name?.toLowerCase().includes(search.toLowerCase());
   });
 
-  const userName = profile?.display_name || profile?.name || 'Meu';
+  const userName = profile?.name || 'Meu';
   const folderName = userName.split(' ')[0];
 
   const handleUpload = useCallback(async (files: FileList | null) => {
@@ -100,7 +100,7 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
 
         const stickerName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
 
-        const { error: insertError } = await supabase
+        const { error: insertError } = await (supabase
           .from('stickers')
           .insert({
             name: stickerName,
@@ -108,7 +108,7 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
             category: 'pessoal',
             owner_id: profile.id,
             uploaded_by: profile.id,
-          } as Record<string, unknown>);
+          }) as any);
 
         if (insertError) {
           toast.error(`Erro ao salvar ${file.name}`);
