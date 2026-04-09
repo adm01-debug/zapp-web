@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useExternalContact360Batch } from '@/hooks/useExternalContact360Batch';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
 import { ContactForm } from '@/components/contacts/ContactForm';
@@ -97,6 +98,10 @@ export function ContactsView() {
 
   const [viewMode, setViewMode] = useState<ContactViewMode>('grid');
   const [gridColumns, setGridColumns] = useState(4);
+
+  // Fetch company logos from external CRM
+  const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
+  const { lookup: getCRMData } = useExternalContact360Batch(contactPhones);
 
   const handleToggleSelect = (id: string, selected: boolean) => {
     setSelectedIds(prev =>
@@ -450,6 +455,8 @@ export function ContactsView() {
               onEdit={openEditDialog}
               onDelete={setDeleteTarget}
               index={index}
+              companyLogo={getCRMData(contact.phone)?.logo_url}
+              companyName={getCRMData(contact.phone)?.company_name}
             />
           ))}
         </div>
@@ -465,6 +472,8 @@ export function ContactsView() {
               onEdit={openEditDialog}
               onDelete={setDeleteTarget}
               index={index}
+              companyLogo={getCRMData(contact.phone)?.logo_url}
+              companyName={getCRMData(contact.phone)?.company_name}
             />
           ))}
         </div>
