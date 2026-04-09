@@ -207,10 +207,20 @@ export function ContactsView() {
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
+            <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+              <Upload className="w-4 h-4 mr-2" />
+              Importar
+            </Button>
             <Button variant="outline" onClick={handleExportCSV} disabled={filteredContacts.length === 0}>
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               Exportar CSV
             </Button>
+            {selectedIds.length >= 2 && (
+              <Button variant="outline" onClick={() => setIsMergeOpen(true)} className="border-primary/30 text-primary">
+                <Merge className="w-4 h-4 mr-2" />
+                Mesclar ({selectedIds.length})
+              </Button>
+            )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground">
