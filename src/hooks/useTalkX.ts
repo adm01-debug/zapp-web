@@ -23,6 +23,9 @@ export interface TalkXCampaign {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  media_url: string | null;
+  media_type: string | null;
+  scheduled_at: string | null;
 }
 
 export interface TalkXRecipient {
@@ -44,6 +47,8 @@ export interface TalkXRecipient {
   };
 }
 
+type CampaignPayload = Omit<Partial<TalkXCampaign>, 'id' | 'created_at' | 'updated_at'>;
+
 export function useTalkX() {
   const queryClient = useQueryClient();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
@@ -56,7 +61,7 @@ export function useTalkX() {
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as TalkXCampaign[];
+      return (data ?? []) as unknown as TalkXCampaign[];
     },
   });
 
@@ -70,25 +75,26 @@ export function useTalkX() {
         .eq('campaign_id', selectedCampaignId)
         .order('created_at');
       if (error) throw error;
-      return data as TalkXRecipient[];
+      return (data ?? []) as unknown as TalkXRecipient[];
     },
     enabled: !!selectedCampaignId,
   });
 
   const createCampaign = useMutation({
-    mutationFn: async (campaign: Partial<TalkXCampaign>) => {
+    mutationFn: async (campaign: CampaignPayload) => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
         .single();
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await supabase
         .from('talkx_campaigns')
         .insert({ ...campaign, created_by: profile?.id } as any)
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return data as unknown as TalkXCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['talkx-campaigns'] });
@@ -98,7 +104,8 @@ export function useTalkX() {
   });
 
   const updateCampaign = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<TalkXCampaign> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: CampaignPayload & { id: string }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await supabase
         .from('talkx_campaigns')
         .update(updates as any)
@@ -106,7 +113,7 @@ export function useTalkX() {
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return data as unknown as TalkXCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['talkx-campaigns'] });
@@ -136,9 +143,13 @@ export function useTalkX() {
         campaign_id: campaignId,
         contact_id,
       }));
-      const { error } = await supabase.from('talkx_recipients').insert(rows as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase
+        .from('talkx_recipients')
+        .insert(rows as any);
       if (error) throw error;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await supabase
         .from('talkx_campaigns')
         .update({ total_recipients: contactIds.length } as any)
@@ -160,8 +171,9 @@ export function useTalkX() {
       queryClient.invalidateQueries({ queryKey: ['talkx-campaigns'] });
       toast.success('Campanha Talk X iniciada! 🚀');
       return data;
-    } catch (e: any) {
-      toast.error(`Erro ao iniciar: ${e.message}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
+      toast.error(`Erro ao iniciar: ${msg}`);
     }
   }, [queryClient]);
 
@@ -172,8 +184,9 @@ export function useTalkX() {
       });
       queryClient.invalidateQueries({ queryKey: ['talkx-campaigns'] });
       toast.info('Campanha pausada');
-    } catch (e: any) {
-      toast.error(`Erro ao pausar: ${e.message}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
+      toast.error(`Erro ao pausar: ${msg}`);
     }
   }, [queryClient]);
 
@@ -184,8 +197,9 @@ export function useTalkX() {
       });
       queryClient.invalidateQueries({ queryKey: ['talkx-campaigns'] });
       toast.info('Campanha cancelada');
-    } catch (e: any) {
-      toast.error(`Erro ao cancelar: ${e.message}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
+      toast.error(`Erro ao cancelar: ${msg}`);
     }
   }, [queryClient]);
 

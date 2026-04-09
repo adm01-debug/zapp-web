@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   ArrowLeft, Save, Users, Wand2, Eye, Clock, MessageSquare, Type, Search,
-  Image, FileText, Video, Music, X, CalendarClock
+  Image, FileText, Video, Music, X, CalendarClock, BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
@@ -31,11 +35,11 @@ interface Props {
 }
 
 const VARIABLES = [
-  { key: '{{nome}}', label: 'Primeiro Nome', desc: 'Ex: João' },
-  { key: '{{nome_completo}}', label: 'Nome Completo', desc: 'Ex: João Silva' },
-  { key: '{{apelido}}', label: 'Apelido', desc: 'Usa apelido ou primeiro nome' },
-  { key: '{{empresa}}', label: 'Empresa', desc: 'Ex: Acme Ltda' },
-  { key: '{{saudacao}}', label: 'Saudação', desc: 'Bom dia / Boa tarde / Boa noite' },
+  { key: '{{nome}}', label: 'Primeiro Nome', desc: 'Insere o primeiro nome do contato' },
+  { key: '{{nome_completo}}', label: 'Nome Completo', desc: 'Insere o nome completo do contato' },
+  { key: '{{apelido}}', label: 'Apelido', desc: 'Usa apelido se disponível, senão primeiro nome' },
+  { key: '{{empresa}}', label: 'Empresa', desc: 'Nome da empresa do contato' },
+  { key: '{{saudacao}}', label: 'Saudação', desc: 'Automático: Bom dia / Boa tarde / Boa noite' },
 ];
 
 const MEDIA_TYPES = [
@@ -45,18 +49,27 @@ const MEDIA_TYPES = [
   { value: 'audio', label: 'Áudio', icon: Music },
 ];
 
+const MESSAGE_TEMPLATES = [
+  { name: 'Saudação simples', template: '{{saudacao}}, {{nome}}! Tudo bem? 😊' },
+  { name: 'Promoção', template: '{{saudacao}}, {{nome}}! 🎉 Temos uma oferta especial para você! Entre em contato para saber mais.' },
+  { name: 'Follow-up', template: 'Oi, {{apelido}}! Passando para saber se conseguiu ver nossa última mensagem. Fico à disposição! 🙏' },
+  { name: 'Boas-vindas', template: '{{saudacao}}, {{nome}}! Seja muito bem-vindo(a) à {{empresa}}! Estamos felizes em ter você conosco. 🤝' },
+  { name: 'Lembrete', template: 'Oi, {{apelido}}! Só passando para lembrar sobre nosso compromisso. Qualquer dúvida, estou por aqui! 📌' },
+  { name: 'Agradecimento', template: '{{saudacao}}, {{nome}}! Muito obrigado pela confiança! Foi um prazer atender você. ⭐' },
+];
+
 export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const { createCampaign, updateCampaign, addRecipients } = useTalkX();
 
   const [name, setName] = useState(campaign?.name || '');
   const [messageTemplate, setMessageTemplate] = useState(campaign?.message_template || '');
   const [typingDelay, setTypingDelay] = useState([
-    ((campaign as any)?.typing_delay_min || 1500) / 1000,
-    ((campaign as any)?.typing_delay_max || 4000) / 1000,
+    (campaign?.typing_delay_min || 1500) / 1000,
+    (campaign?.typing_delay_max || 4000) / 1000,
   ]);
   const [sendInterval, setSendInterval] = useState([
-    ((campaign as any)?.send_interval_min || 5000) / 1000,
-    ((campaign as any)?.send_interval_max || 15000) / 1000,
+    (campaign?.send_interval_min || 5000) / 1000,
+    (campaign?.send_interval_max || 15000) / 1000,
   ]);
   const [connectionId, setConnectionId] = useState(campaign?.whatsapp_connection_id || '');
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
@@ -65,15 +78,15 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const [saving, setSaving] = useState(false);
 
   // Media state
-  const [mediaUrl, setMediaUrl] = useState((campaign as any)?.media_url || '');
-  const [mediaType, setMediaType] = useState((campaign as any)?.media_type || '');
-  const [hasMedia, setHasMedia] = useState(!!((campaign as any)?.media_url));
+  const [mediaUrl, setMediaUrl] = useState(campaign?.media_url || '');
+  const [mediaType, setMediaType] = useState(campaign?.media_type || '');
+  const [hasMedia, setHasMedia] = useState(!!campaign?.media_url);
 
   // Scheduling state
-  const [isScheduled, setIsScheduled] = useState(!!((campaign as any)?.scheduled_at));
+  const [isScheduled, setIsScheduled] = useState(!!campaign?.scheduled_at);
   const [scheduledAt, setScheduledAt] = useState(
-    (campaign as any)?.scheduled_at
-      ? new Date((campaign as any).scheduled_at).toISOString().slice(0, 16)
+    campaign?.scheduled_at
+      ? new Date(campaign.scheduled_at).toISOString().slice(0, 16)
       : ''
   );
 
@@ -134,7 +147,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload: any = {
+      const payload: Partial<TalkXCampaign> = {
         name,
         message_template: messageTemplate,
         typing_delay_min: Math.round(typingDelay[0] * 1000),
@@ -268,19 +281,45 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 items-center">
                 {VARIABLES.map((v) => (
-                  <Badge
-                    key={v.key}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
-                    onClick={() => insertVariable(v.key)}
-                    title={v.desc}
-                  >
-                    <Wand2 className="w-3 h-3 mr-1" />
-                    {v.label}
-                  </Badge>
+                  <Tooltip key={v.key}>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
+                        onClick={() => insertVariable(v.key)}
+                      >
+                        <Wand2 className="w-3 h-3 mr-1" />
+                        {v.label}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[200px]">
+                      <p className="font-mono text-[10px] text-primary mb-0.5">{v.key}</p>
+                      <p className="text-xs">{v.desc}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="ghost" className="h-6 gap-1 text-xs text-muted-foreground">
+                      <BookOpen className="w-3 h-3" />
+                      Templates
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-64">
+                    {MESSAGE_TEMPLATES.map((t) => (
+                      <DropdownMenuItem
+                        key={t.name}
+                        onClick={() => setMessageTemplate(t.template)}
+                        className="flex flex-col items-start gap-0.5"
+                      >
+                        <span className="font-medium text-xs">{t.name}</span>
+                        <span className="text-[10px] text-muted-foreground line-clamp-1">{t.template}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <Textarea
                 value={messageTemplate}
