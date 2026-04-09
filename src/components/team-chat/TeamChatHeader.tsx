@@ -122,7 +122,7 @@ export function TeamChatHeader({
           </Tooltip>
         )}
 
-        <VoiceSelector selectedVoiceId={voiceId} onVoiceChange={onVoiceChange} />
+        
         
 
         <DropdownMenu>

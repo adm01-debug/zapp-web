@@ -294,10 +294,6 @@ export function ChatPanelHeader({
           </Tooltip>
         )}
 
-        <VoiceSelector
-          selectedVoiceId={voiceId}
-          onVoiceChange={onVoiceChange}
-        />
 
 
         <DropdownMenu>
