@@ -446,8 +446,56 @@ export function ContactsView() {
   );
 }
 
-/** Skeleton loader */
+/** Skeleton loader for all view modes */
 function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode; gridColumns: number }) {
+  if (viewMode === 'kanban') {
+    return (
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {Array.from({ length: 4 }).map((_, col) => (
+          <div key={col} className="w-72 shrink-0 rounded-xl border border-border/30 p-3 space-y-3">
+            <div className="h-5 w-20 rounded bg-muted animate-pulse" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: (col * 3 + i) * 0.04 }}
+                className="rounded-lg border border-border/20 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+                  <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+                </div>
+                <div className="h-3 w-32 rounded bg-muted/50 animate-pulse" />
+              </motion.div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (viewMode === 'analytics') {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+            className="rounded-xl border border-border/30 p-5 space-y-4">
+            <div className="h-5 w-28 rounded bg-muted animate-pulse" />
+            <div className="h-40 rounded-lg bg-muted/40 animate-pulse" />
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  if (viewMode === 'map') {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        className="rounded-xl border border-border/30 h-[500px] bg-muted/20 animate-pulse flex items-center justify-center">
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-muted/50 animate-pulse mx-auto" />
+          <div className="h-4 w-32 rounded bg-muted/40 animate-pulse mx-auto" />
+        </div>
+      </motion.div>
+    );
+  }
+
   if (viewMode === 'grid') {
     return (
       <div className={cn("grid gap-4", GRID_COLUMNS_CLASS[gridColumns] || GRID_COLUMNS_CLASS[4])}>
@@ -468,6 +516,7 @@ function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode
       </div>
     );
   }
+
   if (viewMode === 'list') {
     return (
       <div className="space-y-2">
@@ -485,6 +534,8 @@ function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode
       </div>
     );
   }
+
+  // Table skeleton
   return (
     <Card><CardContent className="p-4 space-y-3">
       {Array.from({ length: 6 }).map((_, i) => (
