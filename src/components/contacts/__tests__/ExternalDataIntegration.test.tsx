@@ -246,7 +246,7 @@ describe('ContactForm — Cargo select logic', () => {
   });
 
   it('valid cargo passes through', () => {
-    const value = 'Gerente';
+    const value: string = 'Gerente';
     expect(value === '__none__' ? '' : value).toBe('Gerente');
   });
 });
