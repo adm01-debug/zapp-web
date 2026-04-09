@@ -165,6 +165,25 @@ export function ContactsView() {
     return () => window.removeEventListener('keydown', handler);
   }, [selectedIds.length, searchInput, clearSearch, setIsAddDialogOpen, setSelectedIds, handleSelectAll]);
 
+  // CSV Export
+  const handleExportCSV = useCallback(() => {
+    const esc = (v: string) => (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : v;
+    const headers = ['Nome','Sobrenome','Apelido','Telefone','Email','Empresa','Cargo','Tipo','Tags','Criado em'];
+    const csvRows = filteredContacts.map(c => [
+      esc(c.name), esc(c.surname||''), esc(c.nickname||''), esc(c.phone),
+      esc(c.email||''), esc(c.company||''), esc(c.job_title||''),
+      esc(c.contact_type||'cliente'), esc((c.tags||[]).join('; ')),
+      esc(format(new Date(c.created_at), 'dd/MM/yyyy', { locale: ptBR })),
+    ].join(','));
+    const csv = '\uFEFF' + [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `contatos_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`${filteredContacts.length} contatos exportados!`);
+  }, [filteredContacts]);
+
   return (
     <div ref={scrollContainerRef} className="p-6 space-y-5 overflow-y-auto h-full relative bg-background">
       <ScrollToTopButton scrollRef={scrollContainerRef} />
