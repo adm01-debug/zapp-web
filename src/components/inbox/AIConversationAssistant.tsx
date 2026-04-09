@@ -376,11 +376,11 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                         {customDateFrom ? format(customDateFrom, 'dd/MM/yyyy') : 'Selecionar'}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 z-[9999] pointer-events-auto" align="start" side="bottom" sideOffset={4}>
                       <CalendarComponent
                         mode="single"
                         selected={customDateFrom}
-                        onSelect={setCustomDateFrom}
+                        onSelect={(date) => { setCustomDateFrom(date); }}
                         locale={ptBR}
                         disabled={(date) => date > new Date() || (customDateTo ? date > customDateTo : false)}
                         initialFocus
@@ -398,11 +398,11 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                         {customDateTo ? format(customDateTo, 'dd/MM/yyyy') : 'Selecionar'}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
+                    <PopoverContent className="w-auto p-0 z-[9999] pointer-events-auto" align="end" side="bottom" sideOffset={4}>
                       <CalendarComponent
                         mode="single"
                         selected={customDateTo}
-                        onSelect={setCustomDateTo}
+                        onSelect={(date) => { setCustomDateTo(date); }}
                         locale={ptBR}
                         disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
                         initialFocus
