@@ -166,7 +166,36 @@ export default function TalkXView() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="campaigns" className="flex-1 overflow-auto mt-4">
+        <TabsContent value="campaigns" className="flex-1 overflow-auto mt-4 space-y-4">
+          {/* Search & Filter Bar */}
+          {campaigns.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar campanhas... (N para nova)"
+                  className="pl-9 h-9 text-sm"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[160px] h-9">
+                  <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos status</SelectItem>
+                  <SelectItem value="draft">Rascunho</SelectItem>
+                  <SelectItem value="sending">Enviando</SelectItem>
+                  <SelectItem value="paused">Pausada</SelectItem>
+                  <SelectItem value="completed">Concluída</SelectItem>
+                  <SelectItem value="cancelled">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="grid gap-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -205,10 +234,18 @@ export default function TalkXView() {
                 </Button>
               </CardContent>
             </Card>
+          ) : filteredCampaigns.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
+              <Search className="w-8 h-8 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">Nenhuma campanha encontrada</p>
+              <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}>
+                Limpar filtros
+              </Button>
+            </div>
           ) : (
             <div className="grid gap-3">
               <AnimatePresence mode="popLayout">
-                {campaigns.map((campaign) => (
+                {filteredCampaigns.map((campaign) => (
                   <TalkXCampaignCard
                     key={campaign.id}
                     campaign={campaign}
