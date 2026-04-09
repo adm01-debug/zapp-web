@@ -35,7 +35,7 @@ export function TalkXLiveMonitor({ campaignId }: Props) {
     if (data) setCampaign(data);
   }, [data]);
 
-  // Realtime updates
+  // Realtime updates for campaign AND recipients
   useEffect(() => {
     const channel = supabase
       .channel(`talkx-monitor-${campaignId}`)
@@ -44,6 +44,14 @@ export function TalkXLiveMonitor({ campaignId }: Props) {
         { event: 'UPDATE', schema: 'public', table: 'talkx_campaigns', filter: `id=eq.${campaignId}` },
         (payload) => {
           setCampaign(payload.new as TalkXCampaign);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'talkx_recipients', filter: `campaign_id=eq.${campaignId}` },
+        () => {
+          // Trigger recipients refetch via key change
+          setRecipientsKey((k) => k + 1);
         }
       )
       .subscribe();
