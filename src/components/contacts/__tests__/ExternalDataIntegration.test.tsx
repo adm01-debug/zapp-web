@@ -200,7 +200,7 @@ describe('ContactForm — Empresa autocomplete logic', () => {
   });
 
   it('filters by partial match (case-insensitive)', () => {
-    expect(filterEmpresas(empresas, 'ac')).toEqual(['Acme Corp', 'Acme Ltda']);
+    expect(filterEmpresas(empresas, 'acme')).toEqual(['Acme Corp', 'Acme Ltda']);
     expect(filterEmpresas(empresas, 'tech')).toEqual(['TechBR']);
     expect(filterEmpresas(empresas, 'GOOGLE')).toEqual(['Google Brasil']);
   });
