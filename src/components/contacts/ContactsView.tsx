@@ -405,6 +405,34 @@ export function ContactsView() {
             </Button>
           )}
 
+          <FilterPresets
+            currentFilters={{ type: activeTab, company: filterCompany, jobTitle: filterJobTitle, tag: filterTag, dateRange: filterDateRange }}
+            onApplyPreset={handleApplyPreset}
+          />
+
+          <Button
+            variant={groupByCompany ? "default" : "outline"}
+            size="sm"
+            onClick={() => setGroupByCompany(g => !g)}
+            className="gap-1.5"
+          >
+            <LayoutList className="w-4 h-4" />
+            Agrupar
+          </Button>
+
+          {selectedIds.length >= 2 && (
+            <>
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsCompareOpen(true)}>
+                <GitCompareArrows className="w-4 h-4" />
+                Comparar
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 text-primary" onClick={() => setIsMergeOpen(true)}>
+                <Merge className="w-4 h-4" />
+                Mesclar
+              </Button>
+            </>
+          )}
+
           <div className="ml-auto">
             <ContactViewSwitcher
               viewMode={viewMode}
