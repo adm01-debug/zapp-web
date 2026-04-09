@@ -163,7 +163,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         topics: data.topics || [],
         urgency: data.urgency || 'media',
         customer_satisfaction: data.customerSatisfaction || 3,
-        message_count: messages.length
+        message_count: filteredMessages.length
       });
 
       // Check for sentiment alert
