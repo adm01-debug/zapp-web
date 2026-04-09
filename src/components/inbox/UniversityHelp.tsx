@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -37,6 +37,8 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
   const [selectedTone, setSelectedTone] = useState<ToneKey>('friendly');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const responseRef = useRef<HTMLDivElement>(null);
+  const lastCallRef = useRef(0);
 
   // Filter out empty messages, show last 30 in reverse chronological order for display
   const recentMessages = useMemo(() => {
@@ -50,6 +52,13 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
   const selectedInOrder = useMemo(() => {
     return messages.filter(m => selectedIds.has(m.id));
   }, [messages, selectedIds]);
+
+  // Auto-scroll to response when generated
+  useEffect(() => {
+    if (response && responseRef.current) {
+      responseRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [response]);
 
   const toggleMessage = (id: string) => {
     setSelectedIds(prev => {
@@ -73,11 +82,25 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
     setSelectedIds(new Set(contactMsgs.map(m => m.id)));
   };
 
-  const generateResponse = async () => {
+  const selectAgentOnly = () => {
+    const agentMsgs = recentMessages.filter(m => m.sender === 'agent');
+    setSelectedIds(new Set(agentMsgs.map(m => m.id)));
+  };
+
+  const generateResponse = useCallback(async () => {
     if (selectedIds.size === 0) {
       toast.warning('Selecione pelo menos uma mensagem.');
       return;
     }
+
+    // Rate limit: min 3s between calls
+    const now = Date.now();
+    if (now - lastCallRef.current < 3000) {
+      toast.warning('Aguarde alguns segundos antes de tentar novamente.');
+      return;
+    }
+    lastCallRef.current = now;
+
     setLoading(true);
     setResponse(null);
     setError(null);
@@ -106,7 +129,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
       if (result.error) throw new Error(result.error.message || 'Erro na API');
 
       const content = result.data?.content || result.data?.choices?.[0]?.message?.content;
-      if (content) {
+      if (content && content.trim().length > 0) {
         setResponse(content.trim());
         toast.success('Resposta gerada com sucesso!');
       } else {
@@ -120,7 +143,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
     }
 
     setLoading(false);
-  };
+  }, [selectedIds, selectedInOrder, selectedTone]);
 
   const handleUse = () => {
     if (response) {
@@ -143,6 +166,18 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
     setError(null);
     generateResponse();
   };
+
+  // Keyboard shortcut: Ctrl+Enter to generate
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && selectedIds.size > 0 && !loading) {
+        e.preventDefault();
+        generateResponse();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [generateResponse, selectedIds.size, loading]);
 
   return (
     <div className="space-y-2.5">
@@ -173,13 +208,17 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
       </div>
 
       {/* Quick select buttons */}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 flex-wrap">
         <button type="button" onClick={selectAll} className="text-[10px] text-primary hover:underline">
           {selectedIds.size === recentMessages.length && recentMessages.length > 0 ? 'Desmarcar todos' : 'Todos'}
         </button>
         <span className="text-[10px] text-muted-foreground">•</span>
         <button type="button" onClick={selectContactOnly} className="text-[10px] text-primary hover:underline">
           Só cliente
+        </button>
+        <span className="text-[10px] text-muted-foreground">•</span>
+        <button type="button" onClick={selectAgentOnly} className="text-[10px] text-primary hover:underline">
+          Só atendente
         </button>
         {selectedIds.size > 0 && (
           <>
@@ -238,6 +277,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
         className="w-full h-8 text-xs"
         onClick={generateResponse}
         disabled={loading || selectedIds.size === 0}
+        title="Ctrl+Enter para gerar"
       >
         {loading ? (
           <>
@@ -251,6 +291,9 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
           </>
         )}
       </Button>
+      {selectedIds.size > 0 && !loading && (
+        <p className="text-[9px] text-muted-foreground text-center">Dica: Ctrl+Enter para gerar rapidamente</p>
+      )}
 
       {/* Error state */}
       {error && !response && (
@@ -260,7 +303,10 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
           className="flex items-start gap-1.5 p-2 rounded-lg bg-destructive/10 border border-destructive/20"
         >
           <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
-          <p className="text-[11px] text-destructive">{error}</p>
+          <div className="min-w-0">
+            <p className="text-[11px] text-destructive font-medium mb-0.5">Erro ao gerar resposta</p>
+            <p className="text-[10px] text-destructive/80">{error}</p>
+          </div>
         </motion.div>
       )}
 
@@ -268,6 +314,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
       <AnimatePresence>
         {response && (
           <motion.div
+            ref={responseRef}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
@@ -287,7 +334,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
                   disabled={loading}
                   title="Regenerar"
                 >
-                  <RefreshCw className="w-3 h-3" />
+                  {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                 </Button>
                 <Button
                   variant="ghost"

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldQuestion, GraduationCap, Loader2 } from 'lucide-react';
 
@@ -19,10 +19,19 @@ interface AIToolsPopoverProps {
   onSelectSuggestion?: (text: string) => void;
 }
 
+const LoadingFallback = () => (
+  <div className="flex flex-col items-center justify-center py-6 gap-2">
+    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+    <span className="text-[11px] text-muted-foreground">Carregando...</span>
+  </div>
+);
+
 export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectSuggestion }: AIToolsPopoverProps) {
+  const [activeTab, setActiveTab] = useState('objections');
+
   return (
     <div className="space-y-1">
-      <Tabs defaultValue="objections" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full h-9 bg-muted/50 p-0.5 rounded-lg mb-3">
           <TabsTrigger
             value="objections"
@@ -40,7 +49,7 @@ export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectS
           </TabsTrigger>
         </TabsList>
         <TabsContent value="objections" className="mt-0 focus-visible:outline-none">
-          <Suspense fallback={<div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>}>
+          <Suspense fallback={<LoadingFallback />}>
             <ObjectionDetector
               contactId={contactId}
               lastMessages={lastMessages}
@@ -49,7 +58,7 @@ export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectS
           </Suspense>
         </TabsContent>
         <TabsContent value="university" className="mt-0 focus-visible:outline-none">
-          <Suspense fallback={<div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>}>
+          <Suspense fallback={<LoadingFallback />}>
             <UniversityHelp
               contactId={contactId}
               messages={allMessages}
