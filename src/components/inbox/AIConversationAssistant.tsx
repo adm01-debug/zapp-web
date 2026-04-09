@@ -231,12 +231,15 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [activeTab, setActiveTab] = useState('resumo');
   const [analysisPeriod, setAnalysisPeriod] = useState<AnalysisPeriod>('7d');
 
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined);
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined);
+
   const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
   const filteredMessages = useMemo(
-    () => filterMessagesByPeriod(messages, analysisPeriod),
-    [messages, analysisPeriod]
+    () => filterMessagesByPeriod(messages, analysisPeriod, customDateFrom, customDateTo),
+    [messages, analysisPeriod, customDateFrom, customDateTo]
   );
 
   const canAnalyze = filteredMessages.length >= 5;
