@@ -247,9 +247,9 @@ Deno.serve(async (req) => {
         let sendResult: any;
 
         if (hasMedia) {
-          // 2a. Send media message
+          // 2a. Send media message with retry
           const mediaEndpoint = getMediaEndpoint(campaign.media_type);
-          sendResponse = await fetch(
+          sendResponse = await fetchWithRetry(
             `${evolutionUrl}/message/${mediaEndpoint}/${connection.instance_id}`,
             {
               method: "POST",
@@ -268,8 +268,8 @@ Deno.serve(async (req) => {
           );
           sendResult = await sendResponse.json();
         } else {
-          // 2b. Send text-only message
-          sendResponse = await fetch(
+          // 2b. Send text-only message with retry
+          sendResponse = await fetchWithRetry(
             `${evolutionUrl}/message/sendText/${connection.instance_id}`,
             {
               method: "POST",
