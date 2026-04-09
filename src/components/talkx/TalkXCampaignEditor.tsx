@@ -20,6 +20,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
@@ -31,11 +35,11 @@ interface Props {
 }
 
 const VARIABLES = [
-  { key: '{{nome}}', label: 'Primeiro Nome', desc: 'Ex: João' },
-  { key: '{{nome_completo}}', label: 'Nome Completo', desc: 'Ex: João Silva' },
-  { key: '{{apelido}}', label: 'Apelido', desc: 'Usa apelido ou primeiro nome' },
-  { key: '{{empresa}}', label: 'Empresa', desc: 'Ex: Acme Ltda' },
-  { key: '{{saudacao}}', label: 'Saudação', desc: 'Bom dia / Boa tarde / Boa noite' },
+  { key: '{{nome}}', label: 'Primeiro Nome', desc: 'Insere o primeiro nome do contato' },
+  { key: '{{nome_completo}}', label: 'Nome Completo', desc: 'Insere o nome completo do contato' },
+  { key: '{{apelido}}', label: 'Apelido', desc: 'Usa apelido se disponível, senão primeiro nome' },
+  { key: '{{empresa}}', label: 'Empresa', desc: 'Nome da empresa do contato' },
+  { key: '{{saudacao}}', label: 'Saudação', desc: 'Automático: Bom dia / Boa tarde / Boa noite' },
 ];
 
 const MEDIA_TYPES = [
@@ -43,6 +47,15 @@ const MEDIA_TYPES = [
   { value: 'video', label: 'Vídeo', icon: Video },
   { value: 'document', label: 'Documento', icon: FileText },
   { value: 'audio', label: 'Áudio', icon: Music },
+];
+
+const MESSAGE_TEMPLATES = [
+  { name: 'Saudação simples', template: '{{saudacao}}, {{nome}}! Tudo bem? 😊' },
+  { name: 'Promoção', template: '{{saudacao}}, {{nome}}! 🎉 Temos uma oferta especial para você! Entre em contato para saber mais.' },
+  { name: 'Follow-up', template: 'Oi, {{apelido}}! Passando para saber se conseguiu ver nossa última mensagem. Fico à disposição! 🙏' },
+  { name: 'Boas-vindas', template: '{{saudacao}}, {{nome}}! Seja muito bem-vindo(a) à {{empresa}}! Estamos felizes em ter você conosco. 🤝' },
+  { name: 'Lembrete', template: 'Oi, {{apelido}}! Só passando para lembrar sobre nosso compromisso. Qualquer dúvida, estou por aqui! 📌' },
+  { name: 'Agradecimento', template: '{{saudacao}}, {{nome}}! Muito obrigado pela confiança! Foi um prazer atender você. ⭐' },
 ];
 
 export function TalkXCampaignEditor({ campaign, onClose }: Props) {
