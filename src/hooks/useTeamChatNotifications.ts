@@ -145,7 +145,7 @@ export function useTeamChatNotifications(activeConversationId: string | null) {
             : msg.content.slice(0, 100);
 
           await showNotification({
-            title: `💬 Chat Interno: ${senderName}`,
+            title: `💬 Teams: ${senderName}`,
             body,
             tag: `team-msg-${msg.conversation_id}`,
             data: {

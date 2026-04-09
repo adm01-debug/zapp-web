@@ -52,7 +52,7 @@ import type { NavItemConfig } from './SidebarNavItem';
 // ── Primary (always visible) ──────────────────────────────
 export const primaryNav: readonly NavItemConfig[] = [
   { id: 'inbox', icon: MessageSquare, label: 'Chat' },
-  { id: 'team-chat', icon: MessagesSquare, label: 'Chat Interno' },
+  { id: 'team-chat', icon: MessagesSquare, label: 'Teams' },
   { id: 'email-chat', icon: Mail, label: 'Email' },
   { id: 'contacts', icon: User, label: 'Contatos' },
   { id: 'groups', icon: UsersRound, label: 'Grupos' },
