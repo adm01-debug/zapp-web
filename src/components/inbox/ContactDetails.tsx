@@ -5,7 +5,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image } from 'lucide-react';
+import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image, ListTodo, Bell, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -19,6 +19,10 @@ import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
 import { ContactIntelligencePanel } from './contact-details/ContactIntelligencePanel';
 import { WhatsAppStatusSection } from './contact-details/WhatsAppStatusSection';
+import { ConversationTasksPanel } from './ConversationTasksPanel';
+import { RemindersPanel } from './RemindersPanel';
+import { ConversationMemoryPanel } from './ConversationMemoryPanel';
+import { useConversationActions } from '@/hooks/useConversationActions';
 
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
@@ -63,6 +67,7 @@ const sectionVariants = {
 export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
   const { contact } = conversation;
   const { enrichedData, aiTags, slaInfo } = useContactEnrichedData(contact.id);
+  const { profileId } = useConversationActions();
   const panelRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showCompactHeader, setShowCompactHeader] = useState(false);
@@ -349,6 +354,51 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
             </AccordionItem>
           </motion.div>
 
+
+          {/* Tarefas */}
+          <motion.div custom={5.5} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="tasks" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <ListTodo className="w-3.5 h-3.5 text-primary" />
+                  Tarefas
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ConversationTasksPanel contactId={contact.id} profileId={profileId} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
+          {/* Lembretes */}
+          <motion.div custom={5.7} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="reminders" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-3.5 h-3.5 text-primary" />
+                  Lembretes
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <RemindersPanel contactId={contact.id} profileId={profileId} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
+          {/* Memória da Conversa */}
+          <motion.div custom={5.9} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="memory" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-3.5 h-3.5 text-primary" />
+                  Memória Viva
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ConversationMemoryPanel contactId={contact.id} profileId={profileId} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
 
           {/* Notas Privadas */}
           <motion.div custom={6} initial="hidden" animate="visible" variants={sectionVariants}>
