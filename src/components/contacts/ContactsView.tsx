@@ -448,9 +448,25 @@ export function ContactsView() {
       </motion.div>
 
       {/* Results Summary */}
-      {!loading && (
+      {!loading && filteredContacts.length > 0 && (
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={handleSelectAll}
+            >
+              <Checkbox
+                checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
+                onCheckedChange={() => handleSelectAll()}
+                className="w-3.5 h-3.5"
+              />
+              {selectedIds.length > 0
+                ? `${selectedIds.length} selecionado${selectedIds.length !== 1 ? 's' : ''}`
+                : 'Selecionar todos'}
+            </Button>
+            <span className="text-muted-foreground/60">|</span>
             <span>
               Exibindo <span className="font-semibold text-foreground">{filteredContacts.length}</span>
               {filteredContacts.length < totalCount && (
@@ -465,7 +481,17 @@ export function ContactsView() {
               </Badge>
             )}
           </div>
-          {search && <span className="text-xs italic">Buscando por "{search}"</span>}
+          <div className="flex items-center gap-3">
+            {search && <span className="text-xs italic">Buscando por "{search}"</span>}
+            <div className="hidden lg:flex items-center gap-2 text-[10px] text-muted-foreground/50">
+              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Ctrl+N</kbd>
+              <span>Novo</span>
+              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Ctrl+A</kbd>
+              <span>Selecionar</span>
+              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Esc</kbd>
+              <span>Limpar</span>
+            </div>
+          </div>
         </div>
       )}
 
