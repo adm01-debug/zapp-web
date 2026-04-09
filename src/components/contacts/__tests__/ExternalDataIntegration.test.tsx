@@ -222,7 +222,7 @@ describe('ContactForm — Empresa autocomplete logic', () => {
   });
 
   it('filters with 1 char', () => {
-    expect(filterEmpresas(empresas, 'A')).toEqual(['Acme Corp', 'Acme Ltda']);
+    expect(filterEmpresas(empresas, 'T')).toEqual(['TechBR']);
   });
 
   it('filters by partial match (case-insensitive)', () => {
