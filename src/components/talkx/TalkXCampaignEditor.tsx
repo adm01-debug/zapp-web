@@ -181,7 +181,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
                   <SelectContent>
                     {connections?.map((conn) => (
                       <SelectItem key={conn.id} value={conn.id}>
-                        {conn.instance_name} ({conn.phone_number || 'Sem número'})
+                        {conn.name} ({conn.phone_number || 'Sem número'})
                       </SelectItem>
                     ))}
                   </SelectContent>
