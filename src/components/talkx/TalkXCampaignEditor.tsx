@@ -134,7 +134,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload: any = {
+      const payload: Partial<TalkXCampaign> = {
         name,
         message_template: messageTemplate,
         typing_delay_min: Math.round(typingDelay[0] * 1000),
