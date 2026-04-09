@@ -1,19 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Search, Tag, Filter, SortAsc, X, CalendarDays, Building, Briefcase,
+  Tag, Filter, SortAsc, X, CalendarDays, Building, Briefcase,
   GitCompareArrows, Merge, LayoutList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ContactViewSwitcher, type ContactViewMode } from './ContactViewSwitcher';
 import { FilterPresets, type FilterPreset } from './FilterPresets';
+import { ContactSearchWithSuggestions } from './ContactSearchWithSuggestions';
 
 const DATE_FILTERS = [
   { value: 'all', label: 'Todos os períodos' },
