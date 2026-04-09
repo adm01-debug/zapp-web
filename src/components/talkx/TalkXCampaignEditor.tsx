@@ -51,12 +51,12 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const [name, setName] = useState(campaign?.name || '');
   const [messageTemplate, setMessageTemplate] = useState(campaign?.message_template || '');
   const [typingDelay, setTypingDelay] = useState([
-    ((campaign as any)?.typing_delay_min || 1500) / 1000,
-    ((campaign as any)?.typing_delay_max || 4000) / 1000,
+    (campaign?.typing_delay_min || 1500) / 1000,
+    (campaign?.typing_delay_max || 4000) / 1000,
   ]);
   const [sendInterval, setSendInterval] = useState([
-    ((campaign as any)?.send_interval_min || 5000) / 1000,
-    ((campaign as any)?.send_interval_max || 15000) / 1000,
+    (campaign?.send_interval_min || 5000) / 1000,
+    (campaign?.send_interval_max || 15000) / 1000,
   ]);
   const [connectionId, setConnectionId] = useState(campaign?.whatsapp_connection_id || '');
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
@@ -65,15 +65,15 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const [saving, setSaving] = useState(false);
 
   // Media state
-  const [mediaUrl, setMediaUrl] = useState((campaign as any)?.media_url || '');
-  const [mediaType, setMediaType] = useState((campaign as any)?.media_type || '');
-  const [hasMedia, setHasMedia] = useState(!!((campaign as any)?.media_url));
+  const [mediaUrl, setMediaUrl] = useState(campaign?.media_url || '');
+  const [mediaType, setMediaType] = useState(campaign?.media_type || '');
+  const [hasMedia, setHasMedia] = useState(!!campaign?.media_url);
 
   // Scheduling state
-  const [isScheduled, setIsScheduled] = useState(!!((campaign as any)?.scheduled_at));
+  const [isScheduled, setIsScheduled] = useState(!!campaign?.scheduled_at);
   const [scheduledAt, setScheduledAt] = useState(
-    (campaign as any)?.scheduled_at
-      ? new Date((campaign as any).scheduled_at).toISOString().slice(0, 16)
+    campaign?.scheduled_at
+      ? new Date(campaign.scheduled_at).toISOString().slice(0, 16)
       : ''
   );
 
