@@ -42,6 +42,8 @@ import { useContactsCRUD } from './useContactsCRUD';
 import { ContactsTable, CONTACT_TYPE_ICONS } from './ContactsTable';
 import { ContactCard } from './ContactCard';
 import { ContactListItem } from './ContactListItem';
+import { ContactStatsCards } from './ContactStatsCards';
+import { ContactQuickPeek } from './ContactQuickPeek';
 import { ContactViewSwitcher, type ContactViewMode } from './ContactViewSwitcher';
 
 // Date filter options
@@ -251,6 +253,14 @@ export function ContactsView() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Stats Cards */}
+      <ContactStatsCards
+        totalCount={totalCount}
+        contactCountByType={contactCountByType}
+        uniqueCompanies={uniqueCompanies}
+        contacts={filteredContacts}
+      />
+
       {/* Type Tabs */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -457,6 +467,7 @@ export function ContactsView() {
               index={index}
               companyLogo={getCRMData(contact.phone)?.logo_url}
               companyName={getCRMData(contact.phone)?.company_name}
+              searchQuery={search}
             />
           ))}
         </div>
@@ -474,6 +485,7 @@ export function ContactsView() {
               index={index}
               companyLogo={getCRMData(contact.phone)?.logo_url}
               companyName={getCRMData(contact.phone)?.company_name}
+              searchQuery={search}
             />
           ))}
         </div>
@@ -494,21 +506,55 @@ export function ContactsView() {
       )}
 
       {/* Pagination */}
-      {totalCount > pageSize && (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
-            Página {page + 1} de {Math.ceil(totalCount / pageSize)}
-          </span>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={loadPrevious} disabled={page === 0 || loading}>
-              <ChevronLeft className="w-4 h-4 mr-1" />Anterior
-            </Button>
-            <Button variant="outline" size="sm" onClick={loadMore} disabled={!hasMore || loading}>
-              Próxima<ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+      {totalCount > pageSize && (() => {
+        const totalPages = Math.ceil(totalCount / pageSize);
+        const currentPage = page + 1;
+        const getPageNumbers = () => {
+          const pages: (number | 'ellipsis')[] = [];
+          if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+          } else {
+            pages.push(1);
+            if (currentPage > 3) pages.push('ellipsis');
+            for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+            if (currentPage < totalPages - 2) pages.push('ellipsis');
+            pages.push(totalPages);
+          }
+          return pages;
+        };
+        return (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              Página <span className="font-semibold text-foreground">{currentPage}</span> de{' '}
+              <span className="font-semibold text-foreground">{totalPages}</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="icon" className="w-8 h-8" onClick={loadPrevious} disabled={page === 0 || loading}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              {getPageNumbers().map((p, i) =>
+                p === 'ellipsis' ? (
+                  <span key={`e${i}`} className="px-1 text-muted-foreground">…</span>
+                ) : (
+                  <Button
+                    key={p}
+                    variant={p === currentPage ? 'default' : 'outline'}
+                    size="icon"
+                    className={cn("w-8 h-8 text-xs", p === currentPage && "bg-primary text-primary-foreground")}
+                    onClick={() => setPage(p - 1)}
+                    disabled={loading}
+                  >
+                    {p}
+                  </Button>
+                )
+              )}
+              <Button variant="outline" size="icon" className="w-8 h-8" onClick={loadMore} disabled={!hasMore || loading}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* CRM 360° Dialog */}
       {isExternalConfigured && (
@@ -577,27 +623,33 @@ export function ContactsView() {
   );
 }
 
-/** Skeleton loader that adapts to the current view mode */
+/** Skeleton loader that adapts to the current view mode with staggered animations */
 function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode; gridColumns: number }) {
   if (viewMode === 'grid') {
     return (
       <div className={cn("grid gap-4", GRID_COLUMNS_CLASS[gridColumns] || GRID_COLUMNS_CLASS[4])}>
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="rounded-2xl border border-border/30 p-5 animate-pulse space-y-4">
-            <div className="h-1 w-full rounded bg-muted/60" />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06, duration: 0.3 }}
+            className="rounded-2xl border border-border/30 p-5 space-y-4"
+          >
+            <div className="h-1 w-full rounded bg-muted/60 animate-pulse" />
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-muted" />
+              <div className="w-12 h-12 rounded-full bg-muted animate-pulse" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-24 rounded bg-muted" />
-                <div className="h-3 w-16 rounded bg-muted/60" />
+                <div className="h-4 w-24 rounded bg-muted animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                <div className="h-3 w-16 rounded bg-muted/60 animate-pulse" style={{ animationDelay: `${i * 100 + 50}ms` }} />
               </div>
             </div>
-            <div className="h-12 rounded-xl bg-muted/40" />
+            <div className="h-12 rounded-xl bg-muted/40 animate-pulse" style={{ animationDelay: `${i * 100 + 100}ms` }} />
             <div className="space-y-1.5">
-              <div className="h-3 w-32 rounded bg-muted/40" />
-              <div className="h-3 w-40 rounded bg-muted/30" />
+              <div className="h-3 w-32 rounded bg-muted/40 animate-pulse" style={{ animationDelay: `${i * 100 + 150}ms` }} />
+              <div className="h-3 w-40 rounded bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 100 + 200}ms` }} />
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     );
@@ -607,16 +659,22 @@ function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode
     return (
       <div className="space-y-2">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border/30 animate-pulse">
-            <div className="w-4 h-4 rounded bg-muted" />
-            <div className="w-11 h-11 rounded-full bg-muted" />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.25 }}
+            className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border/30"
+          >
+            <div className="w-4 h-4 rounded bg-muted animate-pulse" />
+            <div className="w-11 h-11 rounded-full bg-muted animate-pulse" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-32 rounded bg-muted" />
-              <div className="h-3 w-24 rounded bg-muted/50" />
+              <div className="h-4 w-32 rounded bg-muted animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+              <div className="h-3 w-24 rounded bg-muted/50 animate-pulse" style={{ animationDelay: `${i * 80 + 50}ms` }} />
             </div>
-            <div className="h-3 w-28 rounded bg-muted/40" />
-            <div className="h-3 w-20 rounded bg-muted/30" />
-          </div>
+            <div className="h-3 w-28 rounded bg-muted/40 animate-pulse" />
+            <div className="h-3 w-20 rounded bg-muted/30 animate-pulse" />
+          </motion.div>
         ))}
       </div>
     );
@@ -626,15 +684,21 @@ function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode
     <Card>
       <CardContent className="p-4 space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4 p-3 animate-pulse">
-            <div className="w-9 h-9 rounded-full bg-muted" />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: i * 0.05 }}
+            className="flex items-center gap-4 p-3"
+          >
+            <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-32 rounded bg-muted" />
-              <div className="h-3 w-24 rounded bg-muted/60" />
+              <div className="h-4 w-32 rounded bg-muted animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+              <div className="h-3 w-24 rounded bg-muted/60 animate-pulse" style={{ animationDelay: `${i * 80 + 50}ms` }} />
             </div>
-            <div className="h-5 w-16 rounded-full bg-muted/40" />
-            <div className="h-3 w-28 rounded bg-muted/40" />
-          </div>
+            <div className="h-5 w-16 rounded-full bg-muted/40 animate-pulse" />
+            <div className="h-3 w-28 rounded bg-muted/40 animate-pulse" />
+          </motion.div>
         ))}
       </CardContent>
     </Card>

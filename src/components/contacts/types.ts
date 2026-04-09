@@ -23,4 +23,5 @@ export interface ContactItemProps {
   index: number;
   companyLogo?: string | null;
   companyName?: string | null;
+  searchQuery?: string;
 }
