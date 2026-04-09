@@ -56,6 +56,11 @@ export default function TalkXView() {
   }, [showEditor]);
 
   useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  useEffect(() => {
     const channel = supabase
       .channel('talkx-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'talkx_campaigns' }, () => {
