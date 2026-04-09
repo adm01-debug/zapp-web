@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { TypingIndicatorCompact } from '../TypingIndicator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SLAIndicator } from '../SLAIndicator';
-import { VoiceSelector } from '../VoiceSelector';
 import { lazy, Suspense } from 'react';
 
 import {
