@@ -346,16 +346,37 @@ export function ContactsView() {
         contacts={filteredContacts.filter(c => selectedIds.includes(c.id))}
       />
 
-      {/* Stats Cards */}
-      <ContactStatsCards
+      {/* Bulk Tag Dialog */}
+      <ContactBulkTagDialog
+        open={isBulkTagOpen}
+        onOpenChange={setIsBulkTagOpen}
+        contactIds={selectedIds}
+        allTags={uniqueTags}
+        onComplete={() => { setSelectedIds([]); refetch(); }}
+      />
+
+      {/* Birthday Panel + Stats Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3">
+          <ContactStatsCards
         totalCount={totalCount}
         contactCountByType={contactCountByType}
         uniqueCompanies={uniqueCompanies}
-        contacts={filteredContacts}
-      />
-
-      {/* Type Tabs */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            contacts={filteredContacts}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <ContactBirthdayPanel
+            contacts={filteredContacts.map(c => ({
+              id: c.id,
+              name: c.name,
+              avatar_url: c.avatar_url,
+              birthday: (c as Record<string, unknown>).birthday as string | null | undefined,
+            }))}
+            onContactClick={openContactChat}
+          />
+        </div>
+      </div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
             <TabsTrigger value="all" className="data-[state=active]:bg-background flex items-center gap-2">
