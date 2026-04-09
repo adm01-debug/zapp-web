@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldQuestion, GraduationCap, Loader2 } from 'lucide-react';
+import { SectionErrorBoundary } from '@/components/ui/section-error-boundary';
 
 const ObjectionDetector = lazy(() => import('./ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
 const UniversityHelp = lazy(() => import('./UniversityHelp').then(m => ({ default: m.UniversityHelp })));
@@ -49,22 +50,26 @@ export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectS
           </TabsTrigger>
         </TabsList>
         <TabsContent value="objections" className="mt-0 focus-visible:outline-none">
-          <Suspense fallback={<LoadingFallback />}>
-            <ObjectionDetector
-              contactId={contactId}
-              lastMessages={lastMessages}
-              onSelectSuggestion={onSelectSuggestion}
-            />
-          </Suspense>
+          <SectionErrorBoundary sectionName="Detector de Objeções">
+            <Suspense fallback={<LoadingFallback />}>
+              <ObjectionDetector
+                contactId={contactId}
+                lastMessages={lastMessages}
+                onSelectSuggestion={onSelectSuggestion}
+              />
+            </Suspense>
+          </SectionErrorBoundary>
         </TabsContent>
         <TabsContent value="university" className="mt-0 focus-visible:outline-none">
-          <Suspense fallback={<LoadingFallback />}>
-            <UniversityHelp
-              contactId={contactId}
-              messages={allMessages}
-              onSelectSuggestion={onSelectSuggestion}
-            />
-          </Suspense>
+          <SectionErrorBoundary sectionName="Ajuda Universitários">
+            <Suspense fallback={<LoadingFallback />}>
+              <UniversityHelp
+                contactId={contactId}
+                messages={allMessages}
+                onSelectSuggestion={onSelectSuggestion}
+              />
+            </Suspense>
+          </SectionErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>
