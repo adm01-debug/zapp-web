@@ -190,11 +190,12 @@ export function ChatPanelHeader({
             </TooltipTrigger>
             <TooltipContent side="bottom">Detectar objeções</TooltipContent>
           </Tooltip>
-          <PopoverContent side="bottom" align="end" className="w-80 p-3">
+          <PopoverContent side="bottom" align="end" className="w-96 p-3">
             <Suspense fallback={null}>
-              <ObjectionDetector
+              <AIToolsPopover
                 contactId={conversation.contact.id}
                 lastMessages={lastMessages}
+                allMessages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
               />
             </Suspense>
