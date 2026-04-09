@@ -241,7 +241,11 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
     return messages.filter(m => m.content?.toLowerCase().includes(q));
   }, [messages, searchQuery]);
 
-  const dateGroups = useMemo(() => new Set<string>(), [filteredMessages]);
+  // Track which dates have been rendered for separators
+  const dateGroupsRef = useRef(new Set<string>());
+  // Reset when messages change
+  useMemo(() => { dateGroupsRef.current = new Set<string>(); }, [filteredMessages]);
+  const dateGroups = dateGroupsRef.current;
 
   return (
     <div className="flex flex-col h-full w-full relative">
