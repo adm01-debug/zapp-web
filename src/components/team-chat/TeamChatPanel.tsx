@@ -90,8 +90,8 @@ const MediaTypeIcon = memo(function MediaTypeIcon({ type }: { type: string | nul
     case 'audio_meme': return <Music className="w-3 h-3" />;
     case 'document': return <FileText className="w-3 h-3" />;
     default: return null;
+  }
 });
-}
 
 export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetails }: Props) {
   const { profile } = useAuth();
