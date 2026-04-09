@@ -487,6 +487,7 @@ export function ContactsView() {
               onOpenChat={openContactChat}
               onEdit={openEditDialog}
               onDelete={setDeleteTarget}
+              getCRMData={getCRMData}
             />
           </CardContent>
         </Card>
