@@ -54,12 +54,30 @@ export default function TalkXView() {
 
   const handleNewCampaign = () => {
     setEditingCampaign(null);
-    setShowEditor(true);
+    setShowEditor(false);
+    setTimeout(() => setShowEditor(true), 0);
   };
 
   const handleEditCampaign = (campaign: TalkXCampaign) => {
     setEditingCampaign(campaign);
     setShowEditor(true);
+  };
+
+  const handleDuplicateCampaign = async (campaign: TalkXCampaign) => {
+    try {
+      await createCampaign.mutateAsync({
+        name: `${campaign.name} (cópia)`,
+        message_template: campaign.message_template,
+        typing_delay_min: campaign.typing_delay_min,
+        typing_delay_max: campaign.typing_delay_max,
+        send_interval_min: campaign.send_interval_min,
+        send_interval_max: campaign.send_interval_max,
+        whatsapp_connection_id: campaign.whatsapp_connection_id,
+      });
+      toast.success('Campanha duplicada!');
+    } catch {
+      toast.error('Erro ao duplicar campanha');
+    }
   };
 
   const handleViewCampaign = (campaign: TalkXCampaign) => {
