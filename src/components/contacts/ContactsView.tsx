@@ -52,6 +52,9 @@ import { ContactMergeDialog } from './ContactMergeDialog';
 import { ContactGroupedList } from './ContactGroupedList';
 import { ContactCompareDialog } from './ContactCompareDialog';
 import { FilterPresets, type FilterPreset } from './FilterPresets';
+import { ContactBulkTagDialog } from './ContactBulkTagDialog';
+import { ContactMapView } from './ContactMapView';
+import { ContactBirthdayPanel } from './ContactBirthdayPanel';
 
 // Date filter options
 const DATE_FILTERS = [
@@ -111,6 +114,7 @@ export function ContactsView() {
   const [isMergeOpen, setIsMergeOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [groupByCompany, setGroupByCompany] = useState(false);
+  const [isBulkTagOpen, setIsBulkTagOpen] = useState(false);
 
   const handleApplyPreset = useCallback((preset: FilterPreset) => {
     if (preset.filters.type) setActiveTab(preset.filters.type);
