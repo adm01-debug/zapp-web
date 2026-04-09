@@ -31,20 +31,37 @@ Deno.serve(async (req) => {
       return errorResponse("Audio file too large (max 25MB)", 400, req);
     }
 
-    const audioBlob = await audioResponse.blob();
-    if (audioBlob.size > MAX_AUDIO_SIZE) {
+    const audioBuffer = await audioResponse.arrayBuffer();
+    if (audioBuffer.byteLength > MAX_AUDIO_SIZE) {
       return errorResponse("Audio file too large (max 25MB)", 400, req);
     }
 
-    log.info("Audio downloaded", { size: audioBlob.size, type: audioBlob.type });
-
-    // Determine file extension
+    // Determine correct MIME type and file extension
+    const contentType = audioResponse.headers.get('content-type') || '';
+    let mimeType = 'audio/mpeg';
     let fileName = 'audio.mp3';
-    const contentType = audioBlob.type || '';
-    if (contentType.includes('ogg') || audioUrl.includes('.ogg')) fileName = 'audio.ogg';
-    else if (contentType.includes('webm') || audioUrl.includes('.webm')) fileName = 'audio.webm';
-    else if (contentType.includes('wav') || audioUrl.includes('.wav')) fileName = 'audio.wav';
-    else if (contentType.includes('m4a') || audioUrl.includes('.m4a')) fileName = 'audio.m4a';
+
+    if (contentType.includes('ogg') || audioUrl.includes('.ogg')) {
+      mimeType = 'audio/ogg';
+      fileName = 'audio.ogg';
+    } else if (contentType.includes('webm') || audioUrl.includes('.webm')) {
+      mimeType = 'audio/webm';
+      fileName = 'audio.webm';
+    } else if (contentType.includes('wav') || audioUrl.includes('.wav')) {
+      mimeType = 'audio/wav';
+      fileName = 'audio.wav';
+    } else if (contentType.includes('m4a') || contentType.includes('mp4') || audioUrl.includes('.m4a')) {
+      mimeType = 'audio/mp4';
+      fileName = 'audio.m4a';
+    } else if (contentType.includes('mpeg') || audioUrl.includes('.mp3')) {
+      mimeType = 'audio/mpeg';
+      fileName = 'audio.mp3';
+    }
+
+    // Create blob with explicit MIME type
+    const audioBlob = new Blob([audioBuffer], { type: mimeType });
+
+    log.info("Audio downloaded", { size: audioBlob.size, type: mimeType, originalType: contentType });
 
     const formData = new FormData();
     formData.append('file', audioBlob, fileName);
@@ -64,6 +81,20 @@ Deno.serve(async (req) => {
       log.error("ElevenLabs STT error", { status: response.status, detail: errorText.substring(0, 300) });
       if (response.status === 429) return errorResponse("Rate limit exceeded.", 429, req);
       if (response.status === 401) return errorResponse("Invalid ElevenLabs API key.", 401, req);
+      
+      // Return graceful fallback for corrupted/invalid audio instead of 500
+      if (response.status === 400) {
+        return jsonResponse({
+          transcription: '',
+          messageId,
+          words: [],
+          audio_events: [],
+          speakers: [],
+          fallback: true,
+          error: 'INVALID_AUDIO',
+          errorMessage: 'Não foi possível transcrever este áudio. O formato pode não ser suportado.',
+        }, 200, req);
+      }
       return errorResponse("Failed to transcribe audio", 500, req);
     }
 
