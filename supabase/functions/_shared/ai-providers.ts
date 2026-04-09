@@ -95,6 +95,8 @@ export async function withRetry(
       const response = await fn();
       // Only retry on 5xx (server errors), not 4xx (client errors)
       if (response.status >= 500 && attempt < maxRetries) {
+        // Consume body to prevent resource leak before retrying
+        try { await response.text(); } catch { /* ignore */ }
         await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt)));
         continue;
       }

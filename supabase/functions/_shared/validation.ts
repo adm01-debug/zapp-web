@@ -131,14 +131,25 @@ export function isValidUUID(value: unknown): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
-/** In-memory rate limiter (per-isolate, resets on cold start) */
+/** In-memory rate limiter (per-isolate, resets on cold start) with auto-cleanup */
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+let lastCleanup = Date.now();
+
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  if (now - lastCleanup < 60_000) return; // Cleanup at most once per minute
+  lastCleanup = now;
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(key);
+  }
+}
 
 export function checkRateLimit(
   key: string,
   maxRequests = 30,
   windowMs = 60_000
 ): { allowed: boolean; remaining: number } {
+  cleanupRateLimitMap();
   const now = Date.now();
   const entry = rateLimitMap.get(key);
 
