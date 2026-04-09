@@ -28,6 +28,8 @@ import { ptBR } from 'date-fns/locale';
 import { useUserRole, AppRole } from '@/hooks/useUserRole';
 import { ForceLogoutButton } from './ForceLogoutButton';
 import { AdminCRMDashboard } from './AdminCRMDashboard';
+import { PlaybooksManager } from './PlaybooksManager';
+import { SupervisorCopilot } from './SupervisorCopilot';
 import { useAdminData, accessLevelConfig, type UserWithRole } from './useAdminData';
 
 const roleIconMap = { admin: Crown, supervisor: UserCog, agent: User, special_agent: Eye } as const;
@@ -36,7 +38,7 @@ const roleColorMap = { admin: 'text-warning', supervisor: 'text-info', agent: 't
 
 export function AdminView() {
   const { isAdmin, isSupervisor, loading: roleLoading } = useUserRole();
-  const [activeTab, setActiveTab] = useState<'users' | 'audit' | 'crm'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'audit' | 'crm' | 'playbooks' | 'copilot'>('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -140,8 +142,8 @@ export function AdminView() {
 
       {/* Tabs */}
       <div className="flex gap-2">
-        {([['users', Users, `Usuários (${users.length})`], ['audit', History, 'Auditoria'], ['crm', Building, 'CRM 360°']] as const).map(([tab, Icon, label]) => (
-          <Button key={tab} variant={activeTab === tab ? 'default' : 'outline'} onClick={() => setActiveTab(tab as 'users' | 'audit' | 'crm')}
+        {([['users', Users, `Usuários (${users.length})`], ['audit', History, 'Auditoria'], ['crm', Building, 'CRM 360°'], ['playbooks', Shield, 'Playbooks'], ['copilot', Brain, 'Copilot IA']] as const).map(([tab, Icon, label]) => (
+          <Button key={tab} variant={activeTab === tab ? 'default' : 'outline'} onClick={() => setActiveTab(tab as typeof activeTab)}
             className={activeTab === tab ? 'bg-whatsapp hover:bg-whatsapp-dark' : ''}>
             <Icon className="w-4 h-4 mr-2" /> {label}
           </Button>
@@ -430,6 +432,10 @@ export function AdminView() {
         </Card>
       ) : activeTab === 'crm' ? (
         <AdminCRMDashboard />
+      ) : activeTab === 'playbooks' ? (
+        <PlaybooksManager />
+      ) : activeTab === 'copilot' ? (
+        <SupervisorCopilot />
       ) : null}
     </div>
   );
