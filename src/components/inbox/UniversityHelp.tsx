@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, Loader2, Sparkles, Copy, Check } from 'lucide-react';
+import { GraduationCap, Loader2, Sparkles, Copy, Check, RefreshCw, AlertTriangle, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 
 const TONE_OPTIONS = [
   { key: 'professional', label: '💼 Formal', prompt: 'Use tom formal, profissional e corporativo.' },
@@ -35,8 +36,20 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
   const [response, setResponse] = useState<string | null>(null);
   const [selectedTone, setSelectedTone] = useState<ToneKey>('friendly');
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const recentMessages = messages.slice(-20);
+  // Filter out empty messages, show last 30 in reverse chronological order for display
+  const recentMessages = useMemo(() => {
+    return messages
+      .filter(m => m.content && m.content.trim().length > 0)
+      .slice(-30)
+      .reverse();
+  }, [messages]);
+
+  // For AI, keep chronological order
+  const selectedInOrder = useMemo(() => {
+    return messages.filter(m => selectedIds.has(m.id));
+  }, [messages, selectedIds]);
 
   const toggleMessage = (id: string) => {
     setSelectedIds(prev => {
@@ -55,12 +68,20 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
     }
   };
 
+  const selectContactOnly = () => {
+    const contactMsgs = recentMessages.filter(m => m.sender !== 'agent');
+    setSelectedIds(new Set(contactMsgs.map(m => m.id)));
+  };
+
   const generateResponse = async () => {
-    if (selectedIds.size === 0) return;
+    if (selectedIds.size === 0) {
+      toast.warning('Selecione pelo menos uma mensagem.');
+      return;
+    }
     setLoading(true);
     setResponse(null);
+    setError(null);
 
-    const selected = recentMessages.filter(m => selectedIds.has(m.id));
     const tonePrompt = TONE_OPTIONS.find(t => t.key === selectedTone)!.prompt;
 
     try {
@@ -75,19 +96,27 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
             },
             {
               role: 'user',
-              content: `Mensagens selecionadas da conversa:\n${selected.map(m => `[${m.sender === 'agent' ? 'Atendente' : 'Cliente'}]: ${m.content}`).join('\n')}`,
+              content: `Mensagens selecionadas da conversa:\n${selectedInOrder.map(m => `[${m.sender === 'agent' ? 'Atendente' : 'Cliente'}]: ${m.content}`).join('\n')}`,
             },
           ],
           model: 'google/gemini-2.5-flash',
         },
       });
 
+      if (result.error) throw new Error(result.error.message || 'Erro na API');
+
       const content = result.data?.content || result.data?.choices?.[0]?.message?.content;
       if (content) {
         setResponse(content.trim());
+        toast.success('Resposta gerada com sucesso!');
+      } else {
+        throw new Error('Resposta vazia da IA');
       }
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(msg);
       setResponse(null);
+      toast.error('Falha ao gerar resposta. Tente novamente.');
     }
 
     setLoading(false);
@@ -96,6 +125,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
   const handleUse = () => {
     if (response) {
       onSelectSuggestion?.(response);
+      toast.success('Resposta inserida no chat!');
     }
   };
 
@@ -103,16 +133,26 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
     if (response) {
       navigator.clipboard.writeText(response);
       setCopied(true);
+      toast.success('Copiado para a área de transferência!');
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleRegenerate = () => {
+    setResponse(null);
+    setError(null);
+    generateResponse();
   };
 
   return (
     <div className="space-y-2.5">
       <div className="flex items-center gap-1.5 mb-1">
         <GraduationCap className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs font-medium">Selecione mensagens para análise</span>
+        <span className="text-xs font-medium">Ajuda dos Universitários</span>
       </div>
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Selecione mensagens do chat e a IA criará uma resposta inteligente para você enviar.
+      </p>
 
       {/* Tone selector */}
       <div className="flex flex-wrap gap-1">
@@ -132,21 +172,34 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
         ))}
       </div>
 
+      {/* Quick select buttons */}
+      <div className="flex gap-1.5">
+        <button type="button" onClick={selectAll} className="text-[10px] text-primary hover:underline">
+          {selectedIds.size === recentMessages.length && recentMessages.length > 0 ? 'Desmarcar todos' : 'Todos'}
+        </button>
+        <span className="text-[10px] text-muted-foreground">•</span>
+        <button type="button" onClick={selectContactOnly} className="text-[10px] text-primary hover:underline">
+          Só cliente
+        </button>
+        {selectedIds.size > 0 && (
+          <>
+            <span className="text-[10px] text-muted-foreground">•</span>
+            <button type="button" onClick={() => setSelectedIds(new Set())} className="text-[10px] text-destructive hover:underline">
+              Limpar
+            </button>
+          </>
+        )}
+        <Badge variant="outline" className="text-[9px] h-4 px-1 ml-auto">{selectedIds.size} selecionadas</Badge>
+      </div>
+
       {/* Message list */}
       <ScrollArea className="h-48 rounded-lg border border-border/30 bg-muted/10">
-        <div className="p-1.5 space-y-1">
-          <button
-            type="button"
-            onClick={selectAll}
-            className="text-[10px] text-primary hover:underline mb-1 px-1"
-          >
-            {selectedIds.size === recentMessages.length ? 'Desmarcar todos' : 'Selecionar todos'}
-          </button>
+        <div className="p-1.5 space-y-0.5">
           {recentMessages.map(m => (
             <label
               key={m.id}
-              className={`flex items-start gap-2 p-1.5 rounded-md cursor-pointer transition-colors hover:bg-muted/30 ${
-                selectedIds.has(m.id) ? 'bg-primary/5 border border-primary/20' : 'border border-transparent'
+              className={`flex items-start gap-2 p-1.5 rounded-md cursor-pointer transition-all hover:bg-muted/30 ${
+                selectedIds.has(m.id) ? 'bg-primary/5 ring-1 ring-primary/20' : ''
               }`}
             >
               <Checkbox
@@ -155,20 +208,25 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
                 className="mt-0.5 shrink-0"
               />
               <div className="min-w-0 flex-1">
-                <Badge
-                  variant="outline"
-                  className={`text-[9px] px-1 py-0 mb-0.5 ${
-                    m.sender === 'agent' ? 'text-primary border-primary/30' : 'text-warning border-warning/30'
-                  }`}
-                >
-                  {m.sender === 'agent' ? 'Atendente' : 'Cliente'}
-                </Badge>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <Badge
+                    variant="outline"
+                    className={`text-[9px] px-1 py-0 h-3.5 ${
+                      m.sender === 'agent' ? 'text-primary border-primary/30 bg-primary/5' : 'text-warning border-warning/30 bg-warning/5'
+                    }`}
+                  >
+                    {m.sender === 'agent' ? '🧑‍💼 Atendente' : '👤 Cliente'}
+                  </Badge>
+                </div>
                 <p className="text-[11px] text-foreground line-clamp-2 leading-tight">{m.content}</p>
               </div>
             </label>
           ))}
           {recentMessages.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-4">Nenhuma mensagem disponível</p>
+            <div className="flex flex-col items-center py-6 gap-1.5">
+              <MessageSquare className="w-5 h-5 text-muted-foreground/50" />
+              <p className="text-xs text-muted-foreground">Nenhuma mensagem disponível</p>
+            </div>
           )}
         </div>
       </ScrollArea>
@@ -183,44 +241,70 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
       >
         {loading ? (
           <>
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
             Gerando resposta...
           </>
         ) : (
           <>
-            <Sparkles className="w-3 h-3 mr-1" />
+            <Sparkles className="w-3 h-3 mr-1.5" />
             Gerar resposta ({selectedIds.size} {selectedIds.size === 1 ? 'msg' : 'msgs'})
           </>
         )}
       </Button>
 
+      {/* Error state */}
+      {error && !response && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-start gap-1.5 p-2 rounded-lg bg-destructive/10 border border-destructive/20"
+        >
+          <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
+          <p className="text-[11px] text-destructive">{error}</p>
+        </motion.div>
+      )}
+
       {/* Response */}
       <AnimatePresence>
         {response && (
           <motion.div
-            initial={{ opacity: 0, y: 5 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             className="space-y-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-primary">Resposta sugerida</span>
-              <div className="flex gap-1">
+              <span className="text-[10px] font-semibold text-primary flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Resposta sugerida
+              </span>
+              <div className="flex gap-0.5">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-5 px-1.5 text-[10px]"
-                  onClick={handleCopy}
+                  className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
+                  onClick={handleRegenerate}
+                  disabled={loading}
+                  title="Regenerar"
                 >
-                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  <RefreshCw className="w-3 h-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
+                  onClick={handleCopy}
+                  title="Copiar"
+                >
+                  {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-foreground leading-relaxed">{response}</p>
+            <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">{response}</p>
             <Button
               variant="default"
               size="sm"
-              className="w-full h-7 text-xs"
+              className="w-full h-7 text-xs font-medium"
               onClick={handleUse}
             >
               Usar resposta ↵
