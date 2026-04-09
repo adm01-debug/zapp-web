@@ -355,6 +355,51 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           </motion.div>
 
 
+          {/* Tarefas */}
+          <motion.div custom={5.5} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="tasks" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <ListTodo className="w-3.5 h-3.5 text-primary" />
+                  Tarefas
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ConversationTasksPanel contactId={contact.id} profileId={profileId} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
+          {/* Lembretes */}
+          <motion.div custom={5.7} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="reminders" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-3.5 h-3.5 text-primary" />
+                  Lembretes
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <RemindersPanel contactId={contact.id} profileId={profileId} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
+          {/* Memória da Conversa */}
+          <motion.div custom={5.9} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="memory" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-3.5 h-3.5 text-primary" />
+                  Memória Viva
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ConversationMemoryPanel contactId={contact.id} profileId={profileId} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
           {/* Notas Privadas */}
           <motion.div custom={6} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="notes" className="border-border/30">
