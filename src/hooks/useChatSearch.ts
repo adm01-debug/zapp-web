@@ -3,7 +3,7 @@ import { Message } from '@/types/chat';
 
 export type SearchFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
 
-export type DatePreset = 'all' | 'today' | '7d' | '30d' | 'custom';
+export type DatePreset = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d' | 'custom';
 
 const URL_REGEX = /https?:\/\/\S+/i;
 
@@ -23,10 +23,16 @@ function getPresetRange(preset: DatePreset): { from: Date | null; to: Date | nul
   switch (preset) {
     case 'today':
       return { from: startOfDay(now), to: null };
+    case '3d':
+      return { from: startOfDay(new Date(now.getTime() - 3 * 86400000)), to: null };
     case '7d':
       return { from: startOfDay(new Date(now.getTime() - 7 * 86400000)), to: null };
+    case '14d':
+      return { from: startOfDay(new Date(now.getTime() - 14 * 86400000)), to: null };
     case '30d':
       return { from: startOfDay(new Date(now.getTime() - 30 * 86400000)), to: null };
+    case '90d':
+      return { from: startOfDay(new Date(now.getTime() - 90 * 86400000)), to: null };
     default:
       return { from: null, to: null };
   }
@@ -69,8 +75,25 @@ export function useChatSearch({
     if (datePreset === 'custom') {
       return { from: customDateFrom, to: customDateTo };
     }
+    if (datePreset === 'last_interaction') {
+      // Find the start of the last interaction session (gap > 4h between messages)
+      const sorted = [...messages].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      if (sorted.length === 0) return { from: null, to: null };
+      const GAP_MS = 4 * 60 * 60 * 1000; // 4 hours
+      let cutoff = new Date(sorted[0].timestamp);
+      for (let i = 1; i < sorted.length; i++) {
+        const prev = new Date(sorted[i - 1].timestamp).getTime();
+        const curr = new Date(sorted[i].timestamp).getTime();
+        if (prev - curr > GAP_MS) {
+          cutoff = new Date(sorted[i - 1].timestamp);
+          break;
+        }
+        cutoff = new Date(sorted[i].timestamp);
+      }
+      return { from: startOfDay(cutoff), to: null };
+    }
     return getPresetRange(datePreset);
-  }, [datePreset, customDateFrom, customDateTo]);
+  }, [datePreset, customDateFrom, customDateTo, messages]);
 
   const hasDateFilter = datePreset !== 'all';
 
