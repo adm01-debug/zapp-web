@@ -26,6 +26,9 @@ import {
   Phone,
   UserCheck,
   Archive,
+  Pin,
+  Star,
+  AlarmClock,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
@@ -331,6 +334,39 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
                   <button
                     onClick={(e) => { e.stopPropagation(); }}
                     className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-warning hover:bg-warning/10 transition-all"
+                  >
+                    <Pin className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Fixar</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 transition-all"
+                  >
+                    <Star className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Favoritar</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-info hover:bg-info/10 transition-all"
+                  >
+                    <AlarmClock className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Adiar</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                   >
                     <Archive className="w-3.5 h-3.5" />
                   </button>
