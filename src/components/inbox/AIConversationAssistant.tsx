@@ -388,6 +388,53 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
               </Select>
             </div>
 
+            {analysisPeriod === 'custom' && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-muted-foreground">De</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start rounded-lg text-xs font-normal">
+                        <Calendar className="mr-1.5 h-3 w-3" />
+                        {customDateFrom ? format(customDateFrom, 'dd/MM/yyyy') : 'Selecionar'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={customDateFrom}
+                        onSelect={setCustomDateFrom}
+                        locale={ptBR}
+                        disabled={(date) => date > new Date() || (customDateTo ? date > customDateTo : false)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-muted-foreground">Até</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start rounded-lg text-xs font-normal">
+                        <Calendar className="mr-1.5 h-3 w-3" />
+                        {customDateTo ? format(customDateTo, 'dd/MM/yyyy') : 'Selecionar'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <CalendarComponent
+                        mode="single"
+                        selected={customDateTo}
+                        onSelect={setCustomDateTo}
+                        locale={ptBR}
+                        disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            )}
+
             <div className="text-center">
               <p className="text-xs tabular-nums text-muted-foreground">
                 <span className="font-semibold text-foreground">{filteredMessages.length}</span> mensagens no período
