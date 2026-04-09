@@ -219,13 +219,13 @@ describe('ContactForm — Cargo select logic', () => {
   const cargos = ['Analista', 'Closer', 'Diretor', 'Gerente', 'SDR'];
 
   it('__none__ maps to empty string', () => {
-    const value = '__none__';
+    const value: string = '__none__';
     const result = value === '__none__' ? '' : value;
     expect(result).toBe('');
   });
 
   it('valid cargo passes through', () => {
-    const value = 'Gerente';
+    const value: string = 'Gerente';
     const result = value === '__none__' ? '' : value;
     expect(result).toBe('Gerente');
   });
