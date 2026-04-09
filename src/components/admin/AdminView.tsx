@@ -438,6 +438,10 @@ export function AdminView() {
         <PlaybooksManager />
       ) : activeTab === 'copilot' ? (
         <SupervisorCopilot />
+      ) : activeTab === 'training' ? (
+        <TrainingMode />
+      ) : activeTab === 'crisis' ? (
+        <CrisisRoom />
       ) : null}
     </div>
   );
