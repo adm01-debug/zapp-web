@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -80,6 +81,24 @@ export const ContactForm = React.memo(function ContactForm({
 }: ContactFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FieldError>({});
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const dupCheckTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Check for duplicate phone
+  const checkDuplicate = useCallback(async (phone: string) => {
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length < 10) { setDuplicateWarning(null); return; }
+    const { data } = await supabase
+      .from('contacts')
+      .select('name, phone')
+      .or(`phone.ilike.%${cleaned.slice(-8)}%`)
+      .limit(1);
+    if (data && data.length > 0) {
+      setDuplicateWarning(`Possível duplicata: "${data[0].name}" (${data[0].phone})`);
+    } else {
+      setDuplicateWarning(null);
+    }
+  }, []);
 
   const validate = useCallback((field: string, value: string): string | null => {
     switch (field) {
@@ -121,7 +140,10 @@ export const ContactForm = React.memo(function ContactForm({
     if (touched.phone) {
       setErrors(prev => ({ ...prev, phone: validate('phone', formatted) }));
     }
-  }, [onChange, touched, validate]);
+    // Debounced duplicate check
+    clearTimeout(dupCheckTimer.current);
+    dupCheckTimer.current = setTimeout(() => checkDuplicate(formatted), 500);
+  }, [onChange, touched, validate, checkDuplicate]);
 
   const handleSubmit = useCallback(() => {
     const newErrors: FieldError = {
@@ -359,6 +381,15 @@ export const ContactForm = React.memo(function ContactForm({
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="flex items-center gap-1 text-destructive text-xs" role="alert">
                 <AlertCircle className="w-3 h-3" /> {errors.phone}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {duplicateWarning && !errors.phone && (
+              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center gap-1.5 text-[hsl(38_92%_50%)] text-xs bg-[hsl(38_92%_50%)]/10 rounded-md px-2 py-1.5" role="alert">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span>{duplicateWarning}</span>
               </motion.div>
             )}
           </AnimatePresence>
