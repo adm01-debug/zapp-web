@@ -157,16 +157,30 @@ export function ContactCard({
           </div>
         )}
 
-        {/* Contact info */}
+        {/* Contact info with quick actions */}
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground group/phone" onClick={(e) => e.stopPropagation()}>
             <Phone className="w-3.5 h-3.5 shrink-0" />
-            <span className="font-mono text-[11px] truncate">{contact.phone}</span>
+            <a
+              href={`https://wa.me/${contact.phone.replace(/\D/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[11px] truncate hover:text-primary hover:underline transition-colors"
+              title="Abrir no WhatsApp"
+            >
+              {contact.phone}
+            </a>
           </div>
           {contact.email && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground" onClick={(e) => e.stopPropagation()}>
               <Mail className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate text-[11px]">{contact.email}</span>
+              <a
+                href={`mailto:${contact.email}`}
+                className="truncate text-[11px] hover:text-primary hover:underline transition-colors"
+                title="Enviar email"
+              >
+                {contact.email}
+              </a>
             </div>
           )}
         </div>

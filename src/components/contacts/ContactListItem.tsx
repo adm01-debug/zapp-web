@@ -110,17 +110,31 @@ export function ContactListItem({
       </div>
 
       {/* Phone */}
-      <div className="hidden lg:flex items-center gap-2 text-xs text-muted-foreground min-w-[140px]">
+      <div className="hidden lg:flex items-center gap-2 text-xs text-muted-foreground min-w-[140px]" onClick={(e) => e.stopPropagation()}>
         <Phone className="w-3.5 h-3.5 shrink-0" />
-        <span className="font-mono text-[11px]">{contact.phone}</span>
+        <a
+          href={`https://wa.me/${contact.phone.replace(/\D/g, '')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-[11px] hover:text-primary hover:underline transition-colors"
+          title="Abrir no WhatsApp"
+        >
+          {contact.phone}
+        </a>
       </div>
 
       {/* Email */}
-      <div className="hidden xl:flex items-center gap-2 text-xs text-muted-foreground min-w-[180px]">
+      <div className="hidden xl:flex items-center gap-2 text-xs text-muted-foreground min-w-[180px]" onClick={(e) => e.stopPropagation()}>
         {contact.email ? (
           <>
             <Mail className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate text-[11px]">{contact.email}</span>
+            <a
+              href={`mailto:${contact.email}`}
+              className="truncate text-[11px] hover:text-primary hover:underline transition-colors"
+              title="Enviar email"
+            >
+              {contact.email}
+            </a>
           </>
         ) : (
           <span className="text-muted-foreground/40">—</span>
