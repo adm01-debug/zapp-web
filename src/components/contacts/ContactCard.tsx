@@ -18,10 +18,11 @@ import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
 import { CompanyLogo } from './CompanyLogo';
+import { HighlightText } from './HighlightText';
 import type { ContactItemProps } from './types';
 
 export function ContactCard({
-  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName,
+  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName, searchQuery,
 }: ContactItemProps) {
   const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
   const avatarColors = getAvatarColor(contact.name);
@@ -115,9 +116,11 @@ export function ContactCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-sm text-foreground truncate leading-tight">
-              {contact.name} {contact.surname || ''}
-            </h3>
+            <HighlightText
+              text={`${contact.name} ${contact.surname || ''}`.trim()}
+              highlight={searchQuery}
+              className="font-semibold text-sm text-foreground truncate leading-tight block"
+            />
             {contact.nickname && (
               <p className="text-xs text-muted-foreground truncate">({contact.nickname})</p>
             )}

@@ -18,10 +18,11 @@ import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
 import { CompanyLogo } from './CompanyLogo';
+import { HighlightText } from './HighlightText';
 import type { ContactItemProps } from './types';
 
 export function ContactListItem({
-  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName,
+  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName, searchQuery,
 }: ContactItemProps) {
   const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
   const avatarColors = getAvatarColor(contact.name);
@@ -74,9 +75,11 @@ export function ContactListItem({
       {/* Name & type */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-sm text-foreground truncate">
-            {contact.name} {contact.surname || ''}
-          </h3>
+          <HighlightText
+            text={`${contact.name} ${contact.surname || ''}`.trim()}
+            highlight={searchQuery}
+            className="font-semibold text-sm text-foreground truncate block"
+          />
           <Badge
             variant="outline"
             className={cn("text-[10px] h-5 px-1.5 font-medium gap-1 shrink-0", typeConfig.badgeClass)}
