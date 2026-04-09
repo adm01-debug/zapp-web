@@ -47,7 +47,7 @@ import {
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 
-const ObjectionDetector = lazy(() => import('../ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
+const AIToolsPopover = lazy(() => import('../AIToolsPopover').then(m => ({ default: m.AIToolsPopover })));
 
 interface ChatPanelHeaderProps {
   conversation: Conversation;
