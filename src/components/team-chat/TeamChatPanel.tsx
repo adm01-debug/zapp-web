@@ -48,7 +48,7 @@ function formatDateSep(dateStr: string) {
   return format(d, "d 'de' MMMM", { locale: ptBR });
 }
 
-function MediaContent({ msg }: { msg: TeamMessage }) {
+const MediaContent = memo(function MediaContent({ msg }: { msg: TeamMessage }) {
   if (!msg.media_url) return null;
   switch (msg.media_type) {
     case 'image':
@@ -80,9 +80,9 @@ function MediaContent({ msg }: { msg: TeamMessage }) {
     default:
       return null;
   }
-}
+});
 
-function MediaTypeIcon({ type }: { type: string | null }) {
+const MediaTypeIcon = memo(function MediaTypeIcon({ type }: { type: string | null }) {
   switch (type) {
     case 'image': return <ImageIcon className="w-3 h-3" />;
     case 'video': return <Video className="w-3 h-3" />;
@@ -90,7 +90,7 @@ function MediaTypeIcon({ type }: { type: string | null }) {
     case 'audio_meme': return <Music className="w-3 h-3" />;
     case 'document': return <FileText className="w-3 h-3" />;
     default: return null;
-  }
+});
 }
 
 export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetails }: Props) {
