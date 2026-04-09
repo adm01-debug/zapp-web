@@ -9,6 +9,7 @@ import {
   X, MessageSquare, Edit, Phone, Mail, Building, Briefcase,
   Calendar, Tag, Clock, Zap,
 } from 'lucide-react';
+import { ContactActivityTimeline } from './ContactActivityTimeline';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -179,6 +180,12 @@ export function ContactDetailPanel({
                 </div>
               </div>
             </div>
+
+            {/* Timeline */}
+            <ContactActivityTimeline
+              contactId={contact.id}
+              contactCreatedAt={contact.created_at}
+            />
           </div>
         </ScrollArea>
       </motion.div>

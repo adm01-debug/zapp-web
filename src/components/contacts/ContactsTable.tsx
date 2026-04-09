@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import {
   MessageSquare, Edit, Trash2, MoreVertical, Phone, Mail,
   Briefcase, Calendar, Tag, Users, Truck, UserCheck,
   Wrench, Star, Handshake, MoreHorizontal,
+  ArrowUp, ArrowDown, ArrowUpDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -35,6 +36,9 @@ const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
 
 export { CONTACT_TYPE_ICONS };
 
+type SortField = 'name' | 'type' | 'phone' | 'email' | 'company' | 'created_at';
+type SortDir = 'asc' | 'desc';
+
 interface ContactsTableProps {
   contacts: Contact[];
   selectedIds: string[];
@@ -46,9 +50,60 @@ interface ContactsTableProps {
   searchQuery?: string;
 }
 
+function SortableHeader({ label, field, sortField, sortDir, onSort }: {
+  label: string; field: SortField; sortField: SortField | null; sortDir: SortDir;
+  onSort: (field: SortField) => void;
+}) {
+  const isActive = sortField === field;
+  return (
+    <th
+      className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors group"
+      onClick={() => onSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {label}
+        {isActive ? (
+          sortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />
+        ) : (
+          <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
+        )}
+      </div>
+    </th>
+  );
+}
+
 export function ContactsTable({
   contacts, selectedIds, onSelectIds, onOpenChat, onEdit, onDelete, getCRMData, searchQuery,
 }: ContactsTableProps) {
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  };
+
+  const sortedContacts = useMemo(() => {
+    if (!sortField) return contacts;
+    return [...contacts].sort((a, b) => {
+      let valA = '', valB = '';
+      switch (sortField) {
+        case 'name': valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
+        case 'type': valA = a.contact_type || ''; valB = b.contact_type || ''; break;
+        case 'phone': valA = a.phone; valB = b.phone; break;
+        case 'email': valA = a.email || ''; valB = b.email || ''; break;
+        case 'company': valA = a.company || ''; valB = b.company || ''; break;
+        case 'created_at': valA = a.created_at; valB = b.created_at; break;
+      }
+      const cmp = valA.localeCompare(valB);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [contacts, sortField, sortDir]);
+
   return (
     <div className="overflow-x-auto rounded-xl border border-border/30">
       <table className="w-full" role="grid" aria-label="Lista de contatos">
@@ -61,18 +116,18 @@ export function ContactsTable({
                 aria-label="Selecionar todos"
               />
             </th>
-            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contato</th>
-            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Tipo</th>
-            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Telefone</th>
-            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Email</th>
-            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Empresa/Cargo</th>
+            <SortableHeader label="Contato" field="name" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+            <SortableHeader label="Tipo" field="type" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+            <SortableHeader label="Telefone" field="phone" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+            <SortableHeader label="Email" field="email" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+            <SortableHeader label="Empresa/Cargo" field="company" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Etiquetas</th>
-            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Criado em</th>
+            <SortableHeader label="Criado em" field="created_at" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <th className="text-right p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
           </tr>
         </thead>
         <tbody>
-          {contacts.map((contact, index) => {
+          {sortedContacts.map((contact, index) => {
             const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
             const avatarColors = getAvatarColor(contact.name);
             const crmData = getCRMData?.(contact.phone);
