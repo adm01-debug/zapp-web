@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { subDays } from 'date-fns';
 import { log } from '@/lib/logger';
 import { 
   Brain, 
