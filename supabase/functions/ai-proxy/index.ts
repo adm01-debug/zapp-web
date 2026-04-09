@@ -2,7 +2,7 @@
  * AI Proxy Edge Function
  * Routes AI calls through admin-configured provider with automatic fallback to Lovable AI.
  */
-import { handleCors, errorResponse, jsonResponse, Logger, requireEnv } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, Logger, requireEnv, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 import { z, parseBody } from "../_shared/schemas.ts";
 import { logAiUsage, extractTokenUsage, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 import { callLovableAI, callOpenAICompatible, callCustomWebhook, withRetry } from "../_shared/ai-providers.ts";
