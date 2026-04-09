@@ -281,19 +281,45 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 items-center">
                 {VARIABLES.map((v) => (
-                  <Badge
-                    key={v.key}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
-                    onClick={() => insertVariable(v.key)}
-                    title={v.desc}
-                  >
-                    <Wand2 className="w-3 h-3 mr-1" />
-                    {v.label}
-                  </Badge>
+                  <Tooltip key={v.key}>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
+                        onClick={() => insertVariable(v.key)}
+                      >
+                        <Wand2 className="w-3 h-3 mr-1" />
+                        {v.label}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[200px]">
+                      <p className="font-mono text-[10px] text-primary mb-0.5">{v.key}</p>
+                      <p className="text-xs">{v.desc}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="ghost" className="h-6 gap-1 text-xs text-muted-foreground">
+                      <BookOpen className="w-3 h-3" />
+                      Templates
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-64">
+                    {MESSAGE_TEMPLATES.map((t) => (
+                      <DropdownMenuItem
+                        key={t.name}
+                        onClick={() => setMessageTemplate(t.template)}
+                        className="flex flex-col items-start gap-0.5"
+                      >
+                        <span className="font-medium text-xs">{t.name}</span>
+                        <span className="text-[10px] text-muted-foreground line-clamp-1">{t.template}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <Textarea
                 value={messageTemplate}
