@@ -106,6 +106,19 @@ export function ContactsView() {
 
   const [viewMode, setViewMode] = useState<ContactViewMode>('grid');
   const [gridColumns, setGridColumns] = useState(4);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isMergeOpen, setIsMergeOpen] = useState(false);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [groupByCompany, setGroupByCompany] = useState(false);
+
+  const handleApplyPreset = useCallback((preset: FilterPreset) => {
+    if (preset.filters.type) setActiveTab(preset.filters.type);
+    if (preset.filters.company) setFilterCompany(preset.filters.company);
+    if (preset.filters.jobTitle) setFilterJobTitle(preset.filters.jobTitle);
+    if (preset.filters.tag) setFilterTag(preset.filters.tag);
+    if (preset.filters.dateRange) setFilterDateRange(preset.filters.dateRange);
+    toast.success(`Filtro "${preset.name}" aplicado`);
+  }, [setActiveTab, setFilterCompany, setFilterJobTitle, setFilterTag, setFilterDateRange]);
 
   // Fetch company logos from external CRM
   const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
