@@ -100,7 +100,6 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
 
         const stickerName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
 
-        // @ts-expect-error - stickers table may not be in generated types yet
         const { error: insertError } = await supabase
           .from('stickers')
           .insert({
