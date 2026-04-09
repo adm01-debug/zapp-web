@@ -371,7 +371,7 @@ export function ContactsView() {
               id: c.id,
               name: c.name,
               avatar_url: c.avatar_url,
-              birthday: (c as Record<string, unknown>).birthday as string | null | undefined,
+              birthday: undefined,
             }))}
             onContactClick={openContactChat}
           />
