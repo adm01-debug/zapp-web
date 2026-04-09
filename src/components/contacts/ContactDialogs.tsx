@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { CheckCircle2, Copy, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Contact } from './types';
+import type { Contact } from './useContactsCRUD';
 
 interface ContactDialogsProps {
   // Add dialog
