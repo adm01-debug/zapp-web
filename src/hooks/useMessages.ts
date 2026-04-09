@@ -45,15 +45,32 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('contact_id', contactId)
-        .order('created_at', { ascending: true });
+      // Fetch all messages using pagination to bypass the 1000 row default limit
+      let allData: any[] = [];
+      let from = 0;
+      const PAGE_SIZE = 1000;
+      let hasMore = true;
 
-      if (fetchError) throw fetchError;
+      while (hasMore) {
+        const { data: page, error: fetchError } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('contact_id', contactId)
+          .order('created_at', { ascending: true })
+          .range(from, from + PAGE_SIZE - 1);
 
-      const mappedMessages = (data || []).map((m) => ({
+        if (fetchError) throw fetchError;
+
+        if (page && page.length > 0) {
+          allData = allData.concat(page);
+          from += PAGE_SIZE;
+          hasMore = page.length === PAGE_SIZE;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      const mappedMessages = allData.map((m) => ({
         ...m,
         isEdited: m.updated_at && m.created_at && new Date(m.updated_at).getTime() - new Date(m.created_at).getTime() > 1000,
       }));
