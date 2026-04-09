@@ -160,13 +160,32 @@ Deno.serve(async (req) => {
       .in("status", ["pending", "sending"])
       .order("created_at");
 
-    if (!recipients || recipients.length === 0) {
+    // Get blacklisted contact IDs
+    const { data: blacklisted } = await supabase
+      .from("talkx_blacklist")
+      .select("contact_id");
+    const blacklistSet = new Set((blacklisted || []).map((b: any) => b.contact_id));
+
+    // Filter out blacklisted recipients
+    const eligibleRecipients = (recipients || []).filter((r: any) => {
+      if (blacklistSet.has(r.contact_id)) {
+        // Mark as skipped
+        supabase
+          .from("talkx_recipients")
+          .update({ status: "skipped", error_message: "Contato na lista negra (opt-out)" })
+          .eq("id", r.id);
+        return false;
+      }
+      return true;
+    });
+
+    if (eligibleRecipients.length === 0) {
       await supabase
         .from("talkx_campaigns")
         .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", campaignId);
       return new Response(
-        JSON.stringify({ success: true, message: "No recipients to send" }),
+        JSON.stringify({ success: true, message: "No eligible recipients to send" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -175,7 +194,7 @@ Deno.serve(async (req) => {
     let failedCount = campaign.failed_count || 0;
     const hasMedia = !!campaign.media_url && !!campaign.media_type;
 
-    for (const recipient of recipients) {
+    for (const recipient of eligibleRecipients) {
       // Check if campaign was paused/cancelled
       const { data: currentCampaign } = await supabase
         .from("talkx_campaigns")
@@ -353,7 +372,8 @@ Deno.serve(async (req) => {
         success: true,
         sent: sentCount,
         failed: failedCount,
-        total: recipients.length,
+        total: eligibleRecipients.length,
+        blacklisted: (recipients || []).length - eligibleRecipients.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
