@@ -467,6 +467,7 @@ export function ContactsView() {
               index={index}
               companyLogo={getCRMData(contact.phone)?.logo_url}
               companyName={getCRMData(contact.phone)?.company_name}
+              searchQuery={search}
             />
           ))}
         </div>
@@ -484,6 +485,7 @@ export function ContactsView() {
               index={index}
               companyLogo={getCRMData(contact.phone)?.logo_url}
               companyName={getCRMData(contact.phone)?.company_name}
+              searchQuery={search}
             />
           ))}
         </div>
