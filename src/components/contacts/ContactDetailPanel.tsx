@@ -18,24 +18,26 @@ import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { ContactEngagementScore } from './ContactEngagementScore';
 import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
+interface ContactDetail {
+  id: string;
+  name: string;
+  surname?: string | null;
+  nickname?: string | null;
+  phone: string;
+  email?: string | null;
+  company?: string | null;
+  job_title?: string | null;
+  avatar_url?: string | null;
+  contact_type?: string | null;
+  tags?: string[] | null;
+  created_at: string;
+}
+
 interface ContactDetailPanelProps {
-  contact: {
-    id: string;
-    name: string;
-    surname?: string | null;
-    nickname?: string | null;
-    phone: string;
-    email?: string | null;
-    company?: string | null;
-    job_title?: string | null;
-    avatar_url?: string | null;
-    contact_type?: string | null;
-    tags?: string[] | null;
-    created_at: string;
-  } | null;
+  contact: ContactDetail | null;
   onClose: () => void;
   onOpenChat: (id: string) => void;
-  onEdit: (contact: ContactDetailPanelProps['contact']) => void;
+  onEdit: (contact: ContactDetail) => void;
   messageCount?: number;
   lastMessageAt?: string | null;
 }
