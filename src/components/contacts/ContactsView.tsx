@@ -253,6 +253,14 @@ export function ContactsView() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Stats Cards */}
+      <ContactStatsCards
+        totalCount={totalCount}
+        contactCountByType={contactCountByType}
+        uniqueCompanies={uniqueCompanies}
+        contacts={filteredContacts}
+      />
+
       {/* Type Tabs */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
