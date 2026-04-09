@@ -302,11 +302,11 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={handleTransfer}
-                disabled={!selectedTarget}
+                disabled={!selectedTarget || isTransferring}
                 className="bg-whatsapp hover:bg-whatsapp-dark"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Transferir
+                {isTransferring ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                {isTransferring ? 'Transferindo...' : 'Transferir'}
               </Button>
             </motion.div>
           </div>
