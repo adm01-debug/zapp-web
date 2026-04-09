@@ -359,6 +359,8 @@ export function ContactsView() {
         <ContactKanbanView contacts={filteredContacts} onContactClick={handleContactClick} />
       ) : viewMode === 'map' ? (
         <ContactMapView contacts={filteredContacts} onContactClick={handleContactClick} />
+      ) : viewMode === 'analytics' ? (
+        <ContactAnalyticsDashboard contacts={filteredContacts} />
       ) : (
         <Card><CardContent className="p-0">
           <ContactsTable
