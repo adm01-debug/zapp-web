@@ -287,6 +287,10 @@ export default function TalkXView() {
         <TabsContent value="blacklist" className="flex-1 overflow-auto mt-4">
           <TalkXBlacklist />
         </TabsContent>
+
+        <TabsContent value="analytics" className="flex-1 overflow-auto mt-4">
+          <TalkXAnalytics campaigns={campaigns} />
+        </TabsContent>
       </Tabs>
     </div>
   );
