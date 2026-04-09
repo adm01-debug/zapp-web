@@ -1945,6 +1945,109 @@ export type Database = {
           },
         ]
       }
+      conversation_events: {
+        Row: {
+          contact_id: string
+          created_at: string
+          event_type: string
+          from_agent_id: string | null
+          from_queue_id: string | null
+          id: string
+          metadata: Json | null
+          performed_by: string | null
+          to_agent_id: string | null
+          to_queue_id: string | null
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          event_type: string
+          from_agent_id?: string | null
+          from_queue_id?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_by?: string | null
+          to_agent_id?: string | null
+          to_queue_id?: string | null
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          event_type?: string
+          from_agent_id?: string | null
+          from_queue_id?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_by?: string | null
+          to_agent_id?: string | null
+          to_queue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_from_agent_id_fkey"
+            columns: ["from_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_from_agent_id_fkey"
+            columns: ["from_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_from_queue_id_fkey"
+            columns: ["from_queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_to_agent_id_fkey"
+            columns: ["to_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_to_agent_id_fkey"
+            columns: ["to_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_to_queue_id_fkey"
+            columns: ["to_queue_id"]
+            isOneToOne: false
+            referencedRelation: "queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_memory: {
         Row: {
           commercial_summary: string | null
@@ -6889,6 +6992,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      reassign_absent_agents: {
+        Args: { inactive_minutes?: number }
+        Returns: number
+      }
+      reassign_overloaded_agents: { Args: never; Returns: number }
       record_failed_login: {
         Args: { p_email: string; p_ip_address?: string; p_user_agent?: string }
         Returns: {
