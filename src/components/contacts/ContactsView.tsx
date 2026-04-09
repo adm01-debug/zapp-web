@@ -533,75 +533,91 @@ export function ContactsView() {
       )}
 
       {/* Contact Content */}
-      {loading ? (
-        <ContactsSkeleton viewMode={viewMode} gridColumns={gridColumns} />
-      ) : filteredContacts.length === 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <EmptyState
-              icon={Phone}
-              title="Nenhum contato encontrado"
-              description={search ? "Tente ajustar seus filtros ou termo de busca" : "Adicione seu primeiro contato"}
-              illustration="contacts"
-              actionLabel={!search ? "Novo Contato" : undefined}
-              onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
-              secondaryActionLabel={search ? "Limpar Busca" : undefined}
-              onSecondaryAction={search ? clearSearch : undefined}
-            />
-          </CardContent>
-        </Card>
-      ) : viewMode === 'grid' ? (
-        <div className={cn("grid gap-4", GRID_COLUMNS_CLASS[gridColumns] || GRID_COLUMNS_CLASS[4])}>
-          {filteredContacts.map((contact, index) => (
-            <ContactCard
-              key={contact.id}
-              contact={contact}
-              isSelected={selectedIds.includes(contact.id)}
-              onToggleSelect={handleToggleSelect}
-              onOpenChat={openContactChat}
-              onEdit={openEditDialog}
-              onDelete={setDeleteTarget}
-              index={index}
-              companyLogo={getCRMData(contact.phone)?.logo_url}
-              companyName={getCRMData(contact.phone)?.company_name}
-              searchQuery={search}
-            />
-          ))}
-        </div>
-      ) : viewMode === 'list' ? (
-        <div className="space-y-2">
-          {filteredContacts.map((contact, index) => (
-            <ContactListItem
-              key={contact.id}
-              contact={contact}
-              isSelected={selectedIds.includes(contact.id)}
-              onToggleSelect={handleToggleSelect}
-              onOpenChat={openContactChat}
-              onEdit={openEditDialog}
-              onDelete={setDeleteTarget}
-              index={index}
-              companyLogo={getCRMData(contact.phone)?.logo_url}
-              companyName={getCRMData(contact.phone)?.company_name}
-              searchQuery={search}
-            />
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <ContactsTable
-              contacts={filteredContacts}
-              selectedIds={selectedIds}
-              onSelectIds={setSelectedIds}
-              onOpenChat={openContactChat}
-              onEdit={openEditDialog}
-              onDelete={setDeleteTarget}
-              getCRMData={getCRMData}
-              searchQuery={search}
-            />
-          </CardContent>
-        </Card>
-      )}
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            <ContactsSkeleton viewMode={viewMode} gridColumns={gridColumns} />
+          </motion.div>
+        ) : filteredContacts.length === 0 ? (
+          <motion.div key="empty" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <Card>
+              <CardContent className="p-0">
+                <EmptyState
+                  icon={Phone}
+                  title="Nenhum contato encontrado"
+                  description={search ? "Tente ajustar seus filtros ou termo de busca" : "Adicione seu primeiro contato"}
+                  illustration="contacts"
+                  actionLabel={!search ? "Novo Contato" : undefined}
+                  onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
+                  secondaryActionLabel={search ? "Limpar Busca" : undefined}
+                  onSecondaryAction={search ? clearSearch : undefined}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
+          <motion.div
+            key={`content-${viewMode}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {viewMode === 'grid' ? (
+              <div className={cn("grid gap-4", GRID_COLUMNS_CLASS[gridColumns] || GRID_COLUMNS_CLASS[4])}>
+                {filteredContacts.map((contact, index) => (
+                  <ContactCard
+                    key={contact.id}
+                    contact={contact}
+                    isSelected={selectedIds.includes(contact.id)}
+                    onToggleSelect={handleToggleSelect}
+                    onOpenChat={openContactChat}
+                    onEdit={openEditDialog}
+                    onDelete={setDeleteTarget}
+                    index={index}
+                    companyLogo={getCRMData(contact.phone)?.logo_url}
+                    companyName={getCRMData(contact.phone)?.company_name}
+                    searchQuery={search}
+                  />
+                ))}
+              </div>
+            ) : viewMode === 'list' ? (
+              <div className="space-y-2">
+                {filteredContacts.map((contact, index) => (
+                  <ContactListItem
+                    key={contact.id}
+                    contact={contact}
+                    isSelected={selectedIds.includes(contact.id)}
+                    onToggleSelect={handleToggleSelect}
+                    onOpenChat={openContactChat}
+                    onEdit={openEditDialog}
+                    onDelete={setDeleteTarget}
+                    index={index}
+                    companyLogo={getCRMData(contact.phone)?.logo_url}
+                    companyName={getCRMData(contact.phone)?.company_name}
+                    searchQuery={search}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <ContactsTable
+                    contacts={filteredContacts}
+                    selectedIds={selectedIds}
+                    onSelectIds={setSelectedIds}
+                    onOpenChat={openContactChat}
+                    onEdit={openEditDialog}
+                    onDelete={setDeleteTarget}
+                    getCRMData={getCRMData}
+                    searchQuery={search}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Pagination */}
       {totalCount > pageSize && (() => {
