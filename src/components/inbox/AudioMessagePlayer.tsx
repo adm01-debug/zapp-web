@@ -270,6 +270,16 @@ export function AudioMessagePlayer({
 
       if (error) throw error;
 
+      if (data?.fallback) {
+        setTranscriptionStatus('failed');
+        toast({
+          title: 'Áudio não suportado',
+          description: data.errorMessage || 'Não foi possível transcrever este áudio.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       if (data?.transcription) {
         setTranscription(data.transcription);
         setTranscriptionStatus('completed');
