@@ -36,6 +36,7 @@ import {
   ExternalLink,
   FileText,
   Loader2,
+  XCircle,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 
@@ -58,6 +59,7 @@ interface ChatPanelHeaderProps {
   onGenerateSummary?: () => void;
   isSummaryLoading?: boolean;
   canGenerateSummary?: boolean;
+  onCloseConversation?: () => void;
 }
 
 export function ChatPanelHeader({
@@ -79,6 +81,7 @@ export function ChatPanelHeader({
   onGenerateSummary,
   isSummaryLoading,
   canGenerateSummary,
+  onCloseConversation,
 }: ChatPanelHeaderProps) {
   const isMobile = useIsMobile();
   
@@ -253,6 +256,11 @@ export function ChatPanelHeader({
             <DropdownMenuItem>
               <Archive className="w-4 h-4 mr-2" />
               Arquivar
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onCloseConversation} className="text-destructive focus:text-destructive">
+              <XCircle className="w-4 h-4 mr-2" />
+              Encerrar Conversa
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

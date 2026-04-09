@@ -50,6 +50,7 @@ import { BusinessHoursIndicator } from './BusinessHoursIndicator';
 import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
 import { InstanceSettingsDialog } from './InstanceSettingsDialog';
 import { IntegrationsPanel } from './IntegrationsPanel';
+import { NumberReputationMonitor } from './NumberReputationMonitor';
 import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2, Settings, Boxes } from 'lucide-react';
 import { useConnectionsManager, type WhatsAppConnection } from '@/hooks/useConnectionsManager';
 
@@ -601,6 +602,9 @@ export function ConnectionsView() {
         instanceName={integrationsDialog.instanceName}
         connectionName={integrationsDialog.connectionName}
       />
+
+      {/* Number Reputation Monitor */}
+      <NumberReputationMonitor />
     </div>
   );
 }

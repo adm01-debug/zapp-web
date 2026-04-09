@@ -40,6 +40,8 @@ const LocationPicker = lazy(() => import('./LocationPicker').then(m => ({ defaul
 const AIConversationAssistant = lazy(() => import('./AIConversationAssistant').then(m => ({ default: m.AIConversationAssistant })));
 const TemplatesWithVariables = lazy(() => import('./TemplatesWithVariables').then(m => ({ default: m.TemplatesWithVariables })));
 const RealtimeTranscription = lazy(() => import('./RealtimeTranscription').then(m => ({ default: m.RealtimeTranscription })));
+const CloseConversationDialog = lazy(() => import('./CloseConversationDialog').then(m => ({ default: m.CloseConversationDialog })));
+const NextBestActionEngine = lazy(() => import('./NextBestActionEngine').then(m => ({ default: m.NextBestActionEngine })));
 interface ChatPanelProps {
   conversation: Conversation;
   messages: Message[];
@@ -82,6 +84,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [summaryData, setSummaryData] = useState<Record<string, unknown> | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [hasSummary, setHasSummary] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -349,7 +352,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onStartCall={() => { setCallDirection('outbound'); setShowCallDialog(true); }} onOpenSearch={() => setShowChatSearch(true)}
             onOpenTransfer={() => setShowTransferDialog(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
-            onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary} />
+            onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary}
+            onCloseConversation={() => setShowCloseDialog(true)} />
         )}
 
         <ChatSearchBar
@@ -362,6 +366,10 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         />
 
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
+
+        <Suspense fallback={null}>
+          <NextBestActionEngine contactId={conversation.contact.id} contactName={conversation.contact.name} />
+        </Suspense>
 
         {hasSummary && summaryData && (
           <Suspense fallback={null}>
@@ -408,6 +416,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           {showInteractiveBuilder && <InteractiveMessageBuilder open={showInteractiveBuilder} onOpenChange={setShowInteractiveBuilder} onSend={handleSendInteractiveMessage} />}
           {showForwardDialog && <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />}
           {showLocationPicker && <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />}
+          {showCloseDialog && <CloseConversationDialog open={showCloseDialog} onOpenChange={setShowCloseDialog} contactId={conversation.contact.id} />}
         </Suspense>
 
         {showCatalogDirect && <ExternalProductCatalog onSendProduct={handleSendProduct} open={showCatalogDirect} onOpenChange={setShowCatalogDirect} />}
