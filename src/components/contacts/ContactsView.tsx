@@ -43,6 +43,7 @@ import { ContactDialogs } from './ContactDialogs';
 import { ContactToolbar } from './ContactToolbar';
 import { ContactPagination } from './ContactPagination';
 import { ContactDetailPanel } from './ContactDetailPanel';
+import { ContactKanbanView } from './ContactKanbanView';
 
 const GRID_COLUMNS_CLASS: Record<number, string> = {
   3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
@@ -262,6 +263,7 @@ export function ContactsView() {
         onMerge={() => setIsMergeOpen(true)}
         viewMode={viewMode} setViewMode={setViewMode}
         gridColumns={gridColumns} setGridColumns={setGridColumns}
+        totalCount={totalCount}
       />
 
       {/* Results Summary */}
@@ -351,6 +353,8 @@ export function ContactsView() {
             ))}
           </div>
         )
+      ) : viewMode === 'kanban' ? (
+        <ContactKanbanView contacts={filteredContacts} onContactClick={handleContactClick} />
       ) : viewMode === 'map' ? (
         <ContactMapView contacts={filteredContacts} onContactClick={handleContactClick} />
       ) : (
