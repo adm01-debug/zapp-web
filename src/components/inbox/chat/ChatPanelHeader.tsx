@@ -188,9 +188,9 @@ export function ChatPanelHeader({
                 </Button>
               </PopoverTrigger>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Detectar objeções</TooltipContent>
+            <TooltipContent side="bottom">Ferramentas de IA</TooltipContent>
           </Tooltip>
-          <PopoverContent side="bottom" align="end" className="w-96 p-3">
+          <PopoverContent side="bottom" align="end" className="w-[420px] p-3 max-h-[80vh] overflow-y-auto">
             <Suspense fallback={null}>
               <AIToolsPopover
                 contactId={conversation.contact.id}
