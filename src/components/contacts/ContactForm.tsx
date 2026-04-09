@@ -19,6 +19,7 @@ import {
   User, Phone, Mail, Building, Briefcase, AlertCircle,
   CheckCircle2, Loader2, Info, Smile,
 } from 'lucide-react';
+import { useExternalCargos } from '@/hooks/useExternalCargos';
 import {
   Tooltip,
   TooltipContent,
@@ -79,6 +80,7 @@ export const ContactForm = React.memo(function ContactForm({
   submitLabel,
   isSubmitting = false,
 }: ContactFormProps) {
+  const { data: externalCargos = [] } = useExternalCargos();
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FieldError>({});
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
@@ -314,14 +316,20 @@ export const ContactForm = React.memo(function ContactForm({
               <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
               Cargo
             </Label>
-            <Input
-              id="job_title"
-              placeholder="Ex: Gerente de Vendas"
-              value={values.job_title || ''}
-              onChange={(e) => handleChange('job_title', e.target.value)}
-              aria-label="Cargo do contato"
-              maxLength={100}
-            />
+            <Select
+              value={values.job_title || '__none__'}
+              onValueChange={(v) => handleChange('job_title', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger id="job_title" aria-label="Cargo do contato">
+                <SelectValue placeholder="Selecione o cargo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Selecione o cargo</SelectItem>
+                {externalCargos.map((cargo) => (
+                  <SelectItem key={cargo} value={cargo}>{cargo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="company" className="flex items-center gap-1.5">
