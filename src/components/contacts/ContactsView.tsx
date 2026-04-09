@@ -455,6 +455,8 @@ export function ContactsView() {
               onEdit={openEditDialog}
               onDelete={setDeleteTarget}
               index={index}
+              companyLogo={getCRMData(contact.phone)?.logo_url}
+              companyName={getCRMData(contact.phone)?.company_name}
             />
           ))}
         </div>
@@ -470,6 +472,8 @@ export function ContactsView() {
               onEdit={openEditDialog}
               onDelete={setDeleteTarget}
               index={index}
+              companyLogo={getCRMData(contact.phone)?.logo_url}
+              companyName={getCRMData(contact.phone)?.company_name}
             />
           ))}
         </div>
