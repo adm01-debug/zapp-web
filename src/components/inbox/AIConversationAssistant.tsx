@@ -88,7 +88,7 @@ interface AIConversationAssistantProps {
   onClose: () => void;
 }
 
-type AnalysisPeriod = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d';
+type AnalysisPeriod = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d' | 'custom';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SESSION_GAP_MS = 4 * 60 * 60 * 1000;
@@ -102,6 +102,7 @@ const ANALYSIS_PERIOD_OPTIONS: { value: AnalysisPeriod; label: string }[] = [
   { value: '30d', label: 'Últimos 30 dias' },
   { value: '90d', label: 'Últimos 90 dias' },
   { value: 'all', label: 'Toda a conversa' },
+  { value: 'custom', label: 'Período personalizado' },
 ];
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
