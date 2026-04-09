@@ -271,7 +271,34 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         {/* Content */}
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
-            {/* Action Buttons */}
+            {/* Period Selector */}
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Select value={analysisPeriod} onValueChange={setAnalysisPeriod}>
+                <SelectTrigger className="h-8 text-xs flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">Últimos 3 dias</SelectItem>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="15">Últimos 15 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="all">Toda a conversa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Message count info */}
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">
+                {filteredMessages.length} mensagens no período
+                {messages.length !== filteredMessages.length && (
+                  <span className="text-muted-foreground/60"> (de {messages.length} no total)</span>
+                )}
+              </p>
+            </div>
+
+            {/* Action Button */}
             <div className="flex justify-center">
               <Button
                 variant="outline"
@@ -285,13 +312,13 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Analisar
+                Analisar ({filteredMessages.length} msgs)
               </Button>
             </div>
 
             {!canAnalyze && (
               <p className="text-xs text-muted-foreground text-center py-2">
-                Mínimo de 5 mensagens necessárias ({messages.length}/5)
+                Mínimo de 5 mensagens necessárias ({filteredMessages.length}/5)
               </p>
             )}
 
