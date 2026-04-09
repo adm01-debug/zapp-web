@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   Zap, Plus, Play, Eye, Loader2, MessageSquare,
-  Send, BarChart3, CheckCircle2
+  Send, BarChart3, CheckCircle2, Search, Filter
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
 import { supabase } from '@/integrations/supabase/client';
 import { TalkXCampaignEditor } from './TalkXCampaignEditor';
