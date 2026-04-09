@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   Play, Pause, X, Trash2, Eye, Users, Clock,
-  CheckCircle2, XCircle, Loader2, Copy
+  CheckCircle2, XCircle, Loader2, Copy, CalendarClock, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import { ptBR } from 'date-fns/locale';
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
   draft: { label: 'Rascunho', variant: 'secondary', icon: Clock },
+  scheduled: { label: 'Agendada', variant: 'outline', icon: CalendarClock },
   sending: { label: 'Enviando', variant: 'default', icon: Loader2 },
   paused: { label: 'Pausada', variant: 'outline', icon: Pause },
   completed: { label: 'Concluída', variant: 'default', icon: CheckCircle2 },
@@ -66,10 +67,10 @@ export function TalkXCampaignCard({
                   <StatusIcon className={`w-3 h-3 ${campaign.status === 'sending' ? 'animate-spin' : ''}`} />
                   {cfg.label}
                 </Badge>
-                {campaign.scheduled_at && campaign.status === 'draft' && (
+                {campaign.scheduled_at && campaign.status === 'scheduled' && (
                   <Badge variant="outline" className="gap-1 shrink-0 text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    Agendada
+                    <CalendarClock className="w-3 h-3" />
+                    {format(new Date(campaign.scheduled_at), "dd/MM HH:mm", { locale: ptBR })}
                   </Badge>
                 )}
               </div>
@@ -106,10 +107,12 @@ export function TalkXCampaignCard({
                   </span>
                 )}
               </div>
-              {campaign.status === 'sending' && (
+              {(campaign.status === 'sending' || campaign.status === 'paused') && campaign.total_recipients > 0 && (
                 <div className="mt-3">
                   <Progress value={progress} className="h-2" />
-                  <p className="text-[10px] text-muted-foreground mt-1 text-right">{progress}%</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 text-right">
+                    {campaign.sent_count + campaign.failed_count} / {campaign.total_recipients} ({progress}%)
+                  </p>
                 </div>
               )}
             </div>
