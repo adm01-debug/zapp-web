@@ -384,6 +384,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                         locale={ptBR}
                         disabled={(date) => date > new Date() || (customDateTo ? date > customDateTo : false)}
                         initialFocus
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -405,6 +406,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                         locale={ptBR}
                         disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
                         initialFocus
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
