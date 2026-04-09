@@ -1,3 +1,10 @@
+/**
+ * useExternalCargos
+ * 
+ * Fetches unique job titles/roles from the external CRM database.
+ * - salespeople.role: accessible directly (no RLS blocking anon)
+ * - contacts.cargo: blocked by RLS, so we extract from search_contacts_advanced RPC
+ */
 import { useQuery } from '@tanstack/react-query';
 import { externalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { log } from '@/lib/logger';
@@ -8,31 +15,15 @@ export function useExternalCargos() {
     queryFn: async () => {
       const allCargos: string[] = [];
 
-      // Fetch from contacts.cargo
-      const { data: contactsCargos, error: e1 } = await externalSupabase
-        .from('contacts')
-        .select('cargo')
-        .not('cargo', 'is', null)
-        .limit(1000);
-
-      if (e1) {
-        log.error('Error fetching cargos from contacts:', e1);
-      } else {
-        (contactsCargos || []).forEach((r: any) => {
-          const v = String(r.cargo || '').trim();
-          if (v) allCargos.push(v);
-        });
-      }
-
-      // Fetch from salespeople.role
-      const { data: salesRoles, error: e2 } = await externalSupabase
+      // 1. Fetch from salespeople.role (accessible - no RLS blocking)
+      const { data: salesRoles, error: e1 } = await externalSupabase
         .from('salespeople')
         .select('role')
         .not('role', 'is', null)
         .limit(500);
 
-      if (e2) {
-        log.error('Error fetching roles from salespeople:', e2);
+      if (e1) {
+        log.error('Error fetching roles from salespeople:', e1);
       } else {
         (salesRoles || []).forEach((r: any) => {
           const v = String(r.role || '').trim();
@@ -40,7 +31,32 @@ export function useExternalCargos() {
         });
       }
 
+      // 2. Extract cargos from search_contacts_advanced RPC (bypasses RLS)
+      const { data: searchData, error: e2 } = await externalSupabase.rpc('search_contacts_advanced', {
+        p_search: null,
+        p_vendedor: null,
+        p_ramo: null,
+        p_rfm_segment: null,
+        p_estado: null,
+        p_cliente_ativado: true,
+        p_ja_comprou: null,
+        p_sort_by: 'name',
+        p_page: 0,
+        p_page_size: 200,
+      });
+
+      if (e2) {
+        log.error('Error fetching cargos via RPC:', e2);
+      } else {
+        const results = (searchData as any)?.results || [];
+        for (const r of results) {
+          const v = String(r.cargo || '').trim();
+          if (v) allCargos.push(v);
+        }
+      }
+
       const unique = [...new Set(allCargos)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      log.info(`[useExternalCargos] Loaded ${unique.length} unique cargos`);
       return unique;
     },
     enabled: isExternalConfigured,
