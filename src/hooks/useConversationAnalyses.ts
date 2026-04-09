@@ -10,10 +10,10 @@ export interface ConversationAnalysis {
   status: string;
   key_points: string[];
   next_steps: string[];
-  sentiment: 'positivo' | 'neutro' | 'negativo';
+  sentiment: 'positivo' | 'neutro' | 'negativo' | 'critico';
   sentiment_score: number;
   topics: string[];
-  urgency: 'baixa' | 'media' | 'alta';
+  urgency: 'baixa' | 'media' | 'alta' | 'critica' | null;
   customer_satisfaction: number;
   message_count: number;
   created_at: string;

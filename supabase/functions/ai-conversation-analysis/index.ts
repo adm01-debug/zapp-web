@@ -1,3 +1,4 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 import { AiConversationAnalysisSchema, parseBody } from "../_shared/schemas.ts";
 import { callAiWithTracking, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
@@ -17,8 +18,39 @@ Deno.serve(async (req) => {
     const parsed = parseBody(AiConversationAnalysisSchema, await req.json());
     if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const { messages, contactName } = parsed.data;
+    const { messages, contactName, contactId } = parsed.data;
     const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
+
+    // Fetch contact context for richer analysis
+    let contactContext = '';
+    if (contactId) {
+      const { data: contact } = await supabase
+        .from('contacts')
+        .select('name, company, tags, ai_priority, ai_sentiment, notes, contact_type')
+        .eq('id', contactId)
+        .maybeSingle();
+
+      if (contact) {
+        contactContext = `\nContexto do cliente: ${contact.name || 'Cliente'}`;
+        if (contact.company) contactContext += `, Empresa: ${contact.company}`;
+        if (contact.tags?.length) contactContext += `, Tags: ${contact.tags.join(', ')}`;
+        if (contact.contact_type) contactContext += `, Tipo: ${contact.contact_type}`;
+        if (contact.ai_sentiment) contactContext += `, Sentimento anterior: ${contact.ai_sentiment}`;
+      }
+
+      // Previous analyses for trend
+      const { data: prevAnalyses } = await supabase
+        .from('conversation_analyses')
+        .select('sentiment, sentiment_score, summary, urgency, created_at')
+        .eq('contact_id', contactId)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (prevAnalyses && prevAnalyses.length > 0) {
+        contactContext += `\nAnálises anteriores: ${prevAnalyses.map(a => `[${a.sentiment} ${a.sentiment_score}%] ${a.summary?.substring(0, 80)}`).join(' | ')}`;
+      }
+    }
 
     const conversationText = messages
       .map((msg) =>
@@ -26,26 +58,24 @@ Deno.serve(async (req) => {
       )
       .join('\n');
 
-    const systemPrompt = `Você é um assistente especializado em análise de conversas de atendimento ao cliente.
-Analise a conversa abaixo e forneça uma análise completa incluindo:
+    const systemPrompt = `Você é um analista sênior de conversas de atendimento ao cliente com foco em insights acionáveis.
+${contactContext}
 
-1. Um resumo conciso (máximo 4 frases) do assunto principal e o que foi discutido
-2. O status atual da conversa (resolvido, pendente, aguardando_cliente, aguardando_atendente)
-3. Pontos-chave discutidos (máximo 5 itens importantes)
-4. Próximos passos sugeridos (ações recomendadas para o atendente)
-5. Análise de sentimento do cliente (positivo, neutro, negativo)
-6. Score de sentimento (0-100, onde 0 é muito negativo e 100 é muito positivo)
-7. Tópicos principais abordados na conversa (máximo 5 palavras-chave)
-8. Nível de urgência detectado (baixa, media, alta)
-9. Estimativa de satisfação do cliente (1-5 estrelas)
+Analise a conversa de forma profunda e forneça:
+1. Resumo conciso (máx 4 frases) do problema real do cliente
+2. Status da conversa
+3. Pontos-chave (máx 5)
+4. Próximos passos concretos e acionáveis
+5. Sentimento do cliente com score 0-100
+6. Tópicos principais (máx 5 palavras-chave)
+7. Urgência detectada
+8. Satisfação estimada (1-5)
+9. Desempenho do atendente (empatia, clareza, eficiência, conhecimento - cada 1-10)
+10. Risco de churn (low/medium/high)
+11. Oportunidade de venda/upsell se houver
 
-Considere:
-- Tom das mensagens do cliente
-- Velocidade de resolução
-- Complexidade do problema
-- Sinais de frustração ou satisfação
-
-Responda em português brasileiro de forma clara e objetiva.`;
+Considere tom, frustração, complexidade, tempo de resposta e qualidade do atendimento.
+Responda em português brasileiro.`;
 
     log.info("Calling AI for conversation analysis");
 
@@ -54,7 +84,7 @@ Responda em português brasileiro de forma clara e objetiva.`;
       userId,
       apiKey: LOVABLE_API_KEY,
       body: {
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Conversa com ${contactName || 'Cliente'}:\n\n${conversationText}` }
@@ -68,17 +98,28 @@ Responda em português brasileiro de forma clara e objetiva.`;
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { type: "string", description: "Brief summary of the conversation (max 4 sentences)" },
-                  status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente"], description: "Current status of the conversation" },
-                  keyPoints: { type: "array", items: { type: "string" }, description: "Key points discussed (max 5)" },
-                  nextSteps: { type: "array", items: { type: "string" }, description: "Suggested next steps for the agent" },
-                  sentiment: { type: "string", enum: ["positivo", "neutro", "negativo"], description: "Overall customer sentiment" },
-                  sentimentScore: { type: "number", description: "Sentiment score from 0 (very negative) to 100 (very positive)" },
-                  topics: { type: "array", items: { type: "string" }, description: "Main topics discussed (max 5 keywords)" },
-                  urgency: { type: "string", enum: ["baixa", "media", "alta"], description: "Urgency level of the conversation" },
-                  customerSatisfaction: { type: "number", description: "Estimated customer satisfaction from 1 to 5" }
+                  summary: { type: "string", description: "Brief summary (max 4 sentences)" },
+                  status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente", "escalado"] },
+                  keyPoints: { type: "array", items: { type: "string" }, description: "Key points (max 5)" },
+                  nextSteps: { type: "array", items: { type: "string" }, description: "Actionable next steps" },
+                  sentiment: { type: "string", enum: ["positivo", "neutro", "negativo", "critico"] },
+                  sentimentScore: { type: "number", description: "Sentiment 0-100" },
+                  topics: { type: "array", items: { type: "string" }, description: "Main topics (max 5)" },
+                  urgency: { type: "string", enum: ["baixa", "media", "alta", "critica"] },
+                  customerSatisfaction: { type: "number", description: "CSAT 1-5" },
+                  agentPerformance: {
+                    type: "object",
+                    properties: {
+                      empathy: { type: "number", description: "1-10" },
+                      clarity: { type: "number", description: "1-10" },
+                      efficiency: { type: "number", description: "1-10" },
+                      knowledge: { type: "number", description: "1-10" },
+                    },
+                  },
+                  churnRisk: { type: "string", enum: ["low", "medium", "high"] },
+                  salesOpportunity: { type: "string", description: "Sales opportunity description or null" },
                 },
-                required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "urgency"],
+                required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "urgency", "customerSatisfaction"],
                 additionalProperties: false
               }
             }
@@ -89,28 +130,87 @@ Responda em português brasileiro de forma clara e objetiva.`;
     });
 
     if (!response.ok || !data) {
-      if (response.status === 429) return errorResponse("Rate limit exceeded. Please try again later.", 429, req);
-      if (response.status === 402) return errorResponse("Payment required. Please add credits to your workspace.", 402, req);
+      if (response.status === 429) return errorResponse("Rate limit exceeded", 429, req);
+      if (response.status === 402) return errorResponse("Payment required", 402, req);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const toolCall = (data.choices as Array<{message: {tool_calls?: Array<{function: {arguments: string}}>; content?: string}}>)?.[0]?.message?.tool_calls?.[0];
+
+    let analysisData;
     if (toolCall?.function?.arguments) {
-      const analysisData = JSON.parse(toolCall.function.arguments);
-      log.done(200);
-      return jsonResponse(analysisData, 200, req);
+      try {
+        analysisData = JSON.parse(toolCall.function.arguments);
+      } catch {
+        log.error("Failed to parse tool_call arguments");
+        const jsonMatch = toolCall.function.arguments.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysisData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("AI returned malformed JSON");
+        }
+      }
+    } else {
+      const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
+      let parsed = null;
+      if (content) {
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+        } catch { /* fallback */ }
+      }
+      analysisData = parsed || {
+        summary: content || 'Não foi possível gerar análise.',
+        status: 'pendente',
+        keyPoints: [],
+        sentiment: 'neutro',
+        sentimentScore: 50,
+        customerSatisfaction: 3,
+        topics: [],
+        urgency: 'media'
+      };
     }
 
-    const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
+    // Validate and normalize
+    analysisData = {
+      summary: analysisData.summary || 'Resumo não disponível',
+      status: ['resolvido', 'pendente', 'aguardando_cliente', 'aguardando_atendente', 'escalado'].includes(analysisData.status) ? analysisData.status : 'pendente',
+      keyPoints: Array.isArray(analysisData.keyPoints) ? analysisData.keyPoints.slice(0, 5) : [],
+      nextSteps: Array.isArray(analysisData.nextSteps) ? analysisData.nextSteps : [],
+      sentiment: ['positivo', 'neutro', 'negativo', 'critico'].includes(analysisData.sentiment) ? analysisData.sentiment : 'neutro',
+      sentimentScore: typeof analysisData.sentimentScore === 'number' ? Math.max(0, Math.min(100, analysisData.sentimentScore)) : 50,
+      customerSatisfaction: typeof analysisData.customerSatisfaction === 'number' ? Math.max(1, Math.min(5, analysisData.customerSatisfaction)) : 3,
+      topics: Array.isArray(analysisData.topics) ? analysisData.topics.slice(0, 5) : [],
+      urgency: ['baixa', 'media', 'alta', 'critica'].includes(analysisData.urgency) ? analysisData.urgency : 'media',
+      agentPerformance: analysisData.agentPerformance || null,
+      churnRisk: ['low', 'medium', 'high'].includes(analysisData.churnRisk) ? analysisData.churnRisk : 'low',
+      salesOpportunity: analysisData.salesOpportunity || null,
+    };
+
+    // Save analysis & update contact
+    if (contactId) {
+      await supabase.from('conversation_analyses').insert({
+        contact_id: contactId,
+        summary: analysisData.summary,
+        sentiment: analysisData.sentiment,
+        sentiment_score: analysisData.sentimentScore,
+        customer_satisfaction: analysisData.customerSatisfaction,
+        key_points: analysisData.keyPoints,
+        next_steps: analysisData.nextSteps,
+        topics: analysisData.topics,
+        urgency: analysisData.urgency,
+        status: analysisData.status,
+        message_count: messages.length,
+      });
+
+      await supabase.from('contacts').update({
+        ai_sentiment: analysisData.sentiment,
+        ai_priority: analysisData.urgency === 'critica' ? 'urgent' : analysisData.urgency,
+      }).eq('id', contactId);
+    }
+
     log.done(200);
-    return jsonResponse({
-      summary: content || 'Unable to analyze conversation',
-      status: 'pendente',
-      keyPoints: [],
-      sentiment: 'neutro',
-      sentimentScore: 50,
-      urgency: 'media'
-    }, 200, req);
+    return jsonResponse(analysisData, 200, req);
 
   } catch (error) {
     log.error("Error analyzing conversation", { error: error instanceof Error ? error.message : String(error) });
