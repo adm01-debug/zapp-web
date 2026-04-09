@@ -368,11 +368,45 @@ export function useRealtimeMessages() {
     [commitConversations, hydrateConversationForMessage, notifyAboutIncomingMessage]
   );
 
-  // Handle message update (e.g., read status)
+  // Handle message update with batching for rapid status changes
+  const pendingUpdatesRef = useRef<Map<string, RealtimeMessage>>(new Map());
+  const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flushPendingUpdates = useCallback(() => {
+    const pending = pendingUpdatesRef.current;
+    if (pending.size === 0) return;
+
+    const updates = Array.from(pending.values());
+    pendingUpdatesRef.current = new Map();
+
+    commitConversations((prev) => {
+      let next = prev;
+      let changed = false;
+
+      for (const updatedMessage of updates) {
+        if (!updatedMessage.contact_id) continue;
+
+        const convIdx = next.findIndex(c => c.contact.id === updatedMessage.contact_id);
+        if (convIdx < 0) continue;
+
+        const conv = next[convIdx];
+        const msgIdx = conv.messages.findIndex(m => m.id === updatedMessage.id);
+        if (msgIdx < 0) continue;
+
+        if (!changed) { next = [...next]; changed = true; }
+
+        const updatedMessages = [...conv.messages];
+        updatedMessages[msgIdx] = updatedMessage;
+        next[convIdx] = buildConversation(conv.contact, updatedMessages);
+      }
+
+      return changed ? next : prev;
+    });
+  }, [commitConversations]);
+
   const handleMessageUpdate = useCallback(
     (payload: RealtimePostgresChangesPayload<RealtimeMessage>) => {
       const updatedMessage = normalizeMessage(payload.new as RealtimeMessage);
-
       if (!updatedMessage.contact_id) return;
 
       const existingConversation = conversationsRef.current.find(
@@ -384,30 +418,12 @@ export function useRealtimeMessages() {
         return;
       }
 
-      commitConversations((prev) => {
-        const conversationIndex = prev.findIndex(
-          (conversation) => conversation.contact.id === updatedMessage.contact_id
-        );
-
-        if (conversationIndex < 0) return prev;
-
-        const conversation = prev[conversationIndex];
-        const messageIndex = conversation.messages.findIndex(
-          (message) => message.id === updatedMessage.id
-        );
-
-        if (messageIndex < 0) return prev;
-
-        const updatedMessages = [...conversation.messages];
-        updatedMessages[messageIndex] = updatedMessage;
-
-        const updatedConversation = buildConversation(conversation.contact, updatedMessages);
-        const updated = [...prev];
-        updated[conversationIndex] = updatedConversation;
-        return updated;
-      });
+      // Batch rapid updates (e.g., multiple status changes within 100ms)
+      pendingUpdatesRef.current.set(updatedMessage.id, updatedMessage);
+      if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
+      updateTimerRef.current = setTimeout(flushPendingUpdates, 100);
     },
-    [commitConversations, hydrateConversationForMessage]
+    [flushPendingUpdates, hydrateConversationForMessage]
   );
 
   // Subscribe to realtime updates
