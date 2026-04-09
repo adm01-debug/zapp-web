@@ -78,7 +78,7 @@ export function ContactDetailPanel({
               )}
               <Badge
                 variant="secondary"
-                className={cn('mt-1.5 text-xs', typeConfig.badge)}
+                className={cn('mt-1.5 text-xs', typeConfig.badgeClass)}
               >
                 {typeConfig.label}
               </Badge>
