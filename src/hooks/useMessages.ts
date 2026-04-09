@@ -42,8 +42,8 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
 
   // Fetch messages for contact
   const fetchMessages = useCallback(async () => {
-    if (!contactId) {
-      setMessages([]);
+    if (!contactId || !mountedRef.current) {
+      if (mountedRef.current) { setMessages([]); setLoading(false); }
       setLoading(false);
       return;
     }
