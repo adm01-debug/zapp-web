@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-  ArrowLeft, Save, Users, Wand2, Eye, Clock, MessageSquare, Type
+  ArrowLeft, Save, Users, Wand2, Eye, Clock, MessageSquare, Type, Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
@@ -51,6 +52,8 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const [connectionId, setConnectionId] = useState(campaign?.whatsapp_connection_id || '');
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [contactSearch, setContactSearch] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const { data: connections } = useQuery({
     queryKey: ['wa-connections-talkx'],
@@ -69,10 +72,24 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
       const { data } = await supabase
         .from('contacts')
         .select('id, name, nickname, phone, company, avatar_url')
+        .not('phone', 'is', null)
         .order('name');
       return data || [];
     },
   });
+
+  const filteredContacts = useMemo(() => {
+    if (!contacts) return [];
+    if (!contactSearch.trim()) return contacts;
+    const q = contactSearch.toLowerCase();
+    return contacts.filter(
+      (c) =>
+        c.name?.toLowerCase().includes(q) ||
+        c.nickname?.toLowerCase().includes(q) ||
+        c.phone?.includes(q) ||
+        c.company?.toLowerCase().includes(q)
+    );
+  }, [contacts, contactSearch]);
 
   const previewMessage = useMemo(() => {
     const sampleContact = contacts?.[0] || { name: 'João Silva', nickname: 'Joãozinho', company: 'Acme' };
@@ -93,28 +110,33 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   };
 
   const handleSave = async () => {
-    const payload = {
-      name,
-      message_template: messageTemplate,
-      typing_delay_min: Math.round(typingDelay[0] * 1000),
-      typing_delay_max: Math.round(typingDelay[1] * 1000),
-      send_interval_min: Math.round(sendInterval[0] * 1000),
-      send_interval_max: Math.round(sendInterval[1] * 1000),
-      whatsapp_connection_id: connectionId || null,
-    };
+    setSaving(true);
+    try {
+      const payload = {
+        name,
+        message_template: messageTemplate,
+        typing_delay_min: Math.round(typingDelay[0] * 1000),
+        typing_delay_max: Math.round(typingDelay[1] * 1000),
+        send_interval_min: Math.round(sendInterval[0] * 1000),
+        send_interval_max: Math.round(sendInterval[1] * 1000),
+        whatsapp_connection_id: connectionId || null,
+      };
 
-    if (campaign) {
-      await updateCampaign.mutateAsync({ id: campaign.id, ...payload });
-    } else {
-      const newCampaign = await createCampaign.mutateAsync(payload);
-      if (newCampaign && selectedContacts.length > 0) {
-        await addRecipients.mutateAsync({
-          campaignId: newCampaign.id,
-          contactIds: selectedContacts,
-        });
+      if (campaign) {
+        await updateCampaign.mutateAsync({ id: campaign.id, ...payload });
+      } else {
+        const newCampaign = await createCampaign.mutateAsync(payload);
+        if (newCampaign && selectedContacts.length > 0) {
+          await addRecipients.mutateAsync({
+            campaignId: newCampaign.id,
+            contactIds: selectedContacts,
+          });
+        }
       }
+      onClose();
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   const toggleContact = (contactId: string) => {
@@ -124,36 +146,58 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   };
 
   const selectAll = () => {
-    if (!contacts) return;
-    if (selectedContacts.length === contacts.length) {
-      setSelectedContacts([]);
+    if (!filteredContacts) return;
+    const allFilteredIds = filteredContacts.map((c) => c.id);
+    const allSelected = allFilteredIds.every((id) => selectedContacts.includes(id));
+    if (allSelected) {
+      setSelectedContacts((prev) => prev.filter((id) => !allFilteredIds.includes(id)));
     } else {
-      setSelectedContacts(contacts.map((c) => c.id));
+      setSelectedContacts((prev) => [...new Set([...prev, ...allFilteredIds])]);
     }
   };
 
+  const estimatedTime = useMemo(() => {
+    if (selectedContacts.length === 0) return null;
+    const avgTyping = (typingDelay[0] + typingDelay[1]) / 2;
+    const avgInterval = (sendInterval[0] + sendInterval[1]) / 2;
+    const totalSeconds = selectedContacts.length * (avgTyping + avgInterval);
+    const minutes = Math.ceil(totalSeconds / 60);
+    if (minutes < 60) return `~${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const remainMin = minutes % 60;
+    return `~${hours}h${remainMin > 0 ? ` ${remainMin}min` : ''}`;
+  }, [selectedContacts.length, typingDelay, sendInterval]);
+
   return (
-    <div className="h-full flex flex-col gap-6 p-6 overflow-auto">
+    <div className="h-full flex flex-col gap-4 md:gap-6 p-4 md:p-6 overflow-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <div className="flex-1">
-          <h2 className="text-xl font-bold font-display text-foreground">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg md:text-xl font-bold font-display text-foreground truncate">
             {campaign ? 'Editar Campanha' : 'Nova Campanha Talk X'}
           </h2>
-          <p className="text-sm text-muted-foreground">Configure mensagem, contatos e simulação</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Configure mensagem, contatos e simulação</p>
         </div>
-        <Button onClick={handleSave} disabled={!name || !messageTemplate} className="gap-2">
-          <Save className="w-4 h-4" />
-          Salvar
-        </Button>
+        <div className="flex items-center gap-2">
+          {estimatedTime && (
+            <Badge variant="outline" className="gap-1 hidden sm:flex">
+              <Clock className="w-3 h-3" />
+              {estimatedTime}
+            </Badge>
+          )}
+          <Button onClick={handleSave} disabled={!name || !messageTemplate || saving} className="gap-2">
+            {saving ? <Loader2Icon /> : <Save className="w-4 h-4" />}
+            Salvar
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Left Column */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Basic Info */}
           <Card>
             <CardHeader className="pb-3">
@@ -199,12 +243,12 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {VARIABLES.map((v) => (
                   <Badge
                     key={v.key}
                     variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 transition-colors"
+                    className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
                     onClick={() => insertVariable(v.key)}
                     title={v.desc}
                   >
@@ -257,7 +301,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               <div>
                 <div className="flex justify-between mb-3">
                   <Label>Tempo digitando</Label>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs font-mono text-muted-foreground">
                     {typingDelay[0]}s – {typingDelay[1]}s
                   </span>
                 </div>
@@ -276,7 +320,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               <div>
                 <div className="flex justify-between mb-3">
                   <Label>Intervalo entre envios</Label>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs font-mono text-muted-foreground">
                     {sendInterval[0]}s – {sendInterval[1]}s
                   </span>
                 </div>
@@ -291,6 +335,18 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
                   Pausa aleatória entre cada mensagem enviada
                 </p>
               </div>
+              {estimatedTime && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Tempo estimado total:</span>
+                    <Badge variant="secondary" className="gap-1">
+                      <Clock className="w-3 h-3" />
+                      {estimatedTime}
+                    </Badge>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -298,53 +354,80 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
         {/* Right Column - Contact Selection */}
         <Card className="h-fit max-h-[calc(100vh-200px)] flex flex-col">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Users className="w-4 h-4 text-primary" />
-                Contatos ({selectedContacts.length} selecionados)
+                Contatos
+                <Badge variant="secondary" className="text-[10px]">
+                  {selectedContacts.length}/{contacts?.length || 0}
+                </Badge>
               </CardTitle>
-              <Button size="sm" variant="ghost" onClick={selectAll}>
-                {selectedContacts.length === (contacts?.length || 0) ? 'Desmarcar todos' : 'Selecionar todos'}
+              <Button size="sm" variant="ghost" onClick={selectAll} className="text-xs shrink-0">
+                {filteredContacts.length > 0 && filteredContacts.every((c) => selectedContacts.includes(c.id))
+                  ? 'Desmarcar'
+                  : 'Todos'}
               </Button>
             </div>
+            {!campaign && (
+              <div className="relative mt-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                  placeholder="Buscar por nome, telefone, empresa..."
+                  className="pl-9 h-9 text-sm"
+                />
+              </div>
+            )}
           </CardHeader>
           <CardContent className="flex-1 overflow-auto min-h-0">
             {campaign ? (
               <TalkXRecipientsList campaignId={campaign.id} />
             ) : (
-              <div className="space-y-1">
-                {contacts?.map((contact) => (
-                  <label
-                    key={contact.id}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors ${
-                      selectedContacts.includes(contact.id)
-                        ? 'bg-primary/10 border border-primary/20'
-                        : 'hover:bg-muted/50'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedContacts.includes(contact.id)}
-                      onChange={() => toggleContact(contact.id)}
-                      className="rounded border-border"
-                    />
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
-                      {(contact.name || '?')[0].toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {contact.name}
-                        {contact.nickname && (
-                          <span className="text-muted-foreground ml-1">({contact.nickname})</span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {contact.phone}
-                        {contact.company && ` • ${contact.company}`}
-                      </p>
-                    </div>
-                  </label>
-                ))}
+              <div className="space-y-0.5">
+                {filteredContacts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    {contactSearch ? 'Nenhum contato encontrado' : 'Nenhum contato disponível'}
+                  </p>
+                ) : (
+                  filteredContacts.map((contact) => {
+                    const isSelected = selectedContacts.includes(contact.id);
+                    return (
+                      <label
+                        key={contact.id}
+                        className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-primary/10 border border-primary/20'
+                            : 'hover:bg-muted/50 border border-transparent'
+                        }`}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleContact(contact.id)}
+                        />
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
+                          {contact.avatar_url ? (
+                            <img src={contact.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            (contact.name || '?')[0].toUpperCase()
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {contact.name}
+                            {contact.nickname && (
+                              <span className="text-muted-foreground ml-1 font-normal">({contact.nickname})</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {contact.phone}
+                            {contact.company && ` · ${contact.company}`}
+                          </p>
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
               </div>
             )}
           </CardContent>
@@ -352,4 +435,8 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
       </div>
     </div>
   );
+}
+
+function Loader2Icon() {
+  return <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />;
 }
