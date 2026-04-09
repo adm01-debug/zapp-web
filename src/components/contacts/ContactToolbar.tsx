@@ -69,6 +69,7 @@ interface ContactToolbarProps {
   setViewMode: (mode: ContactViewMode) => void;
   gridColumns: number;
   setGridColumns: (cols: number) => void;
+  totalCount: number;
 }
 
 export function ContactToolbar({
@@ -79,20 +80,18 @@ export function ContactToolbar({
   uniqueCompanies, uniqueJobTitles, uniqueTags,
   onApplyPreset, groupByCompany, setGroupByCompany,
   selectedIds, onBulkTag, onCompare, onMerge,
-  viewMode, setViewMode, gridColumns, setGridColumns,
+  viewMode, setViewMode, gridColumns, setGridColumns, totalCount,
 }: ContactToolbarProps) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, telefone, email ou empresa..."
-            value={searchInput}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        <ContactSearchWithSuggestions
+          value={searchInput}
+          onChange={onSearchChange}
+          uniqueCompanies={uniqueCompanies}
+          uniqueTags={uniqueTags}
+          totalCount={totalCount}
+        />
 
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-[180px]">
