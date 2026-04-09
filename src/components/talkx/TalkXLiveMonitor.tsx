@@ -132,7 +132,7 @@ export function TalkXLiveMonitor({ campaignId }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent className="max-h-[400px] overflow-auto">
-          <TalkXRecipientsList campaignId={campaignId} />
+          <TalkXRecipientsList campaignId={campaignId} key={recipientsKey} />
         </CardContent>
       </Card>
     </div>
