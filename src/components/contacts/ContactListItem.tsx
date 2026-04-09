@@ -10,44 +10,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   MessageSquare, Edit, Trash2, MoreVertical, Phone, Mail,
-  Building, Briefcase,
+  Briefcase,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
-
-interface Contact {
-  id: string;
-  name: string;
-  surname: string | null;
-  nickname: string | null;
-  phone: string;
-  email: string | null;
-  avatar_url: string | null;
-  company: string | null;
-  job_title: string | null;
-  tags: string[] | null;
-  contact_type: string | null;
-  created_at: string;
-}
-
-interface ContactListItemProps {
-  contact: Contact;
-  isSelected: boolean;
-  onToggleSelect: (id: string, selected: boolean) => void;
-  onOpenChat: (id: string) => void;
-  onEdit: (contact: Contact) => void;
-  onDelete: (contact: Contact) => void;
-  index: number;
-  companyLogo?: string | null;
-  companyName?: string | null;
-}
+import { CompanyLogo } from './CompanyLogo';
+import type { ContactItemProps } from './types';
 
 export function ContactListItem({
   contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName,
-}: ContactListItemProps) {
+}: ContactItemProps) {
   const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
   const avatarColors = getAvatarColor(contact.name);
 
@@ -71,7 +46,7 @@ export function ContactListItem({
         />
       </div>
 
-      {/* Avatar */}
+      {/* Avatar with company logo overlay */}
       <div className="relative shrink-0">
         <Avatar className="w-11 h-11">
           <AvatarImage src={contact.avatar_url || undefined} />
@@ -83,6 +58,17 @@ export function ContactListItem({
           "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background",
           typeConfig.dotBg
         )} />
+        {(companyLogo || contact.company) && (
+          <div className="absolute -top-0.5 -left-0.5">
+            <CompanyLogo
+              logoUrl={companyLogo}
+              companyName={companyName}
+              fallbackCompanyName={contact.company}
+              size="xs"
+              className="ring-1 ring-background"
+            />
+          </div>
+        )}
       </div>
 
       {/* Name & type */}
@@ -101,17 +87,14 @@ export function ContactListItem({
         </div>
         <div className="flex items-center gap-3 mt-0.5">
           {contact.company && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              {companyLogo ? (
-                <img
-                  src={companyLogo}
-                  alt={companyName || contact.company}
-                  className="w-4 h-4 rounded object-contain bg-background border border-border/20"
-                />
-              ) : (
-                <Building className="w-3 h-3" />
-              )}
-              {companyName || contact.company}
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CompanyLogo
+                logoUrl={companyLogo}
+                companyName={companyName}
+                fallbackCompanyName={contact.company}
+                size="xs"
+              />
+              <span className="truncate max-w-[120px]">{companyName || contact.company}</span>
             </span>
           )}
           {contact.job_title && (
