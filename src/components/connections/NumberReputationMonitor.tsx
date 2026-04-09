@@ -110,7 +110,7 @@ export function NumberReputationMonitor() {
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{rep.connection?.instance_name || 'Instância'}</p>
+                      <p className="text-sm font-medium">{rep.connection?.instance_id || 'Instância'}</p>
                       <p className="text-xs text-muted-foreground">{rep.connection?.phone_number || 'N/A'}</p>
                     </div>
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getHealthBg(rep.health_score)}`}>
