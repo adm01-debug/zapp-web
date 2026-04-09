@@ -222,7 +222,8 @@ describe('ContactForm — Empresa autocomplete logic', () => {
   });
 
   it('filters with 1 char', () => {
-    expect(filterEmpresas(empresas, 'T')).toEqual(['TechBR']);
+    const result = filterEmpresas(empresas, 'G');
+    expect(result).toEqual(['Google Brasil']);
   });
 
   it('filters by partial match (case-insensitive)', () => {
