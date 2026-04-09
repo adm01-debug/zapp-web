@@ -49,6 +49,13 @@ import { openChatPopup } from '@/lib/popupManager';
 
 const AIToolsPopover = lazy(() => import('../AIToolsPopover').then(m => ({ default: m.AIToolsPopover })));
 
+interface ChatMessage {
+  id: string;
+  content: string;
+  sender: string;
+  timestamp: string;
+}
+
 interface ChatPanelHeaderProps {
   conversation: Conversation;
   isContactTyping: boolean;
@@ -70,6 +77,7 @@ interface ChatPanelHeaderProps {
   canGenerateSummary?: boolean;
   onCloseConversation?: () => void;
   lastMessages?: string[];
+  allMessages?: ChatMessage[];
   onSelectSuggestion?: (text: string) => void;
 }
 
