@@ -10,7 +10,7 @@ export function useExternalCargos() {
         .from('contacts')
         .select('cargo')
         .not('cargo', 'is', null)
-        .not('cargo', 'eq', '');
+        .neq('cargo', '');
 
       if (error) {
         log.error('Error fetching cargos from external DB:', error);
