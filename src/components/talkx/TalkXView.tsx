@@ -156,8 +156,23 @@ export default function TalkXView() {
 
         <TabsContent value="campaigns" className="flex-1 overflow-auto mt-4">
           {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            <div className="grid gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4 md:p-5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 bg-muted rounded w-1/3" />
+                      <div className="h-5 bg-muted rounded w-16" />
+                    </div>
+                    <div className="h-4 bg-muted rounded w-2/3" />
+                    <div className="flex gap-3">
+                      <div className="h-3 bg-muted rounded w-12" />
+                      <div className="h-3 bg-muted rounded w-20" />
+                      <div className="h-3 bg-muted rounded w-16" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : campaigns.length === 0 ? (
             <Card className="border-dashed border-2 border-border/50">
