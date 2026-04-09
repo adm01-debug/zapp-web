@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { useCampaigns, Campaign } from '@/hooks/useCampaigns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,10 @@ import {
 } from '@/components/ui/select';
 import {
   Megaphone, Plus, Play, Pause, Trash2, Edit2, Send, Clock, CheckCircle2,
-  XCircle, AlertCircle, Users, BarChart3, Loader2, Eye,
+  XCircle, AlertCircle, Users, BarChart3, Loader2, Eye, FlaskConical,
 } from 'lucide-react';
+
+const CampaignABTesting = lazy(() => import('./CampaignABTesting').then(m => ({ default: m.CampaignABTesting })));
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -337,6 +339,11 @@ export function CampaignsView() {
                   <p className="text-xs text-muted-foreground mb-1">Mensagem</p>
                   <p className="text-sm text-foreground whitespace-pre-wrap">{selectedCampaign.message_content}</p>
                 </div>
+
+                {/* A/B Testing */}
+                <Suspense fallback={<div className="h-20 bg-muted/20 rounded-xl animate-pulse" />}>
+                  <CampaignABTesting campaignId={selectedCampaign.id} />
+                </Suspense>
               </div>
             </>
           )}
