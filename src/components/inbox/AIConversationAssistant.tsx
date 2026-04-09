@@ -66,6 +66,7 @@ interface AgentPerformance {
 }
 
 interface AnalysisData {
+  analysisId?: string | null;
   summary: string;
   status: string;
   keyPoints: string[];
@@ -181,7 +182,7 @@ function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod, cus
         endOfTo.setHours(23, 59, 59, 999);
         if (msgDate > endOfTo) return false;
       }
-      return customFrom || customTo;
+      return Boolean(customFrom || customTo);
     });
   }
 
@@ -234,7 +235,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined);
   const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined);
 
-  const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
+  const { analyses, refetch, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
   const filteredMessages = useMemo(
@@ -245,21 +246,9 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const canAnalyze = filteredMessages.length >= 5;
 
   useEffect(() => {
-    if (analyses.length > 0 && !analysis) {
-      const latest = analyses[0];
-      setAnalysis({
-        summary: latest.summary,
-        status: latest.status,
-        keyPoints: latest.key_points,
-        nextSteps: latest.next_steps,
-        sentiment: latest.sentiment,
-        sentimentScore: latest.sentiment_score,
-        topics: latest.topics,
-        urgency: latest.urgency ?? undefined,
-        customerSatisfaction: latest.customer_satisfaction ?? undefined,
-      });
-    }
-  }, [analyses, analysis]);
+    setAnalysis(null);
+    setActiveTab('resumo');
+  }, [analysisPeriod, customDateFrom, customDateTo, contactId]);
 
   const analyzeConversation = useCallback(async () => {
     if (!canAnalyze) {
@@ -288,7 +277,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
           });
 
           if (error) throw error;
-          return data;
+          return data as AnalysisData;
         },
         {
           maxRetries: 2,
@@ -303,30 +292,18 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       );
 
       setAnalysis(result);
-
-      const savedAnalysis = await saveAnalysis({
-        contact_id: contactId,
-        summary: result.summary,
-        status: result.status,
-        key_points: result.keyPoints || [],
-        next_steps: result.nextSteps || [],
-        sentiment: result.sentiment,
-        sentiment_score: result.sentimentScore || 50,
-        topics: result.topics || [],
-        urgency: result.urgency || 'media',
-        customer_satisfaction: result.customerSatisfaction || 3,
-        message_count: filteredMessages.length,
-      });
+      setActiveTab('resumo');
+      await refetch();
 
       const sentimentScore = result.sentimentScore || 50;
-      if (sentimentScore < SENTIMENT_THRESHOLD && savedAnalysis) {
+      if (sentimentScore < SENTIMENT_THRESHOLD && result.analysisId) {
         const previousAnalysis = analyses[0];
         await checkAndTriggerAlert({
           contactId,
           contactName,
           sentimentScore,
           previousScore: previousAnalysis?.sentiment_score,
-          analysisId: savedAnalysis.id,
+          analysisId: result.analysisId,
         });
       }
 
@@ -337,7 +314,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     } finally {
       setIsLoading(false);
     }
-  }, [analysisPeriod, analyses, canAnalyze, checkAndTriggerAlert, contactId, contactName, filteredMessages, saveAnalysis, SENTIMENT_THRESHOLD]);
+  }, [analysisPeriod, analyses, canAnalyze, checkAndTriggerAlert, contactId, contactName, filteredMessages, refetch, SENTIMENT_THRESHOLD]);
 
   const sentimentTrend = getSentimentTrend();
   const currentSentiment = analysis?.sentiment || 'neutro';

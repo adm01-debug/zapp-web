@@ -22,7 +22,6 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
     const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
 
-    // Fetch contact context for richer analysis
     let contactContext = '';
     if (contactId) {
       const { data: contact } = await supabase
@@ -39,7 +38,6 @@ Deno.serve(async (req) => {
         if (contact.ai_sentiment) contactContext += `, Sentimento anterior: ${contact.ai_sentiment}`;
       }
 
-      // Previous analyses for trend
       const { data: prevAnalyses } = await supabase
         .from('conversation_analyses')
         .select('sentiment, sentiment_score, summary, urgency, created_at')
@@ -53,9 +51,7 @@ Deno.serve(async (req) => {
     }
 
     const conversationText = messages
-      .map((msg) =>
-        `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content || ''}`
-      )
+      .map((msg) => `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content || ''}`)
       .join('\n');
 
     const systemPrompt = `Você é um analista sênior de conversas de atendimento ao cliente com foco em insights acionáveis.
@@ -77,7 +73,10 @@ Analise a conversa de forma profunda e forneça:
 Considere tom, frustração, complexidade, tempo de resposta e qualidade do atendimento.
 Responda em português brasileiro.`;
 
-    log.info("Calling AI for conversation analysis");
+    log.info("Calling AI for conversation analysis", {
+      contactId,
+      messageCount: messages.length,
+    });
 
     const { response, data } = await callAiWithTracking({
       functionName: 'ai-conversation-analysis',
@@ -152,14 +151,16 @@ Responda em português brasileiro.`;
       }
     } else {
       const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
-      let parsed = null;
+      let parsedContent = null;
       if (content) {
         try {
           const jsonMatch = content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
-        } catch { /* fallback */ }
+          if (jsonMatch) parsedContent = JSON.parse(jsonMatch[0]);
+        } catch {
+          parsedContent = null;
+        }
       }
-      analysisData = parsed || {
+      analysisData = parsedContent || {
         summary: content || 'Não foi possível gerar análise.',
         status: 'pendente',
         keyPoints: [],
@@ -171,7 +172,6 @@ Responda em português brasileiro.`;
       };
     }
 
-    // Validate and normalize
     analysisData = {
       summary: analysisData.summary || 'Resumo não disponível',
       status: ['resolvido', 'pendente', 'aguardando_cliente', 'aguardando_atendente', 'escalado'].includes(analysisData.status) ? analysisData.status : 'pendente',
@@ -187,31 +187,54 @@ Responda em português brasileiro.`;
       salesOpportunity: analysisData.salesOpportunity || null,
     };
 
-    // Save analysis & update contact
-    if (contactId) {
-      await supabase.from('conversation_analyses').insert({
-        contact_id: contactId,
-        summary: analysisData.summary,
-        sentiment: analysisData.sentiment,
-        sentiment_score: analysisData.sentimentScore,
-        customer_satisfaction: analysisData.customerSatisfaction,
-        key_points: analysisData.keyPoints,
-        next_steps: analysisData.nextSteps,
-        topics: analysisData.topics,
-        urgency: analysisData.urgency,
-        status: analysisData.status,
-        message_count: messages.length,
-      });
+    let analysisId: string | null = null;
 
-      await supabase.from('contacts').update({
-        ai_sentiment: analysisData.sentiment,
-        ai_priority: analysisData.urgency === 'critica' ? 'urgent' : analysisData.urgency,
-      }).eq('id', contactId);
+    if (contactId) {
+      const { data: insertedAnalysis, error: insertError } = await supabase
+        .from('conversation_analyses')
+        .insert({
+          contact_id: contactId,
+          summary: analysisData.summary,
+          sentiment: analysisData.sentiment,
+          sentiment_score: analysisData.sentimentScore,
+          customer_satisfaction: analysisData.customerSatisfaction,
+          key_points: analysisData.keyPoints,
+          next_steps: analysisData.nextSteps,
+          topics: analysisData.topics,
+          urgency: analysisData.urgency,
+          status: analysisData.status,
+          message_count: messages.length,
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        log.warn("Failed to persist conversation analysis", {
+          contactId,
+          error: insertError.message,
+        });
+      } else {
+        analysisId = insertedAnalysis?.id ?? null;
+      }
+
+      const { error: updateError } = await supabase
+        .from('contacts')
+        .update({
+          ai_sentiment: analysisData.sentiment,
+          ai_priority: analysisData.urgency === 'critica' ? 'urgent' : analysisData.urgency,
+        })
+        .eq('id', contactId);
+
+      if (updateError) {
+        log.warn("Failed to update contact AI fields", {
+          contactId,
+          error: updateError.message,
+        });
+      }
     }
 
-    log.done(200);
-    return jsonResponse(analysisData, 200, req);
-
+    log.done(200, { analysisId, messageCount: messages.length });
+    return jsonResponse({ ...analysisData, analysisId }, 200, req);
   } catch (error) {
     log.error("Error analyzing conversation", { error: error instanceof Error ? error.message : String(error) });
     return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500, req);
