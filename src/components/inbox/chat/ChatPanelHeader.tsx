@@ -44,10 +44,12 @@ import {
   Loader2,
   XCircle,
   Radar,
+  GraduationCap,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 
-const AIToolsPopover = lazy(() => import('../AIToolsPopover').then(m => ({ default: m.AIToolsPopover })));
+const ObjectionDetector = lazy(() => import('../ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
+const UniversityHelp = lazy(() => import('../UniversityHelp').then(m => ({ default: m.UniversityHelp })));
 
 interface ChatMessage {
   id: string;
@@ -194,10 +196,36 @@ export function ChatPanelHeader({
           </Tooltip>
           <PopoverContent side="bottom" align="end" className="w-[420px] p-3 max-h-[80vh] overflow-y-auto">
             <Suspense fallback={null}>
-              <AIToolsPopover
+              <ObjectionDetector
                 contactId={conversation.contact.id}
                 lastMessages={lastMessages}
-                allMessages={allMessages}
+                onSelectSuggestion={onSelectSuggestion}
+              />
+            </Suspense>
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  aria-label="Ajuda dos Universitários"
+                >
+                  <GraduationCap className="w-[18px] h-[18px]" />
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Ajuda dos Universitários</TooltipContent>
+          </Tooltip>
+          <PopoverContent side="bottom" align="end" className="w-[420px] p-3 max-h-[80vh] overflow-y-auto">
+            <Suspense fallback={null}>
+              <UniversityHelp
+                contactId={conversation.contact.id}
+                messages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
               />
             </Suspense>
