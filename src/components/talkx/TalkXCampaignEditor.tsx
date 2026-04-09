@@ -237,7 +237,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               {showPreview && (
                 <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
                   <p className="text-xs text-muted-foreground mb-2">Preview (usando primeiro contato):</p>
-                  <div className="bg-green-500/10 rounded-lg p-3 text-sm text-foreground max-w-[80%] ml-auto">
+                  <div className="bg-primary/10 rounded-lg p-3 text-sm text-foreground max-w-[80%] ml-auto">
                     {previewMessage || 'Digite uma mensagem...'}
                   </div>
                 </div>
