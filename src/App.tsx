@@ -121,6 +121,15 @@ function AppContent() {
   // Global unhandled rejection handler
   useEffect(() => {
     const handler = (event: PromiseRejectionEvent) => {
+      // Silence harmless View Transition API aborts (rapid navigation)
+      const reason = event.reason;
+      if (reason && typeof reason === 'object' && 'name' in reason) {
+        const name = (reason as { name: string }).name;
+        if (name === 'TimeoutError' || name === 'InvalidStateError') {
+          event.preventDefault();
+          return;
+        }
+      }
       log.error("Unhandled promise rejection:", event.reason);
       event.preventDefault();
     };

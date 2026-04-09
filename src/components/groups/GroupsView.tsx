@@ -166,9 +166,31 @@ export function GroupsView() {
       {/* Groups Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          <div className="col-span-full flex justify-center py-12">
-            <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
+          <>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
+                <Card className="border border-border/20 bg-card animate-pulse">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 rounded-full bg-muted/40" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted/40 rounded w-3/4" />
+                        <div className="h-3 bg-muted/30 rounded w-1/3" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="h-3 bg-muted/30 rounded w-full" />
+                    <div className="h-3 bg-muted/30 rounded w-2/3" />
+                    <div className="flex gap-2">
+                      <div className="h-5 bg-muted/30 rounded-full w-20" />
+                      <div className="h-5 bg-muted/30 rounded-full w-16" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </>
         ) : filteredGroups.length === 0 ? (
           <div className="col-span-full">
             <EmptyState
