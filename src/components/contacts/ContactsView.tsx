@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExternalContact360Batch } from '@/hooks/useExternalContact360Batch';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -105,11 +106,45 @@ export function ContactsView() {
   const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
   const { lookup: getCRMData } = useExternalContact360Batch(contactPhones);
 
-  const handleToggleSelect = (id: string, selected: boolean) => {
+  const handleToggleSelect = useCallback((id: string, selected: boolean) => {
     setSelectedIds(prev =>
       selected ? [...prev, id] : prev.filter(i => i !== id)
     );
-  };
+  }, [setSelectedIds]);
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedIds.length === filteredContacts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredContacts.map(c => c.id));
+    }
+  }, [selectedIds.length, filteredContacts, setSelectedIds]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl+N → New contact
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        setIsAddDialogOpen(true);
+      }
+      // Escape → Clear search / deselect
+      if (e.key === 'Escape') {
+        if (selectedIds.length > 0) {
+          setSelectedIds([]);
+        } else if (searchInput) {
+          clearSearch();
+        }
+      }
+      // Ctrl+A → Select all (when not in input)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        handleSelectAll();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedIds.length, searchInput, clearSearch, setIsAddDialogOpen, setSelectedIds, handleSelectAll]);
 
   return (
     <div ref={scrollContainerRef} className="p-6 space-y-5 overflow-y-auto h-full relative bg-background">
@@ -414,9 +449,25 @@ export function ContactsView() {
       </motion.div>
 
       {/* Results Summary */}
-      {!loading && (
+      {!loading && filteredContacts.length > 0 && (
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={handleSelectAll}
+            >
+              <Checkbox
+                checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
+                onCheckedChange={() => handleSelectAll()}
+                className="w-3.5 h-3.5"
+              />
+              {selectedIds.length > 0
+                ? `${selectedIds.length} selecionado${selectedIds.length !== 1 ? 's' : ''}`
+                : 'Selecionar todos'}
+            </Button>
+            <span className="text-muted-foreground/60">|</span>
             <span>
               Exibindo <span className="font-semibold text-foreground">{filteredContacts.length}</span>
               {filteredContacts.length < totalCount && (
@@ -431,7 +482,17 @@ export function ContactsView() {
               </Badge>
             )}
           </div>
-          {search && <span className="text-xs italic">Buscando por "{search}"</span>}
+          <div className="flex items-center gap-3">
+            {search && <span className="text-xs italic">Buscando por "{search}"</span>}
+            <div className="hidden lg:flex items-center gap-2 text-[10px] text-muted-foreground/50">
+              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Ctrl+N</kbd>
+              <span>Novo</span>
+              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Ctrl+A</kbd>
+              <span>Selecionar</span>
+              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Esc</kbd>
+              <span>Limpar</span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -500,6 +561,7 @@ export function ContactsView() {
               onEdit={openEditDialog}
               onDelete={setDeleteTarget}
               getCRMData={getCRMData}
+              searchQuery={search}
             />
           </CardContent>
         </Card>
