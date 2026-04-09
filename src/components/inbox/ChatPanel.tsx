@@ -84,6 +84,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [summaryData, setSummaryData] = useState<Record<string, unknown> | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [hasSummary, setHasSummary] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
