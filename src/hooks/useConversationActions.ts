@@ -53,7 +53,7 @@ export function useConversationActions() {
       .from('pinned_conversations')
       .select('contact_id')
       .eq('pinned_by', profileId);
-    if (data) setPinnedIds(new Set(data.map((p: PinnedConversation) => p.contact_id)));
+    if (data) setPinnedIds(new Set(data.map((p) => p.contact_id)));
   };
 
   const loadFavorites = async () => {
@@ -73,7 +73,7 @@ export function useConversationActions() {
       .select('contact_id')
       .eq('snoozed_by', profileId)
       .gt('snooze_until', new Date().toISOString());
-    if (data) setSnoozedIds(new Set(data.map((s: SnoozedConversation) => s.contact_id)));
+    if (data) setSnoozedIds(new Set(data.map((s) => s.contact_id)));
   };
 
   const pinConversation = useCallback(async (contactId: string) => {
