@@ -83,6 +83,8 @@ export const ContactForm = React.memo(function ContactForm({
   isSubmitting = false,
 }: ContactFormProps) {
   const { data: externalCargos = [] } = useExternalCargos();
+  const { data: externalEmpresas = [] } = useExternalEmpresas();
+  const [empresaSearch, setEmpresaSearch] = useLocalState('');
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FieldError>({});
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
@@ -338,14 +340,42 @@ export const ContactForm = React.memo(function ContactForm({
               <Building className="w-3.5 h-3.5 text-muted-foreground" />
               Empresa
             </Label>
-            <Input
-              id="company"
-              placeholder="Nome da empresa"
-              value={values.company || ''}
-              onChange={(e) => handleChange('company', e.target.value)}
-              aria-label="Empresa do contato"
-              maxLength={100}
-            />
+            <div className="relative">
+              <Input
+                id="company"
+                placeholder="Buscar empresa..."
+                value={values.company || ''}
+                onChange={(e) => {
+                  handleChange('company', e.target.value);
+                  setEmpresaSearch(e.target.value);
+                }}
+                onFocus={() => setEmpresaSearch(values.company || '')}
+                aria-label="Empresa do contato"
+                autoComplete="off"
+              />
+              {empresaSearch.length >= 2 && (() => {
+                const filtered = externalEmpresas.filter(e =>
+                  e.toLowerCase().includes(empresaSearch.toLowerCase())
+                ).slice(0, 8);
+                return filtered.length > 0 ? (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    {filtered.map((empresa) => (
+                      <button
+                        key={empresa}
+                        type="button"
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                        onClick={() => {
+                          handleChange('company', empresa);
+                          setEmpresaSearch('');
+                        }}
+                      >
+                        {empresa}
+                      </button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+            </div>
           </div>
         </div>
 
