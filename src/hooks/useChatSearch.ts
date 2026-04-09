@@ -3,7 +3,7 @@ import { Message } from '@/types/chat';
 
 export type SearchFilter = 'all' | 'text' | 'image' | 'video' | 'audio' | 'document' | 'link';
 
-export type DatePreset = 'all' | 'today' | '7d' | '30d' | 'custom';
+export type DatePreset = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d' | 'custom';
 
 const URL_REGEX = /https?:\/\/\S+/i;
 
@@ -23,10 +23,16 @@ function getPresetRange(preset: DatePreset): { from: Date | null; to: Date | nul
   switch (preset) {
     case 'today':
       return { from: startOfDay(now), to: null };
+    case '3d':
+      return { from: startOfDay(new Date(now.getTime() - 3 * 86400000)), to: null };
     case '7d':
       return { from: startOfDay(new Date(now.getTime() - 7 * 86400000)), to: null };
+    case '14d':
+      return { from: startOfDay(new Date(now.getTime() - 14 * 86400000)), to: null };
     case '30d':
       return { from: startOfDay(new Date(now.getTime() - 30 * 86400000)), to: null };
+    case '90d':
+      return { from: startOfDay(new Date(now.getTime() - 90 * 86400000)), to: null };
     default:
       return { from: null, to: null };
   }

@@ -45,9 +45,13 @@ const FILTERS: { key: SearchFilter; label: string; icon: React.ReactNode }[] = [
 
 const DATE_PRESETS: { key: DatePreset; label: string }[] = [
   { key: 'all', label: 'Qualquer data' },
+  { key: 'last_interaction', label: 'Última interação' },
   { key: 'today', label: 'Hoje' },
+  { key: '3d', label: 'Últimos 3 dias' },
   { key: '7d', label: 'Últimos 7 dias' },
+  { key: '14d', label: 'Últimos 14 dias' },
   { key: '30d', label: 'Últimos 30 dias' },
+  { key: '90d', label: 'Últimos 90 dias' },
   { key: 'custom', label: 'Personalizado' },
 ];
 
