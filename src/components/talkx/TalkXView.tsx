@@ -18,6 +18,7 @@ import { TalkXLiveMonitor } from './TalkXLiveMonitor';
 import { TalkXCampaignCard } from './TalkXCampaignCard';
 import { toast } from 'sonner';
 import { TalkXBlacklist } from './TalkXBlacklist';
+import { TalkXAnalytics } from './TalkXAnalytics';
 
 export default function TalkXView() {
   const {
