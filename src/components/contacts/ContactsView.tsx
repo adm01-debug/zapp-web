@@ -52,6 +52,9 @@ import { ContactMergeDialog } from './ContactMergeDialog';
 import { ContactGroupedList } from './ContactGroupedList';
 import { ContactCompareDialog } from './ContactCompareDialog';
 import { FilterPresets, type FilterPreset } from './FilterPresets';
+import { ContactBulkTagDialog } from './ContactBulkTagDialog';
+import { ContactMapView } from './ContactMapView';
+import { ContactBirthdayPanel } from './ContactBirthdayPanel';
 
 // Date filter options
 const DATE_FILTERS = [
@@ -111,6 +114,7 @@ export function ContactsView() {
   const [isMergeOpen, setIsMergeOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [groupByCompany, setGroupByCompany] = useState(false);
+  const [isBulkTagOpen, setIsBulkTagOpen] = useState(false);
 
   const handleApplyPreset = useCallback((preset: FilterPreset) => {
     if (preset.filters.type) setActiveTab(preset.filters.type);
@@ -342,13 +346,37 @@ export function ContactsView() {
         contacts={filteredContacts.filter(c => selectedIds.includes(c.id))}
       />
 
-      {/* Stats Cards */}
-      <ContactStatsCards
+      {/* Bulk Tag Dialog */}
+      <ContactBulkTagDialog
+        open={isBulkTagOpen}
+        onOpenChange={setIsBulkTagOpen}
+        contactIds={selectedIds}
+        allTags={uniqueTags}
+        onComplete={() => { setSelectedIds([]); refetch(); }}
+      />
+
+      {/* Birthday Panel + Stats Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3">
+          <ContactStatsCards
         totalCount={totalCount}
         contactCountByType={contactCountByType}
         uniqueCompanies={uniqueCompanies}
-        contacts={filteredContacts}
-      />
+            contacts={filteredContacts}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <ContactBirthdayPanel
+            contacts={filteredContacts.map(c => ({
+              id: c.id,
+              name: c.name,
+              avatar_url: c.avatar_url,
+              birthday: undefined,
+            }))}
+            onContactClick={openContactChat}
+          />
+        </div>
+      </div>
 
       {/* Type Tabs */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -436,16 +464,24 @@ export function ContactsView() {
             Agrupar
           </Button>
 
-          {selectedIds.length >= 2 && (
+          {selectedIds.length >= 1 && (
             <>
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsCompareOpen(true)}>
-                <GitCompareArrows className="w-4 h-4" />
-                Comparar
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsBulkTagOpen(true)}>
+                <Tag className="w-4 h-4" />
+                Tags ({selectedIds.length})
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 text-primary" onClick={() => setIsMergeOpen(true)}>
-                <Merge className="w-4 h-4" />
-                Mesclar
-              </Button>
+              {selectedIds.length >= 2 && (
+                <>
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsCompareOpen(true)}>
+                    <GitCompareArrows className="w-4 h-4" />
+                    Comparar
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 text-primary" onClick={() => setIsMergeOpen(true)}>
+                    <Merge className="w-4 h-4" />
+                    Mesclar
+                  </Button>
+                </>
+              )}
             </>
           )}
 
@@ -645,6 +681,11 @@ export function ContactsView() {
             ))}
           </div>
         )
+      ) : viewMode === 'map' ? (
+        <ContactMapView
+          contacts={filteredContacts}
+          onContactClick={openContactChat}
+        />
       ) : (
         <Card>
           <CardContent className="p-0">
