@@ -519,11 +519,13 @@ export function RealtimeInboxView() {
               </div>
               {showDetails && !isMobile && (
                 <div className="h-full shrink-0 overflow-hidden">
-                  <ContactDetails
-                    key={`details-${legacyConversation.id}`}
-                    conversation={legacyConversation}
-                    onClose={() => setShowDetails(false)}
-                  />
+                  <SectionErrorBoundary sectionName="Detalhes do Contato">
+                    <ContactDetails
+                      key={`details-${legacyConversation.id}`}
+                      conversation={legacyConversation}
+                      onClose={() => setShowDetails(false)}
+                    />
+                  </SectionErrorBoundary>
                 </div>
               )}
             </>
