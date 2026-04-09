@@ -19,6 +19,7 @@ import {
   User, Phone, Mail, Building, Briefcase, AlertCircle,
   CheckCircle2, Loader2, Info, Smile,
 } from 'lucide-react';
+import { useExternalCargos } from '@/hooks/useExternalCargos';
 import {
   Tooltip,
   TooltipContent,
