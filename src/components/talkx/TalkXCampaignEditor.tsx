@@ -57,7 +57,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('whatsapp_connections')
-        .select('id, instance_name, phone_number, status')
+        .select('id, name, phone_number, status')
         .eq('status', 'connected');
       return data || [];
     },
