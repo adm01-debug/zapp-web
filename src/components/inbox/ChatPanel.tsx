@@ -372,6 +372,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           <NextBestActionEngine contactId={conversation.contact.id} contactName={conversation.contact.name} />
         </Suspense>
 
+        <Suspense fallback={null}>
+          <ObjectionDetector
+            contactId={conversation.contact.id}
+            lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
+          />
+        </Suspense>
+
         {hasSummary && summaryData && (
           <Suspense fallback={null}>
             <ConversationSummary messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))} contactName={conversation.contact.name} initialSummary={summaryData} />
