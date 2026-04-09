@@ -415,6 +415,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           {showInteractiveBuilder && <InteractiveMessageBuilder open={showInteractiveBuilder} onOpenChange={setShowInteractiveBuilder} onSend={handleSendInteractiveMessage} />}
           {showForwardDialog && <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />}
           {showLocationPicker && <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />}
+          {showCloseDialog && <CloseConversationDialog open={showCloseDialog} onOpenChange={setShowCloseDialog} contactId={conversation.contact.id} contactName={conversation.contact.name} />}
         </Suspense>
 
         {showCatalogDirect && <ExternalProductCatalog onSendProduct={handleSendProduct} open={showCatalogDirect} onOpenChange={setShowCatalogDirect} />}
