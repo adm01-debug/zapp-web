@@ -6,11 +6,12 @@ export function useExternalCargos() {
   return useQuery<string[]>({
     queryKey: ['external-cargos'],
     queryFn: async () => {
+      // Try fetching from contacts table first, then fallback
       const { data, error } = await externalSupabase
         .from('contacts')
         .select('cargo')
         .not('cargo', 'is', null)
-        .neq('cargo', '');
+        .limit(1000);
 
       if (error) {
         log.error('Error fetching cargos from external DB:', error);
