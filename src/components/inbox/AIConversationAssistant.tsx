@@ -169,8 +169,21 @@ function getLastConversationStart(messages: Message[]): Date | null {
   return sessionStart;
 }
 
-function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod): Message[] {
+function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod, customFrom?: Date | null, customTo?: Date | null): Message[] {
   if (period === 'all') return messages;
+
+  if (period === 'custom') {
+    return messages.filter((message) => {
+      const msgDate = new Date(message.created_at);
+      if (customFrom && msgDate < fnsStartOfDay(customFrom)) return false;
+      if (customTo) {
+        const endOfTo = new Date(customTo);
+        endOfTo.setHours(23, 59, 59, 999);
+        if (msgDate > endOfTo) return false;
+      }
+      return customFrom || customTo;
+    });
+  }
 
   if (period === 'last_interaction') {
     const sessionStart = getLastConversationStart(messages);
@@ -179,7 +192,7 @@ function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod): Me
   }
 
   const now = new Date();
-  const cutoffMap: Record<Exclude<AnalysisPeriod, 'all' | 'last_interaction'>, Date> = {
+  const cutoffMap: Record<string, Date> = {
     today: startOfDay(now),
     '3d': startOfDay(new Date(now.getTime() - 3 * DAY_MS)),
     '7d': startOfDay(new Date(now.getTime() - 7 * DAY_MS)),
@@ -189,6 +202,7 @@ function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod): Me
   };
 
   const cutoff = cutoffMap[period];
+  if (!cutoff) return messages;
   return messages.filter((message) => new Date(message.created_at) >= cutoff);
 }
 
