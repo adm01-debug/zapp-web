@@ -29,6 +29,7 @@ import {
   Building, Briefcase, Users, UserCheck, Truck, Wrench, Star,
   Handshake, MoreHorizontal, X, CalendarDays, SortAsc, CheckCircle2,
   Copy, ChevronLeft, ChevronRight, Sparkles, Trash2, Loader2, FileSpreadsheet,
+  Merge,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -46,6 +47,8 @@ import { ContactListItem } from './ContactListItem';
 import { ContactStatsCards } from './ContactStatsCards';
 import { ContactQuickPeek } from './ContactQuickPeek';
 import { ContactViewSwitcher, type ContactViewMode } from './ContactViewSwitcher';
+import { ContactImportDialog } from './ContactImportDialog';
+import { ContactMergeDialog } from './ContactMergeDialog';
 
 // Date filter options
 const DATE_FILTERS = [
@@ -101,6 +104,8 @@ export function ContactsView() {
 
   const [viewMode, setViewMode] = useState<ContactViewMode>('grid');
   const [gridColumns, setGridColumns] = useState(4);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isMergeOpen, setIsMergeOpen] = useState(false);
 
   // Fetch company logos from external CRM
   const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
@@ -203,10 +208,20 @@ export function ContactsView() {
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
+            <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+              <Upload className="w-4 h-4 mr-2" />
+              Importar
+            </Button>
             <Button variant="outline" onClick={handleExportCSV} disabled={filteredContacts.length === 0}>
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               Exportar CSV
             </Button>
+            {selectedIds.length >= 2 && (
+              <Button variant="outline" onClick={() => setIsMergeOpen(true)} className="border-primary/30 text-primary">
+                <Merge className="w-4 h-4 mr-2" />
+                Mesclar ({selectedIds.length})
+              </Button>
+            )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground">
@@ -310,6 +325,21 @@ export function ContactsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Import Dialog */}
+      <ContactImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onImportComplete={refetch}
+      />
+
+      {/* Merge Dialog */}
+      <ContactMergeDialog
+        open={isMergeOpen}
+        onOpenChange={setIsMergeOpen}
+        contacts={filteredContacts.filter(c => selectedIds.includes(c.id))}
+        onMergeComplete={() => { setSelectedIds([]); refetch(); }}
+      />
 
       {/* Stats Cards */}
       <ContactStatsCards
