@@ -259,7 +259,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex justify-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -273,20 +273,6 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                   <Sparkles className="h-4 w-4" />
                 )}
                 Analisar
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={transcribeAudios}
-                disabled={isTranscribing || audioMessages.length === 0}
-                className="gap-2"
-              >
-                {isTranscribing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
-                Transcrever
               </Button>
             </div>
 
@@ -324,9 +310,6 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                   </TabsTrigger>
                   <TabsTrigger value="pontos" className="text-xs px-2">
                     <ListChecks className="h-3 w-3" />
-                  </TabsTrigger>
-                  <TabsTrigger value="transcricao" className="text-xs px-2">
-                    <Mic className="h-3 w-3" />
                   </TabsTrigger>
                   <TabsTrigger value="historico" className="text-xs px-2">
                     <History className="h-3 w-3" />
@@ -480,32 +463,6 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                   )}
                 </TabsContent>
 
-                {/* Transcrição Tab */}
-                <TabsContent value="transcricao" className="mt-4 space-y-4">
-                  {analysis.transcriptions && analysis.transcriptions.length > 0 ? (
-                    <div className="space-y-3">
-                      {analysis.transcriptions.map((t, index) => (
-                        <div key={t.messageId} className="bg-muted/30 rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Mic className="h-3 w-3 text-primary" />
-                            <span className="text-xs text-muted-foreground">Áudio {index + 1}</span>
-                          </div>
-                          <p className="text-sm">{t.text}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Mic className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        {audioMessages.length > 0 
-                          ? 'Clique em "Transcrever" para converter áudios em texto'
-                          : 'Não há mensagens de áudio nesta conversa'
-                        }
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
 
                 {/* Histórico Tab */}
                 <TabsContent value="historico" className="mt-4 space-y-4">
