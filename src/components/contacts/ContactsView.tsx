@@ -33,6 +33,7 @@ import { ContactStatsCards } from './ContactStatsCards';
 import type { ContactViewMode } from './ContactViewSwitcher';
 import { ContactImportDialog } from './ContactImportDialog';
 import { ContactMergeDialog } from './ContactMergeDialog';
+import { ContactMergePanel } from './ContactMergePanel';
 import { ContactGroupedList } from './ContactGroupedList';
 import { ContactCompareDialog } from './ContactCompareDialog';
 import type { FilterPreset } from './FilterPresets';
