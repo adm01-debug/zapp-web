@@ -79,33 +79,6 @@ const GRID_COLUMNS_CLASS: Record<number, string> = {
   6: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
 };
 
-          <FilterPresets
-            currentFilters={{ type: activeTab, company: filterCompany, jobTitle: filterJobTitle, tag: filterTag, dateRange: filterDateRange }}
-            onApplyPreset={handleApplyPreset}
-          />
-
-          <Button
-            variant={groupByCompany ? "default" : "outline"}
-            size="sm"
-            className="h-9 gap-1.5 text-xs"
-            onClick={() => setGroupByCompany(g => !g)}
-          >
-            <LayoutList className="w-4 h-4" />
-            Agrupar
-          </Button>
-
-          {selectedIds.length >= 2 && (
-            <>
-              <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs" onClick={() => setIsCompareOpen(true)}>
-                <GitCompareArrows className="w-4 h-4" />
-                Comparar ({selectedIds.length})
-              </Button>
-              <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs border-primary/30 text-primary" onClick={() => setIsMergeOpen(true)}>
-                <Merge className="w-4 h-4" />
-                Mesclar ({selectedIds.length})
-              </Button>
-            </>
-          )}
 
 export function ContactsView() {
   const crud = useContactsCRUD();
