@@ -124,7 +124,6 @@ export function ContactsTable({
             <SortableHeader label="Empresa" field="company" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <SortableHeader label="Cargo" field="job_title" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Etiquetas</th>
-            <SortableHeader label="Criado em" field="created_at" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <th className="text-right p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
           </tr>
         </thead>
@@ -225,12 +224,6 @@ export function ContactsTable({
                     {(contact.tags?.length || 0) > 2 && (
                       <Badge variant="secondary" className="text-[10px] h-5 px-1.5">+{(contact.tags?.length || 0) - 2}</Badge>
                     )}
-                  </div>
-                </td>
-                <td className="p-3 text-muted-foreground">
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}
                   </div>
                 </td>
                 <td className="p-3 text-right">
