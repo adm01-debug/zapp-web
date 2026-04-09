@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
-  ArrowLeft, Save, Users, Wand2, Eye, Clock, MessageSquare, Type, Search
+  ArrowLeft, Save, Users, Wand2, Eye, Clock, MessageSquare, Type, Search,
+  Image, FileText, Video, Music, X, CalendarClock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
@@ -36,24 +38,44 @@ const VARIABLES = [
   { key: '{{saudacao}}', label: 'Saudação', desc: 'Bom dia / Boa tarde / Boa noite' },
 ];
 
+const MEDIA_TYPES = [
+  { value: 'image', label: 'Imagem', icon: Image },
+  { value: 'video', label: 'Vídeo', icon: Video },
+  { value: 'document', label: 'Documento', icon: FileText },
+  { value: 'audio', label: 'Áudio', icon: Music },
+];
+
 export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const { createCampaign, updateCampaign, addRecipients } = useTalkX();
 
   const [name, setName] = useState(campaign?.name || '');
   const [messageTemplate, setMessageTemplate] = useState(campaign?.message_template || '');
   const [typingDelay, setTypingDelay] = useState([
-    (campaign?.typing_delay_min || 1500) / 1000,
-    (campaign?.typing_delay_max || 4000) / 1000,
+    ((campaign as any)?.typing_delay_min || 1500) / 1000,
+    ((campaign as any)?.typing_delay_max || 4000) / 1000,
   ]);
   const [sendInterval, setSendInterval] = useState([
-    (campaign?.send_interval_min || 5000) / 1000,
-    (campaign?.send_interval_max || 15000) / 1000,
+    ((campaign as any)?.send_interval_min || 5000) / 1000,
+    ((campaign as any)?.send_interval_max || 15000) / 1000,
   ]);
   const [connectionId, setConnectionId] = useState(campaign?.whatsapp_connection_id || '');
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [contactSearch, setContactSearch] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Media state
+  const [mediaUrl, setMediaUrl] = useState((campaign as any)?.media_url || '');
+  const [mediaType, setMediaType] = useState((campaign as any)?.media_type || '');
+  const [hasMedia, setHasMedia] = useState(!!((campaign as any)?.media_url));
+
+  // Scheduling state
+  const [isScheduled, setIsScheduled] = useState(!!((campaign as any)?.scheduled_at));
+  const [scheduledAt, setScheduledAt] = useState(
+    (campaign as any)?.scheduled_at
+      ? new Date((campaign as any).scheduled_at).toISOString().slice(0, 16)
+      : ''
+  );
 
   const { data: connections } = useQuery({
     queryKey: ['wa-connections-talkx'],
@@ -112,7 +134,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = {
+      const payload: any = {
         name,
         message_template: messageTemplate,
         typing_delay_min: Math.round(typingDelay[0] * 1000),
@@ -120,6 +142,9 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
         send_interval_min: Math.round(sendInterval[0] * 1000),
         send_interval_max: Math.round(sendInterval[1] * 1000),
         whatsapp_connection_id: connectionId || null,
+        media_url: hasMedia ? mediaUrl || null : null,
+        media_type: hasMedia ? mediaType || null : null,
+        scheduled_at: isScheduled && scheduledAt ? new Date(scheduledAt).toISOString() : null,
       };
 
       if (campaign) {
@@ -281,12 +306,85 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               {showPreview && (
                 <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
                   <p className="text-xs text-muted-foreground mb-2">Preview (usando primeiro contato):</p>
+                  {hasMedia && mediaUrl && (
+                    <div className="mb-2 max-w-[80%] ml-auto">
+                      {mediaType === 'image' ? (
+                        <img src={mediaUrl} alt="Preview" className="rounded-lg max-h-40 w-auto" />
+                      ) : (
+                        <div className="bg-muted rounded-lg p-3 flex items-center gap-2 text-xs text-muted-foreground">
+                          <FileText className="w-4 h-4" />
+                          Mídia anexada ({mediaType})
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="bg-primary/10 rounded-lg p-3 text-sm text-foreground max-w-[80%] ml-auto">
                     {previewMessage || 'Digite uma mensagem...'}
                   </div>
                 </div>
               )}
             </CardContent>
+          </Card>
+
+          {/* Media Attachment */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Image className="w-4 h-4 text-primary" />
+                  Mídia (opcional)
+                </CardTitle>
+                <Switch checked={hasMedia} onCheckedChange={(v) => { setHasMedia(v); if (!v) { setMediaUrl(''); setMediaType(''); } }} />
+              </div>
+            </CardHeader>
+            {hasMedia && (
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Tipo de mídia</Label>
+                  <div className="grid grid-cols-4 gap-2 mt-1.5">
+                    {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setMediaType(value)}
+                        className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-xs transition-all ${
+                          mediaType === value
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/30 text-muted-foreground'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="media-url">URL da mídia</Label>
+                  <div className="relative">
+                    <Input
+                      id="media-url"
+                      value={mediaUrl}
+                      onChange={(e) => setMediaUrl(e.target.value)}
+                      placeholder="https://exemplo.com/imagem.jpg"
+                      className="pr-8"
+                    />
+                    {mediaUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setMediaUrl('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A mídia será enviada junto com a mensagem de texto como legenda
+                  </p>
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Timing Settings */}
@@ -348,6 +446,35 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
                 </>
               )}
             </CardContent>
+          </Card>
+
+          {/* Scheduling */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <CalendarClock className="w-4 h-4 text-primary" />
+                  Agendar envio
+                </CardTitle>
+                <Switch checked={isScheduled} onCheckedChange={(v) => { setIsScheduled(v); if (!v) setScheduledAt(''); }} />
+              </div>
+            </CardHeader>
+            {isScheduled && (
+              <CardContent>
+                <Label htmlFor="scheduled-at">Data e hora</Label>
+                <Input
+                  id="scheduled-at"
+                  type="datetime-local"
+                  value={scheduledAt}
+                  onChange={(e) => setScheduledAt(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="mt-1.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  A campanha será salva como rascunho e deverá ser iniciada manualmente na data programada
+                </p>
+              </CardContent>
+            )}
           </Card>
         </div>
 

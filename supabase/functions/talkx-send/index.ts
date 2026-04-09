@@ -1,6 +1,7 @@
 /**
  * Talk X — Humanized bulk messaging edge function
  * Simulates typing, personalized messages with {{nome}}, {{apelido}}, {{empresa}}, {{saudacao}}
+ * Supports text + media (image, video, document, audio)
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
@@ -41,6 +42,17 @@ function randomBetween(min: number, max: number): number {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Map media_type to Evolution API endpoint */
+function getMediaEndpoint(mediaType: string): string {
+  switch (mediaType) {
+    case "image": return "sendMedia";
+    case "video": return "sendMedia";
+    case "audio": return "sendWhatsAppAudio";
+    case "document": return "sendMedia";
+    default: return "sendMedia";
+  }
 }
 
 Deno.serve(async (req) => {
@@ -135,6 +147,7 @@ Deno.serve(async (req) => {
 
     let sentCount = campaign.sent_count || 0;
     let failedCount = campaign.failed_count || 0;
+    const hasMedia = !!campaign.media_url && !!campaign.media_type;
 
     for (const recipient of recipients) {
       // Check if campaign was paused/cancelled
@@ -204,24 +217,49 @@ Deno.serve(async (req) => {
         // Wait typing delay
         await sleep(typingDelay);
 
-        // 2. Send the actual message
-        const sendResponse = await fetch(
-          `${evolutionUrl}/message/sendText/${connection.instance_id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: evolutionKey,
-            },
-            body: JSON.stringify({
-              number: phone,
-              text: personalizedMsg,
-              delay: 0,
-            }),
-          }
-        );
+        let sendResponse: Response;
+        let sendResult: any;
 
-        const sendResult = await sendResponse.json();
+        if (hasMedia) {
+          // 2a. Send media message
+          const mediaEndpoint = getMediaEndpoint(campaign.media_type);
+          sendResponse = await fetch(
+            `${evolutionUrl}/message/${mediaEndpoint}/${connection.instance_id}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: evolutionKey,
+              },
+              body: JSON.stringify({
+                number: phone,
+                mediatype: campaign.media_type,
+                media: campaign.media_url,
+                caption: personalizedMsg,
+                delay: 0,
+              }),
+            }
+          );
+          sendResult = await sendResponse.json();
+        } else {
+          // 2b. Send text-only message
+          sendResponse = await fetch(
+            `${evolutionUrl}/message/sendText/${connection.instance_id}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: evolutionKey,
+              },
+              body: JSON.stringify({
+                number: phone,
+                text: personalizedMsg,
+                delay: 0,
+              }),
+            }
+          );
+          sendResult = await sendResponse.json();
+        }
 
         if (sendResponse.ok && !sendResult.error) {
           sentCount++;
