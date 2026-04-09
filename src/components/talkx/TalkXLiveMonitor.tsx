@@ -16,6 +16,7 @@ interface Props {
 
 export function TalkXLiveMonitor({ campaignId }: Props) {
   const [campaign, setCampaign] = useState<TalkXCampaign | null>(null);
+  const [recipientsKey, setRecipientsKey] = useState(0);
 
   const { data } = useQuery({
     queryKey: ['talkx-campaign-live', campaignId],
