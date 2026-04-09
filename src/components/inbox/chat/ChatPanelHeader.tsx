@@ -102,6 +102,7 @@ export function ChatPanelHeader({
   canGenerateSummary,
   onCloseConversation,
   lastMessages = [],
+  allMessages = [],
   onSelectSuggestion,
 }: ChatPanelHeaderProps) {
   const isMobile = useIsMobile();
