@@ -860,6 +860,56 @@ export type Database = {
           },
         ]
       }
+      campaign_ab_variants: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          delivered_count: number | null
+          id: string
+          is_winner: boolean | null
+          media_url: string | null
+          message_content: string
+          read_count: number | null
+          response_count: number | null
+          send_count: number | null
+          variant_name: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          delivered_count?: number | null
+          id?: string
+          is_winner?: boolean | null
+          media_url?: string | null
+          message_content: string
+          read_count?: number | null
+          response_count?: number | null
+          send_count?: number | null
+          variant_name?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          delivered_count?: number | null
+          id?: string
+          is_winner?: boolean | null
+          media_url?: string | null
+          message_content?: string
+          read_count?: number | null
+          response_count?: number | null
+          send_count?: number | null
+          variant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_ab_variants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_contacts: {
         Row: {
           campaign_id: string
@@ -1510,6 +1560,83 @@ export type Database = {
           },
         ]
       }
+      contact_purchases: {
+        Row: {
+          amount: number | null
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          deal_id: string | null
+          description: string | null
+          id: string
+          purchase_type: string | null
+          purchased_at: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          deal_id?: string | null
+          description?: string | null
+          id?: string
+          purchase_type?: string | null
+          purchased_at?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          deal_id?: string | null
+          description?: string | null
+          id?: string
+          purchase_type?: string | null
+          purchased_at?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_purchases_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_purchases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_purchases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_purchases_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "sales_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_tags: {
         Row: {
           contact_id: string
@@ -2060,6 +2187,60 @@ export type Database = {
           {
             foreignKeyName: "conversation_tasks_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crisis_room_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          message: string
+          metric_name: string
+          metric_value: number | null
+          severity: string
+          threshold: number | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message: string
+          metric_name: string
+          metric_value?: number | null
+          severity?: string
+          threshold?: number | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          metric_name?: string
+          metric_value?: number | null
+          severity?: string
+          threshold?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crisis_room_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crisis_room_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
             isOneToOne: false
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
@@ -5444,6 +5625,63 @@ export type Database = {
           {
             foreignKeyName: "team_messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          messages: Json | null
+          profile_id: string
+          scenario_name: string
+          scenario_type: string | null
+          score: number | null
+          started_at: string
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          messages?: Json | null
+          profile_id: string
+          scenario_name: string
+          scenario_type?: string | null
+          score?: number | null
+          started_at?: string
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          messages?: Json | null
+          profile_id?: string
+          scenario_name?: string
+          scenario_type?: string | null
+          score?: number | null
+          started_at?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_sessions_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
