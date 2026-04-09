@@ -377,6 +377,9 @@ export function ContactsView() {
           />
         </div>
       </div>
+
+      {/* Type Tabs */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
             <TabsTrigger value="all" className="data-[state=active]:bg-background flex items-center gap-2">
