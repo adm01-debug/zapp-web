@@ -42,6 +42,8 @@ interface ContactCardProps {
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
   index: number;
+  companyLogo?: string | null;
+  companyName?: string | null;
 }
 
 export function ContactCard({
