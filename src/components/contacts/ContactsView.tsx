@@ -99,6 +99,16 @@ export function ContactsView() {
   const [viewMode, setViewMode] = useState<ContactViewMode>('grid');
   const [gridColumns, setGridColumns] = useState(4);
 
+  // Fetch company logos from external CRM
+  const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
+  const { data: crmDataMap } = useExternalContact360Batch(contactPhones);
+
+  const getCRMData = (phone: string): CRMBatchResult | undefined => {
+    if (!crmDataMap) return undefined;
+    const clean = phone.replace(/[^0-9]/g, '');
+    return crmDataMap.get(phone) || crmDataMap.get(clean);
+  };
+
   const handleToggleSelect = (id: string, selected: boolean) => {
     setSelectedIds(prev =>
       selected ? [...prev, id] : prev.filter(i => i !== id)
