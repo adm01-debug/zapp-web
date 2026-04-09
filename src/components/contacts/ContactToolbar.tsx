@@ -1,28 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Tag, Filter, SortAsc, X, CalendarDays, Building, Briefcase,
+  Tag, Filter, SortAsc, X,
   GitCompareArrows, Merge, LayoutList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ContactViewSwitcher, type ContactViewMode } from './ContactViewSwitcher';
 import { FilterPresets, type FilterPreset } from './FilterPresets';
 import { ContactSearchWithSuggestions } from './ContactSearchWithSuggestions';
-
-const DATE_FILTERS = [
-  { value: 'all', label: 'Todos os períodos' },
-  { value: 'today', label: 'Hoje' },
-  { value: 'week', label: 'Última semana' },
-  { value: 'month', label: 'Último mês' },
-  { value: 'quarter', label: 'Últimos 3 meses' },
-  { value: 'year', label: 'Último ano' },
-];
+import { ContactAdvancedFilters } from './ContactAdvancedFilters';
 
 const SORT_OPTIONS = [
   { value: 'name_asc', label: 'Nome (A-Z)' },
@@ -41,7 +31,6 @@ interface ContactToolbarProps {
   setShowFilters: (val: boolean) => void;
   activeFiltersCount: number;
   clearFilters: () => void;
-  // Filters
   activeTab: string;
   filterCompany: string;
   setFilterCompany: (val: string) => void;
@@ -54,17 +43,13 @@ interface ContactToolbarProps {
   uniqueCompanies: string[];
   uniqueJobTitles: string[];
   uniqueTags: string[];
-  // Presets
   onApplyPreset: (preset: FilterPreset) => void;
-  // Grouping
   groupByCompany: boolean;
   setGroupByCompany: (val: boolean) => void;
-  // Selection
   selectedIds: string[];
   onBulkTag: () => void;
   onCompare: () => void;
   onMerge: () => void;
-  // View
   viewMode: ContactViewMode;
   setViewMode: (mode: ContactViewMode) => void;
   gridColumns: number;
@@ -108,7 +93,9 @@ export function ContactToolbar({
         <Button
           variant={showFilters ? "default" : "outline"}
           onClick={() => setShowFilters(!showFilters)}
-          className={showFilters ? "bg-whatsapp hover:bg-whatsapp-dark" : ""}
+          className={cn(showFilters && "bg-primary hover:bg-primary/90")}
+          aria-expanded={showFilters}
+          aria-controls="contact-filters-panel"
         >
           <Filter className="w-4 h-4 mr-2" />
           Filtros
@@ -118,7 +105,7 @@ export function ContactToolbar({
         </Button>
 
         {activeFiltersCount > 0 && (
-          <Button variant="ghost" onClick={clearFilters} size="sm">
+          <Button variant="ghost" onClick={clearFilters} size="sm" aria-label="Limpar todos os filtros">
             <X className="w-4 h-4 mr-1" />Limpar
           </Button>
         )}
@@ -133,6 +120,7 @@ export function ContactToolbar({
           size="sm"
           onClick={() => setGroupByCompany(!groupByCompany)}
           className="gap-1.5"
+          aria-pressed={groupByCompany}
         >
           <LayoutList className="w-4 h-4" />
           Agrupar
@@ -169,73 +157,19 @@ export function ContactToolbar({
         </div>
       </div>
 
-      {/* Filters Panel */}
+      {/* Advanced Filters Panel */}
       <AnimatePresence>
         {showFilters && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-muted/30 rounded-xl p-4 border border-border/30"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-medium flex items-center gap-2">
-                  <Building className="w-3.5 h-3.5" />Empresa
-                </Label>
-                <Select value={filterCompany || '__all__'} onValueChange={(v) => setFilterCompany(v === '__all__' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">Todas as empresas</SelectItem>
-                    {uniqueCompanies.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-medium flex items-center gap-2">
-                  <Briefcase className="w-3.5 h-3.5" />Cargo
-                </Label>
-                <Select value={filterJobTitle || '__all__'} onValueChange={(v) => setFilterJobTitle(v === '__all__' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">Todos os cargos</SelectItem>
-                    {uniqueJobTitles.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-medium flex items-center gap-2">
-                  <Tag className="w-3.5 h-3.5" />Etiqueta
-                </Label>
-                <Select value={filterTag || '__all__'} onValueChange={(v) => setFilterTag(v === '__all__' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">Todas as etiquetas</SelectItem>
-                    {uniqueTags.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-medium flex items-center gap-2">
-                  <CalendarDays className="w-3.5 h-3.5" />Período
-                </Label>
-                <Select value={filterDateRange} onValueChange={setFilterDateRange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {DATE_FILTERS.map((f) => (
-                      <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </motion.div>
+          <div id="contact-filters-panel" role="region" aria-label="Painel de filtros avançados">
+            <ContactAdvancedFilters
+              filterCompany={filterCompany} setFilterCompany={setFilterCompany}
+              filterJobTitle={filterJobTitle} setFilterJobTitle={setFilterJobTitle}
+              filterTag={filterTag} setFilterTag={setFilterTag}
+              filterDateRange={filterDateRange} setFilterDateRange={setFilterDateRange}
+              uniqueCompanies={uniqueCompanies} uniqueJobTitles={uniqueJobTitles} uniqueTags={uniqueTags}
+              onClearFilters={clearFilters} activeFiltersCount={activeFiltersCount}
+            />
+          </div>
         )}
       </AnimatePresence>
     </motion.div>
