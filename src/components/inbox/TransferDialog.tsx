@@ -54,14 +54,29 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
       });
   }, [transferType, open]);
 
-  const handleTransfer = () => {
-    if (selectedTarget) {
+  const [isTransferring, setIsTransferring] = useState(false);
+
+  const handleTransfer = async () => {
+    if (!selectedTarget || isTransferring) return;
+    setIsTransferring(true);
+    try {
       onTransfer(transferType, selectedTarget, message || undefined);
       onOpenChange(false);
       setSelectedTarget('');
       setMessage('');
+    } finally {
+      setIsTransferring(false);
     }
   };
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedTarget('');
+      setMessage('');
+      setIsTransferring(false);
+    }
+  }, [open]);
 
   // Filter online/away agents (active ones)
   const availableAgents = agents.filter((a) => a.status === 'online' || a.status === 'away');
