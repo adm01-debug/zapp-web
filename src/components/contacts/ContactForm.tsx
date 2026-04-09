@@ -350,12 +350,21 @@ export const ContactForm = React.memo(function ContactForm({
                 onChange={(e) => {
                   handleChange('company', e.target.value);
                   setEmpresaSearch(e.target.value);
+                  setShowEmpresaDropdown(e.target.value.length >= 1);
                 }}
-                onFocus={() => setEmpresaSearch(values.company || '')}
+                onFocus={() => {
+                  clearTimeout(empresaBlurTimer.current);
+                  const val = values.company || '';
+                  setEmpresaSearch(val);
+                  setShowEmpresaDropdown(val.length >= 1);
+                }}
+                onBlur={() => {
+                  empresaBlurTimer.current = setTimeout(() => setShowEmpresaDropdown(false), 200);
+                }}
                 aria-label="Empresa do contato"
                 autoComplete="off"
               />
-              {empresaSearch.length >= 2 && (() => {
+              {showEmpresaDropdown && empresaSearch.length >= 1 && (() => {
                 const filtered = externalEmpresas.filter(e =>
                   e.toLowerCase().includes(empresaSearch.toLowerCase())
                 ).slice(0, 8);
@@ -366,9 +375,11 @@ export const ContactForm = React.memo(function ContactForm({
                         key={empresa}
                         type="button"
                         className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
                           handleChange('company', empresa);
                           setEmpresaSearch('');
+                          setShowEmpresaDropdown(false);
                         }}
                       >
                         {empresa}
