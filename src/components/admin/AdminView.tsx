@@ -21,7 +21,7 @@ import {
 import {
   Shield, Users, Search, Crown, UserCog, User, History, RefreshCw,
   Edit, UserX, UserCheck, UserPlus, Briefcase, Building, Phone,
-  Lock, Eye, Loader2,
+  Lock, Eye, Loader2, Brain,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -52,7 +52,7 @@ export function AdminView() {
   const [newUserGoogleServices, setNewUserGoogleServices] = useState({ google_sheets: false, google_docs: false, google_calendar: false, google_drive: false });
   const [creatingUser, setCreatingUser] = useState(false);
 
-  const { users, auditLogs, loading, fetchData, handleRoleChange, handleToggleActive, handleSaveUser, handleCreateUser } = useAdminData(activeTab);
+  const { users, auditLogs, loading, fetchData, handleRoleChange, handleToggleActive, handleSaveUser, handleCreateUser } = useAdminData(activeTab as 'users' | 'audit' | 'crm');
 
   useEffect(() => {
     if (isSupervisor) fetchData();
