@@ -213,7 +213,7 @@ describe('ContactForm — Empresa autocomplete logic', () => {
   const empresas = ['Acme Corp', 'Acme Ltda', 'TechBR', 'SpaceLabs', 'Google Brasil'];
 
   function filterEmpresas(list: string[], query: string) {
-    if (query.length < 2) return [];
+    if (query.length < 1) return [];
     return list.filter(e => e.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
   }
 
