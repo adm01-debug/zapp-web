@@ -42,7 +42,7 @@ const TemplatesWithVariables = lazy(() => import('./TemplatesWithVariables').the
 const RealtimeTranscription = lazy(() => import('./RealtimeTranscription').then(m => ({ default: m.RealtimeTranscription })));
 const CloseConversationDialog = lazy(() => import('./CloseConversationDialog').then(m => ({ default: m.CloseConversationDialog })));
 const NextBestActionEngine = lazy(() => import('./NextBestActionEngine').then(m => ({ default: m.NextBestActionEngine })));
-const ObjectionDetector = lazy(() => import('./ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
+
 interface ChatPanelProps {
   conversation: Conversation;
   messages: Message[];
@@ -354,7 +354,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onOpenTransfer={() => setShowTransferDialog(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
             onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary}
-            onCloseConversation={() => setShowCloseDialog(true)} />
+            onCloseConversation={() => setShowCloseDialog(true)}
+            lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
+            onSelectSuggestion={(text) => setInputValue(text)} />
         )}
 
         <ChatSearchBar
@@ -372,13 +374,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           <NextBestActionEngine contactId={conversation.contact.id} contactName={conversation.contact.name} />
         </Suspense>
 
-        <Suspense fallback={null}>
-          <ObjectionDetector
-            contactId={conversation.contact.id}
-            lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
-            onSelectSuggestion={(text) => setInputValue(text)}
-          />
-        </Suspense>
 
         {hasSummary && summaryData && (
           <Suspense fallback={null}>
