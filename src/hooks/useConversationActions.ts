@@ -1,18 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { addHours, startOfTomorrow, addDays, setHours } from 'date-fns';
-
-interface PinnedConversation {
-  contact_id: string;
-  position: number;
-}
-
-interface SnoozedConversation {
-  id: string;
-  contact_id: string;
-  snooze_until: string;
-}
 
 interface FavoriteContact {
   contact_id: string;
@@ -23,58 +12,62 @@ export function useConversationActions() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [snoozedIds, setSnoozedIds] = useState<Set<string>>(new Set());
   const [profileId, setProfileId] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    loadProfile();
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
   }, []);
 
-  useEffect(() => {
-    if (profileId) {
-      loadPinned();
-      loadFavorites();
-      loadSnoozed();
-    }
-  }, [profileId]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user || !mountedRef.current) return;
     const { data } = await supabase
       .from('profiles')
       .select('id')
       .eq('user_id', user.id)
       .single();
-    if (data) setProfileId(data.id);
-  };
+    if (data && mountedRef.current) setProfileId(data.id);
+  }, []);
 
-  const loadPinned = async () => {
-    if (!profileId) return;
+  const loadPinned = useCallback(async (pid: string) => {
     const { data } = await supabase
       .from('pinned_conversations')
       .select('contact_id')
-      .eq('pinned_by', profileId);
-    if (data) setPinnedIds(new Set(data.map((p) => p.contact_id)));
-  };
+      .eq('pinned_by', pid);
+    if (data && mountedRef.current) setPinnedIds(new Set(data.map((p) => p.contact_id)));
+  }, []);
 
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user || !mountedRef.current) return;
     const { data } = await supabase
       .from('favorite_contacts')
       .select('contact_id')
       .eq('user_id', user.id);
-    if (data) setFavoriteIds(new Set(data.map((f: FavoriteContact) => f.contact_id)));
-  };
+    if (data && mountedRef.current) setFavoriteIds(new Set(data.map((f: FavoriteContact) => f.contact_id)));
+  }, []);
 
-  const loadSnoozed = async () => {
-    if (!profileId) return;
+  const loadSnoozed = useCallback(async (pid: string) => {
     const { data } = await supabase
       .from('conversation_snoozes')
       .select('contact_id')
-      .eq('snoozed_by', profileId)
+      .eq('snoozed_by', pid)
       .gt('snooze_until', new Date().toISOString());
-    if (data) setSnoozedIds(new Set(data.map((s) => s.contact_id)));
-  };
+    if (data && mountedRef.current) setSnoozedIds(new Set(data.map((s) => s.contact_id)));
+  }, []);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (profileId) {
+      loadPinned(profileId);
+      loadFavorites();
+      loadSnoozed(profileId);
+    }
+  }, [profileId, loadPinned, loadFavorites, loadSnoozed]);
 
   const pinConversation = useCallback(async (contactId: string) => {
     if (!profileId) return;
@@ -138,7 +131,6 @@ export function useConversationActions() {
       default: snoozeUntil = addHours(now, 1);
     }
 
-    // Remove existing snooze first
     await supabase
       .from('conversation_snoozes')
       .delete()
