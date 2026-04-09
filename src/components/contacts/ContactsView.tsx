@@ -103,6 +103,8 @@ export function ContactsView() {
 
   const [viewMode, setViewMode] = useState<ContactViewMode>('grid');
   const [gridColumns, setGridColumns] = useState(4);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isMergeOpen, setIsMergeOpen] = useState(false);
 
   // Fetch company logos from external CRM
   const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
