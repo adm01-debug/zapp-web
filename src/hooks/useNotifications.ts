@@ -70,13 +70,10 @@ export function useNotifications() {
             setUnreadCount(prev => prev + 1);
           } else if (payload.eventType === 'UPDATE') {
             const updatedNotification = payload.new as Notification;
-            setNotifications(prev => 
-              prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
-            );
-            // Recalculate unread count
             setNotifications(prev => {
-              setUnreadCount(prev.filter(n => !n.is_read).length);
-              return prev;
+              const updated = prev.map(n => n.id === updatedNotification.id ? updatedNotification : n);
+              setUnreadCount(updated.filter(n => !n.is_read).length);
+              return updated;
             });
           } else if (payload.eventType === 'DELETE') {
             const deletedId = payload.old.id;
@@ -91,7 +88,7 @@ export function useNotifications() {
     };
   }, [user]);
 
-  const markAsRead = async (notificationId: string) => {
+  const markAsRead = useCallback(async (notificationId: string) => {
     try {
       const { error } = await supabase
         .from('notifications')
@@ -107,9 +104,9 @@ export function useNotifications() {
     } catch (error) {
       log.error('Error marking notification as read:', error);
     }
-  };
+  }, []);
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -128,9 +125,9 @@ export function useNotifications() {
     } catch (error) {
       log.error('Error marking all as read:', error);
     }
-  };
+  }, [user]);
 
-  const deleteNotification = async (notificationId: string) => {
+  const deleteNotification = useCallback(async (notificationId: string) => {
     try {
       const notification = notifications.find(n => n.id === notificationId);
       
@@ -148,9 +145,9 @@ export function useNotifications() {
     } catch (error) {
       log.error('Error deleting notification:', error);
     }
-  };
+  }, [notifications]);
 
-  const clearAll = async () => {
+  const clearAll = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -166,9 +163,9 @@ export function useNotifications() {
     } catch (error) {
       log.error('Error clearing notifications:', error);
     }
-  };
+  }, [user]);
 
-  const createNotification = async (
+  const createNotification = useCallback(async (
     title: string,
     message: string,
     type: Notification['type'] = 'info',
@@ -191,7 +188,7 @@ export function useNotifications() {
     } catch (error) {
       log.error('Error creating notification:', error);
     }
-  };
+  }, [user]);
 
   return {
     notifications,
