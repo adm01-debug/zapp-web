@@ -127,7 +127,7 @@ export function ContactsTable({
           </tr>
         </thead>
         <tbody>
-          {contacts.map((contact, index) => {
+          {sortedContacts.map((contact, index) => {
             const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
             const avatarColors = getAvatarColor(contact.name);
             const crmData = getCRMData?.(contact.phone);
