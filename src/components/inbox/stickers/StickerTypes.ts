@@ -5,9 +5,11 @@ export interface StickerItem {
   category: string;
   is_favorite: boolean;
   use_count: number;
+  owner_id?: string | null;
 }
 
 export const CATEGORY_LABELS: Record<string, { emoji: string; label: string }> = {
+  'pessoal': { emoji: '📸', label: 'Pessoal' },
   'comemoração': { emoji: '🎉', label: 'Comemoração' },
   'riso': { emoji: '😂', label: 'Riso' },
   'chorando': { emoji: '😢', label: 'Chorando' },
