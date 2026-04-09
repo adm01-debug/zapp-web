@@ -440,16 +440,24 @@ export function ContactsView() {
             Agrupar
           </Button>
 
-          {selectedIds.length >= 2 && (
+          {selectedIds.length >= 1 && (
             <>
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsCompareOpen(true)}>
-                <GitCompareArrows className="w-4 h-4" />
-                Comparar
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsBulkTagOpen(true)}>
+                <Tag className="w-4 h-4" />
+                Tags ({selectedIds.length})
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 text-primary" onClick={() => setIsMergeOpen(true)}>
-                <Merge className="w-4 h-4" />
-                Mesclar
-              </Button>
+              {selectedIds.length >= 2 && (
+                <>
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsCompareOpen(true)}>
+                    <GitCompareArrows className="w-4 h-4" />
+                    Comparar
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 text-primary" onClick={() => setIsMergeOpen(true)}>
+                    <Merge className="w-4 h-4" />
+                    Mesclar
+                  </Button>
+                </>
+              )}
             </>
           )}
 
