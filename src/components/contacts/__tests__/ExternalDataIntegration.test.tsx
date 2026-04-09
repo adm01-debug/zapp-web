@@ -217,9 +217,12 @@ describe('ContactForm — Empresa autocomplete logic', () => {
     return list.filter(e => e.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
   }
 
-  it('returns empty for queries shorter than 2 chars', () => {
+  it('returns empty for empty query', () => {
     expect(filterEmpresas(empresas, '')).toHaveLength(0);
-    expect(filterEmpresas(empresas, 'A')).toHaveLength(0);
+  });
+
+  it('filters with 1 char', () => {
+    expect(filterEmpresas(empresas, 'A')).toEqual(['Acme Corp', 'Acme Ltda']);
   });
 
   it('filters by partial match (case-insensitive)', () => {
