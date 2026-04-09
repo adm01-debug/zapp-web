@@ -111,7 +111,7 @@ export function ContactsTable({
                       )} />
                     </div>
                     <div className="min-w-0">
-                      <span className="font-medium text-sm block truncate">{contact.name} {contact.surname || ''}</span>
+                      <HighlightText text={`${contact.name} ${contact.surname || ''}`.trim()} highlight={searchQuery} className="font-medium text-sm block truncate" />
                       {contact.nickname && <span className="text-[11px] text-muted-foreground">({contact.nickname})</span>}
                     </div>
                   </div>
