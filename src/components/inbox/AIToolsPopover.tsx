@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShieldQuestion, GraduationCap, Loader2 } from 'lucide-react';
+import { Radar, GraduationCap, Loader2 } from 'lucide-react';
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary';
 
 const ObjectionDetector = lazy(() => import('./ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
@@ -38,8 +38,8 @@ export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectS
             value="objections"
             className="flex-1 h-8 text-[11px] gap-1.5 font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
-            <ShieldQuestion className="w-3.5 h-3.5" />
-            Detectar Objeções
+            <Radar className="w-3.5 h-3.5" />
+            Monitoramento de Objeções
           </TabsTrigger>
           <TabsTrigger
             value="university"
