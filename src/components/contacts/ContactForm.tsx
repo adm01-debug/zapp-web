@@ -20,6 +20,8 @@ import {
   CheckCircle2, Loader2, Info, Smile,
 } from 'lucide-react';
 import { useExternalCargos } from '@/hooks/useExternalCargos';
+import { useExternalEmpresas } from '@/hooks/useExternalEmpresas';
+import { useState as useLocalState } from 'react';
 import {
   Tooltip,
   TooltipContent,
