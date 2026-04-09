@@ -164,19 +164,28 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
     setIsSummaryLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-conversation-summary', {
-        body: {
-          messages: messages.map(m => ({ sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() })),
-          contactName: conversation.contact.name,
+      const data = await withRetry(
+        async () => {
+          const { data, error } = await supabase.functions.invoke('ai-conversation-summary', {
+            body: {
+              messages: messages.map(m => ({ sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() })),
+              contactName: conversation.contact.name,
+            },
+          });
+          if (error) throw error;
+          return data;
         },
-      });
-      if (error) throw error;
+        { maxRetries: 2, baseDelayMs: 1500, shouldRetry: (err) => !(err instanceof Error && err.message.includes('Rate limit')) }
+      );
       setSummaryData(data);
       setHasSummary(true);
       sonnerToast.success('Resumo gerado com sucesso!');
     } catch (error) {
       log.error('Error generating summary:', error);
-      sonnerToast.error('Erro ao gerar resumo. Tente novamente.');
+      const msg = error instanceof Error && error.message.includes('Rate limit')
+        ? 'Muitas requisições. Aguarde um momento.'
+        : 'Erro ao gerar resumo. Tente novamente.';
+      sonnerToast.error(msg);
     } finally {
       setIsSummaryLoading(false);
     }
