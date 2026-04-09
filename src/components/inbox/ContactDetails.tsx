@@ -24,6 +24,7 @@ import { RemindersPanel } from './RemindersPanel';
 import { ConversationMemoryPanel } from './ConversationMemoryPanel';
 import { LeadRiskScorePanel } from './LeadRiskScorePanel';
 import { ContactPurchasesPanel } from './ContactPurchasesPanel';
+import { ConversationTimeline } from './ConversationTimeline';
 import { useConversationActions } from '@/hooks/useConversationActions';
 
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
