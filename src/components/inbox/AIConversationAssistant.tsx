@@ -105,7 +105,127 @@ const ANALYSIS_PERIOD_OPTIONS: { value: AnalysisPeriod; label: string }[] = [
   { value: 'all', label: 'Toda a conversa' },
   { value: 'custom', label: 'Período personalizado' },
 ];
-...
+
+const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
+  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-success/20 text-success border-success/30' },
+  pendente: { label: 'Pendente', icon: Clock, className: 'bg-warning/20 text-warning border-warning/30' },
+  aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-warning/20 text-warning border-warning/30' },
+  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-info/20 text-info border-info/30' },
+  escalado: { label: 'Escalado', icon: AlertTriangle, className: 'bg-destructive/20 text-destructive border-destructive/30' },
+};
+
+const sentimentConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  positivo: { label: 'Positivo', icon: ThumbsUp, color: 'text-success', bg: 'bg-success' },
+  neutro: { label: 'Neutro', icon: Minus, color: 'text-muted-foreground', bg: 'bg-muted' },
+  negativo: { label: 'Negativo', icon: ThumbsDown, color: 'text-destructive', bg: 'bg-destructive' },
+  critico: { label: 'Crítico', icon: AlertTriangle, color: 'text-destructive', bg: 'bg-destructive' },
+};
+
+const urgencyConfig: Record<string, { label: string; className: string }> = {
+  baixa: { label: 'Baixa', className: 'bg-success/20 text-success' },
+  media: { label: 'Média', className: 'bg-warning/20 text-warning' },
+  alta: { label: 'Alta', className: 'bg-destructive/20 text-destructive' },
+  critica: { label: 'Crítica', className: 'bg-destructive/30 text-destructive animate-pulse' },
+};
+
+const churnConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  low: { label: 'Baixo', color: 'text-success', icon: CheckCircle2 },
+  medium: { label: 'Médio', color: 'text-warning', icon: AlertCircle },
+  high: { label: 'Alto', color: 'text-destructive', icon: ShieldAlert },
+};
+
+const performanceLabels: Record<string, { label: string; icon: React.ElementType }> = {
+  empathy: { label: 'Empatia', icon: Heart },
+  clarity: { label: 'Clareza', icon: Eye },
+  efficiency: { label: 'Eficiência', icon: Zap },
+  knowledge: { label: 'Conhecimento', icon: BookOpen },
+};
+
+function startOfDay(date: Date): Date {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
+
+function getLastConversationStart(messages: Message[]): Date | null {
+  if (messages.length === 0) return null;
+
+  const sorted = [...messages].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  let sessionStart = new Date(sorted[0].created_at);
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const newerMessageTime = new Date(sorted[index - 1].created_at).getTime();
+    const olderMessageTime = new Date(sorted[index].created_at).getTime();
+
+    if (newerMessageTime - olderMessageTime > SESSION_GAP_MS) {
+      break;
+    }
+
+    sessionStart = new Date(sorted[index].created_at);
+  }
+
+  return sessionStart;
+}
+
+function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod, customFrom?: Date | null, customTo?: Date | null): Message[] {
+  if (period === 'all') return messages;
+
+  if (period === 'custom') {
+    return messages.filter((message) => {
+      const msgDate = new Date(message.created_at);
+      if (customFrom && msgDate < fnsStartOfDay(customFrom)) return false;
+      if (customTo) {
+        const endOfTo = new Date(customTo);
+        endOfTo.setHours(23, 59, 59, 999);
+        if (msgDate > endOfTo) return false;
+      }
+      return Boolean(customFrom || customTo);
+    });
+  }
+
+  if (period === 'last_interaction') {
+    const sessionStart = getLastConversationStart(messages);
+    if (!sessionStart) return [];
+    return messages.filter((message) => new Date(message.created_at) >= sessionStart);
+  }
+
+  const now = new Date();
+  const cutoffMap: Record<string, Date> = {
+    today: startOfDay(now),
+    '3d': startOfDay(new Date(now.getTime() - 3 * DAY_MS)),
+    '7d': startOfDay(new Date(now.getTime() - 7 * DAY_MS)),
+    '14d': startOfDay(new Date(now.getTime() - 14 * DAY_MS)),
+    '30d': startOfDay(new Date(now.getTime() - 30 * DAY_MS)),
+    '90d': startOfDay(new Date(now.getTime() - 90 * DAY_MS)),
+  };
+
+  const cutoff = cutoffMap[period];
+  if (!cutoff) return messages;
+  return messages.filter((message) => new Date(message.created_at) >= cutoff);
+}
+
+function getPeriodDays(period: AnalysisPeriod): number | null {
+  switch (period) {
+    case 'today':
+      return 1;
+    case '3d':
+      return 3;
+    case '7d':
+      return 7;
+    case '14d':
+      return 14;
+    case '30d':
+      return 30;
+    case '90d':
+      return 90;
+    default:
+      return null;
+  }
+}
+
 export function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);

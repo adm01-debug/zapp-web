@@ -22,7 +22,6 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
     const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
 
-    // Fetch contact context for richer analysis
     let contactContext = '';
     if (contactId) {
       const { data: contact } = await supabase
@@ -39,7 +38,6 @@ Deno.serve(async (req) => {
         if (contact.ai_sentiment) contactContext += `, Sentimento anterior: ${contact.ai_sentiment}`;
       }
 
-      // Previous analyses for trend
       const { data: prevAnalyses } = await supabase
         .from('conversation_analyses')
         .select('sentiment, sentiment_score, summary, urgency, created_at')
@@ -53,9 +51,7 @@ Deno.serve(async (req) => {
     }
 
     const conversationText = messages
-      .map((msg) =>
-        `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content || ''}`
-      )
+      .map((msg) => `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content || ''}`)
       .join('\n');
 
     const systemPrompt = `Você é um analista sênior de conversas de atendimento ao cliente com foco em insights acionáveis.
@@ -81,8 +77,116 @@ Responda em português brasileiro.`;
       contactId,
       messageCount: messages.length,
     });
-...
-    // Save analysis & update contact
+
+    const { response, data } = await callAiWithTracking({
+      functionName: 'ai-conversation-analysis',
+      userId,
+      apiKey: LOVABLE_API_KEY,
+      body: {
+        model: 'google/gemini-3-flash-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Conversa com ${contactName || 'Cliente'}:\n\n${conversationText}` }
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "analyze_conversation",
+              description: "Perform comprehensive analysis of the customer service conversation",
+              parameters: {
+                type: "object",
+                properties: {
+                  summary: { type: "string", description: "Brief summary (max 4 sentences)" },
+                  status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente", "escalado"] },
+                  keyPoints: { type: "array", items: { type: "string" }, description: "Key points (max 5)" },
+                  nextSteps: { type: "array", items: { type: "string" }, description: "Actionable next steps" },
+                  sentiment: { type: "string", enum: ["positivo", "neutro", "negativo", "critico"] },
+                  sentimentScore: { type: "number", description: "Sentiment 0-100" },
+                  topics: { type: "array", items: { type: "string" }, description: "Main topics (max 5)" },
+                  urgency: { type: "string", enum: ["baixa", "media", "alta", "critica"] },
+                  customerSatisfaction: { type: "number", description: "CSAT 1-5" },
+                  agentPerformance: {
+                    type: "object",
+                    properties: {
+                      empathy: { type: "number", description: "1-10" },
+                      clarity: { type: "number", description: "1-10" },
+                      efficiency: { type: "number", description: "1-10" },
+                      knowledge: { type: "number", description: "1-10" },
+                    },
+                  },
+                  churnRisk: { type: "string", enum: ["low", "medium", "high"] },
+                  salesOpportunity: { type: "string", description: "Sales opportunity description or null" },
+                },
+                required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "urgency", "customerSatisfaction"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "analyze_conversation" } }
+      },
+    });
+
+    if (!response.ok || !data) {
+      if (response.status === 429) return errorResponse("Rate limit exceeded", 429, req);
+      if (response.status === 402) return errorResponse("Payment required", 402, req);
+      throw new Error(`AI gateway error: ${response.status}`);
+    }
+
+    const toolCall = (data.choices as Array<{message: {tool_calls?: Array<{function: {arguments: string}}>; content?: string}}>)?.[0]?.message?.tool_calls?.[0];
+
+    let analysisData;
+    if (toolCall?.function?.arguments) {
+      try {
+        analysisData = JSON.parse(toolCall.function.arguments);
+      } catch {
+        log.error("Failed to parse tool_call arguments");
+        const jsonMatch = toolCall.function.arguments.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysisData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("AI returned malformed JSON");
+        }
+      }
+    } else {
+      const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
+      let parsedContent = null;
+      if (content) {
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) parsedContent = JSON.parse(jsonMatch[0]);
+        } catch {
+          parsedContent = null;
+        }
+      }
+      analysisData = parsedContent || {
+        summary: content || 'Não foi possível gerar análise.',
+        status: 'pendente',
+        keyPoints: [],
+        sentiment: 'neutro',
+        sentimentScore: 50,
+        customerSatisfaction: 3,
+        topics: [],
+        urgency: 'media'
+      };
+    }
+
+    analysisData = {
+      summary: analysisData.summary || 'Resumo não disponível',
+      status: ['resolvido', 'pendente', 'aguardando_cliente', 'aguardando_atendente', 'escalado'].includes(analysisData.status) ? analysisData.status : 'pendente',
+      keyPoints: Array.isArray(analysisData.keyPoints) ? analysisData.keyPoints.slice(0, 5) : [],
+      nextSteps: Array.isArray(analysisData.nextSteps) ? analysisData.nextSteps : [],
+      sentiment: ['positivo', 'neutro', 'negativo', 'critico'].includes(analysisData.sentiment) ? analysisData.sentiment : 'neutro',
+      sentimentScore: typeof analysisData.sentimentScore === 'number' ? Math.max(0, Math.min(100, analysisData.sentimentScore)) : 50,
+      customerSatisfaction: typeof analysisData.customerSatisfaction === 'number' ? Math.max(1, Math.min(5, analysisData.customerSatisfaction)) : 3,
+      topics: Array.isArray(analysisData.topics) ? analysisData.topics.slice(0, 5) : [],
+      urgency: ['baixa', 'media', 'alta', 'critica'].includes(analysisData.urgency) ? analysisData.urgency : 'media',
+      agentPerformance: analysisData.agentPerformance || null,
+      churnRisk: ['low', 'medium', 'high'].includes(analysisData.churnRisk) ? analysisData.churnRisk : 'low',
+      salesOpportunity: analysisData.salesOpportunity || null,
+    };
+
     let analysisId: string | null = null;
 
     if (contactId) {
@@ -131,7 +235,6 @@ Responda em português brasileiro.`;
 
     log.done(200, { analysisId, messageCount: messages.length });
     return jsonResponse({ ...analysisData, analysisId }, 200, req);
-
   } catch (error) {
     log.error("Error analyzing conversation", { error: error instanceof Error ? error.message : String(error) });
     return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500, req);
