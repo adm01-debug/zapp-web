@@ -25,7 +25,7 @@ const SECRET_CODES: Record<string, { name: string; action: string }> = {
   'lovable': { name: 'Lovable Easter Egg', action: 'lovable' },
 };
 
-export function EasterEggsProvider({ children }: EasterEggsProviderProps) {
+export const EasterEggsProvider = forwardRef<HTMLDivElement, EasterEggsProviderProps>(function EasterEggsProvider({ children }, _ref) {
   const [konamiProgress, setKonamiProgress] = useState<string[]>([]);
   const [typedText, setTypedText] = useState('');
   const [partyMode, setPartyMode] = useState(false);
