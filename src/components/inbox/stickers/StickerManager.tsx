@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sticker, Upload, Star, Trash2, Search, Grid3X3, LayoutGrid, Loader2 } from 'lucide-react';
+import { Sticker, Upload, Star, Trash2, Search, Grid3X3, LayoutGrid, Loader2, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { StickerGrid } from './StickerGrid';
 import { StickerUploadPreview } from './StickerUploadPreview';
 import { StickerCategoryBar } from './StickerCategoryBar';
+import { PersonalStickers } from './PersonalStickers';
 import { CATEGORY_LABELS, ALL_CATEGORIES, type StickerItem, type PendingUpload } from './StickerTypes';
 import { motion, AnimatePresence } from 'framer-motion';
 
