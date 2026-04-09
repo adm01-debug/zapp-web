@@ -623,27 +623,33 @@ export function ContactsView() {
   );
 }
 
-/** Skeleton loader that adapts to the current view mode */
+/** Skeleton loader that adapts to the current view mode with staggered animations */
 function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode; gridColumns: number }) {
   if (viewMode === 'grid') {
     return (
       <div className={cn("grid gap-4", GRID_COLUMNS_CLASS[gridColumns] || GRID_COLUMNS_CLASS[4])}>
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="rounded-2xl border border-border/30 p-5 animate-pulse space-y-4">
-            <div className="h-1 w-full rounded bg-muted/60" />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06, duration: 0.3 }}
+            className="rounded-2xl border border-border/30 p-5 space-y-4"
+          >
+            <div className="h-1 w-full rounded bg-muted/60 animate-pulse" />
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-muted" />
+              <div className="w-12 h-12 rounded-full bg-muted animate-pulse" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-24 rounded bg-muted" />
-                <div className="h-3 w-16 rounded bg-muted/60" />
+                <div className="h-4 w-24 rounded bg-muted animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                <div className="h-3 w-16 rounded bg-muted/60 animate-pulse" style={{ animationDelay: `${i * 100 + 50}ms` }} />
               </div>
             </div>
-            <div className="h-12 rounded-xl bg-muted/40" />
+            <div className="h-12 rounded-xl bg-muted/40 animate-pulse" style={{ animationDelay: `${i * 100 + 100}ms` }} />
             <div className="space-y-1.5">
-              <div className="h-3 w-32 rounded bg-muted/40" />
-              <div className="h-3 w-40 rounded bg-muted/30" />
+              <div className="h-3 w-32 rounded bg-muted/40 animate-pulse" style={{ animationDelay: `${i * 100 + 150}ms` }} />
+              <div className="h-3 w-40 rounded bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 100 + 200}ms` }} />
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     );
@@ -653,16 +659,22 @@ function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode
     return (
       <div className="space-y-2">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border/30 animate-pulse">
-            <div className="w-4 h-4 rounded bg-muted" />
-            <div className="w-11 h-11 rounded-full bg-muted" />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.25 }}
+            className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border/30"
+          >
+            <div className="w-4 h-4 rounded bg-muted animate-pulse" />
+            <div className="w-11 h-11 rounded-full bg-muted animate-pulse" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-32 rounded bg-muted" />
-              <div className="h-3 w-24 rounded bg-muted/50" />
+              <div className="h-4 w-32 rounded bg-muted animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+              <div className="h-3 w-24 rounded bg-muted/50 animate-pulse" style={{ animationDelay: `${i * 80 + 50}ms` }} />
             </div>
-            <div className="h-3 w-28 rounded bg-muted/40" />
-            <div className="h-3 w-20 rounded bg-muted/30" />
-          </div>
+            <div className="h-3 w-28 rounded bg-muted/40 animate-pulse" />
+            <div className="h-3 w-20 rounded bg-muted/30 animate-pulse" />
+          </motion.div>
         ))}
       </div>
     );
@@ -672,15 +684,21 @@ function ContactsSkeleton({ viewMode, gridColumns }: { viewMode: ContactViewMode
     <Card>
       <CardContent className="p-4 space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4 p-3 animate-pulse">
-            <div className="w-9 h-9 rounded-full bg-muted" />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: i * 0.05 }}
+            className="flex items-center gap-4 p-3"
+          >
+            <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-32 rounded bg-muted" />
-              <div className="h-3 w-24 rounded bg-muted/60" />
+              <div className="h-4 w-32 rounded bg-muted animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+              <div className="h-3 w-24 rounded bg-muted/60 animate-pulse" style={{ animationDelay: `${i * 80 + 50}ms` }} />
             </div>
-            <div className="h-5 w-16 rounded-full bg-muted/40" />
-            <div className="h-3 w-28 rounded bg-muted/40" />
-          </div>
+            <div className="h-5 w-16 rounded-full bg-muted/40 animate-pulse" />
+            <div className="h-3 w-28 rounded bg-muted/40 animate-pulse" />
+          </motion.div>
         ))}
       </CardContent>
     </Card>
