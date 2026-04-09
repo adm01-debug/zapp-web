@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   Zap, Plus, Play, Eye, Loader2, MessageSquare,
-  Send, BarChart3, CheckCircle2
+  Send, BarChart3, CheckCircle2, Search, Filter
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
 import { supabase } from '@/integrations/supabase/client';
 import { TalkXCampaignEditor } from './TalkXCampaignEditor';
@@ -23,6 +27,38 @@ export default function TalkXView() {
   const [showEditor, setShowEditor] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<TalkXCampaign | null>(null);
   const [activeTab, setActiveTab] = useState('campaigns');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const filteredCampaigns = useMemo(() => {
+    let result = campaigns;
+    if (statusFilter !== 'all') {
+      result = result.filter((c) => c.status === statusFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.message_template.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [campaigns, searchQuery, statusFilter]);
+
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (e.key === 'n' && !e.ctrlKey && !e.metaKey && !showEditor) {
+      e.preventDefault();
+      handleNewCampaign();
+    }
+  }, [showEditor]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   useEffect(() => {
     const channel = supabase
@@ -130,7 +166,36 @@ export default function TalkXView() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="campaigns" className="flex-1 overflow-auto mt-4">
+        <TabsContent value="campaigns" className="flex-1 overflow-auto mt-4 space-y-4">
+          {/* Search & Filter Bar */}
+          {campaigns.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar campanhas... (N para nova)"
+                  className="pl-9 h-9 text-sm"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[160px] h-9">
+                  <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos status</SelectItem>
+                  <SelectItem value="draft">Rascunho</SelectItem>
+                  <SelectItem value="sending">Enviando</SelectItem>
+                  <SelectItem value="paused">Pausada</SelectItem>
+                  <SelectItem value="completed">Concluída</SelectItem>
+                  <SelectItem value="cancelled">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="grid gap-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -169,10 +234,18 @@ export default function TalkXView() {
                 </Button>
               </CardContent>
             </Card>
+          ) : filteredCampaigns.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
+              <Search className="w-8 h-8 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">Nenhuma campanha encontrada</p>
+              <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}>
+                Limpar filtros
+              </Button>
+            </div>
           ) : (
             <div className="grid gap-3">
               <AnimatePresence mode="popLayout">
-                {campaigns.map((campaign) => (
+                {filteredCampaigns.map((campaign) => (
                   <TalkXCampaignCard
                     key={campaign.id}
                     campaign={campaign}

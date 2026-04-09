@@ -44,6 +44,32 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Fetch with exponential backoff retry */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 2
+): Promise<Response> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      // Don't retry on client errors (4xx), only on server errors (5xx) or network failures
+      if (response.ok || (response.status >= 400 && response.status < 500)) {
+        return response;
+      }
+      lastError = new Error(`HTTP ${response.status}`);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+    if (attempt < maxRetries) {
+      const backoff = Math.pow(2, attempt) * 1000 + Math.random() * 500;
+      await sleep(backoff);
+    }
+  }
+  throw lastError || new Error("Fetch failed after retries");
+}
+
 /** Map media_type to Evolution API endpoint */
 function getMediaEndpoint(mediaType: string): string {
   switch (mediaType) {
@@ -221,9 +247,9 @@ Deno.serve(async (req) => {
         let sendResult: any;
 
         if (hasMedia) {
-          // 2a. Send media message
+          // 2a. Send media message with retry
           const mediaEndpoint = getMediaEndpoint(campaign.media_type);
-          sendResponse = await fetch(
+          sendResponse = await fetchWithRetry(
             `${evolutionUrl}/message/${mediaEndpoint}/${connection.instance_id}`,
             {
               method: "POST",
@@ -242,8 +268,8 @@ Deno.serve(async (req) => {
           );
           sendResult = await sendResponse.json();
         } else {
-          // 2b. Send text-only message
-          sendResponse = await fetch(
+          // 2b. Send text-only message with retry
+          sendResponse = await fetchWithRetry(
             `${evolutionUrl}/message/sendText/${connection.instance_id}`,
             {
               method: "POST",
