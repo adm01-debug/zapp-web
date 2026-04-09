@@ -105,9 +105,10 @@ export function useTalkX() {
 
   const updateCampaign = useMutation({
     mutationFn: async ({ id, ...updates }: CampaignPayload & { id: string }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await supabase
         .from('talkx_campaigns')
-        .update(updates as Record<string, unknown>)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();
