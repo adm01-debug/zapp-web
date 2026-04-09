@@ -32,7 +32,7 @@ interface ContactDetailPanelProps {
   } | null;
   onClose: () => void;
   onOpenChat: (id: string) => void;
-  onEdit: (contact: Contact) => void;
+  onEdit: (contact: any) => void;
   messageCount?: number;
   lastMessageAt?: string | null;
 }
