@@ -1,20 +1,12 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, memo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ShieldQuestion, Lightbulb, Loader2, Sparkles, RefreshCw, AlertTriangle, Copy, Check } from 'lucide-react';
+import { ShieldQuestion, Lightbulb, Loader2, RefreshCw, AlertTriangle, Copy, Check, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-
-const TONE_OPTIONS = [
-  { key: 'professional', label: '💼 Formal', prompt: 'Use tom formal, profissional e corporativo.' },
-  { key: 'friendly', label: '😊 Amigável', prompt: 'Use tom amigável, acolhedor e empático.' },
-  { key: 'casual', label: '🤙 Descontraído', prompt: 'Use tom descontraído, leve e informal.' },
-  { key: 'persuasive', label: '🎯 Persuasivo', prompt: 'Use tom persuasivo, confiante e orientado a resultados.' },
-] as const;
-
-type ToneKey = typeof TONE_OPTIONS[number]['key'];
+import { ToneSelector, type ToneKey, getTonePrompt } from './ai-tools/ToneSelector';
 
 interface Objection {
   objection: string;
@@ -27,6 +19,140 @@ interface ObjectionDetectorProps {
   lastMessages: string[];
   onSelectSuggestion?: (text: string) => void;
 }
+
+const ConfidenceMeter = memo(function ConfidenceMeter({ confidence }: { confidence: number }) {
+  const pct = Math.round(confidence * 100);
+  const color = confidence >= 0.8 ? 'bg-destructive' : confidence >= 0.5 ? 'bg-warning' : 'bg-muted-foreground/50';
+  const textColor = confidence >= 0.8 ? 'text-destructive' : confidence >= 0.5 ? 'text-warning' : 'text-muted-foreground';
+  const label = confidence >= 0.8 ? 'Alta' : confidence >= 0.5 ? 'Média' : 'Baixa';
+
+  return (
+    <div className="flex items-center gap-2 mt-1.5" role="meter" aria-label={`Confiança: ${label}`} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+      <div className="flex-1 h-1.5 rounded-full bg-muted/40 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className={`h-full rounded-full ${color}`}
+        />
+      </div>
+      <span className={`text-[9px] font-medium shrink-0 ${textColor}`}>{label} {pct}%</span>
+    </div>
+  );
+});
+
+const ObjectionCard = memo(function ObjectionCard({
+  obj,
+  idx,
+  isRewriting,
+  rewritingAny,
+  copiedIdx,
+  onSelect,
+  onCopy,
+  onRewrite,
+}: {
+  obj: Objection;
+  idx: number;
+  isRewriting: boolean;
+  rewritingAny: boolean;
+  copiedIdx: number | null;
+  onSelect: (text: string) => void;
+  onCopy: (text: string, idx: number) => void;
+  onRewrite: (idx: number) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ delay: idx * 0.08 }}
+      className="rounded-xl bg-muted/20 border border-border/30 overflow-hidden"
+    >
+      {/* Objection header */}
+      <button
+        type="button"
+        onClick={() => setExpanded(prev => !prev)}
+        className="flex items-start gap-2 w-full text-left p-3 hover:bg-muted/30 transition-colors"
+        aria-expanded={expanded}
+      >
+        <ShieldQuestion className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-foreground font-medium leading-snug">{obj.objection}</p>
+          <ConfidenceMeter confidence={obj.confidence} />
+        </div>
+        {expanded ? (
+          <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+        ) : (
+          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+        )}
+      </button>
+
+      {/* Counter-argument */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 space-y-2">
+              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-success/5 border border-success/10">
+                <Lightbulb className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
+                {isRewriting ? (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Reescrevendo...
+                  </span>
+                ) : (
+                  <p className="text-xs text-foreground leading-relaxed">{obj.counterArgument}</p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] text-muted-foreground hover:text-primary rounded-full"
+                    onClick={() => onCopy(obj.counterArgument, idx)}
+                    disabled={rewritingAny}
+                  >
+                    {copiedIdx === idx ? <Check className="w-3 h-3 mr-1 text-success" /> : <Copy className="w-3 h-3 mr-1" />}
+                    {copiedIdx === idx ? 'Copiado' : 'Copiar'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] text-muted-foreground hover:text-primary rounded-full"
+                    onClick={() => onRewrite(idx)}
+                    disabled={rewritingAny}
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Reescrever
+                  </Button>
+                </div>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-6 px-3 text-[10px] font-medium gap-1 rounded-full"
+                  onClick={() => onSelect(obj.counterArgument)}
+                  disabled={rewritingAny}
+                >
+                  <Send className="w-3 h-3" />
+                  Usar
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+});
 
 export function ObjectionDetector({ contactId, lastMessages, onSelectSuggestion }: ObjectionDetectorProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
@@ -44,7 +170,6 @@ export function ObjectionDetector({ contactId, lastMessages, onSelectSuggestion 
       return;
     }
 
-    // Rate limit: min 3s between calls
     const now = Date.now();
     if (now - lastCallRef.current < 3000) {
       toast.warning('Aguarde alguns segundos antes de tentar novamente.');
@@ -55,7 +180,7 @@ export function ObjectionDetector({ contactId, lastMessages, onSelectSuggestion 
     setLoading(true);
     setError(null);
     const activeTone = tone ?? selectedTone;
-    const activePrompt = TONE_OPTIONS.find(t => t.key === activeTone)!.prompt;
+    const activePrompt = getTonePrompt(activeTone);
 
     try {
       const response = await supabase.functions.invoke('ai-proxy', {
@@ -85,7 +210,6 @@ Se não houver objeções, retorne []`,
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         if (!Array.isArray(parsed)) throw new Error('Resposta inválida da IA');
-        // Validate structure
         const valid = parsed.filter((o: unknown) => {
           if (typeof o !== 'object' || o === null) return false;
           const obj = o as Record<string, unknown>;
@@ -113,9 +237,9 @@ Se não houver objeções, retorne []`,
     setLoading(false);
   }, [lastMessages, selectedTone]);
 
-  const rewriteSingle = async (idx: number) => {
+  const rewriteSingle = useCallback(async (idx: number) => {
     setRewritingIdx(idx);
-    const activePrompt = TONE_OPTIONS.find(t => t.key === selectedTone)!.prompt;
+    const activePrompt = getTonePrompt(selectedTone);
 
     try {
       const response = await supabase.functions.invoke('ai-proxy', {
@@ -144,85 +268,57 @@ Se não houver objeções, retorne []`,
     }
 
     setRewritingIdx(null);
-  };
+  }, [objections, selectedTone]);
 
-  const handleToneChange = (tone: ToneKey) => {
-    setSelectedTone(tone);
-    // Don't auto-reanalyze on tone change - user can use rewrite per item or re-analyze manually
-  };
-
-  const handleSelect = (text: string) => {
+  const handleSelect = useCallback((text: string) => {
     onSelectSuggestion?.(text);
     toast.success('Resposta inserida no chat!');
-  };
+  }, [onSelectSuggestion]);
 
-  const handleCopy = (text: string, idx: number) => {
+  const handleCopy = useCallback((text: string, idx: number) => {
     navigator.clipboard.writeText(text);
     setCopiedIdx(idx);
     toast.success('Copiado!');
     setTimeout(() => setCopiedIdx(null), 2000);
-  };
+  }, []);
 
-  const confidenceColor = (c: number) => {
-    if (c >= 0.8) return 'bg-destructive/60';
-    if (c >= 0.5) return 'bg-warning/60';
-    return 'bg-muted-foreground/30';
-  };
-
-  const confidenceLabel = (c: number) => {
-    if (c >= 0.8) return 'Alta';
-    if (c >= 0.5) return 'Média';
-    return 'Baixa';
-  };
-
-  // Initial state — not yet analyzed
+  // Initial state
   if (!analyzed) {
     return (
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-1.5 mb-1">
-          <ShieldQuestion className="w-3.5 h-3.5 text-warning" />
-          <span className="text-xs font-medium">Detector de Objeções</span>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center">
+            <ShieldQuestion className="w-4 h-4 text-warning" />
+          </div>
+          <div>
+            <span className="text-xs font-semibold">Detector de Objeções</span>
+            <p className="text-[10px] text-muted-foreground">Identifica resistências e sugere contra-argumentos</p>
+          </div>
         </div>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          Analisa as últimas mensagens do cliente para identificar resistências e sugerir contra-argumentos.
-        </p>
-        <div className="flex flex-wrap gap-1">
-          {TONE_OPTIONS.map(t => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setSelectedTone(t.key)}
-              className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors border ${
-                selectedTone === t.key
-                  ? 'bg-primary/20 border-primary/40 text-primary'
-                  : 'bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+
+        <ToneSelector selected={selectedTone} onChange={setSelectedTone} />
+
         <Button
           variant="default"
           size="sm"
-          className="w-full h-8 text-xs"
+          className="w-full h-9 text-xs font-medium"
           onClick={() => analyze()}
           disabled={loading || lastMessages.length === 0}
         >
           {loading ? (
             <>
-              <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
               Analisando...
             </>
           ) : (
             <>
-              <ShieldQuestion className="w-3 h-3 mr-1.5" />
+              <ShieldQuestion className="w-3.5 h-3.5 mr-1.5" />
               Detectar objeções ({lastMessages.length} msgs)
             </>
           )}
         </Button>
         {lastMessages.length === 0 && (
-          <p className="text-[10px] text-muted-foreground text-center">Nenhuma mensagem do cliente encontrada</p>
+          <p className="text-[10px] text-muted-foreground text-center italic">Nenhuma mensagem do cliente encontrada</p>
         )}
       </div>
     );
@@ -231,17 +327,17 @@ Se não houver objeções, retorne []`,
   // Loading skeleton
   if (loading && objections.length === 0) {
     return (
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-1.5">
-          <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 text-primary animate-spin" />
           <span className="text-xs font-medium">Analisando mensagens...</span>
         </div>
         <div className="space-y-2">
           {[1, 2].map(i => (
-            <div key={i} className="p-2.5 rounded-lg bg-muted/20 border border-border/30 animate-pulse">
-              <div className="h-3 bg-muted/40 rounded w-3/4 mb-2" />
-              <div className="h-2 bg-muted/30 rounded w-full mb-1" />
-              <div className="h-3 bg-muted/40 rounded w-5/6" />
+            <div key={i} className="p-3 rounded-xl bg-muted/20 border border-border/30 animate-pulse space-y-2">
+              <div className="h-3 bg-muted/40 rounded w-3/4" />
+              <div className="h-1.5 bg-muted/30 rounded w-1/2" />
+              <div className="h-10 bg-muted/20 rounded-lg w-full" />
             </div>
           ))}
         </div>
@@ -252,24 +348,26 @@ Se não houver objeções, retorne []`,
   // No objections found
   if (objections.length === 0) {
     return (
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-1.5 mb-1">
-          <ShieldQuestion className="w-3.5 h-3.5 text-success" />
-          <span className="text-xs font-medium">Nenhuma objeção detectada</span>
-        </div>
+      <div className="space-y-3">
         {error ? (
-          <div className="flex items-start gap-1.5 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
-            <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+            <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
             <div className="min-w-0">
-              <p className="text-[11px] text-destructive font-medium mb-0.5">Erro na análise</p>
-              <p className="text-[10px] text-destructive/80">{error}</p>
+              <p className="text-xs text-destructive font-semibold mb-0.5">Erro na análise</p>
+              <p className="text-[11px] text-destructive/80">{error}</p>
             </div>
           </div>
         ) : (
-          <p className="text-[11px] text-muted-foreground">O cliente não apresentou resistências nas últimas mensagens. Bom sinal! 🎉</p>
+          <div className="flex flex-col items-center py-4 gap-2">
+            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+              <ShieldQuestion className="w-5 h-5 text-success" />
+            </div>
+            <p className="text-xs font-medium text-success">Nenhuma objeção detectada</p>
+            <p className="text-[11px] text-muted-foreground text-center">O cliente não apresentou resistências. Bom sinal! 🎉</p>
+          </div>
         )}
-        <Button variant="outline" size="sm" className="w-full h-7 text-[11px]" onClick={() => { setAnalyzed(false); setError(null); }}>
-          <RefreshCw className="w-3 h-3 mr-1" />
+        <Button variant="outline" size="sm" className="w-full h-8 text-xs" onClick={() => { setAnalyzed(false); setError(null); }}>
+          <RefreshCw className="w-3 h-3 mr-1.5" />
           Nova análise
         </Button>
       </div>
@@ -278,114 +376,47 @@ Se não houver objeções, retorne []`,
 
   // Objections found
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <ShieldQuestion className="w-3.5 h-3.5 text-warning" />
-          <span className="text-xs font-medium">Objeções detectadas</span>
-          <Badge variant="outline" className="text-[10px] h-4 px-1.5">{objections.length}</Badge>
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-warning/10 flex items-center justify-center">
+            <ShieldQuestion className="w-3.5 h-3.5 text-warning" />
+          </div>
+          <span className="text-xs font-semibold">Objeções detectadas</span>
+          <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-semibold">{objections.length}</Badge>
         </div>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => analyze()} disabled={loading} title="Reanalisar">
-          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 w-7 p-0 rounded-full"
+          onClick={() => analyze()}
+          disabled={loading}
+          title="Reanalisar"
+        >
+          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
         </Button>
       </div>
 
-      {/* Tone selector */}
-      <div className="flex flex-wrap gap-1">
-        {TONE_OPTIONS.map(t => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => handleToneChange(t.key)}
-            disabled={loading}
-            className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors border ${
-              selectedTone === t.key
-                ? 'bg-primary/20 border-primary/40 text-primary'
-                : 'bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <ToneSelector selected={selectedTone} onChange={setSelectedTone} disabled={loading} />
 
-      <ScrollArea className="max-h-64">
-        <AnimatePresence mode="popLayout">
-          <div className="space-y-2 pr-1">
+      <ScrollArea className="max-h-72">
+        <div className="space-y-2 pr-1">
+          <AnimatePresence mode="popLayout">
             {objections.map((obj, idx) => (
-              <motion.div
+              <ObjectionCard
                 key={`${idx}-${obj.objection.slice(0, 20)}`}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: idx * 0.08 }}
-                className="space-y-1.5 p-2.5 rounded-lg bg-muted/20 border border-border/30"
-              >
-                {/* Objection */}
-                <div className="flex items-start gap-1.5">
-                  <ShieldQuestion className="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-warning leading-snug">{obj.objection}</p>
-                    <div className="flex items-center gap-1.5 mt-1" role="meter" aria-label={`Confiança: ${confidenceLabel(obj.confidence)}`} aria-valuenow={Math.round(obj.confidence * 100)} aria-valuemin={0} aria-valuemax={100}>
-                      <div className="flex-1 h-1 rounded-full bg-muted/40 overflow-hidden">
-                        <div className={`h-full rounded-full transition-all duration-500 ${confidenceColor(obj.confidence)}`} style={{ width: `${obj.confidence * 100}%` }} />
-                      </div>
-                      <span className="text-[9px] text-muted-foreground shrink-0">{confidenceLabel(obj.confidence)} {Math.round(obj.confidence * 100)}%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Counter-argument */}
-                <div className="flex items-start gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(obj.counterArgument)}
-                    disabled={rewritingIdx === idx}
-                    className="flex items-start gap-1.5 pl-5 w-full text-left group cursor-pointer hover:bg-primary/10 rounded-md p-1.5 -mx-1 transition-colors"
-                    title="Clique para usar esta resposta"
-                    aria-label={`Usar resposta: ${obj.counterArgument.slice(0, 50)}...`}
-                  >
-                    <Lightbulb className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
-                    {rewritingIdx === idx ? (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Loader2 className="w-3 h-3 animate-spin" /> Reescrevendo...
-                      </span>
-                    ) : (
-                      <p className="text-xs text-foreground group-hover:text-primary transition-colors leading-snug">{obj.counterArgument}</p>
-                    )}
-                    <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-primary whitespace-nowrap font-medium">Usar ↵</span>
-                  </button>
-                </div>
-
-                {/* Action buttons */}
-                <div className="flex justify-end gap-0.5">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-5 px-1.5 text-[9px] text-muted-foreground hover:text-primary"
-                    onClick={() => handleCopy(obj.counterArgument, idx)}
-                    disabled={rewritingIdx !== null}
-                    title="Copiar"
-                  >
-                    {copiedIdx === idx ? <Check className="w-2.5 h-2.5 mr-0.5 text-success" /> : <Copy className="w-2.5 h-2.5 mr-0.5" />}
-                    {copiedIdx === idx ? 'Copiado' : 'Copiar'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-5 px-1.5 text-[9px] text-muted-foreground hover:text-primary"
-                    onClick={() => rewriteSingle(idx)}
-                    disabled={rewritingIdx !== null}
-                    title="Reescrever com o tom selecionado"
-                  >
-                    <RefreshCw className="w-2.5 h-2.5 mr-0.5" />
-                    Reescrever
-                  </Button>
-                </div>
-              </motion.div>
+                obj={obj}
+                idx={idx}
+                isRewriting={rewritingIdx === idx}
+                rewritingAny={rewritingIdx !== null}
+                copiedIdx={copiedIdx}
+                onSelect={handleSelect}
+                onCopy={handleCopy}
+                onRewrite={rewriteSingle}
+              />
             ))}
-          </div>
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
       </ScrollArea>
     </div>
   );
