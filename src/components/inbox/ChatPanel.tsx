@@ -142,7 +142,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   // Reset chat search when switching conversations
   useEffect(() => {
-    setShowChatSearch(false);
+    closeDialog('chatSearch');
     setHighlightedMessageIds(new Set());
     setActiveHighlightId(null);
     setSearchQuery('');
