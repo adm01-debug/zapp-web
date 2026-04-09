@@ -43,7 +43,7 @@ import {
   FileText,
   Loader2,
   XCircle,
-  ShieldQuestion,
+  Radar,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 
@@ -184,13 +184,13 @@ export function ChatPanelHeader({
                   variant="ghost"
                   size="icon"
                   className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  aria-label="Ferramentas de IA"
+                  aria-label="Monitoramento de Objeções"
                 >
-                  <ShieldQuestion className="w-[18px] h-[18px]" />
+                  <Radar className="w-[18px] h-[18px]" />
                 </Button>
               </PopoverTrigger>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Ferramentas de IA</TooltipContent>
+            <TooltipContent side="bottom">Monitoramento de Objeções</TooltipContent>
           </Tooltip>
           <PopoverContent side="bottom" align="end" className="w-[420px] p-3 max-h-[80vh] overflow-y-auto">
             <Suspense fallback={null}>
