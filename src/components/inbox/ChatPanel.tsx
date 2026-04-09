@@ -3,6 +3,7 @@ import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { toast as sonnerToast } from 'sonner';
 import { undoToast } from '@/lib/undoToast';
+import { withRetry } from '@/lib/retry';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
