@@ -48,7 +48,7 @@ export function ContactMergeDialog({ open, onOpenChange, contacts, onMergeComple
     const init: Record<string, number> = {};
     FIELDS.forEach(f => {
       // Prefer the one with data
-      const idx = contacts.findIndex(c => (c as Record<string, unknown>)[f.key]);
+      const idx = contacts.findIndex(c => (c as unknown as Record<string, unknown>)[f.key]);
       init[f.key] = idx >= 0 ? idx : 0;
     });
     return init;
@@ -65,7 +65,7 @@ export function ContactMergeDialog({ open, onOpenChange, contacts, onMergeComple
 
       FIELDS.forEach(f => {
         const source = contacts[selections[f.key]];
-        const val = (source as Record<string, unknown>)[f.key];
+        const val = (source as unknown as Record<string, unknown>)[f.key];
         if (val) merged[f.key] = val;
       });
 
@@ -126,7 +126,7 @@ export function ContactMergeDialog({ open, onOpenChange, contacts, onMergeComple
           {FIELDS.map(field => {
             const values = contacts.map((c, i) => ({
               index: i,
-              value: (c as Record<string, unknown>)[field.key] as string | null,
+              value: (c as unknown as Record<string, unknown>)[field.key] as string | null,
             })).filter(v => v.value);
 
             if (values.length <= 1) return null;
