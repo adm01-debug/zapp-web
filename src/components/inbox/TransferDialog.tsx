@@ -54,14 +54,29 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
       });
   }, [transferType, open]);
 
-  const handleTransfer = () => {
-    if (selectedTarget) {
+  const [isTransferring, setIsTransferring] = useState(false);
+
+  const handleTransfer = async () => {
+    if (!selectedTarget || isTransferring) return;
+    setIsTransferring(true);
+    try {
       onTransfer(transferType, selectedTarget, message || undefined);
       onOpenChange(false);
       setSelectedTarget('');
       setMessage('');
+    } finally {
+      setIsTransferring(false);
     }
   };
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedTarget('');
+      setMessage('');
+      setIsTransferring(false);
+    }
+  }, [open]);
 
   // Filter online/away agents (active ones)
   const availableAgents = agents.filter((a) => a.status === 'online' || a.status === 'away');
@@ -287,11 +302,11 @@ export function TransferDialog({ open, onOpenChange, onTransfer }: TransferDialo
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={handleTransfer}
-                disabled={!selectedTarget}
+                disabled={!selectedTarget || isTransferring}
                 className="bg-whatsapp hover:bg-whatsapp-dark"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Transferir
+                {isTransferring ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                {isTransferring ? 'Transferindo...' : 'Transferir'}
               </Button>
             </motion.div>
           </div>

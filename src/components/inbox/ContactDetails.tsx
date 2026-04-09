@@ -136,6 +136,8 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
       exit={{ x: 100, opacity: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       ref={panelRef}
+      role="complementary"
+      aria-label="Detalhes do contato"
       className="w-80 h-full min-h-0 shrink-0 bg-card border-l border-border flex flex-col overflow-hidden"
     >
       {/* Fixed top bar */}
@@ -149,6 +151,7 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
             variant="ghost"
             size="icon"
             onClick={onClose}
+            aria-label="Fechar painel de detalhes"
             className="w-7 h-7 hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <X className="w-3.5 h-3.5" />

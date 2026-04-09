@@ -513,6 +513,8 @@ export function VirtualizedConversationList({
       <div 
         ref={parentRef}
         className="flex-1 overflow-auto scrollbar-thin"
+        role="listbox"
+        aria-label="Lista de conversas virtualizada"
       >
         {filteredConversations.length === 0 ? (
           <EmptyState

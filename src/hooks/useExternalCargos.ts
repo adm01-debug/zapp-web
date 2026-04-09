@@ -25,7 +25,7 @@ export function useExternalCargos() {
       if (e1) {
         log.error('Error fetching roles from salespeople:', e1);
       } else {
-        (salesRoles || []).forEach((r: any) => {
+        (salesRoles || []).forEach((r: Record<string, unknown>) => {
           const v = String(r.role || '').trim();
           if (v) allCargos.push(v);
         });
@@ -48,7 +48,7 @@ export function useExternalCargos() {
       if (e2) {
         log.error('Error fetching cargos via RPC:', e2);
       } else {
-        const results = (searchData as any)?.results || [];
+        const results = (searchData as Record<string, unknown>)?.results as Record<string, unknown>[] || [];
         for (const r of results) {
           const v = String(r.cargo || '').trim();
           if (v) allCargos.push(v);

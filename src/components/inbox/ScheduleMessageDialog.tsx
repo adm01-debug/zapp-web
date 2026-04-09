@@ -35,20 +35,27 @@ export function ScheduleMessageDialog({ open, onOpenChange, onSchedule }: Schedu
   ];
 
   const handleSchedule = () => {
-    if (message.trim()) {
-      const [hours, minutes] = time.split(':').map(Number);
-      const scheduledDate = setMinutes(setHours(new Date(date), hours), minutes);
-      
-      onSchedule(message, scheduledDate, attachment || undefined);
-      toast({
-        title: 'Mensagem agendada!',
-        description: `Será enviada em ${format(scheduledDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
-      });
-      
-      onOpenChange(false);
-      setMessage('');
-      setAttachment(null);
+    if (!message.trim()) {
+      toast({ title: 'Mensagem vazia', description: 'Digite uma mensagem para agendar', variant: 'destructive' });
+      return;
     }
+    const [hours, minutes] = time.split(':').map(Number);
+    const scheduledDate = setMinutes(setHours(new Date(date), hours), minutes);
+    
+    if (scheduledDate <= new Date()) {
+      toast({ title: 'Data inválida', description: 'A data de agendamento deve ser no futuro', variant: 'destructive' });
+      return;
+    }
+    
+    onSchedule(message, scheduledDate, attachment || undefined);
+    toast({
+      title: 'Mensagem agendada!',
+      description: `Será enviada em ${format(scheduledDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
+    });
+    
+    onOpenChange(false);
+    setMessage('');
+    setAttachment(null);
   };
 
   const handleQuickSchedule = (getDate: () => Date) => {
