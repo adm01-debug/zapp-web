@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   ArrowLeft, Save, Users, Wand2, Eye, Clock, MessageSquare, Type, Search,
-  Image, FileText, Video, Music, X, CalendarClock, BookOpen
+  Image, FileText, Video, Music, X, CalendarClock, BookOpen, Building2, Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,6 +77,8 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const [showPreview, setShowPreview] = useState(false);
   const [contactSearch, setContactSearch] = useState('');
   const [saving, setSaving] = useState(false);
+  const [companyFilter, setCompanyFilter] = useState<string>('all');
+  const [tagFilter, setTagFilter] = useState<string>('all');
 
   // Media state
   const [mediaUrl, setMediaUrl] = useState(campaign?.media_url || '');
@@ -107,25 +109,51 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('contacts')
-        .select('id, name, nickname, phone, company, avatar_url')
+        .select('id, name, nickname, phone, company, avatar_url, tags')
         .not('phone', 'is', null)
         .order('name');
       return data || [];
     },
   });
 
+  // Extract unique companies and tags for filters
+  const { companies, tags } = useMemo(() => {
+    if (!contacts) return { companies: [], tags: [] };
+    const companySet = new Set<string>();
+    const tagSet = new Set<string>();
+    contacts.forEach((c) => {
+      if (c.company) companySet.add(c.company);
+      if (c.tags && Array.isArray(c.tags)) {
+        c.tags.forEach((t: string) => tagSet.add(t));
+      }
+    });
+    return {
+      companies: Array.from(companySet).sort(),
+      tags: Array.from(tagSet).sort(),
+    };
+  }, [contacts]);
+
   const filteredContacts = useMemo(() => {
     if (!contacts) return [];
-    if (!contactSearch.trim()) return contacts;
-    const q = contactSearch.toLowerCase();
-    return contacts.filter(
-      (c) =>
-        c.name?.toLowerCase().includes(q) ||
-        c.nickname?.toLowerCase().includes(q) ||
-        c.phone?.includes(q) ||
-        c.company?.toLowerCase().includes(q)
-    );
-  }, [contacts, contactSearch]);
+    let result = contacts;
+    if (companyFilter !== 'all') {
+      result = result.filter((c) => c.company === companyFilter);
+    }
+    if (tagFilter !== 'all') {
+      result = result.filter((c) => c.tags && Array.isArray(c.tags) && c.tags.includes(tagFilter));
+    }
+    if (contactSearch.trim()) {
+      const q = contactSearch.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name?.toLowerCase().includes(q) ||
+          c.nickname?.toLowerCase().includes(q) ||
+          c.phone?.includes(q) ||
+          c.company?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [contacts, contactSearch, companyFilter, tagFilter]);
 
   const previewMessage = useMemo(() => {
     const sampleContact = contacts?.[0] || { name: 'João Silva', nickname: 'Joãozinho', company: 'Acme' };
@@ -529,14 +557,60 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               </Button>
             </div>
             {!campaign && (
-              <div className="relative mt-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={contactSearch}
-                  onChange={(e) => setContactSearch(e.target.value)}
-                  placeholder="Buscar por nome, telefone, empresa..."
-                  className="pl-9 h-9 text-sm"
-                />
+              <div className="space-y-2 mt-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    placeholder="Buscar por nome, telefone, empresa..."
+                    className="pl-9 h-9 text-sm"
+                  />
+                </div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {companies.length > 0 && (
+                    <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                      <SelectTrigger className="h-7 text-[11px] w-auto min-w-[100px] max-w-[160px]">
+                        <Building2 className="w-3 h-3 mr-1 shrink-0" />
+                        <SelectValue placeholder="Empresa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas empresas</SelectItem>
+                        {companies.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {tags.length > 0 && (
+                    <Select value={tagFilter} onValueChange={setTagFilter}>
+                      <SelectTrigger className="h-7 text-[11px] w-auto min-w-[80px] max-w-[140px]">
+                        <Tag className="w-3 h-3 mr-1 shrink-0" />
+                        <SelectValue placeholder="Tag" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas tags</SelectItem>
+                        {tags.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {(companyFilter !== 'all' || tagFilter !== 'all') && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-[11px] text-muted-foreground"
+                      onClick={() => { setCompanyFilter('all'); setTagFilter('all'); }}
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {filteredContacts.length} contatos filtrados • {selectedContacts.length} selecionados
+                </p>
               </div>
             )}
           </CardHeader>
