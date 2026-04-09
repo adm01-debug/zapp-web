@@ -42,6 +42,8 @@ import { useContactsCRUD } from './useContactsCRUD';
 import { ContactsTable, CONTACT_TYPE_ICONS } from './ContactsTable';
 import { ContactCard } from './ContactCard';
 import { ContactListItem } from './ContactListItem';
+import { ContactStatsCards } from './ContactStatsCards';
+import { ContactQuickPeek } from './ContactQuickPeek';
 import { ContactViewSwitcher, type ContactViewMode } from './ContactViewSwitcher';
 
 // Date filter options
