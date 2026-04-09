@@ -15,9 +15,10 @@ interface Objection {
 interface ObjectionDetectorProps {
   contactId: string;
   lastMessages: string[];
+  onSelectSuggestion?: (text: string) => void;
 }
 
-export function ObjectionDetector({ contactId, lastMessages }: ObjectionDetectorProps) {
+export function ObjectionDetector({ contactId, lastMessages, onSelectSuggestion }: ObjectionDetectorProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
   const [loading, setLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
@@ -111,10 +112,16 @@ Se não houver objeções, retorne []`,
               <ShieldQuestion className="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" />
               <p className="text-xs text-warning">{obj.objection}</p>
             </div>
-            <div className="flex items-start gap-1.5 pl-5">
+            <button
+              type="button"
+              onClick={() => onSelectSuggestion?.(obj.counterArgument)}
+              className="flex items-start gap-1.5 pl-5 w-full text-left group cursor-pointer hover:bg-primary/10 rounded-md p-1 -m-1 transition-colors"
+              title="Clique para usar esta resposta"
+            >
               <Lightbulb className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
-              <p className="text-xs text-foreground">{obj.counterArgument}</p>
-            </div>
+              <p className="text-xs text-foreground group-hover:text-primary transition-colors">{obj.counterArgument}</p>
+              <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-primary whitespace-nowrap">Usar ↵</span>
+            </button>
           </motion.div>
         ))}
       </AnimatePresence>
