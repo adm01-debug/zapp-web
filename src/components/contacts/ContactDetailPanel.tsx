@@ -64,6 +64,9 @@ export function ContactDetailPanel({
         exit={{ x: 400, opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         className="fixed right-0 top-0 h-full w-[380px] bg-card border-l border-border shadow-2xl z-50 flex flex-col"
+        role="dialog"
+        aria-label={`Detalhes do contato ${contact.name}`}
+        aria-modal="true"
       >
         {/* Header */}
         <div className="relative p-6 pb-4">
