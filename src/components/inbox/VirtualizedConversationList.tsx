@@ -344,7 +344,7 @@ function ConversationItem({ conversation, isSelected, onSelect, compact = false 
                 <TooltipTrigger asChild>
                   <button
                     onClick={(e) => { e.stopPropagation(); }}
-                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 transition-all"
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-warning hover:bg-warning/10 transition-all"
                   >
                     <Star className="w-3.5 h-3.5" />
                   </button>
