@@ -176,13 +176,9 @@ export function ContactsView() {
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar
             </Button>
-            <Button variant="outline">
-              <Upload className="w-4 h-4 mr-2" />
-              Importar
-            </Button>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
+            <Button variant="outline" onClick={handleExportCSV} disabled={filteredContacts.length === 0}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" />
+              Exportar CSV
             </Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
