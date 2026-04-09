@@ -77,140 +77,60 @@ Analise a conversa de forma profunda e forneça:
 Considere tom, frustração, complexidade, tempo de resposta e qualidade do atendimento.
 Responda em português brasileiro.`;
 
-    log.info("Calling AI for conversation analysis");
-
-    const { response, data } = await callAiWithTracking({
-      functionName: 'ai-conversation-analysis',
-      userId,
-      apiKey: LOVABLE_API_KEY,
-      body: {
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Conversa com ${contactName || 'Cliente'}:\n\n${conversationText}` }
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "analyze_conversation",
-              description: "Perform comprehensive analysis of the customer service conversation",
-              parameters: {
-                type: "object",
-                properties: {
-                  summary: { type: "string", description: "Brief summary (max 4 sentences)" },
-                  status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente", "escalado"] },
-                  keyPoints: { type: "array", items: { type: "string" }, description: "Key points (max 5)" },
-                  nextSteps: { type: "array", items: { type: "string" }, description: "Actionable next steps" },
-                  sentiment: { type: "string", enum: ["positivo", "neutro", "negativo", "critico"] },
-                  sentimentScore: { type: "number", description: "Sentiment 0-100" },
-                  topics: { type: "array", items: { type: "string" }, description: "Main topics (max 5)" },
-                  urgency: { type: "string", enum: ["baixa", "media", "alta", "critica"] },
-                  customerSatisfaction: { type: "number", description: "CSAT 1-5" },
-                  agentPerformance: {
-                    type: "object",
-                    properties: {
-                      empathy: { type: "number", description: "1-10" },
-                      clarity: { type: "number", description: "1-10" },
-                      efficiency: { type: "number", description: "1-10" },
-                      knowledge: { type: "number", description: "1-10" },
-                    },
-                  },
-                  churnRisk: { type: "string", enum: ["low", "medium", "high"] },
-                  salesOpportunity: { type: "string", description: "Sales opportunity description or null" },
-                },
-                required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "urgency", "customerSatisfaction"],
-                additionalProperties: false
-              }
-            }
-          }
-        ],
-        tool_choice: { type: "function", function: { name: "analyze_conversation" } }
-      },
+    log.info("Calling AI for conversation analysis", {
+      contactId,
+      messageCount: messages.length,
     });
-
-    if (!response.ok || !data) {
-      if (response.status === 429) return errorResponse("Rate limit exceeded", 429, req);
-      if (response.status === 402) return errorResponse("Payment required", 402, req);
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const toolCall = (data.choices as Array<{message: {tool_calls?: Array<{function: {arguments: string}}>; content?: string}}>)?.[0]?.message?.tool_calls?.[0];
-
-    let analysisData;
-    if (toolCall?.function?.arguments) {
-      try {
-        analysisData = JSON.parse(toolCall.function.arguments);
-      } catch {
-        log.error("Failed to parse tool_call arguments");
-        const jsonMatch = toolCall.function.arguments.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          analysisData = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("AI returned malformed JSON");
-        }
-      }
-    } else {
-      const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
-      let parsed = null;
-      if (content) {
-        try {
-          const jsonMatch = content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
-        } catch { /* fallback */ }
-      }
-      analysisData = parsed || {
-        summary: content || 'Não foi possível gerar análise.',
-        status: 'pendente',
-        keyPoints: [],
-        sentiment: 'neutro',
-        sentimentScore: 50,
-        customerSatisfaction: 3,
-        topics: [],
-        urgency: 'media'
-      };
-    }
-
-    // Validate and normalize
-    analysisData = {
-      summary: analysisData.summary || 'Resumo não disponível',
-      status: ['resolvido', 'pendente', 'aguardando_cliente', 'aguardando_atendente', 'escalado'].includes(analysisData.status) ? analysisData.status : 'pendente',
-      keyPoints: Array.isArray(analysisData.keyPoints) ? analysisData.keyPoints.slice(0, 5) : [],
-      nextSteps: Array.isArray(analysisData.nextSteps) ? analysisData.nextSteps : [],
-      sentiment: ['positivo', 'neutro', 'negativo', 'critico'].includes(analysisData.sentiment) ? analysisData.sentiment : 'neutro',
-      sentimentScore: typeof analysisData.sentimentScore === 'number' ? Math.max(0, Math.min(100, analysisData.sentimentScore)) : 50,
-      customerSatisfaction: typeof analysisData.customerSatisfaction === 'number' ? Math.max(1, Math.min(5, analysisData.customerSatisfaction)) : 3,
-      topics: Array.isArray(analysisData.topics) ? analysisData.topics.slice(0, 5) : [],
-      urgency: ['baixa', 'media', 'alta', 'critica'].includes(analysisData.urgency) ? analysisData.urgency : 'media',
-      agentPerformance: analysisData.agentPerformance || null,
-      churnRisk: ['low', 'medium', 'high'].includes(analysisData.churnRisk) ? analysisData.churnRisk : 'low',
-      salesOpportunity: analysisData.salesOpportunity || null,
-    };
-
+...
     // Save analysis & update contact
-    if (contactId) {
-      await supabase.from('conversation_analyses').insert({
-        contact_id: contactId,
-        summary: analysisData.summary,
-        sentiment: analysisData.sentiment,
-        sentiment_score: analysisData.sentimentScore,
-        customer_satisfaction: analysisData.customerSatisfaction,
-        key_points: analysisData.keyPoints,
-        next_steps: analysisData.nextSteps,
-        topics: analysisData.topics,
-        urgency: analysisData.urgency,
-        status: analysisData.status,
-        message_count: messages.length,
-      });
+    let analysisId: string | null = null;
 
-      await supabase.from('contacts').update({
-        ai_sentiment: analysisData.sentiment,
-        ai_priority: analysisData.urgency === 'critica' ? 'urgent' : analysisData.urgency,
-      }).eq('id', contactId);
+    if (contactId) {
+      const { data: insertedAnalysis, error: insertError } = await supabase
+        .from('conversation_analyses')
+        .insert({
+          contact_id: contactId,
+          summary: analysisData.summary,
+          sentiment: analysisData.sentiment,
+          sentiment_score: analysisData.sentimentScore,
+          customer_satisfaction: analysisData.customerSatisfaction,
+          key_points: analysisData.keyPoints,
+          next_steps: analysisData.nextSteps,
+          topics: analysisData.topics,
+          urgency: analysisData.urgency,
+          status: analysisData.status,
+          message_count: messages.length,
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        log.warn("Failed to persist conversation analysis", {
+          contactId,
+          error: insertError.message,
+        });
+      } else {
+        analysisId = insertedAnalysis?.id ?? null;
+      }
+
+      const { error: updateError } = await supabase
+        .from('contacts')
+        .update({
+          ai_sentiment: analysisData.sentiment,
+          ai_priority: analysisData.urgency === 'critica' ? 'urgent' : analysisData.urgency,
+        })
+        .eq('id', contactId);
+
+      if (updateError) {
+        log.warn("Failed to update contact AI fields", {
+          contactId,
+          error: updateError.message,
+        });
+      }
     }
 
-    log.done(200);
-    return jsonResponse(analysisData, 200, req);
+    log.done(200, { analysisId, messageCount: messages.length });
+    return jsonResponse({ ...analysisData, analysisId }, 200, req);
 
   } catch (error) {
     log.error("Error analyzing conversation", { error: error instanceof Error ? error.message : String(error) });
