@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { subDays } from 'date-fns';
 import { log } from '@/lib/logger';
 import { 
   Brain, 
@@ -20,11 +21,13 @@ import {
   History,
   TrendingUp,
   TrendingDown,
-  ArrowRight
+  ArrowRight,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,12 +91,21 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [analysisPeriod, setAnalysisPeriod] = useState<string>('7');
 
   const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
-  const audioMessages = messages.filter(m => m.type === 'audio' && m.mediaUrl);
-  const canAnalyze = messages.length >= 5;
+  // Filter messages by selected period
+  const filteredMessages = useMemo(() => {
+    if (analysisPeriod === 'all') return messages;
+    const days = parseInt(analysisPeriod);
+    const cutoff = subDays(new Date(), days);
+    return messages.filter(m => new Date(m.created_at) >= cutoff);
+  }, [messages, analysisPeriod]);
+
+  const audioMessages = filteredMessages.filter(m => m.type === 'audio' && m.mediaUrl);
+  const canAnalyze = filteredMessages.length >= 5;
 
   // Load latest analysis on mount
   useEffect(() => {
@@ -123,14 +135,15 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     try {
       const { data, error } = await supabase.functions.invoke('ai-conversation-analysis', {
         body: { 
-          messages: messages.map(m => ({
+          messages: filteredMessages.map(m => ({
             id: m.id,
             sender: m.sender,
             content: m.content,
             type: m.type || 'text',
             created_at: m.created_at
           })),
-          contactName 
+          contactName,
+          periodDays: analysisPeriod === 'all' ? null : parseInt(analysisPeriod)
         }
       });
 
@@ -150,7 +163,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         topics: data.topics || [],
         urgency: data.urgency || 'media',
         customer_satisfaction: data.customerSatisfaction || 3,
-        message_count: messages.length
+        message_count: filteredMessages.length
       });
 
       // Check for sentiment alert
@@ -258,7 +271,34 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         {/* Content */}
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
-            {/* Action Buttons */}
+            {/* Period Selector */}
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Select value={analysisPeriod} onValueChange={setAnalysisPeriod}>
+                <SelectTrigger className="h-8 text-xs flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">Últimos 3 dias</SelectItem>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="15">Últimos 15 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="all">Toda a conversa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Message count info */}
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">
+                {filteredMessages.length} mensagens no período
+                {messages.length !== filteredMessages.length && (
+                  <span className="text-muted-foreground/60"> (de {messages.length} no total)</span>
+                )}
+              </p>
+            </div>
+
+            {/* Action Button */}
             <div className="flex justify-center">
               <Button
                 variant="outline"
@@ -272,13 +312,13 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Analisar
+                Analisar ({filteredMessages.length} msgs)
               </Button>
             </div>
 
             {!canAnalyze && (
               <p className="text-xs text-muted-foreground text-center py-2">
-                Mínimo de 5 mensagens necessárias ({messages.length}/5)
+                Mínimo de 5 mensagens necessárias ({filteredMessages.length}/5)
               </p>
             )}
 
