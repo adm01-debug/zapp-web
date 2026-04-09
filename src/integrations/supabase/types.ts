@@ -1555,17 +1555,21 @@ export type Database = {
           channel_connection_id: string | null
           channel_type: string | null
           company: string | null
+          consent_status: string | null
           contact_type: string | null
           created_at: string
           email: string | null
           group_category: string | null
           id: string
           job_title: string | null
+          lead_origin: string | null
+          lead_score: number | null
           name: string
           nickname: string | null
           notes: string | null
           phone: string
           queue_id: string | null
+          risk_score: number | null
           surname: string | null
           tags: string[] | null
           updated_at: string
@@ -1579,17 +1583,21 @@ export type Database = {
           channel_connection_id?: string | null
           channel_type?: string | null
           company?: string | null
+          consent_status?: string | null
           contact_type?: string | null
           created_at?: string
           email?: string | null
           group_category?: string | null
           id?: string
           job_title?: string | null
+          lead_origin?: string | null
+          lead_score?: number | null
           name: string
           nickname?: string | null
           notes?: string | null
           phone: string
           queue_id?: string | null
+          risk_score?: number | null
           surname?: string | null
           tags?: string[] | null
           updated_at?: string
@@ -1603,17 +1611,21 @@ export type Database = {
           channel_connection_id?: string | null
           channel_type?: string | null
           company?: string | null
+          consent_status?: string | null
           contact_type?: string | null
           created_at?: string
           email?: string | null
           group_category?: string | null
           id?: string
           job_title?: string | null
+          lead_origin?: string | null
+          lead_score?: number | null
           name?: string
           nickname?: string | null
           notes?: string | null
           phone?: string
           queue_id?: string | null
+          risk_score?: number | null
           surname?: string | null
           tags?: string[] | null
           updated_at?: string
@@ -1751,6 +1763,125 @@ export type Database = {
           },
         ]
       }
+      conversation_closures: {
+        Row: {
+          classification: string | null
+          close_reason: string
+          closed_by: string | null
+          contact_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          outcome: string | null
+        }
+        Insert: {
+          classification?: string | null
+          close_reason: string
+          closed_by?: string | null
+          contact_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          outcome?: string | null
+        }
+        Update: {
+          classification?: string | null
+          close_reason?: string
+          closed_by?: string | null
+          contact_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          outcome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_closures_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_closures_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_closures_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_memory: {
+        Row: {
+          commercial_summary: string | null
+          contact_id: string
+          created_at: string
+          cumulative_summary: string | null
+          facts: Json | null
+          id: string
+          objections_handled: Json | null
+          pending_items: Json | null
+          promises_made: Json | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          commercial_summary?: string | null
+          contact_id: string
+          created_at?: string
+          cumulative_summary?: string | null
+          facts?: Json | null
+          id?: string
+          objections_handled?: Json | null
+          pending_items?: Json | null
+          promises_made?: Json | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          commercial_summary?: string | null
+          contact_id?: string
+          created_at?: string
+          cumulative_summary?: string | null
+          facts?: Json | null
+          id?: string
+          objections_handled?: Json | null
+          pending_items?: Json | null
+          promises_made?: Json | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_memory_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: true
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_memory_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_memory_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_sla: {
         Row: {
           contact_id: string | null
@@ -1801,6 +1932,136 @@ export type Database = {
             columns: ["sla_configuration_id"]
             isOneToOne: false
             referencedRelation: "sla_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_snoozes: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          snooze_until: string
+          snoozed_by: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          snooze_until: string
+          snoozed_by: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          snooze_until?: string
+          snoozed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_snoozes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_snoozes_snoozed_by_fkey"
+            columns: ["snoozed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_snoozes_snoozed_by_fkey"
+            columns: ["snoozed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_tasks: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2279,6 +2540,35 @@ export type Database = {
           version_number?: number
         }
         Relationships: []
+      }
+      favorite_contacts: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       followup_executions: {
         Row: {
@@ -3145,6 +3435,73 @@ export type Database = {
           },
         ]
       }
+      number_reputation: {
+        Row: {
+          complaints_count: number
+          created_at: string
+          daily_limit: number | null
+          failures_today: number
+          health_score: number
+          id: string
+          last_reset_at: string | null
+          messages_sent_today: number
+          updated_at: string
+          warmup_day: number | null
+          warmup_status: string
+          whatsapp_connection_id: string
+        }
+        Insert: {
+          complaints_count?: number
+          created_at?: string
+          daily_limit?: number | null
+          failures_today?: number
+          health_score?: number
+          id?: string
+          last_reset_at?: string | null
+          messages_sent_today?: number
+          updated_at?: string
+          warmup_day?: number | null
+          warmup_status?: string
+          whatsapp_connection_id: string
+        }
+        Update: {
+          complaints_count?: number
+          created_at?: string
+          daily_limit?: number | null
+          failures_today?: number
+          health_score?: number
+          id?: string
+          last_reset_at?: string | null
+          messages_sent_today?: number
+          updated_at?: string
+          warmup_day?: number | null
+          warmup_status?: string
+          whatsapp_connection_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "number_reputation_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "number_reputation_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_connections_agent"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "number_reputation_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       passkey_credentials: {
         Row: {
           backed_up: boolean | null
@@ -3398,6 +3755,103 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      pinned_conversations: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          pinned_by: string
+          position: number
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          pinned_by: string
+          position?: number
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          pinned_by?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pinned_conversations_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pinned_conversations_pinned_by_fkey"
+            columns: ["pinned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pinned_conversations_pinned_by_fkey"
+            columns: ["pinned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playbooks: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          steps: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          steps?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          steps?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbooks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playbooks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -3869,6 +4323,61 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      reminders: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_dismissed: boolean
+          profile_id: string
+          remind_at: string
+          title: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_dismissed?: boolean
+          profile_id: string
+          remind_at: string
+          title: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_dismissed?: boolean
+          profile_id?: string
+          remind_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
