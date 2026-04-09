@@ -1,4 +1,4 @@
-import { LayoutGrid, List, Table2, Settings2, MapPin, Kanban } from 'lucide-react';
+import { LayoutGrid, List, Table2, Settings2, MapPin, Kanban, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-export type ContactViewMode = 'grid' | 'list' | 'table' | 'map' | 'kanban';
+export type ContactViewMode = 'grid' | 'list' | 'table' | 'map' | 'kanban' | 'analytics';
 
 interface ContactViewSwitcherProps {
   viewMode: ContactViewMode;
@@ -21,6 +21,7 @@ const VIEW_MODES = [
   { value: 'table' as const, label: 'Tabela', icon: Table2 },
   { value: 'kanban' as const, label: 'Pipeline', icon: Kanban },
   { value: 'map' as const, label: 'Mapa', icon: MapPin },
+  { value: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
 ];
 
 const GRID_COLUMN_OPTIONS = [3, 4, 5, 6];
