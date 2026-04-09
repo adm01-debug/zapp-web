@@ -81,6 +81,24 @@ export const ContactForm = React.memo(function ContactForm({
 }: ContactFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FieldError>({});
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const dupCheckTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Check for duplicate phone
+  const checkDuplicate = useCallback(async (phone: string) => {
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length < 10) { setDuplicateWarning(null); return; }
+    const { data } = await supabase
+      .from('contacts')
+      .select('name, phone')
+      .or(`phone.ilike.%${cleaned.slice(-8)}%`)
+      .limit(1);
+    if (data && data.length > 0) {
+      setDuplicateWarning(`Possível duplicata: "${data[0].name}" (${data[0].phone})`);
+    } else {
+      setDuplicateWarning(null);
+    }
+  }, []);
 
   const validate = useCallback((field: string, value: string): string | null => {
     switch (field) {
