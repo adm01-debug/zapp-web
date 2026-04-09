@@ -36,7 +36,7 @@ const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
 
 export { CONTACT_TYPE_ICONS };
 
-type SortField = 'name' | 'type' | 'phone' | 'email' | 'company' | 'created_at';
+type SortField = 'name' | 'type' | 'phone' | 'email' | 'company' | 'job_title' | 'created_at';
 type SortDir = 'asc' | 'desc';
 
 interface ContactsTableProps {
@@ -97,6 +97,7 @@ export function ContactsTable({
         case 'phone': valA = a.phone; valB = b.phone; break;
         case 'email': valA = a.email || ''; valB = b.email || ''; break;
         case 'company': valA = a.company || ''; valB = b.company || ''; break;
+        case 'job_title': valA = a.job_title || ''; valB = b.job_title || ''; break;
         case 'created_at': valA = a.created_at; valB = b.created_at; break;
       }
       const cmp = valA.localeCompare(valB);
@@ -120,7 +121,8 @@ export function ContactsTable({
             <SortableHeader label="Tipo" field="type" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <SortableHeader label="Telefone" field="phone" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <SortableHeader label="Email" field="email" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
-            <SortableHeader label="Empresa/Cargo" field="company" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+            <SortableHeader label="Empresa" field="company" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+            <SortableHeader label="Cargo" field="job_title" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Etiquetas</th>
             <SortableHeader label="Criado em" field="created_at" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
             <th className="text-right p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
@@ -195,24 +197,23 @@ export function ContactsTable({
                   ) : <span className="text-muted-foreground/30">—</span>}
                 </td>
                 <td className="p-3">
-                  {(contact.company || contact.job_title) ? (
-                    <div className="space-y-0.5">
-                      {contact.company && (
-                        <div className="flex items-center gap-1.5 text-xs font-medium">
-                          <CompanyLogo
-                            logoUrl={crmData?.logo_url}
-                            companyName={crmData?.company_name}
-                            fallbackCompanyName={contact.company}
-                            size="xs"
-                          />
-                          <span className="truncate max-w-[140px]">{crmData?.company_name || contact.company}</span>
-                        </div>
-                      )}
-                      {contact.job_title && (
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Briefcase className="w-3 h-3" />{contact.job_title}
-                        </div>
-                      )}
+                  {contact.company ? (
+                    <div className="flex items-center gap-1.5 text-xs font-medium">
+                      <CompanyLogo
+                        logoUrl={crmData?.logo_url}
+                        companyName={crmData?.company_name}
+                        fallbackCompanyName={contact.company}
+                        size="xs"
+                      />
+                      <span className="truncate max-w-[140px]">{crmData?.company_name || contact.company}</span>
+                    </div>
+                  ) : <span className="text-muted-foreground/30">—</span>}
+                </td>
+                <td className="p-3">
+                  {contact.job_title ? (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Briefcase className="w-3 h-3 shrink-0" />
+                      <span className="truncate max-w-[140px]">{contact.job_title}</span>
                     </div>
                   ) : <span className="text-muted-foreground/30">—</span>}
                 </td>
