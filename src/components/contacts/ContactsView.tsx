@@ -353,6 +353,8 @@ export function ContactsView() {
             ))}
           </div>
         )
+      ) : viewMode === 'kanban' ? (
+        <ContactKanbanView contacts={filteredContacts} onContactClick={handleContactClick} />
       ) : viewMode === 'map' ? (
         <ContactMapView contacts={filteredContacts} onContactClick={handleContactClick} />
       ) : (
