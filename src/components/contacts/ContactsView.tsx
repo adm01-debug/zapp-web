@@ -29,6 +29,7 @@ import {
   Building, Briefcase, Users, UserCheck, Truck, Wrench, Star,
   Handshake, MoreHorizontal, X, CalendarDays, SortAsc, CheckCircle2,
   Copy, ChevronLeft, ChevronRight, Sparkles, Trash2, Loader2, FileSpreadsheet,
+  Merge,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
