@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExternalContact360Batch } from '@/hooks/useExternalContact360Batch';
-import { EmptyState } from '@/components/ui/empty-state';
+import { ContactEmptyState } from './ContactEmptyState';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -306,14 +306,14 @@ export function ContactsView() {
         <ContactsSkeleton viewMode={viewMode} gridColumns={gridColumns} />
       ) : filteredContacts.length === 0 ? (
         <Card><CardContent className="p-0">
-          <EmptyState
-            icon={Phone} title="Nenhum contato encontrado"
-            description={search ? "Tente ajustar seus filtros ou termo de busca" : "Adicione seu primeiro contato"}
-            illustration="contacts"
-            actionLabel={!search ? "Novo Contato" : undefined}
-            onAction={!search ? () => setIsAddDialogOpen(true) : undefined}
-            secondaryActionLabel={search ? "Limpar Busca" : undefined}
-            onSecondaryAction={search ? clearSearch : undefined}
+          <ContactEmptyState
+            type={search ? 'no-results' : activeFiltersCount > 0 ? 'filtered-empty' : 'no-contacts'}
+            searchQuery={search}
+            activeFilters={activeFiltersCount}
+            onAddContact={() => setIsAddDialogOpen(true)}
+            onClearSearch={search ? clearSearch : undefined}
+            onClearFilters={activeFiltersCount > 0 ? clearFilters : undefined}
+            onImport={() => setIsImportOpen(true)}
           />
         </CardContent></Card>
       ) : viewMode === 'grid' ? (
