@@ -326,6 +326,21 @@ export function ContactsView() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Import Dialog */}
+      <ContactImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onImportComplete={refetch}
+      />
+
+      {/* Merge Dialog */}
+      <ContactMergeDialog
+        open={isMergeOpen}
+        onOpenChange={setIsMergeOpen}
+        contacts={filteredContacts.filter(c => selectedIds.includes(c.id))}
+        onMergeComplete={() => { setSelectedIds([]); refetch(); }}
+      />
+
       {/* Stats Cards */}
       <ContactStatsCards
         totalCount={totalCount}
