@@ -561,6 +561,7 @@ export function ContactsView() {
               onEdit={openEditDialog}
               onDelete={setDeleteTarget}
               getCRMData={getCRMData}
+              searchQuery={search}
             />
           </CardContent>
         </Card>
