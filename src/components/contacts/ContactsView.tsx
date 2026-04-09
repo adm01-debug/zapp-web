@@ -262,6 +262,7 @@ export function ContactsView() {
         onMerge={() => setIsMergeOpen(true)}
         viewMode={viewMode} setViewMode={setViewMode}
         gridColumns={gridColumns} setGridColumns={setGridColumns}
+        totalCount={totalCount}
       />
 
       {/* Results Summary */}
