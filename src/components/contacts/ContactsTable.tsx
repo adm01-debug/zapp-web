@@ -15,9 +15,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
+import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
 
 const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
   cliente: <Users className="w-4 h-4" />,
@@ -59,107 +59,136 @@ export function ContactsTable({
   contacts, selectedIds, onSelectIds, onOpenChat, onEdit, onDelete,
 }: ContactsTableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border/40">
+    <div className="overflow-x-auto rounded-xl border border-border/30">
       <table className="w-full" role="grid" aria-label="Lista de contatos">
         <thead>
-          <tr className="border-b border-border/30 bg-muted/30">
-            <th className="p-4 w-10">
+          <tr className="border-b border-border/20 bg-muted/20">
+            <th className="p-3 w-10">
               <Checkbox
                 checked={selectedIds.length === contacts.length && contacts.length > 0}
                 onCheckedChange={(checked) => onSelectIds(checked ? contacts.map(c => c.id) : [])}
                 aria-label="Selecionar todos"
               />
             </th>
-            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contato</th>
-            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tipo</th>
-            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Telefone</th>
-            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</th>
-            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Empresa/Cargo</th>
-            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Etiquetas</th>
-            <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Criado em</th>
-            <th className="text-right p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
+            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contato</th>
+            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Tipo</th>
+            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Telefone</th>
+            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Email</th>
+            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Empresa/Cargo</th>
+            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Etiquetas</th>
+            <th className="text-left p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Criado em</th>
+            <th className="text-right p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
           </tr>
         </thead>
         <tbody>
           {contacts.map((contact, index) => {
-            const typeInfo = getContactTypeInfo(contact.contact_type || 'cliente');
+            const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
+            const avatarColors = getAvatarColor(contact.name);
             return (
               <motion.tr
                 key={contact.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.02 }}
+                transition={{ delay: index * 0.015 }}
                 className={cn(
-                  "border-b border-border/10 last:border-0 hover:bg-muted/40 transition-all duration-150 cursor-pointer group",
+                  "border-b border-border/10 last:border-0 hover:bg-muted/30 transition-all duration-150 cursor-pointer group",
                   selectedIds.includes(contact.id) && "bg-primary/5 border-l-2 border-l-primary"
                 )}
                 onClick={() => onOpenChat(contact.id)}
               >
-                <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                <td className="p-3" onClick={(e) => e.stopPropagation()}>
                   <Checkbox
                     checked={selectedIds.includes(contact.id)}
                     onCheckedChange={(checked) =>
                       onSelectIds(checked ? [...selectedIds, contact.id] : selectedIds.filter(id => id !== contact.id))
                     }
-                    aria-label={`Selecionar ${contact.name}`}
                   />
                 </td>
-                <td className="p-4">
+                <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={contact.avatar_url || undefined} />
-                      <AvatarFallback className={cn('font-semibold', getAvatarColor(contact.name).bg, getAvatarColor(contact.name).text)}>
-                        {getInitials(contact.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <span className="font-medium block">{contact.name} {contact.surname || ''}</span>
-                      {contact.nickname && <span className="text-xs text-muted-foreground">({contact.nickname})</span>}
+                    <div className="relative">
+                      <Avatar className="w-9 h-9">
+                        <AvatarImage src={contact.avatar_url || undefined} />
+                        <AvatarFallback className={cn('font-semibold text-xs', avatarColors.bg, avatarColors.text)}>
+                          {getInitials(contact.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className={cn(
+                        "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background",
+                        typeConfig.dotBg
+                      )} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-medium text-sm block truncate">{contact.name} {contact.surname || ''}</span>
+                      {contact.nickname && <span className="text-[11px] text-muted-foreground">({contact.nickname})</span>}
                     </div>
                   </div>
                 </td>
-                <td className="p-4">
-                  <Badge variant="outline" className={cn("flex items-center gap-1.5 w-fit", typeInfo.color.replace('bg-', 'border-'), typeInfo.color.replace('bg-', 'text-').replace('-500', '-600'))}>
-                    {CONTACT_TYPE_ICONS[typeInfo.value]}
-                    {typeInfo.label}
+                <td className="p-3">
+                  <Badge
+                    variant="outline"
+                    className={cn("text-[10px] h-5 px-1.5 font-medium gap-1", typeConfig.badgeClass)}
+                  >
+                    {typeConfig.iconNode}
+                    {typeConfig.label}
                   </Badge>
                 </td>
-                <td className="p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground"><Phone className="w-4 h-4" />{contact.phone}</div>
-                </td>
-                <td className="p-4">
-                  {contact.email ? (
-                    <div className="flex items-center gap-2 text-muted-foreground"><Mail className="w-4 h-4" />{contact.email}</div>
-                  ) : <span className="text-muted-foreground/50">-</span>}
-                </td>
-                <td className="p-4">
-                  {(contact.company || contact.job_title) ? (
-                    <div className="space-y-1">
-                      {contact.company && <div className="flex items-center gap-1 text-sm"><Building className="w-3 h-3" />{contact.company}</div>}
-                      {contact.job_title && <div className="flex items-center gap-1 text-xs text-muted-foreground"><Briefcase className="w-3 h-3" />{contact.job_title}</div>}
-                    </div>
-                  ) : <span className="text-muted-foreground/50">-</span>}
-                </td>
-                <td className="p-4">
-                  <div className="flex flex-wrap gap-1">
-                    {contact.tags?.map(tag => <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>)}
+                <td className="p-3">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Phone className="w-3.5 h-3.5 shrink-0" />
+                    <span className="font-mono text-[11px]">{contact.phone}</span>
                   </div>
                 </td>
-                <td className="p-4 text-muted-foreground">
-                  <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}</div>
+                <td className="p-3">
+                  {contact.email ? (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Mail className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate max-w-[160px] text-[11px]">{contact.email}</span>
+                    </div>
+                  ) : <span className="text-muted-foreground/30">—</span>}
                 </td>
-                <td className="p-4 text-right">
-                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150" onClick={(e) => e.stopPropagation()}>
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                      <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-primary/10 hover:text-primary" onClick={() => onOpenChat(contact.id)} title="Iniciar conversa">
-                        <MessageSquare className="w-4 h-4" />
-                      </Button>
-                    </motion.div>
+                <td className="p-3">
+                  {(contact.company || contact.job_title) ? (
+                    <div className="space-y-0.5">
+                      {contact.company && (
+                        <div className="flex items-center gap-1 text-xs font-medium">
+                          <Building className="w-3 h-3 text-primary" />{contact.company}
+                        </div>
+                      )}
+                      {contact.job_title && (
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Briefcase className="w-3 h-3" />{contact.job_title}
+                        </div>
+                      )}
+                    </div>
+                  ) : <span className="text-muted-foreground/30">—</span>}
+                </td>
+                <td className="p-3">
+                  <div className="flex flex-wrap gap-1">
+                    {contact.tags?.slice(0, 2).map(tag => (
+                      <Badge key={tag} variant="secondary" className="text-[10px] h-5 px-1.5">{tag}</Badge>
+                    ))}
+                    {(contact.tags?.length || 0) > 2 && (
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">+{(contact.tags?.length || 0) - 2}</Badge>
+                    )}
+                  </div>
+                </td>
+                <td className="p-3 text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {format(new Date(contact.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                  </div>
+                </td>
+                <td className="p-3 text-right">
+                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-primary/10 hover:text-primary" onClick={() => onOpenChat(contact.id)} title="Conversar">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                          <Button variant="ghost" size="icon" className="w-8 h-8"><MoreVertical className="w-4 h-4" /></Button>
-                        </motion.div>
+                        <Button variant="ghost" size="icon" className="w-7 h-7">
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => onEdit(contact)}><Edit className="w-4 h-4 mr-2" />Editar</DropdownMenuItem>
