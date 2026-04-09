@@ -42,8 +42,6 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
       return data;
     },
   });
-    },
-  });
 
   // Get personal stickers for this user
   const { data: stickers = [], isLoading } = useQuery({
