@@ -5,7 +5,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image } from 'lucide-react';
+import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image, ListTodo, Bell, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -19,6 +19,10 @@ import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
 import { ContactIntelligencePanel } from './contact-details/ContactIntelligencePanel';
 import { WhatsAppStatusSection } from './contact-details/WhatsAppStatusSection';
+import { ConversationTasksPanel } from './ConversationTasksPanel';
+import { RemindersPanel } from './RemindersPanel';
+import { ConversationMemoryPanel } from './ConversationMemoryPanel';
+import { useConversationActions } from '@/hooks/useConversationActions';
 
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
