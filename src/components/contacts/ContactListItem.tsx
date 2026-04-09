@@ -46,7 +46,7 @@ interface ContactListItemProps {
 }
 
 export function ContactListItem({
-  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index,
+  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName,
 }: ContactListItemProps) {
   const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
   const avatarColors = getAvatarColor(contact.name);
@@ -102,8 +102,16 @@ export function ContactListItem({
         <div className="flex items-center gap-3 mt-0.5">
           {contact.company && (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Building className="w-3 h-3" />
-              {contact.company}
+              {companyLogo ? (
+                <img
+                  src={companyLogo}
+                  alt={companyName || contact.company}
+                  className="w-4 h-4 rounded object-contain bg-background border border-border/20"
+                />
+              ) : (
+                <Building className="w-3 h-3" />
+              )}
+              {companyName || contact.company}
             </span>
           )}
           {contact.job_title && (

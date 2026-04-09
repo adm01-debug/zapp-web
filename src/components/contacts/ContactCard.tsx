@@ -47,7 +47,7 @@ interface ContactCardProps {
 }
 
 export function ContactCard({
-  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index,
+  contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName,
 }: ContactCardProps) {
   const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
   const avatarColors = getAvatarColor(contact.name);
@@ -150,8 +150,16 @@ export function ContactCard({
           <div className="bg-muted/40 rounded-xl p-2.5 space-y-1">
             {contact.company && (
               <div className="flex items-center gap-2 text-xs font-medium text-foreground">
-                <Building className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span className="truncate">{contact.company}</span>
+                {companyLogo ? (
+                  <img
+                    src={companyLogo}
+                    alt={companyName || contact.company}
+                    className="w-5 h-5 rounded object-contain bg-background border border-border/20 shrink-0"
+                  />
+                ) : (
+                  <Building className="w-3.5 h-3.5 text-primary shrink-0" />
+                )}
+                <span className="truncate">{companyName || contact.company}</span>
               </div>
             )}
             {contact.job_title && (
