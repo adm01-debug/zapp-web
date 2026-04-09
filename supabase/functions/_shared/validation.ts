@@ -55,19 +55,32 @@ export class Logger {
   }
 }
 
-const ALLOWED_ORIGINS = [
+const EXACT_ALLOWED_ORIGINS = new Set([
   'https://pronto-talk-suite.lovable.app',
   'https://id-preview--1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovable.app',
+  'https://1d419c34-35ac-4a71-96a5-146ca1b3ebf2.lovableproject.com',
+]);
+
+const LOCAL_ORIGIN_PATTERNS = [
+  /^http:\/\/localhost(?::\d{1,5})?$/,
+  /^http:\/\/127\.0\.0\.1(?::\d{1,5})?$/,
 ];
+
+function isAllowedOrigin(origin: string): boolean {
+  return EXACT_ALLOWED_ORIGINS.has(origin) || LOCAL_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin));
+}
 
 /** Build CORS headers with origin validation */
 export function getCorsHeaders(req?: Request): Record<string, string> {
   const origin = req?.headers.get('origin') || '';
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowedOrigin = isAllowedOrigin(origin) ? origin : 'https://pronto-talk-suite.lovable.app';
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers':
       'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
   };
 }
 
