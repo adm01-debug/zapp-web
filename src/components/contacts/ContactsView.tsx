@@ -72,39 +72,6 @@ const GRID_COLUMNS_CLASS: Record<number, string> = {
   5: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
   6: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
 };
-  // CSV Export
-  const handleExportCSV = useCallback(() => {
-    const escapeCSV = (val: string) => {
-      if (val.includes(',') || val.includes('"') || val.includes('\n')) {
-        return `"${val.replace(/"/g, '""')}"`;
-      }
-      return val;
-    };
-
-    const headers = ['Nome', 'Sobrenome', 'Apelido', 'Telefone', 'Email', 'Empresa', 'Cargo', 'Tipo', 'Tags', 'Criado em'];
-    const rows = filteredContacts.map(c => [
-      escapeCSV(c.name),
-      escapeCSV(c.surname || ''),
-      escapeCSV(c.nickname || ''),
-      escapeCSV(c.phone),
-      escapeCSV(c.email || ''),
-      escapeCSV(c.company || ''),
-      escapeCSV(c.job_title || ''),
-      escapeCSV(c.contact_type || 'cliente'),
-      escapeCSV((c.tags || []).join('; ')),
-      escapeCSV(format(new Date(c.created_at), 'dd/MM/yyyy', { locale: ptBR })),
-    ].join(','));
-
-    const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `contatos_${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`${filteredContacts.length} contatos exportados!`);
-  }, [filteredContacts]);
 
 
 export function ContactsView() {
