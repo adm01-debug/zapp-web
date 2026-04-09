@@ -261,8 +261,11 @@ export function AudioMessagePlayer({
     setShowTranscription(true);
 
     try {
+      // Always resolve a fresh URL to avoid expired signed URLs
+      const freshUrl = await resolveAudioUrl(audioUrl);
+      
       const { data, error } = await supabase.functions.invoke('ai-transcribe-audio', {
-        body: { audioUrl, messageId },
+        body: { audioUrl: freshUrl, messageId },
       });
 
       if (error) throw error;
