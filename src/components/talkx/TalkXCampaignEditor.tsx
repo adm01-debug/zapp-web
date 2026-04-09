@@ -159,6 +159,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
         media_url: hasMedia ? mediaUrl || null : null,
         media_type: hasMedia ? mediaType || null : null,
         scheduled_at: isScheduled && scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        status: isScheduled && scheduledAt ? 'scheduled' : undefined,
       };
 
       if (campaign) {
@@ -503,7 +504,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
                   className="mt-1.5"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  A campanha será salva como rascunho e deverá ser iniciada manualmente na data programada
+                  A campanha será iniciada automaticamente na data e hora programada
                 </p>
               </CardContent>
             )}
