@@ -85,6 +85,8 @@ export const ContactForm = React.memo(function ContactForm({
   const { data: externalCargos = [] } = useExternalCargos();
   const { data: externalEmpresas = [] } = useExternalEmpresas();
   const [empresaSearch, setEmpresaSearch] = useState('');
+  const [showEmpresaDropdown, setShowEmpresaDropdown] = useState(false);
+  const empresaBlurTimer = useRef<ReturnType<typeof setTimeout>>();
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FieldError>({});
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
