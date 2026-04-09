@@ -356,6 +356,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary}
             onCloseConversation={() => setShowCloseDialog(true)}
             lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
+            allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
             onSelectSuggestion={(text) => setInputValue(text)} />
         )}
 
