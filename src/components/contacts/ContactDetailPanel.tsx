@@ -180,6 +180,12 @@ export function ContactDetailPanel({
                 </div>
               </div>
             </div>
+
+            {/* Timeline */}
+            <ContactActivityTimeline
+              contactId={contact.id}
+              contactCreatedAt={contact.created_at}
+            />
           </div>
         </ScrollArea>
       </motion.div>
