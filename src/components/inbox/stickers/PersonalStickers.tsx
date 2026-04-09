@@ -100,7 +100,7 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
 
         const stickerName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
 
-        const { error: insertError } = await (supabase
+        const { error: insertError } = await supabase
           .from('stickers')
           .insert({
             name: stickerName,
@@ -108,7 +108,7 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
             category: 'pessoal',
             owner_id: profile.id,
             uploaded_by: profile.id,
-          }) as any);
+          });
 
         if (insertError) {
           toast.error(`Erro ao salvar ${file.name}`);

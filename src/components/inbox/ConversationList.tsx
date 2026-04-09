@@ -83,12 +83,15 @@ export function ConversationList({
     });
   }, [conversations, search, filter]);
 
-  const counts = useMemo(() => ({
-    all: conversations.length,
-    open: conversations.filter((c) => c.status === 'open').length,
-    pending: conversations.filter((c) => c.status === 'pending').length,
-    waiting: conversations.filter((c) => c.status === 'waiting').length,
-  }), [conversations]);
+  const counts = useMemo(() => {
+    const c = { all: conversations.length, open: 0, pending: 0, waiting: 0 };
+    for (const conv of conversations) {
+      if (conv.status === 'open') c.open++;
+      else if (conv.status === 'pending') c.pending++;
+      else if (conv.status === 'waiting') c.waiting++;
+    }
+    return c;
+  }, [conversations]);
 
   return (
     <div className="flex flex-col h-full bg-sidebar border-r border-border/30">

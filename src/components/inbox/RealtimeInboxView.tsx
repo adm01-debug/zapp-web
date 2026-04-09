@@ -10,6 +10,7 @@ import { useRealtimeMessages, ConversationWithMessages, ConversationContact } fr
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
+import { SectionErrorBoundary } from '@/components/ui/section-error-boundary';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { InboxFilters } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
@@ -492,35 +493,39 @@ export function RealtimeInboxView() {
                 {selectedContactId && selectedMessagesLoading ? (
                   <ChatFallback />
                 ) : (
-                  <ChatPanel
-                    key={legacyConversation.id}
-                    conversation={legacyConversation}
-                    messages={legacyMessages}
-                    onSendMessage={handleSendMessage}
-                    onSendAudio={handleSendAudio}
-                    showDetails={isMobile ? false : showDetails}
-                    onToggleDetails={() => setShowDetails(!showDetails)}
-                    onBack={isMobile ? () => {
-                      if (legacyConversation) {
-                        setPipContact({
-                          name: legacyConversation.contact.name,
-                          avatar: legacyConversation.contact.avatar,
-                          lastMessage: legacyConversation.lastMessage?.content,
-                          contactId: legacyConversation.id,
-                        });
-                      }
-                      setSelectedContactId(null);
-                    } : undefined}
-                  />
+                  <SectionErrorBoundary sectionName="Chat" className="h-full">
+                    <ChatPanel
+                      key={legacyConversation.id}
+                      conversation={legacyConversation}
+                      messages={legacyMessages}
+                      onSendMessage={handleSendMessage}
+                      onSendAudio={handleSendAudio}
+                      showDetails={isMobile ? false : showDetails}
+                      onToggleDetails={() => setShowDetails(!showDetails)}
+                      onBack={isMobile ? () => {
+                        if (legacyConversation) {
+                          setPipContact({
+                            name: legacyConversation.contact.name,
+                            avatar: legacyConversation.contact.avatar,
+                            lastMessage: legacyConversation.lastMessage?.content,
+                            contactId: legacyConversation.id,
+                          });
+                        }
+                        setSelectedContactId(null);
+                      } : undefined}
+                    />
+                  </SectionErrorBoundary>
                 )}
               </div>
               {showDetails && !isMobile && (
                 <div className="h-full shrink-0 overflow-hidden">
-                  <ContactDetails
-                    key={`details-${legacyConversation.id}`}
-                    conversation={legacyConversation}
-                    onClose={() => setShowDetails(false)}
-                  />
+                  <SectionErrorBoundary sectionName="Detalhes do Contato">
+                    <ContactDetails
+                      key={`details-${legacyConversation.id}`}
+                      conversation={legacyConversation}
+                      onClose={() => setShowDetails(false)}
+                    />
+                  </SectionErrorBoundary>
                 </div>
               )}
             </>

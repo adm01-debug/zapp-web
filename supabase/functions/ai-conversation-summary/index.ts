@@ -122,11 +122,46 @@ Foque em:
 
     let analysisData;
     if (toolCall?.function?.arguments) {
-      analysisData = JSON.parse(toolCall.function.arguments);
+      try {
+        analysisData = JSON.parse(toolCall.function.arguments);
+      } catch (parseErr) {
+        log.error("Failed to parse tool_call arguments", { raw: toolCall.function.arguments });
+        // Attempt to extract JSON from malformed response
+        const jsonMatch = toolCall.function.arguments.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysisData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("AI returned malformed JSON in tool_call");
+        }
+      }
     } else {
       const content = (data.choices as Array<{message: {content?: string}}>)?.[0]?.message?.content;
-      analysisData = { summary: content, status: 'pendente', keyPoints: [], sentiment: 'neutro', sentimentScore: 50, customerSatisfaction: 3, topics: [], urgency: 'normal' };
+      // Try to extract structured data from content if possible
+      let parsed = null;
+      if (content) {
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+        } catch { /* fallback below */ }
+      }
+      analysisData = parsed || { summary: content || 'Não foi possível gerar análise.', status: 'pendente', keyPoints: [], sentiment: 'neutro', sentimentScore: 50, customerSatisfaction: 3, topics: [], urgency: 'normal' };
     }
+
+    // Validate required fields with defaults
+    analysisData = {
+      summary: analysisData.summary || 'Resumo não disponível',
+      status: ['resolvido', 'pendente', 'aguardando_cliente', 'aguardando_atendente', 'escalado'].includes(analysisData.status) ? analysisData.status : 'pendente',
+      keyPoints: Array.isArray(analysisData.keyPoints) ? analysisData.keyPoints : [],
+      nextSteps: Array.isArray(analysisData.nextSteps) ? analysisData.nextSteps : [],
+      sentiment: ['positivo', 'neutro', 'negativo', 'critico'].includes(analysisData.sentiment) ? analysisData.sentiment : 'neutro',
+      sentimentScore: typeof analysisData.sentimentScore === 'number' ? Math.max(0, Math.min(100, analysisData.sentimentScore)) : 50,
+      customerSatisfaction: typeof analysisData.customerSatisfaction === 'number' ? Math.max(1, Math.min(5, analysisData.customerSatisfaction)) : 3,
+      agentPerformance: analysisData.agentPerformance || null,
+      churnRisk: analysisData.churnRisk || 'low',
+      salesOpportunity: analysisData.salesOpportunity || null,
+      topics: Array.isArray(analysisData.topics) ? analysisData.topics : [],
+      urgency: ['low', 'normal', 'high', 'critical'].includes(analysisData.urgency) ? analysisData.urgency : 'normal',
+    };
 
     // Save analysis to database
     if (contactId) {

@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense, useReducer, useCallback } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { toast as sonnerToast } from 'sonner';
 import { undoToast } from '@/lib/undoToast';
+import { withRetry } from '@/lib/retry';
 import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
 import { FileUploaderRef } from './FileUploader';
 import { SlashCommand } from './SlashCommands';
@@ -54,38 +55,64 @@ interface ChatPanelProps {
   hideHeader?: boolean;
 }
 
+// Dialog state reducer to minimize re-renders from many boolean flags
+type DialogKey = 'quickReplies' | 'slashCommands' | 'transferDialog' | 'scheduleDialog' | 
+  'callDialog' | 'globalSearch' | 'chatSearch' | 'interactiveBuilder' | 'forwardDialog' | 
+  'locationPicker' | 'aiAssistant' | 'catalogDirect' | 'whisper' | 'templatesWithVars' | 
+  'realtimeTranscription' | 'closeDialog';
+
+type DialogState = Record<DialogKey, boolean>;
+
+type DialogAction = 
+  | { type: 'TOGGLE'; key: DialogKey }
+  | { type: 'OPEN'; key: DialogKey }
+  | { type: 'CLOSE'; key: DialogKey }
+  | { type: 'RESET'; keys: DialogKey[] };
+
+const initialDialogState: DialogState = {
+  quickReplies: false, slashCommands: false, transferDialog: false, scheduleDialog: false,
+  callDialog: false, globalSearch: false, chatSearch: false, interactiveBuilder: false,
+  forwardDialog: false, locationPicker: false, aiAssistant: false, catalogDirect: false,
+  whisper: false, templatesWithVars: false, realtimeTranscription: false, closeDialog: false,
+};
+
+function dialogReducer(state: DialogState, action: DialogAction): DialogState {
+  switch (action.type) {
+    case 'TOGGLE': return { ...state, [action.key]: !state[action.key] };
+    case 'OPEN': return state[action.key] ? state : { ...state, [action.key]: true };
+    case 'CLOSE': return state[action.key] ? { ...state, [action.key]: false } : state;
+    case 'RESET': {
+      const next = { ...state };
+      let changed = false;
+      for (const k of action.keys) { if (next[k]) { next[k] = false; changed = true; } }
+      return changed ? next : state;
+    }
+    default: return state;
+  }
+}
+
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack, hideHeader = false }: ChatPanelProps) {
-  // ── State ──
+  // ── Dialog State (consolidated) ──
+  const [dialogs, dispatch] = useReducer(dialogReducer, initialDialogState);
+  const openDialog = useCallback((key: DialogKey) => dispatch({ type: 'OPEN', key }), []);
+  const closeDialog = useCallback((key: DialogKey) => dispatch({ type: 'CLOSE', key }), []);
+  const toggleDialog = useCallback((key: DialogKey) => dispatch({ type: 'TOGGLE', key }), []);
+
+  // ── Core State ──
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(false);
-  const [showSlashCommands, setShowSlashCommands] = useState(false);
-  const [showTransferDialog, setShowTransferDialog] = useState(false);
-  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
-  const [showCallDialog, setShowCallDialog] = useState(false);
   const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
-  const [showChatSearch, setShowChatSearch] = useState(false);
   const [highlightedMessageIds, setHighlightedMessageIds] = useState<Set<string>>(new Set());
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
-  const [showForwardDialog, setShowForwardDialog] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [showCatalogDirect, setShowCatalogDirect] = useState(false);
-  const [showWhisper, setShowWhisper] = useState(false);
-  const [showTemplatesWithVars, setShowTemplatesWithVars] = useState(false);
-  const [showRealtimeTranscription, setShowRealtimeTranscription] = useState(false);
   const [summaryData, setSummaryData] = useState<Record<string, unknown> | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [hasSummary, setHasSummary] = useState(false);
-  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -116,7 +143,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   // Reset chat search when switching conversations
   useEffect(() => {
-    setShowChatSearch(false);
+    closeDialog('chatSearch');
     setHighlightedMessageIds(new Set());
     setActiveHighlightId(null);
     setSearchQuery('');
@@ -137,19 +164,28 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     }
     setIsSummaryLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-conversation-summary', {
-        body: {
-          messages: messages.map(m => ({ sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() })),
-          contactName: conversation.contact.name,
+      const data = await withRetry(
+        async () => {
+          const { data, error } = await supabase.functions.invoke('ai-conversation-summary', {
+            body: {
+              messages: messages.map(m => ({ sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() })),
+              contactName: conversation.contact.name,
+            },
+          });
+          if (error) throw error;
+          return data;
         },
-      });
-      if (error) throw error;
+        { maxRetries: 2, baseDelayMs: 1500, shouldRetry: (err) => !(err instanceof Error && err.message.includes('Rate limit')) }
+      );
       setSummaryData(data);
       setHasSummary(true);
       sonnerToast.success('Resumo gerado com sucesso!');
     } catch (error) {
       log.error('Error generating summary:', error);
-      sonnerToast.error('Erro ao gerar resumo. Tente novamente.');
+      const msg = error instanceof Error && error.message.includes('Rate limit')
+        ? 'Muitas requisições. Aguarde um momento.'
+        : 'Erro ao gerar resumo. Tente novamente.';
+      sonnerToast.error(msg);
     } finally {
       setIsSummaryLoading(false);
     }
@@ -160,7 +196,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        setShowChatSearch(prev => !prev);
+        toggleDialog('chatSearch');
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
@@ -229,28 +265,28 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   const handleReplyToMessage = (message: Message) => { setReplyToMessage(message); inputRef.current?.focus(); };
   const handleCopyMessage = (content: string) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!', description: 'Mensagem copiada para a área de transferência.' }); };
-  const handleForwardMessage = (message: Message) => { setForwardMessage(message); setShowForwardDialog(true); };
+  const handleForwardMessage = (message: Message) => { setForwardMessage(message); openDialog('forwardDialog'); };
   const handleForwardToTargets = (targetIds: string[], targetType: 'contact' | 'group') => { log.debug('Forwarding to:', { targetIds, targetType, message: forwardMessage }); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setInputValue(value);
-    if (value.startsWith('/')) { setShowSlashCommands(true); setShowQuickReplies(false); } else { setShowSlashCommands(false); }
+    if (value.startsWith('/')) { openDialog('slashCommands'); closeDialog('quickReplies'); } else { closeDialog('slashCommands'); }
     if (value.length > 0) handleTypingStart(); else handleTypingStop();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (showSlashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
+    if (dialogs.slashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-    if (e.key === 'k' && e.ctrlKey) { e.preventDefault(); setShowGlobalSearch(true); }
-    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setShowChatSearch(true); }
-    if (e.key === 'Escape' && showSlashCommands) setShowSlashCommands(false);
+    if (e.key === 'k' && e.ctrlKey) { e.preventDefault(); openDialog('globalSearch'); }
+    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openDialog('chatSearch'); }
+    if (e.key === 'Escape' && dialogs.slashCommands) closeDialog('slashCommands');
   };
 
   const handleSlashCommand = (command: SlashCommand, subCommand?: string) => {
-    setShowSlashCommands(false); setInputValue('');
+    closeDialog('slashCommands'); setInputValue('');
     switch (command.id) {
-      case 'transfer': setShowTransferDialog(true); break;
+      case 'transfer': openDialog('transferDialog'); break;
       case 'resolve': toast({ title: '✅ Conversa Resolvida', description: 'A conversa foi marcada como resolvida.' }); break;
       case 'template': toast({ title: '📝 Templates', description: 'Use o botão de templates no input para selecionar.' }); break;
       case 'note': toast({ title: '📝 Nota Privada', description: 'Funcionalidade de notas será aberta.' }); break;
@@ -262,14 +298,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       case 'archive': toast({ title: '📦 Conversa Arquivada', description: 'A conversa foi arquivada.' }); break;
       case 'remind': toast({ title: '🔔 Lembrete Criado', description: 'Um lembrete foi criado para esta conversa.' }); break;
       case 'quick': toast({ title: '⚡ Resposta Rápida', description: 'Use / seguido do atalho para respostas rápidas.' }); break;
-      case 'summary': setShowAIAssistant(true); break;
-      case 'produto': setShowCatalogDirect(true); break;
+      case 'summary': openDialog('aiAssistant'); break;
+      case 'produto': openDialog('catalogDirect'); break;
       default: toast({ title: `Comando: ${command.label}`, description: command.description }); break;
     }
   };
 
   const handleQuickReply = (reply: { id: string; title: string; shortcut: string; content: string; category: string }) => {
-    setInputValue(reply.content); setShowQuickReplies(false); incrementUseCount(reply.id);
+    setInputValue(reply.content); closeDialog('quickReplies'); incrementUseCount(reply.id);
   };
 
   const handleTransfer = (type: 'agent' | 'queue', targetId: string, message?: string) => {
@@ -290,7 +326,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         }
       }
       await scheduleMessage({ contactId: conversation.contact.id, content: message, scheduledAt, messageType, mediaUrl });
-      setShowScheduleDialog(false);
+      closeDialog('scheduleDialog');
     } catch (err) { log.error('Failed to schedule message:', err); }
   };
 
@@ -348,13 +384,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         {!hideHeader && (
-          <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={showAIAssistant} showDetails={showDetails}
-            voiceId={voiceId} speed={speed} onToggleAIAssistant={() => setShowAIAssistant(!showAIAssistant)} onToggleDetails={onToggleDetails}
-            onStartCall={() => { setCallDirection('outbound'); setShowCallDialog(true); }} onOpenSearch={() => setShowChatSearch(true)}
-            onOpenTransfer={() => setShowTransferDialog(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
+          <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={dialogs.aiAssistant} showDetails={showDetails}
+            voiceId={voiceId} speed={speed} onToggleAIAssistant={() => toggleDialog('aiAssistant')} onToggleDetails={onToggleDetails}
+            onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => openDialog('chatSearch')}
+            onOpenTransfer={() => openDialog('transferDialog')} onOpenSchedule={() => openDialog('scheduleDialog')}
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
             onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary}
-            onCloseConversation={() => setShowCloseDialog(true)}
+            onCloseConversation={() => openDialog('closeDialog')}
             lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
             allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
             onSelectSuggestion={(text) => setInputValue(text)} />
@@ -362,14 +398,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         <ChatSearchBar
           messages={messages}
-          isOpen={showChatSearch}
-          onClose={() => { setShowChatSearch(false); setTimeout(() => inputRef.current?.focus(), 150); }}
+          isOpen={dialogs.chatSearch}
+          onClose={() => { closeDialog('chatSearch'); setTimeout(() => inputRef.current?.focus(), 150); }}
           onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
           onSearchQueryChange={setSearchQuery}
         />
 
-        <ChatAssignedBar conversation={conversation} onOpenTransfer={() => setShowTransferDialog(true)} />
+        <ChatAssignedBar conversation={conversation} onOpenTransfer={() => openDialog('transferDialog')} />
 
         <Suspense fallback={null}>
           <NextBestActionEngine contactId={conversation.contact.id} contactName={conversation.contact.name} />
@@ -389,44 +425,44 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart}
           highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} searchQuery={searchQuery} />
 
-        <ChatQuickRepliesPopover show={showQuickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => setShowQuickReplies(false)} />
+        <ChatQuickRepliesPopover show={dialogs.quickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => closeDialog('quickReplies')} />
 
-        {showWhisper && (
+        {dialogs.whisper && (
           <Suspense fallback={null}>
             <WhisperMode contactId={conversation.contact.id} className="mx-3 mb-2" />
           </Suspense>
         )}
 
         <ChatInputArea inputValue={inputValue} replyToMessage={replyToMessage} editingMessage={editingMessage} isRecordingAudio={isRecordingAudio}
-          showSlashCommands={showSlashCommands} contactId={conversation.contact.id} contactPhone={conversation.contact.phone}
+          showSlashCommands={dialogs.slashCommands} contactId={conversation.contact.id} contactPhone={conversation.contact.phone}
           contactName={conversation.contact.name} instanceName={instanceName} messages={messages} quickReplies={dbQuickReplies} isSending={isSending}
           onInputChange={handleInputChange} onKeyDown={handleKeyDown} onBlur={handleTypingStop} onSend={handleSend}
           onCancelReply={() => setReplyToMessage(null)} onCancelEdit={handleCancelEdit} onSlashCommand={handleSlashCommand}
-          onCloseSlashCommands={() => setShowSlashCommands(false)} onQuickReply={handleQuickReply}
+          onCloseSlashCommands={() => closeDialog('slashCommands')} onQuickReply={handleQuickReply}
           onRecordToggle={() => setIsRecordingAudio(!isRecordingAudio)} onAudioSend={handleAudioSend} onAudioCancel={() => setIsRecordingAudio(false)}
-          onOpenInteractiveBuilder={() => setShowInteractiveBuilder(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
-          onOpenLocationPicker={() => setShowLocationPicker(true)} onSendProduct={handleSendProduct} onSendSticker={handleSendSticker}
+          onOpenInteractiveBuilder={() => openDialog('interactiveBuilder')} onOpenSchedule={() => openDialog('scheduleDialog')}
+          onOpenLocationPicker={() => openDialog('locationPicker')} onSendProduct={handleSendProduct} onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme} onSendCustomEmoji={handleSendCustomEmoji}
           signatureEnabled={signatureEnabled} signatureName={agentName} onToggleSignature={toggleSignature}
           onPollSent={async (poll) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: whatsappConnectionId, content: `📊 *Enquete:* ${poll.name}\n${poll.options.map((o, i) => `${i + 1}. ${o}`).join('\n')}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
           onContactSent={async (contactName) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: whatsappConnectionId, content: `📇 Cartão de contato: ${contactName}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
-          onOpenCatalog={() => setShowCatalogDirect(true)} onSelectSuggestion={(text) => setInputValue(text)} onSelectTemplate={(text) => setInputValue(text)}
+          onOpenCatalog={() => openDialog('catalogDirect')} onSelectSuggestion={(text) => setInputValue(text)} onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef} inputRef={inputRef} />
 
         <Suspense fallback={null}>
-          {showTransferDialog && <TransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onTransfer={handleTransfer as (type: "agent" | "connection" | "queue", targetId: string, message?: string) => void} />}
-          {showScheduleDialog && <ScheduleMessageDialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog} onSchedule={handleScheduleMessage} />}
-          {showCallDialog && <CallDialog open={showCallDialog} onOpenChange={setShowCallDialog} contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }} direction={callDirection} onEnd={() => setShowCallDialog(false)} />}
-          {showGlobalSearch && <GlobalSearch open={showGlobalSearch} onOpenChange={setShowGlobalSearch} onSelectResult={(result) => { log.debug('Selected:', result); toast({ title: 'Resultado selecionado', description: result.title }); }} />}
-          {showInteractiveBuilder && <InteractiveMessageBuilder open={showInteractiveBuilder} onOpenChange={setShowInteractiveBuilder} onSend={handleSendInteractiveMessage} />}
-          {showForwardDialog && <ForwardMessageDialog open={showForwardDialog} onOpenChange={setShowForwardDialog} message={forwardMessage} onForward={handleForwardToTargets} />}
-          {showLocationPicker && <LocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSend={handleSendLocation} />}
-          {showCloseDialog && <CloseConversationDialog open={showCloseDialog} onOpenChange={setShowCloseDialog} contactId={conversation.contact.id} />}
+          {dialogs.transferDialog && <TransferDialog open={dialogs.transferDialog} onOpenChange={(v) => v ? openDialog('transferDialog') : closeDialog('transferDialog')} onTransfer={handleTransfer as (type: "agent" | "connection" | "queue", targetId: string, message?: string) => void} />}
+          {dialogs.scheduleDialog && <ScheduleMessageDialog open={dialogs.scheduleDialog} onOpenChange={(v) => v ? openDialog('scheduleDialog') : closeDialog('scheduleDialog')} onSchedule={handleScheduleMessage} />}
+          {dialogs.callDialog && <CallDialog open={dialogs.callDialog} onOpenChange={(v) => v ? openDialog('callDialog') : closeDialog('callDialog')} contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }} direction={callDirection} onEnd={() => closeDialog('callDialog')} />}
+          {dialogs.globalSearch && <GlobalSearch open={dialogs.globalSearch} onOpenChange={(v) => v ? openDialog('globalSearch') : closeDialog('globalSearch')} onSelectResult={(result) => { log.debug('Selected:', result); toast({ title: 'Resultado selecionado', description: result.title }); }} />}
+          {dialogs.interactiveBuilder && <InteractiveMessageBuilder open={dialogs.interactiveBuilder} onOpenChange={(v) => v ? openDialog('interactiveBuilder') : closeDialog('interactiveBuilder')} onSend={handleSendInteractiveMessage} />}
+          {dialogs.forwardDialog && <ForwardMessageDialog open={dialogs.forwardDialog} onOpenChange={(v) => v ? openDialog('forwardDialog') : closeDialog('forwardDialog')} message={forwardMessage} onForward={handleForwardToTargets} />}
+          {dialogs.locationPicker && <LocationPicker open={dialogs.locationPicker} onOpenChange={(v) => v ? openDialog('locationPicker') : closeDialog('locationPicker')} onSend={handleSendLocation} />}
+          {dialogs.closeDialog && <CloseConversationDialog open={dialogs.closeDialog} onOpenChange={(v) => v ? openDialog('closeDialog') : closeDialog('closeDialog')} contactId={conversation.contact.id} />}
         </Suspense>
 
-        {showCatalogDirect && <ExternalProductCatalog onSendProduct={handleSendProduct} open={showCatalogDirect} onOpenChange={setShowCatalogDirect} />}
+        {dialogs.catalogDirect && <ExternalProductCatalog onSendProduct={handleSendProduct} open={dialogs.catalogDirect} onOpenChange={(v) => v ? openDialog('catalogDirect') : closeDialog('catalogDirect')} />}
 
-        {showRealtimeTranscription && (
+        {dialogs.realtimeTranscription && (
           <Suspense fallback={null}>
             <div className="px-3 mb-2">
               <RealtimeTranscription
@@ -439,10 +475,10 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         )}
       </div>
 
-      {showAIAssistant && (
+      {dialogs.aiAssistant && (
         <Suspense fallback={null}>
           <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
-            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={showAIAssistant} onClose={() => setShowAIAssistant(false)} />
+            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={dialogs.aiAssistant} onClose={() => closeDialog('aiAssistant')} />
         </Suspense>
       )}
     </div>

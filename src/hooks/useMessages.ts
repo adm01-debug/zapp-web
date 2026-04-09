@@ -32,11 +32,18 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const previousContactIdRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+
+  // Track mount state to prevent setState after unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   // Fetch messages for contact
   const fetchMessages = useCallback(async () => {
-    if (!contactId) {
-      setMessages([]);
+    if (!contactId || !mountedRef.current) {
+      if (mountedRef.current) { setMessages([]); setLoading(false); }
       setLoading(false);
       return;
     }
@@ -46,7 +53,8 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
       setError(null);
 
       // Fetch all messages using pagination to bypass the 1000 row default limit
-      let allData: any[] = [];
+      type MessageRow = Omit<Message, 'isEdited'>;
+      let allData: MessageRow[] = [];
       let from = 0;
       const PAGE_SIZE = 1000;
       let hasMore = true;
@@ -62,7 +70,7 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
         if (fetchError) throw fetchError;
 
         if (page && page.length > 0) {
-          allData = allData.concat(page);
+          allData = allData.concat(page as MessageRow[]);
           from += PAGE_SIZE;
           hasMore = page.length === PAGE_SIZE;
         } else {
@@ -70,16 +78,16 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
         }
       }
 
-      const mappedMessages = allData.map((m) => ({
+      const mappedMessages: Message[] = allData.map((m) => ({
         ...m,
-        isEdited: m.updated_at && m.created_at && new Date(m.updated_at).getTime() - new Date(m.created_at).getTime() > 1000,
+        isEdited: !!(m.updated_at && m.created_at && new Date(m.updated_at).getTime() - new Date(m.created_at).getTime() > 1000),
       }));
-      setMessages(mappedMessages as Message[]);
+      if (mountedRef.current) setMessages(mappedMessages);
     } catch (err) {
       log.error('Error fetching messages:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch messages');
+      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Failed to fetch messages');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [contactId]);
 
