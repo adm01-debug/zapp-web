@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
+import { format, startOfDay as fnsStartOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { log } from '@/lib/logger';
 import {
   Brain,
@@ -86,7 +88,7 @@ interface AIConversationAssistantProps {
   onClose: () => void;
 }
 
-type AnalysisPeriod = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d';
+type AnalysisPeriod = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d' | 'custom';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SESSION_GAP_MS = 4 * 60 * 60 * 1000;
@@ -100,6 +102,7 @@ const ANALYSIS_PERIOD_OPTIONS: { value: AnalysisPeriod; label: string }[] = [
   { value: '30d', label: 'Últimos 30 dias' },
   { value: '90d', label: 'Últimos 90 dias' },
   { value: 'all', label: 'Toda a conversa' },
+  { value: 'custom', label: 'Período personalizado' },
 ];
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
@@ -166,8 +169,21 @@ function getLastConversationStart(messages: Message[]): Date | null {
   return sessionStart;
 }
 
-function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod): Message[] {
+function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod, customFrom?: Date | null, customTo?: Date | null): Message[] {
   if (period === 'all') return messages;
+
+  if (period === 'custom') {
+    return messages.filter((message) => {
+      const msgDate = new Date(message.created_at);
+      if (customFrom && msgDate < fnsStartOfDay(customFrom)) return false;
+      if (customTo) {
+        const endOfTo = new Date(customTo);
+        endOfTo.setHours(23, 59, 59, 999);
+        if (msgDate > endOfTo) return false;
+      }
+      return customFrom || customTo;
+    });
+  }
 
   if (period === 'last_interaction') {
     const sessionStart = getLastConversationStart(messages);
@@ -176,7 +192,7 @@ function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod): Me
   }
 
   const now = new Date();
-  const cutoffMap: Record<Exclude<AnalysisPeriod, 'all' | 'last_interaction'>, Date> = {
+  const cutoffMap: Record<string, Date> = {
     today: startOfDay(now),
     '3d': startOfDay(new Date(now.getTime() - 3 * DAY_MS)),
     '7d': startOfDay(new Date(now.getTime() - 7 * DAY_MS)),
@@ -186,6 +202,7 @@ function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod): Me
   };
 
   const cutoff = cutoffMap[period];
+  if (!cutoff) return messages;
   return messages.filter((message) => new Date(message.created_at) >= cutoff);
 }
 
@@ -214,12 +231,15 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [activeTab, setActiveTab] = useState('resumo');
   const [analysisPeriod, setAnalysisPeriod] = useState<AnalysisPeriod>('7d');
 
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined);
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined);
+
   const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
   const filteredMessages = useMemo(
-    () => filterMessagesByPeriod(messages, analysisPeriod),
-    [messages, analysisPeriod]
+    () => filterMessagesByPeriod(messages, analysisPeriod, customDateFrom, customDateTo),
+    [messages, analysisPeriod, customDateFrom, customDateTo]
   );
 
   const canAnalyze = filteredMessages.length >= 5;
@@ -367,6 +387,53 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                 </SelectContent>
               </Select>
             </div>
+
+            {analysisPeriod === 'custom' && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-muted-foreground">De</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start rounded-lg text-xs font-normal">
+                        <Calendar className="mr-1.5 h-3 w-3" />
+                        {customDateFrom ? format(customDateFrom, 'dd/MM/yyyy') : 'Selecionar'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={customDateFrom}
+                        onSelect={setCustomDateFrom}
+                        locale={ptBR}
+                        disabled={(date) => date > new Date() || (customDateTo ? date > customDateTo : false)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-muted-foreground">Até</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start rounded-lg text-xs font-normal">
+                        <Calendar className="mr-1.5 h-3 w-3" />
+                        {customDateTo ? format(customDateTo, 'dd/MM/yyyy') : 'Selecionar'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <CalendarComponent
+                        mode="single"
+                        selected={customDateTo}
+                        onSelect={setCustomDateTo}
+                        locale={ptBR}
+                        disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            )}
 
             <div className="text-center">
               <p className="text-xs tabular-nums text-muted-foreground">
