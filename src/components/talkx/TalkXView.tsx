@@ -34,7 +34,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secon
 export default function TalkXView() {
   const {
     campaigns, isLoading, selectedCampaignId, setSelectedCampaignId,
-    deleteCampaign, startCampaign, pauseCampaign, cancelCampaign, refetchCampaigns,
+    createCampaign, deleteCampaign, startCampaign, pauseCampaign, cancelCampaign, refetchCampaigns,
   } = useTalkX();
 
   const [showEditor, setShowEditor] = useState(false);
