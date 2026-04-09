@@ -1,13 +1,37 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { subDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { log } from '@/lib/logger';
-import { 
-  Brain, Loader2, CheckCircle2, Clock, AlertCircle, ThumbsUp, ThumbsDown, Minus,
-  MessageSquareText, BarChart3, ListChecks, RefreshCw, X, Sparkles, History,
-  TrendingUp, TrendingDown, ArrowRight, Calendar, ShieldAlert, DollarSign,
-  Users, Zap, Heart, Eye, BookOpen, AlertTriangle, Star
+import {
+  Brain,
+  Loader2,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  MessageSquareText,
+  BarChart3,
+  ListChecks,
+  RefreshCw,
+  X,
+  Sparkles,
+  History,
+  TrendingUp,
+  TrendingDown,
+  ArrowRight,
+  Calendar,
+  ShieldAlert,
+  DollarSign,
+  Users,
+  Zap,
+  Heart,
+  Eye,
+  BookOpen,
+  AlertTriangle,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -62,9 +86,25 @@ interface AIConversationAssistantProps {
   onClose: () => void;
 }
 
+type AnalysisPeriod = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const SESSION_GAP_MS = 4 * 60 * 60 * 1000;
+
+const ANALYSIS_PERIOD_OPTIONS: { value: AnalysisPeriod; label: string }[] = [
+  { value: 'last_interaction', label: 'Última conversa' },
+  { value: 'today', label: 'Hoje' },
+  { value: '3d', label: 'Últimos 3 dias' },
+  { value: '7d', label: 'Últimos 7 dias' },
+  { value: '14d', label: 'Últimos 14 dias' },
+  { value: '30d', label: 'Últimos 30 dias' },
+  { value: '90d', label: 'Últimos 90 dias' },
+  { value: 'all', label: 'Toda a conversa' },
+];
+
 const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
   resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-success/20 text-success border-success/30' },
-  pendente: { label: 'Pendente', icon: Clock, className: 'bg-warning/20 text-warning border-yellow-500/30' },
+  pendente: { label: 'Pendente', icon: Clock, className: 'bg-warning/20 text-warning border-warning/30' },
   aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-warning/20 text-warning border-warning/30' },
   aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-info/20 text-info border-info/30' },
   escalado: { label: 'Escalado', icon: AlertTriangle, className: 'bg-destructive/20 text-destructive border-destructive/30' },
@@ -97,25 +137,93 @@ const performanceLabels: Record<string, { label: string; icon: React.ElementType
   knowledge: { label: 'Conhecimento', icon: BookOpen },
 };
 
+function startOfDay(date: Date): Date {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
+
+function getLastConversationStart(messages: Message[]): Date | null {
+  if (messages.length === 0) return null;
+
+  const sorted = [...messages].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  let sessionStart = new Date(sorted[0].created_at);
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const newerMessageTime = new Date(sorted[index - 1].created_at).getTime();
+    const olderMessageTime = new Date(sorted[index].created_at).getTime();
+
+    if (newerMessageTime - olderMessageTime > SESSION_GAP_MS) {
+      break;
+    }
+
+    sessionStart = new Date(sorted[index].created_at);
+  }
+
+  return sessionStart;
+}
+
+function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod): Message[] {
+  if (period === 'all') return messages;
+
+  if (period === 'last_interaction') {
+    const sessionStart = getLastConversationStart(messages);
+    if (!sessionStart) return [];
+    return messages.filter((message) => new Date(message.created_at) >= sessionStart);
+  }
+
+  const now = new Date();
+  const cutoffMap: Record<Exclude<AnalysisPeriod, 'all' | 'last_interaction'>, Date> = {
+    today: startOfDay(now),
+    '3d': startOfDay(new Date(now.getTime() - 3 * DAY_MS)),
+    '7d': startOfDay(new Date(now.getTime() - 7 * DAY_MS)),
+    '14d': startOfDay(new Date(now.getTime() - 14 * DAY_MS)),
+    '30d': startOfDay(new Date(now.getTime() - 30 * DAY_MS)),
+    '90d': startOfDay(new Date(now.getTime() - 90 * DAY_MS)),
+  };
+
+  const cutoff = cutoffMap[period];
+  return messages.filter((message) => new Date(message.created_at) >= cutoff);
+}
+
+function getPeriodDays(period: AnalysisPeriod): number | null {
+  switch (period) {
+    case 'today':
+      return 1;
+    case '3d':
+      return 3;
+    case '7d':
+      return 7;
+    case '14d':
+      return 14;
+    case '30d':
+      return 30;
+    case '90d':
+      return 90;
+    default:
+      return null;
+  }
+}
+
 export function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
-  const [analysisPeriod, setAnalysisPeriod] = useState<string>('7');
+  const [analysisPeriod, setAnalysisPeriod] = useState<AnalysisPeriod>('7d');
 
   const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
-  const filteredMessages = useMemo(() => {
-    if (analysisPeriod === 'all') return messages;
-    const days = parseInt(analysisPeriod);
-    const cutoff = subDays(new Date(), days);
-    return messages.filter(m => new Date(m.created_at) >= cutoff);
-  }, [messages, analysisPeriod]);
+  const filteredMessages = useMemo(
+    () => filterMessagesByPeriod(messages, analysisPeriod),
+    [messages, analysisPeriod]
+  );
 
   const canAnalyze = filteredMessages.length >= 5;
 
-  // Load latest analysis on mount
   useEffect(() => {
     if (analyses.length > 0 && !analysis) {
       const latest = analyses[0];
@@ -140,32 +248,34 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     }
 
     setIsLoading(true);
+
     try {
       const result = await withRetry(
         async () => {
           const { data, error } = await supabase.functions.invoke('ai-conversation-analysis', {
             body: {
-              messages: filteredMessages.map(m => ({
-                id: m.id,
-                sender: m.sender,
-                content: m.content,
-                type: m.type || 'text',
-                created_at: m.created_at,
+              messages: filteredMessages.map((message) => ({
+                id: message.id,
+                sender: message.sender,
+                content: message.content,
+                type: message.type || 'text',
+                created_at: message.created_at,
               })),
               contactName,
               contactId,
-              periodDays: analysisPeriod === 'all' ? null : parseInt(analysisPeriod),
+              periodDays: getPeriodDays(analysisPeriod),
             },
           });
+
           if (error) throw error;
           return data;
         },
         {
           maxRetries: 2,
-          shouldRetry: (err) => {
-            if (err instanceof Error) {
-              const msg = err.message.toLowerCase();
-              return msg.includes('fetch') || msg.includes('network') || msg.includes('timeout');
+          shouldRetry: (error) => {
+            if (error instanceof Error) {
+              const message = error.message.toLowerCase();
+              return message.includes('fetch') || message.includes('network') || message.includes('timeout');
             }
             return false;
           },
@@ -174,7 +284,6 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
       setAnalysis(result);
 
-      // Save to history
       const savedAnalysis = await saveAnalysis({
         contact_id: contactId,
         summary: result.summary,
@@ -189,7 +298,6 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         message_count: filteredMessages.length,
       });
 
-      // Check for sentiment alert
       const sentimentScore = result.sentimentScore || 50;
       if (sentimentScore < SENTIMENT_THRESHOLD && savedAnalysis) {
         const previousAnalysis = analyses[0];
@@ -209,7 +317,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     } finally {
       setIsLoading(false);
     }
-  }, [canAnalyze, filteredMessages, contactName, contactId, analysisPeriod, saveAnalysis, analyses, checkAndTriggerAlert, SENTIMENT_THRESHOLD]);
+  }, [analysisPeriod, analyses, canAnalyze, checkAndTriggerAlert, contactId, contactName, filteredMessages, saveAnalysis, SENTIMENT_THRESHOLD]);
 
   const sentimentTrend = getSentimentTrend();
   const currentSentiment = analysis?.sentiment || 'neutro';
@@ -225,16 +333,15 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 300 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="w-80 border-l border-border bg-card flex flex-col h-full"
+        className="flex h-full w-80 flex-col border-l border-border bg-card"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
+        <div className="flex items-center justify-between border-b border-border bg-gradient-to-r from-primary/5 to-transparent p-4">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-primary/15 flex items-center justify-center ring-1 ring-primary/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/20">
               <Brain className="h-4.5 w-4.5 text-primary" />
             </div>
             <div>
-              <h3 className="font-bold text-sm">Assistente IA</h3>
+              <h3 className="text-sm font-bold">Assistente IA</h3>
               <p className="text-[10px] text-muted-foreground">Análise Profunda</p>
             </div>
           </div>
@@ -244,28 +351,25 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
-            {/* Period Selector */}
+          <div className="space-y-4 p-4">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-              <Select value={analysisPeriod} onValueChange={setAnalysisPeriod}>
-                <SelectTrigger className="h-9 text-xs flex-1 rounded-lg">
+              <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <Select value={analysisPeriod} onValueChange={(value) => setAnalysisPeriod(value as AnalysisPeriod)}>
+                <SelectTrigger className="h-9 flex-1 rounded-lg text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="3">Últimos 3 dias</SelectItem>
-                  <SelectItem value="7">Últimos 7 dias</SelectItem>
-                  <SelectItem value="14">Últimos 14 dias</SelectItem>
-                  <SelectItem value="30">Últimos 30 dias</SelectItem>
-                  <SelectItem value="90">Últimos 90 dias</SelectItem>
-                  <SelectItem value="all">Toda a conversa</SelectItem>
+                  {ANALYSIS_PERIOD_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Message count */}
             <div className="text-center">
-              <p className="text-xs text-muted-foreground tabular-nums">
+              <p className="text-xs tabular-nums text-muted-foreground">
                 <span className="font-semibold text-foreground">{filteredMessages.length}</span> mensagens no período
                 {messages.length !== filteredMessages.length && (
                   <span className="text-muted-foreground/60"> (de {messages.length} total)</span>
@@ -273,19 +377,14 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
               </p>
             </div>
 
-            {/* Action Button */}
             <div className="flex justify-center">
               <Button
                 size="sm"
                 onClick={analyzeConversation}
                 disabled={isLoading || !canAnalyze}
-                className="gap-2 rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+                className="gap-2 rounded-xl bg-primary px-6 text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90"
               >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 {isLoading ? 'Analisando...' : `Analisar (${filteredMessages.length} msgs)`}
               </Button>
             </div>
@@ -294,66 +393,58 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 p-3 rounded-xl bg-warning/10 border border-warning/20"
+                className="flex items-center gap-2 rounded-xl border border-warning/20 bg-warning/10 p-3"
               >
-                <AlertCircle className="h-4 w-4 text-warning shrink-0" />
-                <p className="text-xs text-warning">
-                  Mínimo de 5 mensagens necessárias ({filteredMessages.length}/5)
-                </p>
+                <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
+                <p className="text-xs text-warning">Mínimo de 5 mensagens necessárias ({filteredMessages.length}/5)</p>
               </motion.div>
             )}
 
-            {/* Loading Skeleton */}
             {isLoading && (
               <div className="space-y-3 animate-pulse">
-                <div className="h-20 bg-muted/40 rounded-xl" />
+                <div className="h-20 rounded-xl bg-muted/40" />
                 <div className="flex gap-2">
-                  <div className="h-6 w-20 bg-muted/40 rounded-full" />
-                  <div className="h-6 w-16 bg-muted/40 rounded-full" />
+                  <div className="h-6 w-20 rounded-full bg-muted/40" />
+                  <div className="h-6 w-16 rounded-full bg-muted/40" />
                 </div>
-                <div className="h-16 bg-muted/40 rounded-xl" />
+                <div className="h-16 rounded-xl bg-muted/40" />
                 <div className="space-y-2">
-                  <div className="h-10 bg-muted/40 rounded-lg" />
-                  <div className="h-10 bg-muted/40 rounded-lg" />
-                  <div className="h-10 bg-muted/40 rounded-lg" />
+                  <div className="h-10 rounded-lg bg-muted/40" />
+                  <div className="h-10 rounded-lg bg-muted/40" />
+                  <div className="h-10 rounded-lg bg-muted/40" />
                 </div>
               </div>
             )}
 
-            {/* Sentiment Trend */}
             {sentimentTrend && !isLoading && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex items-center gap-2 p-2.5 rounded-xl text-xs font-medium ${
-                  sentimentTrend === 'improving' ? 'bg-success/10 text-success border border-success/20' :
-                  sentimentTrend === 'declining' ? 'bg-destructive/10 text-destructive border border-destructive/20' :
-                  'bg-muted/50 text-muted-foreground border border-border'
+                className={`flex items-center gap-2 rounded-xl border p-2.5 text-xs font-medium ${
+                  sentimentTrend === 'improving'
+                    ? 'border-success/20 bg-success/10 text-success'
+                    : sentimentTrend === 'declining'
+                      ? 'border-destructive/20 bg-destructive/10 text-destructive'
+                      : 'border-border bg-muted/50 text-muted-foreground'
                 }`}
               >
                 {sentimentTrend === 'improving' && <TrendingUp className="h-4 w-4" />}
                 {sentimentTrend === 'declining' && <TrendingDown className="h-4 w-4" />}
                 {sentimentTrend === 'stable' && <ArrowRight className="h-4 w-4" />}
                 <span>
-                  Tendência: {sentimentTrend === 'improving' ? 'Melhorando ↑' :
-                             sentimentTrend === 'declining' ? 'Piorando ↓' : 'Estável →'}
+                  Tendência: {sentimentTrend === 'improving' ? 'Melhorando ↑' : sentimentTrend === 'declining' ? 'Piorando ↓' : 'Estável →'}
                 </span>
               </motion.div>
             )}
 
-            {/* Analysis Results */}
             {analysis && !isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 rounded-xl h-9">
+                  <TabsList className="grid h-9 w-full grid-cols-4 rounded-xl">
                     <TooltipProvider delayDuration={300}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <TabsTrigger value="resumo" className="text-xs px-2 rounded-lg">
+                          <TabsTrigger value="resumo" className="rounded-lg px-2 text-xs">
                             <MessageSquareText className="h-3.5 w-3.5" />
                           </TabsTrigger>
                         </TooltipTrigger>
@@ -361,7 +452,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <TabsTrigger value="sentimento" className="text-xs px-2 rounded-lg">
+                          <TabsTrigger value="sentimento" className="rounded-lg px-2 text-xs">
                             <BarChart3 className="h-3.5 w-3.5" />
                           </TabsTrigger>
                         </TooltipTrigger>
@@ -369,7 +460,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <TabsTrigger value="pontos" className="text-xs px-2 rounded-lg">
+                          <TabsTrigger value="pontos" className="rounded-lg px-2 text-xs">
                             <ListChecks className="h-3.5 w-3.5" />
                           </TabsTrigger>
                         </TooltipTrigger>
@@ -377,7 +468,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <TabsTrigger value="historico" className="text-xs px-2 rounded-lg">
+                          <TabsTrigger value="historico" className="rounded-lg px-2 text-xs">
                             <History className="h-3.5 w-3.5" />
                           </TabsTrigger>
                         </TooltipTrigger>
@@ -386,13 +477,11 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                     </TooltipProvider>
                   </TabsList>
 
-                  {/* ===== RESUMO ===== */}
                   <TabsContent value="resumo" className="mt-4 space-y-4">
-                    {/* Status & Urgency */}
                     <div className="flex flex-wrap gap-2">
                       {statusConfig[analysis.status] && (
                         <Badge variant="outline" className={`${statusConfig[analysis.status].className} text-[10px]`}>
-                          {React.createElement(statusConfig[analysis.status].icon, { className: "h-3 w-3 mr-1" })}
+                          {React.createElement(statusConfig[analysis.status].icon, { className: 'mr-1 h-3 w-3' })}
                           {statusConfig[analysis.status].label}
                         </Badge>
                       )}
@@ -402,51 +491,43 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                         </Badge>
                       )}
                       {analysis.churnRisk && analysis.churnRisk !== 'low' && (
-                        <Badge variant="outline" className={`${churnConfig[analysis.churnRisk]?.color || ''} text-[10px] border-current/30`}>
-                          <ShieldAlert className="h-3 w-3 mr-1" />
+                        <Badge variant="outline" className={`${churnConfig[analysis.churnRisk]?.color || ''} border-current/30 text-[10px]`}>
+                          <ShieldAlert className="mr-1 h-3 w-3" />
                           Churn: {churnConfig[analysis.churnRisk]?.label}
                         </Badge>
                       )}
                     </div>
 
-                    {/* Summary */}
-                    <div className="bg-muted/30 rounded-xl p-3 border border-border/50">
-                      <h4 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                    <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+                      <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
                         <Brain className="h-3 w-3" />
                         Resumo
                       </h4>
                       <p className="text-sm leading-relaxed">{analysis.summary}</p>
                     </div>
 
-                    {/* Satisfaction Stars */}
                     {analysis.customerSatisfaction !== undefined && (
-                      <div className="flex items-center justify-between bg-muted/20 rounded-xl p-3 border border-border/50">
-                        <span className="text-xs text-muted-foreground font-medium">Satisfação</span>
+                      <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 p-3">
+                        <span className="text-xs font-medium text-muted-foreground">Satisfação</span>
                         <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map(star => (
+                          {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                               key={star}
-                              className={`h-4 w-4 ${star <= (analysis.customerSatisfaction || 0)
-                                ? 'text-yellow-500 fill-yellow-500'
-                                : 'text-muted'
-                              }`}
+                              className={`h-4 w-4 ${star <= (analysis.customerSatisfaction || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-muted'}`}
                             />
                           ))}
-                          <span className="text-xs font-bold ml-1.5 text-foreground">
-                            {analysis.customerSatisfaction}/5
-                          </span>
+                          <span className="ml-1.5 text-xs font-bold text-foreground">{analysis.customerSatisfaction}/5</span>
                         </div>
                       </div>
                     )}
 
-                    {/* Sales Opportunity */}
                     {analysis.salesOpportunity && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-primary/10 rounded-xl p-3 border border-primary/20"
+                        className="rounded-xl border border-primary/20 bg-primary/10 p-3"
                       >
-                        <h4 className="text-xs font-semibold text-primary mb-1 flex items-center gap-1">
+                        <h4 className="mb-1 flex items-center gap-1 text-xs font-semibold text-primary">
                           <DollarSign className="h-3 w-3" />
                           Oportunidade de Venda
                         </h4>
@@ -454,13 +535,12 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                       </motion.div>
                     )}
 
-                    {/* Topics */}
                     {analysis.topics && analysis.topics.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-semibold text-muted-foreground mb-2">Tópicos</h4>
+                        <h4 className="mb-2 text-xs font-semibold text-muted-foreground">Tópicos</h4>
                         <div className="flex flex-wrap gap-1.5">
-                          {analysis.topics.map((topic, i) => (
-                            <Badge key={i} variant="secondary" className="text-[10px] rounded-lg">
+                          {analysis.topics.map((topic, index) => (
+                            <Badge key={index} variant="secondary" className="rounded-lg text-[10px]">
                               {topic}
                             </Badge>
                           ))}
@@ -469,46 +549,34 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                     )}
                   </TabsContent>
 
-                  {/* ===== SENTIMENTO ===== */}
                   <TabsContent value="sentimento" className="mt-4 space-y-4">
-                    <Card className="border-border/50 rounded-xl overflow-hidden">
-                      <CardContent className="pt-4 space-y-4">
-                        {/* Score */}
+                    <Card className="overflow-hidden rounded-xl border-border/50">
+                      <CardContent className="space-y-4 pt-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <SentimentIcon className={`h-5 w-5 ${sentimentConfig[currentSentiment]?.color}`} />
-                            <span className="font-semibold text-sm">{sentimentConfig[currentSentiment]?.label}</span>
+                            <span className="text-sm font-semibold">{sentimentConfig[currentSentiment]?.label}</span>
                           </div>
-                          <span className={`text-3xl font-black tabular-nums ${sentimentConfig[currentSentiment]?.color}`}>
-                            {sentimentScore}%
-                          </span>
+                          <span className={`text-3xl font-black tabular-nums ${sentimentConfig[currentSentiment]?.color}`}>{sentimentScore}%</span>
                         </div>
 
-                        {/* Progress bar */}
                         <div className="space-y-1.5">
                           <div className="flex justify-between text-[10px] text-muted-foreground">
                             <span>Negativo</span>
                             <span>Positivo</span>
                           </div>
-                          <Progress 
-                            value={sentimentScore} 
-                            className="h-2.5 rounded-full" 
-                          />
+                          <Progress value={sentimentScore} className="h-2.5 rounded-full" />
                         </div>
 
-                        {/* CSAT */}
                         {analysis.customerSatisfaction !== undefined && (
-                          <div className="pt-3 border-t border-border">
+                          <div className="border-t border-border pt-3">
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-muted-foreground">CSAT Estimado</span>
                               <div className="flex items-center gap-0.5">
-                                {[1, 2, 3, 4, 5].map(star => (
+                                {[1, 2, 3, 4, 5].map((star) => (
                                   <Star
                                     key={star}
-                                    className={`h-3.5 w-3.5 ${star <= (analysis.customerSatisfaction || 0)
-                                      ? 'text-yellow-500 fill-yellow-500'
-                                      : 'text-muted'
-                                    }`}
+                                    className={`h-3.5 w-3.5 ${star <= (analysis.customerSatisfaction || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-muted'}`}
                                   />
                                 ))}
                               </div>
@@ -518,11 +586,10 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                       </CardContent>
                     </Card>
 
-                    {/* Agent Performance */}
                     {analysis.agentPerformance && (
-                      <Card className="border-border/50 rounded-xl">
+                      <Card className="rounded-xl border-border/50">
                         <CardContent className="pt-4">
-                          <h4 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1">
+                          <h4 className="mb-3 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
                             <Users className="h-3 w-3" />
                             Desempenho do Atendente
                           </h4>
@@ -549,15 +616,18 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                       </Card>
                     )}
 
-                    {/* Churn Risk */}
                     {analysis.churnRisk && (
-                      <div className={`flex items-center gap-3 p-3 rounded-xl border ${
-                        analysis.churnRisk === 'high' ? 'bg-destructive/10 border-destructive/20' :
-                        analysis.churnRisk === 'medium' ? 'bg-warning/10 border-warning/20' :
-                        'bg-success/10 border-success/20'
-                      }`}>
+                      <div
+                        className={`flex items-center gap-3 rounded-xl border p-3 ${
+                          analysis.churnRisk === 'high'
+                            ? 'border-destructive/20 bg-destructive/10'
+                            : analysis.churnRisk === 'medium'
+                              ? 'border-warning/20 bg-warning/10'
+                              : 'border-success/20 bg-success/10'
+                        }`}
+                      >
                         {React.createElement(churnConfig[analysis.churnRisk]?.icon || CheckCircle2, {
-                          className: `h-5 w-5 ${churnConfig[analysis.churnRisk]?.color}`
+                          className: `h-5 w-5 ${churnConfig[analysis.churnRisk]?.color}`,
                         })}
                         <div>
                           <p className="text-xs font-semibold">Risco de Churn</p>
@@ -568,33 +638,35 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                       </div>
                     )}
 
-                    {/* Sentiment History */}
                     {analyses.length > 1 && (
-                      <div className="bg-muted/30 rounded-xl p-3 border border-border/50">
-                        <h4 className="text-xs font-semibold text-muted-foreground mb-3">Evolução</h4>
-                        <div className="flex items-end justify-between gap-1 h-16">
-                          {analyses.slice(0, 10).reverse().map((a) => (
-                            <TooltipProvider key={a.id} delayDuration={200}>
+                      <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+                        <h4 className="mb-3 text-xs font-semibold text-muted-foreground">Evolução</h4>
+                        <div className="flex h-16 items-end justify-between gap-1">
+                          {analyses.slice(0, 10).reverse().map((item) => (
+                            <TooltipProvider key={item.id} delayDuration={200}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <div
-                                    className="flex-1 rounded-t-sm transition-all cursor-pointer hover:opacity-80"
+                                    className="flex-1 cursor-pointer rounded-t-sm transition-all hover:opacity-80"
                                     style={{
-                                      height: `${Math.max(a.sentiment_score, 5)}%`,
-                                      backgroundColor: a.sentiment === 'positivo' ? 'rgb(34 197 94 / 0.6)' :
-                                        a.sentiment === 'negativo' || a.sentiment === 'critico' ? 'rgb(239 68 68 / 0.6)' :
-                                        'rgb(156 163 175 / 0.4)'
+                                      height: `${Math.max(item.sentiment_score, 5)}%`,
+                                      backgroundColor:
+                                        item.sentiment === 'positivo'
+                                          ? 'rgb(34 197 94 / 0.6)'
+                                          : item.sentiment === 'negativo' || item.sentiment === 'critico'
+                                            ? 'rgb(239 68 68 / 0.6)'
+                                            : 'rgb(156 163 175 / 0.4)',
                                     }}
                                   />
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="text-xs">
-                                  <p>{format(new Date(a.created_at), 'dd/MM HH:mm')}: {a.sentiment_score}%</p>
+                                  <p>{format(new Date(item.created_at), 'dd/MM HH:mm')}: {item.sentiment_score}%</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
                           ))}
                         </div>
-                        <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                        <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
                           <span>Antiga</span>
                           <span>Recente</span>
                         </div>
@@ -602,11 +674,10 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                     )}
                   </TabsContent>
 
-                  {/* ===== PONTOS-CHAVE ===== */}
                   <TabsContent value="pontos" className="mt-4 space-y-4">
                     {analysis.keyPoints.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                        <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
                           <ListChecks className="h-3 w-3" />
                           Pontos-chave
                         </h4>
@@ -617,9 +688,9 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.05 }}
-                              className="text-sm flex items-start gap-2 bg-muted/30 rounded-xl p-2.5 border border-border/50"
+                              className="flex items-start gap-2 rounded-xl border border-border/50 bg-muted/30 p-2.5 text-sm"
                             >
-                              <span className="text-primary font-bold text-xs mt-0.5 shrink-0">{index + 1}.</span>
+                              <span className="mt-0.5 shrink-0 text-xs font-bold text-primary">{index + 1}.</span>
                               <span className="leading-relaxed">{point}</span>
                             </motion.li>
                           ))}
@@ -629,7 +700,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
                     {analysis.nextSteps && analysis.nextSteps.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                        <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
                           <ArrowRight className="h-3 w-3" />
                           Próximos Passos
                         </h4>
@@ -640,9 +711,9 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.05 }}
-                              className="text-sm flex items-start gap-2 bg-primary/5 rounded-xl p-2.5 border border-primary/10"
+                              className="flex items-start gap-2 rounded-xl border border-primary/10 bg-primary/5 p-2.5 text-sm"
                             >
-                              <span className="text-primary shrink-0 mt-0.5">→</span>
+                              <span className="mt-0.5 shrink-0 text-primary">→</span>
                               <span className="leading-relaxed">{step}</span>
                             </motion.li>
                           ))}
@@ -651,62 +722,58 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                     )}
                   </TabsContent>
 
-                  {/* ===== HISTÓRICO ===== */}
                   <TabsContent value="historico" className="mt-4 space-y-3">
                     {historyLoading ? (
                       <div className="flex items-center justify-center py-8">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                       </div>
                     ) : analyses.length > 0 ? (
-                      analyses.map((a) => (
+                      analyses.map((item) => (
                         <motion.div
-                          key={a.id}
+                          key={item.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-muted/30 rounded-xl p-3 cursor-pointer hover:bg-muted/50 transition-colors border border-border/50"
-                          onClick={() => setAnalysis({
-                            summary: a.summary,
-                            status: a.status,
-                            keyPoints: a.key_points,
-                            nextSteps: a.next_steps,
-                            sentiment: a.sentiment,
-                            sentimentScore: a.sentiment_score,
-                            topics: a.topics,
-                            urgency: a.urgency ?? undefined,
-                            customerSatisfaction: a.customer_satisfaction ?? undefined,
-                          })}
+                          className="cursor-pointer rounded-xl border border-border/50 bg-muted/30 p-3 transition-colors hover:bg-muted/50"
+                          onClick={() =>
+                            setAnalysis({
+                              summary: item.summary,
+                              status: item.status,
+                              keyPoints: item.key_points,
+                              nextSteps: item.next_steps,
+                              sentiment: item.sentiment,
+                              sentimentScore: item.sentiment_score,
+                              topics: item.topics,
+                              urgency: item.urgency ?? undefined,
+                              customerSatisfaction: item.customer_satisfaction ?? undefined,
+                            })
+                          }
                         >
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="mb-2 flex items-center justify-between">
                             <span className="text-[10px] text-muted-foreground">
-                              {format(new Date(a.created_at), "dd 'de' MMM, HH:mm", { locale: ptBR })}
+                              {format(new Date(item.created_at), "dd 'de' MMM, HH:mm", { locale: ptBR })}
                             </span>
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] ${sentimentConfig[a.sentiment]?.color || ''}`}
-                            >
-                              {a.sentiment_score}%
+                            <Badge variant="outline" className={`text-[10px] ${sentimentConfig[item.sentiment]?.color || ''}`}>
+                              {item.sentiment_score}%
                             </Badge>
                           </div>
-                          <p className="text-xs line-clamp-2 leading-relaxed">{a.summary}</p>
-                          <div className="flex items-center gap-1.5 mt-2">
+                          <p className="line-clamp-2 text-xs leading-relaxed">{item.summary}</p>
+                          <div className="mt-2 flex items-center gap-1.5">
                             <Badge variant="secondary" className="text-[10px]">
-                              {a.message_count} msgs
+                              {item.message_count} msgs
                             </Badge>
-                            {statusConfig[a.status] && (
-                              <Badge variant="outline" className={`text-[10px] ${statusConfig[a.status].className}`}>
-                                {statusConfig[a.status].label}
+                            {statusConfig[item.status] && (
+                              <Badge variant="outline" className={`text-[10px] ${statusConfig[item.status].className}`}>
+                                {statusConfig[item.status].label}
                               </Badge>
                             )}
                           </div>
                         </motion.div>
                       ))
                     ) : (
-                      <div className="text-center py-8">
-                        <History className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <div className="py-8 text-center">
+                        <History className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">Nenhuma análise anterior</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Clique em &quot;Analisar&quot; para criar a primeira
-                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">Clique em &quot;Analisar&quot; para criar a primeira</p>
                       </div>
                     )}
                   </TabsContent>
@@ -714,28 +781,20 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
               </motion.div>
             )}
 
-            {/* Empty state */}
             {!analysis && !isLoading && canAnalyze && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-8"
-              >
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
                   <Brain className="h-8 w-8 text-primary/60" />
                 </div>
-                <p className="text-sm font-medium text-foreground mb-1">Analise esta conversa</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Resumo, sentimento, pontos-chave,<br/>desempenho e oportunidades
-                </p>
+                <p className="mb-1 text-sm font-medium text-foreground">Analise esta conversa</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">Resumo, sentimento, pontos-chave, desempenho e oportunidades</p>
               </motion.div>
             )}
           </div>
         </ScrollArea>
 
-        {/* Footer */}
         {analysis && !isLoading && (
-          <div className="p-3 border-t border-border">
+          <div className="border-t border-border p-3">
             <Button
               variant="ghost"
               size="sm"
