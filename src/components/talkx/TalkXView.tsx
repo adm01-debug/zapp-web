@@ -27,6 +27,33 @@ export default function TalkXView() {
   const [showEditor, setShowEditor] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<TalkXCampaign | null>(null);
   const [activeTab, setActiveTab] = useState('campaigns');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const filteredCampaigns = useMemo(() => {
+    let result = campaigns;
+    if (statusFilter !== 'all') {
+      result = result.filter((c) => c.status === statusFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.message_template.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [campaigns, searchQuery, statusFilter]);
+
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (e.key === 'n' && !e.ctrlKey && !e.metaKey && !showEditor) {
+      e.preventDefault();
+      handleNewCampaign();
+    }
+  }, [showEditor]);
 
   useEffect(() => {
     const channel = supabase
