@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useExternalContact360Batch, type CRMBatchResult } from '@/hooks/useExternalContact360Batch';
+import { useExternalContact360Batch } from '@/hooks/useExternalContact360Batch';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
 import { ContactForm } from '@/components/contacts/ContactForm';
