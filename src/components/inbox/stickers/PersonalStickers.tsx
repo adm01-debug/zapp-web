@@ -36,10 +36,12 @@ export function PersonalStickers({ onSend }: PersonalStickersProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, display_name')
+        .select('id, name')
         .single();
       if (error) throw error;
       return data;
+    },
+  });
     },
   });
 
