@@ -140,7 +140,10 @@ export const ContactForm = React.memo(function ContactForm({
     if (touched.phone) {
       setErrors(prev => ({ ...prev, phone: validate('phone', formatted) }));
     }
-  }, [onChange, touched, validate]);
+    // Debounced duplicate check
+    clearTimeout(dupCheckTimer.current);
+    dupCheckTimer.current = setTimeout(() => checkDuplicate(formatted), 500);
+  }, [onChange, touched, validate, checkDuplicate]);
 
   const handleSubmit = useCallback(() => {
     const newErrors: FieldError = {
