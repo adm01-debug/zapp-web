@@ -599,23 +599,36 @@ export function ContactsView() {
           ))}
         </div>
       ) : viewMode === 'list' ? (
-        <div className="space-y-2">
-          {filteredContacts.map((contact, index) => (
-            <ContactListItem
-              key={contact.id}
-              contact={contact}
-              isSelected={selectedIds.includes(contact.id)}
-              onToggleSelect={handleToggleSelect}
-              onOpenChat={openContactChat}
-              onEdit={openEditDialog}
-              onDelete={setDeleteTarget}
-              index={index}
-              companyLogo={getCRMData(contact.phone)?.logo_url}
-              companyName={getCRMData(contact.phone)?.company_name}
-              searchQuery={search}
-            />
-          ))}
-        </div>
+        groupByCompany ? (
+          <ContactGroupedList
+            contacts={filteredContacts}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            onOpenChat={openContactChat}
+            onEdit={openEditDialog}
+            onDelete={setDeleteTarget}
+            getCRMData={getCRMData}
+            searchQuery={search}
+          />
+        ) : (
+          <div className="space-y-2">
+            {filteredContacts.map((contact, index) => (
+              <ContactListItem
+                key={contact.id}
+                contact={contact}
+                isSelected={selectedIds.includes(contact.id)}
+                onToggleSelect={handleToggleSelect}
+                onOpenChat={openContactChat}
+                onEdit={openEditDialog}
+                onDelete={setDeleteTarget}
+                index={index}
+                companyLogo={getCRMData(contact.phone)?.logo_url}
+                companyName={getCRMData(contact.phone)?.company_name}
+                searchQuery={search}
+              />
+            ))}
+          </div>
+        )
       ) : (
         <Card>
           <CardContent className="p-0">
