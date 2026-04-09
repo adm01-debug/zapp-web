@@ -102,6 +102,10 @@ Deno.serve(async (req) => {
   const userId = extractUserIdFromRequest(req);
 
   try {
+    const ip = getClientIP(req);
+    const { allowed } = checkRateLimit(`proxy:${ip}`, 30, 60_000);
+    if (!allowed) return errorResponse("Limite de requisições excedido. Tente novamente em 1 minuto.", 429, req);
+
     const parsed = parseBody(AiProxySchema, await req.json());
     if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
