@@ -168,6 +168,7 @@ export function ChatPanelHeader({
               size="icon" 
               className="w-9 h-9 text-primary bg-primary/10 hover:bg-primary/20 hover:text-primary ring-1 ring-primary/20"
               onClick={onOpenSearch}
+              aria-label="Buscar na conversa"
             >
               <Search className="w-[18px] h-[18px]" />
             </Button>
@@ -183,6 +184,7 @@ export function ChatPanelHeader({
                   variant="ghost"
                   size="icon"
                   className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  aria-label="Ferramentas de IA"
                 >
                   <ShieldQuestion className="w-[18px] h-[18px]" />
                 </Button>
@@ -212,6 +214,7 @@ export function ChatPanelHeader({
                 showAIAssistant && "text-primary bg-primary/10"
               )}
               onClick={onToggleAIAssistant}
+              aria-label="Assistente IA"
             >
               <Brain className="w-[18px] h-[18px]" />
             </Button>
