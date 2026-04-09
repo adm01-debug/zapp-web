@@ -186,8 +186,28 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       const transcriptions: { messageId: string; text: string }[] = [];
       
       for (const msg of audioMessages) {
+        // Resolve fresh signed URL to avoid expired tokens
+        let freshUrl = msg.mediaUrl;
+        if (freshUrl && freshUrl.includes('/storage/v1/') && freshUrl.includes('token=')) {
+          const buckets = ['whatsapp-media', 'audio-messages'];
+          for (const bucket of buckets) {
+            const marker = `/${bucket}/`;
+            const idx = freshUrl.indexOf(marker);
+            if (idx !== -1) {
+              const path = freshUrl.substring(idx + marker.length).split('?')[0];
+              const { data: signedData } = await supabase.storage
+                .from(bucket)
+                .createSignedUrl(path, 3600);
+              if (signedData?.signedUrl) {
+                freshUrl = signedData.signedUrl;
+              }
+              break;
+            }
+          }
+        }
+
         const { data, error } = await supabase.functions.invoke('ai-transcribe-audio', {
-          body: { audioUrl: msg.mediaUrl, messageId: msg.id }
+          body: { audioUrl: freshUrl, messageId: msg.id }
         });
         
         if (!error && data?.transcription) {
