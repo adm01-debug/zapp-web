@@ -292,7 +292,7 @@ function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
           <Button
             variant="secondary"
             size="sm"
-            className="h-9 px-3 font-semibold text-xs"
+            className={cn("h-9 px-3 font-semibold text-xs", playbackRate < 1 && "bg-red-500/20 hover:bg-red-500/30 text-red-400")}
             onClick={(e) => {
               e.stopPropagation();
               cycleSpeed();

@@ -462,9 +462,11 @@ export function AudioMessagePlayer({
             }}
             className={cn(
               'h-6 px-1.5 rounded-full text-[10px] font-semibold transition-colors',
-              isSent
-                ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground'
-                : 'bg-primary/10 hover:bg-primary/20 text-primary'
+              playbackRate < 1
+                ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
+                : isSent
+                  ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground'
+                  : 'bg-primary/10 hover:bg-primary/20 text-primary'
             )}
             title="Velocidade de reprodução"
           >
