@@ -447,6 +447,21 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
             </AccordionItem>
           </motion.div>
 
+          {/* Linha do Tempo */}
+          <motion.div custom={6.8} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="timeline" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <GitBranch className="w-3.5 h-3.5 text-primary" />
+                  Linha do Tempo
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ConversationTimeline contactId={contact.id} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
           {/* Histórico */}
           <motion.div custom={7} initial="hidden" animate="visible" variants={sectionVariants}>
             <AccordionItem value="history" className="border-border/30">
