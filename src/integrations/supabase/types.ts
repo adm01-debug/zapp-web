@@ -6964,6 +6964,10 @@ export type Database = {
         }[]
       }
       is_admin_or_supervisor: { Args: { _user_id: string }; Returns: boolean }
+      is_contact_visible_to_user: {
+        Args: { _contact_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_country_allowed: {
         Args: { check_country_code: string }
         Returns: boolean
