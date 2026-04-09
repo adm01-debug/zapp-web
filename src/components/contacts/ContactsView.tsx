@@ -28,7 +28,7 @@ import {
   Search, Plus, Download, Upload, Phone, Tag, Filter, RefreshCw,
   Building, Briefcase, Users, UserCheck, Truck, Wrench, Star,
   Handshake, MoreHorizontal, X, CalendarDays, SortAsc, CheckCircle2,
-  Copy, ChevronLeft, ChevronRight, Sparkles, Trash2,
+  Copy, ChevronLeft, ChevronRight, Sparkles, Trash2, Loader2, FileSpreadsheet,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -327,14 +327,27 @@ export function ContactsView() {
       {/* Search, Sort, Filters, View Switcher */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="space-y-4">
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[240px] max-w-md">
+          <div className="relative flex-1 min-w-[240px] max-w-md group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome, telefone, email ou empresa..."
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-9"
+              className="pl-9 pr-9"
             />
+            {searchInput && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            {searchInput && searchInput !== search && (
+              <div className="absolute right-9 top-1/2 -translate-y-1/2">
+                <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin" />
+              </div>
+            )}
           </div>
 
           <Select value={sortBy} onValueChange={setSortBy}>
