@@ -1,35 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
-  Zap, Plus, Play, Pause, X, Trash2, Eye, Users, Clock,
-  CheckCircle2, XCircle, Loader2, MessageSquare,
-  Send, BarChart3, Copy
+  Zap, Plus, Play, Eye, Loader2, MessageSquare,
+  Send, BarChart3, CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
 import { supabase } from '@/integrations/supabase/client';
 import { TalkXCampaignEditor } from './TalkXCampaignEditor';
 import { TalkXLiveMonitor } from './TalkXLiveMonitor';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { TalkXCampaignCard } from './TalkXCampaignCard';
 import { toast } from 'sonner';
-
-const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
-  draft: { label: 'Rascunho', variant: 'secondary', icon: MessageSquare },
-  sending: { label: 'Enviando', variant: 'default', icon: Loader2 },
-  paused: { label: 'Pausada', variant: 'outline', icon: Pause },
-  completed: { label: 'Concluída', variant: 'default', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelada', variant: 'destructive', icon: XCircle },
-};
 
 export default function TalkXView() {
   const {
@@ -41,7 +24,6 @@ export default function TalkXView() {
   const [editingCampaign, setEditingCampaign] = useState<TalkXCampaign | null>(null);
   const [activeTab, setActiveTab] = useState('campaigns');
 
-  // Realtime subscription for campaign updates → auto refetch
   useEffect(() => {
     const channel = supabase
       .channel('talkx-realtime')
@@ -58,12 +40,7 @@ export default function TalkXView() {
     setTimeout(() => setShowEditor(true), 0);
   };
 
-  const handleEditCampaign = (campaign: TalkXCampaign) => {
-    setEditingCampaign(campaign);
-    setShowEditor(true);
-  };
-
-  const handleDuplicateCampaign = async (campaign: TalkXCampaign) => {
+  const handleDuplicate = async (campaign: TalkXCampaign) => {
     try {
       await createCampaign.mutateAsync({
         name: `${campaign.name} (cópia)`,
@@ -73,6 +50,8 @@ export default function TalkXView() {
         send_interval_min: campaign.send_interval_min,
         send_interval_max: campaign.send_interval_max,
         whatsapp_connection_id: campaign.whatsapp_connection_id,
+        media_url: campaign.media_url,
+        media_type: campaign.media_type,
       });
       toast.success('Campanha duplicada!');
     } catch {
@@ -80,14 +59,9 @@ export default function TalkXView() {
     }
   };
 
-  const handleViewCampaign = (campaign: TalkXCampaign) => {
+  const handleView = (campaign: TalkXCampaign) => {
     setSelectedCampaignId(campaign.id);
     setActiveTab('monitor');
-  };
-
-  const getProgress = (c: TalkXCampaign) => {
-    if (c.total_recipients === 0) return 0;
-    return Math.round(((c.sent_count + c.failed_count) / c.total_recipients) * 100);
   };
 
   if (showEditor) {
@@ -98,6 +72,13 @@ export default function TalkXView() {
       />
     );
   }
+
+  const stats = [
+    { label: 'Total', value: campaigns.length, icon: BarChart3, cls: 'text-primary' },
+    { label: 'Ativas', value: campaigns.filter(c => c.status === 'sending').length, icon: Play, cls: 'text-primary' },
+    { label: 'Concluídas', value: campaigns.filter(c => c.status === 'completed').length, icon: CheckCircle2, cls: 'text-accent-foreground' },
+    { label: 'Enviadas', value: campaigns.reduce((a, c) => a + c.sent_count, 0), icon: Send, cls: 'text-primary' },
+  ];
 
   return (
     <div className="h-full flex flex-col gap-4 md:gap-6 p-4 md:p-6 overflow-auto">
@@ -123,12 +104,7 @@ export default function TalkXView() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Total', value: campaigns.length, icon: BarChart3, cls: 'text-primary' },
-          { label: 'Ativas', value: campaigns.filter(c => c.status === 'sending').length, icon: Play, cls: 'text-primary' },
-          { label: 'Concluídas', value: campaigns.filter(c => c.status === 'completed').length, icon: CheckCircle2, cls: 'text-accent-foreground' },
-          { label: 'Enviadas', value: campaigns.reduce((a, c) => a + c.sent_count, 0), icon: Send, cls: 'text-primary' },
-        ].map(({ label, value, icon: Icon, cls }) => (
+        {stats.map(({ label, value, icon: Icon, cls }) => (
           <Card key={label} className="border-border/50">
             <CardContent className="flex items-center gap-3 p-3 md:p-4">
               <Icon className={`w-5 h-5 ${cls} shrink-0`} />
@@ -196,181 +172,19 @@ export default function TalkXView() {
           ) : (
             <div className="grid gap-3">
               <AnimatePresence mode="popLayout">
-                {campaigns.map((campaign) => {
-                  const cfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
-                  const StatusIcon = cfg.icon;
-                  const progress = getProgress(campaign);
-
-                  return (
-                    <motion.div
-                      key={campaign.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      layout
-                    >
-                      <Card className="hover:border-primary/30 transition-colors">
-                        <CardContent className="p-4 md:p-5">
-                          <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 md:gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <h3 className="font-semibold text-foreground truncate">{campaign.name}</h3>
-                                <Badge variant={cfg.variant} className="gap-1 shrink-0">
-                                  <StatusIcon className={`w-3 h-3 ${campaign.status === 'sending' ? 'animate-spin' : ''}`} />
-                                  {cfg.label}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground line-clamp-1 mb-3">
-                                {campaign.message_template}
-                              </p>
-                              <div className="flex items-center gap-3 md:gap-4 text-xs text-muted-foreground flex-wrap">
-                                <span className="flex items-center gap-1">
-                                  <Users className="w-3.5 h-3.5" />
-                                  {campaign.total_recipients}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                                  {campaign.sent_count} enviadas
-                                </span>
-                                {campaign.failed_count > 0 && (
-                                  <span className="flex items-center gap-1">
-                                    <XCircle className="w-3.5 h-3.5 text-destructive" />
-                                    {campaign.failed_count}
-                                  </span>
-                                )}
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {campaign.typing_delay_min / 1000}–{campaign.typing_delay_max / 1000}s
-                                </span>
-                                {campaign.created_at && (
-                                  <span className="text-muted-foreground/60">
-                                    {format(new Date(campaign.created_at), "dd MMM yyyy", { locale: ptBR })}
-                                  </span>
-                                )}
-                              </div>
-                              {campaign.status === 'sending' && (
-                                <div className="mt-3">
-                                  <Progress value={progress} className="h-2" />
-                                  <p className="text-[10px] text-muted-foreground mt-1 text-right">{progress}%</p>
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex gap-2 shrink-0 flex-wrap">
-                              {campaign.status === 'draft' && (
-                                <>
-                                  <Button size="sm" variant="outline" onClick={() => handleEditCampaign(campaign)}>
-                                    Editar
-                                  </Button>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button size="sm" disabled={campaign.total_recipients === 0} className="gap-1">
-                                        <Play className="w-3.5 h-3.5" />
-                                        Iniciar
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Iniciar campanha?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          As mensagens serão enviadas para {campaign.total_recipients} contatos. Esta ação não pode ser desfeita.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => startCampaign(campaign.id)}>
-                                          Iniciar envio
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                  <Button size="icon" variant="ghost" onClick={() => handleDuplicateCampaign(campaign)} title="Duplicar">
-                                    <Copy className="w-4 h-4" />
-                                  </Button>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button size="icon" variant="ghost" className="text-destructive">
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Excluir campanha?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          A campanha "{campaign.name}" será excluída permanentemente.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                          onClick={() => deleteCampaign.mutate(campaign.id)}
-                                        >
-                                          Excluir
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                </>
-                              )}
-                              {campaign.status === 'sending' && (
-                                <>
-                                  <Button size="sm" variant="outline" onClick={() => pauseCampaign(campaign.id)} className="gap-1">
-                                    <Pause className="w-3.5 h-3.5" />
-                                    Pausar
-                                  </Button>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button size="sm" variant="destructive" className="gap-1">
-                                        <X className="w-3.5 h-3.5" />
-                                        Cancelar
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Cancelar campanha?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          O envio será interrompido permanentemente. Mensagens já enviadas não serão afetadas.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Voltar</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                          onClick={() => cancelCampaign(campaign.id)}
-                                        >
-                                          Confirmar cancelamento
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                </>
-                              )}
-                              {campaign.status === 'paused' && (
-                                <Button size="sm" onClick={() => startCampaign(campaign.id)} className="gap-1">
-                                  <Play className="w-3.5 h-3.5" />
-                                  Retomar
-                                </Button>
-                              )}
-                              {(campaign.status === 'completed' || campaign.status === 'cancelled') && (
-                                <Button size="icon" variant="ghost" onClick={() => handleDuplicateCampaign(campaign)} title="Duplicar">
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleViewCampaign(campaign)}
-                                title="Ver detalhes"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+                {campaigns.map((campaign) => (
+                  <TalkXCampaignCard
+                    key={campaign.id}
+                    campaign={campaign}
+                    onEdit={(c) => { setEditingCampaign(c); setShowEditor(true); }}
+                    onView={handleView}
+                    onDuplicate={handleDuplicate}
+                    onStart={startCampaign}
+                    onPause={pauseCampaign}
+                    onCancel={cancelCampaign}
+                    onDelete={(id) => deleteCampaign.mutate(id)}
+                  />
+                ))}
               </AnimatePresence>
             </div>
           )}
