@@ -32,6 +32,13 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const previousContactIdRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+
+  // Track mount state to prevent setState after unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   // Fetch messages for contact
   const fetchMessages = useCallback(async () => {
