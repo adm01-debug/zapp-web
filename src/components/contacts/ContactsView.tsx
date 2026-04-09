@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExternalContact360Batch } from '@/hooks/useExternalContact360Batch';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -105,11 +105,45 @@ export function ContactsView() {
   const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
   const { lookup: getCRMData } = useExternalContact360Batch(contactPhones);
 
-  const handleToggleSelect = (id: string, selected: boolean) => {
+  const handleToggleSelect = useCallback((id: string, selected: boolean) => {
     setSelectedIds(prev =>
       selected ? [...prev, id] : prev.filter(i => i !== id)
     );
-  };
+  }, [setSelectedIds]);
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedIds.length === filteredContacts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredContacts.map(c => c.id));
+    }
+  }, [selectedIds.length, filteredContacts, setSelectedIds]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl+N → New contact
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        setIsAddDialogOpen(true);
+      }
+      // Escape → Clear search / deselect
+      if (e.key === 'Escape') {
+        if (selectedIds.length > 0) {
+          setSelectedIds([]);
+        } else if (searchInput) {
+          clearSearch();
+        }
+      }
+      // Ctrl+A → Select all (when not in input)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        handleSelectAll();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedIds.length, searchInput, clearSearch, setIsAddDialogOpen, setSelectedIds, handleSelectAll]);
 
   return (
     <div ref={scrollContainerRef} className="p-6 space-y-5 overflow-y-auto h-full relative bg-background">
