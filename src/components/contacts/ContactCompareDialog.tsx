@@ -24,7 +24,6 @@ const FIELDS: { key: keyof Contact; label: string; icon: React.ReactNode }[] = [
   { key: 'company', label: 'Empresa', icon: <Building className="w-3.5 h-3.5" /> },
   { key: 'job_title', label: 'Cargo', icon: <Briefcase className="w-3.5 h-3.5" /> },
   { key: 'contact_type', label: 'Tipo', icon: <Tag className="w-3.5 h-3.5" /> },
-  { key: 'notes', label: 'Notas', icon: <Tag className="w-3.5 h-3.5" /> },
 ];
 
 export function ContactCompareDialog({ open, onOpenChange, contacts }: ContactCompareDialogProps) {
@@ -54,7 +53,7 @@ export function ContactCompareDialog({ open, onOpenChange, contacts }: ContactCo
                       >
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={c.avatar_url || undefined} />
-                          <AvatarFallback className={getAvatarColor(c.name)}>
+                          <AvatarFallback className={cn(getAvatarColor(c.name).bg, getAvatarColor(c.name).text)}>
                             {getInitials(c.name)}
                           </AvatarFallback>
                         </Avatar>
