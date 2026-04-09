@@ -195,6 +195,7 @@ export default function TalkXView() {
                   <SelectItem value="sending">Enviando</SelectItem>
                   <SelectItem value="paused">Pausada</SelectItem>
                   <SelectItem value="completed">Concluída</SelectItem>
+                  <SelectItem value="scheduled">Agendada</SelectItem>
                   <SelectItem value="cancelled">Cancelada</SelectItem>
                 </SelectContent>
               </Select>
