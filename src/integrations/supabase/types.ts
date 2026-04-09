@@ -4474,6 +4474,7 @@ export type Database = {
           image_url: string
           is_favorite: boolean | null
           name: string | null
+          owner_id: string | null
           updated_at: string | null
           uploaded_by: string | null
           use_count: number | null
@@ -4485,6 +4486,7 @@ export type Database = {
           image_url: string
           is_favorite?: boolean | null
           name?: string | null
+          owner_id?: string | null
           updated_at?: string | null
           uploaded_by?: string | null
           use_count?: number | null
@@ -4496,11 +4498,27 @@ export type Database = {
           image_url?: string
           is_favorite?: boolean | null
           name?: string | null
+          owner_id?: string | null
           updated_at?: string | null
           uploaded_by?: string | null
           use_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stickers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stickers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tags: {
         Row: {
