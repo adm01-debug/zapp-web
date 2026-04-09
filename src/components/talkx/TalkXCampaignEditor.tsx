@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   ArrowLeft, Save, Users, Wand2, Eye, Clock, MessageSquare, Type, Search,
-  Image, FileText, Video, Music, X, CalendarClock
+  Image, FileText, Video, Music, X, CalendarClock, BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
