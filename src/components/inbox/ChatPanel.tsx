@@ -54,38 +54,64 @@ interface ChatPanelProps {
   hideHeader?: boolean;
 }
 
+// Dialog state reducer to minimize re-renders from many boolean flags
+type DialogKey = 'quickReplies' | 'slashCommands' | 'transferDialog' | 'scheduleDialog' | 
+  'callDialog' | 'globalSearch' | 'chatSearch' | 'interactiveBuilder' | 'forwardDialog' | 
+  'locationPicker' | 'aiAssistant' | 'catalogDirect' | 'whisper' | 'templatesWithVars' | 
+  'realtimeTranscription' | 'closeDialog';
+
+type DialogState = Record<DialogKey, boolean>;
+
+type DialogAction = 
+  | { type: 'TOGGLE'; key: DialogKey }
+  | { type: 'OPEN'; key: DialogKey }
+  | { type: 'CLOSE'; key: DialogKey }
+  | { type: 'RESET'; keys: DialogKey[] };
+
+const initialDialogState: DialogState = {
+  quickReplies: false, slashCommands: false, transferDialog: false, scheduleDialog: false,
+  callDialog: false, globalSearch: false, chatSearch: false, interactiveBuilder: false,
+  forwardDialog: false, locationPicker: false, aiAssistant: false, catalogDirect: false,
+  whisper: false, templatesWithVars: false, realtimeTranscription: false, closeDialog: false,
+};
+
+function dialogReducer(state: DialogState, action: DialogAction): DialogState {
+  switch (action.type) {
+    case 'TOGGLE': return { ...state, [action.key]: !state[action.key] };
+    case 'OPEN': return state[action.key] ? state : { ...state, [action.key]: true };
+    case 'CLOSE': return state[action.key] ? { ...state, [action.key]: false } : state;
+    case 'RESET': {
+      const next = { ...state };
+      let changed = false;
+      for (const k of action.keys) { if (next[k]) { next[k] = false; changed = true; } }
+      return changed ? next : state;
+    }
+    default: return state;
+  }
+}
+
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack, hideHeader = false }: ChatPanelProps) {
-  // ── State ──
+  // ── Dialog State (consolidated) ──
+  const [dialogs, dispatch] = useReducer(dialogReducer, initialDialogState);
+  const openDialog = useCallback((key: DialogKey) => dispatch({ type: 'OPEN', key }), []);
+  const closeDialog = useCallback((key: DialogKey) => dispatch({ type: 'CLOSE', key }), []);
+  const toggleDialog = useCallback((key: DialogKey) => dispatch({ type: 'TOGGLE', key }), []);
+
+  // ── Core State ──
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(false);
-  const [showSlashCommands, setShowSlashCommands] = useState(false);
-  const [showTransferDialog, setShowTransferDialog] = useState(false);
-  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
-  const [showCallDialog, setShowCallDialog] = useState(false);
   const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
-  const [showChatSearch, setShowChatSearch] = useState(false);
   const [highlightedMessageIds, setHighlightedMessageIds] = useState<Set<string>>(new Set());
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showInteractiveBuilder, setShowInteractiveBuilder] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
-  const [showForwardDialog, setShowForwardDialog] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [showCatalogDirect, setShowCatalogDirect] = useState(false);
-  const [showWhisper, setShowWhisper] = useState(false);
-  const [showTemplatesWithVars, setShowTemplatesWithVars] = useState(false);
-  const [showRealtimeTranscription, setShowRealtimeTranscription] = useState(false);
   const [summaryData, setSummaryData] = useState<Record<string, unknown> | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [hasSummary, setHasSummary] = useState(false);
-  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
