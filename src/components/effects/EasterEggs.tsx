@@ -280,7 +280,7 @@ export const EasterEggsProvider = forwardRef<HTMLDivElement, EasterEggsProviderP
       `}</style>
     </>
   );
-}
+});
 
 // Hook to trigger easter eggs programmatically
 export function useEasterEggs() {
