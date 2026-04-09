@@ -5,7 +5,7 @@ import { Conversation } from '@/types/chat';
 import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image, ListTodo, Bell, BookOpen, TrendingUp, ShoppingBag } from 'lucide-react';
+import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image, ListTodo, Bell, BookOpen, TrendingUp, ShoppingBag, GitBranch } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivateNotes } from './PrivateNotes';
 import { ConversationHistory } from './ConversationHistory';
@@ -24,6 +24,7 @@ import { RemindersPanel } from './RemindersPanel';
 import { ConversationMemoryPanel } from './ConversationMemoryPanel';
 import { LeadRiskScorePanel } from './LeadRiskScorePanel';
 import { ContactPurchasesPanel } from './ContactPurchasesPanel';
+import { ConversationTimeline } from './ConversationTimeline';
 import { useConversationActions } from '@/hooks/useConversationActions';
 
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
@@ -442,6 +443,21 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 <PrivateNotes contactId={contact.id} />
+              </AccordionContent>
+            </AccordionItem>
+          </motion.div>
+
+          {/* Linha do Tempo */}
+          <motion.div custom={6.8} initial="hidden" animate="visible" variants={sectionVariants}>
+            <AccordionItem value="timeline" className="border-border/30">
+              <AccordionTrigger className="px-4 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:no-underline hover:bg-muted/10">
+                <div className="flex items-center gap-2">
+                  <GitBranch className="w-3.5 h-3.5 text-primary" />
+                  Linha do Tempo
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ConversationTimeline contactId={contact.id} />
               </AccordionContent>
             </AccordionItem>
           </motion.div>
