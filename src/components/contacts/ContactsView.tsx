@@ -28,7 +28,8 @@ import {
   Search, Plus, Download, Upload, Phone, Tag, Filter, RefreshCw,
   Building, Briefcase, Users, UserCheck, Truck, Wrench, Star,
   Handshake, MoreHorizontal, X, CalendarDays, SortAsc, CheckCircle2,
-  Copy, ChevronLeft, ChevronRight, Sparkles, Trash2,
+  Copy, ChevronLeft, ChevronRight, Sparkles, Trash2, Loader2,
+  FileSpreadsheet, Merge, GitCompareArrows, LayoutList,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
