@@ -557,14 +557,60 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
               </Button>
             </div>
             {!campaign && (
-              <div className="relative mt-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={contactSearch}
-                  onChange={(e) => setContactSearch(e.target.value)}
-                  placeholder="Buscar por nome, telefone, empresa..."
-                  className="pl-9 h-9 text-sm"
-                />
+              <div className="space-y-2 mt-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    placeholder="Buscar por nome, telefone, empresa..."
+                    className="pl-9 h-9 text-sm"
+                  />
+                </div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {companies.length > 0 && (
+                    <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                      <SelectTrigger className="h-7 text-[11px] w-auto min-w-[100px] max-w-[160px]">
+                        <Building2 className="w-3 h-3 mr-1 shrink-0" />
+                        <SelectValue placeholder="Empresa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas empresas</SelectItem>
+                        {companies.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {tags.length > 0 && (
+                    <Select value={tagFilter} onValueChange={setTagFilter}>
+                      <SelectTrigger className="h-7 text-[11px] w-auto min-w-[80px] max-w-[140px]">
+                        <Tag className="w-3 h-3 mr-1 shrink-0" />
+                        <SelectValue placeholder="Tag" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas tags</SelectItem>
+                        {tags.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {(companyFilter !== 'all' || tagFilter !== 'all') && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-[11px] text-muted-foreground"
+                      onClick={() => { setCompanyFilter('all'); setTagFilter('all'); }}
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {filteredContacts.length} contatos filtrados • {selectedContacts.length} selecionados
+                </p>
               </div>
             )}
           </CardHeader>
