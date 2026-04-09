@@ -62,6 +62,7 @@ export const primaryNav: readonly NavItemConfig[] = [
 
 // ── Communication & Engagement ────────────────────────────
 export const communicationNav: readonly NavItemConfig[] = [
+  { id: 'talkx', icon: Zap, label: 'Talk X' },
   { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
   { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
   { id: 'gmail', icon: Mail, label: 'Gmail' },

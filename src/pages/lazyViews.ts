@@ -54,7 +54,7 @@ export const MediaMigrationTool = lazy(() => import('@/components/admin/MediaMig
 export const SicoobBridgeDashboard = lazy(() => import('@/components/admin/SicoobBridgeDashboard').then(m => ({ default: m.SicoobBridgeDashboard })));
 export const CRM360ExplorerView = lazy(() => import('@/components/crm360/CRM360ExplorerView').then(m => ({ default: m.CRM360ExplorerView })));
 export const AIUsageDashboard = lazy(() => import('@/components/admin/AIUsageDashboard').then(m => ({ default: m.AIUsageDashboard })));
-
+export const TalkXView = lazy(() => import('@/components/talkx/TalkXView'));
 export const AchievementsSystemLazy = lazy(async () => {
   const m = await import('@/components/gamification/AchievementsSystem');
   return { default: m.AchievementsSystem };
