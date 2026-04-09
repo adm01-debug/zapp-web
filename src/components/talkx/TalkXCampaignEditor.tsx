@@ -77,6 +77,8 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
   const [showPreview, setShowPreview] = useState(false);
   const [contactSearch, setContactSearch] = useState('');
   const [saving, setSaving] = useState(false);
+  const [companyFilter, setCompanyFilter] = useState<string>('all');
+  const [tagFilter, setTagFilter] = useState<string>('all');
 
   // Media state
   const [mediaUrl, setMediaUrl] = useState(campaign?.media_url || '');
@@ -107,25 +109,51 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('contacts')
-        .select('id, name, nickname, phone, company, avatar_url')
+        .select('id, name, nickname, phone, company, avatar_url, tags')
         .not('phone', 'is', null)
         .order('name');
       return data || [];
     },
   });
 
+  // Extract unique companies and tags for filters
+  const { companies, tags } = useMemo(() => {
+    if (!contacts) return { companies: [], tags: [] };
+    const companySet = new Set<string>();
+    const tagSet = new Set<string>();
+    contacts.forEach((c) => {
+      if (c.company) companySet.add(c.company);
+      if (c.tags && Array.isArray(c.tags)) {
+        c.tags.forEach((t: string) => tagSet.add(t));
+      }
+    });
+    return {
+      companies: Array.from(companySet).sort(),
+      tags: Array.from(tagSet).sort(),
+    };
+  }, [contacts]);
+
   const filteredContacts = useMemo(() => {
     if (!contacts) return [];
-    if (!contactSearch.trim()) return contacts;
-    const q = contactSearch.toLowerCase();
-    return contacts.filter(
-      (c) =>
-        c.name?.toLowerCase().includes(q) ||
-        c.nickname?.toLowerCase().includes(q) ||
-        c.phone?.includes(q) ||
-        c.company?.toLowerCase().includes(q)
-    );
-  }, [contacts, contactSearch]);
+    let result = contacts;
+    if (companyFilter !== 'all') {
+      result = result.filter((c) => c.company === companyFilter);
+    }
+    if (tagFilter !== 'all') {
+      result = result.filter((c) => c.tags && Array.isArray(c.tags) && c.tags.includes(tagFilter));
+    }
+    if (contactSearch.trim()) {
+      const q = contactSearch.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name?.toLowerCase().includes(q) ||
+          c.nickname?.toLowerCase().includes(q) ||
+          c.phone?.includes(q) ||
+          c.company?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [contacts, contactSearch, companyFilter, tagFilter]);
 
   const previewMessage = useMemo(() => {
     const sampleContact = contacts?.[0] || { name: 'João Silva', nickname: 'Joãozinho', company: 'Acme' };
