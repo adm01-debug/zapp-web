@@ -73,19 +73,22 @@ export function ConversationList({
   );
   const { lookup: crmLookup } = useExternalContact360Batch(allPhones);
 
-  const filteredConversations = conversations.filter((conv) => {
-    const matchesSearch = conv.contact.name.toLowerCase().includes(search.toLowerCase()) ||
-      conv.contact.phone.includes(search);
-    const matchesFilter = filter === 'all' || conv.status === filter;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredConversations = useMemo(() => {
+    const q = search.toLowerCase();
+    return conversations.filter((conv) => {
+      const matchesSearch = !q || conv.contact.name.toLowerCase().includes(q) ||
+        conv.contact.phone.includes(q);
+      const matchesFilter = filter === 'all' || conv.status === filter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [conversations, search, filter]);
 
-  const counts = {
+  const counts = useMemo(() => ({
     all: conversations.length,
     open: conversations.filter((c) => c.status === 'open').length,
     pending: conversations.filter((c) => c.status === 'pending').length,
     waiting: conversations.filter((c) => c.status === 'waiting').length,
-  };
+  }), [conversations]);
 
   return (
     <div className="flex flex-col h-full bg-sidebar border-r border-border/30">
@@ -136,7 +139,7 @@ export function ConversationList({
       </motion.div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin">
+      <div className="flex-1 overflow-y-auto scrollbar-thin" role="listbox" aria-label="Lista de conversas">
         {filteredConversations.length === 0 ? (
           <div className="flex items-center justify-center h-full p-4">
             <motion.div 

@@ -241,11 +241,19 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
     return messages.filter(m => m.content?.toLowerCase().includes(q));
   }, [messages, searchQuery]);
 
-  // Track which dates have been rendered for separators
-  const dateGroupsRef = useRef(new Set<string>());
-  // Reset when messages change
-  useMemo(() => { dateGroupsRef.current = new Set<string>(); }, [filteredMessages]);
-  const dateGroups = dateGroupsRef.current;
+  // Pre-compute which message index should show the date separator
+  const dateFirstIndexes = useMemo(() => {
+    const seen = new Set<string>();
+    const result = new Set<number>();
+    filteredMessages.forEach((msg, idx) => {
+      const dateKey = format(new Date(msg.created_at), 'yyyy-MM-dd');
+      if (!seen.has(dateKey)) {
+        seen.add(dateKey);
+        result.add(idx);
+      }
+    });
+    return result;
+  }, [filteredMessages]);
 
   return (
     <div className="flex flex-col h-full w-full relative">
@@ -314,10 +322,8 @@ export function TeamChatPanel({ conversation, onBack, onToggleDetails, showDetai
             {searchQuery ? 'Nenhuma mensagem encontrada' : 'Envie a primeira mensagem!'}
           </div>
         ) : (
-          filteredMessages.map((msg) => {
-            const dateKey = format(new Date(msg.created_at), 'yyyy-MM-dd');
-            const showDate = !dateGroups.has(dateKey);
-            if (showDate) dateGroups.add(dateKey);
+          filteredMessages.map((msg, msgIndex) => {
+            const showDate = dateFirstIndexes.has(msgIndex);
             const isMine = msg.sender_id === profile?.id;
             const isEditing = editingId === msg.id;
             const hasMedia = !!msg.media_url;
