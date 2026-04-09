@@ -7,6 +7,7 @@ import { TypingIndicatorCompact } from '../TypingIndicator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SLAIndicator } from '../SLAIndicator';
 import { VoiceSelector } from '../VoiceSelector';
+import { lazy, Suspense } from 'react';
 
 import {
   DropdownMenu,
@@ -20,6 +21,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   MoreVertical,
   Video,
@@ -37,8 +43,11 @@ import {
   FileText,
   Loader2,
   XCircle,
+  ShieldQuestion,
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
+
+const ObjectionDetector = lazy(() => import('../ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
 
 interface ChatPanelHeaderProps {
   conversation: Conversation;
@@ -60,6 +69,8 @@ interface ChatPanelHeaderProps {
   isSummaryLoading?: boolean;
   canGenerateSummary?: boolean;
   onCloseConversation?: () => void;
+  lastMessages?: string[];
+  onSelectSuggestion?: (text: string) => void;
 }
 
 export function ChatPanelHeader({
@@ -82,6 +93,8 @@ export function ChatPanelHeader({
   isSummaryLoading,
   canGenerateSummary,
   onCloseConversation,
+  lastMessages = [],
+  onSelectSuggestion,
 }: ChatPanelHeaderProps) {
   const isMobile = useIsMobile();
   
@@ -152,6 +165,32 @@ export function ChatPanelHeader({
           </TooltipTrigger>
           <TooltipContent side="bottom">Buscar na conversa (Ctrl+F)</TooltipContent>
         </Tooltip>
+
+        <Popover>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  <ShieldQuestion className="w-[18px] h-[18px]" />
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Detectar objeções</TooltipContent>
+          </Tooltip>
+          <PopoverContent side="bottom" align="end" className="w-80 p-3">
+            <Suspense fallback={null}>
+              <ObjectionDetector
+                contactId={conversation.contact.id}
+                lastMessages={lastMessages}
+                onSelectSuggestion={onSelectSuggestion}
+              />
+            </Suspense>
+          </PopoverContent>
+        </Popover>
 
         <Tooltip>
           <TooltipTrigger asChild>
