@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('TeamChatPanel');
