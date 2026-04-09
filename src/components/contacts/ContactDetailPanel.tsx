@@ -10,6 +10,8 @@ import {
   Calendar, Tag, Clock, Zap,
 } from 'lucide-react';
 import { ContactActivityTimeline } from './ContactActivityTimeline';
+import { ContactNotes } from './ContactNotes';
+import { ContactPurchaseHistory } from './ContactPurchaseHistory';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -186,6 +188,12 @@ export function ContactDetailPanel({
               contactId={contact.id}
               contactCreatedAt={contact.created_at}
             />
+
+            {/* Notes */}
+            <ContactNotes contactId={contact.id} />
+
+            {/* Purchases */}
+            <ContactPurchaseHistory contactId={contact.id} />
           </div>
         </ScrollArea>
       </motion.div>
