@@ -54,32 +54,6 @@ function createWrapper() {
 describe('useTalkX', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: [], error: null }),
-          in: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: [], error: null }),
-          }),
-        }),
-      }),
-      insert: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'new-id', name: 'Test' }, error: null }),
-        }),
-      }),
-      update: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: {}, error: null }),
-          }),
-        }),
-      }),
-      delete: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      }),
-    });
   });
 
   it('initializes with empty campaigns', async () => {
