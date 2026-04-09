@@ -135,14 +135,15 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     try {
       const { data, error } = await supabase.functions.invoke('ai-conversation-analysis', {
         body: { 
-          messages: messages.map(m => ({
+          messages: filteredMessages.map(m => ({
             id: m.id,
             sender: m.sender,
             content: m.content,
             type: m.type || 'text',
             created_at: m.created_at
           })),
-          contactName 
+          contactName,
+          periodDays: analysisPeriod === 'all' ? null : parseInt(analysisPeriod)
         }
       });
 
