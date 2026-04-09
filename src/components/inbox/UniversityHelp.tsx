@@ -3,19 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, Loader2, Sparkles, Copy, Check, RefreshCw, AlertTriangle, MessageSquare } from 'lucide-react';
+import { GraduationCap, Loader2, Sparkles, AlertTriangle, MessageSquare, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-
-const TONE_OPTIONS = [
-  { key: 'professional', label: '💼 Formal', prompt: 'Use tom formal, profissional e corporativo.' },
-  { key: 'friendly', label: '😊 Amigável', prompt: 'Use tom amigável, acolhedor e empático.' },
-  { key: 'casual', label: '🤙 Descontraído', prompt: 'Use tom descontraído, leve e informal.' },
-  { key: 'persuasive', label: '🎯 Persuasivo', prompt: 'Use tom persuasivo, confiante e orientado a resultados.' },
-] as const;
-
-type ToneKey = typeof TONE_OPTIONS[number]['key'];
+import { ToneSelector, type ToneKey, getTonePrompt } from './ai-tools/ToneSelector';
+import { AIResponseCard } from './ai-tools/AIResponseCard';
 
 interface ChatMessage {
   id: string;
@@ -30,17 +23,18 @@ interface UniversityHelpProps {
   onSelectSuggestion?: (text: string) => void;
 }
 
+type FilterMode = 'all' | 'client' | 'agent';
+
 export function UniversityHelp({ contactId, messages, onSelectSuggestion }: UniversityHelpProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [selectedTone, setSelectedTone] = useState<ToneKey>('friendly');
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const responseRef = useRef<HTMLDivElement>(null);
   const lastCallRef = useRef(0);
 
-  // Filter out empty messages, show last 30 in reverse chronological order for display
   const recentMessages = useMemo(() => {
     return messages
       .filter(m => m.content && m.content.trim().length > 0)
@@ -48,44 +42,38 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
       .reverse();
   }, [messages]);
 
-  // For AI, keep chronological order
+  const filteredMessages = useMemo(() => {
+    if (filterMode === 'client') return recentMessages.filter(m => m.sender !== 'agent');
+    if (filterMode === 'agent') return recentMessages.filter(m => m.sender === 'agent');
+    return recentMessages;
+  }, [recentMessages, filterMode]);
+
   const selectedInOrder = useMemo(() => {
     return messages.filter(m => selectedIds.has(m.id));
   }, [messages, selectedIds]);
 
-  // Auto-scroll to response when generated
   useEffect(() => {
     if (response && responseRef.current) {
       responseRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [response]);
 
-  const toggleMessage = (id: string) => {
+  const toggleMessage = useCallback((id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  const selectAll = () => {
-    if (selectedIds.size === recentMessages.length) {
+  const selectAll = useCallback(() => {
+    if (selectedIds.size === filteredMessages.length && filteredMessages.length > 0) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(recentMessages.map(m => m.id)));
+      setSelectedIds(new Set(filteredMessages.map(m => m.id)));
     }
-  };
-
-  const selectContactOnly = () => {
-    const contactMsgs = recentMessages.filter(m => m.sender !== 'agent');
-    setSelectedIds(new Set(contactMsgs.map(m => m.id)));
-  };
-
-  const selectAgentOnly = () => {
-    const agentMsgs = recentMessages.filter(m => m.sender === 'agent');
-    setSelectedIds(new Set(agentMsgs.map(m => m.id)));
-  };
+  }, [selectedIds.size, filteredMessages]);
 
   const generateResponse = useCallback(async () => {
     if (selectedIds.size === 0) {
@@ -93,7 +81,6 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
       return;
     }
 
-    // Rate limit: min 3s between calls
     const now = Date.now();
     if (now - lastCallRef.current < 3000) {
       toast.warning('Aguarde alguns segundos antes de tentar novamente.');
@@ -105,7 +92,7 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
     setResponse(null);
     setError(null);
 
-    const tonePrompt = TONE_OPTIONS.find(t => t.key === selectedTone)!.prompt;
+    const tonePrompt = getTonePrompt(selectedTone);
 
     try {
       const result = await supabase.functions.invoke('ai-proxy', {
@@ -145,27 +132,11 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
     setLoading(false);
   }, [selectedIds, selectedInOrder, selectedTone]);
 
-  const handleUse = () => {
-    if (response) {
-      onSelectSuggestion?.(response);
-      toast.success('Resposta inserida no chat!');
-    }
-  };
-
-  const handleCopy = () => {
-    if (response) {
-      navigator.clipboard.writeText(response);
-      setCopied(true);
-      toast.success('Copiado para a área de transferência!');
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleRegenerate = () => {
+  const handleRegenerate = useCallback(() => {
     setResponse(null);
     setError(null);
     generateResponse();
-  };
+  }, [generateResponse]);
 
   // Keyboard shortcut: Ctrl+Enter to generate
   useEffect(() => {
@@ -179,92 +150,102 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
     return () => window.removeEventListener('keydown', handler);
   }, [generateResponse, selectedIds.size, loading]);
 
+  const filterButtons: { mode: FilterMode; label: string }[] = [
+    { mode: 'all', label: 'Todos' },
+    { mode: 'client', label: 'Só cliente' },
+    { mode: 'agent', label: 'Só atendente' },
+  ];
+
   return (
-    <div className="space-y-2.5">
-      <div className="flex items-center gap-1.5 mb-1">
-        <GraduationCap className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs font-medium">Ajuda dos Universitários</span>
-      </div>
-      <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Selecione mensagens do chat e a IA criará uma resposta inteligente para você enviar.
-      </p>
-
-      {/* Tone selector */}
-      <div className="flex flex-wrap gap-1">
-        {TONE_OPTIONS.map(t => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setSelectedTone(t.key)}
-            className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors border ${
-              selectedTone === t.key
-                ? 'bg-primary/20 border-primary/40 text-primary'
-                : 'bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-1">
+        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+          <GraduationCap className="w-4 h-4 text-primary" />
+        </div>
+        <div>
+          <span className="text-xs font-semibold">Ajuda dos Universitários</span>
+          <p className="text-[10px] text-muted-foreground">Selecione mensagens para gerar uma resposta inteligente</p>
+        </div>
       </div>
 
-      {/* Quick select buttons */}
-      <div className="flex gap-1.5 flex-wrap">
-        <button type="button" onClick={selectAll} className="text-[10px] text-primary hover:underline">
-          {selectedIds.size === recentMessages.length && recentMessages.length > 0 ? 'Desmarcar todos' : 'Todos'}
-        </button>
-        <span className="text-[10px] text-muted-foreground">•</span>
-        <button type="button" onClick={selectContactOnly} className="text-[10px] text-primary hover:underline">
-          Só cliente
-        </button>
-        <span className="text-[10px] text-muted-foreground">•</span>
-        <button type="button" onClick={selectAgentOnly} className="text-[10px] text-primary hover:underline">
-          Só atendente
-        </button>
-        {selectedIds.size > 0 && (
-          <>
-            <span className="text-[10px] text-muted-foreground">•</span>
-            <button type="button" onClick={() => setSelectedIds(new Set())} className="text-[10px] text-destructive hover:underline">
-              Limpar
+      <ToneSelector selected={selectedTone} onChange={setSelectedTone} disabled={loading} />
+
+      {/* Filter & selection controls */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1">
+          {filterButtons.map(f => (
+            <button
+              key={f.mode}
+              type="button"
+              onClick={() => {
+                setFilterMode(f.mode);
+                setSelectedIds(new Set());
+              }}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-all border ${
+                filterMode === f.mode
+                  ? 'bg-accent border-border text-foreground'
+                  : 'bg-transparent border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              }`}
+            >
+              {f.label}
             </button>
-          </>
-        )}
-        <Badge variant="outline" className="text-[9px] h-4 px-1 ml-auto">{selectedIds.size} selecionadas</Badge>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={selectAll}
+            className="text-[10px] text-primary hover:underline font-medium"
+          >
+            {selectedIds.size === filteredMessages.length && filteredMessages.length > 0 ? 'Limpar' : 'Selecionar todos'}
+          </button>
+          <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-semibold tabular-nums">
+            {selectedIds.size}
+          </Badge>
+        </div>
       </div>
 
       {/* Message list */}
-      <ScrollArea className="h-48 rounded-lg border border-border/30 bg-muted/10">
+      <ScrollArea className="h-48 rounded-xl border border-border/30 bg-muted/5">
         <div className="p-1.5 space-y-0.5">
-          {recentMessages.map(m => (
-            <label
-              key={m.id}
-              className={`flex items-start gap-2 p-1.5 rounded-md cursor-pointer transition-all hover:bg-muted/30 ${
-                selectedIds.has(m.id) ? 'bg-primary/5 ring-1 ring-primary/20' : ''
-              }`}
-            >
-              <Checkbox
-                checked={selectedIds.has(m.id)}
-                onCheckedChange={() => toggleMessage(m.id)}
-                className="mt-0.5 shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1 mb-0.5">
+          {filteredMessages.map(m => {
+            const isSelected = selectedIds.has(m.id);
+            const isAgent = m.sender === 'agent';
+            return (
+              <label
+                key={m.id}
+                className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                  isSelected
+                    ? 'bg-primary/5 ring-1 ring-primary/20'
+                    : 'hover:bg-muted/20'
+                }`}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggleMessage(m.id)}
+                  className="mt-0.5 shrink-0"
+                />
+                <div className="min-w-0 flex-1">
                   <Badge
                     variant="outline"
-                    className={`text-[9px] px-1 py-0 h-3.5 ${
-                      m.sender === 'agent' ? 'text-primary border-primary/30 bg-primary/5' : 'text-warning border-warning/30 bg-warning/5'
+                    className={`text-[9px] px-1.5 py-0 h-4 mb-0.5 ${
+                      isAgent
+                        ? 'text-primary border-primary/30 bg-primary/5'
+                        : 'text-warning border-warning/30 bg-warning/5'
                     }`}
                   >
-                    {m.sender === 'agent' ? '🧑‍💼 Atendente' : '👤 Cliente'}
+                    {isAgent ? '🧑‍💼 Atendente' : '👤 Cliente'}
                   </Badge>
+                  <p className="text-[11px] text-foreground line-clamp-2 leading-snug">{m.content}</p>
                 </div>
-                <p className="text-[11px] text-foreground line-clamp-2 leading-tight">{m.content}</p>
-              </div>
-            </label>
-          ))}
-          {recentMessages.length === 0 && (
-            <div className="flex flex-col items-center py-6 gap-1.5">
-              <MessageSquare className="w-5 h-5 text-muted-foreground/50" />
-              <p className="text-xs text-muted-foreground">Nenhuma mensagem disponível</p>
+              </label>
+            );
+          })}
+          {filteredMessages.length === 0 && (
+            <div className="flex flex-col items-center py-8 gap-2">
+              <MessageSquare className="w-5 h-5 text-muted-foreground/40" />
+              <p className="text-[11px] text-muted-foreground">Nenhuma mensagem disponível</p>
             </div>
           )}
         </div>
@@ -274,25 +255,25 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
       <Button
         variant="default"
         size="sm"
-        className="w-full h-8 text-xs"
+        className="w-full h-9 text-xs font-medium"
         onClick={generateResponse}
         disabled={loading || selectedIds.size === 0}
         title="Ctrl+Enter para gerar"
       >
         {loading ? (
           <>
-            <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
             Gerando resposta...
           </>
         ) : (
           <>
-            <Sparkles className="w-3 h-3 mr-1.5" />
+            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
             Gerar resposta ({selectedIds.size} {selectedIds.size === 1 ? 'msg' : 'msgs'})
           </>
         )}
       </Button>
-      {selectedIds.size > 0 && !loading && (
-        <p className="text-[9px] text-muted-foreground text-center">Dica: Ctrl+Enter para gerar rapidamente</p>
+      {selectedIds.size > 0 && !loading && !response && (
+        <p className="text-[9px] text-muted-foreground text-center">⌘/Ctrl + Enter para gerar rapidamente</p>
       )}
 
       {/* Error state */}
@@ -300,12 +281,12 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
         <motion.div
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-1.5 p-2 rounded-lg bg-destructive/10 border border-destructive/20"
+          className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20"
         >
-          <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
+          <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
           <div className="min-w-0">
-            <p className="text-[11px] text-destructive font-medium mb-0.5">Erro ao gerar resposta</p>
-            <p className="text-[10px] text-destructive/80">{error}</p>
+            <p className="text-xs text-destructive font-semibold mb-0.5">Erro ao gerar resposta</p>
+            <p className="text-[11px] text-destructive/80">{error}</p>
           </div>
         </motion.div>
       )}
@@ -313,50 +294,14 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
       {/* Response */}
       <AnimatePresence>
         {response && (
-          <motion.div
-            ref={responseRef}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            className="space-y-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-primary flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Resposta sugerida
-              </span>
-              <div className="flex gap-0.5">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
-                  onClick={handleRegenerate}
-                  disabled={loading}
-                  title="Regenerar"
-                >
-                  {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
-                  onClick={handleCopy}
-                  title="Copiar"
-                >
-                  {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
-                </Button>
-              </div>
-            </div>
-            <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">{response}</p>
-            <Button
-              variant="default"
-              size="sm"
-              className="w-full h-7 text-xs font-medium"
-              onClick={handleUse}
-            >
-              Usar resposta ↵
-            </Button>
-          </motion.div>
+          <div ref={responseRef}>
+            <AIResponseCard
+              response={response}
+              onUse={onSelectSuggestion}
+              onRegenerate={handleRegenerate}
+              isRegenerating={loading}
+            />
+          </div>
         )}
       </AnimatePresence>
     </div>
