@@ -30,6 +30,8 @@ import { ForceLogoutButton } from './ForceLogoutButton';
 import { AdminCRMDashboard } from './AdminCRMDashboard';
 import { PlaybooksManager } from './PlaybooksManager';
 import { SupervisorCopilot } from './SupervisorCopilot';
+import { TrainingMode } from './TrainingMode';
+import { CrisisRoom } from './CrisisRoom';
 import { useAdminData, accessLevelConfig, type UserWithRole } from './useAdminData';
 
 const roleIconMap = { admin: Crown, supervisor: UserCog, agent: User, special_agent: Eye } as const;
@@ -38,7 +40,7 @@ const roleColorMap = { admin: 'text-warning', supervisor: 'text-info', agent: 't
 
 export function AdminView() {
   const { isAdmin, isSupervisor, loading: roleLoading } = useUserRole();
-  const [activeTab, setActiveTab] = useState<'users' | 'audit' | 'crm' | 'playbooks' | 'copilot'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'audit' | 'crm' | 'playbooks' | 'copilot' | 'training' | 'crisis'>('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -141,10 +143,10 @@ export function AdminView() {
       </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        {([['users', Users, `Usuários (${users.length})`], ['audit', History, 'Auditoria'], ['crm', Building, 'CRM 360°'], ['playbooks', Shield, 'Playbooks'], ['copilot', Brain, 'Copilot IA']] as const).map(([tab, Icon, label]) => (
+      <div className="flex gap-2 flex-wrap">
+        {([['users', Users, `Usuários (${users.length})`], ['audit', History, 'Auditoria'], ['crm', Building, 'CRM 360°'], ['playbooks', Shield, 'Playbooks'], ['copilot', Brain, 'Copilot IA'], ['training', Users, 'Treinamento'], ['crisis', Shield, 'Sala de Crise']] as const).map(([tab, Icon, label]) => (
           <Button key={tab} variant={activeTab === tab ? 'default' : 'outline'} onClick={() => setActiveTab(tab as typeof activeTab)}
-            className={activeTab === tab ? 'bg-whatsapp hover:bg-whatsapp-dark' : ''}>
+            className={activeTab === tab ? 'bg-whatsapp hover:bg-whatsapp-dark' : ''} size="sm">
             <Icon className="w-4 h-4 mr-2" /> {label}
           </Button>
         ))}
@@ -436,6 +438,10 @@ export function AdminView() {
         <PlaybooksManager />
       ) : activeTab === 'copilot' ? (
         <SupervisorCopilot />
+      ) : activeTab === 'training' ? (
+        <TrainingMode />
+      ) : activeTab === 'crisis' ? (
+        <CrisisRoom />
       ) : null}
     </div>
   );

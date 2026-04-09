@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExportButton } from './ExportButton';
 import { ConversationHeatmap } from './ConversationHeatmap';
 import { PeriodComparison } from './PeriodComparison';
+import { DemandForecast } from './DemandForecast';
+import { AbandonmentRate } from './AbandonmentRate';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
@@ -20,6 +22,7 @@ import {
 import {
   BarChart3, TrendingUp, Users, MessageSquare, Tag, Calendar,
   ArrowUpRight, ArrowDownRight, Clock, GitCompare, Flame, GitPullRequest,
+  UserX, Gauge,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -135,12 +138,14 @@ export function AdvancedReportsView() {
 
       {/* Charts */}
       <Tabs defaultValue="messages" className="space-y-4">
-        <TabsList className="grid w-full max-w-2xl grid-cols-5">
+        <TabsList className="grid w-full max-w-3xl grid-cols-7">
           <TabsTrigger value="messages" className="gap-2"><MessageSquare className="w-4 h-4" />Mensagens</TabsTrigger>
           <TabsTrigger value="agents" className="gap-2"><Users className="w-4 h-4" />Agentes</TabsTrigger>
           <TabsTrigger value="contacts" className="gap-2"><Tag className="w-4 h-4" />Contatos</TabsTrigger>
           <TabsTrigger value="heatmap" className="gap-2"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
           <TabsTrigger value="comparison" className="gap-2"><GitPullRequest className="w-4 h-4" />Comparativo</TabsTrigger>
+          <TabsTrigger value="forecast" className="gap-2"><Gauge className="w-4 h-4" />Previsão</TabsTrigger>
+          <TabsTrigger value="abandonment" className="gap-2"><UserX className="w-4 h-4" />Abandono</TabsTrigger>
         </TabsList>
 
         <TabsContent value="messages" className="space-y-4">
@@ -176,6 +181,14 @@ export function AdvancedReportsView() {
 
         <TabsContent value="comparison" className="space-y-4">
           <PeriodComparison />
+        </TabsContent>
+
+        <TabsContent value="forecast" className="space-y-4">
+          <DemandForecast />
+        </TabsContent>
+
+        <TabsContent value="abandonment" className="space-y-4">
+          <AbandonmentRate />
         </TabsContent>
       </Tabs>
     </div>
