@@ -384,6 +384,15 @@ export const ContactForm = React.memo(function ContactForm({
               </motion.div>
             )}
           </AnimatePresence>
+          <AnimatePresence>
+            {duplicateWarning && !errors.phone && (
+              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center gap-1.5 text-[hsl(38_92%_50%)] text-xs bg-[hsl(38_92%_50%)]/10 rounded-md px-2 py-1.5" role="alert">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span>{duplicateWarning}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Email */}
