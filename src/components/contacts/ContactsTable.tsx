@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
 import { CompanyLogo } from './CompanyLogo';
+import { HighlightText } from './HighlightText';
 import type { Contact } from './types';
 import type { CRMBatchResult } from '@/hooks/useExternalContact360Batch';
 
@@ -42,10 +43,11 @@ interface ContactsTableProps {
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
   getCRMData?: (phone: string) => CRMBatchResult | undefined;
+  searchQuery?: string;
 }
 
 export function ContactsTable({
-  contacts, selectedIds, onSelectIds, onOpenChat, onEdit, onDelete, getCRMData,
+  contacts, selectedIds, onSelectIds, onOpenChat, onEdit, onDelete, getCRMData, searchQuery,
 }: ContactsTableProps) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border/30">
