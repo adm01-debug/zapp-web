@@ -352,7 +352,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onStartCall={() => { setCallDirection('outbound'); setShowCallDialog(true); }} onOpenSearch={() => setShowChatSearch(true)}
             onOpenTransfer={() => setShowTransferDialog(true)} onOpenSchedule={() => setShowScheduleDialog(true)}
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
-            onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary} />
+            onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary}
+            onCloseConversation={() => setShowCloseDialog(true)} />
         )}
 
         <ChatSearchBar
