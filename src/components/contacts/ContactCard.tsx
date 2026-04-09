@@ -10,45 +10,19 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   MessageSquare, Edit, Trash2, MoreVertical, Phone, Mail,
-  Building, Briefcase, Tag,
+  Briefcase,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { getContactTypeInfo } from '@/utils/whatsappFileTypes';
 import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
-
-interface Contact {
-  id: string;
-  name: string;
-  surname: string | null;
-  nickname: string | null;
-  phone: string;
-  email: string | null;
-  avatar_url: string | null;
-  company: string | null;
-  job_title: string | null;
-  tags: string[] | null;
-  contact_type: string | null;
-  created_at: string;
-}
-
-interface ContactCardProps {
-  contact: Contact;
-  isSelected: boolean;
-  onToggleSelect: (id: string, selected: boolean) => void;
-  onOpenChat: (id: string) => void;
-  onEdit: (contact: Contact) => void;
-  onDelete: (contact: Contact) => void;
-  index: number;
-  companyLogo?: string | null;
-  companyName?: string | null;
-}
+import { CompanyLogo } from './CompanyLogo';
+import type { ContactItemProps } from './types';
 
 export function ContactCard({
   contact, isSelected, onToggleSelect, onOpenChat, onEdit, onDelete, index, companyLogo, companyName,
-}: ContactCardProps) {
+}: ContactItemProps) {
   const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
   const avatarColors = getAvatarColor(contact.name);
 
@@ -126,6 +100,18 @@ export function ContactCard({
             )}>
               <span className="text-[8px] text-white">{typeConfig.icon}</span>
             </div>
+            {/* Company logo overlay */}
+            {(companyLogo || contact.company) && (
+              <div className="absolute -top-1 -left-1">
+                <CompanyLogo
+                  logoUrl={companyLogo}
+                  companyName={companyName}
+                  fallbackCompanyName={contact.company}
+                  size="xs"
+                  className="ring-2 ring-background shadow-sm"
+                />
+              </div>
+            )}
           </div>
 
           <div className="min-w-0 flex-1">
@@ -150,15 +136,12 @@ export function ContactCard({
           <div className="bg-muted/40 rounded-xl p-2.5 space-y-1">
             {contact.company && (
               <div className="flex items-center gap-2 text-xs font-medium text-foreground">
-                {companyLogo ? (
-                  <img
-                    src={companyLogo}
-                    alt={companyName || contact.company}
-                    className="w-5 h-5 rounded object-contain bg-background border border-border/20 shrink-0"
-                  />
-                ) : (
-                  <Building className="w-3.5 h-3.5 text-primary shrink-0" />
-                )}
+                <CompanyLogo
+                  logoUrl={companyLogo}
+                  companyName={companyName}
+                  fallbackCompanyName={contact.company}
+                  size="sm"
+                />
                 <span className="truncate">{companyName || contact.company}</span>
               </div>
             )}

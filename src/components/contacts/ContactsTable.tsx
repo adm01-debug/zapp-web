@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   MessageSquare, Edit, Trash2, MoreVertical, Phone, Mail,
-  Building, Briefcase, Calendar, Tag, Users, Truck, UserCheck,
+  Briefcase, Calendar, Tag, Users, Truck, UserCheck,
   Wrench, Star, Handshake, MoreHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -18,6 +18,9 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { getAvatarColor, getInitials } from '@/lib/avatar-colors';
 import { CONTACT_TYPE_CONFIG } from './contactTypeConfig';
+import { CompanyLogo } from './CompanyLogo';
+import type { Contact } from './types';
+import type { CRMBatchResult } from '@/hooks/useExternalContact360Batch';
 
 const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
   cliente: <Users className="w-4 h-4" />,
@@ -31,21 +34,6 @@ const CONTACT_TYPE_ICONS: Record<string, React.ReactNode> = {
 
 export { CONTACT_TYPE_ICONS };
 
-interface Contact {
-  id: string;
-  name: string;
-  surname: string | null;
-  nickname: string | null;
-  phone: string;
-  email: string | null;
-  avatar_url: string | null;
-  company: string | null;
-  job_title: string | null;
-  tags: string[] | null;
-  contact_type: string | null;
-  created_at: string;
-}
-
 interface ContactsTableProps {
   contacts: Contact[];
   selectedIds: string[];
@@ -53,10 +41,11 @@ interface ContactsTableProps {
   onOpenChat: (id: string) => void;
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
+  getCRMData?: (phone: string) => CRMBatchResult | undefined;
 }
 
 export function ContactsTable({
-  contacts, selectedIds, onSelectIds, onOpenChat, onEdit, onDelete,
+  contacts, selectedIds, onSelectIds, onOpenChat, onEdit, onDelete, getCRMData,
 }: ContactsTableProps) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border/30">
@@ -84,6 +73,7 @@ export function ContactsTable({
           {contacts.map((contact, index) => {
             const typeConfig = CONTACT_TYPE_CONFIG[contact.contact_type || 'cliente'] || CONTACT_TYPE_CONFIG.cliente;
             const avatarColors = getAvatarColor(contact.name);
+            const crmData = getCRMData?.(contact.phone);
             return (
               <motion.tr
                 key={contact.id}
@@ -151,8 +141,14 @@ export function ContactsTable({
                   {(contact.company || contact.job_title) ? (
                     <div className="space-y-0.5">
                       {contact.company && (
-                        <div className="flex items-center gap-1 text-xs font-medium">
-                          <Building className="w-3 h-3 text-primary" />{contact.company}
+                        <div className="flex items-center gap-1.5 text-xs font-medium">
+                          <CompanyLogo
+                            logoUrl={crmData?.logo_url}
+                            companyName={crmData?.company_name}
+                            fallbackCompanyName={contact.company}
+                            size="xs"
+                          />
+                          <span className="truncate max-w-[140px]">{crmData?.company_name || contact.company}</span>
                         </div>
                       )}
                       {contact.job_title && (
