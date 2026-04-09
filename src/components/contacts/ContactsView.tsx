@@ -43,6 +43,7 @@ import { ContactDialogs } from './ContactDialogs';
 import { ContactToolbar } from './ContactToolbar';
 import { ContactPagination } from './ContactPagination';
 import { ContactDetailPanel } from './ContactDetailPanel';
+import { ContactKanbanView } from './ContactKanbanView';
 
 const GRID_COLUMNS_CLASS: Record<number, string> = {
   3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
