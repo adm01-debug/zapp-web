@@ -7,7 +7,7 @@ export function useExternalCargos() {
     queryKey: ['external-cargos'],
     queryFn: async () => {
       const { data, error } = await externalSupabase
-        .from('contatos')
+        .from('contacts')
         .select('cargo')
         .not('cargo', 'is', null)
         .not('cargo', 'eq', '');
