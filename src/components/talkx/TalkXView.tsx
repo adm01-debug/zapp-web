@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   Zap, Plus, Play, Eye, Loader2, MessageSquare,
-  Send, BarChart3, CheckCircle2, Search, Filter
+  Send, BarChart3, CheckCircle2, Search, Filter, ShieldBan
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { TalkXCampaignEditor } from './TalkXCampaignEditor';
 import { TalkXLiveMonitor } from './TalkXLiveMonitor';
 import { TalkXCampaignCard } from './TalkXCampaignCard';
 import { toast } from 'sonner';
+import { TalkXBlacklist } from './TalkXBlacklist';
 
 export default function TalkXView() {
   const {
@@ -164,6 +165,10 @@ export default function TalkXView() {
             <Eye className="w-4 h-4" />
             <span className="hidden sm:inline">Monitor</span>
           </TabsTrigger>
+          <TabsTrigger value="blacklist" className="gap-2 flex-1 sm:flex-none">
+            <ShieldBan className="w-4 h-4" />
+            <span className="hidden sm:inline">Opt-out</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="campaigns" className="flex-1 overflow-auto mt-4 space-y-4">
@@ -190,6 +195,7 @@ export default function TalkXView() {
                   <SelectItem value="sending">Enviando</SelectItem>
                   <SelectItem value="paused">Pausada</SelectItem>
                   <SelectItem value="completed">Concluída</SelectItem>
+                  <SelectItem value="scheduled">Agendada</SelectItem>
                   <SelectItem value="cancelled">Cancelada</SelectItem>
                 </SelectContent>
               </Select>
@@ -271,6 +277,10 @@ export default function TalkXView() {
               Selecione uma campanha para monitorar
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="blacklist" className="flex-1 overflow-auto mt-4">
+          <TalkXBlacklist />
         </TabsContent>
       </Tabs>
     </div>

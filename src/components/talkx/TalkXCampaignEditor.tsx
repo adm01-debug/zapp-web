@@ -28,6 +28,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTalkX, TalkXCampaign } from '@/hooks/useTalkX';
 import { TalkXRecipientsList } from './TalkXRecipientsList';
+import { TalkXMessagePreview } from './TalkXMessagePreview';
 
 interface Props {
   campaign: TalkXCampaign | null;
@@ -158,6 +159,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
         media_url: hasMedia ? mediaUrl || null : null,
         media_type: hasMedia ? mediaType || null : null,
         scheduled_at: isScheduled && scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        status: isScheduled && scheduledAt ? 'scheduled' : undefined,
       };
 
       if (campaign) {
@@ -343,24 +345,16 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
                 </Button>
               </div>
               {showPreview && (
-                <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
-                  <p className="text-xs text-muted-foreground mb-2">Preview (usando primeiro contato):</p>
-                  {hasMedia && mediaUrl && (
-                    <div className="mb-2 max-w-[80%] ml-auto">
-                      {mediaType === 'image' ? (
-                        <img src={mediaUrl} alt="Preview" className="rounded-lg max-h-40 w-auto" />
-                      ) : (
-                        <div className="bg-muted rounded-lg p-3 flex items-center gap-2 text-xs text-muted-foreground">
-                          <FileText className="w-4 h-4" />
-                          Mídia anexada ({mediaType})
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="bg-primary/10 rounded-lg p-3 text-sm text-foreground max-w-[80%] ml-auto">
-                    {previewMessage || 'Digite uma mensagem...'}
-                  </div>
-                </div>
+                <TalkXMessagePreview
+                  messageTemplate={messageTemplate}
+                  contacts={
+                    selectedContacts.length > 0
+                      ? (contacts || []).filter((c) => selectedContacts.includes(c.id))
+                      : contacts || []
+                  }
+                  mediaUrl={hasMedia ? mediaUrl : undefined}
+                  mediaType={hasMedia ? mediaType : undefined}
+                />
               )}
             </CardContent>
           </Card>
@@ -510,7 +504,7 @@ export function TalkXCampaignEditor({ campaign, onClose }: Props) {
                   className="mt-1.5"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  A campanha será salva como rascunho e deverá ser iniciada manualmente na data programada
+                  A campanha será iniciada automaticamente na data e hora programada
                 </p>
               </CardContent>
             )}
