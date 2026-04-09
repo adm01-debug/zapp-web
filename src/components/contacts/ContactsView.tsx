@@ -681,6 +681,11 @@ export function ContactsView() {
             ))}
           </div>
         )
+      ) : viewMode === 'map' ? (
+        <ContactMapView
+          contacts={filteredContacts}
+          onContactClick={openContactChat}
+        />
       ) : (
         <Card>
           <CardContent className="p-0">
