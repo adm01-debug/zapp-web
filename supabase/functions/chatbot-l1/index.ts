@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
-import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 import { ChatbotL1Schema, parseBody } from "../_shared/schemas.ts";
 import { callAiWithTracking, extractUserIdFromRequest } from "../_shared/ai-usage.ts";
 
@@ -11,6 +11,10 @@ Deno.serve(async (req) => {
   const userId = extractUserIdFromRequest(req);
 
   try {
+    const ip = getClientIP(req);
+    const { allowed } = checkRateLimit(`chatbot:${ip}`, 30, 60_000);
+    if (!allowed) return errorResponse("Rate limit exceeded. Please try again later.", 429, req);
+
     const parsed = parseBody(ChatbotL1Schema, await req.json());
     if (!parsed.success) return errorResponse(parsed.error, 400, req);
 

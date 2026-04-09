@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 const SIGNATURE_ENABLED_KEY = 'chat_signature_enabled';
@@ -6,23 +6,29 @@ const SIGNATURE_ENABLED_KEY = 'chat_signature_enabled';
 export function useMessageSignature() {
   const [signatureEnabled, setSignatureEnabled] = useState(() => {
     try {
-      return localStorage.getItem(SIGNATURE_ENABLED_KEY) !== 'false'; // default ON
+      return localStorage.getItem(SIGNATURE_ENABLED_KEY) !== 'false';
     } catch {
       return true;
     }
   });
   const [agentSignature, setAgentSignature] = useState('');
+  const mountedRef = useRef(true);
 
-  // Fetch agent name + job_title from profile
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   useEffect(() => {
     const fetchName = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user || !mountedRef.current) return;
       const { data: profile } = await supabase
         .from('profiles')
         .select('name, job_title')
         .eq('user_id', user.id)
         .maybeSingle();
+      if (!mountedRef.current) return;
       if (profile?.name) {
         const firstName = profile.name.split(' ')[0];
         const sig = profile.job_title
