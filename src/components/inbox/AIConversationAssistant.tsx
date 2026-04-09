@@ -91,12 +91,21 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [analysisPeriod, setAnalysisPeriod] = useState<string>('7');
 
   const { analyses, saveAnalysis, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
-  const audioMessages = messages.filter(m => m.type === 'audio' && m.mediaUrl);
-  const canAnalyze = messages.length >= 5;
+  // Filter messages by selected period
+  const filteredMessages = useMemo(() => {
+    if (analysisPeriod === 'all') return messages;
+    const days = parseInt(analysisPeriod);
+    const cutoff = subDays(new Date(), days);
+    return messages.filter(m => new Date(m.created_at) >= cutoff);
+  }, [messages, analysisPeriod]);
+
+  const audioMessages = filteredMessages.filter(m => m.type === 'audio' && m.mediaUrl);
+  const canAnalyze = filteredMessages.length >= 5;
 
   // Load latest analysis on mount
   useEffect(() => {
