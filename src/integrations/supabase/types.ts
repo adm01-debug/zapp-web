@@ -4555,8 +4555,11 @@ export type Database = {
           delivered_count: number
           failed_count: number
           id: string
+          media_type: string | null
+          media_url: string | null
           message_template: string
           name: string
+          scheduled_at: string | null
           send_interval_max: number
           send_interval_min: number
           sent_count: number
@@ -4576,8 +4579,11 @@ export type Database = {
           delivered_count?: number
           failed_count?: number
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message_template: string
           name: string
+          scheduled_at?: string | null
           send_interval_max?: number
           send_interval_min?: number
           sent_count?: number
@@ -4597,8 +4603,11 @@ export type Database = {
           delivered_count?: number
           failed_count?: number
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message_template?: string
           name?: string
+          scheduled_at?: string | null
           send_interval_max?: number
           send_interval_min?: number
           sent_count?: number
