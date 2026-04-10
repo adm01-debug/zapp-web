@@ -403,7 +403,6 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
               )}
             </div>
 
-            {!canAnalyze && (
             {autoplayBlocked && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
