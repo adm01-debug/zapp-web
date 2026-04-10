@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export const TONE_OPTIONS = [
@@ -24,7 +23,7 @@ interface ToneSelectorProps {
 
 export const ToneSelector = memo(function ToneSelector({ selected, onChange, disabled }: ToneSelectorProps) {
   return (
-    <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Tom da resposta">
+    <div className="grid grid-cols-5 gap-1 p-1 rounded-xl bg-muted/30 border border-border/20" role="radiogroup" aria-label="Tom da resposta">
       {TONE_OPTIONS.map(t => {
         const isActive = selected === t.key;
         return (
@@ -36,24 +35,15 @@ export const ToneSelector = memo(function ToneSelector({ selected, onChange, dis
             onClick={() => onChange(t.key)}
             disabled={disabled}
             className={cn(
-              'relative px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 border',
+              'flex flex-col items-center gap-0.5 py-2 px-1 rounded-lg text-[10px] font-medium transition-all duration-200',
               isActive
-                ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25'
-                : 'bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted/40 hover:border-border/50 hover:text-foreground',
+                ? 'bg-primary/15 text-primary shadow-sm border border-primary/30'
+                : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
               'disabled:opacity-40 disabled:cursor-not-allowed'
             )}
           >
-            {isActive && (
-              <motion.span
-                layoutId="tone-active-bg"
-                className="absolute inset-0 rounded-full bg-primary shadow-sm shadow-primary/20"
-                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-              />
-            )}
-            <span className="relative flex items-center gap-1.5">
-              <span className="text-sm leading-none">{t.emoji}</span>
-              {t.label}
-            </span>
+            <span className="text-base leading-none">{t.emoji}</span>
+            <span className="truncate w-full text-center">{t.label}</span>
           </button>
         );
       })}
