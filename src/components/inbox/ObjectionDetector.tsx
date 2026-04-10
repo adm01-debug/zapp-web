@@ -244,6 +244,7 @@ export function ObjectionDetector({ contactId, contactName, lastMessages, allMes
             {
               role: 'system',
               content: `Você é um especialista em vendas e atendimento. Analise as mensagens do cliente e identifique objeções. Para cada objeção, sugira um contra-argumento persuasivo.
+${contactName ? `IMPORTANTE: O nome do cliente é "${contactName.split(' ')[0]}". TODA resposta (counterArgument) DEVE começar mencionando o nome do cliente de forma natural (ex: "${contactName.split(' ')[0]}, entendo sua preocupação..." ou "${contactName.split(' ')[0]}, compreendo perfeitamente..."). Isso é OBRIGATÓRIO para humanizar o atendimento.` : ''}
 ${activePrompt}
 Responda APENAS em JSON válido com este formato:
 [{"objection":"texto da objeção","counterArgument":"sugestão de resposta","confidence":0.85}]
@@ -302,7 +303,7 @@ Se não houver objeções, retorne []`,
           messages: [
             {
               role: 'system',
-              content: `Reescreva o contra-argumento abaixo mantendo o mesmo significado mas mudando o tom. ${activePrompt} Responda APENAS com o texto reescrito, sem aspas ou explicações.`,
+              content: `Reescreva o contra-argumento abaixo mantendo o mesmo significado mas mudando o tom. ${activePrompt}${contactName ? ` IMPORTANTE: A resposta DEVE começar com o nome "${contactName.split(' ')[0]}" de forma natural e humana.` : ''} Responda APENAS com o texto reescrito, sem aspas ou explicações.`,
             },
             {
               role: 'user',
