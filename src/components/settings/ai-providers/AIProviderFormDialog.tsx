@@ -145,7 +145,7 @@ export function AIProviderFormDialog({
             <Input
               value={form.model || ''}
               onChange={e => setForm(p => ({ ...p, model: e.target.value }))}
-              placeholder={form.provider_type === 'lovable_ai' ? 'google/gemini-2.5-flash' : 'gpt-4o'}
+              placeholder={form.provider_type === 'lovable_ai' ? 'google/gemini-3-flash-preview' : 'gpt-4o'}
               className="rounded-xl font-mono text-sm"
             />
           </div>
