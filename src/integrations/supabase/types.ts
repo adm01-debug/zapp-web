@@ -6688,6 +6688,8 @@ export type Database = {
         Row: {
           created_at: string | null
           email_address: string | null
+          has_access_token: boolean | null
+          has_refresh_token: boolean | null
           id: string | null
           is_active: boolean | null
           last_error: string | null
@@ -6700,6 +6702,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           email_address?: string | null
+          has_access_token?: never
+          has_refresh_token?: never
           id?: string | null
           is_active?: boolean | null
           last_error?: string | null
@@ -6712,6 +6716,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           email_address?: string | null
+          has_access_token?: never
+          has_refresh_token?: never
           id?: string | null
           is_active?: boolean | null
           last_error?: string | null
