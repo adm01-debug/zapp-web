@@ -21,6 +21,7 @@ interface ChatMessage {
 
 interface UniversityHelpProps {
   contactId: string;
+  contactName?: string;
   messages: ChatMessage[];
   onSelectSuggestion?: (text: string) => void;
 }

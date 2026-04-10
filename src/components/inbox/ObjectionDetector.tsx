@@ -25,6 +25,7 @@ interface ChatMessage {
 
 interface ObjectionDetectorProps {
   contactId: string;
+  contactName?: string;
   lastMessages: string[];
   allMessages?: ChatMessage[];
   onSelectSuggestion?: (text: string) => void;
