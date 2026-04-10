@@ -243,8 +243,18 @@ export function ObjectionDetector({ contactId, contactName, lastMessages, allMes
           messages: [
             {
               role: 'system',
-              content: `Você é um especialista em vendas e atendimento. Analise as mensagens do cliente e identifique objeções. Para cada objeção, sugira um contra-argumento persuasivo.
-${contactName ? `IMPORTANTE: O nome do cliente é "${contactName.split(' ')[0]}". TODA resposta (counterArgument) DEVE começar mencionando o nome do cliente de forma natural (ex: "${contactName.split(' ')[0]}, entendo sua preocupação..." ou "${contactName.split(' ')[0]}, compreendo perfeitamente..."). Isso é OBRIGATÓRIO para humanizar o atendimento.` : ''}
+              content: `Você é um especialista em inteligência comercial e negociação de uma empresa distribuidora/comercial.
+
+CONTEXTO DO NEGÓCIO — Identifique o tipo de conversa:
+• VENDAS: Vendedor ↔ cliente — objeções de preço, prazo, quantidade, condições.
+• COMPRAS: Comprador ↔ fornecedor — resistências em negociação de custos, prazos de entrega, MOQ.
+• LOGÍSTICA: Logística ↔ transportadora — objeções sobre frete, prazo de coleta, restrições.
+• RH: RH ↔ colaborador — resistências sobre políticas, benefícios, procedimentos.
+• FINANCEIRO: Cobranças — objeções de pagamento, contestações, renegociações.
+• SAC: Reclamações — insatisfação, devoluções, garantia.
+
+Analise as mensagens e identifique objeções/resistências do interlocutor. Para cada uma, sugira um contra-argumento persuasivo e adequado ao contexto do departamento.
+${contactName ? `IMPORTANTE: O nome do contato é "${contactName.split(' ')[0]}". TODA resposta (counterArgument) DEVE começar mencionando o nome do contato de forma natural (ex: "${contactName.split(' ')[0]}, entendo sua preocupação..." ou "${contactName.split(' ')[0]}, compreendo perfeitamente..."). Isso é OBRIGATÓRIO para humanizar o atendimento.` : ''}
 ${activePrompt}
 Responda APENAS em JSON válido com este formato:
 [{"objection":"texto da objeção","counterArgument":"sugestão de resposta","confidence":0.85}]
