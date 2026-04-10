@@ -253,7 +253,7 @@ Se não houver objeções, retorne []`,
               content: `Mensagens do cliente:\n${clientMessages.join('\n')}`,
             },
           ],
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-3-flash-preview',
         },
       });
 
@@ -308,7 +308,7 @@ Se não houver objeções, retorne []`,
               content: objections[idx].counterArgument,
             },
           ],
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-3-flash-preview',
         },
       });
 
