@@ -210,6 +210,8 @@ Responda em português brasileiro.`;
         .from('conversation_analyses')
         .insert({
           contact_id: contactId,
+          department: analysisData.department,
+          relationship_type: analysisData.relationshipType,
           summary: analysisData.summary,
           sentiment: analysisData.sentiment,
           sentiment_score: analysisData.sentimentScore,
