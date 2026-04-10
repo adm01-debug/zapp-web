@@ -348,30 +348,7 @@ Se não houver objeções, retorne []`,
   /* ── Estado Inicial (antes da análise) ─────────────────────────── */
   if (!analyzed) {
     return (
-      <div className="space-y-5">
-        {/* Hero */}
-        <div className="flex flex-col items-center text-center pt-3 pb-1">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="relative mb-4"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/15">
-              <Sparkles className="w-7 h-7 text-primary" />
-            </div>
-            <motion.div
-              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute inset-0 rounded-2xl border border-primary/20"
-            />
-          </motion.div>
-          <h3 className="text-sm font-semibold text-foreground mb-1">Radar de Objeções</h3>
-          <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
-            A IA analisa as mensagens do cliente e gera contra-argumentos personalizados.
-          </p>
-        </div>
-
+      <div className="space-y-3">
         {/* Period Filter */}
         {hasPeriodMessages && (
           <PeriodFilterSelector
@@ -391,22 +368,22 @@ Se não houver objeções, retorne []`,
 
         {/* CTA Button */}
         <Button
-          className="w-full h-12 text-[13px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
+          className="w-full h-11 text-[13px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
           onClick={() => analyze()}
           disabled={loading || clientMessages.length === 0}
         >
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Analisando objeções...
+              Analisando...
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4 mr-2" />
               Detectar objeções
               {clientMessages.length > 0 && (
-                <span className="ml-2 px-2.5 py-0.5 rounded-full bg-primary-foreground/20 text-[10px] font-bold tabular-nums">
-                  {clientMessages.length} msgs
+                <span className="ml-2 px-2 py-0.5 rounded-full bg-primary-foreground/20 text-[10px] font-bold tabular-nums">
+                  {clientMessages.length}
                 </span>
               )}
             </>
@@ -414,7 +391,7 @@ Se não houver objeções, retorne []`,
         </Button>
 
         {clientMessages.length === 0 && (
-          <p className="text-[10px] text-muted-foreground text-center italic">Nenhuma mensagem do cliente encontrada no período</p>
+          <p className="text-[10px] text-muted-foreground text-center italic">Nenhuma mensagem do cliente no período</p>
         )}
       </div>
     );
