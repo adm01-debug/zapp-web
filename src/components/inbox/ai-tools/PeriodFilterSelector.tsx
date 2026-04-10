@@ -298,10 +298,12 @@ export function PeriodFilterSelector({
       </Popover>
 
       {/* Message count */}
-      <p className="text-center text-xs tabular-nums text-muted-foreground">
-        <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
+      <p className="text-center text-xs tabular-nums text-muted-foreground flex items-center justify-center gap-1.5">
+        <span className="inline-flex items-center gap-1">
+          <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
+        </span>
         {totalCount !== filteredCount && (
-          <span className="text-muted-foreground/60"> (de {totalCount} total)</span>
+          <span className="text-muted-foreground/50">· {totalCount} total</span>
         )}
       </p>
     </div>
