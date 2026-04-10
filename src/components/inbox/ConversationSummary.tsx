@@ -250,40 +250,22 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
   );
 
   return (
-    <div className="px-4 py-2">
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-        {/* Header */}
-        <CardHeader className="py-3 px-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary" />
-              Resumo da Conversa
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              {summary && (
-                <>
-                  <Badge 
-                    variant="outline" 
-                    className={`text-[10px] ${statusConfig[summary.status]?.className || ''}`}
-                  >
-                    <StatusIcon className="h-3 w-3 mr-1" />
-                    {statusConfig[summary.status]?.label || summary.status}
-                  </Badge>
-                  <span className={sentimentConfig[summary.sentiment]?.className || ''}>
-                    <SentimentIcon className="h-4 w-4" />
-                  </span>
-                </>
-              )}
-              {onClose && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-0 px-4 pb-4 space-y-4">
+    <div className="space-y-4">
+      {/* Status badges */}
+      {summary && (
+        <div className="flex items-center gap-2">
+          <Badge 
+            variant="outline" 
+            className={`text-[10px] ${statusConfig[summary.status]?.className || ''}`}
+          >
+            <StatusIcon className="h-3 w-3 mr-1" />
+            {statusConfig[summary.status]?.label || summary.status}
+          </Badge>
+          <span className={sentimentConfig[summary.sentiment]?.className || ''}>
+            <SentimentIcon className="h-4 w-4" />
+          </span>
+        </div>
+      )}
           {/* Period Selector — premium layout */}
           <PeriodFilterSelector
             period={analysisPeriod}
