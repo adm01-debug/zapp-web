@@ -81,9 +81,20 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
     }
   }, [response]);
 
+  // Reset on contact change
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setResponse(null);
+    setError(null);
+    setSelectedTone('friendly');
+    setFilterMode('all');
+  }, [contactId]);
+
   // Clear selection when period changes
   useEffect(() => {
     setSelectedIds(new Set());
+    setResponse(null);
+    setError(null);
   }, [analysisPeriod, customDateFrom, customDateTo]);
 
   const toggleMessage = useCallback((id: string) => {
