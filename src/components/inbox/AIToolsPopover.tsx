@@ -55,6 +55,7 @@ export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectS
               <ObjectionDetector
                 contactId={contactId}
                 lastMessages={lastMessages}
+                allMessages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
               />
             </Suspense>
