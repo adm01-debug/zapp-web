@@ -298,15 +298,27 @@ export function PeriodFilterSelector({
         </PopoverContent>
       </Popover>
 
-      {/* Message count */}
-      <p className="text-center text-xs tabular-nums text-muted-foreground flex items-center justify-center gap-1.5">
-        <span className="inline-flex items-center gap-1">
-          <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
-        </span>
-        {totalCount !== filteredCount && (
-          <span className="text-muted-foreground/50">· {totalCount} total</span>
-        )}
-      </p>
+      {/* Message count with tooltip */}
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="text-center text-xs tabular-nums text-muted-foreground flex items-center justify-center gap-1.5 cursor-default">
+              <MessageSquare className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1">
+                <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
+              </span>
+              {totalCount !== filteredCount && (
+                <span className="text-muted-foreground/50">· {totalCount} total</span>
+              )}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {filteredCount === totalCount
+              ? 'Mostrando todas as mensagens'
+              : `Filtrando ${filteredCount} de ${totalCount} mensagens`}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }
