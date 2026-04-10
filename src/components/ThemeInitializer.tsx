@@ -21,7 +21,7 @@ export function ThemeInitializer() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        presetId = parsed.preset === 'default' ? 'purpure' : (parsed.preset || 'corporate');
+        presetId = parsed.preset || 'corporate';
         if (parsed.borderRadius != null) radius = parsed.borderRadius;
       } catch { /* corrupted */ }
     }
