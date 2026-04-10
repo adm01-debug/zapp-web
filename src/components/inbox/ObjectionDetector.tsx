@@ -201,6 +201,16 @@ export function ObjectionDetector({ contactId, lastMessages, allMessages = [], o
       .map(m => m.content);
   }, [hasPeriodMessages, periodFiltered, lastMessages]);
 
+  // Reset on contact change
+  useEffect(() => {
+    setAnalyzed(false);
+    setObjections([]);
+    setError(null);
+    setRewritingIdx(null);
+    setCopiedIdx(null);
+    setSelectedTone('friendly');
+  }, [contactId]);
+
   // Reset analysis on period change
   useEffect(() => {
     setAnalyzed(false);
