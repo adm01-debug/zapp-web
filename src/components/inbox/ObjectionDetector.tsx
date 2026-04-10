@@ -352,15 +352,6 @@ Se não houver objeções, retorne []`,
   if (!analyzed) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center">
-            <ShieldQuestion className="w-4 h-4 text-warning" />
-          </div>
-          <div>
-            <span className="text-xs font-semibold">Detector de Objeções</span>
-            <p className="text-[10px] text-muted-foreground">Identifica resistências e sugere contra-argumentos</p>
-          </div>
-        </div>
 
         {/* Period Filter */}
         {hasPeriodMessages && (
