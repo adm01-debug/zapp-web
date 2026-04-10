@@ -38,8 +38,8 @@ export function ToolPanel({ isOpen, onClose, icon, title, subtitle, children, cl
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className={cn(
-              "absolute inset-2 z-30 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden",
-              "max-w-2xl mx-auto my-auto max-h-[92vh]",
+              "absolute left-2 right-2 top-2 bottom-2 z-30 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden",
+              "max-w-2xl mx-auto",
               className
             )}
           >
