@@ -352,6 +352,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         {!hideHeader && (
           <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={dialogs.aiAssistant} showDetails={showDetails}
+            showSummaryPanel={showSummaryPanel}
             voiceId={voiceId} speed={speed} onToggleAIAssistant={() => toggleDialog('aiAssistant')} onToggleDetails={onToggleDetails}
             onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => openDialog('chatSearch')}
             onOpenTransfer={() => openDialog('transferDialog')} onOpenSchedule={() => openDialog('scheduleDialog')}
