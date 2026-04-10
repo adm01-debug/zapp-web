@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { playTtsAudio, type TtsPlayback } from '@/hooks/voice/playTtsAudio';
 import { VisionIcon } from './ai-tools/VisionIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
