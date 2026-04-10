@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { playTtsAudio, type TtsPlayback } from '@/hooks/voice/playTtsAudio';
+import { playTtsAudio, type TtsPlayback, type PlayTtsOptions } from '@/hooks/voice/playTtsAudio';
 import { VisionIcon } from './ai-tools/VisionIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -144,6 +144,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
+  const [isTtsLoading, setIsTtsLoading] = useState(false);
   const ttsRef = useRef<TtsPlayback | null>(null);
 
   const {
@@ -170,6 +171,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       ttsRef.current.stop();
       ttsRef.current = null;
       setIsTtsPlaying(false);
+      setIsTtsLoading(false);
     }
   }, [analysisPeriod, customDateFrom, customDateTo, contactId]);
 
@@ -185,6 +187,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       ttsRef.current.stop();
       ttsRef.current = null;
       setIsTtsPlaying(false);
+      setIsTtsLoading(false);
       return;
     }
     if (!analysis?.summary) return;
@@ -192,7 +195,14 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-    const playback = playTtsAudio(analysis.summary, supabaseUrl, supabaseKey);
+    const ttsOptions: PlayTtsOptions = {
+      onLoadingChange: setIsTtsLoading,
+      onError: (err) => {
+        toast.error('Erro ao gerar áudio: ' + err.message);
+      },
+    };
+
+    const playback = playTtsAudio(analysis.summary, supabaseUrl, supabaseKey, ttsOptions);
     ttsRef.current = playback;
     setIsTtsPlaying(true);
 
@@ -467,15 +477,16 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                             <Button
                               variant="ghost"
                               size="icon"
-                              className={`h-6 w-6 ${isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+                              className={`h-6 w-6 ${isTtsLoading ? 'text-warning animate-spin' : isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
                               onClick={handlePlaySummary}
+                              disabled={isTtsLoading}
                               aria-label={isTtsPlaying ? 'Parar áudio' : 'Ouvir resumo'}
                             >
-                              {isTtsPlaying ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                              {isTtsLoading ? <Loader2 className="h-3.5 w-3.5" /> : isTtsPlaying ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="top">
-                            <p>{isTtsPlaying ? 'Parar áudio' : 'Ouvir resumo'}</p>
+                            <p>{isTtsLoading ? 'Carregando áudio...' : isTtsPlaying ? 'Parar áudio' : 'Ouvir resumo'}</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
