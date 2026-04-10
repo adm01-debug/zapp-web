@@ -66,6 +66,8 @@ interface AgentPerformance {
 
 interface AnalysisData {
   analysisId?: string | null;
+  department?: string;
+  relationshipType?: string;
   summary: string;
   status: string;
   keyPoints: string[];
