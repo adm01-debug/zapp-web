@@ -27,7 +27,7 @@ export function playTtsAudio(
   };
 
   const promise = (async () => {
-    const timeout = setTimeout(() => controller.abort(), 12000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     try {
       const response = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
