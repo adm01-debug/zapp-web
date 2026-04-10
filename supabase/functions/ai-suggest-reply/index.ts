@@ -69,6 +69,8 @@ Deno.serve(async (req) => {
 
     log.info("Generating reply suggestions", { contactName, kbContext: knowledgeContext.length > 0 });
 
+    const firstName = contactName ? contactName.split(' ')[0] : null;
+
     const systemPrompt = `Você é um Copilot de IA especializado em atendimento ao cliente via WhatsApp.
 Seu papel é sugerir respostas profissionais, empáticas e CONTEXTUALIZADAS para agentes de suporte.
 
@@ -78,6 +80,8 @@ ${knowledgeContext}
 
 IMPORTANTE: Use as informações da Base de Conhecimento e dados do contato para personalizar suas sugestões.
 Se houver artigos relevantes, cite informações específicas nas respostas.
+
+${firstName && firstName !== 'Cliente' ? `REGRA CRÍTICA DE HUMANIZAÇÃO: O primeiro nome do cliente é "${firstName}". TODA sugestão de resposta DEVE obrigatoriamente começar mencionando o nome "${firstName}" de forma natural e humana (ex: "${firstName}, entendi sua solicitação..." ou "${firstName}, compreendo sua situação..."). O cliente JAMAIS deve perceber que a resposta foi gerada por IA. Isso é OBRIGATÓRIO em todas as 3 sugestões.` : ''}
 
 Baseado na conversa, gere exatamente 3 sugestões de resposta:
 1. Uma resposta direta e objetiva (use dados da KB se aplicável)
