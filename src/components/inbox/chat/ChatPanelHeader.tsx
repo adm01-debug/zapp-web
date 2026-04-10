@@ -112,6 +112,8 @@ export function ChatPanelHeader({
   lastMessages = [],
   allMessages = [],
   onSelectSuggestion,
+  activeTool,
+  onSetActiveTool,
 }: ChatPanelHeaderProps) {
   const isMobile = useIsMobile();
   
@@ -184,14 +186,17 @@ export function ChatPanelHeader({
           <TooltipContent side="bottom">Buscar na conversa (Ctrl+F)</TooltipContent>
         </Tooltip>
 
-        <Popover>
+        <Popover open={activeTool === 'objections'} onOpenChange={(open) => onSetActiveTool?.(open ? 'objections' : null)}>
           <Tooltip>
             <TooltipTrigger asChild>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className={cn(
+                    "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+                    activeTool === 'objections' && "text-primary bg-primary/10"
+                  )}
                   aria-label="Monitoramento de Objeções"
                 >
                   <Radar className="w-[18px] h-[18px]" />
@@ -213,14 +218,17 @@ export function ChatPanelHeader({
           </PopoverContent>
         </Popover>
 
-        <Popover>
+        <Popover open={activeTool === 'university'} onOpenChange={(open) => onSetActiveTool?.(open ? 'university' : null)}>
           <Tooltip>
             <TooltipTrigger asChild>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className={cn(
+                    "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+                    activeTool === 'university' && "text-primary bg-primary/10"
+                  )}
                   aria-label="Ajuda dos Universitários"
                 >
                   <GraduationCap className="w-[18px] h-[18px]" />
