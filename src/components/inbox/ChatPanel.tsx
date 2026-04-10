@@ -462,6 +462,63 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
         </Suspense>
       )}
+
+      {activeTool === 'objections' && (
+        <Suspense fallback={null}>
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('objections')}
+            icon={<Radar className="w-4 h-4 text-warning" />}
+            title="Monitoramento de Objeções"
+            subtitle="Detecta resistências e sugere contra-argumentos"
+          >
+            <ObjectionDetector
+              contactId={conversation.contact.id}
+              contactName={conversation.contact.name}
+              lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
+              allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
+              onSelectSuggestion={(text) => setInputValue(text)}
+            />
+          </ToolPanel>
+        </Suspense>
+      )}
+
+      {activeTool === 'university' && (
+        <Suspense fallback={null}>
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('university')}
+            icon={<GraduationCap className="w-4 h-4 text-primary" />}
+            title="Ajuda dos Universitários"
+            subtitle="Gera respostas inteligentes a partir de mensagens"
+          >
+            <UniversityHelp
+              contactId={conversation.contact.id}
+              contactName={conversation.contact.name}
+              messages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
+              onSelectSuggestion={(text) => setInputValue(text)}
+            />
+          </ToolPanel>
+        </Suspense>
+      )}
+
+      {activeTool === 'summary' && (
+        <Suspense fallback={null}>
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('summary')}
+            icon={<FileText className="w-4 h-4 text-primary" />}
+            title="Resumo da Conversa"
+            subtitle="Análise e pontos-chave da conversa"
+          >
+            <ConversationSummary
+              messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
+              contactName={conversation.contact.name}
+              contactId={conversation.contact.id}
+            />
+          </ToolPanel>
+        </Suspense>
+      )}
     </div>
   );
 }
