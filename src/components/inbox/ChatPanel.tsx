@@ -177,7 +177,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        toggleDialog('chatSearch');
         handleSetActiveTool('chatSearch');
       }
     };
