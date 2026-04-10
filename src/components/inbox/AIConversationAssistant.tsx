@@ -234,10 +234,15 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         <div className="flex items-center justify-between border-b border-border bg-gradient-to-r from-primary/5 to-transparent p-4">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/20">
-              <Brain className="h-4.5 w-4.5 text-primary" />
+              <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 4C6 4 2 12 2 12s4 8 10 8 10-8 10-8-4-8-10-8Z" />
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+              </svg>
             </div>
             <div>
-              <h3 className="text-sm font-bold">Assistente IA</h3>
+              <h3 className="text-sm font-bold">Visão</h3>
               <p className="text-[10px] text-muted-foreground">Análise Profunda</p>
             </div>
           </div>

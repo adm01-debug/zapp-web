@@ -246,12 +246,17 @@ export function ChatPanelHeader({
                 showAIAssistant && "text-primary bg-primary/10"
               )}
               onClick={onToggleAIAssistant}
-              aria-label="Assistente IA"
+              aria-label="Visão"
             >
-              <Brain className="w-[18px] h-[18px]" />
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 4C6 4 2 12 2 12s4 8 10 8 10-8 10-8-4-8-10-8Z" />
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+              </svg>
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Assistente IA</TooltipContent>
+          <TooltipContent side="bottom">Visão</TooltipContent>
         </Tooltip>
 
         {onGenerateSummary && (
