@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Copy, Check, RefreshCw, Loader2, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,6 +19,8 @@ export const AIResponseCard = memo(function AIResponseCard({
 }: AIResponseCardProps) {
   const [copied, setCopied] = useState(false);
 
+  const wordCount = useMemo(() => response.trim().split(/\s+/).filter(Boolean).length, [response]);
+
   const handleCopy = () => {
     navigator.clipboard.writeText(response);
     setCopied(true);
@@ -36,14 +38,14 @@ export const AIResponseCard = memo(function AIResponseCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -5 }}
-      className="space-y-2 p-3 rounded-xl bg-primary/5 border border-primary/20 backdrop-blur-sm"
+      className="space-y-2.5 p-3 rounded-xl bg-primary/5 border border-primary/20"
     >
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-semibold text-primary flex items-center gap-1.5">
           <Sparkles className="w-3 h-3" />
           Resposta sugerida
         </span>
-        <div className="flex gap-1">
+        <div className="flex gap-0.5">
           {onRegenerate && (
             <Button
               variant="ghost"
@@ -70,19 +72,32 @@ export const AIResponseCard = memo(function AIResponseCard({
 
       <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">{response}</p>
 
-      <div className="flex items-center justify-between">
-        <span className="text-[9px] text-muted-foreground">{response.length} caracteres</span>
-        {onUse && (
+      <div className="flex items-center justify-between pt-0.5 border-t border-primary/10">
+        <span className="text-[9px] text-muted-foreground tabular-nums">
+          {wordCount} {wordCount === 1 ? 'palavra' : 'palavras'} · {response.length} chars
+        </span>
+        <div className="flex items-center gap-1.5">
           <Button
-            variant="default"
+            variant="ghost"
             size="sm"
-            className="h-7 text-xs font-medium gap-1.5 px-4"
-            onClick={handleUse}
+            className="h-7 text-[10px] font-medium gap-1 px-2.5 text-muted-foreground hover:text-foreground"
+            onClick={handleCopy}
           >
-            <Send className="w-3 h-3" />
-            Usar resposta
+            {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+            {copied ? 'Copiado' : 'Copiar'}
           </Button>
-        )}
+          {onUse && (
+            <Button
+              variant="default"
+              size="sm"
+              className="h-7 text-[10px] font-medium gap-1.5 px-4 rounded-full"
+              onClick={handleUse}
+            >
+              <Send className="w-3 h-3" />
+              Usar
+            </Button>
+          )}
+        </div>
       </div>
     </motion.div>
   );
