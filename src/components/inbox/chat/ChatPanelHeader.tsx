@@ -62,6 +62,7 @@ interface ChatPanelHeaderProps {
   isContactTyping: boolean;
   showAIAssistant: boolean;
   showDetails?: boolean;
+  showSummaryPanel?: boolean;
   voiceId: string;
   speed: number;
   onToggleAIAssistant: () => void;

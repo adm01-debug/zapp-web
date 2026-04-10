@@ -380,14 +380,16 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
 
         {showSummaryPanel && (
-          <Suspense fallback={null}>
-            <ConversationSummary
-              messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
-              contactName={conversation.contact.name}
-              contactId={conversation.contact.id}
-              onClose={() => setShowSummaryPanel(false)}
-            />
-          </Suspense>
+          <div className="shrink-0 max-h-[50vh] overflow-y-auto border-b border-border">
+            <Suspense fallback={<div className="px-4 py-6 text-center text-xs text-muted-foreground">Carregando resumo...</div>}>
+              <ConversationSummary
+                messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
+                contactName={conversation.contact.name}
+                contactId={conversation.contact.id}
+                onClose={() => setShowSummaryPanel(false)}
+              />
+            </Suspense>
+          </div>
         )}
 
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
