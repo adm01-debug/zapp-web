@@ -125,7 +125,6 @@ describe('ConversationSummary', () => {
     render(
       <ConversationSummary messages={makeMessages(15)} contactName="João" onClose={onClose} />
     );
-    // X button should be present
     const closeButtons = screen.getAllByRole('button');
     expect(closeButtons.length).toBeGreaterThan(0);
   });
