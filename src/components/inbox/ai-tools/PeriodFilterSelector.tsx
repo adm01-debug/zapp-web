@@ -240,7 +240,20 @@ export function PeriodFilterSelector({
 
             {/* Custom calendar area */}
             <div className="p-4 flex flex-col">
-              <p className="text-[11px] text-muted-foreground font-semibold mb-3 uppercase tracking-widest">Período personalizado</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest">Período personalizado</p>
+                {(customFrom || customTo) && (
+                  <button
+                    className="text-[10px] text-destructive hover:underline font-medium"
+                    onClick={() => {
+                      onClearCustom();
+                      onPeriodChange('all');
+                    }}
+                  >
+                    Limpar datas
+                  </button>
+                )}
+              </div>
               <div className="flex gap-6">
                 <div className="space-y-1.5">
                   <span className="text-[11px] text-muted-foreground font-semibold px-0.5 uppercase tracking-wide">De</span>
@@ -250,6 +263,9 @@ export function PeriodFilterSelector({
                     onSelect={(day) => {
                       onCustomFromChange(day);
                       onPeriodChange('custom');
+                      if (day && customTo) {
+                        setPopoverOpen(false);
+                      }
                     }}
                     disabled={(date) => date > new Date()}
                     locale={ptBR}
@@ -265,6 +281,9 @@ export function PeriodFilterSelector({
                     onSelect={(day) => {
                       onCustomToChange(day);
                       onPeriodChange('custom');
+                      if (customFrom && day) {
+                        setPopoverOpen(false);
+                      }
                     }}
                     disabled={(date) => date > new Date() || (customFrom ? date < customFrom : false)}
                     locale={ptBR}
@@ -279,10 +298,12 @@ export function PeriodFilterSelector({
       </Popover>
 
       {/* Message count */}
-      <p className="text-center text-xs tabular-nums text-muted-foreground">
-        <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
+      <p className="text-center text-xs tabular-nums text-muted-foreground flex items-center justify-center gap-1.5">
+        <span className="inline-flex items-center gap-1">
+          <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
+        </span>
         {totalCount !== filteredCount && (
-          <span className="text-muted-foreground/60"> (de {totalCount} total)</span>
+          <span className="text-muted-foreground/50">· {totalCount} total</span>
         )}
       </p>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useEffect, memo } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect, memo, forwardRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,16 +51,7 @@ const ConfidenceMeter = memo(function ConfidenceMeter({ confidence }: { confiden
   );
 });
 
-const ObjectionCard = memo(function ObjectionCard({
-  obj,
-  idx,
-  isRewriting,
-  rewritingAny,
-  copiedIdx,
-  onSelect,
-  onCopy,
-  onRewrite,
-}: {
+interface ObjectionCardProps {
   obj: Objection;
   idx: number;
   isRewriting: boolean;
@@ -69,11 +60,23 @@ const ObjectionCard = memo(function ObjectionCard({
   onSelect: (text: string) => void;
   onCopy: (text: string, idx: number) => void;
   onRewrite: (idx: number) => void;
-}) {
+}
+
+const ObjectionCard = memo(forwardRef<HTMLDivElement, ObjectionCardProps>(function ObjectionCard({
+  obj,
+  idx,
+  isRewriting,
+  rewritingAny,
+  copiedIdx,
+  onSelect,
+  onCopy,
+  onRewrite,
+}, ref) {
   const [expanded, setExpanded] = useState(true);
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -159,7 +162,7 @@ const ObjectionCard = memo(function ObjectionCard({
       </AnimatePresence>
     </motion.div>
   );
-});
+}));
 
 export function ObjectionDetector({ contactId, lastMessages, allMessages = [], onSelectSuggestion }: ObjectionDetectorProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
