@@ -331,7 +331,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
   return (
     <div className="space-y-4">
-            <PeriodFilterSelector
+      <PeriodFilterSelector
               period={analysisPeriod}
               onPeriodChange={setAnalysisPeriod}
               customFrom={customDateFrom}
