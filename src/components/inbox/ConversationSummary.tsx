@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { log } from '@/lib/logger';
 import { PeriodFilterSelector, usePeriodFilter } from './ai-tools/PeriodFilterSelector';
+import { playTtsAudio, type TtsPlayback, type PlayTtsOptions } from '@/hooks/voice/playTtsAudio';
 import { 
   FileText, 
   Loader2, 
@@ -13,10 +14,16 @@ import {
   Minus,
   X,
   Sparkles,
+  Volume2,
+  VolumeX,
+  Headphones,
+  AlertTriangle,
+  RefreshCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -61,6 +68,13 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
   const [isLoading, setIsLoading] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(!!initialSummary);
 
+  // TTS state
+  const ttsRef = useRef<TtsPlayback | null>(null);
+  const [isTtsPlaying, setIsTtsPlaying] = useState(false);
+  const [isTtsLoading, setIsTtsLoading] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [lastTtsText, setLastTtsText] = useState<string | null>(null);
+
   const {
     analysisPeriod,
     setAnalysisPeriod,
@@ -74,10 +88,24 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
 
   const canGenerateSummary = filteredMessages.length >= 10;
 
+  // Cleanup TTS on unmount
+  useEffect(() => {
+    return () => {
+      if (ttsRef.current) {
+        ttsRef.current.stop();
+        ttsRef.current = null;
+      }
+    };
+  }, []);
+
   // Reset on contact change
   useEffect(() => {
     setSummary(null);
     setHasGenerated(false);
+    if (ttsRef.current) { ttsRef.current.stop(); ttsRef.current = null; }
+    setIsTtsPlaying(false);
+    setIsTtsLoading(false);
+    setAutoplayBlocked(false);
   }, [contactId]);
 
   // Reset summary when period changes
@@ -94,6 +122,70 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
       setHasGenerated(true);
     }
   }, [initialSummary]);
+
+  // ── TTS ──
+  const startTtsPlayback = useCallback((text: string) => {
+    if (isTtsPlaying) {
+      ttsRef.current?.stop();
+      ttsRef.current = null;
+      setIsTtsPlaying(false);
+      setIsTtsLoading(false);
+      return;
+    }
+    if (!text.trim()) return;
+
+    setAutoplayBlocked(false);
+    setLastTtsText(text);
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    const ttsOptions: PlayTtsOptions = {
+      onLoadingChange: setIsTtsLoading,
+      onError: (err) => {
+        if (err.message === 'AUTOPLAY_BLOCKED') return;
+        toast.error('Erro ao gerar áudio: ' + err.message);
+      },
+      onAutoplayBlocked: () => {
+        setAutoplayBlocked(true);
+        setIsTtsPlaying(false);
+        setIsTtsLoading(false);
+      },
+    };
+
+    const playback = playTtsAudio(text, supabaseUrl, supabaseKey, ttsOptions);
+    ttsRef.current = playback;
+    setIsTtsPlaying(true);
+
+    playback.promise
+      .then(() => setIsTtsPlaying(false))
+      .catch(() => setIsTtsPlaying(false));
+  }, [isTtsPlaying]);
+
+  const buildFullNarrationText = useCallback(() => {
+    if (!summary) return '';
+    const parts: string[] = [];
+    if (summary.summary) parts.push(summary.summary);
+    if (summary.keyPoints?.length) {
+      parts.push('Pontos-chave: ' + summary.keyPoints.join('. '));
+    }
+    if (summary.nextSteps?.length) {
+      parts.push('Próximos passos: ' + summary.nextSteps.join('. '));
+    }
+    return parts.join('. ');
+  }, [summary]);
+
+  const handleRetryAutoplay = useCallback(() => {
+    if (lastTtsText) {
+      setAutoplayBlocked(false);
+      startTtsPlayback(lastTtsText);
+    }
+  }, [lastTtsText, startTtsPlayback]);
+
+  const handleDismissAutoplayWarning = useCallback(() => {
+    setAutoplayBlocked(false);
+    setLastTtsText(null);
+  }, []);
 
   const generateSummary = async () => {
     if (!canGenerateSummary) {
@@ -130,6 +222,32 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
 
   const StatusIcon = summary ? statusConfig[summary.status]?.icon || Clock : Clock;
   const SentimentIcon = summary ? sentimentConfig[summary.sentiment]?.icon || Minus : Minus;
+
+  // Inline TTS button helper
+  const TtsButton = ({ text, label }: { text: string; label: string }) => (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0"
+            onClick={() => startTtsPlayback(text)}
+            disabled={isTtsLoading}
+          >
+            {isTtsPlaying && lastTtsText === text ? (
+              <VolumeX className="h-3.5 w-3.5 text-primary" />
+            ) : isTtsLoading && lastTtsText === text ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            ) : (
+              <Volume2 className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 
   return (
     <div className="px-4 py-2">
@@ -225,6 +343,24 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
             </motion.div>
           )}
 
+          {/* Autoplay blocked warning */}
+          {autoplayBlocked && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 p-2 rounded-lg bg-warning/10 border border-warning/30 text-warning text-xs"
+            >
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              <span className="flex-1">Áudio bloqueado pelo navegador</span>
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={handleRetryAutoplay}>
+                <RefreshCcw className="h-3 w-3" /> Tentar
+              </Button>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleDismissAutoplayWarning}>
+                <X className="h-3 w-3" />
+              </Button>
+            </motion.div>
+          )}
+
           {/* Summary result */}
           <AnimatePresence>
             {hasGenerated && summary && (
@@ -235,16 +371,52 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
                 transition={{ duration: 0.2 }}
                 className="space-y-4 overflow-hidden"
               >
+                {/* Listen All button */}
+                <div className="flex justify-end">
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1.5 text-[11px]"
+                          onClick={() => startTtsPlayback(buildFullNarrationText())}
+                          disabled={isTtsLoading}
+                        >
+                          {isTtsPlaying ? (
+                            <>
+                              <VolumeX className="h-3.5 w-3.5" />
+                              Parar
+                            </>
+                          ) : (
+                            <>
+                              <Headphones className="h-3.5 w-3.5" />
+                              Ouvir Tudo
+                            </>
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">Ouvir resumo completo em áudio</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+
                 {/* Summary text */}
                 <div>
-                  <h4 className="text-xs font-medium text-muted-foreground mb-1">Resumo</h4>
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-xs font-medium text-muted-foreground">Resumo</h4>
+                    <TtsButton text={summary.summary} label="Ouvir resumo" />
+                  </div>
                   <p className="text-sm">{summary.summary}</p>
                 </div>
 
                 {/* Key Points */}
                 {summary.keyPoints.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-medium text-muted-foreground mb-2">Pontos-chave</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-xs font-medium text-muted-foreground">Pontos-chave</h4>
+                      <TtsButton text={'Pontos-chave: ' + summary.keyPoints.join('. ')} label="Ouvir pontos-chave" />
+                    </div>
                     <ul className="space-y-1">
                       {summary.keyPoints.map((point, index) => (
                         <li key={index} className="text-sm flex items-start gap-2">
@@ -259,7 +431,10 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
                 {/* Next Steps */}
                 {summary.nextSteps && summary.nextSteps.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-medium text-muted-foreground mb-2">Próximos passos</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-xs font-medium text-muted-foreground">Próximos passos</h4>
+                      <TtsButton text={'Próximos passos: ' + summary.nextSteps.join('. ')} label="Ouvir próximos passos" />
+                    </div>
                     <ul className="space-y-1">
                       {summary.nextSteps.map((step, index) => (
                         <li key={index} className="text-sm flex items-start gap-2">
