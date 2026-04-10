@@ -15,6 +15,7 @@ interface ChatMessage {
 
 interface AIToolsPopoverProps {
   contactId: string;
+  contactName?: string;
   lastMessages: string[];
   allMessages: ChatMessage[];
   onSelectSuggestion?: (text: string) => void;
@@ -27,7 +28,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectSuggestion }: AIToolsPopoverProps) {
+export function AIToolsPopover({ contactId, contactName, lastMessages, allMessages, onSelectSuggestion }: AIToolsPopoverProps) {
   const [activeTab, setActiveTab] = useState('objections');
 
   return (
@@ -54,6 +55,7 @@ export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectS
             <Suspense fallback={<LoadingFallback />}>
               <ObjectionDetector
                 contactId={contactId}
+                contactName={contactName}
                 lastMessages={lastMessages}
                 allMessages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
@@ -66,6 +68,7 @@ export function AIToolsPopover({ contactId, lastMessages, allMessages, onSelectS
             <Suspense fallback={<LoadingFallback />}>
               <UniversityHelp
                 contactId={contactId}
+                contactName={contactName}
                 messages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
               />
