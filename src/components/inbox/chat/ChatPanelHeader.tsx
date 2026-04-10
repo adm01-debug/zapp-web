@@ -58,12 +58,16 @@ interface ChatMessage {
   timestamp: string;
 }
 
+type ActiveTool = 'chatSearch' | 'objections' | 'university' | 'aiAssistant' | 'summary' | null;
+
 interface ChatPanelHeaderProps {
   conversation: Conversation;
   isContactTyping: boolean;
   showAIAssistant: boolean;
   showDetails?: boolean;
   showSummaryPanel?: boolean;
+  activeTool?: ActiveTool;
+  onSetActiveTool?: (tool: ActiveTool) => void;
   voiceId: string;
   speed: number;
   onToggleAIAssistant: () => void;
