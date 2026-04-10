@@ -29,6 +29,7 @@ export const AiSuggestReplySchema = z.object({
 export const AiEnhanceMessageSchema = z.object({
   message: z.string().min(1, "Mensagem é obrigatória").max(4096),
   tone: z.enum(['professional', 'casual', 'persuasive', 'empathetic', 'concise', 'detailed']).optional().default('professional'),
+  contactName: z.string().max(200).optional(),
 });
 
 export const AiConversationAnalysisSchema = z.object({

@@ -22,9 +22,10 @@ const tones = [
 interface AIRewriteButtonProps {
   inputValue: string;
   onRewrite: (newText: string) => void;
+  contactName?: string;
 }
 
-export function AIRewriteButton({ inputValue, onRewrite }: AIRewriteButtonProps) {
+export function AIRewriteButton({ inputValue, onRewrite, contactName }: AIRewriteButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTone, setLoadingTone] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +41,7 @@ export function AIRewriteButton({ inputValue, onRewrite }: AIRewriteButtonProps)
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-enhance-message', {
-        body: { message: inputValue, tone },
+        body: { message: inputValue, tone, contactName },
       });
 
       if (error) throw error;

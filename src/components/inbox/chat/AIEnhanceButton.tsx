@@ -34,9 +34,10 @@ const toneOptions: ToneOption[] = [
 interface AIEnhanceButtonProps {
   inputValue: string;
   onInputChange: (value: string) => void;
+  contactName?: string;
 }
 
-export function AIEnhanceButton({ inputValue, onInputChange }: AIEnhanceButtonProps) {
+export function AIEnhanceButton({ inputValue, onInputChange, contactName }: AIEnhanceButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [originalMessage, setOriginalMessage] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export function AIEnhanceButton({ inputValue, onInputChange }: AIEnhanceButtonPr
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-enhance-message', {
-        body: { message: inputValue, tone },
+        body: { message: inputValue, tone, contactName },
       });
 
       if (error) throw error;
