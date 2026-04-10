@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, Loader2, Sparkles, AlertTriangle, MessageSquare, Filter } from 'lucide-react';
+import { GraduationCap, Loader2, Sparkles, AlertTriangle, MessageSquare, Filter, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
