@@ -11,7 +11,7 @@ export async function callLovableAI(params: {
   stream?: boolean;
 }): Promise<Response> {
   const body: Record<string, unknown> = {
-    model: params.model || 'google/gemini-2.5-flash',
+    model: params.model || 'google/gemini-3-flash-preview',
     messages: params.messages,
   };
   if (params.tools) body.tools = params.tools;

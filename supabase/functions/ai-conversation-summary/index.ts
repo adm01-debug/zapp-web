@@ -100,7 +100,7 @@ Foque em:
                   churnRisk: { type: "string", enum: ["low", "medium", "high"] },
                   salesOpportunity: { type: "string", description: "Description of sales opportunity or null" },
                   topics: { type: "array", items: { type: "string" }, description: "Main topics discussed" },
-                  urgency: { type: "string", enum: ["low", "normal", "high", "critical"] },
+                  urgency: { type: "string", enum: ["baixa", "media", "alta", "critica"] },
                 },
                 required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "customerSatisfaction", "topics", "urgency"],
                 additionalProperties: false,
@@ -144,7 +144,7 @@ Foque em:
           if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
         } catch { /* fallback below */ }
       }
-      analysisData = parsed || { summary: content || 'Não foi possível gerar análise.', status: 'pendente', keyPoints: [], sentiment: 'neutro', sentimentScore: 50, customerSatisfaction: 3, topics: [], urgency: 'normal' };
+      analysisData = parsed || { summary: content || 'Não foi possível gerar análise.', status: 'pendente', keyPoints: [], sentiment: 'neutro', sentimentScore: 50, customerSatisfaction: 3, topics: [], urgency: 'media' };
     }
 
     // Validate required fields with defaults
@@ -160,7 +160,7 @@ Foque em:
       churnRisk: analysisData.churnRisk || 'low',
       salesOpportunity: analysisData.salesOpportunity || null,
       topics: Array.isArray(analysisData.topics) ? analysisData.topics : [],
-      urgency: ['low', 'normal', 'high', 'critical'].includes(analysisData.urgency) ? analysisData.urgency : 'normal',
+      urgency: ['baixa', 'media', 'alta', 'critica'].includes(analysisData.urgency) ? analysisData.urgency : 'media',
     };
 
     // Save analysis to database
