@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, startOfDay as fnsStartOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import type { DateRange } from 'react-day-picker';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { log } from '@/lib/logger';
+import { PeriodFilterSelector, usePeriodFilter, getPeriodDays } from './ai-tools/PeriodFilterSelector';
 import {
   Brain,
   Loader2,
@@ -24,7 +23,6 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
-  Calendar,
   ShieldAlert,
   DollarSign,
   Users,
@@ -38,7 +36,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -89,173 +87,25 @@ interface AIConversationAssistantProps {
   onClose: () => void;
 }
 
-type AnalysisPeriod = 'all' | 'last_interaction' | 'today' | '3d' | '7d' | '14d' | '30d' | '90d' | 'custom';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-const SESSION_GAP_MS = 4 * 60 * 60 * 1000;
-
-const ANALYSIS_PERIOD_OPTIONS: { value: AnalysisPeriod; label: string }[] = [
-  { value: 'last_interaction', label: 'Última conversa' },
-  { value: 'today', label: 'Hoje' },
-  { value: '3d', label: 'Últimos 3 dias' },
-  { value: '7d', label: 'Últimos 7 dias' },
-  { value: '14d', label: 'Últimos 14 dias' },
-  { value: '30d', label: 'Últimos 30 dias' },
-  { value: '90d', label: 'Últimos 90 dias' },
-  { value: 'all', label: 'Toda a conversa' },
-  { value: 'custom', label: 'Período personalizado' },
-];
-
-const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
-  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'bg-success/20 text-success border-success/30' },
-  pendente: { label: 'Pendente', icon: Clock, className: 'bg-warning/20 text-warning border-warning/30' },
-  aguardando_cliente: { label: 'Aguardando Cliente', icon: AlertCircle, className: 'bg-warning/20 text-warning border-warning/30' },
-  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'bg-info/20 text-info border-info/30' },
-  escalado: { label: 'Escalado', icon: AlertTriangle, className: 'bg-destructive/20 text-destructive border-destructive/30' },
-};
-
-const sentimentConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  positivo: { label: 'Positivo', icon: ThumbsUp, color: 'text-success', bg: 'bg-success' },
-  neutro: { label: 'Neutro', icon: Minus, color: 'text-muted-foreground', bg: 'bg-muted' },
-  negativo: { label: 'Negativo', icon: ThumbsDown, color: 'text-destructive', bg: 'bg-destructive' },
-  critico: { label: 'Crítico', icon: AlertTriangle, color: 'text-destructive', bg: 'bg-destructive' },
-};
-
-const urgencyConfig: Record<string, { label: string; className: string }> = {
-  baixa: { label: 'Baixa', className: 'bg-success/20 text-success' },
-  media: { label: 'Média', className: 'bg-warning/20 text-warning' },
-  alta: { label: 'Alta', className: 'bg-destructive/20 text-destructive' },
-  critica: { label: 'Crítica', className: 'bg-destructive/30 text-destructive animate-pulse' },
-};
-
-const churnConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  low: { label: 'Baixo', color: 'text-success', icon: CheckCircle2 },
-  medium: { label: 'Médio', color: 'text-warning', icon: AlertCircle },
-  high: { label: 'Alto', color: 'text-destructive', icon: ShieldAlert },
-};
-
-const performanceLabels: Record<string, { label: string; icon: React.ElementType }> = {
-  empathy: { label: 'Empatia', icon: Heart },
-  clarity: { label: 'Clareza', icon: Eye },
-  efficiency: { label: 'Eficiência', icon: Zap },
-  knowledge: { label: 'Conhecimento', icon: BookOpen },
-};
-
-function startOfDay(date: Date): Date {
-  const value = new Date(date);
-  value.setHours(0, 0, 0, 0);
-  return value;
-}
-
-function getLastConversationStart(messages: Message[]): Date | null {
-  if (messages.length === 0) return null;
-
-  const sorted = [...messages].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-
-  let sessionStart = new Date(sorted[0].created_at);
-
-  for (let index = 1; index < sorted.length; index += 1) {
-    const newerMessageTime = new Date(sorted[index - 1].created_at).getTime();
-    const olderMessageTime = new Date(sorted[index].created_at).getTime();
-
-    if (newerMessageTime - olderMessageTime > SESSION_GAP_MS) {
-      break;
-    }
-
-    sessionStart = new Date(sorted[index].created_at);
-  }
-
-  return sessionStart;
-}
-
-function filterMessagesByPeriod(messages: Message[], period: AnalysisPeriod, customFrom?: Date | null, customTo?: Date | null): Message[] {
-  if (period === 'all') return messages;
-
-  if (period === 'custom') {
-    return messages.filter((message) => {
-      const msgDate = new Date(message.created_at);
-      if (customFrom && msgDate < fnsStartOfDay(customFrom)) return false;
-      if (customTo) {
-        const endOfTo = new Date(customTo);
-        endOfTo.setHours(23, 59, 59, 999);
-        if (msgDate > endOfTo) return false;
-      }
-      return Boolean(customFrom || customTo);
-    });
-  }
-
-  if (period === 'last_interaction') {
-    const sessionStart = getLastConversationStart(messages);
-    if (!sessionStart) return [];
-    return messages.filter((message) => new Date(message.created_at) >= sessionStart);
-  }
-
-  const now = new Date();
-  const cutoffMap: Record<string, Date> = {
-    today: startOfDay(now),
-    '3d': startOfDay(new Date(now.getTime() - 3 * DAY_MS)),
-    '7d': startOfDay(new Date(now.getTime() - 7 * DAY_MS)),
-    '14d': startOfDay(new Date(now.getTime() - 14 * DAY_MS)),
-    '30d': startOfDay(new Date(now.getTime() - 30 * DAY_MS)),
-    '90d': startOfDay(new Date(now.getTime() - 90 * DAY_MS)),
-  };
-
-  const cutoff = cutoffMap[period];
-  if (!cutoff) return messages;
-  return messages.filter((message) => new Date(message.created_at) >= cutoff);
-}
-
-function getPeriodDays(period: AnalysisPeriod): number | null {
-  switch (period) {
-    case 'today':
-      return 1;
-    case '3d':
-      return 3;
-    case '7d':
-      return 7;
-    case '14d':
-      return 14;
-    case '30d':
-      return 30;
-    case '90d':
-      return 90;
-    default:
-      return null;
-  }
-}
 
 export function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
-  const [analysisPeriod, setAnalysisPeriod] = useState<AnalysisPeriod>('7d');
 
-  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined);
-  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined);
+  const {
+    analysisPeriod,
+    setAnalysisPeriod,
+    customDateFrom,
+    customDateTo,
+    setCustomDateFrom,
+    setCustomDateTo,
+    clearCustomDates,
+    filteredMessages,
+  } = usePeriodFilter(messages, '7d');
 
   const { analyses, refetch, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
-
-  const customDateRange = useMemo<DateRange | undefined>(() => {
-    if (!customDateFrom && !customDateTo) return undefined;
-
-    return {
-      from: customDateFrom,
-      to: customDateTo,
-    };
-  }, [customDateFrom, customDateTo]);
-
-  const handleCustomRangeSelect = useCallback((range: DateRange | undefined) => {
-    setCustomDateFrom(range?.from);
-    setCustomDateTo(range?.to);
-  }, []);
-
-  const filteredMessages = useMemo(
-    () => filterMessagesByPeriod(messages, analysisPeriod, customDateFrom, customDateTo),
-    [messages, analysisPeriod, customDateFrom, customDateTo]
-  );
 
   const canAnalyze = filteredMessages.length >= 5;
 
@@ -363,82 +213,17 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
         <ScrollArea className="flex-1">
           <div className="space-y-4 p-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <Select value={analysisPeriod} onValueChange={(value) => setAnalysisPeriod(value as AnalysisPeriod)}>
-                <SelectTrigger className="h-9 flex-1 rounded-lg text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ANALYSIS_PERIOD_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {analysisPeriod === 'custom' && (
-              <div className="space-y-3 rounded-xl border border-border/60 bg-muted/20 p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-[11px] font-medium text-foreground">Período personalizado</p>
-                    <p className="text-[10px] text-muted-foreground">Selecione a data inicial e final no calendário abaixo.</p>
-                  </div>
-                  {(customDateFrom || customDateTo) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 rounded-lg px-2 text-[10px]"
-                      onClick={() => {
-                        setCustomDateFrom(undefined);
-                        setCustomDateTo(undefined);
-                      }}
-                    >
-                      Limpar
-                    </Button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg border border-border/60 bg-background px-2.5 py-2">
-                    <p className="text-[10px] font-medium text-muted-foreground">De</p>
-                    <p className="mt-1 text-xs font-medium text-foreground">
-                      {customDateFrom ? format(customDateFrom, 'dd/MM/yyyy') : 'Selecione'}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-border/60 bg-background px-2.5 py-2">
-                    <p className="text-[10px] font-medium text-muted-foreground">Até</p>
-                    <p className="mt-1 text-xs font-medium text-foreground">
-                      {customDateTo ? format(customDateTo, 'dd/MM/yyyy') : 'Selecione'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
-                  <CalendarComponent
-                    mode="range"
-                    selected={customDateRange}
-                    onSelect={handleCustomRangeSelect}
-                    locale={ptBR}
-                    numberOfMonths={1}
-                    disabled={(date) => date > new Date()}
-                    defaultMonth={customDateFrom || customDateTo || new Date()}
-                    className="w-full p-3"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="text-center">
-              <p className="text-xs tabular-nums text-muted-foreground">
-                <span className="font-semibold text-foreground">{filteredMessages.length}</span> mensagens no período
-                {messages.length !== filteredMessages.length && (
-                  <span className="text-muted-foreground/60"> (de {messages.length} total)</span>
-                )}
-              </p>
-            </div>
+            <PeriodFilterSelector
+              period={analysisPeriod}
+              onPeriodChange={setAnalysisPeriod}
+              customFrom={customDateFrom}
+              customTo={customDateTo}
+              onCustomFromChange={setCustomDateFrom}
+              onCustomToChange={setCustomDateTo}
+              onClearCustom={clearCustomDates}
+              filteredCount={filteredMessages.length}
+              totalCount={messages.length}
+            />
 
             <div className="flex justify-center">
               <Button
