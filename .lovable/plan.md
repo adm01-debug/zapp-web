@@ -1,37 +1,78 @@
 
 
-## Plan: Ferramentas Mutuamente Exclusivas no Header do Chat
+## Plan: Padronizar Layout das Ferramentas + Backdrop Translúcido
 
-### Problema
-As ferramentas do header (Busca, Objeções, Universitários, Visão, Resumo) operam de forma independente — abrir uma não fecha a outra. Além disso, Objeções e Universitários usam `<Popover>` com estado interno, fora do controle do `dialogReducer`.
+### Problema Identificado
+Cada ferramenta usa um padrão de layout diferente:
+- **Objeções/Universitários**: Popover flutuante (420px, dropdown)
+- **Visão**: Painel lateral direito (w-80, full height)
+- **Resumo**: Painel inline (embutido entre header e mensagens)
+- **Busca**: Barra inline (abaixo do header)
+
+Isso cria uma experiência fragmentada e inconsistente.
 
 ### Solução
-Criar um estado centralizado de "ferramenta ativa" que garante exclusividade mútua, enquanto cada ferramenta preserva seu histórico/dados internos (não resetar estado ao fechar).
+
+**Layout Padrão Unificado**: Todas as 4 ferramentas de IA (Objeções, Universitários, Visão, Resumo) passam a usar o **mesmo padrão de painel lateral direito** (como a Visão já faz), com:
+- Largura fixa: `w-80` (320px)
+- Animação slide-in da direita
+- Header padronizado: ícone + título + subtítulo + botão fechar
+- `ScrollArea` como corpo
+- Backdrop translúcido cobrindo o resto do chat
+
+A **Busca** permanece como barra inline (padrão diferente por natureza — é um campo de input, não um painel de conteúdo).
 
 ### Alterações
 
-**1. `src/components/inbox/ChatPanel.tsx`**
-- Definir um tipo `ActiveTool = 'chatSearch' | 'objections' | 'university' | 'aiAssistant' | 'summary' | null`
-- Adicionar estado `const [activeTool, setActiveTool] = useState<ActiveTool>(null)`
-- Criar `handleSetActiveTool(tool: ActiveTool)` que:
-  - Se a ferramenta já está ativa → fecha (seta `null`)
-  - Se outra ferramenta está ativa → fecha a anterior e abre a nova
-- Sincronizar `activeTool` com os dialogs existentes (`chatSearch`, `aiAssistant`) via `useEffect` ou substituição direta
-- Passar `activeTool` e `onSetActiveTool` para `ChatPanelHeader`
-- Usar `activeTool` para controlar abertura de `ChatSearchBar`, `AIConversationAssistant`, `ConversationSummary`
+**1. Criar componente `ToolPanel` wrapper** (`src/components/inbox/ai-tools/ToolPanel.tsx`)
+- Componente reutilizável que encapsula o padrão: backdrop + painel lateral animado
+- Props: `isOpen`, `onClose`, `icon`, `title`, `subtitle`, `children`
+- Backdrop: `bg-black/40` cobrindo a área do chat (não a tela toda)
+- Painel: `w-80`, `border-l`, animação `x: 300 → 0`
+- Header: layout padronizado (ícone em caixa arredondada + texto + X)
+- Body: `ScrollArea flex-1`
 
-**2. `src/components/inbox/chat/ChatPanelHeader.tsx`**
-- Substituir os dois `<Popover>` independentes (Objeções e Universitários) por `<Popover open={activeTool === 'objections'} onOpenChange={...}>`
-- Novos props: `activeTool` e `onSetActiveTool`
-- Cada botão de ferramenta chama `onSetActiveTool('toolName')` em vez de lógica independente
-- Os componentes `ObjectionDetector` e `UniversityHelp` continuam montados via `Suspense` — seu estado interno (análises, respostas) persiste enquanto o componente estiver montado
+**2. Refatorar `ChatPanel.tsx`**
+- Remover o bloco inline do `ConversationSummary` (linhas 398-409)
+- Mover Resumo e manter Visão para renderizar via `ToolPanel` no mesmo slot lateral
+- Objeções e Universitários saem dos Popovers do header e passam para `ToolPanel`
 
-### Comportamento Final
-- Clicar em qualquer ferramenta fecha automaticamente qualquer outra que esteja aberta
-- Clicar na ferramenta já ativa fecha ela (toggle)
-- O histórico/dados de cada ferramenta persiste (componentes não são desmontados, apenas ocultados quando aplicável; popovers mantêm cache via lazy load)
+**3. Refatorar `ChatPanelHeader.tsx`**
+- Remover os dois `<Popover>` de Objeções e Universitários
+- Botões passam a ser simples toggles chamando `onSetActiveTool('objections')` / `onSetActiveTool('university')`
+- Sem mais `PopoverContent` — o conteúdo agora vive no `ToolPanel` em `ChatPanel.tsx`
+
+**4. Adaptar `ConversationSummary.tsx`**
+- Remover wrapper Card/CardHeader próprio (será fornecido pelo `ToolPanel`)
+- Exportar apenas o conteúdo interno (period selector, botão, resultado)
+
+**5. Adaptar `ObjectionDetector.tsx` e `UniversityHelp.tsx`**
+- Remover headers internos (já fornecidos pelo `ToolPanel`)
+- Manter lógica e conteúdo intactos
+
+### Resultado Visual
+```text
+┌──────────────────────────────────┬──────────┐
+│  Header do Chat                  │          │
+├──────────────────────────────────┤          │
+│                                  │ ToolPanel│
+│   Mensagens do Chat              │ (320px)  │
+│   (com backdrop translúcido)     │          │
+│                                  │ [Ícone]  │
+│                                  │ Título   │
+│                                  │ ──────── │
+│                                  │ Conteúdo │
+│                                  │          │
+├──────────────────────────────────┤          │
+│  Input                           │          │
+└──────────────────────────────────┴──────────┘
+```
 
 ### Arquivos Modificados
-1. `src/components/inbox/ChatPanel.tsx` — estado centralizado `activeTool`
-2. `src/components/inbox/chat/ChatPanelHeader.tsx` — popovers controlados + novos props
+1. `src/components/inbox/ai-tools/ToolPanel.tsx` — **NOVO** — wrapper reutilizável
+2. `src/components/inbox/ChatPanel.tsx` — render unificado das 4 ferramentas via ToolPanel
+3. `src/components/inbox/chat/ChatPanelHeader.tsx` — remover Popovers, simplificar botões
+4. `src/components/inbox/ConversationSummary.tsx` — remover Card wrapper externo
+5. `src/components/inbox/ObjectionDetector.tsx` — remover header interno
+6. `src/components/inbox/UniversityHelp.tsx` — remover header interno
 
