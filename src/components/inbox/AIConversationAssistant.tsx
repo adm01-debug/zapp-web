@@ -112,6 +112,16 @@ const urgencyConfig: Record<string, { label: string; className: string }> = {
   critica: { label: 'Crítica', className: 'bg-destructive/30 text-destructive animate-pulse' },
 };
 
+const departmentConfig: Record<string, { label: string; emoji: string; color: string }> = {
+  vendas: { label: 'Vendas', emoji: '🛒', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  compras: { label: 'Compras', emoji: '📦', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  logistica: { label: 'Logística', emoji: '🚛', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  rh: { label: 'RH', emoji: '👥', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  financeiro: { label: 'Financeiro', emoji: '💰', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  sac: { label: 'SAC', emoji: '🎧', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30' },
+  outros: { label: 'Outros', emoji: '📋', color: 'bg-muted/40 text-muted-foreground border-border' },
+};
+
 const churnConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   low: { label: 'Baixo', color: 'text-success', icon: CheckCircle2 },
   medium: { label: 'Médio', color: 'text-warning', icon: AlertCircle },
