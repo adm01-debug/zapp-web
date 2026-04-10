@@ -2,8 +2,9 @@ import { useState, useMemo, useCallback } from 'react';
 import { format, startOfDay as fnsStartOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { CalendarDays, X } from 'lucide-react';
+import { CalendarDays, X, MessageSquare } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 // ── Shared types & constants ──
