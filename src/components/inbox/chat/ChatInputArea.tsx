@@ -547,6 +547,7 @@ export function ChatInputArea({
           >
             <AIRewriteButton
               inputValue={inputValue}
+              contactName={contactName}
               onRewrite={(newText) => {
                 const el = inputRef.current;
                 if (!el) return;

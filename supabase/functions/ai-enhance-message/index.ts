@@ -29,11 +29,16 @@ Deno.serve(async (req) => {
     const parsed = parseBody(AiEnhanceMessageSchema, await req.json());
     if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const { message, tone } = parsed.data;
+    const { message, tone, contactName } = parsed.data;
     const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
     const systemPrompt = tonePrompts[tone];
 
-    log.info("Enhancing message", { tone, len: message.length });
+    const firstName = contactName ? contactName.split(' ')[0] : null;
+    const humanizationRule = firstName && firstName !== 'Cliente'
+      ? `\n- REGRA CRÍTICA DE HUMANIZAÇÃO: O nome do cliente é "${firstName}". A mensagem reescrita DEVE obrigatoriamente começar mencionando o nome "${firstName}" de forma natural e humana (ex: "${firstName}, entendi sua solicitação..." ou "${firstName}, vou verificar isso..."). O cliente JAMAIS deve perceber que a resposta foi gerada por IA. Isso é OBRIGATÓRIO.`
+      : '';
+
+    log.info("Enhancing message", { tone, len: message.length, hasContactName: !!firstName });
 
     const { response, data } = await callAiWithTracking({
       functionName: 'ai-enhance-message',
@@ -44,7 +49,7 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `${systemPrompt}\n\nRegras importantes:\n- Retorne APENAS a mensagem reescrita, sem explicações, aspas ou prefixos.\n- Não adicione saudações ou despedidas que não existiam na mensagem original.\n- Mantenha o mesmo idioma da mensagem original.\n- Mantenha emojis se houverem na mensagem original.\n- A mensagem é para ser enviada via WhatsApp para um cliente.`,
+            content: `${systemPrompt}\n\nRegras importantes:\n- Retorne APENAS a mensagem reescrita, sem explicações, aspas ou prefixos.\n- Não adicione saudações ou despedidas que não existiam na mensagem original.\n- Mantenha o mesmo idioma da mensagem original.\n- Mantenha emojis se houverem na mensagem original.\n- A mensagem é para ser enviada via WhatsApp para um cliente.${humanizationRule}`,
           },
           { role: "user", content: message },
         ],
