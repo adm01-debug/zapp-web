@@ -1,3 +1,5 @@
+import { log } from '@/lib/logger';
+
 export interface TtsPlayback {
   promise: Promise<void>;
   stop: () => void;
@@ -149,7 +151,7 @@ export function playTtsAudio(
         if (!response.ok) {
           const errorBody = await response.text().catch(() => '');
           if (response.status === 401 || response.status === 403) {
-            console.warn('[TTS] ElevenLabs API key invalid — falling back to browser speech');
+            log.warn('[TTS] ElevenLabs API key invalid — falling back to browser speech');
             throw new Error('TTS_UNAUTHORIZED');
           }
 
@@ -237,7 +239,7 @@ export function playTtsAudio(
       }
     } catch (err) {
       if (stopped || controller.signal.aborted) return;
-      console.warn('[TTS] Chunked playback failed, falling back to browser speech:', err);
+      log.warn('[TTS] Chunked playback failed, falling back to browser speech:', err);
       options?.onLoadingChange?.(false);
       const realErr = err instanceof Error ? err : new Error(String(err));
       if (realErr.name === 'NotAllowedError' || realErr.message?.includes('NotAllowedError')) {

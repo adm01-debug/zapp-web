@@ -7,7 +7,6 @@ import { ptBR } from 'date-fns/locale';
 import { log } from '@/lib/logger';
 import { PeriodFilterSelector, usePeriodFilter, getPeriodDays } from './ai-tools/PeriodFilterSelector';
 import {
-  
   Loader2,
   CheckCircle2,
   Clock,
@@ -139,7 +138,6 @@ const performanceLabels: Record<string, { label: string; icon: React.ElementType
   efficiency: { label: 'Eficiência', icon: Zap },
   knowledge: { label: 'Conhecimento', icon: BookOpen },
 };
-
 
 export function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
