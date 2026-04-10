@@ -139,7 +139,6 @@ const performanceLabels: Record<string, { label: string; icon: React.ElementType
   knowledge: { label: 'Conhecimento', icon: BookOpen },
 };
 
-
 export function AIConversationAssistant({ messages, contactId, contactName, isOpen, onClose }: AIConversationAssistantProps) {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
