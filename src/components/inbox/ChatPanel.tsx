@@ -20,6 +20,8 @@ import { useMessageSignature } from '@/hooks/useMessageSignature';
 import { useChatMediaSending } from './useChatMediaSending';
 import { CRMAutoSync } from './CRMAutoSync';
 import { useAmbientColor } from '@/hooks/useAmbientColor';
+import { Radar, GraduationCap, FileText } from 'lucide-react';
+import { ToolPanel } from './ai-tools/ToolPanel';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
@@ -30,6 +32,8 @@ import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
 import { ChatSearchBar } from './chat/ChatSearchBar';
 
 const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
+const ObjectionDetector = lazy(() => import('./ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
+const UniversityHelp = lazy(() => import('./UniversityHelp').then(m => ({ default: m.UniversityHelp })));
 const TransferDialog = lazy(() => import('./TransferDialog').then(m => ({ default: m.TransferDialog })));
 const WhisperMode = lazy(() => import('./WhisperMode').then(m => ({ default: m.WhisperMode })));
 const ScheduleMessageDialog = lazy(() => import('./ScheduleMessageDialog').then(m => ({ default: m.ScheduleMessageDialog })));
@@ -395,18 +399,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         </Suspense>
 
 
-        {activeTool === 'summary' && (
-          <div className="shrink-0 max-h-[50vh] overflow-y-auto border-b border-border">
-            <Suspense fallback={<div className="px-4 py-6 text-center text-xs text-muted-foreground">Carregando resumo...</div>}>
-              <ConversationSummary
-                messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
-                contactName={conversation.contact.name}
-                contactId={conversation.contact.id}
-                onClose={() => handleSetActiveTool('summary')}
-              />
-            </Suspense>
-          </div>
-        )}
+
 
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
           ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}
@@ -469,6 +462,63 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         <Suspense fallback={null}>
           <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
             contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
+        </Suspense>
+      )}
+
+      {activeTool === 'objections' && (
+        <Suspense fallback={null}>
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('objections')}
+            icon={<Radar className="w-4 h-4 text-warning" />}
+            title="Monitoramento de Objeções"
+            subtitle="Detecta resistências e sugere contra-argumentos"
+          >
+            <ObjectionDetector
+              contactId={conversation.contact.id}
+              contactName={conversation.contact.name}
+              lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
+              allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
+              onSelectSuggestion={(text) => setInputValue(text)}
+            />
+          </ToolPanel>
+        </Suspense>
+      )}
+
+      {activeTool === 'university' && (
+        <Suspense fallback={null}>
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('university')}
+            icon={<GraduationCap className="w-4 h-4 text-primary" />}
+            title="Ajuda dos Universitários"
+            subtitle="Gera respostas inteligentes a partir de mensagens"
+          >
+            <UniversityHelp
+              contactId={conversation.contact.id}
+              contactName={conversation.contact.name}
+              messages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
+              onSelectSuggestion={(text) => setInputValue(text)}
+            />
+          </ToolPanel>
+        </Suspense>
+      )}
+
+      {activeTool === 'summary' && (
+        <Suspense fallback={null}>
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('summary')}
+            icon={<FileText className="w-4 h-4 text-primary" />}
+            title="Resumo da Conversa"
+            subtitle="Análise e pontos-chave da conversa"
+          >
+            <ConversationSummary
+              messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
+              contactName={conversation.contact.name}
+              contactId={conversation.contact.id}
+            />
+          </ToolPanel>
         </Suspense>
       )}
     </div>

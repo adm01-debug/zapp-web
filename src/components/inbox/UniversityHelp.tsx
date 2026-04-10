@@ -210,16 +210,6 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
 
   return (
     <div className="space-y-3">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-1">
-        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-          <GraduationCap className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <span className="text-xs font-semibold">Ajuda dos Universitários</span>
-          <p className="text-[10px] text-muted-foreground">Selecione mensagens para gerar uma resposta inteligente</p>
-        </div>
-      </div>
 
       {/* Period Filter */}
       <PeriodFilterSelector
