@@ -451,11 +451,7 @@ Se não houver objeções, retorne []`,
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-warning/10 flex items-center justify-center">
-            <ShieldQuestion className="w-3.5 h-3.5 text-warning" />
-          </div>
-          <span className="text-xs font-semibold">Objeções detectadas</span>
-          <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-semibold">{objections.length}</Badge>
+          <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-semibold">{objections.length} objeções</Badge>
         </div>
         <Button
           variant="ghost"
