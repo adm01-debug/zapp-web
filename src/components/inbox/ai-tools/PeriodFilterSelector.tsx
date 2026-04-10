@@ -14,7 +14,6 @@ export type AnalysisPeriod = 'all' | 'last_interaction' | 'today' | '3d' | '7d' 
 export interface PeriodMessage {
   id: string;
   created_at: string;
-  [key: string]: unknown;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
