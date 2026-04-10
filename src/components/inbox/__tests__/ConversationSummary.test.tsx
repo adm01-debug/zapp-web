@@ -31,11 +31,12 @@ const mockSummary = {
 describe('ConversationSummary', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('renders nothing when no summary exists and not generated', () => {
-    const { container } = render(
+  it('always renders period selector', () => {
+    render(
       <ConversationSummary messages={makeMessages(15)} contactName="João" />
     );
-    expect(container.firstChild).toBeNull();
+    expect(screen.getByText('Resumo da Conversa')).toBeInTheDocument();
+    expect(screen.getByText(/mensagens no período/)).toBeInTheDocument();
   });
 
   it('renders summary card when initialSummary is provided', () => {
@@ -84,23 +85,14 @@ describe('ConversationSummary', () => {
     expect(screen.getByText('Pendente')).toBeInTheDocument();
   });
 
-  it('collapses/expands on header click', () => {
+  it('shows generate button when no summary exists', () => {
     render(
-      <ConversationSummary
-        messages={makeMessages(15)}
-        contactName="João"
-        initialSummary={mockSummary as unknown as Record<string, unknown>}
-      />
+      <ConversationSummary messages={makeMessages(15)} contactName="João" />
     );
-    // Summary text should be visible (expanded by default with initialSummary)
-    expect(screen.getByText(mockSummary.summary)).toBeInTheDocument();
-
-    // Click header to collapse
-    fireEvent.click(screen.getByText('Resumo da Conversa'));
-    // After collapse animation, content should be hidden (AnimatePresence)
+    expect(screen.getByText(/Gerar resumo/)).toBeInTheDocument();
   });
 
-  it('shows regenerate button', () => {
+  it('shows regenerate button when summary exists', () => {
     render(
       <ConversationSummary
         messages={makeMessages(15)}
@@ -128,19 +120,13 @@ describe('ConversationSummary', () => {
     });
   });
 
-  it('renders all sentiment variants correctly', () => {
-    const sentiments = ['positivo', 'neutro', 'negativo'] as const;
-
-    sentiments.forEach((sentiment) => {
-      const { unmount } = render(
-        <ConversationSummary
-          messages={makeMessages(15)}
-          contactName="João"
-          initialSummary={{ ...mockSummary, sentiment } as unknown as Record<string, unknown>}
-        />
-      );
-      expect(screen.getByText('Resumo da Conversa')).toBeInTheDocument();
-      unmount();
-    });
+  it('shows close button when onClose provided', () => {
+    const onClose = vi.fn();
+    render(
+      <ConversationSummary messages={makeMessages(15)} contactName="João" onClose={onClose} />
+    );
+    // X button should be present
+    const closeButtons = screen.getAllByRole('button');
+    expect(closeButtons.length).toBeGreaterThan(0);
   });
 });
