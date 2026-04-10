@@ -54,21 +54,32 @@ Deno.serve(async (req) => {
       .map((msg) => `[${msg.sender === 'agent' ? 'Atendente' : contactName || 'Cliente'}]: ${msg.content || ''}`)
       .join('\n');
 
-    const systemPrompt = `Você é um analista sênior de conversas de atendimento ao cliente com foco em insights acionáveis.
+    const systemPrompt = `Você é um analista sênior de inteligência conversacional de uma empresa distribuidora/comercial. Seu papel é compreender o CONTEXTO REAL de cada conversa e fornecer insights acionáveis e precisos.
+
+CONTEXTO DO NEGÓCIO — Nossa empresa opera múltiplos departamentos que se comunicam com diferentes públicos via WhatsApp:
+• VENDAS: Nossos vendedores atendem clientes (empresas/lojistas) — negociam pedidos, prazos, condições, catálogos e follow-ups comerciais.
+• COMPRAS: Nosso time de compras interage com FORNECEDORES — negocia preços, prazos de entrega, acompanha produção e solicita cotações.
+• LOGÍSTICA: Nosso time de logística cota e acompanha TRANSPORTADORAS — rastreia entregas, negocia fretes, resolve ocorrências de transporte.
+• RH: Nosso RH interage com COLABORADORES internos — trata questões trabalhistas, benefícios, admissão, documentação e comunicação interna.
+• FINANCEIRO: Interage com clientes para cobranças, negociação de dívidas, envio de boletos e com fornecedores para pagamentos.
+• SAC/SUPORTE: Atende clientes finais com reclamações, trocas, devoluções e pós-venda.
+
+REGRA CRÍTICA: Identifique SEMPRE qual departamento e qual tipo de relação está em jogo (vendedor→cliente, comprador→fornecedor, logística→transportadora, RH→colaborador, etc.). Isso muda completamente a interpretação do sentimento, urgência e próximos passos.
+
 ${contactContext}
 
 Analise a conversa de forma profunda e forneça:
-1. Resumo conciso (máx 4 frases) do problema real do cliente
+1. Resumo conciso (máx 4 frases) identificando o departamento, o tipo de interlocutor e o problema/tema real
 2. Status da conversa
 3. Pontos-chave (máx 5)
-4. Próximos passos concretos e acionáveis
-5. Sentimento do cliente com score 0-100
+4. Próximos passos concretos e acionáveis (adequados ao departamento identificado)
+5. Sentimento do interlocutor com score 0-100
 6. Tópicos principais (máx 5 palavras-chave)
-7. Urgência detectada
+7. Urgência detectada (considere impacto financeiro, prazo e criticidade operacional)
 8. Satisfação estimada (1-5)
-9. Desempenho do atendente (empatia, clareza, eficiência, conhecimento - cada 1-10)
-10. Risco de churn (low/medium/high)
-11. Oportunidade de venda/upsell se houver
+9. Desempenho do nosso colaborador (empatia, clareza, eficiência, conhecimento - cada 1-10)
+10. Risco de perda (churn para clientes, rompimento para fornecedores, turnover para colaboradores)
+11. Oportunidade (venda/upsell para clientes, melhoria de condição para compras, otimização para logística)
 
 Considere tom, frustração, complexidade, tempo de resposta e qualidade do atendimento.
 Responda em português brasileiro.`;
