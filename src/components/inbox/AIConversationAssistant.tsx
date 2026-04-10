@@ -260,7 +260,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
               totalCount={messages.length}
             />
 
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-1.5">
               <Button
                 size="sm"
                 onClick={analyzeConversation}
@@ -270,6 +270,9 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 {isLoading ? 'Analisando...' : `Analisar (${filteredMessages.length} msgs)`}
               </Button>
+              {canAnalyze && !isLoading && !analysis && (
+                <p className="text-[9px] text-muted-foreground">Resumo · Sentimento · Pontos-chave · Histórico</p>
+              )}
             </div>
 
             {!canAnalyze && (
