@@ -490,6 +490,7 @@ Se não houver objeções, retorne []`,
           </AnimatePresence>
         </div>
       </ScrollArea>
+      </div>
     </div>
   );
 }
