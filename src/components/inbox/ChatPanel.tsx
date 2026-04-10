@@ -30,6 +30,8 @@ import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
 import { ChatSearchBar } from './chat/ChatSearchBar';
 
 const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
+const ObjectionDetector = lazy(() => import('./ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
+const UniversityHelp = lazy(() => import('./UniversityHelp').then(m => ({ default: m.UniversityHelp })));
 const TransferDialog = lazy(() => import('./TransferDialog').then(m => ({ default: m.TransferDialog })));
 const WhisperMode = lazy(() => import('./WhisperMode').then(m => ({ default: m.WhisperMode })));
 const ScheduleMessageDialog = lazy(() => import('./ScheduleMessageDialog').then(m => ({ default: m.ScheduleMessageDialog })));
@@ -395,18 +397,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         </Suspense>
 
 
-        {activeTool === 'summary' && (
-          <div className="shrink-0 max-h-[50vh] overflow-y-auto border-b border-border">
-            <Suspense fallback={<div className="px-4 py-6 text-center text-xs text-muted-foreground">Carregando resumo...</div>}>
-              <ConversationSummary
-                messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
-                contactName={conversation.contact.name}
-                contactId={conversation.contact.id}
-                onClose={() => handleSetActiveTool('summary')}
-              />
-            </Suspense>
-          </div>
-        )}
+
 
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
           ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}
