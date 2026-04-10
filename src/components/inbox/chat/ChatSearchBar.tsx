@@ -282,74 +282,79 @@ export function ChatSearchBar({
                     )}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start" side="bottom">
-                  <div className="p-2 space-y-1 border-b border-border">
-                    {DATE_PRESETS.filter((p) => p.key !== 'custom').map((p) => (
-                      <button
-                        key={p.key}
-                        className={cn(
-                          'w-full text-left text-xs px-3 py-1.5 rounded-md transition-colors',
-                          datePreset === p.key
-                            ? 'bg-primary text-primary-foreground'
-                            : 'hover:bg-muted text-foreground'
-                        )}
-                        onClick={() => {
-                          setDatePreset(p.key);
-                          setCustomDateFrom(null);
-                          setCustomDateTo(null);
-                          if (p.key !== 'custom') setDatePopoverOpen(false);
-                        }}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="p-2">
-                    <p className="text-[11px] text-muted-foreground font-medium px-1 mb-1.5">Período personalizado</p>
-                    <div className="flex gap-2">
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground px-1">De</span>
-                        <Calendar
-                          mode="single"
-                          selected={customDateFrom ?? undefined}
-                          onSelect={(day) => {
-                            setCustomDateFrom(day ?? null);
-                            setDatePreset('custom');
+                <PopoverContent className="w-[520px] p-0 pointer-events-auto" align="start" side="bottom" sideOffset={8}>
+                  <div className="flex">
+                    {/* Presets column */}
+                    <div className="w-[200px] border-r border-border p-1.5 space-y-0.5">
+                      {DATE_PRESETS.filter((p) => p.key !== 'custom').map((p) => (
+                        <button
+                          key={p.key}
+                          className={cn(
+                            'w-full text-left text-[13px] px-3 py-2 rounded-lg transition-all duration-150 font-medium',
+                            datePreset === p.key
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'text-foreground hover:bg-muted'
+                          )}
+                          onClick={() => {
+                            setDatePreset(p.key);
+                            setCustomDateFrom(null);
+                            setCustomDateTo(null);
+                            if (p.key !== 'custom') setDatePopoverOpen(false);
                           }}
-                          disabled={(date) => date > new Date()}
-                          locale={ptBR}
-                          className="rounded-md border p-1"
-                          classNames={{
-                            day_selected: 'bg-primary text-primary-foreground',
-                            head_cell: 'text-[10px]',
-                            cell: 'h-7 w-7 text-[11px]',
-                            day: 'h-7 w-7 text-[11px]',
-                            caption_label: 'text-xs font-medium',
-                            nav_button: 'h-6 w-6',
-                          }}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground px-1">Até</span>
-                        <Calendar
-                          mode="single"
-                          selected={customDateTo ?? undefined}
-                          onSelect={(day) => {
-                            setCustomDateTo(day ?? null);
-                            setDatePreset('custom');
-                          }}
-                          disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
-                          locale={ptBR}
-                          className="rounded-md border p-1"
-                          classNames={{
-                            day_selected: 'bg-primary text-primary-foreground',
-                            head_cell: 'text-[10px]',
-                            cell: 'h-7 w-7 text-[11px]',
-                            day: 'h-7 w-7 text-[11px]',
-                            caption_label: 'text-xs font-medium',
-                            nav_button: 'h-6 w-6',
-                          }}
-                        />
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Custom calendar area */}
+                    <div className="flex-1 p-3">
+                      <p className="text-xs text-muted-foreground font-semibold mb-3 tracking-wide uppercase">Período personalizado</p>
+                      <div className="flex gap-3">
+                        <div className="space-y-1.5 flex-1">
+                          <span className="text-[11px] text-muted-foreground font-medium px-1">De</span>
+                          <Calendar
+                            mode="single"
+                            selected={customDateFrom ?? undefined}
+                            onSelect={(day) => {
+                              setCustomDateFrom(day ?? null);
+                              setDatePreset('custom');
+                            }}
+                            disabled={(date) => date > new Date()}
+                            locale={ptBR}
+                            className="rounded-lg border border-border p-2 pointer-events-auto"
+                            classNames={{
+                              day_selected: 'bg-primary text-primary-foreground',
+                              head_cell: 'text-[10px] font-medium text-muted-foreground',
+                              cell: 'h-8 w-8 text-xs',
+                              day: 'h-8 w-8 text-xs',
+                              caption_label: 'text-sm font-semibold',
+                              nav_button: 'h-7 w-7',
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1.5 flex-1">
+                          <span className="text-[11px] text-muted-foreground font-medium px-1">Até</span>
+                          <Calendar
+                            mode="single"
+                            selected={customDateTo ?? undefined}
+                            onSelect={(day) => {
+                              setCustomDateTo(day ?? null);
+                              setDatePreset('custom');
+                            }}
+                            disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
+                            locale={ptBR}
+                            className="rounded-lg border border-border p-2 pointer-events-auto"
+                            classNames={{
+                              day_selected: 'bg-primary text-primary-foreground',
+                              head_cell: 'text-[10px] font-medium text-muted-foreground',
+                              cell: 'h-8 w-8 text-xs',
+                              day: 'h-8 w-8 text-xs',
+                              caption_label: 'text-sm font-semibold',
+                              nav_button: 'h-7 w-7',
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
