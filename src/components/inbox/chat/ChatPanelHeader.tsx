@@ -36,7 +36,7 @@ import {
   ArrowLeft,
   PhoneCall,
   Search,
-  Brain,
+  
   Info,
   ExternalLink,
   FileText,
