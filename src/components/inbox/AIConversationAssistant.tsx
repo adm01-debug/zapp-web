@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, startOfDay as fnsStartOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import type { DateRange } from 'react-day-picker';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { log } from '@/lib/logger';
 import {
   Brain,
@@ -238,6 +238,20 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const { analyses, refetch, getSentimentTrend, loading: historyLoading } = useConversationAnalyses(contactId);
   const { checkAndTriggerAlert, threshold: SENTIMENT_THRESHOLD } = useSentimentAlerts();
 
+  const customDateRange = useMemo<DateRange | undefined>(() => {
+    if (!customDateFrom && !customDateTo) return undefined;
+
+    return {
+      from: customDateFrom,
+      to: customDateTo,
+    };
+  }, [customDateFrom, customDateTo]);
+
+  const handleCustomRangeSelect = useCallback((range: DateRange | undefined) => {
+    setCustomDateFrom(range?.from);
+    setCustomDateTo(range?.to);
+  }, []);
+
   const filteredMessages = useMemo(
     () => filterMessagesByPeriod(messages, analysisPeriod, customDateFrom, customDateTo),
     [messages, analysisPeriod, customDateFrom, customDateTo]
@@ -366,50 +380,53 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
             </div>
 
             {analysisPeriod === 'custom' && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-medium text-muted-foreground">De</label>
-                  <Popover modal={true}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full justify-start rounded-lg text-xs font-normal">
-                        <Calendar className="mr-1.5 h-3 w-3" />
-                        {customDateFrom ? format(customDateFrom, 'dd/MM/yyyy') : 'Selecionar'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[9999] pointer-events-auto" align="start" side="bottom" sideOffset={4}>
-                      <CalendarComponent
-                        mode="single"
-                        selected={customDateFrom}
-                        onSelect={(date) => { setCustomDateFrom(date); }}
-                        locale={ptBR}
-                        disabled={(date) => date > new Date() || (customDateTo ? date > customDateTo : false)}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+              <div className="space-y-3 rounded-xl border border-border/60 bg-muted/20 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-[11px] font-medium text-foreground">Período personalizado</p>
+                    <p className="text-[10px] text-muted-foreground">Selecione a data inicial e final no calendário abaixo.</p>
+                  </div>
+                  {(customDateFrom || customDateTo) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 rounded-lg px-2 text-[10px]"
+                      onClick={() => {
+                        setCustomDateFrom(undefined);
+                        setCustomDateTo(undefined);
+                      }}
+                    >
+                      Limpar
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-medium text-muted-foreground">Até</label>
-                  <Popover modal={true}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full justify-start rounded-lg text-xs font-normal">
-                        <Calendar className="mr-1.5 h-3 w-3" />
-                        {customDateTo ? format(customDateTo, 'dd/MM/yyyy') : 'Selecionar'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[9999] pointer-events-auto" align="end" side="bottom" sideOffset={4}>
-                      <CalendarComponent
-                        mode="single"
-                        selected={customDateTo}
-                        onSelect={(date) => { setCustomDateTo(date); }}
-                        locale={ptBR}
-                        disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-border/60 bg-background px-2.5 py-2">
+                    <p className="text-[10px] font-medium text-muted-foreground">De</p>
+                    <p className="mt-1 text-xs font-medium text-foreground">
+                      {customDateFrom ? format(customDateFrom, 'dd/MM/yyyy') : 'Selecione'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/60 bg-background px-2.5 py-2">
+                    <p className="text-[10px] font-medium text-muted-foreground">Até</p>
+                    <p className="mt-1 text-xs font-medium text-foreground">
+                      {customDateTo ? format(customDateTo, 'dd/MM/yyyy') : 'Selecione'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
+                  <CalendarComponent
+                    mode="range"
+                    selected={customDateRange}
+                    onSelect={handleCustomRangeSelect}
+                    locale={ptBR}
+                    numberOfMonths={1}
+                    disabled={(date) => date > new Date()}
+                    defaultMonth={customDateFrom || customDateTo || new Date()}
+                    className="w-full p-3"
+                  />
                 </div>
               </div>
             )}
