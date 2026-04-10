@@ -91,12 +91,36 @@ function dialogReducer(state: DialogState, action: DialogAction): DialogState {
   }
 }
 
+// ── Active Tool (mutual exclusivity) ──
+type ActiveTool = 'chatSearch' | 'objections' | 'university' | 'aiAssistant' | 'summary' | null;
+
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack, hideHeader = false }: ChatPanelProps) {
   // ── Dialog State (consolidated) ──
   const [dialogs, dispatch] = useReducer(dialogReducer, initialDialogState);
   const openDialog = useCallback((key: DialogKey) => dispatch({ type: 'OPEN', key }), []);
   const closeDialog = useCallback((key: DialogKey) => dispatch({ type: 'CLOSE', key }), []);
   const toggleDialog = useCallback((key: DialogKey) => dispatch({ type: 'TOGGLE', key }), []);
+
+  // ── Active Tool State (ensures only one tool is open at a time) ──
+  const [activeTool, setActiveTool] = useState<ActiveTool>(null);
+
+  const handleSetActiveTool = useCallback((tool: ActiveTool) => {
+    setActiveTool(prev => prev === tool ? null : tool);
+  }, []);
+
+  // Sync activeTool with dialog reducer for tools that use it
+  useEffect(() => {
+    if (activeTool === 'chatSearch') {
+      dispatch({ type: 'OPEN', key: 'chatSearch' });
+    } else {
+      dispatch({ type: 'CLOSE', key: 'chatSearch' });
+    }
+    if (activeTool === 'aiAssistant') {
+      dispatch({ type: 'OPEN', key: 'aiAssistant' });
+    } else {
+      dispatch({ type: 'CLOSE', key: 'aiAssistant' });
+    }
+  }, [activeTool]);
 
   // ── Core State ──
   const [inputValue, setInputValue] = useState('');
@@ -110,7 +134,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -141,29 +164,20 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   // Reset chat search when switching conversations
   useEffect(() => {
-    closeDialog('chatSearch');
+    setActiveTool(null);
     setHighlightedMessageIds(new Set());
     setActiveHighlightId(null);
     setSearchQuery('');
   }, [conversation.id]);
 
-  // Reset summary panel when switching conversations
-  useEffect(() => {
-    setShowSummaryPanel(false);
-  }, [conversation.id]);
-
   const canGenerateSummary = messages.length >= 10;
-
-  const handleToggleSummary = () => {
-    setShowSummaryPanel(prev => !prev);
-  };
 
   // Global Ctrl+F handler for chat search (toggle)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        toggleDialog('chatSearch');
+        handleSetActiveTool('chatSearch');
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
@@ -246,7 +260,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     if (dialogs.slashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
     if (e.key === 'k' && e.ctrlKey) { e.preventDefault(); openDialog('globalSearch'); }
-    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openDialog('chatSearch'); }
+    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSetActiveTool('chatSearch'); }
     if (e.key === 'Escape' && dialogs.slashCommands) closeDialog('slashCommands');
   };
 
@@ -265,7 +279,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       case 'archive': toast({ title: '📦 Conversa Arquivada', description: 'A conversa foi arquivada.' }); break;
       case 'remind': toast({ title: '🔔 Lembrete Criado', description: 'Um lembrete foi criado para esta conversa.' }); break;
       case 'quick': toast({ title: '⚡ Resposta Rápida', description: 'Use / seguido do atalho para respostas rápidas.' }); break;
-      case 'summary': openDialog('aiAssistant'); break;
+      case 'summary': handleSetActiveTool('aiAssistant'); break;
       case 'produto': openDialog('catalogDirect'); break;
       default: toast({ title: `Comando: ${command.label}`, description: command.description }); break;
     }
@@ -351,13 +365,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         {!hideHeader && (
-          <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={dialogs.aiAssistant} showDetails={showDetails}
-            showSummaryPanel={showSummaryPanel}
-            voiceId={voiceId} speed={speed} onToggleAIAssistant={() => toggleDialog('aiAssistant')} onToggleDetails={onToggleDetails}
-            onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => openDialog('chatSearch')}
+          <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={activeTool === 'aiAssistant'} showDetails={showDetails}
+            showSummaryPanel={activeTool === 'summary'}
+            activeTool={activeTool} onSetActiveTool={handleSetActiveTool}
+            voiceId={voiceId} speed={speed} onToggleAIAssistant={() => handleSetActiveTool('aiAssistant')} onToggleDetails={onToggleDetails}
+            onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => handleSetActiveTool('chatSearch')}
             onOpenTransfer={() => openDialog('transferDialog')} onOpenSchedule={() => openDialog('scheduleDialog')}
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
-            onGenerateSummary={handleToggleSummary} isSummaryLoading={false} canGenerateSummary={canGenerateSummary}
+            onGenerateSummary={() => handleSetActiveTool('summary')} isSummaryLoading={false} canGenerateSummary={canGenerateSummary}
             onCloseConversation={() => openDialog('closeDialog')}
             lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
             allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
@@ -366,8 +381,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         <ChatSearchBar
           messages={messages}
-          isOpen={dialogs.chatSearch}
-          onClose={() => { closeDialog('chatSearch'); setTimeout(() => inputRef.current?.focus(), 150); }}
+          isOpen={activeTool === 'chatSearch'}
+          onClose={() => { handleSetActiveTool('chatSearch'); setTimeout(() => inputRef.current?.focus(), 150); }}
           onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
           onSearchQueryChange={setSearchQuery}
@@ -380,14 +395,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         </Suspense>
 
 
-        {showSummaryPanel && (
+        {activeTool === 'summary' && (
           <div className="shrink-0 max-h-[50vh] overflow-y-auto border-b border-border">
             <Suspense fallback={<div className="px-4 py-6 text-center text-xs text-muted-foreground">Carregando resumo...</div>}>
               <ConversationSummary
                 messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
                 contactName={conversation.contact.name}
                 contactId={conversation.contact.id}
-                onClose={() => setShowSummaryPanel(false)}
+                onClose={() => handleSetActiveTool('summary')}
               />
             </Suspense>
           </div>
@@ -450,10 +465,10 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         )}
       </div>
 
-      {dialogs.aiAssistant && (
+      {activeTool === 'aiAssistant' && (
         <Suspense fallback={null}>
           <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
-            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={dialogs.aiAssistant} onClose={() => closeDialog('aiAssistant')} />
+            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
         </Suspense>
       )}
     </div>
