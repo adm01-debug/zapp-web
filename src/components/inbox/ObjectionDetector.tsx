@@ -458,8 +458,8 @@ Se não houver objeções, retorne []`,
 
       <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); analyze(tone); }} disabled={loading} />
 
-      <ScrollArea className="max-h-72">
-        <div className="space-y-2 pr-1">
+      <ScrollArea className="h-72 [&>[data-radix-scroll-area-viewport]]:max-h-72">
+        <div className="space-y-2 pr-3">
           <AnimatePresence mode="popLayout">
             {objections.map((obj, idx) => (
               <ObjectionCard
