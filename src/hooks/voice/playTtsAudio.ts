@@ -6,6 +6,7 @@ export interface TtsPlayback {
 export interface PlayTtsOptions {
   onLoadingChange?: (loading: boolean) => void;
   onError?: (error: Error) => void;
+  onAutoplayBlocked?: () => void;
 }
 
 const TTS_REQUEST_TIMEOUT_MS = 60000;
@@ -199,6 +200,9 @@ export function playTtsAudio(
       audioElement.src = objectUrl;
       audioElement.play().catch((playErr) => {
         resetHandlers();
+        if (playErr?.name === 'NotAllowedError') {
+          options?.onAutoplayBlocked?.();
+        }
         reject(playErr);
       });
     });
@@ -235,9 +239,15 @@ export function playTtsAudio(
       if (stopped || controller.signal.aborted) return;
       console.warn('[TTS] Chunked playback failed, falling back to browser speech:', err);
       options?.onLoadingChange?.(false);
-      options?.onError?.(err instanceof Error ? err : new Error(String(err)));
-      const remainingText = textChunks.slice(currentChunkIndex).join(' ') || text;
-      await playWithBrowserSpeech(remainingText);
+      const realErr = err instanceof Error ? err : new Error(String(err));
+      if (realErr.name === 'NotAllowedError' || realErr.message?.includes('NotAllowedError')) {
+        options?.onAutoplayBlocked?.();
+        options?.onError?.(new Error('AUTOPLAY_BLOCKED'));
+      } else {
+        options?.onError?.(realErr);
+        const remainingText = textChunks.slice(currentChunkIndex).join(' ') || text;
+        await playWithBrowserSpeech(remainingText);
+      }
     } finally {
       options?.onLoadingChange?.(false);
       cleanup();

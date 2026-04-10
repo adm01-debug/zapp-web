@@ -37,6 +37,7 @@ import {
   Volume2,
   VolumeX,
   Headphones,
+  RefreshCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -146,6 +147,8 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [activeTab, setActiveTab] = useState('resumo');
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
   const [isTtsLoading, setIsTtsLoading] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [lastTtsText, setLastTtsText] = useState<string | null>(null);
   const ttsRef = useRef<TtsPlayback | null>(null);
 
   const {
@@ -183,36 +186,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     };
   }, []);
 
-  const handlePlaySummary = useCallback(() => {
-    if (isTtsPlaying && ttsRef.current) {
-      ttsRef.current.stop();
-      ttsRef.current = null;
-      setIsTtsPlaying(false);
-      setIsTtsLoading(false);
-      return;
-    }
-    if (!analysis?.summary) return;
-
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-    const ttsOptions: PlayTtsOptions = {
-      onLoadingChange: setIsTtsLoading,
-      onError: (err) => {
-        toast.error('Erro ao gerar áudio: ' + err.message);
-      },
-    };
-
-    const playback = playTtsAudio(analysis.summary, supabaseUrl, supabaseKey, ttsOptions);
-    ttsRef.current = playback;
-    setIsTtsPlaying(true);
-
-    playback.promise
-      .then(() => setIsTtsPlaying(false))
-      .catch(() => setIsTtsPlaying(false));
-  }, [analysis?.summary, isTtsPlaying]);
-
-  const handlePlayText = useCallback((text: string) => {
+  const startTtsPlayback = useCallback((text: string) => {
     if (isTtsPlaying && ttsRef.current) {
       ttsRef.current.stop();
       ttsRef.current = null;
@@ -222,13 +196,22 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
     }
     if (!text.trim()) return;
 
+    setAutoplayBlocked(false);
+    setLastTtsText(text);
+
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
     const ttsOptions: PlayTtsOptions = {
       onLoadingChange: setIsTtsLoading,
       onError: (err) => {
+        if (err.message === 'AUTOPLAY_BLOCKED') return;
         toast.error('Erro ao gerar áudio: ' + err.message);
+      },
+      onAutoplayBlocked: () => {
+        setAutoplayBlocked(true);
+        setIsTtsPlaying(false);
+        setIsTtsLoading(false);
       },
     };
 
@@ -240,6 +223,27 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       .then(() => setIsTtsPlaying(false))
       .catch(() => setIsTtsPlaying(false));
   }, [isTtsPlaying]);
+
+  const handlePlaySummary = useCallback(() => {
+    if (!analysis?.summary) return;
+    startTtsPlayback(analysis.summary);
+  }, [analysis?.summary, startTtsPlayback]);
+
+  const handlePlayText = useCallback((text: string) => {
+    startTtsPlayback(text);
+  }, [startTtsPlayback]);
+
+  const handleRetryAutoplay = useCallback(() => {
+    if (lastTtsText) {
+      setAutoplayBlocked(false);
+      startTtsPlayback(lastTtsText);
+    }
+  }, [lastTtsText, startTtsPlayback]);
+
+  const handleDismissAutoplayWarning = useCallback(() => {
+    setAutoplayBlocked(false);
+    setLastTtsText(null);
+  }, []);
 
   const buildFullNarrationText = useCallback(() => {
     if (!analysis) return '';
@@ -398,6 +402,39 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                 <p className="text-[9px] text-muted-foreground">Resumo · Sentimento · Pontos-chave · Histórico</p>
               )}
             </div>
+
+            {autoplayBlocked && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 p-3"
+              >
+                <VolumeX className="h-4 w-4 shrink-0 text-warning" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-warning">Áudio bloqueado pelo navegador</p>
+                  <p className="text-[10px] text-warning/70">Clique abaixo para tentar novamente</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1 rounded-lg border-warning/30 px-2 text-[10px] text-warning hover:bg-warning/20"
+                    onClick={handleRetryAutoplay}
+                  >
+                    <RefreshCcw className="h-3 w-3" />
+                    Tentar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 rounded-lg px-1.5 text-[10px] text-muted-foreground"
+                    onClick={handleDismissAutoplayWarning}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
 
             {!canAnalyze && (
               <motion.div
