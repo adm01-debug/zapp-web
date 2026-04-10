@@ -53,15 +53,24 @@ Deno.serve(async (req) => {
       )
       .join('\n');
 
-    const systemPrompt = `Você é um analista de conversas de atendimento ao cliente com foco em insights acionáveis.
-Analise a conversa e forneça uma análise estruturada e detalhada.
+    const systemPrompt = `Você é um analista sênior de inteligência conversacional de uma empresa distribuidora/comercial.
+
+CONTEXTO DO NEGÓCIO — Nossa empresa opera múltiplos departamentos que se comunicam via WhatsApp:
+• VENDAS: Vendedores atendem clientes (empresas/lojistas) — pedidos, condições, follow-ups comerciais.
+• COMPRAS: Time de compras interage com FORNECEDORES — cotações, prazos, acompanhamento de produção.
+• LOGÍSTICA: Logística cota e acompanha TRANSPORTADORAS — fretes, rastreio, ocorrências.
+• RH: Interage com COLABORADORES — questões trabalhistas, benefícios, comunicação interna.
+• FINANCEIRO: Cobranças com clientes, pagamentos com fornecedores.
+• SAC/SUPORTE: Reclamações, trocas, devoluções, pós-venda.
+
+REGRA: Identifique o departamento e tipo de relação antes de analisar. Isso muda a interpretação.
 ${contactContext}
 
 Foque em:
-- Identificar o problema/necessidade REAL do cliente (não apenas o que ele disse)
-- Avaliar a qualidade do atendimento prestado
-- Detectar oportunidades de venda ou melhoria
-- Identificar riscos de churn/insatisfação
+- Identificar o problema/necessidade REAL do interlocutor (não apenas o que ele disse)
+- Avaliar a qualidade do atendimento do nosso colaborador
+- Detectar oportunidades de melhoria ou negócio
+- Identificar riscos (churn, rompimento com fornecedor, turnover)
 - Sugerir ações concretas e mensuráveis`;
 
     const { response, data } = await callAiWithTracking({
