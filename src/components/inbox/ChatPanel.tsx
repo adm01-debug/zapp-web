@@ -260,7 +260,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     if (dialogs.slashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
     if (e.key === 'k' && e.ctrlKey) { e.preventDefault(); openDialog('globalSearch'); }
-    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openDialog('chatSearch'); }
+    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSetActiveTool('chatSearch'); }
     if (e.key === 'Escape' && dialogs.slashCommands) closeDialog('slashCommands');
   };
 
@@ -465,10 +465,10 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         )}
       </div>
 
-      {dialogs.aiAssistant && (
+      {activeTool === 'aiAssistant' && (
         <Suspense fallback={null}>
           <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
-            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={dialogs.aiAssistant} onClose={() => closeDialog('aiAssistant')} />
+            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
         </Suspense>
       )}
     </div>
