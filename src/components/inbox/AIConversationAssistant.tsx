@@ -284,17 +284,24 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
             )}
 
             {isLoading && (
-              <div className="space-y-3 animate-pulse">
-                <div className="h-20 rounded-xl bg-muted/40" />
-                <div className="flex gap-2">
-                  <div className="h-6 w-20 rounded-full bg-muted/40" />
-                  <div className="h-6 w-16 rounded-full bg-muted/40" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-1">
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                  <span className="text-xs font-medium text-muted-foreground">Analisando {filteredMessages.length} mensagens...</span>
                 </div>
-                <div className="h-16 rounded-xl bg-muted/40" />
-                <div className="space-y-2">
-                  <div className="h-10 rounded-lg bg-muted/40" />
-                  <div className="h-10 rounded-lg bg-muted/40" />
-                  <div className="h-10 rounded-lg bg-muted/40" />
+                <div className="space-y-3 animate-pulse">
+                  <div className="h-24 rounded-xl bg-muted/40 border border-border/20" />
+                  <div className="flex gap-2">
+                    <div className="h-6 w-24 rounded-full bg-muted/40" />
+                    <div className="h-6 w-20 rounded-full bg-muted/40" />
+                    <div className="h-6 w-16 rounded-full bg-muted/40" />
+                  </div>
+                  <div className="h-20 rounded-xl bg-muted/40 border border-border/20" />
+                  <div className="space-y-2">
+                    <div className="h-12 rounded-lg bg-muted/30" />
+                    <div className="h-12 rounded-lg bg-muted/30" />
+                    <div className="h-12 rounded-lg bg-muted/30" />
+                  </div>
                 </div>
               </div>
             )}
