@@ -143,6 +143,8 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
+  const [isTtsPlaying, setIsTtsPlaying] = useState(false);
+  const ttsRef = useRef<TtsPlayback | null>(null);
 
   const {
     analysisPeriod,
