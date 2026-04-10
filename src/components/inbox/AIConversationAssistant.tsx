@@ -655,6 +655,8 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                           className="cursor-pointer rounded-xl border border-border/50 bg-muted/30 p-3 transition-colors hover:bg-muted/50"
                           onClick={() =>
                             setAnalysis({
+                              department: (item as any).department ?? undefined,
+                              relationshipType: (item as any).relationship_type ?? undefined,
                               summary: item.summary,
                               status: item.status,
                               keyPoints: item.key_points,
@@ -668,9 +670,17 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                           }
                         >
                           <div className="mb-2 flex items-center justify-between">
-                            <span className="text-[10px] text-muted-foreground">
-                              {format(new Date(item.created_at), "dd 'de' MMM, HH:mm", { locale: ptBR })}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] text-muted-foreground">
+                                {format(new Date(item.created_at), "dd 'de' MMM, HH:mm", { locale: ptBR })}
+                              </span>
+                              {(item as any).department && departmentConfig[(item as any).department] && (
+                                <Badge variant="outline" className={`${departmentConfig[(item as any).department].color} text-[9px] px-1.5 py-0`}>
+                                  <span className="mr-0.5">{departmentConfig[(item as any).department].emoji}</span>
+                                  {departmentConfig[(item as any).department].label}
+                                </Badge>
+                              )}
+                            </div>
                             <Badge variant="outline" className={`text-[10px] ${sentimentConfig[item.sentiment]?.color || ''}`}>
                               {item.sentiment_score}%
                             </Badge>

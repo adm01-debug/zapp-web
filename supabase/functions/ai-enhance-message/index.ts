@@ -49,7 +49,16 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `${systemPrompt}\n\nRegras importantes:\n- Retorne APENAS a mensagem reescrita, sem explicações, aspas ou prefixos.\n- Não adicione saudações ou despedidas que não existiam na mensagem original.\n- Mantenha o mesmo idioma da mensagem original.\n- Mantenha emojis se houverem na mensagem original.\n- A mensagem é para ser enviada via WhatsApp para um cliente.${humanizationRule}`,
+            content: `Você trabalha em uma empresa distribuidora/comercial com múltiplos departamentos (Vendas, Compras, Logística, RH, Financeiro, SAC). Identifique o contexto da mensagem e adapte o tom adequadamente.
+
+${systemPrompt}
+
+Regras importantes:
+- Retorne APENAS a mensagem reescrita, sem explicações, aspas ou prefixos.
+- Não adicione saudações ou despedidas que não existiam na mensagem original.
+- Mantenha o mesmo idioma da mensagem original.
+- Mantenha emojis se houverem na mensagem original.
+- A mensagem é para ser enviada via WhatsApp.${humanizationRule}`,
           },
           { role: "user", content: message },
         ],
