@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 export const TONE_OPTIONS = [
   { key: 'professional', label: 'Formal', emoji: '💼', prompt: 'Use tom formal, profissional e corporativo.' },
   { key: 'friendly', label: 'Amigável', emoji: '😊', prompt: 'Use tom amigável, acolhedor e empático.' },
+  { key: 'objective', label: 'Objetivo', emoji: '🎯', prompt: 'Use tom amigável e direto ao ponto, sem rodeios mas mantendo empatia. Seja claro, objetivo e eficiente na comunicação.' },
   { key: 'casual', label: 'Descontraído', emoji: '🤙', prompt: 'Use tom descontraído, leve e informal.' },
-  { key: 'persuasive', label: 'Persuasivo', emoji: '🎯', prompt: 'Use tom persuasivo, confiante e orientado a resultados.' },
+  { key: 'persuasive', label: 'Persuasivo', emoji: '🔥', prompt: 'Use tom persuasivo, confiante e orientado a resultados.' },
 ] as const;
 
 export type ToneKey = typeof TONE_OPTIONS[number]['key'];
