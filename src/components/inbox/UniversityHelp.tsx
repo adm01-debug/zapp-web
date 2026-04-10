@@ -115,7 +115,8 @@ export function UniversityHelp({ contactId, contactName, messages, onSelectSugge
     }
   }, [selectedIds.size, filteredMessages]);
 
-  const generateResponse = useCallback(async () => {
+  const generateResponse = useCallback(async (toneOverride?: ToneKey) => {
+    const tone = toneOverride ?? selectedTone;
     if (selectedIds.size === 0) {
       toast.warning('Selecione pelo menos uma mensagem.');
       return;
@@ -132,7 +133,7 @@ export function UniversityHelp({ contactId, contactName, messages, onSelectSugge
     setResponse(null);
     setError(null);
 
-    const tonePrompt = getTonePrompt(selectedTone);
+    const tonePrompt = getTonePrompt(tone);
 
     try {
       const result = await supabase.functions.invoke('ai-proxy', {
