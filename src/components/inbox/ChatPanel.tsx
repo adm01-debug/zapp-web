@@ -91,12 +91,36 @@ function dialogReducer(state: DialogState, action: DialogAction): DialogState {
   }
 }
 
+// ── Active Tool (mutual exclusivity) ──
+type ActiveTool = 'chatSearch' | 'objections' | 'university' | 'aiAssistant' | 'summary' | null;
+
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack, hideHeader = false }: ChatPanelProps) {
   // ── Dialog State (consolidated) ──
   const [dialogs, dispatch] = useReducer(dialogReducer, initialDialogState);
   const openDialog = useCallback((key: DialogKey) => dispatch({ type: 'OPEN', key }), []);
   const closeDialog = useCallback((key: DialogKey) => dispatch({ type: 'CLOSE', key }), []);
   const toggleDialog = useCallback((key: DialogKey) => dispatch({ type: 'TOGGLE', key }), []);
+
+  // ── Active Tool State (ensures only one tool is open at a time) ──
+  const [activeTool, setActiveTool] = useState<ActiveTool>(null);
+
+  const handleSetActiveTool = useCallback((tool: ActiveTool) => {
+    setActiveTool(prev => prev === tool ? null : tool);
+  }, []);
+
+  // Sync activeTool with dialog reducer for tools that use it
+  useEffect(() => {
+    if (activeTool === 'chatSearch') {
+      dispatch({ type: 'OPEN', key: 'chatSearch' });
+    } else {
+      dispatch({ type: 'CLOSE', key: 'chatSearch' });
+    }
+    if (activeTool === 'aiAssistant') {
+      dispatch({ type: 'OPEN', key: 'aiAssistant' });
+    } else {
+      dispatch({ type: 'CLOSE', key: 'aiAssistant' });
+    }
+  }, [activeTool]);
 
   // ── Core State ──
   const [inputValue, setInputValue] = useState('');
@@ -110,7 +134,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
