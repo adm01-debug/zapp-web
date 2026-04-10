@@ -892,7 +892,6 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
             </Button>
           </div>
         )}
-      </motion.div>
-    </AnimatePresence>
+    </div>
   );
 }
