@@ -66,6 +66,8 @@ interface AgentPerformance {
 
 interface AnalysisData {
   analysisId?: string | null;
+  department?: string;
+  relationshipType?: string;
   summary: string;
   status: string;
   keyPoints: string[];
@@ -108,6 +110,16 @@ const urgencyConfig: Record<string, { label: string; className: string }> = {
   media: { label: 'Média', className: 'bg-warning/20 text-warning' },
   alta: { label: 'Alta', className: 'bg-destructive/20 text-destructive' },
   critica: { label: 'Crítica', className: 'bg-destructive/30 text-destructive animate-pulse' },
+};
+
+const departmentConfig: Record<string, { label: string; emoji: string; color: string }> = {
+  vendas: { label: 'Vendas', emoji: '🛒', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  compras: { label: 'Compras', emoji: '📦', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  logistica: { label: 'Logística', emoji: '🚛', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  rh: { label: 'RH', emoji: '👥', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  financeiro: { label: 'Financeiro', emoji: '💰', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  sac: { label: 'SAC', emoji: '🎧', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30' },
+  outros: { label: 'Outros', emoji: '📋', color: 'bg-muted/40 text-muted-foreground border-border' },
 };
 
 const churnConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -373,6 +385,12 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
                   <TabsContent value="resumo" className="mt-4 space-y-4">
                     <div className="flex flex-wrap gap-2">
+                      {analysis.department && departmentConfig[analysis.department] && (
+                        <Badge variant="outline" className={`${departmentConfig[analysis.department].color} text-[10px] font-semibold`}>
+                          <span className="mr-1">{departmentConfig[analysis.department].emoji}</span>
+                          {departmentConfig[analysis.department].label}
+                        </Badge>
+                      )}
                       {statusConfig[analysis.status] && (
                         <Badge variant="outline" className={`${statusConfig[analysis.status].className} text-[10px]`}>
                           {React.createElement(statusConfig[analysis.status].icon, { className: 'mr-1 h-3 w-3' })}
@@ -391,6 +409,13 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                         </Badge>
                       )}
                     </div>
+
+                    {analysis.relationshipType && (
+                      <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/20 px-3 py-1.5">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-[11px] text-muted-foreground">{analysis.relationshipType}</span>
+                      </div>
+                    )}
 
                     <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
                       <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">

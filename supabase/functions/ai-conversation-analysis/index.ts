@@ -108,7 +108,9 @@ Responda em português brasileiro.`;
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { type: "string", description: "Brief summary (max 4 sentences)" },
+                  department: { type: "string", enum: ["vendas", "compras", "logistica", "rh", "financeiro", "sac", "outros"], description: "Departamento identificado na conversa" },
+                  relationshipType: { type: "string", description: "Tipo de relação: vendedor→cliente, comprador→fornecedor, logística→transportadora, RH→colaborador, financeiro→cliente, sac→cliente, etc." },
+                  summary: { type: "string", description: "Brief summary (max 4 sentences) identifying department and relationship" },
                   status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente", "escalado"] },
                   keyPoints: { type: "array", items: { type: "string" }, description: "Key points (max 5)" },
                   nextSteps: { type: "array", items: { type: "string" }, description: "Actionable next steps" },
@@ -127,9 +129,9 @@ Responda em português brasileiro.`;
                     },
                   },
                   churnRisk: { type: "string", enum: ["low", "medium", "high"] },
-                  salesOpportunity: { type: "string", description: "Sales opportunity description or null" },
+                  salesOpportunity: { type: "string", description: "Sales/business opportunity description or null" },
                 },
-                required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "urgency", "customerSatisfaction"],
+                required: ["department", "relationshipType", "summary", "status", "keyPoints", "sentiment", "sentimentScore", "urgency", "customerSatisfaction"],
                 additionalProperties: false
               }
             }
@@ -183,7 +185,10 @@ Responda em português brasileiro.`;
       };
     }
 
+    const validDepartments = ['vendas', 'compras', 'logistica', 'rh', 'financeiro', 'sac', 'outros'];
     analysisData = {
+      department: validDepartments.includes(analysisData.department) ? analysisData.department : 'outros',
+      relationshipType: typeof analysisData.relationshipType === 'string' ? analysisData.relationshipType : 'não identificado',
       summary: analysisData.summary || 'Resumo não disponível',
       status: ['resolvido', 'pendente', 'aguardando_cliente', 'aguardando_atendente', 'escalado'].includes(analysisData.status) ? analysisData.status : 'pendente',
       keyPoints: Array.isArray(analysisData.keyPoints) ? analysisData.keyPoints.slice(0, 5) : [],
