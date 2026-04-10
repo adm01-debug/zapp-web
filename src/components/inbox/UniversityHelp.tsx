@@ -148,7 +148,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
               content: `Mensagens selecionadas da conversa:\n${selectedInOrder.map(m => `[${m.sender === 'agent' ? 'Atendente' : 'Cliente'}]: ${m.content}`).join('\n')}`,
             },
           ],
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-3-flash-preview',
         },
       });
 
