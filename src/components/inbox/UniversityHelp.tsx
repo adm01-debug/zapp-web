@@ -9,12 +9,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { ToneSelector, type ToneKey, getTonePrompt } from './ai-tools/ToneSelector';
 import { AIResponseCard } from './ai-tools/AIResponseCard';
+import { PeriodFilterSelector, usePeriodFilter } from './ai-tools/PeriodFilterSelector';
 
 interface ChatMessage {
   id: string;
   content: string;
   sender: string;
   timestamp: string;
+  created_at?: string;
 }
 
 interface UniversityHelpProps {
@@ -24,6 +26,14 @@ interface UniversityHelpProps {
 }
 
 type FilterMode = 'all' | 'client' | 'agent';
+
+// Normalize messages to have created_at for period filtering
+function normalizeMessages(messages: ChatMessage[]) {
+  return messages.map(m => ({
+    ...m,
+    created_at: m.created_at || m.timestamp,
+  }));
+}
 
 export function UniversityHelp({ contactId, messages, onSelectSuggestion }: UniversityHelpProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -35,12 +45,25 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
   const responseRef = useRef<HTMLDivElement>(null);
   const lastCallRef = useRef(0);
 
+  const normalized = useMemo(() => normalizeMessages(messages), [messages]);
+
+  const {
+    analysisPeriod,
+    setAnalysisPeriod,
+    customDateFrom,
+    customDateTo,
+    setCustomDateFrom,
+    setCustomDateTo,
+    clearCustomDates,
+    filteredMessages: periodFiltered,
+  } = usePeriodFilter(normalized, 'all');
+
   const recentMessages = useMemo(() => {
-    return messages
+    return periodFiltered
       .filter(m => m.content && m.content.trim().length > 0)
       .slice(-30)
       .reverse();
-  }, [messages]);
+  }, [periodFiltered]);
 
   const filteredMessages = useMemo(() => {
     if (filterMode === 'client') return recentMessages.filter(m => m.sender !== 'agent');
@@ -49,14 +72,19 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
   }, [recentMessages, filterMode]);
 
   const selectedInOrder = useMemo(() => {
-    return messages.filter(m => selectedIds.has(m.id));
-  }, [messages, selectedIds]);
+    return normalized.filter(m => selectedIds.has(m.id));
+  }, [normalized, selectedIds]);
 
   useEffect(() => {
     if (response && responseRef.current) {
       responseRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [response]);
+
+  // Clear selection when period changes
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [analysisPeriod, customDateFrom, customDateTo]);
 
   const toggleMessage = useCallback((id: string) => {
     setSelectedIds(prev => {
@@ -168,6 +196,19 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
           <p className="text-[10px] text-muted-foreground">Selecione mensagens para gerar uma resposta inteligente</p>
         </div>
       </div>
+
+      {/* Period Filter */}
+      <PeriodFilterSelector
+        period={analysisPeriod}
+        onPeriodChange={setAnalysisPeriod}
+        customFrom={customDateFrom}
+        customTo={customDateTo}
+        onCustomFromChange={setCustomDateFrom}
+        onCustomToChange={setCustomDateTo}
+        onClearCustom={clearCustomDates}
+        filteredCount={periodFiltered.length}
+        totalCount={messages.length}
+      />
 
       <ToneSelector selected={selectedTone} onChange={setSelectedTone} disabled={loading} />
 
