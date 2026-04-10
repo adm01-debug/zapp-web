@@ -199,6 +199,7 @@ export function ChatPanelHeader({
             <Suspense fallback={null}>
               <ObjectionDetector
                 contactId={conversation.contact.id}
+                contactName={conversation.contact.name}
                 lastMessages={lastMessages}
                 allMessages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
@@ -227,6 +228,7 @@ export function ChatPanelHeader({
             <Suspense fallback={null}>
               <UniversityHelp
                 contactId={conversation.contact.id}
+                contactName={conversation.contact.name}
                 messages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
               />

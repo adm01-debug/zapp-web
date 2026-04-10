@@ -21,6 +21,7 @@ interface ChatMessage {
 
 interface UniversityHelpProps {
   contactId: string;
+  contactName?: string;
   messages: ChatMessage[];
   onSelectSuggestion?: (text: string) => void;
 }
@@ -35,7 +36,7 @@ function normalizeMessages(messages: ChatMessage[]) {
   }));
 }
 
-export function UniversityHelp({ contactId, messages, onSelectSuggestion }: UniversityHelpProps) {
+export function UniversityHelp({ contactId, contactName, messages, onSelectSuggestion }: UniversityHelpProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
@@ -140,6 +141,7 @@ export function UniversityHelp({ contactId, messages, onSelectSuggestion }: Univ
             {
               role: 'system',
               content: `Você é um assistente especialista em atendimento ao cliente. Analise as mensagens selecionadas da conversa e crie uma resposta inteligente e adequada para o atendente enviar ao cliente.
+${contactName ? `IMPORTANTE: O nome do cliente é "${contactName.split(' ')[0]}". A resposta DEVE começar mencionando o nome do cliente de forma natural e humana (ex: "${contactName.split(' ')[0]}, entendo sua dúvida..." ou "${contactName.split(' ')[0]}, vou te ajudar com isso..."). Isso é OBRIGATÓRIO.` : ''}
 ${tonePrompt}
 Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pronta para envio, sem explicações adicionais ou meta-comentários. A resposta deve ser direta e natural.`,
             },
