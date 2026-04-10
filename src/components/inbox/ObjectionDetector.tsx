@@ -458,8 +458,21 @@ Se não houver objeções, retorne []`,
 
       <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); analyze(tone); }} disabled={loading} />
 
-      <ScrollArea className="h-72 [&>[data-radix-scroll-area-viewport]]:max-h-72">
-        <div className="space-y-2 pr-3">
+      <div className="relative">
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[2px] rounded-xl"
+          >
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/80 border border-border/50 shadow-sm">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+              <span className="text-[11px] font-medium text-foreground">Reescrevendo com novo tom...</span>
+            </div>
+          </motion.div>
+        )}
+        <ScrollArea className="h-72 [&>[data-radix-scroll-area-viewport]]:max-h-72">
+          <div className="space-y-2 pr-3">
           <AnimatePresence mode="popLayout">
             {objections.map((obj, idx) => (
               <ObjectionCard
@@ -477,6 +490,7 @@ Se não houver objeções, retorne []`,
           </AnimatePresence>
         </div>
       </ScrollArea>
+      </div>
     </div>
   );
 }

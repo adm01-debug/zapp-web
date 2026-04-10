@@ -2,8 +2,9 @@ import { useState, useMemo, useCallback } from 'react';
 import { format, startOfDay as fnsStartOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { CalendarDays, X } from 'lucide-react';
+import { CalendarDays, X, MessageSquare } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 // ── Shared types & constants ──
@@ -297,15 +298,27 @@ export function PeriodFilterSelector({
         </PopoverContent>
       </Popover>
 
-      {/* Message count */}
-      <p className="text-center text-xs tabular-nums text-muted-foreground flex items-center justify-center gap-1.5">
-        <span className="inline-flex items-center gap-1">
-          <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
-        </span>
-        {totalCount !== filteredCount && (
-          <span className="text-muted-foreground/50">· {totalCount} total</span>
-        )}
-      </p>
+      {/* Message count with tooltip */}
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="text-center text-xs tabular-nums text-muted-foreground flex items-center justify-center gap-1.5 cursor-default">
+              <MessageSquare className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1">
+                <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
+              </span>
+              {totalCount !== filteredCount && (
+                <span className="text-muted-foreground/50">· {totalCount} total</span>
+              )}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {filteredCount === totalCount
+              ? 'Mostrando todas as mensagens'
+              : `Filtrando ${filteredCount} de ${totalCount} mensagens`}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

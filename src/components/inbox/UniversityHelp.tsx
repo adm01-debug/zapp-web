@@ -214,7 +214,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
 
       {/* Filter & selection controls */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 bg-muted/30 rounded-full p-0.5 border border-border/30">
           {filterButtons.map(f => (
             <button
               key={f.mode}
@@ -223,10 +223,10 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
                 setFilterMode(f.mode);
                 setSelectedIds(new Set());
               }}
-              className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-all border ${
+              className={`px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
                 filterMode === f.mode
-                  ? 'bg-accent border-border text-foreground'
-                  : 'bg-transparent border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                  ? 'bg-primary/15 text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {f.label}
@@ -239,16 +239,16 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
             onClick={selectAll}
             className="text-[10px] text-primary hover:underline font-medium"
           >
-            {selectedIds.size === filteredMessages.length && filteredMessages.length > 0 ? 'Limpar' : 'Selecionar todos'}
+            {selectedIds.size === filteredMessages.length && filteredMessages.length > 0 ? 'Limpar' : 'Todos'}
           </button>
           <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-semibold tabular-nums">
-            {selectedIds.size}
+            {selectedIds.size}/{filteredMessages.length}
           </Badge>
         </div>
       </div>
 
       {/* Message list */}
-      <ScrollArea className="h-48 rounded-xl border border-border/30 bg-muted/5">
+      <ScrollArea className="h-48 [&>[data-radix-scroll-area-viewport]]:max-h-48 rounded-xl border border-border/30 bg-muted/5">
         <div className="p-1.5 space-y-0.5">
           {filteredMessages.map(m => {
             const isSelected = selectedIds.has(m.id);
