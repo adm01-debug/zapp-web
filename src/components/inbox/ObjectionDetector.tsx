@@ -1,11 +1,11 @@
 import { useState, useMemo, useRef, useCallback, useEffect, memo, forwardRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShieldQuestion, Lightbulb, Loader2, RefreshCw, AlertTriangle, Copy, Check, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { ToneSelector, type ToneKey, getTonePrompt } from './ai-tools/ToneSelector';
 import { PeriodFilterSelector, usePeriodFilter } from './ai-tools/PeriodFilterSelector';
 
@@ -31,27 +31,32 @@ interface ObjectionDetectorProps {
   onSelectSuggestion?: (text: string) => void;
 }
 
-const ConfidenceMeter = memo(function ConfidenceMeter({ confidence }: { confidence: number }) {
+/* ─── Confidence Chip ──────────────────────────────────────────────── */
+const ConfidenceChip = memo(function ConfidenceChip({ confidence }: { confidence: number }) {
   const pct = Math.round(confidence * 100);
-  const color = confidence >= 0.8 ? 'bg-destructive' : confidence >= 0.5 ? 'bg-warning' : 'bg-muted-foreground/50';
-  const textColor = confidence >= 0.8 ? 'text-destructive' : confidence >= 0.5 ? 'text-warning' : 'text-muted-foreground';
-  const label = confidence >= 0.8 ? 'Alta' : confidence >= 0.5 ? 'Média' : 'Baixa';
+  const level = confidence >= 0.8 ? 'high' : confidence >= 0.5 ? 'medium' : 'low';
+  const config = {
+    high: { label: 'Alta', bg: 'bg-destructive/15', text: 'text-destructive', dot: 'bg-destructive' },
+    medium: { label: 'Média', bg: 'bg-warning/15', text: 'text-warning', dot: 'bg-warning' },
+    low: { label: 'Baixa', bg: 'bg-muted-foreground/15', text: 'text-muted-foreground', dot: 'bg-muted-foreground' },
+  }[level];
 
   return (
-    <div className="flex items-center gap-2 mt-1.5" role="meter" aria-label={`Confiança: ${label}`} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-      <div className="flex-1 h-1.5 rounded-full bg-muted/40 overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className={`h-full rounded-full ${color}`}
-        />
-      </div>
-      <span className={`text-[9px] font-medium shrink-0 ${textColor}`}>{label} {pct}%</span>
-    </div>
+    <span
+      className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wide uppercase', config.bg, config.text)}
+      role="meter"
+      aria-label={`Confiança: ${config.label}`}
+      aria-valuenow={pct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <span className={cn('w-1.5 h-1.5 rounded-full', config.dot)} />
+      {config.label} {pct}%
+    </span>
   );
 });
 
+/* ─── Objection Card ───────────────────────────────────────────────── */
 interface ObjectionCardProps {
   obj: Objection;
   idx: number;
@@ -64,92 +69,97 @@ interface ObjectionCardProps {
 }
 
 const ObjectionCard = memo(forwardRef<HTMLDivElement, ObjectionCardProps>(function ObjectionCard({
-  obj,
-  idx,
-  isRewriting,
-  rewritingAny,
-  copiedIdx,
-  onSelect,
-  onCopy,
-  onRewrite,
+  obj, idx, isRewriting, rewritingAny, copiedIdx, onSelect, onCopy, onRewrite,
 }, ref) {
   const [expanded, setExpanded] = useState(true);
+  const borderColor = obj.confidence >= 0.8 ? 'border-l-destructive' : obj.confidence >= 0.5 ? 'border-l-warning' : 'border-l-muted-foreground/40';
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay: idx * 0.08 }}
-      className="rounded-xl bg-muted/20 border border-border/30 overflow-hidden"
+      transition={{ delay: idx * 0.06, type: 'spring', stiffness: 400, damping: 30 }}
+      className={cn(
+        'rounded-xl bg-muted/10 border border-border/20 overflow-hidden',
+        'border-l-[3px]',
+        borderColor
+      )}
     >
+      {/* Objection header */}
       <button
         type="button"
         onClick={() => setExpanded(prev => !prev)}
-        className="flex items-start gap-2 w-full text-left p-3 hover:bg-muted/30 transition-colors"
+        className="flex items-start gap-2.5 w-full text-left p-3.5 hover:bg-muted/20 transition-colors"
         aria-expanded={expanded}
       >
         <ShieldQuestion className="w-4 h-4 text-warning shrink-0 mt-0.5" />
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 space-y-1.5">
           <p className="text-xs text-foreground font-medium leading-snug">{obj.objection}</p>
-          <ConfidenceMeter confidence={obj.confidence} />
+          <ConfidenceChip confidence={obj.confidence} />
         </div>
-        {expanded ? (
-          <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
-        ) : (
-          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
-        )}
+        <motion.div
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="shrink-0 mt-0.5"
+        >
+          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+        </motion.div>
       </button>
 
+      {/* Counter-argument body */}
       <AnimatePresence>
         {expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="px-3 pb-3 space-y-2">
-              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-success/5 border border-success/10">
-                <Lightbulb className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
-                {isRewriting ? (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Reescrevendo...
-                  </span>
-                ) : (
-                  <p className="text-xs text-foreground leading-relaxed">{obj.counterArgument}</p>
-                )}
+            <div className="px-3.5 pb-3.5 space-y-2.5">
+              {/* Response card */}
+              <div className="relative p-3 rounded-lg bg-gradient-to-br from-primary/[0.06] to-transparent border border-primary/10">
+                <Lightbulb className="w-3.5 h-3.5 text-primary/60 absolute top-3 left-3" />
+                <div className="pl-6">
+                  {isRewriting ? (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Reescrevendo...
+                    </span>
+                  ) : (
+                    <p className="text-xs text-foreground leading-relaxed">{obj.counterArgument}</p>
+                  )}
+                </div>
               </div>
 
+              {/* Actions row */}
               <div className="flex items-center justify-between">
-                <div className="flex gap-1">
+                <div className="flex gap-0.5">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-[10px] text-muted-foreground hover:text-primary rounded-full"
+                    className="h-7 px-2.5 text-[10px] text-muted-foreground hover:text-foreground rounded-lg gap-1.5"
                     onClick={() => onCopy(obj.counterArgument, idx)}
                     disabled={rewritingAny}
                   >
-                    {copiedIdx === idx ? <Check className="w-3 h-3 mr-1 text-success" /> : <Copy className="w-3 h-3 mr-1" />}
+                    {copiedIdx === idx ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
                     {copiedIdx === idx ? 'Copiado' : 'Copiar'}
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-[10px] text-muted-foreground hover:text-primary rounded-full"
+                    className="h-7 px-2.5 text-[10px] text-muted-foreground hover:text-foreground rounded-lg gap-1.5"
                     onClick={() => onRewrite(idx)}
                     disabled={rewritingAny}
                   >
-                    <RefreshCw className="w-3 h-3 mr-1" />
+                    <RefreshCw className={cn('w-3 h-3', isRewriting && 'animate-spin')} />
                     Reescrever
                   </Button>
                 </div>
                 <Button
-                  variant="default"
                   size="sm"
-                  className="h-6 px-3 text-[10px] font-medium gap-1 rounded-full"
+                  className="h-7 px-4 text-[10px] font-semibold gap-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm shadow-primary/20"
                   onClick={() => onSelect(obj.counterArgument)}
                   disabled={rewritingAny}
                 >
@@ -165,6 +175,16 @@ const ObjectionCard = memo(forwardRef<HTMLDivElement, ObjectionCardProps>(functi
   );
 }));
 
+/* ─── Shimmer Skeleton ─────────────────────────────────────────────── */
+function ShimmerBlock({ className }: { className?: string }) {
+  return (
+    <div className={cn('rounded-lg bg-muted/20 overflow-hidden relative', className)}>
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-muted/30 to-transparent" />
+    </div>
+  );
+}
+
+/* ─── Main Component ───────────────────────────────────────────────── */
 export function ObjectionDetector({ contactId, contactName, lastMessages, allMessages = [], onSelectSuggestion }: ObjectionDetectorProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
   const [loading, setLoading] = useState(false);
@@ -175,8 +195,7 @@ export function ObjectionDetector({ contactId, contactName, lastMessages, allMes
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const lastCallRef = useRef(0);
 
-  // Normalize messages for period filter
-  const normalized = useMemo(() => 
+  const normalized = useMemo(() =>
     allMessages.map(m => ({ ...m, created_at: m.created_at || m.timestamp })),
     [allMessages]
   );
@@ -184,17 +203,11 @@ export function ObjectionDetector({ contactId, contactName, lastMessages, allMes
   const hasPeriodMessages = normalized.length > 0;
 
   const {
-    analysisPeriod,
-    setAnalysisPeriod,
-    customDateFrom,
-    customDateTo,
-    setCustomDateFrom,
-    setCustomDateTo,
-    clearCustomDates,
+    analysisPeriod, setAnalysisPeriod,
+    customDateFrom, customDateTo, setCustomDateFrom, setCustomDateTo, clearCustomDates,
     filteredMessages: periodFiltered,
   } = usePeriodFilter(normalized, 'all');
 
-  // Extract client messages from period-filtered messages
   const clientMessages = useMemo(() => {
     if (!hasPeriodMessages) return lastMessages;
     return periodFiltered
@@ -202,38 +215,20 @@ export function ObjectionDetector({ contactId, contactName, lastMessages, allMes
       .map(m => m.content);
   }, [hasPeriodMessages, periodFiltered, lastMessages]);
 
-  // Reset on contact change
   useEffect(() => {
-    setAnalyzed(false);
-    setObjections([]);
-    setError(null);
-    setRewritingIdx(null);
-    setCopiedIdx(null);
-    setSelectedTone('friendly');
+    setAnalyzed(false); setObjections([]); setError(null); setRewritingIdx(null); setCopiedIdx(null); setSelectedTone('friendly');
   }, [contactId]);
 
-  // Reset analysis on period change
   useEffect(() => {
-    setAnalyzed(false);
-    setObjections([]);
-    setError(null);
+    setAnalyzed(false); setObjections([]); setError(null);
   }, [analysisPeriod, customDateFrom, customDateTo]);
 
   const analyze = useCallback(async (tone?: ToneKey) => {
-    if (clientMessages.length === 0) {
-      toast.warning('Nenhuma mensagem do cliente para analisar.');
-      return;
-    }
-
+    if (clientMessages.length === 0) { toast.warning('Nenhuma mensagem do cliente para analisar.'); return; }
     const now = Date.now();
-    if (now - lastCallRef.current < 3000) {
-      toast.warning('Aguarde alguns segundos antes de tentar novamente.');
-      return;
-    }
+    if (now - lastCallRef.current < 3000) { toast.warning('Aguarde alguns segundos antes de tentar novamente.'); return; }
     lastCallRef.current = now;
-
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     const activeTone = tone ?? selectedTone;
     const activePrompt = getTonePrompt(activeTone);
 
@@ -260,17 +255,13 @@ Responda APENAS em JSON válido com este formato:
 [{"objection":"texto da objeção","counterArgument":"sugestão de resposta","confidence":0.85}]
 Se não houver objeções, retorne []`,
             },
-            {
-              role: 'user',
-              content: `Mensagens do cliente:\n${clientMessages.join('\n')}`,
-            },
+            { role: 'user', content: `Mensagens do cliente:\n${clientMessages.join('\n')}` },
           ],
           model: 'google/gemini-3-flash-preview',
         },
       });
 
       if (response.error) throw new Error(response.error.message || 'Erro na API');
-
       const content = response.data?.content || response.data?.choices?.[0]?.message?.content || '[]';
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
@@ -286,53 +277,37 @@ Se não houver objeções, retorne []`,
           confidence: typeof o.confidence === 'number' ? Math.min(1, Math.max(0, o.confidence)) : 0.5,
         }));
         setObjections(valid);
-        if (valid.length > 0) {
-          toast.success(`${valid.length} objeção(ões) detectada(s)!`);
-        }
+        if (valid.length > 0) toast.success(`${valid.length} objeção(ões) detectada(s)!`);
       } else {
         setObjections([]);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro desconhecido';
-      setError(msg);
-      setObjections([]);
+      setError(msg); setObjections([]);
       toast.error('Falha ao analisar objeções. Tente novamente.');
     }
-
-    setAnalyzed(true);
-    setLoading(false);
+    setAnalyzed(true); setLoading(false);
   }, [clientMessages, selectedTone]);
 
   const rewriteSingle = useCallback(async (idx: number) => {
     setRewritingIdx(idx);
     const activePrompt = getTonePrompt(selectedTone);
-
     try {
       const response = await supabase.functions.invoke('ai-proxy', {
         body: {
           messages: [
-            {
-              role: 'system',
-              content: `Reescreva o contra-argumento abaixo mantendo o mesmo significado mas mudando o tom. ${activePrompt}${contactName ? ` IMPORTANTE: A resposta DEVE começar com o nome "${contactName.split(' ')[0]}" de forma natural e humana.` : ''} Responda APENAS com o texto reescrito, sem aspas ou explicações.`,
-            },
-            {
-              role: 'user',
-              content: objections[idx].counterArgument,
-            },
+            { role: 'system', content: `Reescreva o contra-argumento abaixo mantendo o mesmo significado mas mudando o tom. ${activePrompt}${contactName ? ` IMPORTANTE: A resposta DEVE começar com o nome "${contactName.split(' ')[0]}" de forma natural e humana.` : ''} Responda APENAS com o texto reescrito, sem aspas ou explicações.` },
+            { role: 'user', content: objections[idx].counterArgument },
           ],
           model: 'google/gemini-3-flash-preview',
         },
       });
-
       const content = response.data?.content || response.data?.choices?.[0]?.message?.content;
       if (content) {
         setObjections(prev => prev.map((o, i) => i === idx ? { ...o, counterArgument: content.trim() } : o));
         toast.success('Resposta reescrita!');
       }
-    } catch {
-      toast.error('Erro ao reescrever. Tente novamente.');
-    }
-
+    } catch { toast.error('Erro ao reescrever. Tente novamente.'); }
     setRewritingIdx(null);
   }, [objections, selectedTone]);
 
@@ -348,10 +323,30 @@ Se não houver objeções, retorne []`,
     setTimeout(() => setCopiedIdx(null), 2000);
   }, []);
 
-  // Initial state
+  /* ── Estado Inicial (antes da análise) ─────────────────────────── */
   if (!analyzed) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-5">
+        {/* Hero */}
+        <div className="flex flex-col items-center text-center pt-2 pb-1">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3"
+          >
+            <ShieldQuestion className="w-7 h-7 text-primary" />
+            {/* Pulse ring */}
+            <motion.div
+              animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute inset-0 rounded-2xl border-2 border-primary/30"
+            />
+          </motion.div>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-[260px]">
+            Analise mensagens do cliente para detectar resistências e gerar contra-argumentos inteligentes
+          </p>
+        </div>
 
         {/* Period Filter */}
         {hasPeriodMessages && (
@@ -368,27 +363,31 @@ Se não houver objeções, retorne []`,
           />
         )}
 
-        <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); }} />
+        <ToneSelector selected={selectedTone} onChange={setSelectedTone} />
 
+        {/* CTA Button */}
         <Button
-          variant="default"
           size="sm"
-          className="w-full h-9 text-xs font-medium"
+          className="w-full h-10 text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/20 transition-all"
           onClick={() => analyze()}
           disabled={loading || clientMessages.length === 0}
         >
           {loading ? (
             <>
-              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Analisando...
             </>
           ) : (
             <>
-              <ShieldQuestion className="w-3.5 h-3.5 mr-1.5" />
-              Detectar objeções ({clientMessages.length} msgs)
+              <ShieldQuestion className="w-4 h-4 mr-2" />
+              Detectar objeções
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-md bg-primary-foreground/20 text-[10px] font-bold">
+                {clientMessages.length}
+              </span>
             </>
           )}
         </Button>
+
         {clientMessages.length === 0 && (
           <p className="text-[10px] text-muted-foreground text-center italic">Nenhuma mensagem do cliente encontrada</p>
         )}
@@ -396,20 +395,32 @@ Se não houver objeções, retorne []`,
     );
   }
 
-  // Loading skeleton
+  /* ── Loading Skeleton ──────────────────────────────────────────── */
   if (loading && objections.length === 0) {
     return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 text-primary animate-spin" />
-          <span className="text-xs font-medium">Analisando mensagens...</span>
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Loader2 className="w-5 h-5 text-primary animate-spin" />
+            <motion.div
+              animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0, 0.4] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="absolute inset-0 rounded-full border border-primary/30"
+            />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-foreground">Analisando mensagens...</p>
+            <p className="text-[10px] text-muted-foreground">{clientMessages.length} mensagens em análise</p>
+          </div>
         </div>
-        <div className="space-y-2">
-          {[1, 2].map(i => (
-            <div key={i} className="p-3 rounded-xl bg-muted/20 border border-border/30 animate-pulse space-y-2">
-              <div className="h-3 bg-muted/40 rounded w-3/4" />
-              <div className="h-1.5 bg-muted/30 rounded w-1/2" />
-              <div className="h-10 bg-muted/20 rounded-lg w-full" />
+        <div className="space-y-2.5">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="rounded-xl border border-border/20 border-l-[3px] border-l-muted-foreground/20 overflow-hidden">
+              <div className="p-3.5 space-y-2.5">
+                <ShimmerBlock className="h-3 w-4/5" />
+                <ShimmerBlock className="h-4 w-16" />
+                <ShimmerBlock className="h-14 w-full rounded-lg" />
+              </div>
             </div>
           ))}
         </div>
@@ -417,56 +428,83 @@ Se não houver objeções, retorne []`,
     );
   }
 
-  // No objections found
+  /* ── Empty State (sem objeções) ────────────────────────────────── */
   if (objections.length === 0) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {error ? (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-            <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+            <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
             <div className="min-w-0">
-              <p className="text-xs text-destructive font-semibold mb-0.5">Erro na análise</p>
-              <p className="text-[11px] text-destructive/80">{error}</p>
+              <p className="text-xs text-destructive font-semibold mb-1">Erro na análise</p>
+              <p className="text-[11px] text-destructive/80 leading-relaxed">{error}</p>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-4 gap-2">
-            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
-              <ShieldQuestion className="w-5 h-5 text-success" />
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex flex-col items-center py-6 gap-3"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
+              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center"
+            >
+              <Check className="w-7 h-7 text-success" />
+            </motion.div>
+            <div className="text-center space-y-1">
+              <p className="text-sm font-semibold text-success">Nenhuma objeção detectada</p>
+              <p className="text-xs text-muted-foreground max-w-[240px]">
+                O cliente não apresentou resistências. Bom sinal! 🎉
+              </p>
             </div>
-            <p className="text-xs font-medium text-success">Nenhuma objeção detectada</p>
-            <p className="text-[11px] text-muted-foreground text-center">O cliente não apresentou resistências. Bom sinal! 🎉</p>
-          </div>
+          </motion.div>
         )}
-        <Button variant="outline" size="sm" className="w-full h-8 text-xs" onClick={() => { setAnalyzed(false); setError(null); }}>
-          <RefreshCw className="w-3 h-3 mr-1.5" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full h-9 text-xs font-medium rounded-xl"
+          onClick={() => { setAnalyzed(false); setError(null); }}
+        >
+          <RefreshCw className="w-3.5 h-3.5 mr-2" />
           Nova análise
         </Button>
       </div>
     );
   }
 
-  // Objections found
+  /* ── Resultados ────────────────────────────────────────────────── */
   return (
     <div className="space-y-3">
+      {/* Results header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-semibold">{objections.length} objeções</Badge>
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-bold text-foreground leading-none">{objections.length}</span>
+          <span className="text-xs text-muted-foreground font-medium">
+            {objections.length === 1 ? 'objeção detectada' : 'objeções detectadas'}
+          </span>
         </div>
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 rounded-full"
+          className="h-8 w-8 p-0 rounded-xl hover:bg-muted/40"
           onClick={() => analyze()}
           disabled={loading}
           title="Reanalisar"
         >
-          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          <motion.div animate={loading ? { rotate: 360 } : {}} transition={{ duration: 1, repeat: loading ? Infinity : 0, ease: 'linear' }}>
+            <RefreshCw className="w-4 h-4" />
+          </motion.div>
         </Button>
       </div>
 
+      <div className="h-px bg-border/30" />
+
       <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); analyze(tone); }} disabled={loading} />
 
+      {/* Cards list */}
       <div className="relative">
         {loading && (
           <motion.div
@@ -474,31 +512,31 @@ Se não houver objeções, retorne []`,
             animate={{ opacity: 1 }}
             className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[2px] rounded-xl"
           >
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/80 border border-border/50 shadow-sm">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-              <span className="text-[11px] font-medium text-foreground">Reescrevendo com novo tom...</span>
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-muted/80 border border-border/50 shadow-lg">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span className="text-xs font-medium text-foreground">Reescrevendo com novo tom...</span>
             </div>
           </motion.div>
         )}
         <ScrollArea className="h-72 [&>[data-radix-scroll-area-viewport]]:max-h-72">
-          <div className="space-y-2 pr-3">
-          <AnimatePresence mode="popLayout">
-            {objections.map((obj, idx) => (
-              <ObjectionCard
-                key={`${idx}-${obj.objection.slice(0, 20)}`}
-                obj={obj}
-                idx={idx}
-                isRewriting={rewritingIdx === idx}
-                rewritingAny={rewritingIdx !== null}
-                copiedIdx={copiedIdx}
-                onSelect={handleSelect}
-                onCopy={handleCopy}
-                onRewrite={rewriteSingle}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
-      </ScrollArea>
+          <div className="space-y-2.5 pr-3">
+            <AnimatePresence mode="popLayout">
+              {objections.map((obj, idx) => (
+                <ObjectionCard
+                  key={`${idx}-${obj.objection.slice(0, 20)}`}
+                  obj={obj}
+                  idx={idx}
+                  isRewriting={rewritingIdx === idx}
+                  rewritingAny={rewritingIdx !== null}
+                  copiedIdx={copiedIdx}
+                  onSelect={handleSelect}
+                  onCopy={handleCopy}
+                  onRewrite={rewriteSingle}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );

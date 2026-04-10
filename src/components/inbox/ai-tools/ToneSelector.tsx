@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export const TONE_OPTIONS = [
   { key: 'professional', label: 'Formal', emoji: '💼', prompt: 'Use tom formal, profissional e corporativo.' },
@@ -34,21 +35,23 @@ export const ToneSelector = memo(function ToneSelector({ selected, onChange, dis
             aria-checked={isActive}
             onClick={() => onChange(t.key)}
             disabled={disabled}
-            className={`relative px-3 py-1.5 rounded-full text-[11px] font-medium transition-colors border ${
+            className={cn(
+              'relative px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 border',
               isActive
-                ? 'border-primary/50 text-primary'
-                : 'bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50 hover:border-border/50'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+                : 'bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted/40 hover:border-border/50 hover:text-foreground',
+              'disabled:opacity-40 disabled:cursor-not-allowed'
+            )}
           >
             {isActive && (
               <motion.span
                 layoutId="tone-active-bg"
-                className="absolute inset-0 rounded-full bg-primary/15 shadow-sm shadow-primary/10"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                className="absolute inset-0 rounded-full bg-primary shadow-sm shadow-primary/20"
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}
-            <span className="relative flex items-center gap-1">
-              <span className="text-xs">{t.emoji}</span>
+            <span className="relative flex items-center gap-1.5">
+              <span className="text-sm leading-none">{t.emoji}</span>
               {t.label}
             </span>
           </button>
