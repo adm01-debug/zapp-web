@@ -3,6 +3,11 @@ export interface TtsPlayback {
   stop: () => void;
 }
 
+export interface PlayTtsOptions {
+  onLoadingChange?: (loading: boolean) => void;
+  onError?: (error: Error) => void;
+}
+
 const TTS_REQUEST_TIMEOUT_MS = 60000;
 const TTS_CHUNK_MAX_LENGTH = 220;
 
@@ -77,7 +82,8 @@ function splitTextIntoTtsChunks(text: string): string[] {
 export function playTtsAudio(
   text: string,
   supabaseUrl: string,
-  supabaseKey: string
+  supabaseKey: string,
+  options?: PlayTtsOptions
 ): TtsPlayback {
   const controller = new AbortController();
   let stopped = false;
@@ -203,6 +209,8 @@ export function playTtsAudio(
     try {
       if (textChunks.length === 0) return;
 
+      options?.onLoadingChange?.(true);
+
       void ensureChunkAudio(0);
       if (textChunks.length > 1) void ensureChunkAudio(1);
 
@@ -217,14 +225,21 @@ export function playTtsAudio(
         const objectUrl = await ensureChunkAudio(currentChunkIndex);
         if (stopped) return;
 
+        if (currentChunkIndex === 0) {
+          options?.onLoadingChange?.(false);
+        }
+
         await playObjectUrl(objectUrl);
       }
     } catch (err) {
       if (stopped || controller.signal.aborted) return;
       console.warn('[TTS] Chunked playback failed, falling back to browser speech:', err);
+      options?.onLoadingChange?.(false);
+      options?.onError?.(err instanceof Error ? err : new Error(String(err)));
       const remainingText = textChunks.slice(currentChunkIndex).join(' ') || text;
       await playWithBrowserSpeech(remainingText);
     } finally {
+      options?.onLoadingChange?.(false);
       cleanup();
     }
   })();
