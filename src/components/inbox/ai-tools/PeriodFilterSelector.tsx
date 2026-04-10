@@ -2,9 +2,8 @@ import { useState, useMemo, useCallback } from 'react';
 import { format, startOfDay as fnsStartOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { CalendarDays, X, MessageSquare } from 'lucide-react';
+import { CalendarDays, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 // ── Shared types & constants ──
@@ -184,141 +183,118 @@ export function PeriodFilterSelector({
   const hasFilter = period !== 'all';
 
   return (
-    <div className="space-y-2">
-      {/* Popover trigger — identical style to ChatSearchBar date button */}
-      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              'inline-flex items-center gap-1.5 w-full justify-center whitespace-nowrap text-xs px-3 py-2 rounded-lg font-medium transition-all duration-150 select-none',
-              hasFilter
-                ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
-                : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/60'
-            )}
-          >
-            <CalendarDays className="w-3.5 h-3.5" />
-            <PeriodLabel period={period} from={customFrom} to={customTo} />
-            {hasFilter && (
-              <span
-                role="button"
-                className="ml-0.5 p-0.5 rounded-full hover:bg-primary-foreground/20"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPeriodChange('all');
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            'inline-flex items-center gap-1.5 w-full justify-center whitespace-nowrap text-xs px-3 py-2 rounded-xl font-medium transition-all duration-150 select-none',
+            hasFilter
+              ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+              : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/60'
+          )}
+        >
+          <CalendarDays className="w-3.5 h-3.5" />
+          <PeriodLabel period={period} from={customFrom} to={customTo} />
+          <span className={cn(
+            'ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums',
+            hasFilter ? 'bg-primary-foreground/20' : 'bg-foreground/10'
+          )}>
+            {filteredCount}{totalCount !== filteredCount ? `/${totalCount}` : ''}
+          </span>
+          {hasFilter && (
+            <span
+              role="button"
+              className="ml-0.5 p-0.5 rounded-full hover:bg-primary-foreground/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPeriodChange('all');
+                onClearCustom();
+              }}
+              aria-label="Remover filtro de data"
+            >
+              <X className="w-3 h-3" />
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start" side="bottom" sideOffset={8}>
+        <div className="flex min-h-[340px]">
+          {/* Presets column */}
+          <div className="w-[160px] border-r border-border bg-muted/30 p-2 flex flex-col gap-0.5">
+            <p className="text-[10px] text-muted-foreground font-semibold px-2.5 pt-1 pb-2 uppercase tracking-widest">Atalhos</p>
+            {PERIOD_PRESETS.map((p) => (
+              <button
+                key={p.key}
+                className={cn(
+                  'w-full text-left text-[13px] px-2.5 py-2 rounded-lg transition-all duration-150 font-medium',
+                  period === p.key
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-foreground/80 hover:bg-muted hover:text-foreground'
+                )}
+                onClick={() => {
+                  onPeriodChange(p.key);
                   onClearCustom();
+                  setPopoverOpen(false);
                 }}
-                aria-label="Remover filtro de data"
               >
-                <X className="w-3 h-3" />
-              </span>
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 pointer-events-auto" align="start" side="bottom" sideOffset={8}>
-          <div className="flex min-h-[340px]">
-            {/* Presets column */}
-            <div className="w-[160px] border-r border-border bg-muted/30 p-2 flex flex-col gap-0.5">
-              <p className="text-[10px] text-muted-foreground font-semibold px-2.5 pt-1 pb-2 uppercase tracking-widest">Atalhos</p>
-              {PERIOD_PRESETS.map((p) => (
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom calendar area */}
+          <div className="p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest">Período personalizado</p>
+              {(customFrom || customTo) && (
                 <button
-                  key={p.key}
-                  className={cn(
-                    'w-full text-left text-[13px] px-2.5 py-2 rounded-lg transition-all duration-150 font-medium',
-                    period === p.key
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-foreground/80 hover:bg-muted hover:text-foreground'
-                  )}
+                  className="text-[10px] text-destructive hover:underline font-medium"
                   onClick={() => {
-                    onPeriodChange(p.key);
                     onClearCustom();
-                    setPopoverOpen(false);
+                    onPeriodChange('all');
                   }}
                 >
-                  {p.label}
+                  Limpar datas
                 </button>
-              ))}
+              )}
             </div>
-
-            {/* Custom calendar area */}
-            <div className="p-4 flex flex-col">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest">Período personalizado</p>
-                {(customFrom || customTo) && (
-                  <button
-                    className="text-[10px] text-destructive hover:underline font-medium"
-                    onClick={() => {
-                      onClearCustom();
-                      onPeriodChange('all');
-                    }}
-                  >
-                    Limpar datas
-                  </button>
-                )}
+            <div className="flex gap-6">
+              <div className="space-y-1.5">
+                <span className="text-[11px] text-muted-foreground font-semibold px-0.5 uppercase tracking-wide">De</span>
+                <CalendarComponent
+                  mode="single"
+                  selected={customFrom}
+                  onSelect={(day) => {
+                    onCustomFromChange(day);
+                    onPeriodChange('custom');
+                    if (day && customTo) setPopoverOpen(false);
+                  }}
+                  disabled={(date) => date > new Date()}
+                  locale={ptBR}
+                  className="rounded-lg border border-border/60 p-2.5 pointer-events-auto bg-background"
+                  classNames={calendarClassNames}
+                />
               </div>
-              <div className="flex gap-6">
-                <div className="space-y-1.5">
-                  <span className="text-[11px] text-muted-foreground font-semibold px-0.5 uppercase tracking-wide">De</span>
-                  <CalendarComponent
-                    mode="single"
-                    selected={customFrom}
-                    onSelect={(day) => {
-                      onCustomFromChange(day);
-                      onPeriodChange('custom');
-                      if (day && customTo) {
-                        setPopoverOpen(false);
-                      }
-                    }}
-                    disabled={(date) => date > new Date()}
-                    locale={ptBR}
-                    className="rounded-lg border border-border/60 p-2.5 pointer-events-auto bg-background"
-                    classNames={calendarClassNames}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <span className="text-[11px] text-muted-foreground font-semibold px-0.5 uppercase tracking-wide">Até</span>
-                  <CalendarComponent
-                    mode="single"
-                    selected={customTo}
-                    onSelect={(day) => {
-                      onCustomToChange(day);
-                      onPeriodChange('custom');
-                      if (customFrom && day) {
-                        setPopoverOpen(false);
-                      }
-                    }}
-                    disabled={(date) => date > new Date() || (customFrom ? date < customFrom : false)}
-                    locale={ptBR}
-                    className="rounded-lg border border-border/60 p-2.5 pointer-events-auto bg-background"
-                    classNames={calendarClassNames}
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <span className="text-[11px] text-muted-foreground font-semibold px-0.5 uppercase tracking-wide">Até</span>
+                <CalendarComponent
+                  mode="single"
+                  selected={customTo}
+                  onSelect={(day) => {
+                    onCustomToChange(day);
+                    onPeriodChange('custom');
+                    if (customFrom && day) setPopoverOpen(false);
+                  }}
+                  disabled={(date) => date > new Date() || (customFrom ? date < customFrom : false)}
+                  locale={ptBR}
+                  className="rounded-lg border border-border/60 p-2.5 pointer-events-auto bg-background"
+                  classNames={calendarClassNames}
+                />
               </div>
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-
-      {/* Message count with tooltip */}
-      <TooltipProvider delayDuration={200}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <p className="text-center text-xs tabular-nums text-muted-foreground flex items-center justify-center gap-1.5 cursor-default">
-              <MessageSquare className="w-3 h-3" />
-              <span className="inline-flex items-center gap-1">
-                <span className="font-semibold text-foreground">{filteredCount}</span> mensagens no período
-              </span>
-              {totalCount !== filteredCount && (
-                <span className="text-muted-foreground/50">· {totalCount} total</span>
-              )}
-            </p>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            {filteredCount === totalCount
-              ? 'Mostrando todas as mensagens'
-              : `Filtrando ${filteredCount} de ${totalCount} mensagens`}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
