@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { playTtsAudio, type TtsPlayback } from '@/hooks/voice/playTtsAudio';
 import { VisionIcon } from './ai-tools/VisionIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -33,6 +34,8 @@ import {
   BookOpen,
   AlertTriangle,
   Star,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -140,6 +143,8 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
+  const [isTtsPlaying, setIsTtsPlaying] = useState(false);
+  const ttsRef = useRef<TtsPlayback | null>(null);
 
   const {
     analysisPeriod,
@@ -160,7 +165,41 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   useEffect(() => {
     setAnalysis(null);
     setActiveTab('resumo');
+    // Stop TTS on context change
+    if (ttsRef.current) {
+      ttsRef.current.stop();
+      ttsRef.current = null;
+      setIsTtsPlaying(false);
+    }
   }, [analysisPeriod, customDateFrom, customDateTo, contactId]);
+
+  // Cleanup TTS on unmount
+  useEffect(() => {
+    return () => {
+      ttsRef.current?.stop();
+    };
+  }, []);
+
+  const handlePlaySummary = useCallback(() => {
+    if (isTtsPlaying && ttsRef.current) {
+      ttsRef.current.stop();
+      ttsRef.current = null;
+      setIsTtsPlaying(false);
+      return;
+    }
+    if (!analysis?.summary) return;
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    const playback = playTtsAudio(analysis.summary, supabaseUrl, supabaseKey);
+    ttsRef.current = playback;
+    setIsTtsPlaying(true);
+
+    playback.promise
+      .then(() => setIsTtsPlaying(false))
+      .catch(() => setIsTtsPlaying(false));
+  }, [analysis?.summary, isTtsPlaying]);
 
   const analyzeConversation = useCallback(async () => {
     if (!canAnalyze) {
@@ -418,10 +457,28 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                     )}
 
                     <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-                      <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                        <VisionIcon className="h-3 w-3" />
-                        Resumo
-                      </h4>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                          <VisionIcon className="h-3 w-3" />
+                          Resumo
+                        </h4>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-6 w-6 ${isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+                              onClick={handlePlaySummary}
+                              aria-label={isTtsPlaying ? 'Parar áudio' : 'Ouvir resumo'}
+                            >
+                              {isTtsPlaying ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p>{isTtsPlaying ? 'Parar áudio' : 'Ouvir resumo'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <p className="text-sm leading-relaxed">{analysis.summary}</p>
                     </div>
 
