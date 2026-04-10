@@ -223,7 +223,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
         totalCount={messages.length}
       />
 
-      <ToneSelector selected={selectedTone} onChange={setSelectedTone} disabled={loading} />
+      <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); if (response && selectedIds.size > 0) { setTimeout(() => { lastCallRef.current = 0; generateResponse(); }, 50); } }} disabled={loading} />
 
       {/* Filter & selection controls */}
       <div className="flex items-center justify-between gap-2">
