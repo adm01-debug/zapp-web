@@ -2421,7 +2421,7 @@ export type Database = {
       }
       csat_surveys: {
         Row: {
-          agent_id: string | null
+          agent_id: string
           contact_id: string
           conversation_resolved_at: string | null
           created_at: string
@@ -2430,7 +2430,7 @@ export type Database = {
           rating: number
         }
         Insert: {
-          agent_id?: string | null
+          agent_id: string
           contact_id: string
           conversation_resolved_at?: string | null
           created_at?: string
@@ -2439,7 +2439,7 @@ export type Database = {
           rating: number
         }
         Update: {
-          agent_id?: string | null
+          agent_id?: string
           contact_id?: string
           conversation_resolved_at?: string | null
           created_at?: string
