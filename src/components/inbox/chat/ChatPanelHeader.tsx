@@ -249,7 +249,7 @@ export function ChatPanelHeader({
           <TooltipContent side="bottom">Assistente IA</TooltipContent>
         </Tooltip>
 
-        {canGenerateSummary && onGenerateSummary && (
+        {onGenerateSummary && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
@@ -258,7 +258,7 @@ export function ChatPanelHeader({
                 className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
                 onClick={onGenerateSummary}
                 disabled={isSummaryLoading}
-                aria-label="Gerar resumo da conversa"
+                aria-label="Abrir painel de resumo da conversa"
               >
                 {isSummaryLoading ? (
                   <Loader2 className="w-[18px] h-[18px] animate-spin" />
@@ -267,7 +267,7 @@ export function ChatPanelHeader({
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Gerar resumo da conversa</TooltipContent>
+            <TooltipContent side="bottom">Resumo da conversa</TooltipContent>
           </Tooltip>
         )}
 
