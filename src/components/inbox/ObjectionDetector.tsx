@@ -162,7 +162,7 @@ const ObjectionCard = memo(forwardRef<HTMLDivElement, ObjectionCardProps>(functi
       </AnimatePresence>
     </motion.div>
   );
-});
+}));
 
 export function ObjectionDetector({ contactId, lastMessages, allMessages = [], onSelectSuggestion }: ObjectionDetectorProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
