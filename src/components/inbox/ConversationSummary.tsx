@@ -201,6 +201,30 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
                 : `Gerar resumo (${filteredMessages.length} msgs)`}
           </Button>
 
+          {/* Loading skeleton */}
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-3 animate-pulse"
+            >
+              <div className="flex items-center gap-2 px-1">
+                <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+                <span className="text-[11px] font-medium text-muted-foreground">Gerando resumo de {filteredMessages.length} mensagens...</span>
+              </div>
+              <div className="h-16 rounded-xl bg-muted/40 border border-border/20" />
+              <div className="space-y-1.5">
+                <div className="h-3 bg-muted/30 rounded w-full" />
+                <div className="h-3 bg-muted/30 rounded w-4/5" />
+                <div className="h-3 bg-muted/30 rounded w-3/5" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-3 bg-muted/30 rounded w-2/3" />
+                <div className="h-3 bg-muted/30 rounded w-1/2" />
+              </div>
+            </motion.div>
+          )}
+
           {/* Summary result */}
           <AnimatePresence>
             {hasGenerated && summary && (
