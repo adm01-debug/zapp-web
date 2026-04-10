@@ -48,7 +48,7 @@ export function OmnichannelManager() {
     queryKey: ['channel-connections'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('channel_connections')
+        .from('channel_connections_safe')
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
