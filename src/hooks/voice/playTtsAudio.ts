@@ -1,3 +1,5 @@
+import { log } from '@/lib/logger';
+
 export interface TtsPlayback {
   promise: Promise<void>;
   stop: () => void;
