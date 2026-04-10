@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     let usedFallback = false;
 
     try {
-      const callFn = dispatchProvider(providerType, provider, finalMessages, tools, tool_choice, stream);
+      const callFn = dispatchProvider(providerType, provider, finalMessages, tools, tool_choice, stream, clientModel);
       response = await withRetry(callFn, 2, 500);
     } catch (dispatchErr) {
       // If the configured provider fails entirely, fallback to Lovable AI
