@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { VisionIcon } from '../ai-tools/VisionIcon';
 import { Conversation } from '@/types/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -344,12 +345,7 @@ export function ChatHeader({
                 onClick={onToggleAIAssistant}
                 aria-label="Visão"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 4C6 4 2 12 2 12s4 8 10 8 10-8 10-8-4-8-10-8Z" />
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M12 2v2" />
-                  <path d="M12 20v2" />
-                </svg>
+                <VisionIcon className="w-4 h-4" />
               </Button>
             </motion.div>
           </TooltipTrigger>

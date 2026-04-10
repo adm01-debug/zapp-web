@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { VisionIcon } from './ai-tools/VisionIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -234,12 +235,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
         <div className="flex items-center justify-between border-b border-border bg-gradient-to-r from-primary/5 to-transparent p-4">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/20">
-              <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 4C6 4 2 12 2 12s4 8 10 8 10-8 10-8-4-8-10-8Z" />
-                <circle cx="12" cy="12" r="3" />
-                <path d="M12 2v2" />
-                <path d="M12 20v2" />
-              </svg>
+              <VisionIcon className="h-5 w-5 text-primary" />
             </div>
             <div>
               <h3 className="text-sm font-bold">Visão</h3>
@@ -398,7 +394,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
                     <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
                       <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4C6 4 2 12 2 12s4 8 10 8 10-8 10-8-4-8-10-8Z"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2"/><path d="M12 20v2"/></svg>
+                        <VisionIcon className="h-3 w-3" />
                         Resumo
                       </h4>
                       <p className="text-sm leading-relaxed">{analysis.summary}</p>
@@ -682,7 +678,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
             {!analysis && !isLoading && canAnalyze && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8 text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                  <svg className="h-8 w-8 text-primary/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4C6 4 2 12 2 12s4 8 10 8 10-8 10-8-4-8-10-8Z"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2"/><path d="M12 20v2"/></svg>
+                  <VisionIcon className="h-8 w-8 text-primary/60" />
                 </div>
                 <p className="mb-1 text-sm font-medium text-foreground">Analise esta conversa</p>
                 <p className="text-xs leading-relaxed text-muted-foreground">Resumo, sentimento, pontos-chave, desempenho e oportunidades</p>
