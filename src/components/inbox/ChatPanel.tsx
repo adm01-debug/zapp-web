@@ -147,46 +147,15 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     setSearchQuery('');
   }, [conversation.id]);
 
-  // Reset summary when switching conversations
+  // Reset summary panel when switching conversations
   useEffect(() => {
-    setSummaryData(null);
-    setHasSummary(false);
+    setShowSummaryPanel(false);
   }, [conversation.id]);
 
   const canGenerateSummary = messages.length >= 10;
 
-  const handleGenerateSummary = async () => {
-    if (!canGenerateSummary) {
-      sonnerToast.error('A conversa precisa ter pelo menos 10 mensagens para gerar um resumo.');
-      return;
-    }
-    setIsSummaryLoading(true);
-    try {
-      const data = await withRetry(
-        async () => {
-          const { data, error } = await supabase.functions.invoke('ai-conversation-summary', {
-            body: {
-              messages: messages.map(m => ({ sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() })),
-              contactName: conversation.contact.name,
-            },
-          });
-          if (error) throw error;
-          return data;
-        },
-        { maxRetries: 2, baseDelayMs: 1500, shouldRetry: (err) => !(err instanceof Error && err.message.includes('Rate limit')) }
-      );
-      setSummaryData(data);
-      setHasSummary(true);
-      sonnerToast.success('Resumo gerado com sucesso!');
-    } catch (error) {
-      log.error('Error generating summary:', error);
-      const msg = error instanceof Error && error.message.includes('Rate limit')
-        ? 'Muitas requisições. Aguarde um momento.'
-        : 'Erro ao gerar resumo. Tente novamente.';
-      sonnerToast.error(msg);
-    } finally {
-      setIsSummaryLoading(false);
-    }
+  const handleToggleSummary = () => {
+    setShowSummaryPanel(prev => !prev);
   };
 
   // Global Ctrl+F handler for chat search (toggle)
