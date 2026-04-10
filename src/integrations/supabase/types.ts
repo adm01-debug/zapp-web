@@ -6930,6 +6930,25 @@ export type Database = {
           role: string
         }[]
       }
+      get_reset_requests_safe: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          has_token: boolean
+          id: string
+          ip_address: string
+          reason: string
+          rejection_reason: string
+          reviewed_at: string
+          reviewed_by: string
+          status: string
+          token_expires_at: string
+          updated_at: string
+          user_agent: string
+          user_id: string
+        }[]
+      }
       get_team_profiles: {
         Args: never
         Returns: {
