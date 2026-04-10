@@ -13,6 +13,7 @@ const AiProxySchema = z.object({
     role: z.string().max(50),
     content: z.string().max(50000),
   })).min(1).max(100),
+  model: z.string().max(100).optional(),
   use_for: z.enum(['copilot', 'analysis', 'summary', 'tagging', 'auto_reply']).default('copilot'),
   provider_id: z.string().uuid().optional(),
   tools: z.any().optional(),
