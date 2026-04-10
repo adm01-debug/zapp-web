@@ -44,16 +44,16 @@ interface ConversationSummaryProps {
 }
 
 const statusConfig = {
-  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'text-emerald-600 border-emerald-600/30' },
-  pendente: { label: 'Pendente', icon: Clock, className: 'text-amber-600 border-amber-600/30' },
-  aguardando_cliente: { label: 'Aguardando Cliente', icon: Clock, className: 'text-blue-600 border-blue-600/30' },
-  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'text-orange-600 border-orange-600/30' },
+  resolvido: { label: 'Resolvido', icon: CheckCircle2, className: 'text-success border-success/30 bg-success/10' },
+  pendente: { label: 'Pendente', icon: Clock, className: 'text-warning border-warning/30 bg-warning/10' },
+  aguardando_cliente: { label: 'Aguardando Cliente', icon: Clock, className: 'text-info border-info/30 bg-info/10' },
+  aguardando_atendente: { label: 'Aguardando Atendente', icon: AlertCircle, className: 'text-warning border-warning/30 bg-warning/10' },
 };
 
 const sentimentConfig = {
-  positivo: { icon: ThumbsUp, className: 'text-emerald-500' },
+  positivo: { icon: ThumbsUp, className: 'text-success' },
   neutro: { icon: Minus, className: 'text-muted-foreground' },
-  negativo: { icon: ThumbsDown, className: 'text-red-500' },
+  negativo: { icon: ThumbsDown, className: 'text-destructive' },
 };
 
 export function ConversationSummary({ messages, contactName, contactId, initialSummary, onClose }: ConversationSummaryProps) {
