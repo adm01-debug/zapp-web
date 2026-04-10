@@ -356,7 +356,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => openDialog('chatSearch')}
             onOpenTransfer={() => openDialog('transferDialog')} onOpenSchedule={() => openDialog('scheduleDialog')}
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
-            onGenerateSummary={handleGenerateSummary} isSummaryLoading={isSummaryLoading} canGenerateSummary={canGenerateSummary}
+            onGenerateSummary={handleToggleSummary} isSummaryLoading={false} canGenerateSummary={canGenerateSummary}
             onCloseConversation={() => openDialog('closeDialog')}
             lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
             allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
@@ -379,9 +379,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
         </Suspense>
 
 
-        {hasSummary && summaryData && (
+        {showSummaryPanel && (
           <Suspense fallback={null}>
-            <ConversationSummary messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))} contactName={conversation.contact.name} initialSummary={summaryData} />
+            <ConversationSummary
+              messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
+              contactName={conversation.contact.name}
+              contactId={conversation.contact.id}
+              onClose={() => setShowSummaryPanel(false)}
+            />
           </Suspense>
         )}
 
