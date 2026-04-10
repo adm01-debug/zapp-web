@@ -352,6 +352,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         {!hideHeader && (
           <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={dialogs.aiAssistant} showDetails={showDetails}
+            showSummaryPanel={showSummaryPanel}
             voiceId={voiceId} speed={speed} onToggleAIAssistant={() => toggleDialog('aiAssistant')} onToggleDetails={onToggleDetails}
             onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => openDialog('chatSearch')}
             onOpenTransfer={() => openDialog('transferDialog')} onOpenSchedule={() => openDialog('scheduleDialog')}
@@ -380,14 +381,16 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
 
         {showSummaryPanel && (
-          <Suspense fallback={null}>
-            <ConversationSummary
-              messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
-              contactName={conversation.contact.name}
-              contactId={conversation.contact.id}
-              onClose={() => setShowSummaryPanel(false)}
-            />
-          </Suspense>
+          <div className="shrink-0 max-h-[50vh] overflow-y-auto border-b border-border">
+            <Suspense fallback={<div className="px-4 py-6 text-center text-xs text-muted-foreground">Carregando resumo...</div>}>
+              <ConversationSummary
+                messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
+                contactName={conversation.contact.name}
+                contactId={conversation.contact.id}
+                onClose={() => setShowSummaryPanel(false)}
+              />
+            </Suspense>
+          </div>
         )}
 
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}

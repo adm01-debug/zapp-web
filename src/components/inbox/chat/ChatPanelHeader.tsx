@@ -62,6 +62,7 @@ interface ChatPanelHeaderProps {
   isContactTyping: boolean;
   showAIAssistant: boolean;
   showDetails?: boolean;
+  showSummaryPanel?: boolean;
   voiceId: string;
   speed: number;
   onToggleAIAssistant: () => void;
@@ -87,6 +88,7 @@ export function ChatPanelHeader({
   isContactTyping,
   showAIAssistant,
   showDetails,
+  showSummaryPanel,
   voiceId,
   speed,
   onToggleAIAssistant,
@@ -255,7 +257,10 @@ export function ChatPanelHeader({
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                className={cn(
+                  "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+                  showSummaryPanel && "text-primary bg-primary/10"
+                )}
                 onClick={onGenerateSummary}
                 disabled={isSummaryLoading}
                 aria-label="Abrir painel de resumo da conversa"
