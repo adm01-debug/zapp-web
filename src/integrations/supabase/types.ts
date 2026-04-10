@@ -646,6 +646,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "away_messages_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       blocked_countries: {
@@ -767,6 +774,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "business_hours_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       calls: {
@@ -856,6 +870,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1067,6 +1088,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "campaigns_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       channel_connections: {
@@ -1152,6 +1180,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_connections_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1353,6 +1388,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "chatbot_flows_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_wallet_rules: {
@@ -1419,6 +1461,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_wallet_rules_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       connection_health_logs: {
@@ -1469,6 +1518,13 @@ export type Database = {
             columns: ["connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connection_health_logs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1813,6 +1869,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -2417,6 +2480,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "csat_auto_config_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       csat_surveys: {
@@ -2970,6 +3040,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followup_sequences_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -3552,6 +3629,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       meta_capi_events: {
@@ -3782,6 +3866,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: true
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "number_reputation_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -4206,6 +4297,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -4936,6 +5034,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "scheduled_messages_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       scheduled_report_configs: {
@@ -5511,6 +5616,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talkx_campaigns_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -6234,6 +6346,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "whatsapp_connection_queues_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       whatsapp_connections: {
@@ -6396,6 +6515,13 @@ export type Database = {
             referencedRelation: "whatsapp_connections_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "whatsapp_flows_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       whatsapp_groups: {
@@ -6458,6 +6584,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_groups_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -6531,6 +6664,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -6680,6 +6820,13 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_connections_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -6851,6 +6998,87 @@ export type Database = {
           status?: string | null
         }
         Relationships: []
+      }
+      whatsapp_connections_safe: {
+        Row: {
+          battery_level: number | null
+          created_at: string | null
+          created_by: string | null
+          farewell_enabled: boolean | null
+          farewell_message: string | null
+          health_response_ms: number | null
+          health_status: string | null
+          id: string | null
+          instance_id: string | null
+          is_default: boolean | null
+          is_plugged: boolean | null
+          last_health_check: string | null
+          max_retries: number | null
+          name: string | null
+          phone_number: string | null
+          qr_code: string | null
+          retry_count: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          battery_level?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          farewell_enabled?: boolean | null
+          farewell_message?: string | null
+          health_response_ms?: number | null
+          health_status?: string | null
+          id?: string | null
+          instance_id?: never
+          is_default?: boolean | null
+          is_plugged?: boolean | null
+          last_health_check?: string | null
+          max_retries?: number | null
+          name?: string | null
+          phone_number?: string | null
+          qr_code?: never
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          battery_level?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          farewell_enabled?: boolean | null
+          farewell_message?: string | null
+          health_response_ms?: number | null
+          health_status?: string | null
+          id?: string | null
+          instance_id?: never
+          is_default?: boolean | null
+          is_plugged?: boolean | null
+          last_health_check?: string | null
+          max_retries?: number | null
+          name?: string | null
+          phone_number?: string | null
+          qr_code?: never
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_connections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_connections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
