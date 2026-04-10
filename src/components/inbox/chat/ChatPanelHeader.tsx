@@ -200,6 +200,7 @@ export function ChatPanelHeader({
               <ObjectionDetector
                 contactId={conversation.contact.id}
                 lastMessages={lastMessages}
+                allMessages={allMessages}
                 onSelectSuggestion={onSelectSuggestion}
               />
             </Suspense>

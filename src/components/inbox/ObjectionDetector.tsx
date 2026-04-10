@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, memo } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect, memo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { ShieldQuestion, Lightbulb, Loader2, RefreshCw, AlertTriangle, Copy, Che
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { ToneSelector, type ToneKey, getTonePrompt } from './ai-tools/ToneSelector';
+import { PeriodFilterSelector, usePeriodFilter } from './ai-tools/PeriodFilterSelector';
 
 interface Objection {
   objection: string;
@@ -14,9 +15,18 @@ interface Objection {
   confidence: number;
 }
 
+interface ChatMessage {
+  id: string;
+  content: string;
+  sender: string;
+  timestamp: string;
+  created_at?: string;
+}
+
 interface ObjectionDetectorProps {
   contactId: string;
   lastMessages: string[];
+  allMessages?: ChatMessage[];
   onSelectSuggestion?: (text: string) => void;
 }
 
@@ -70,7 +80,6 @@ const ObjectionCard = memo(function ObjectionCard({
       transition={{ delay: idx * 0.08 }}
       className="rounded-xl bg-muted/20 border border-border/30 overflow-hidden"
     >
-      {/* Objection header */}
       <button
         type="button"
         onClick={() => setExpanded(prev => !prev)}
@@ -89,7 +98,6 @@ const ObjectionCard = memo(function ObjectionCard({
         )}
       </button>
 
-      {/* Counter-argument */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -111,7 +119,6 @@ const ObjectionCard = memo(function ObjectionCard({
                 )}
               </div>
 
-              {/* Actions */}
               <div className="flex items-center justify-between">
                 <div className="flex gap-1">
                   <Button
@@ -154,7 +161,7 @@ const ObjectionCard = memo(function ObjectionCard({
   );
 });
 
-export function ObjectionDetector({ contactId, lastMessages, onSelectSuggestion }: ObjectionDetectorProps) {
+export function ObjectionDetector({ contactId, lastMessages, allMessages = [], onSelectSuggestion }: ObjectionDetectorProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
   const [loading, setLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
@@ -164,8 +171,42 @@ export function ObjectionDetector({ contactId, lastMessages, onSelectSuggestion 
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const lastCallRef = useRef(0);
 
+  // Normalize messages for period filter
+  const normalized = useMemo(() => 
+    allMessages.map(m => ({ ...m, created_at: m.created_at || m.timestamp })),
+    [allMessages]
+  );
+
+  const hasPeriodMessages = normalized.length > 0;
+
+  const {
+    analysisPeriod,
+    setAnalysisPeriod,
+    customDateFrom,
+    customDateTo,
+    setCustomDateFrom,
+    setCustomDateTo,
+    clearCustomDates,
+    filteredMessages: periodFiltered,
+  } = usePeriodFilter(normalized, 'all');
+
+  // Extract client messages from period-filtered messages
+  const clientMessages = useMemo(() => {
+    if (!hasPeriodMessages) return lastMessages;
+    return periodFiltered
+      .filter(m => m.sender !== 'agent' && m.content && m.content.trim().length > 0)
+      .map(m => m.content);
+  }, [hasPeriodMessages, periodFiltered, lastMessages]);
+
+  // Reset analysis on period change
+  useEffect(() => {
+    setAnalyzed(false);
+    setObjections([]);
+    setError(null);
+  }, [analysisPeriod, customDateFrom, customDateTo]);
+
   const analyze = useCallback(async (tone?: ToneKey) => {
-    if (lastMessages.length === 0) {
+    if (clientMessages.length === 0) {
       toast.warning('Nenhuma mensagem do cliente para analisar.');
       return;
     }
@@ -196,7 +237,7 @@ Se não houver objeções, retorne []`,
             },
             {
               role: 'user',
-              content: `Mensagens do cliente:\n${lastMessages.join('\n')}`,
+              content: `Mensagens do cliente:\n${clientMessages.join('\n')}`,
             },
           ],
           model: 'google/gemini-2.5-flash',
@@ -235,7 +276,7 @@ Se não houver objeções, retorne []`,
 
     setAnalyzed(true);
     setLoading(false);
-  }, [lastMessages, selectedTone]);
+  }, [clientMessages, selectedTone]);
 
   const rewriteSingle = useCallback(async (idx: number) => {
     setRewritingIdx(idx);
@@ -296,6 +337,21 @@ Se não houver objeções, retorne []`,
           </div>
         </div>
 
+        {/* Period Filter */}
+        {hasPeriodMessages && (
+          <PeriodFilterSelector
+            period={analysisPeriod}
+            onPeriodChange={setAnalysisPeriod}
+            customFrom={customDateFrom}
+            customTo={customDateTo}
+            onCustomFromChange={setCustomDateFrom}
+            onCustomToChange={setCustomDateTo}
+            onClearCustom={clearCustomDates}
+            filteredCount={periodFiltered.length}
+            totalCount={allMessages.length}
+          />
+        )}
+
         <ToneSelector selected={selectedTone} onChange={setSelectedTone} />
 
         <Button
@@ -303,7 +359,7 @@ Se não houver objeções, retorne []`,
           size="sm"
           className="w-full h-9 text-xs font-medium"
           onClick={() => analyze()}
-          disabled={loading || lastMessages.length === 0}
+          disabled={loading || clientMessages.length === 0}
         >
           {loading ? (
             <>
@@ -313,11 +369,11 @@ Se não houver objeções, retorne []`,
           ) : (
             <>
               <ShieldQuestion className="w-3.5 h-3.5 mr-1.5" />
-              Detectar objeções ({lastMessages.length} msgs)
+              Detectar objeções ({clientMessages.length} msgs)
             </>
           )}
         </Button>
-        {lastMessages.length === 0 && (
+        {clientMessages.length === 0 && (
           <p className="text-[10px] text-muted-foreground text-center italic">Nenhuma mensagem do cliente encontrada</p>
         )}
       </div>
