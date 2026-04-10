@@ -92,6 +92,8 @@ Foque em:
               parameters: {
                 type: "object",
                 properties: {
+                  department: { type: "string", enum: ["vendas", "compras", "logistica", "rh", "financeiro", "sac", "outros"], description: "Departamento identificado" },
+                  relationshipType: { type: "string", description: "Tipo de relação identificada (ex: vendedor→cliente)" },
                   summary: { type: "string", description: "Brief summary (max 3 sentences)" },
                   status: { type: "string", enum: ["resolvido", "pendente", "aguardando_cliente", "aguardando_atendente", "escalado"] },
                   keyPoints: { type: "array", items: { type: "string" }, description: "Key points (max 5)" },
@@ -111,7 +113,7 @@ Foque em:
                   topics: { type: "array", items: { type: "string" }, description: "Main topics discussed" },
                   urgency: { type: "string", enum: ["baixa", "media", "alta", "critica"] },
                 },
-                required: ["summary", "status", "keyPoints", "sentiment", "sentimentScore", "customerSatisfaction", "topics", "urgency"],
+                required: ["department", "summary", "status", "keyPoints", "sentiment", "sentimentScore", "customerSatisfaction", "topics", "urgency"],
                 additionalProperties: false,
               }
             }
