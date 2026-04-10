@@ -1,33 +1,24 @@
-// Service Worker for Push Notifications
-const CACHE_NAME = 'whatsapp-crm-v2';
-const OFFLINE_URL = '/offline.html';
+// Push-only legacy service worker shim.
+// Important: this file must never cache the app shell, otherwise old UI bundles can reappear.
+const LEGACY_CACHE_PREFIX = 'whatsapp-crm-v';
 
-// Install event - cache essential assets
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   console.log('[ServiceWorker] Install');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Caching app shell');
-      return cache.addAll([
-        '/',
-        '/favicon.ico',
-      ]);
-    })
-  );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('[ServiceWorker] Activate');
   event.waitUntil(
-    caches.keys().then((keyList) => {
+    caches.keys().then((cacheKeys) => {
       return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
+        cacheKeys.map((key) => {
+          if (key.startsWith(LEGACY_CACHE_PREFIX)) {
             console.log('[ServiceWorker] Removing old cache', key);
             return caches.delete(key);
           }
+
+          return Promise.resolve(false);
         })
       );
     })
@@ -183,35 +174,6 @@ self.addEventListener('message', (event) => {
     const { title, options } = event.data;
     self.registration.showNotification(title, options);
   }
-});
-
-// Fetch event - serve from cache when offline
-self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Clone the response
-        const responseClone = response.clone();
-        
-        // Cache successful responses
-        if (response.status === 200) {
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        
-        return response;
-      })
-      .catch(() => {
-        // Return cached version on network failure
-        return caches.match(event.request).then((response) => {
-          return response || caches.match(OFFLINE_URL);
-        });
-      })
-  );
 });
 
 // Background sync for offline message queue

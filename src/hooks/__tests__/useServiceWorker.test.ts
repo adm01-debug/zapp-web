@@ -5,6 +5,12 @@ vi.mock('@/lib/logger', () => ({
   log: { debug: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
+const mockUnregister = vi.fn().mockResolvedValue(true);
+const mockCaches = {
+  keys: vi.fn().mockResolvedValue([]),
+  delete: vi.fn().mockResolvedValue(true),
+};
+
 const mockRegistration = {
   scope: '/',
   update: vi.fn(),
@@ -16,12 +22,21 @@ describe('useServiceWorker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    sessionStorage.clear();
+
+    Object.defineProperty(globalThis, 'caches', {
+      value: mockCaches,
+      writable: true,
+      configurable: true,
+    });
     
     Object.defineProperty(navigator, 'serviceWorker', {
       value: {
         register: vi.fn().mockResolvedValue(mockRegistration),
         controller: null,
         addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        getRegistrations: vi.fn().mockResolvedValue([{ unregister: mockUnregister }]),
       },
       writable: true,
       configurable: true,
@@ -39,7 +54,25 @@ describe('useServiceWorker', () => {
     // Allow async registration
     await vi.advanceTimersByTimeAsync(0);
     
-    expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/sw.js', { scope: '/' });
+    expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/sw.js', {
+      scope: '/',
+      updateViaCache: 'none',
+    });
+  });
+
+  it('cleans legacy caches before registering the current worker', async () => {
+    mockCaches.keys.mockResolvedValueOnce(['whatsapp-crm-v2']);
+    sessionStorage.setItem('legacy-sw-reset-done', '1');
+
+    const { useServiceWorker } = await import('@/hooks/useServiceWorker');
+    renderHook(() => useServiceWorker());
+
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(navigator.serviceWorker.getRegistrations).toHaveBeenCalled();
+    expect(mockUnregister).toHaveBeenCalled();
+    expect(caches.delete).toHaveBeenCalledWith('whatsapp-crm-v2');
+    expect(navigator.serviceWorker.register).toHaveBeenCalled();
   });
 
   it('does not crash when serviceWorker is unavailable', async () => {
