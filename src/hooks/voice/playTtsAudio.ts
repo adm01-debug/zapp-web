@@ -9,25 +9,24 @@ export function playTtsAudio(
   supabaseKey: string
 ): TtsPlayback {
   const controller = new AbortController();
-  let audioElement: HTMLAudioElement | null = null;
-  let objectUrl: string | null = null;
   let stopped = false;
 
+  // Create Audio element SYNCHRONOUSLY in the user gesture context
+  // This is critical for browser autoplay policy compliance
+  const audioElement = new Audio();
+  audioElement.preload = 'auto';
+
   const cleanup = () => {
-    if (audioElement) {
-      audioElement.pause();
-      audioElement.removeAttribute('src');
-      audioElement.load(); // Release browser media resources
-      audioElement = null;
-    }
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl);
-      objectUrl = null;
+    audioElement.pause();
+    audioElement.removeAttribute('src');
+    audioElement.load();
+    if (audioElement.src && audioElement.src.startsWith('blob:')) {
+      URL.revokeObjectURL(audioElement.src);
     }
   };
 
   const promise = (async () => {
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
 
     try {
       const response = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
@@ -44,9 +43,7 @@ export function playTtsAudio(
       clearTimeout(timeout);
 
       if (!response.ok) {
-        // Consume body to prevent leaks
         const errorBody = await response.text().catch(() => '');
-        // Gracefully skip TTS on auth errors (invalid/missing API key)
         if (response.status === 401 || response.status === 403) {
           console.warn('[TTS] ElevenLabs API key invalid — skipping audio playback');
           return;
@@ -59,17 +56,45 @@ export function playTtsAudio(
       const blob = await response.blob();
       if (stopped) return;
 
-      objectUrl = URL.createObjectURL(blob);
-      audioElement = new Audio(objectUrl);
+      const objectUrl = URL.createObjectURL(blob);
+      audioElement.src = objectUrl;
 
       await new Promise<void>((resolve, reject) => {
-        if (!audioElement || stopped) return resolve();
-        audioElement.onended = () => resolve();
-        audioElement.onerror = () => reject(new Error('Audio playback error'));
-        audioElement.play().catch(reject);
+        if (stopped) return resolve();
+        audioElement.onended = () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve();
+        };
+        audioElement.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          // Fallback to browser Speech Synthesis
+          console.warn('[TTS] Audio playback failed, falling back to browser speech');
+          try {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            utterance.onend = () => resolve();
+            utterance.onerror = () => reject(new Error('Browser speech also failed'));
+            window.speechSynthesis.speak(utterance);
+          } catch {
+            reject(new Error('Audio playback error'));
+          }
+        };
+        audioElement.play().catch((playErr) => {
+          console.warn('[TTS] play() blocked, falling back to browser speech:', playErr);
+          URL.revokeObjectURL(objectUrl);
+          try {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            utterance.onend = () => resolve();
+            utterance.onerror = () => reject(new Error('Browser speech also failed'));
+            window.speechSynthesis.speak(utterance);
+          } catch {
+            reject(new Error('Autoplay blocked'));
+          }
+        });
       });
     } catch (err) {
-      if (stopped || controller.signal.aborted) return; // Silently resolve on intentional stop
+      if (stopped || controller.signal.aborted) return;
       throw err;
     } finally {
       clearTimeout(timeout);
@@ -80,6 +105,7 @@ export function playTtsAudio(
   const stop = () => {
     stopped = true;
     controller.abort();
+    window.speechSynthesis?.cancel();
     cleanup();
   };
 
