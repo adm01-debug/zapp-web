@@ -144,7 +144,7 @@ Foque em:
           if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
         } catch { /* fallback below */ }
       }
-      analysisData = parsed || { summary: content || 'Não foi possível gerar análise.', status: 'pendente', keyPoints: [], sentiment: 'neutro', sentimentScore: 50, customerSatisfaction: 3, topics: [], urgency: 'normal' };
+      analysisData = parsed || { summary: content || 'Não foi possível gerar análise.', status: 'pendente', keyPoints: [], sentiment: 'neutro', sentimentScore: 50, customerSatisfaction: 3, topics: [], urgency: 'media' };
     }
 
     // Validate required fields with defaults
