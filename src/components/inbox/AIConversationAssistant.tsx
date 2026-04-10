@@ -165,7 +165,41 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   useEffect(() => {
     setAnalysis(null);
     setActiveTab('resumo');
+    // Stop TTS on context change
+    if (ttsRef.current) {
+      ttsRef.current.stop();
+      ttsRef.current = null;
+      setIsTtsPlaying(false);
+    }
   }, [analysisPeriod, customDateFrom, customDateTo, contactId]);
+
+  // Cleanup TTS on unmount
+  useEffect(() => {
+    return () => {
+      ttsRef.current?.stop();
+    };
+  }, []);
+
+  const handlePlaySummary = useCallback(() => {
+    if (isTtsPlaying && ttsRef.current) {
+      ttsRef.current.stop();
+      ttsRef.current = null;
+      setIsTtsPlaying(false);
+      return;
+    }
+    if (!analysis?.summary) return;
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    const playback = playTtsAudio(analysis.summary, supabaseUrl, supabaseKey);
+    ttsRef.current = playback;
+    setIsTtsPlaying(true);
+
+    playback.promise
+      .then(() => setIsTtsPlaying(false))
+      .catch(() => setIsTtsPlaying(false));
+  }, [analysis?.summary, isTtsPlaying]);
 
   const analyzeConversation = useCallback(async () => {
     if (!canAnalyze) {
