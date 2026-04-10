@@ -164,22 +164,13 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   // Reset chat search when switching conversations
   useEffect(() => {
-    closeDialog('chatSearch');
+    setActiveTool(null);
     setHighlightedMessageIds(new Set());
     setActiveHighlightId(null);
     setSearchQuery('');
   }, [conversation.id]);
 
-  // Reset summary panel when switching conversations
-  useEffect(() => {
-    setShowSummaryPanel(false);
-  }, [conversation.id]);
-
   const canGenerateSummary = messages.length >= 10;
-
-  const handleToggleSummary = () => {
-    setShowSummaryPanel(prev => !prev);
-  };
 
   // Global Ctrl+F handler for chat search (toggle)
   useEffect(() => {
