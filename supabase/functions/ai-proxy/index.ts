@@ -62,11 +62,12 @@ function dispatchProvider(
   tools: unknown,
   toolChoice: unknown,
   stream: boolean,
+  clientModel?: string,
 ): () => Promise<Response> {
   switch (providerType) {
     case 'lovable_ai': {
       const apiKey = requireEnv("LOVABLE_API_KEY");
-      return () => callLovableAI({ messages: finalMessages, apiKey, model: provider?.model || undefined, tools, toolChoice, stream });
+      return () => callLovableAI({ messages: finalMessages, apiKey, model: clientModel || provider?.model || undefined, tools, toolChoice, stream });
     }
     case 'openai_compatible':
     case 'google_gemini': {
@@ -110,7 +111,7 @@ Deno.serve(async (req) => {
     const parsed = parseBody(AiProxySchema, await req.json());
     if (!parsed.success) return errorResponse(parsed.error, 400, req);
 
-    const { messages, use_for, provider_id, tools, tool_choice, stream } = parsed.data;
+    const { messages, model: clientModel, use_for, provider_id, tools, tool_choice, stream } = parsed.data;
 
     const supabaseUrl = requireEnv("SUPABASE_URL");
     const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
