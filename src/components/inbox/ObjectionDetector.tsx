@@ -456,7 +456,7 @@ Se não houver objeções, retorne []`,
         </Button>
       </div>
 
-      <ToneSelector selected={selectedTone} onChange={setSelectedTone} disabled={loading} />
+      <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); analyze(tone); }} disabled={loading} />
 
       <ScrollArea className="max-h-72">
         <div className="space-y-2 pr-1">
