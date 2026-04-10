@@ -36,7 +36,7 @@ function normalizeMessages(messages: ChatMessage[]) {
   }));
 }
 
-export function UniversityHelp({ contactId, messages, onSelectSuggestion }: UniversityHelpProps) {
+export function UniversityHelp({ contactId, contactName, messages, onSelectSuggestion }: UniversityHelpProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<string | null>(null);

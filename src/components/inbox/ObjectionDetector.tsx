@@ -165,7 +165,7 @@ const ObjectionCard = memo(forwardRef<HTMLDivElement, ObjectionCardProps>(functi
   );
 }));
 
-export function ObjectionDetector({ contactId, lastMessages, allMessages = [], onSelectSuggestion }: ObjectionDetectorProps) {
+export function ObjectionDetector({ contactId, contactName, lastMessages, allMessages = [], onSelectSuggestion }: ObjectionDetectorProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
   const [loading, setLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
