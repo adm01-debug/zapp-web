@@ -20,6 +20,8 @@ import { useMessageSignature } from '@/hooks/useMessageSignature';
 import { useChatMediaSending } from './useChatMediaSending';
 import { CRMAutoSync } from './CRMAutoSync';
 import { useAmbientColor } from '@/hooks/useAmbientColor';
+import { Radar, GraduationCap, FileText } from 'lucide-react';
+import { ToolPanel } from './ai-tools/ToolPanel';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
