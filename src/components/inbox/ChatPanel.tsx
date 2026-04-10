@@ -22,6 +22,7 @@ import { CRMAutoSync } from './CRMAutoSync';
 import { useAmbientColor } from '@/hooks/useAmbientColor';
 import { Radar, GraduationCap, FileText } from 'lucide-react';
 import { ToolPanel } from './ai-tools/ToolPanel';
+import { VisionIcon } from './ai-tools/VisionIcon';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
@@ -460,8 +461,16 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       {activeTool === 'aiAssistant' && (
         <Suspense fallback={null}>
-          <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
-            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('aiAssistant')}
+            icon={<VisionIcon className="w-4 h-4 text-primary" />}
+            title="Visão"
+            subtitle="Análise Profunda"
+          >
+            <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
+              contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
+          </ToolPanel>
         </Suspense>
       )}
 
