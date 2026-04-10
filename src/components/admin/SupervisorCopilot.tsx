@@ -57,7 +57,7 @@ Agentes: ${agentData.data?.map(a => `${a.name} (${a.role})`).join(', ') || 'nenh
             { role: 'system', content: `Você é um copiloto de supervisor de atendimento. Responda com base nos dados reais fornecidos. Seja conciso e direto. Use bullet points. Dados:\n${context}` },
             { role: 'user', content: query },
           ],
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-3-flash-preview',
         },
       });
 
