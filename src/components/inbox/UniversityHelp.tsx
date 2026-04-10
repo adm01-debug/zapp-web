@@ -311,7 +311,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
         variant="default"
         size="sm"
         className="w-full h-9 text-xs font-medium"
-        onClick={generateResponse}
+        onClick={() => generateResponse()}
         disabled={loading || selectedIds.size === 0}
         title="Ctrl+Enter para gerar"
       >
@@ -346,7 +346,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
               variant="outline"
               size="sm"
               className="h-6 text-[10px] px-2.5 border-destructive/30 text-destructive hover:bg-destructive/10"
-              onClick={generateResponse}
+              onClick={() => generateResponse()}
               disabled={loading}
             >
               <RefreshCw className="w-3 h-3 mr-1" />
