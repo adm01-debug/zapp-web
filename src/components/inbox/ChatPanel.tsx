@@ -460,8 +460,16 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
       {activeTool === 'aiAssistant' && (
         <Suspense fallback={null}>
-          <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
-            contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
+          <ToolPanel
+            isOpen={true}
+            onClose={() => handleSetActiveTool('aiAssistant')}
+            icon={<VisionIcon className="w-4 h-4 text-primary" />}
+            title="Visão"
+            subtitle="Análise Profunda"
+          >
+            <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
+              contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
+          </ToolPanel>
         </Suspense>
       )}
 

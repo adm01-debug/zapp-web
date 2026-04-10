@@ -330,50 +330,7 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, x: 300 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 300 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="flex h-full w-80 flex-col border-l border-border bg-card"
-      >
-        <div className="flex items-center justify-between border-b border-border bg-gradient-to-r from-primary/5 to-transparent p-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/20">
-              <VisionIcon className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold">Visão</h3>
-              <p className="text-[10px] text-muted-foreground">Análise Profunda</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            {analysis && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={`h-8 w-8 rounded-lg ${isTtsLoading ? 'text-warning animate-spin' : isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
-                    onClick={() => handlePlayText(buildFullNarrationText())}
-                    disabled={isTtsLoading}
-                    aria-label="Ouvir análise completa"
-                  >
-                    {isTtsLoading ? <Loader2 className="h-4 w-4" /> : isTtsPlaying ? <VolumeX className="h-4 w-4" /> : <Headphones className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom"><p>{isTtsLoading ? 'Carregando...' : isTtsPlaying ? 'Parar' : 'Ouvir tudo'}</p></TooltipContent>
-              </Tooltip>
-            )}
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          <div className="space-y-4 p-4">
+    <div className="space-y-4">
             <PeriodFilterSelector
               period={analysisPeriod}
               onPeriodChange={setAnalysisPeriod}
