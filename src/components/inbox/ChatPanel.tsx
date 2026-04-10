@@ -22,6 +22,7 @@ import { CRMAutoSync } from './CRMAutoSync';
 import { useAmbientColor } from '@/hooks/useAmbientColor';
 import { Radar, GraduationCap, FileText } from 'lucide-react';
 import { ToolPanel } from './ai-tools/ToolPanel';
+import { VisionIcon } from './ai-tools/VisionIcon';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
