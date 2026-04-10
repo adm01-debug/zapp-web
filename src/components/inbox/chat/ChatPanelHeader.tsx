@@ -22,11 +22,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
   MoreVertical,
   Video,
   Tag,
@@ -48,8 +43,6 @@ import {
 } from 'lucide-react';
 import { openChatPopup } from '@/lib/popupManager';
 
-const ObjectionDetector = lazy(() => import('../ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
-const UniversityHelp = lazy(() => import('../UniversityHelp').then(m => ({ default: m.UniversityHelp })));
 
 interface ChatMessage {
   id: string;
@@ -186,68 +179,41 @@ export function ChatPanelHeader({
           <TooltipContent side="bottom">Buscar na conversa (Ctrl+F)</TooltipContent>
         </Tooltip>
 
-        <Popover open={activeTool === 'objections'} onOpenChange={(open) => onSetActiveTool?.(open ? 'objections' : null)}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
-                    activeTool === 'objections' && "text-primary bg-primary/10"
-                  )}
-                  aria-label="Monitoramento de Objeções"
-                >
-                  <Radar className="w-[18px] h-[18px]" />
-                </Button>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Monitoramento de Objeções</TooltipContent>
-          </Tooltip>
-          <PopoverContent side="bottom" align="end" className="w-[420px] p-3 max-h-[80vh] overflow-y-auto">
-            <Suspense fallback={null}>
-              <ObjectionDetector
-                contactId={conversation.contact.id}
-                contactName={conversation.contact.name}
-                lastMessages={lastMessages}
-                allMessages={allMessages}
-                onSelectSuggestion={onSelectSuggestion}
-              />
-            </Suspense>
-          </PopoverContent>
-        </Popover>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+                activeTool === 'objections' && "text-primary bg-primary/10"
+              )}
+              onClick={() => onSetActiveTool?.('objections')}
+              aria-label="Monitoramento de Objeções"
+            >
+              <Radar className="w-[18px] h-[18px]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Monitoramento de Objeções</TooltipContent>
+        </Tooltip>
 
-        <Popover open={activeTool === 'university'} onOpenChange={(open) => onSetActiveTool?.(open ? 'university' : null)}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
-                    activeTool === 'university' && "text-primary bg-primary/10"
-                  )}
-                  aria-label="Ajuda dos Universitários"
-                >
-                  <GraduationCap className="w-[18px] h-[18px]" />
-                </Button>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Ajuda dos Universitários</TooltipContent>
-          </Tooltip>
-          <PopoverContent side="bottom" align="end" className="w-[420px] p-3 max-h-[80vh] overflow-y-auto">
-            <Suspense fallback={null}>
-              <UniversityHelp
-                contactId={conversation.contact.id}
-                contactName={conversation.contact.name}
-                messages={allMessages}
-                onSelectSuggestion={onSelectSuggestion}
-              />
-            </Suspense>
-          </PopoverContent>
-        </Popover>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted",
+                activeTool === 'university' && "text-primary bg-primary/10"
+              )}
+              onClick={() => onSetActiveTool?.('university')}
+              aria-label="Ajuda dos Universitários"
+            >
+              <GraduationCap className="w-[18px] h-[18px]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Ajuda dos Universitários</TooltipContent>
+        </Tooltip>
 
         <Tooltip>
           <TooltipTrigger asChild>
