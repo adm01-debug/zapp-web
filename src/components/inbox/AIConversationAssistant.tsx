@@ -211,6 +211,35 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
       .catch(() => setIsTtsPlaying(false));
   }, [analysis?.summary, isTtsPlaying]);
 
+  const handlePlayText = useCallback((text: string) => {
+    if (isTtsPlaying && ttsRef.current) {
+      ttsRef.current.stop();
+      ttsRef.current = null;
+      setIsTtsPlaying(false);
+      setIsTtsLoading(false);
+      return;
+    }
+    if (!text.trim()) return;
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    const ttsOptions: PlayTtsOptions = {
+      onLoadingChange: setIsTtsLoading,
+      onError: (err) => {
+        toast.error('Erro ao gerar áudio: ' + err.message);
+      },
+    };
+
+    const playback = playTtsAudio(text, supabaseUrl, supabaseKey, ttsOptions);
+    ttsRef.current = playback;
+    setIsTtsPlaying(true);
+
+    playback.promise
+      .then(() => setIsTtsPlaying(false))
+      .catch(() => setIsTtsPlaying(false));
+  }, [isTtsPlaying]);
+
   const analyzeConversation = useCallback(async () => {
     if (!canAnalyze) {
       toast.error('Mínimo de 5 mensagens necessárias para análise.');
@@ -664,10 +693,27 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                   <TabsContent value="pontos" className="mt-4 space-y-4">
                     {analysis.keyPoints.length > 0 && (
                       <div>
-                        <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                          <ListChecks className="h-3 w-3" />
-                          Pontos-chave
-                        </h4>
+                        <div className="mb-2 flex items-center justify-between">
+                          <h4 className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                            <ListChecks className="h-3 w-3" />
+                            Pontos-chave
+                          </h4>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`h-6 w-6 ${isTtsLoading ? 'text-warning animate-spin' : isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+                                onClick={() => handlePlayText(analysis.keyPoints.join('. '))}
+                                disabled={isTtsLoading}
+                                aria-label="Ouvir pontos-chave"
+                              >
+                                {isTtsLoading ? <Loader2 className="h-3.5 w-3.5" /> : isTtsPlaying ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top"><p>{isTtsLoading ? 'Carregando...' : isTtsPlaying ? 'Parar' : 'Ouvir pontos-chave'}</p></TooltipContent>
+                          </Tooltip>
+                        </div>
                         <ul className="space-y-2">
                           {analysis.keyPoints.map((point, index) => (
                             <motion.li
@@ -687,10 +733,27 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
 
                     {analysis.nextSteps && analysis.nextSteps.length > 0 && (
                       <div>
-                        <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                          <ArrowRight className="h-3 w-3" />
-                          Próximos Passos
-                        </h4>
+                        <div className="mb-2 flex items-center justify-between">
+                          <h4 className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                            <ArrowRight className="h-3 w-3" />
+                            Próximos Passos
+                          </h4>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`h-6 w-6 ${isTtsLoading ? 'text-warning animate-spin' : isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+                                onClick={() => handlePlayText(analysis.nextSteps!.join('. '))}
+                                disabled={isTtsLoading}
+                                aria-label="Ouvir próximos passos"
+                              >
+                                {isTtsLoading ? <Loader2 className="h-3.5 w-3.5" /> : isTtsPlaying ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top"><p>{isTtsLoading ? 'Carregando...' : isTtsPlaying ? 'Parar' : 'Ouvir próximos passos'}</p></TooltipContent>
+                          </Tooltip>
+                        </div>
                         <ul className="space-y-2">
                           {analysis.nextSteps.map((step, index) => (
                             <motion.li
