@@ -1886,10 +1886,12 @@ export type Database = {
           contact_id: string
           created_at: string
           customer_satisfaction: number | null
+          department: string | null
           id: string
           key_points: string[] | null
           message_count: number | null
           next_steps: string[] | null
+          relationship_type: string | null
           sentiment: string
           sentiment_score: number | null
           status: string
@@ -1902,10 +1904,12 @@ export type Database = {
           contact_id: string
           created_at?: string
           customer_satisfaction?: number | null
+          department?: string | null
           id?: string
           key_points?: string[] | null
           message_count?: number | null
           next_steps?: string[] | null
+          relationship_type?: string | null
           sentiment?: string
           sentiment_score?: number | null
           status?: string
@@ -1918,10 +1922,12 @@ export type Database = {
           contact_id?: string
           created_at?: string
           customer_satisfaction?: number | null
+          department?: string | null
           id?: string
           key_points?: string[] | null
           message_count?: number | null
           next_steps?: string[] | null
+          relationship_type?: string | null
           sentiment?: string
           sentiment_score?: number | null
           status?: string
