@@ -457,10 +457,28 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                     )}
 
                     <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-                      <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                        <VisionIcon className="h-3 w-3" />
-                        Resumo
-                      </h4>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                          <VisionIcon className="h-3 w-3" />
+                          Resumo
+                        </h4>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-6 w-6 ${isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+                              onClick={handlePlaySummary}
+                              aria-label={isTtsPlaying ? 'Parar áudio' : 'Ouvir resumo'}
+                            >
+                              {isTtsPlaying ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p>{isTtsPlaying ? 'Parar áudio' : 'Ouvir resumo'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <p className="text-sm leading-relaxed">{analysis.summary}</p>
                     </div>
 
