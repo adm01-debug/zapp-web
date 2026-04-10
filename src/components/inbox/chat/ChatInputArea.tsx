@@ -507,6 +507,7 @@ export function ChatInputArea({
               instanceName={instanceName}
               contactPhone={contactPhone}
               contactId={contactId}
+              contactName={contactName}
               onVoiceDictation={handleVoiceDictation}
             />
           )}
@@ -547,6 +548,7 @@ export function ChatInputArea({
           >
             <AIRewriteButton
               inputValue={inputValue}
+              contactName={contactName}
               onRewrite={(newText) => {
                 const el = inputRef.current;
                 if (!el) return;

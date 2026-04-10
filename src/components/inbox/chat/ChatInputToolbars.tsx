@@ -37,13 +37,14 @@ interface SecondaryToolbarProps {
   instanceName?: string;
   contactPhone: string;
   contactId: string;
+  contactName?: string;
   onVoiceDictation: (text: string) => void;
 }
 
 export function SecondaryToolbar({
   inputRef, inputValue, showRichToolbar, onToggleRichToolbar, isRecordingAudio,
   onSendSticker, onSendAudioMeme, onSendCustomEmoji, onOpenCatalog, onAudioSend,
-  fileUploaderRef, instanceName, contactPhone, contactId, onVoiceDictation,
+  fileUploaderRef, instanceName, contactPhone, contactId, contactName, onVoiceDictation,
 }: SecondaryToolbarProps) {
   const handleRewrite = (newText: string) => {
     const el = inputRef.current;
@@ -57,7 +58,7 @@ export function SecondaryToolbar({
 
   return (
     <div className="flex items-center gap-0.5 shrink-0">
-      <AIRewriteButton inputValue={inputValue} onRewrite={handleRewrite} />
+      <AIRewriteButton inputValue={inputValue} onRewrite={handleRewrite} contactName={contactName} />
       <StickerPicker onSendSticker={onSendSticker} />
       <AudioMemePicker onSendAudio={onSendAudioMeme} />
       <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />

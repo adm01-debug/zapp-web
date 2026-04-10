@@ -371,6 +371,7 @@ export const ChatMessageInput = forwardRef<ChatMessageInputRef, ChatMessageInput
               <AIEnhanceButton
                 inputValue={inputValue}
                 onInputChange={onInputChange}
+                contactName={contactName}
               />
               {!isMobile && (
                 <motion.div 
