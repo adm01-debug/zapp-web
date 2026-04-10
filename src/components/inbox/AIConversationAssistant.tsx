@@ -37,6 +37,7 @@ import {
   Volume2,
   VolumeX,
   Headphones,
+  RefreshCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -401,6 +402,40 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                 <p className="text-[9px] text-muted-foreground">Resumo · Sentimento · Pontos-chave · Histórico</p>
               )}
             </div>
+
+            {!canAnalyze && (
+            {autoplayBlocked && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 p-3"
+              >
+                <VolumeX className="h-4 w-4 shrink-0 text-warning" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-warning">Áudio bloqueado pelo navegador</p>
+                  <p className="text-[10px] text-warning/70">Clique abaixo para tentar novamente</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1 rounded-lg border-warning/30 px-2 text-[10px] text-warning hover:bg-warning/20"
+                    onClick={handleRetryAutoplay}
+                  >
+                    <RefreshCcw className="h-3 w-3" />
+                    Tentar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 rounded-lg px-1.5 text-[10px] text-muted-foreground"
+                    onClick={handleDismissAutoplayWarning}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
 
             {!canAnalyze && (
               <motion.div
