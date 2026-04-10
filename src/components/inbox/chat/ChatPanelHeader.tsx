@@ -88,6 +88,7 @@ export function ChatPanelHeader({
   isContactTyping,
   showAIAssistant,
   showDetails,
+  showSummaryPanel,
   voiceId,
   speed,
   onToggleAIAssistant,
