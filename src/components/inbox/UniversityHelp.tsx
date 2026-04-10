@@ -115,7 +115,8 @@ export function UniversityHelp({ contactId, contactName, messages, onSelectSugge
     }
   }, [selectedIds.size, filteredMessages]);
 
-  const generateResponse = useCallback(async () => {
+  const generateResponse = useCallback(async (toneOverride?: ToneKey) => {
+    const tone = toneOverride ?? selectedTone;
     if (selectedIds.size === 0) {
       toast.warning('Selecione pelo menos uma mensagem.');
       return;
@@ -132,7 +133,7 @@ export function UniversityHelp({ contactId, contactName, messages, onSelectSugge
     setResponse(null);
     setError(null);
 
-    const tonePrompt = getTonePrompt(selectedTone);
+    const tonePrompt = getTonePrompt(tone);
 
     try {
       const result = await supabase.functions.invoke('ai-proxy', {
@@ -223,7 +224,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
         totalCount={messages.length}
       />
 
-      <ToneSelector selected={selectedTone} onChange={setSelectedTone} disabled={loading} />
+      <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); if (response && selectedIds.size > 0) { lastCallRef.current = 0; generateResponse(tone); } }} disabled={loading} />
 
       {/* Filter & selection controls */}
       <div className="flex items-center justify-between gap-2">
@@ -310,7 +311,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
         variant="default"
         size="sm"
         className="w-full h-9 text-xs font-medium"
-        onClick={generateResponse}
+        onClick={() => generateResponse()}
         disabled={loading || selectedIds.size === 0}
         title="Ctrl+Enter para gerar"
       >
@@ -345,7 +346,7 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
               variant="outline"
               size="sm"
               className="h-6 text-[10px] px-2.5 border-destructive/30 text-destructive hover:bg-destructive/10"
-              onClick={generateResponse}
+              onClick={() => generateResponse()}
               disabled={loading}
             >
               <RefreshCw className="w-3 h-3 mr-1" />
