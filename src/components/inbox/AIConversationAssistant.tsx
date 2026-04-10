@@ -875,22 +875,21 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
                 <p className="text-xs leading-relaxed text-muted-foreground">Resumo, sentimento, pontos-chave, desempenho e oportunidades</p>
               </motion.div>
             )}
-          </div>
 
-          {analysis && !isLoading && (
-            <div className="border-t border-border pt-3 mt-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={analyzeConversation}
-                disabled={isLoading}
-                className="w-full gap-2 rounded-xl text-xs"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                Reanalisar conversa
-              </Button>
-            </div>
-          )}
+            {analysis && !isLoading && (
+              <div className="border-t border-border pt-3 mt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={analyzeConversation}
+                  disabled={isLoading}
+                  className="w-full gap-2 rounded-xl text-xs"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                  Reanalisar conversa
+                </Button>
+              </div>
+            )}
     </div>
   );
 }
