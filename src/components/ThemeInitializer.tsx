@@ -26,7 +26,7 @@ export function ThemeInitializer() {
       } catch { /* corrupted */ }
     }
 
-    const preset = PRESETS.find(p => p.id === presetId);
+    const preset = PRESETS.find(p => p.id === presetId) || PRESETS.find(p => p.id === 'corporate');
     if (preset) {
       const colors: ThemeModeColors = resolvedTheme === 'dark' ? preset.dark : preset.light;
       const root = document.documentElement;
