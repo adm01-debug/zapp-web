@@ -507,6 +507,7 @@ export function ChatInputArea({
               instanceName={instanceName}
               contactPhone={contactPhone}
               contactId={contactId}
+              contactName={contactName}
               onVoiceDictation={handleVoiceDictation}
             />
           )}
