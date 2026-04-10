@@ -282,18 +282,19 @@ export function ChatSearchBar({
                     )}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[520px] p-0 pointer-events-auto" align="start" side="bottom" sideOffset={8}>
-                  <div className="flex">
+                <PopoverContent className="w-auto p-0 pointer-events-auto" align="start" side="bottom" sideOffset={8}>
+                  <div className="flex min-h-[340px]">
                     {/* Presets column */}
-                    <div className="w-[200px] border-r border-border p-1.5 space-y-0.5">
+                    <div className="w-[160px] border-r border-border bg-muted/30 p-2 flex flex-col gap-0.5">
+                      <p className="text-[10px] text-muted-foreground font-semibold px-2.5 pt-1 pb-2 uppercase tracking-widest">Atalhos</p>
                       {DATE_PRESETS.filter((p) => p.key !== 'custom').map((p) => (
                         <button
                           key={p.key}
                           className={cn(
-                            'w-full text-left text-[13px] px-3 py-2 rounded-lg transition-all duration-150 font-medium',
+                            'w-full text-left text-[13px] px-2.5 py-2 rounded-lg transition-all duration-150 font-medium',
                             datePreset === p.key
                               ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'text-foreground hover:bg-muted'
+                              : 'text-foreground/80 hover:bg-muted hover:text-foreground'
                           )}
                           onClick={() => {
                             setDatePreset(p.key);
@@ -308,11 +309,11 @@ export function ChatSearchBar({
                     </div>
 
                     {/* Custom calendar area */}
-                    <div className="flex-1 p-3">
-                      <p className="text-xs text-muted-foreground font-semibold mb-3 tracking-wide uppercase">Período personalizado</p>
-                      <div className="flex gap-3">
-                        <div className="space-y-1.5 flex-1">
-                          <span className="text-[11px] text-muted-foreground font-medium px-1">De</span>
+                    <div className="p-4 flex flex-col">
+                      <p className="text-[11px] text-muted-foreground font-semibold mb-3 uppercase tracking-widest">Período personalizado</p>
+                      <div className="flex gap-6">
+                        <div className="space-y-1.5">
+                          <span className="text-[11px] text-muted-foreground font-semibold px-0.5 uppercase tracking-wide">De</span>
                           <Calendar
                             mode="single"
                             selected={customDateFrom ?? undefined}
@@ -322,19 +323,23 @@ export function ChatSearchBar({
                             }}
                             disabled={(date) => date > new Date()}
                             locale={ptBR}
-                            className="rounded-lg border border-border p-2 pointer-events-auto"
+                            className="rounded-lg border border-border/60 p-2.5 pointer-events-auto bg-background"
                             classNames={{
-                              day_selected: 'bg-primary text-primary-foreground',
-                              head_cell: 'text-[10px] font-medium text-muted-foreground',
-                              cell: 'h-8 w-8 text-xs',
-                              day: 'h-8 w-8 text-xs',
-                              caption_label: 'text-sm font-semibold',
-                              nav_button: 'h-7 w-7',
+                              day_selected: 'bg-primary text-primary-foreground hover:bg-primary',
+                              day_today: 'bg-accent text-accent-foreground font-bold',
+                              head_cell: 'text-[10px] font-semibold text-muted-foreground w-9',
+                              cell: 'h-9 w-9 text-center text-sm p-0',
+                              day: 'h-9 w-9 p-0 text-sm font-normal',
+                              caption_label: 'text-sm font-bold',
+                              nav_button: 'h-7 w-7 bg-transparent opacity-60 hover:opacity-100',
+                              table: 'w-full border-collapse',
+                              head_row: 'flex',
+                              row: 'flex w-full mt-1',
                             }}
                           />
                         </div>
-                        <div className="space-y-1.5 flex-1">
-                          <span className="text-[11px] text-muted-foreground font-medium px-1">Até</span>
+                        <div className="space-y-1.5">
+                          <span className="text-[11px] text-muted-foreground font-semibold px-0.5 uppercase tracking-wide">Até</span>
                           <Calendar
                             mode="single"
                             selected={customDateTo ?? undefined}
@@ -344,14 +349,18 @@ export function ChatSearchBar({
                             }}
                             disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
                             locale={ptBR}
-                            className="rounded-lg border border-border p-2 pointer-events-auto"
+                            className="rounded-lg border border-border/60 p-2.5 pointer-events-auto bg-background"
                             classNames={{
-                              day_selected: 'bg-primary text-primary-foreground',
-                              head_cell: 'text-[10px] font-medium text-muted-foreground',
-                              cell: 'h-8 w-8 text-xs',
-                              day: 'h-8 w-8 text-xs',
-                              caption_label: 'text-sm font-semibold',
-                              nav_button: 'h-7 w-7',
+                              day_selected: 'bg-primary text-primary-foreground hover:bg-primary',
+                              day_today: 'bg-accent text-accent-foreground font-bold',
+                              head_cell: 'text-[10px] font-semibold text-muted-foreground w-9',
+                              cell: 'h-9 w-9 text-center text-sm p-0',
+                              day: 'h-9 w-9 p-0 text-sm font-normal',
+                              caption_label: 'text-sm font-bold',
+                              nav_button: 'h-7 w-7 bg-transparent opacity-60 hover:opacity-100',
+                              table: 'w-full border-collapse',
+                              head_row: 'flex',
+                              row: 'flex w-full mt-1',
                             }}
                           />
                         </div>
