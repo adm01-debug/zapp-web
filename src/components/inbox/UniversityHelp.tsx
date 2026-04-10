@@ -336,9 +336,19 @@ Considere o contexto completo das mensagens selecionadas. Crie UMA resposta pron
           className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20"
         >
           <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs text-destructive font-semibold mb-0.5">Erro ao gerar resposta</p>
-            <p className="text-[11px] text-destructive/80">{error}</p>
+            <p className="text-[11px] text-destructive/80 mb-2">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-[10px] px-2.5 border-destructive/30 text-destructive hover:bg-destructive/10"
+              onClick={generateResponse}
+              disabled={loading}
+            >
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Tentar novamente
+            </Button>
           </div>
         </motion.div>
       )}
