@@ -142,7 +142,7 @@ const ObjectionCard = memo(forwardRef<HTMLDivElement, ObjectionCardProps>(functi
                         onClick={() => onCopy(obj.counterArgument, idx)}
                         disabled={rewritingAny}
                       >
-                        {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="text-[10px]">{copiedIdx === idx ? 'Copiado!' : 'Copiar'}</TooltipContent>
@@ -458,12 +458,12 @@ Se não houver objeções, retorne []`,
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
-              className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center border border-emerald-500/15"
+              className="w-16 h-16 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center border border-success/15"
             >
-              <Check className="w-7 h-7 text-emerald-500" />
+              <Check className="w-7 h-7 text-success" />
             </motion.div>
             <div className="text-center space-y-1">
-              <p className="text-sm font-semibold text-emerald-500">Nenhuma objeção!</p>
+              <p className="text-sm font-semibold text-success">Nenhuma objeção!</p>
               <p className="text-[11px] text-muted-foreground max-w-[260px]">
                 O cliente não apresentou resistências. Conversa fluindo bem 🎉
               </p>
