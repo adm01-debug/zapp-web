@@ -185,7 +185,10 @@ Responda em português brasileiro.`;
       };
     }
 
+    const validDepartments = ['vendas', 'compras', 'logistica', 'rh', 'financeiro', 'sac', 'outros'];
     analysisData = {
+      department: validDepartments.includes(analysisData.department) ? analysisData.department : 'outros',
+      relationshipType: typeof analysisData.relationshipType === 'string' ? analysisData.relationshipType : 'não identificado',
       summary: analysisData.summary || 'Resumo não disponível',
       status: ['resolvido', 'pendente', 'aguardando_cliente', 'aguardando_atendente', 'escalado'].includes(analysisData.status) ? analysisData.status : 'pendente',
       keyPoints: Array.isArray(analysisData.keyPoints) ? analysisData.keyPoints.slice(0, 5) : [],
