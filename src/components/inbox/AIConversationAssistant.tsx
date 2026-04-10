@@ -7,7 +7,6 @@ import { ptBR } from 'date-fns/locale';
 import { log } from '@/lib/logger';
 import { PeriodFilterSelector, usePeriodFilter, getPeriodDays } from './ai-tools/PeriodFilterSelector';
 import {
-  
   Loader2,
   CheckCircle2,
   Clock,
