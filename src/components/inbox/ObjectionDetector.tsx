@@ -367,7 +367,7 @@ Se não houver objeções, retorne []`,
           />
         )}
 
-        <ToneSelector selected={selectedTone} onChange={setSelectedTone} />
+        <ToneSelector selected={selectedTone} onChange={(tone) => { setSelectedTone(tone); }} />
 
         <Button
           variant="default"
