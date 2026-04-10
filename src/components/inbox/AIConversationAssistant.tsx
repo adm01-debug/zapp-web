@@ -346,26 +346,28 @@ export function AIConversationAssistant({ messages, contactId, contactName, isOp
               <p className="text-[10px] text-muted-foreground">Análise Profunda</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-          {analysis && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`h-8 w-8 rounded-lg ${isTtsLoading ? 'text-warning animate-spin' : isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
-                  onClick={() => handlePlayText(buildFullNarrationText())}
-                  disabled={isTtsLoading}
-                  aria-label="Ouvir análise completa"
-                >
-                  {isTtsLoading ? <Loader2 className="h-4 w-4" /> : isTtsPlaying ? <VolumeX className="h-4 w-4" /> : <Headphones className="h-4 w-4" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom"><p>{isTtsLoading ? 'Carregando...' : isTtsPlaying ? 'Parar' : 'Ouvir tudo'}</p></TooltipContent>
-            </Tooltip>
-          )}
+          <div className="flex items-center gap-1">
+            {analysis && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`h-8 w-8 rounded-lg ${isTtsLoading ? 'text-warning animate-spin' : isTtsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+                    onClick={() => handlePlayText(buildFullNarrationText())}
+                    disabled={isTtsLoading}
+                    aria-label="Ouvir análise completa"
+                  >
+                    {isTtsLoading ? <Loader2 className="h-4 w-4" /> : isTtsPlaying ? <VolumeX className="h-4 w-4" /> : <Headphones className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p>{isTtsLoading ? 'Carregando...' : isTtsPlaying ? 'Parar' : 'Ouvir tudo'}</p></TooltipContent>
+              </Tooltip>
+            )}
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <ScrollArea className="flex-1">
