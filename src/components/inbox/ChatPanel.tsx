@@ -110,9 +110,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [summaryData, setSummaryData] = useState<Record<string, unknown> | null>(null);
-  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-  const [hasSummary, setHasSummary] = useState(false);
+  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
