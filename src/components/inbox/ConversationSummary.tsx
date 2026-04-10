@@ -430,8 +430,6 @@ export function ConversationSummary({ messages, contactName, contactId, initialS
               </motion.div>
             )}
           </AnimatePresence>
-        </CardContent>
-      </Card>
     </div>
   );
 }
