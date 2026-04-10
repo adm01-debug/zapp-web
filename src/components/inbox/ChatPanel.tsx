@@ -279,7 +279,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       case 'archive': toast({ title: '📦 Conversa Arquivada', description: 'A conversa foi arquivada.' }); break;
       case 'remind': toast({ title: '🔔 Lembrete Criado', description: 'Um lembrete foi criado para esta conversa.' }); break;
       case 'quick': toast({ title: '⚡ Resposta Rápida', description: 'Use / seguido do atalho para respostas rápidas.' }); break;
-      case 'summary': openDialog('aiAssistant'); break;
+      case 'summary': handleSetActiveTool('aiAssistant'); break;
       case 'produto': openDialog('catalogDirect'); break;
       default: toast({ title: `Comando: ${command.label}`, description: command.description }); break;
     }
