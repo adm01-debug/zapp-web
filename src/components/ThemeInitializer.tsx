@@ -21,12 +21,12 @@ export function ThemeInitializer() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        presetId = parsed.preset === 'default' ? 'purpure' : (parsed.preset || 'corporate');
+        presetId = parsed.preset || 'corporate';
         if (parsed.borderRadius != null) radius = parsed.borderRadius;
       } catch { /* corrupted */ }
     }
 
-    const preset = PRESETS.find(p => p.id === presetId);
+    const preset = PRESETS.find(p => p.id === presetId) || PRESETS.find(p => p.id === 'corporate');
     if (preset) {
       const colors: ThemeModeColors = resolvedTheme === 'dark' ? preset.dark : preset.light;
       const root = document.documentElement;
