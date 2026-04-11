@@ -1,4 +1,4 @@
-import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 import { SendEmailSchema, parseBody } from "../_shared/schemas.ts";
 
 Deno.serve(async (req) => {
@@ -6,6 +6,10 @@ Deno.serve(async (req) => {
   if (cors) return cors;
 
   const log = new Logger("send-email");
+
+  const ip = getClientIP(req);
+  const rl = checkRateLimit(`send-email:${ip}`, 30, 60_000);
+  if (!rl.allowed) return errorResponse('Rate limit exceeded', 429, req);
 
   try {
     const RESEND_API_KEY = requireEnv("RESEND_API_KEY");

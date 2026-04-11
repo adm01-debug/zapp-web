@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 
 const SendActionSchema = z.object({
   action: z.literal('send'),
@@ -14,6 +14,10 @@ Deno.serve(async (req) => {
   if (cors) return cors;
 
   const log = new Logger("public-api");
+
+  const ip = getClientIP(req);
+  const rl = checkRateLimit(`public-api:${ip}`, 60, 60_000);
+  if (!rl.allowed) return errorResponse('Rate limit exceeded', 429, req);
 
   try {
     const supabaseUrl = requireEnv('SUPABASE_URL');

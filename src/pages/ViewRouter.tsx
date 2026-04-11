@@ -96,7 +96,11 @@ const VIEW_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<Rec
 
 // Views that need custom props
 const SPECIAL_VIEWS: Record<string, (props: ViewRouterProps) => React.ReactNode> = {
-  'achievements': (props) => <Views.AchievementsSystemLazy userId={props.userId} />,
+  'achievements': (props) => (
+    <ErrorBoundaryView viewId="achievements">
+      <Views.AchievementsSystemLazy userId={props.userId} />
+    </ErrorBoundaryView>
+  ),
 };
 
 export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoBack, onGoForward, breadcrumbTrail, onNavigateTo }: ViewRouterProps) {
