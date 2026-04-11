@@ -4,6 +4,7 @@ import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { playNotificationSound, showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
 import { getLogger } from '@/lib/logger';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { sendMessageToContact } from './realtime/messageSender';
 
 const log = getLogger('RealtimeMessages');
 const SEEDED_CONTACT_LIMIT = 500;
