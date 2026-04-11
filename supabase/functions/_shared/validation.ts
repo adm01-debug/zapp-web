@@ -70,11 +70,23 @@ function isAllowedOrigin(origin: string): boolean {
   return EXACT_ALLOWED_ORIGINS.has(origin) || LOCAL_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin));
 }
 
-/** Build CORS headers with origin validation */
+/** Security headers applied to all responses */
+const SECURITY_HEADERS: Record<string, string> = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Cache-Control': 'no-store',
+};
+
+/** Build CORS + security headers with origin validation */
 export function getCorsHeaders(req?: Request): Record<string, string> {
   const origin = req?.headers.get('origin') || '';
   const allowedOrigin = isAllowedOrigin(origin) ? origin : 'https://pronto-talk-suite.lovable.app';
   return {
+    ...SECURITY_HEADERS,
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers':
