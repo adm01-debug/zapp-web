@@ -87,6 +87,12 @@
           var skin = localStorage.getItem('theme-custom-colors');
           if (skin) {
             var c = JSON.parse(skin);
+            // Migrate legacy purple/default presets — clear cached vars to force corporate blue
+            if (c.preset === 'purpure' || c.preset === 'default') {
+              c.preset = 'corporate';
+              delete c.cssVarsCache;
+              localStorage.setItem('theme-custom-colors', JSON.stringify(c));
+            }
             if (c.cssVarsCache) {
               var root = document.documentElement;
               var vars = c.cssVarsCache;
