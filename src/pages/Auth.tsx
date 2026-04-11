@@ -199,7 +199,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background relative overflow-hidden">
+    <div className="min-h-screen flex bg-background relative overflow-x-hidden overflow-y-auto">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div 
@@ -243,7 +243,7 @@ export default function Auth() {
       </div>
 
       {/* Auth Form - Right Side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-4 lg:p-8">
         {/* Mobile Hero Benefits */}
         <div className="lg:hidden w-full max-w-md relative z-10 mb-4">
           <HeroBenefits />
