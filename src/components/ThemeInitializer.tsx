@@ -21,8 +21,15 @@ export function ThemeInitializer() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        presetId = parsed.preset || 'corporate';
+        // Migrate legacy preset IDs to corporate
+        const rawPreset = parsed.preset || 'corporate';
+        presetId = (rawPreset === 'default' || rawPreset === 'purpure') ? 'corporate' : rawPreset;
         if (parsed.borderRadius != null) radius = parsed.borderRadius;
+        // Persist migration
+        if (rawPreset !== presetId) {
+          parsed.preset = presetId;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
       } catch { /* corrupted */ }
     }
 
