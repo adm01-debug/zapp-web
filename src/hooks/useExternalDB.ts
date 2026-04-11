@@ -4,7 +4,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
-import { externalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
+import { getExternalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
 import type {
   ExternalDBFilter,
   ExternalDBOrder,
@@ -24,7 +24,7 @@ async function queryExternal<T = unknown>(params: {
 }): Promise<ExternalDBQueryResult<T>> {
   const start = performance.now();
 
-  let query = externalSupabase
+  let query = getExternalSupabase()
     .from(params.table)
     .select(params.select || '*', { count: params.countMode || undefined });
 
@@ -103,7 +103,7 @@ export function useExternalRPC<T = unknown>(options: UseExternalRPCOptions) {
     queryKey: ['external-db', 'rpc', options.rpc, options.params],
     queryFn: async () => {
       const start = performance.now();
-      const { data, error } = await externalSupabase.rpc(options.rpc, options.params || {});
+      const { data, error } = await getExternalSupabase().rpc(options.rpc, options.params || {});
       const duration = Math.round(performance.now() - start);
       if (error) throw new Error(error.message);
       return {
@@ -195,12 +195,12 @@ export function useExternalMutation() {
       match?: Record<string, unknown>;
     }) => {
       if (params.action === 'insert') {
-        const { data, error } = await externalSupabase.from(params.table).insert(params.data as any).select();
+        const { data, error } = await getExternalSupabase().from(params.table).insert(params.data as any).select();
         if (error) throw new Error(error.message);
         return data;
       }
       if (params.action === 'update') {
-        let q = externalSupabase.from(params.table).update(params.data as any);
+        let q = getExternalSupabase().from(params.table).update(params.data as any);
         if (params.match) {
           for (const [k, v] of Object.entries(params.match)) q = q.eq(k, v as string);
         }
@@ -209,7 +209,7 @@ export function useExternalMutation() {
         return data;
       }
       if (params.action === 'delete') {
-        let q = externalSupabase.from(params.table).delete();
+        let q = getExternalSupabase().from(params.table).delete();
         if (params.match) {
           for (const [k, v] of Object.entries(params.match)) q = q.eq(k, v as string);
         }

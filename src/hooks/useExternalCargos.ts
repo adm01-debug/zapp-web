@@ -6,7 +6,7 @@
  * - contacts.cargo: blocked by RLS, so we extract from search_contacts_advanced RPC
  */
 import { useQuery } from '@tanstack/react-query';
-import { externalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
+import { getExternalSupabase, isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { log } from '@/lib/logger';
 
 export function useExternalCargos() {
@@ -16,7 +16,7 @@ export function useExternalCargos() {
       const allCargos: string[] = [];
 
       // 1. Fetch from salespeople.role (accessible - no RLS blocking)
-      const { data: salesRoles, error: e1 } = await externalSupabase
+      const { data: salesRoles, error: e1 } = await getExternalSupabase()
         .from('salespeople')
         .select('role')
         .not('role', 'is', null)
@@ -32,7 +32,7 @@ export function useExternalCargos() {
       }
 
       // 2. Extract cargos from search_contacts_advanced RPC (bypasses RLS)
-      const { data: searchData, error: e2 } = await externalSupabase.rpc('search_contacts_advanced', {
+      const { data: searchData, error: e2 } = await getExternalSupabase().rpc('search_contacts_advanced', {
         p_search: null,
         p_vendedor: null,
         p_ramo: null,
