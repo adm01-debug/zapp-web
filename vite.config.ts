@@ -58,6 +58,9 @@ export default defineConfig(({ mode }) => ({
     include: ["react", "react-dom", "framer-motion", "lucide-react"],
     force: true,
   },
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
   build: {
     target: "esnext",
     minify: "esbuild",
