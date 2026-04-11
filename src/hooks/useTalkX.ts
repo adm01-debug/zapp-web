@@ -87,10 +87,9 @@ export function useTalkX() {
         .select('id')
         .single();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await supabase
         .from('talkx_campaigns')
-        .insert({ ...campaign, created_by: profile?.id } as any)
+        .insert({ ...campaign, created_by: profile?.id } as Record<string, unknown>)
         .select()
         .single();
       if (error) throw error;
@@ -105,10 +104,9 @@ export function useTalkX() {
 
   const updateCampaign = useMutation({
     mutationFn: async ({ id, ...updates }: CampaignPayload & { id: string }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await supabase
         .from('talkx_campaigns')
-        .update(updates as any)
+        .update(updates as Record<string, unknown>)
         .eq('id', id)
         .select()
         .single();
@@ -143,16 +141,14 @@ export function useTalkX() {
         campaign_id: campaignId,
         contact_id,
       }));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await supabase
         .from('talkx_recipients')
-        .insert(rows as any);
+        .insert(rows as Record<string, unknown>[]);
       if (error) throw error;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await supabase
         .from('talkx_campaigns')
-        .update({ total_recipients: contactIds.length } as any)
+        .update({ total_recipients: contactIds.length } as Record<string, unknown>)
         .eq('id', campaignId);
     },
     onSuccess: () => {
