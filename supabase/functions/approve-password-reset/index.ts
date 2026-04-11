@@ -74,19 +74,30 @@ Deno.serve(async (req) => {
       throw new Error("Failed to generate reset link");
     }
 
+    const expiresAt = new Date(Date.now() + 3600000).toISOString();
+
+    // Update request status
     const { error: updateError } = await supabaseAdmin
       .from("password_reset_requests")
       .update({
         status: "approved",
         reviewed_by: user.id,
         reviewed_at: new Date().toISOString(),
-        reset_token: resetData.properties?.hashed_token,
-        token_expires_at: new Date(Date.now() + 3600000).toISOString(),
+        token_expires_at: expiresAt,
         updated_at: new Date().toISOString(),
       })
       .eq("id", requestId);
 
     if (updateError) throw updateError;
+
+    // Store token hash in isolated table via SECURITY DEFINER function
+    if (resetData.properties?.hashed_token) {
+      await supabaseAdmin.rpc("store_reset_token", {
+        p_request_id: requestId,
+        p_token: resetData.properties.hashed_token,
+        p_expires_at: expiresAt,
+      });
+    }
 
     log.done(200, { action: "approved" });
     return jsonResponse({

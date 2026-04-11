@@ -3933,7 +3933,6 @@ export type Database = {
           ip_address: string | null
           reason: string | null
           rejection_reason: string | null
-          reset_token: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
@@ -3949,7 +3948,6 @@ export type Database = {
           ip_address?: string | null
           reason?: string | null
           rejection_reason?: string | null
-          reset_token?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -3965,7 +3963,6 @@ export type Database = {
           ip_address?: string | null
           reason?: string | null
           rejection_reason?: string | null
-          reset_token?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -6880,7 +6877,6 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string | null
-          has_token: boolean | null
           id: string | null
           ip_address: string | null
           reason: string | null
@@ -6896,7 +6892,6 @@ export type Database = {
         Insert: {
           created_at?: string | null
           email?: string | null
-          has_token?: never
           id?: string | null
           ip_address?: string | null
           reason?: string | null
@@ -6912,7 +6907,6 @@ export type Database = {
         Update: {
           created_at?: string | null
           email?: string | null
-          has_token?: never
           id?: string | null
           ip_address?: string | null
           reason?: string | null
@@ -7144,7 +7138,6 @@ export type Database = {
           ip_address: string | null
           reason: string | null
           rejection_reason: string | null
-          reset_token: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
