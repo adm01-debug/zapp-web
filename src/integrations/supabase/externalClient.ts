@@ -28,3 +28,14 @@ export const externalSupabase: SupabaseClient | null = isExternalConfigured
       },
     })
   : null;
+
+/**
+ * Returns the external client, throwing if not configured.
+ * Use only after checking `isExternalConfigured`.
+ */
+export function getExternalSupabase(): SupabaseClient {
+  if (!externalSupabase) {
+    throw new Error('External Supabase is not configured. Set VITE_EXTERNAL_SUPABASE_URL and VITE_EXTERNAL_SUPABASE_ANON_KEY.');
+  }
+  return externalSupabase;
+}
