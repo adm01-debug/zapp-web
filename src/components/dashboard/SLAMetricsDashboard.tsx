@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 const SLAConfigurationManager = lazy(() => import('@/components/settings/SLAConfigurationManager').then(m => ({ default: m.SLAConfigurationManager })));
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,13 +9,39 @@ import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Clock, CheckCircle2, AlertTriangle, XCircle, Users, TrendingUp, Target, RefreshCw, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSLAMetrics, getRateColor, getRateBg, getRateBadge } from '@/hooks/useSLAMetrics';
+import { useSLAMetrics, type PeriodFilter } from '@/hooks/useSLAMetrics';
+
+function getRateColor(rate: number): string {
+  if (rate >= 90) return 'text-success';
+  if (rate >= 75) return 'text-warning';
+  return 'text-destructive';
+}
+
+function getRateBg(rate: number): string {
+  if (rate >= 90) return 'bg-success';
+  if (rate >= 75) return 'bg-warning';
+  return 'bg-destructive';
+}
+
+function getRateBadge(rate: number): string {
+  if (rate >= 90) return 'bg-success/10 text-success';
+  if (rate >= 75) return 'bg-warning/10 text-warning';
+  return 'bg-destructive/10 text-destructive';
+}
+
+const PERIOD_LABELS: Record<PeriodFilter, string> = {
+  today: 'Hoje', week: 'Esta Semana', month: 'Este Mês', all: 'Todo Período',
+};
 
 export function SLAMetricsDashboard() {
-  const {
-    agentSLAData, loading, refreshing, periodFilter, setPeriodFilter, dateRange,
-    handleRefresh, totalConversations, totalOnTime, totalBreached, overallRate,
-  } = useSLAMetrics();
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('week');
+  const { data, loading } = useSLAMetrics(periodFilter);
+
+  const agentSLAData = data?.byAgent || [];
+  const totalConversations = data?.overall.totalConversations || 0;
+  const totalOnTime = data?.overall.firstResponse.onTime || 0;
+  const totalBreached = data?.overall.firstResponse.breached || 0;
+  const overallRate = Math.round(data?.overall.overallRate || 100);
 
   if (loading) {
     return (
@@ -31,16 +57,15 @@ export function SLAMetricsDashboard() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-foreground">Métricas de SLA</h2>
-          <Badge variant="outline" className="gap-1"><Calendar className="w-3 h-3" />{dateRange.label}</Badge>
+          <Badge variant="outline" className="gap-1"><Calendar className="w-3 h-3" />{PERIOD_LABELS[periodFilter]}</Badge>
         </div>
         <div className="flex items-center gap-3">
-          <ToggleGroup type="single" value={periodFilter} onValueChange={(v) => v && setPeriodFilter(v as typeof periodFilter)} className="bg-muted/30 p-1 rounded-lg">
+          <ToggleGroup type="single" value={periodFilter} onValueChange={(v) => v && setPeriodFilter(v as PeriodFilter)} className="bg-muted/30 p-1 rounded-lg">
             <ToggleGroupItem value="today" size="sm" className="text-xs px-3">Hoje</ToggleGroupItem>
             <ToggleGroupItem value="week" size="sm" className="text-xs px-3">Semana</ToggleGroupItem>
             <ToggleGroupItem value="month" size="sm" className="text-xs px-3">Mês</ToggleGroupItem>
             <ToggleGroupItem value="all" size="sm" className="text-xs px-3">Tudo</ToggleGroupItem>
           </ToggleGroup>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing} className="gap-2"><RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />Atualizar</Button>
         </div>
       </div>
 
@@ -66,19 +91,19 @@ export function SLAMetricsDashboard() {
             <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
               {agentSLAData.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground"><Users className="w-12 h-12 mx-auto mb-3 opacity-50" /><p>Nenhum agente encontrado</p></div>
-              ) : agentSLAData.sort((a, b) => b.overallRate - a.overallRate).map((agent, index) => (
-                <motion.div key={agent.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + index * 0.05 }} className="p-3 rounded-xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all">
+              ) : agentSLAData.map((agent, index) => (
+                <motion.div key={agent.agentId} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + index * 0.05 }} className="p-3 rounded-xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8 ring-2 ring-border/50"><AvatarImage src={agent.avatar} /><AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{agent.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</AvatarFallback></Avatar>
-                      <span className="font-medium text-foreground">{agent.name}</span>
+                      <Avatar className="w-8 h-8 ring-2 ring-border/50"><AvatarImage src={agent.avatarUrl} /><AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{agent.agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</AvatarFallback></Avatar>
+                      <span className="font-medium text-foreground">{agent.agentName}</span>
                     </div>
-                    <Badge className={cn("font-semibold border-0", getRateBadge(agent.overallRate))}>{agent.overallRate}%</Badge>
+                    <Badge className={cn("font-semibold border-0", getRateBadge(agent.overallRate))}>{Math.round(agent.overallRate)}%</Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {[{ label: '1ª Resposta', icon: Clock, data: agent.firstResponse }, { label: 'Resolução', icon: CheckCircle2, data: agent.resolution }].map(col => (
                       <div key={col.label} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground flex items-center gap-1"><col.icon className="w-3 h-3" />{col.label}</span><span className={getRateColor(col.data.rate)}>{col.data.rate}%</span></div>
+                        <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground flex items-center gap-1"><col.icon className="w-3 h-3" />{col.label}</span><span className={getRateColor(col.data.rate)}>{Math.round(col.data.rate)}%</span></div>
                         <div className="relative h-1.5 bg-muted rounded-full overflow-hidden"><motion.div className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(col.data.rate))} initial={{ width: 0 }} animate={{ width: `${col.data.rate}%` }} transition={{ duration: 0.8, delay: 0.7 + index * 0.05 }} /></div>
                       </div>
                     ))}
@@ -108,13 +133,13 @@ export function SLAMetricsDashboard() {
                     <div className="relative h-2 bg-muted rounded-full overflow-hidden"><motion.div className={cn("absolute inset-y-0 left-0 rounded-full", getRateBg(overallRate))} initial={{ width: 0 }} animate={{ width: `${overallRate}%` }} transition={{ duration: 0.8, delay: 0.6 }} /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {agentSLAData.sort((a, b) => b.overallRate - a.overallRate).slice(0, 6).map((agent) => (
-                      <div key={agent.id} className="p-3 rounded-lg bg-muted/10 border border-border/20">
+                    {agentSLAData.slice(0, 6).map((agent) => (
+                      <div key={agent.agentId} className="p-3 rounded-lg bg-muted/10 border border-border/20">
                         <div className="flex items-center gap-2 mb-1">
-                          <Avatar className="w-5 h-5"><AvatarImage src={agent.avatar} /><AvatarFallback className="text-[8px]">{agent.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</AvatarFallback></Avatar>
-                          <span className="text-xs font-medium truncate">{agent.name}</span>
+                          <Avatar className="w-5 h-5"><AvatarImage src={agent.avatarUrl} /><AvatarFallback className="text-[8px]">{agent.agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</AvatarFallback></Avatar>
+                          <span className="text-xs font-medium truncate">{agent.agentName}</span>
                         </div>
-                        <div className={cn("text-lg font-bold", getRateColor(agent.overallRate))}>{agent.overallRate}%</div>
+                        <div className={cn("text-lg font-bold", getRateColor(agent.overallRate))}>{Math.round(agent.overallRate)}%</div>
                       </div>
                     ))}
                   </div>
