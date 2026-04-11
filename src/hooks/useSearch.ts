@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { fromTable } from '@/lib/supabaseHelpers';
 
 export interface SearchOptions {
   columns: string[];
@@ -34,9 +34,7 @@ export function useSearch<T extends Record<string, unknown>>(
       if (!shouldSearch) return [];
       const orConditions = columns.map(col => `${col}.ilike.%${debouncedTerm}%`).join(',');
       
-      // Use any to work around Supabase's dynamic table typing
-      let query = (supabase as any)
-        .from(tableName)
+      let query = fromTable(tableName)
         .select('*')
         .or(orConditions)
         .limit(limit);

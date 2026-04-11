@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logger';
 
 interface Profile {
   id: string;
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(data as Profile);
       }
     } catch (err: unknown) {
-      console.warn('[Auth] Failed to fetch profile for user:', userId, err);
+      log.warn('[Auth] Failed to fetch profile for user:', userId, err);
     } finally {
       fetchingRef.current = false;
     }

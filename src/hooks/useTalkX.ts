@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { fromTable } from '@/lib/supabaseHelpers';
 import { toast } from 'sonner';
 
 export interface TalkXCampaign {
@@ -87,10 +88,8 @@ export function useTalkX() {
         .select('id')
         .single();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await supabase
-        .from('talkx_campaigns')
-        .insert({ ...campaign, created_by: profile?.id } as any)
+      const { data, error } = await fromTable('talkx_campaigns')
+        .insert({ ...campaign, created_by: profile?.id })
         .select()
         .single();
       if (error) throw error;
@@ -105,10 +104,8 @@ export function useTalkX() {
 
   const updateCampaign = useMutation({
     mutationFn: async ({ id, ...updates }: CampaignPayload & { id: string }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await supabase
-        .from('talkx_campaigns')
-        .update(updates as any)
+      const { data, error } = await fromTable('talkx_campaigns')
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
@@ -143,16 +140,12 @@ export function useTalkX() {
         campaign_id: campaignId,
         contact_id,
       }));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await supabase
-        .from('talkx_recipients')
-        .insert(rows as any);
+      const { error } = await fromTable('talkx_recipients')
+        .insert(rows);
       if (error) throw error;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await supabase
-        .from('talkx_campaigns')
-        .update({ total_recipients: contactIds.length } as any)
+      await fromTable('talkx_campaigns')
+        .update({ total_recipients: contactIds.length })
         .eq('id', campaignId);
     },
     onSuccess: () => {

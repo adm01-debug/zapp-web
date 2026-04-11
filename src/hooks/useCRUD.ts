@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { fromTable } from '@/lib/supabaseHelpers';
 import { toast } from 'sonner';
 
 export interface BaseEntity { 
@@ -54,8 +54,7 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
     return useQuery({
       queryKey: [...queryKey, 'list', { search, filters, page, pageSize }],
       queryFn: async (): Promise<PaginatedResult<T>> => {
-        // Use any to work around Supabase's dynamic table typing
-        let query = (supabase as any).from(tableName).select('*', { count: 'exact' });
+        let query = fromTable(tableName).select('*', { count: 'exact' });
         
         if (softDeleteColumn) {
           query = query.is(softDeleteColumn, null);
@@ -96,8 +95,7 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
   const useGetById = (id: string) => useQuery({
     queryKey: [...queryKey, id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from(tableName)
+      const { data, error } = await fromTable(tableName)
         .select('*')
         .eq('id', id)
         .single();
@@ -109,9 +107,8 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
 
   const createMutation = useMutation({
     mutationFn: async (newData: Partial<T>) => {
-      const { data, error } = await (supabase as any)
-        .from(tableName)
-        .insert(newData)
+      const { data, error } = await fromTable(tableName)
+        .insert(newData as Record<string, unknown>)
         .select()
         .single();
       if (error) throw error;
@@ -126,9 +123,8 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data: updateData }: { id: string; data: Partial<T> }) => {
-      const { data, error } = await (supabase as any)
-        .from(tableName)
-        .update(updateData)
+      const { data, error } = await fromTable(tableName)
+        .update(updateData as Record<string, unknown>)
         .eq('id', id)
         .select()
         .single();
@@ -144,8 +140,7 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
-        .from(tableName)
+      const { error } = await fromTable(tableName)
         .delete()
         .eq('id', id);
       if (error) throw error;
@@ -159,9 +154,8 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
 
   const softDeleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
-        .from(tableName)
-        .update({ [softDeleteColumn]: new Date().toISOString() })
+      const { error } = await fromTable(tableName)
+        .update({ [softDeleteColumn]: new Date().toISOString() } as Record<string, unknown>)
         .eq('id', id);
       if (error) throw error;
     },
@@ -172,8 +166,7 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
   });
 
   const bulkDelete = async (ids: string[]) => {
-    const { error } = await (supabase as any)
-      .from(tableName)
+    const { error } = await fromTable(tableName)
       .delete()
       .in('id', ids);
     if (error) throw error;

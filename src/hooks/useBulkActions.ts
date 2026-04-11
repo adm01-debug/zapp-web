@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { fromTable } from '@/lib/supabaseHelpers';
 import { toast } from 'sonner';
 
 // ============================================
@@ -27,13 +27,9 @@ export interface BulkAction<T> {
 }
 
 interface UseBulkActionsOptions<T> {
-  /** Nome da tabela para operações padrão */
   tableName?: string;
-  /** Query key para invalidar após ações */
   queryKey?: string[];
-  /** Ações customizadas */
   actions?: BulkAction<T>[];
-  /** Callback após qualquer ação */
   onActionComplete?: () => void;
 }
 
@@ -68,23 +64,19 @@ export function useBulkActions<T extends { id: string }>(
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isExecuting, setIsExecuting] = useState(false);
 
-  // Itens selecionados
   const selectedItems = useMemo(
     () => items.filter((item) => selectedIds.has(item.id)),
     [items, selectedIds]
   );
 
-  // Status de seleção
   const isAllSelected = items.length > 0 && selectedIds.size === items.length;
   const isPartiallySelected = selectedIds.size > 0 && selectedIds.size < items.length;
   const hasSelection = selectedIds.size > 0;
 
-  // Selecionar um item
   const selectOne = useCallback((id: string) => {
     setSelectedIds((prev) => new Set([...prev, id]));
   }, []);
 
-  // Toggle seleção
   const toggleSelection = useCallback((id: string) => {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
@@ -97,23 +89,19 @@ export function useBulkActions<T extends { id: string }>(
     });
   }, []);
 
-  // Selecionar todos
   const selectAll = useCallback(() => {
     setSelectedIds(new Set(items.map((item) => item.id)));
   }, [items]);
 
-  // Deselecionar todos
   const deselectAll = useCallback(() => {
     setSelectedIds(new Set());
   }, []);
 
-  // Verificar se está selecionado
   const isSelected = useCallback(
     (id: string) => selectedIds.has(id),
     [selectedIds]
   );
 
-  // Ações padrão
   const defaultActions: BulkAction<T>[] = useMemo(() => {
     if (!tableName) return [];
 
@@ -126,11 +114,9 @@ export function useBulkActions<T extends { id: string }>(
           title: 'Confirmar Exclusão',
           description: `Tem certeza que deseja excluir ${selectedIds.size} item(s)? Esta ação não pode ser desfeita.`,
         },
-        action: async (items: T[]) => {
-          const ids = items.map((i) => i.id);
-          // Use any to work around Supabase's dynamic table typing
-          const { error } = await (supabase as any)
-            .from(tableName)
+        action: async (actionItems: T[]) => {
+          const ids = actionItems.map((i) => i.id);
+          const { error } = await fromTable(tableName)
             .delete()
             .in('id', ids);
           
@@ -142,12 +128,10 @@ export function useBulkActions<T extends { id: string }>(
         id: 'archive',
         label: 'Arquivar Selecionados',
         variant: 'outline' as const,
-        action: async (items: T[]) => {
-          const ids = items.map((i) => i.id);
-          // Use any to work around Supabase's dynamic table typing
-          const { error } = await (supabase as any)
-            .from(tableName)
-            .update({ status: 'archived', updated_at: new Date().toISOString() })
+        action: async (actionItems: T[]) => {
+          const ids = actionItems.map((i) => i.id);
+          const { error } = await fromTable(tableName)
+            .update({ status: 'archived', updated_at: new Date().toISOString() } as Record<string, unknown>)
             .in('id', ids);
           
           if (error) throw error;
@@ -157,13 +141,11 @@ export function useBulkActions<T extends { id: string }>(
     ];
   }, [tableName, selectedIds.size]);
 
-  // Todas as ações disponíveis
   const availableActions = useMemo(
     () => [...defaultActions, ...actions],
     [defaultActions, actions]
   );
 
-  // Executar ação
   const executeAction = useCallback(async (actionId: string) => {
     const action = availableActions.find((a) => a.id === actionId);
     if (!action || selectedItems.length === 0) return;
@@ -173,15 +155,11 @@ export function useBulkActions<T extends { id: string }>(
     try {
       await action.action(selectedItems);
       
-      // Invalidar queries
       if (queryKey) {
         await queryClient.invalidateQueries({ queryKey });
       }
 
-      // Limpar seleção
       deselectAll();
-
-      // Callback
       onActionComplete?.();
     } catch (error) {
       toast.error(`Erro ao executar ação: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
