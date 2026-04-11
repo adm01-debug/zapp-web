@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { log } from '@/lib/logger';
 
 interface Props {
   children: React.ReactNode;
@@ -27,7 +28,7 @@ export class SectionErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error(`[SectionError] ${this.props.sectionName || 'Unknown'}:`, error, info.componentStack);
+    log.error(`[SectionError] ${this.props.sectionName || 'Unknown'}:`, error, info.componentStack);
   }
 
   handleRetry = () => {
