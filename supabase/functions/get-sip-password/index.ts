@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
@@ -8,6 +8,9 @@ Deno.serve(async (req) => {
   const log = new Logger("get-sip-password");
 
   try {
+    const ip = getClientIP(req);
+    const rl = checkRateLimit(`sip-pwd:${ip}`, 10, 60_000);
+    if (!rl.allowed) return errorResponse("Rate limit exceeded", 429, req);
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return errorResponse('Unauthorized', 401, req);
