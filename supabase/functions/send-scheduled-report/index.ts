@@ -144,7 +144,7 @@ function buildReportEmail(data: Record<string, unknown>): string {
     <div style="max-width:600px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
       <div style="background:linear-gradient(135deg,#25D366,#128C7E);padding:24px;color:white;"><h1 style="margin:0;font-size:20px;">📊 ${data.title}</h1><p style="margin:4px 0 0;opacity:0.9;font-size:14px;">${data.period}</p></div>
       <div style="padding:24px;"><table style="width:100%;border-collapse:collapse;">${rows}</table>${agentsTable}</div>
-      <div style="padding:16px 24px;background:#f9fafb;text-align:center;font-size:12px;color:#999;">Relatório gerado automaticamente • WhatsApp CRM</div>
+      <div style="padding:16px 24px;background:#f9fafb;text-align:center;font-size:12px;color:#999;">Relatório gerado automaticamente • ZAPP Web</div>
     </div></body></html>`;
 }
 
