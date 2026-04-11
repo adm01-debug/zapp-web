@@ -88,9 +88,8 @@ export function useTalkX() {
         .select('id')
         .single();
 
-      const { data, error } = await supabase
-        .from('talkx_campaigns')
-        .insert({ ...campaign, created_by: profile?.id } as Record<string, unknown>)
+      const { data, error } = await fromTable('talkx_campaigns')
+        .insert({ ...campaign, created_by: profile?.id })
         .select()
         .single();
       if (error) throw error;
@@ -105,9 +104,8 @@ export function useTalkX() {
 
   const updateCampaign = useMutation({
     mutationFn: async ({ id, ...updates }: CampaignPayload & { id: string }) => {
-      const { data, error } = await supabase
-        .from('talkx_campaigns')
-        .update(updates as Record<string, unknown>)
+      const { data, error } = await fromTable('talkx_campaigns')
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
@@ -142,14 +140,12 @@ export function useTalkX() {
         campaign_id: campaignId,
         contact_id,
       }));
-      const { error } = await supabase
-        .from('talkx_recipients')
-        .insert(rows as Record<string, unknown>[]);
+      const { error } = await fromTable('talkx_recipients')
+        .insert(rows);
       if (error) throw error;
 
-      await supabase
-        .from('talkx_campaigns')
-        .update({ total_recipients: contactIds.length } as Record<string, unknown>)
+      await fromTable('talkx_campaigns')
+        .update({ total_recipients: contactIds.length })
         .eq('id', campaignId);
     },
     onSuccess: () => {
