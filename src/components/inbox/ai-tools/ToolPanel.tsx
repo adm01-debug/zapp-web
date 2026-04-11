@@ -39,7 +39,7 @@ export function ToolPanel({ isOpen, onClose, icon, title, subtitle, children, cl
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className={cn(
               "absolute left-2 right-2 top-2 bottom-2 z-30 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden",
-              "max-w-2xl mx-auto",
+              "max-w-[470px] mx-auto",
               className
             )}
           >
