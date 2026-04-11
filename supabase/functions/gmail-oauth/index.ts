@@ -60,6 +60,22 @@ async function getGmailProfile(accessToken: string): Promise<{ emailAddress: str
   return response.json();
 }
 
+// deno-lint-ignore no-explicit-any
+async function getTokens(supabase: any, accountId: string): Promise<{ access_token: string; refresh_token: string }> {
+  const { data, error } = await supabase.rpc("get_gmail_tokens", { p_account_id: accountId });
+  if (error || !data?.length) throw new Error("Failed to retrieve tokens");
+  return data[0];
+}
+
+// deno-lint-ignore no-explicit-any
+async function storeTokens(supabase: any, accountId: string, accessToken: string, refreshToken?: string | null) {
+  await supabase.rpc("store_gmail_tokens", {
+    p_account_id: accountId,
+    p_access_token: accessToken,
+    p_refresh_token: refreshToken ?? null,
+  });
+}
+
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
@@ -110,8 +126,6 @@ Deno.serve(async (req) => {
           .upsert({
             profile_id: profile.id,
             email_address: gmailProfile.emailAddress,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token || "",
             token_expires_at: expiresAt,
             scopes: tokens.scope.split(" "),
             is_active: true,
@@ -122,6 +136,9 @@ Deno.serve(async (req) => {
 
         if (upsertError) throw upsertError;
 
+        // Store tokens encrypted
+        await storeTokens(supabase, account.id, tokens.access_token, tokens.refresh_token || "");
+
         log.done(200, { action });
         return jsonResponse({
           success: true,
@@ -131,17 +148,15 @@ Deno.serve(async (req) => {
 
       case "refresh-token": {
         if (!account_id) return errorResponse("Missing account_id", 400, req);
-        const { data: account } = await supabase.from("gmail_accounts").select("*").eq("id", account_id).eq("profile_id", profile.id).single();
+        const { data: account } = await supabase.from("gmail_accounts").select("id, profile_id, token_expires_at").eq("id", account_id).eq("profile_id", profile.id).single();
         if (!account) return errorResponse("Gmail account not found", 404, req);
 
-        const tokens = await refreshAccessToken(account.refresh_token, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+        const storedTokens = await getTokens(supabase, account.id);
+        const tokens = await refreshAccessToken(storedTokens.refresh_token, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
         const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-        await supabase.from("gmail_accounts").update({
-          access_token: tokens.access_token,
-          token_expires_at: expiresAt,
-          ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
-        }).eq("id", account_id);
+        await storeTokens(supabase, account.id, tokens.access_token, tokens.refresh_token || null);
+        await supabase.from("gmail_accounts").update({ token_expires_at: expiresAt }).eq("id", account_id);
 
         log.done(200, { action });
         return jsonResponse({ success: true, access_token: tokens.access_token, expires_at: expiresAt }, 200, req);
@@ -149,13 +164,18 @@ Deno.serve(async (req) => {
 
       case "disconnect": {
         if (!account_id) return errorResponse("Missing account_id", 400, req);
-        const { data: account } = await supabase.from("gmail_accounts").select("access_token, refresh_token").eq("id", account_id).eq("profile_id", profile.id).single();
+        const { data: account } = await supabase.from("gmail_accounts").select("id, profile_id").eq("id", account_id).eq("profile_id", profile.id).single();
 
         if (account) {
-          await fetch(`https://oauth2.googleapis.com/revoke?token=${account.access_token}`, {
-            method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          }).catch(() => {});
-          await supabase.from("gmail_accounts").update({ is_active: false, access_token: "", refresh_token: "" }).eq("id", account_id);
+          try {
+            const storedTokens = await getTokens(supabase, account.id);
+            await fetch(`https://oauth2.googleapis.com/revoke?token=${storedTokens.access_token}`, {
+              method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            }).catch(() => {});
+          } catch { /* tokens may not exist */ }
+          // Clear encrypted tokens and deactivate
+          await storeTokens(supabase, account.id, "", "");
+          await supabase.from("gmail_accounts").update({ is_active: false }).eq("id", account_id);
         }
 
         log.done(200, { action });

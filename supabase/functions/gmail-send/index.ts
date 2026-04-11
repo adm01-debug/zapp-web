@@ -83,10 +83,29 @@ function buildMimeMessage(options: {
 }
 
 // deno-lint-ignore no-explicit-any
+async function getTokens(supabase: any, accountId: string): Promise<{ access_token: string; refresh_token: string }> {
+  const { data, error } = await supabase.rpc("get_gmail_tokens", { p_account_id: accountId });
+  if (error || !data?.length) throw new Error("Failed to retrieve tokens");
+  return data[0];
+}
+
+// deno-lint-ignore no-explicit-any
+async function storeTokens(supabase: any, accountId: string, accessToken: string, refreshToken?: string | null) {
+  await supabase.rpc("store_gmail_tokens", {
+    p_account_id: accountId,
+    p_access_token: accessToken,
+    p_refresh_token: refreshToken ?? null,
+  });
+}
+
+// deno-lint-ignore no-explicit-any
 async function ensureValidToken(supabase: any, account: any): Promise<string> {
   const now = new Date();
   const expiresAt = new Date(account.token_expires_at);
-  if (now < new Date(expiresAt.getTime() - 5 * 60 * 1000)) return account.access_token;
+  
+  const storedTokens = await getTokens(supabase, account.id);
+  
+  if (now < new Date(expiresAt.getTime() - 5 * 60 * 1000)) return storedTokens.access_token;
 
   const GOOGLE_CLIENT_ID = requireEnv("GOOGLE_CLIENT_ID");
   const GOOGLE_CLIENT_SECRET = requireEnv("GOOGLE_CLIENT_SECRET");
@@ -95,15 +114,15 @@ async function ensureValidToken(supabase: any, account: any): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      refresh_token: account.refresh_token, client_id: GOOGLE_CLIENT_ID,
+      refresh_token: storedTokens.refresh_token, client_id: GOOGLE_CLIENT_ID,
       client_secret: GOOGLE_CLIENT_SECRET, grant_type: "refresh_token",
     }),
   });
   if (!response.ok) throw new Error("Failed to refresh token");
   const tokens = await response.json();
 
+  await storeTokens(supabase, account.id, tokens.access_token, tokens.refresh_token || null);
   await supabase.from("gmail_accounts").update({
-    access_token: tokens.access_token,
     token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
   }).eq("id", account.id);
 
@@ -138,7 +157,8 @@ Deno.serve(async (req) => {
     const { action, account_id } = body;
 
     const { data: account } = await supabase
-      .from("gmail_accounts").select("*")
+      .from("gmail_accounts")
+      .select("id, email_address, is_active, token_expires_at, profile_id")
       .eq("id", account_id).eq("profile_id", profile.id).eq("is_active", true).single();
 
     if (!account) return errorResponse("Gmail account not found or inactive", 404, req);

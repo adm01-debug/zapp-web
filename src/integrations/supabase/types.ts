@@ -3154,7 +3154,6 @@ export type Database = {
       }
       gmail_accounts: {
         Row: {
-          access_token: string | null
           access_token_encrypted: string | null
           created_at: string
           email_address: string
@@ -3162,7 +3161,6 @@ export type Database = {
           is_active: boolean
           last_error: string | null
           last_sync_at: string | null
-          refresh_token: string | null
           refresh_token_encrypted: string | null
           sync_status: string
           token_expires_at: string | null
@@ -3170,7 +3168,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          access_token?: string | null
           access_token_encrypted?: string | null
           created_at?: string
           email_address: string
@@ -3178,7 +3175,6 @@ export type Database = {
           is_active?: boolean
           last_error?: string | null
           last_sync_at?: string | null
-          refresh_token?: string | null
           refresh_token_encrypted?: string | null
           sync_status?: string
           token_expires_at?: string | null
@@ -3186,7 +3182,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          access_token?: string | null
           access_token_encrypted?: string | null
           created_at?: string
           email_address?: string
@@ -3194,7 +3189,6 @@ export type Database = {
           is_active?: boolean
           last_error?: string | null
           last_sync_at?: string | null
-          refresh_token?: string | null
           refresh_token_encrypted?: string | null
           sync_status?: string
           token_expires_at?: string | null
@@ -6852,6 +6846,7 @@ export type Database = {
           last_error: string | null
           last_sync_at: string | null
           sync_status: string | null
+          token_expires_at: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -6863,6 +6858,7 @@ export type Database = {
           last_error?: string | null
           last_sync_at?: string | null
           sync_status?: string | null
+          token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -6874,6 +6870,7 @@ export type Database = {
           last_error?: string | null
           last_sync_at?: string | null
           sync_status?: string | null
+          token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -6883,7 +6880,9 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string | null
+          has_token: boolean | null
           id: string | null
+          ip_address: string | null
           reason: string | null
           rejection_reason: string | null
           reviewed_at: string | null
@@ -6891,12 +6890,15 @@ export type Database = {
           status: string | null
           token_expires_at: string | null
           updated_at: string | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
+          has_token?: never
           id?: string | null
+          ip_address?: string | null
           reason?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -6904,12 +6906,15 @@ export type Database = {
           status?: string | null
           token_expires_at?: string | null
           updated_at?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
+          has_token?: never
           id?: string | null
+          ip_address?: string | null
           reason?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -6917,6 +6922,7 @@ export type Database = {
           status?: string | null
           token_expires_at?: string | null
           updated_at?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []
