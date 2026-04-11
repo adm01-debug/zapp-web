@@ -199,7 +199,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background relative overflow-hidden">
+    <div className="min-h-screen flex bg-background relative overflow-x-hidden overflow-y-auto">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div 
