@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { groupVariantsByColor } from './sendProductUtils';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuTrigger,
@@ -73,12 +74,8 @@ export const SendProductDialog: React.FC<SendProductDialogProps> = ({
     }
   }, [open, product.id]);
 
-  const { groupVariantsByColor } = await import('./sendProductUtils').then(m => m) || {};
   const variantGroups = useMemo(
-    () => {
-      const { groupVariantsByColor } = require('./sendProductUtils');
-      return groupVariantsByColor(fullProduct.variants || []);
-    },
+    () => groupVariantsByColor(fullProduct.variants || []),
     [fullProduct.variants]
   );
 
