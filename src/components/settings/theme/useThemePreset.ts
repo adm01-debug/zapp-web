@@ -1,21 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { PRESETS, CSS_VARS_TO_APPLY, STORAGE_KEY } from './presets';
+import {
+  PRESETS,
+  CSS_VARS_TO_APPLY,
+  STORAGE_KEY,
+  DEFAULT_PRESET_ID,
+  normalizeStoredPresetId,
+} from './presets';
 import type { ThemePreset, ThemeModeColors } from './presets';
 import { useTheme } from '@/hooks/useTheme';
 
 interface ThemeConfig {
-  preset: string;
-  borderRadius: number;
+  borderRadius?: number;
+  cacheMode?: 'light' | 'dark';
+  cachePreset?: string;
+  cssVarsCache?: Record<string, string>;
+  preset?: string;
 }
 
 export function useThemePreset() {
   const { resolvedTheme } = useTheme();
-  const [activePreset, setActivePreset] = useState<string>('corporate');
+  const [activePreset, setActivePreset] = useState<string>(DEFAULT_PRESET_ID);
   const [borderRadius, setBorderRadius] = useState<number>(8);
 
   const save = useCallback((presetId: string, radius: number) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ preset: presetId, borderRadius: radius }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ preset: normalizeStoredPresetId(presetId), borderRadius: radius }),
+    );
   }, []);
 
   const applyPresetColors = useCallback((preset: ThemePreset, mode: 'light' | 'dark') => {
@@ -30,7 +42,6 @@ export function useThemePreset() {
     const preset = PRESETS.find(p => p.id === presetId);
     if (!preset) return;
 
-    // Smooth transition when changing skins
     const root = document.documentElement;
     root.classList.add('theme-transitioning');
 
@@ -41,7 +52,6 @@ export function useThemePreset() {
       toast.success(`Tema "${preset.name}" aplicado!`);
     }
 
-    // Remove transition class after animation
     setTimeout(() => root.classList.remove('theme-transitioning'), 350);
   }, [applyPresetColors, resolvedTheme, borderRadius, save]);
 
@@ -49,35 +59,45 @@ export function useThemePreset() {
     document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);
   }, []);
 
-  // Restore saved theme on mount (default to corporate on first access)
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed: ThemeConfig = JSON.parse(saved);
-        // Migrate old preset IDs to corporate
-        const presetId = (parsed.preset === 'default' || parsed.preset === 'purpure') ? 'corporate' : (parsed.preset || 'corporate');
-        if (presetId) {
-          setActivePreset(presetId);
-          const preset = PRESETS.find(p => p.id === presetId);
-          if (preset) applyPresetColors(preset, resolvedTheme);
+        const presetId = normalizeStoredPresetId(parsed.preset);
+        const radius = parsed.borderRadius ?? 8;
+
+        setActivePreset(presetId);
+        setBorderRadius(radius);
+        applyBorderRadius(radius);
+
+        const preset = PRESETS.find(p => p.id === presetId);
+        if (preset) applyPresetColors(preset, resolvedTheme);
+
+        if (
+          parsed.preset !== presetId ||
+          parsed.cssVarsCache ||
+          parsed.cacheMode ||
+          parsed.cachePreset
+        ) {
+          save(presetId, radius);
         }
-        if (parsed.borderRadius != null) {
-          setBorderRadius(parsed.borderRadius);
-          applyBorderRadius(parsed.borderRadius);
+      } catch {
+        const corporate = PRESETS.find(p => p.id === DEFAULT_PRESET_ID);
+        if (corporate) {
+          applyPresetColors(corporate, resolvedTheme);
+          save(DEFAULT_PRESET_ID, borderRadius);
         }
-      } catch { /* corrupted storage */ }
+      }
     } else {
-      // First access: apply corporate as default
-      const corporate = PRESETS.find(p => p.id === 'corporate');
+      const corporate = PRESETS.find(p => p.id === DEFAULT_PRESET_ID);
       if (corporate) {
         applyPresetColors(corporate, resolvedTheme);
-        save('corporate', borderRadius);
+        save(DEFAULT_PRESET_ID, borderRadius);
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-apply when light/dark mode changes
   useEffect(() => {
     const preset = PRESETS.find(p => p.id === activePreset);
     if (preset) {
@@ -93,14 +113,14 @@ export function useThemePreset() {
   }, [activePreset, applyBorderRadius, save]);
 
   const resetTheme = useCallback(() => {
-    const corporate = PRESETS.find(p => p.id === 'corporate');
+    const corporate = PRESETS.find(p => p.id === DEFAULT_PRESET_ID);
     if (corporate) {
       applyPresetColors(corporate, resolvedTheme);
     }
-    setActivePreset('corporate');
+    setActivePreset(DEFAULT_PRESET_ID);
     setBorderRadius(8);
     document.documentElement.style.setProperty('--radius', '0.5rem');
-    save('corporate', 8);
+    save(DEFAULT_PRESET_ID, 8);
     toast.success('Tema restaurado ao padrão!');
   }, [applyPresetColors, resolvedTheme, save]);
 
