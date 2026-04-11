@@ -6,165 +6,73 @@ import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Smartphone,
-  Plus,
-  MoreVertical,
-  RefreshCw,
-  Trash2,
-  Copy,
-  QrCode,
-  Wifi,
-  WifiOff,
-  Star,
-  Clock,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  History,
+  Smartphone, Plus, QrCode, Loader2, CheckCircle2, XCircle, AlertCircle, RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { BusinessHoursDialog } from './BusinessHoursDialog';
-import { BusinessHoursIndicator } from './BusinessHoursIndicator';
 import { ConnectionQueuesDialog } from './ConnectionQueuesDialog';
 import { InstanceSettingsDialog } from './InstanceSettingsDialog';
 import { IntegrationsPanel } from './IntegrationsPanel';
 import { NumberReputationMonitor } from './NumberReputationMonitor';
-import { Battery, BatteryCharging, BatteryLow, BatteryMedium, BatteryFull, Link2, Settings, Boxes } from 'lucide-react';
-import { useConnectionsManager, type WhatsAppConnection } from '@/hooks/useConnectionsManager';
-
-const statusConfig: Record<string, { label: string; color: string; icon: typeof Wifi }> = {
-  connected: { label: 'Conectado', color: 'bg-status-online', icon: Wifi },
-  disconnected: { label: 'Desconectado', color: 'bg-status-offline', icon: WifiOff },
-  connecting: { label: 'Conectando...', color: 'bg-status-away', icon: RefreshCw },
-  pending: { label: 'Aguardando QR', color: 'bg-status-away', icon: QrCode },
-};
+import { ConnectionCard } from './ConnectionCard';
+import { useConnectionsManager } from '@/hooks/useConnectionsManager';
 
 export function ConnectionsView() {
   const {
     connections, loading,
     isAddDialogOpen, setIsAddDialogOpen,
-    qrCodeDialog,
-    newConnection, setNewConnection,
-    isCreating,
-    syncingHistory, setSyncingHistory,
-    evolutionLoading,
-    handleAddConnection,
-    handleShowQrCode,
-    handleRefreshQrCode,
-    handleCopyId,
-    handleReconnect,
-    handleDisconnect,
-    handleSetDefault,
-    handleDelete,
-    closeQrDialog,
+    qrCodeDialog, newConnection, setNewConnection, isCreating,
+    syncingHistory, setSyncingHistory, evolutionLoading,
+    handleAddConnection, handleShowQrCode, handleRefreshQrCode,
+    handleCopyId, handleDisconnect, handleSetDefault, handleDelete, closeQrDialog,
   } = useConnectionsManager();
 
-  const [businessHoursDialog, setBusinessHoursDialog] = useState<{
-    open: boolean;
-    connectionId: string;
-    connectionName: string;
-  }>({ open: false, connectionId: '', connectionName: '' });
-  const [queuesDialog, setQueuesDialog] = useState<{
-    open: boolean;
-    connectionId: string;
-    connectionName: string;
-  }>({ open: false, connectionId: '', connectionName: '' });
-  const [settingsDialog, setSettingsDialog] = useState<{
-    open: boolean;
-    instanceName: string;
-    connectionName: string;
-  }>({ open: false, instanceName: '', connectionName: '' });
-  const [integrationsDialog, setIntegrationsDialog] = useState<{
-    open: boolean;
-    instanceName: string;
-    connectionName: string;
-  }>({ open: false, instanceName: '', connectionName: '' });
+  const [businessHoursDialog, setBusinessHoursDialog] = useState({ open: false, connectionId: '', connectionName: '' });
+  const [queuesDialog, setQueuesDialog] = useState({ open: false, connectionId: '', connectionName: '' });
+  const [settingsDialog, setSettingsDialog] = useState({ open: false, instanceName: '', connectionName: '' });
+  const [integrationsDialog, setIntegrationsDialog] = useState({ open: false, instanceName: '', connectionName: '' });
 
+  const handleSyncHistory = async (connection: { id: string; instance_id?: string | null }) => {
+    if (!connection.instance_id) return;
+    setSyncingHistory(connection.id);
+    toast({ title: 'Sincronizando histórico...', description: 'Isso pode levar alguns minutos.' });
+    try {
+      const { data, error } = await supabase.functions.invoke('evolution-sync', {
+        body: { action: 'sync-all-messages', instanceName: connection.instance_id },
+      });
+      if (error) throw error;
+      toast({ title: 'Sincronização concluída!', description: `${data?.totalSynced || 0} mensagens sincronizadas de ${data?.totalContacts || 0} contatos.` });
+    } catch (e: unknown) {
+      toast({ title: 'Erro na sincronização', description: e instanceof Error ? e.message : 'Erro desconhecido', variant: 'destructive' });
+    } finally { setSyncingHistory(null); }
+  };
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full relative bg-background">
-      <AuroraBorealis />
-      <FloatingParticles />
+      <AuroraBorealis /><FloatingParticles />
       
-      {/* Header with Breadcrumbs */}
-      <PageHeader
-        title="Conexões WhatsApp"
-        subtitle="Gerencie múltiplas conexões WhatsApp via Evolution API"
-        breadcrumbs={[
-          { label: 'Configurações' },
-          { label: 'Conexões' },
-        ]}
+      <PageHeader title="Conexões WhatsApp" subtitle="Gerencie múltiplas conexões WhatsApp via Evolution API"
+        breadcrumbs={[{ label: 'Configurações' }, { label: 'Conexões' }]}
         actions={
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Conexão
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger asChild><Button className="bg-whatsapp hover:bg-whatsapp-dark text-primary-foreground"><Plus className="w-4 h-4 mr-2" />Nova Conexão</Button></DialogTrigger>
             <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Adicionar Nova Conexão</DialogTitle>
-                <DialogDescription>
-                  Crie uma nova instância para conectar ao WhatsApp
-                </DialogDescription>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>Adicionar Nova Conexão</DialogTitle><DialogDescription>Crie uma nova instância para conectar ao WhatsApp</DialogDescription></DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Nome da Conexão</Label>
-                  <Input
-                    placeholder="Ex: WhatsApp Vendas"
-                    value={newConnection.name}
-                    onChange={(e) => setNewConnection({ ...newConnection, name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Número do WhatsApp</Label>
-                  <Input
-                    placeholder="+55 11 99999-0000"
-                    value={newConnection.phone_number}
-                    onChange={(e) => setNewConnection({ ...newConnection, phone_number: e.target.value })}
-                  />
-                </div>
+                <div className="space-y-2"><Label>Nome da Conexão</Label><Input placeholder="Ex: WhatsApp Vendas" value={newConnection.name} onChange={(e) => setNewConnection({ ...newConnection, name: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Número do WhatsApp</Label><Input placeholder="+55 11 99999-0000" value={newConnection.phone_number} onChange={(e) => setNewConnection({ ...newConnection, phone_number: e.target.value })} /></div>
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isCreating}>
-                    Cancelar
-                  </Button>
-                  <Button 
-                    onClick={handleAddConnection} 
-                    className="bg-whatsapp hover:bg-whatsapp-dark"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Criando...
-                      </>
-                    ) : (
-                      'Adicionar'
-                    )}
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isCreating}>Cancelar</Button>
+                  <Button onClick={handleAddConnection} className="bg-whatsapp hover:bg-whatsapp-dark" disabled={isCreating}>
+                    {isCreating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Criando...</> : 'Adicionar'}
                   </Button>
                 </div>
               </div>
@@ -178,432 +86,88 @@ export function ConnectionsView() {
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2">
-              {qrCodeDialog.status === 'connected' ? (
-                <>
-                  <CheckCircle2 className="w-5 h-5 text-status-online" />
-                  Conectado!
-                </>
-              ) : qrCodeDialog.status === 'error' ? (
-                <>
-                  <XCircle className="w-5 h-5 text-destructive" />
-                  Erro
-                </>
-              ) : (
-                <>
-                  <QrCode className="w-5 h-5" />
-                  Escanear QR Code - {qrCodeDialog.connectionName}
-                </>
-              )}
+              {qrCodeDialog.status === 'connected' ? <><CheckCircle2 className="w-5 h-5 text-status-online" />Conectado!</> :
+               qrCodeDialog.status === 'error' ? <><XCircle className="w-5 h-5 text-destructive" />Erro</> :
+               <><QrCode className="w-5 h-5" />Escanear QR Code - {qrCodeDialog.connectionName}</>}
             </DialogTitle>
           </DialogHeader>
-          
           <div className="py-6 space-y-4">
-            {qrCodeDialog.status === 'loading' && (
-              <div className="w-64 h-64 mx-auto bg-muted rounded-xl flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-muted-foreground" />
-              </div>
-            )}
-
+            {qrCodeDialog.status === 'loading' && <div className="w-64 h-64 mx-auto bg-muted rounded-xl flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-muted-foreground" /></div>}
             {qrCodeDialog.status === 'pending' && qrCodeDialog.qrCode && (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="w-64 h-64 mx-auto bg-background rounded-xl p-2 flex items-center justify-center"
-              >
-                <img 
-                  src={qrCodeDialog.qrCode.startsWith('data:') 
-                    ? qrCodeDialog.qrCode 
-                    : `data:image/png;base64,${qrCodeDialog.qrCode}`} 
-                  alt="QR Code" 
-                  className="w-full h-full object-contain"
-                />
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-64 h-64 mx-auto bg-background rounded-xl p-2 flex items-center justify-center">
+                <img src={qrCodeDialog.qrCode.startsWith('data:') ? qrCodeDialog.qrCode : `data:image/png;base64,${qrCodeDialog.qrCode}`} alt="QR Code" className="w-full h-full object-contain" />
               </motion.div>
             )}
-
             {qrCodeDialog.status === 'connected' && (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="w-64 h-64 mx-auto bg-status-online/10 rounded-xl flex flex-col items-center justify-center"
-              >
-                <CheckCircle2 className="w-20 h-20 text-status-online mb-4" />
-                <p className="text-lg font-medium text-status-online">WhatsApp Conectado!</p>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-64 h-64 mx-auto bg-status-online/10 rounded-xl flex flex-col items-center justify-center">
+                <CheckCircle2 className="w-20 h-20 text-status-online mb-4" /><p className="text-lg font-medium text-status-online">WhatsApp Conectado!</p>
               </motion.div>
             )}
-
             {qrCodeDialog.status === 'error' && (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="w-64 h-64 mx-auto bg-destructive/10 rounded-xl flex flex-col items-center justify-center p-4"
-              >
-                <AlertCircle className="w-16 h-16 text-destructive mb-4" />
-                <p className="text-sm text-destructive text-center">{qrCodeDialog.errorMessage}</p>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-64 h-64 mx-auto bg-destructive/10 rounded-xl flex flex-col items-center justify-center p-4">
+                <AlertCircle className="w-16 h-16 text-destructive mb-4" /><p className="text-sm text-destructive text-center">{qrCodeDialog.errorMessage}</p>
               </motion.div>
             )}
-
             {qrCodeDialog.status === 'pending' && (
               <>
                 <div className="text-sm text-muted-foreground space-y-2">
-                  <p>1. Abra o WhatsApp no seu celular</p>
-                  <p>2. Toque em <strong>Menu</strong> ou <strong>Configurações</strong></p>
-                  <p>3. Toque em <strong>Aparelhos conectados</strong></p>
-                  <p>4. Toque em <strong>Conectar um aparelho</strong></p>
-                  <p>5. Aponte seu celular para esta tela</p>
+                  <p>1. Abra o WhatsApp no seu celular</p><p>2. Toque em <strong>Menu</strong> ou <strong>Configurações</strong></p>
+                  <p>3. Toque em <strong>Aparelhos conectados</strong></p><p>4. Toque em <strong>Conectar um aparelho</strong></p><p>5. Aponte seu celular para esta tela</p>
                 </div>
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Aguardando conexão...
-                </div>
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground"><Loader2 className="w-3 h-3 animate-spin" />Aguardando conexão...</div>
               </>
             )}
-
             {(qrCodeDialog.status === 'pending' || qrCodeDialog.status === 'error') && (
-              <Button 
-                variant="outline" 
-                onClick={handleRefreshQrCode}
-                disabled={evolutionLoading}
-              >
-                {evolutionLoading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                )}
-                Gerar novo código
+              <Button variant="outline" onClick={handleRefreshQrCode} disabled={evolutionLoading}>
+                {evolutionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}Gerar novo código
               </Button>
             )}
-
-            {qrCodeDialog.status === 'connected' && (
-              <Button onClick={closeQrDialog}>
-                Fechar
-              </Button>
-            )}
+            {qrCodeDialog.status === 'connected' && <Button onClick={closeQrDialog}>Fechar</Button>}
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           { label: 'Total de Conexões', value: connections.length, color: 'text-primary' },
-          { label: 'Conectadas', value: connections.filter((c) => c.status === 'connected').length, color: 'text-status-online' },
-          { label: 'Desconectadas', value: connections.filter((c) => c.status !== 'connected').length, color: 'text-status-offline' },
-        ].map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="border border-secondary/20 bg-card card-glow-purple">
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className={cn('text-3xl font-bold', stat.color)}>{stat.value}</p>
-              </CardContent>
-            </Card>
+          { label: 'Conectadas', value: connections.filter(c => c.status === 'connected').length, color: 'text-status-online' },
+          { label: 'Desconectadas', value: connections.filter(c => c.status !== 'connected').length, color: 'text-status-offline' },
+        ].map((stat, i) => (
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+            <Card className="border border-secondary/20 bg-card card-glow-purple"><CardContent className="p-4"><p className="text-sm text-muted-foreground">{stat.label}</p><p className={cn('text-3xl font-bold', stat.color)}>{stat.value}</p></CardContent></Card>
           </motion.div>
         ))}
       </div>
 
       {/* Connections List */}
       {loading ? (
-        <div className="flex items-center justify-center py-8 text-muted-foreground">
-          <Loader2 className="w-6 h-6 animate-spin mr-2" />
-          Carregando conexões...
-        </div>
+        <div className="flex items-center justify-center py-8 text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mr-2" />Carregando conexões...</div>
       ) : connections.length === 0 ? (
-        <EmptyState
-          icon={Smartphone}
-          title="Nenhuma conexão configurada"
-          description="Adicione sua primeira conexão WhatsApp para começar a atender seus clientes."
-          illustration="inbox"
-          actionLabel="Adicionar Conexão"
-          onAction={() => setIsAddDialogOpen(true)}
-        />
+        <EmptyState icon={Smartphone} title="Nenhuma conexão configurada" description="Adicione sua primeira conexão WhatsApp para começar a atender seus clientes." illustration="inbox" actionLabel="Adicionar Conexão" onAction={() => setIsAddDialogOpen(true)} />
       ) : (
         <StaggeredList className="space-y-4">
-          {connections.map((connection) => {
-            const status = statusConfig[connection.status] || statusConfig.disconnected;
-            const StatusIcon = status.icon;
-
-            return (
-              <StaggeredItem key={connection.id}>
-                <motion.div
-                  whileHover={{ y: -2, boxShadow: '0 8px 30px hsl(var(--primary) / 0.1)' }}
-                >
-                  <Card className="border border-secondary/20 bg-card hover:border-secondary/40 transition-all">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <motion.div
-                            animate={connection.status === 'connecting' ? { rotate: 360 } : {}}
-                            transition={{ duration: 1, repeat: connection.status === 'connecting' ? Infinity : 0, ease: 'linear' }}
-                            className={cn(
-                              'w-12 h-12 rounded-xl flex items-center justify-center',
-                              connection.status === 'connected' ? 'bg-whatsapp/10' : 'bg-muted'
-                            )}
-                          >
-                            <Smartphone
-                              className={cn(
-                                'w-6 h-6',
-                                connection.status === 'connected' ? 'text-whatsapp' : 'text-muted-foreground'
-                              )}
-                            />
-                          </motion.div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{connection.name}</h3>
-                              {connection.is_default && (
-                                <Badge variant="secondary" className="text-xs">
-                                  <Star className="w-3 h-3 mr-1" />
-                                  Padrão
-                                </Badge>
-                              )}
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  'text-xs',
-                                  connection.status === 'connected' && 'border-status-online text-status-online',
-                                  connection.status !== 'connected' && connection.status !== 'pending' && 'border-status-offline text-status-offline',
-                                  connection.status === 'pending' && 'border-status-away text-status-away'
-                                )}
-                              >
-                                <StatusIcon className={cn('w-3 h-3 mr-1', connection.status === 'connecting' && 'animate-spin')} />
-                                {status.label}
-                              </Badge>
-                              <BusinessHoursIndicator connectionId={connection.id} />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm text-muted-foreground">{connection.phone_number}</p>
-                              {connection.battery_level != null && (
-                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  {connection.is_plugged ? (
-                                    <BatteryCharging className="w-3.5 h-3.5 text-success" />
-                                  ) : connection.battery_level <= 20 ? (
-                                    <BatteryLow className="w-3.5 h-3.5 text-destructive" />
-                                  ) : connection.battery_level <= 50 ? (
-                                    <BatteryMedium className="w-3.5 h-3.5 text-warning" />
-                                  ) : (
-                                    <BatteryFull className="w-3.5 h-3.5 text-success" />
-                                  )}
-                                  {connection.battery_level}%
-                                </span>
-                              )}
-                              {(connection.retry_count ?? 0) > 0 && (
-                                <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">
-                                  Retry {connection.retry_count}/{connection.max_retries || 5}
-                                </Badge>
-                              )}
-                            </div>
-                            {connection.instance_id && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Instância: <code className="bg-muted px-1 rounded">{connection.instance_id}</code>
-                              </p>
-                            )}
-                            {connection.health_status && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className={cn(
-                                  'relative flex h-2 w-2',
-                                )}>
-                                  {connection.health_status === 'healthy' && (
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                                  )}
-                                  <span className={cn(
-                                    'relative inline-flex rounded-full h-2 w-2',
-                                    connection.health_status === 'healthy' && 'bg-success',
-                                    connection.health_status === 'degraded' && 'bg-warning',
-                                    (connection.health_status === 'error' || connection.health_status === 'timeout' || connection.health_status === 'disconnected') && 'bg-destructive',
-                                  )} />
-                                </span>
-                                <span className="text-[10px] text-muted-foreground">
-                                  {connection.health_status === 'healthy' ? 'Saudável' :
-                                   connection.health_status === 'degraded' ? 'Degradado' :
-                                   connection.health_status === 'timeout' ? 'Timeout' :
-                                   connection.health_status === 'error' ? 'Erro' : 'Desconectado'}
-                                  {connection.health_response_ms != null && (
-                                    <> · {connection.health_response_ms}ms</>
-                                  )}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCopyId(connection.id)}
-                            >
-                              <Copy className="w-4 h-4 mr-2" />
-                              Copiar ID
-                            </Button>
-                          </motion.div>
-
-                          {connection.status !== 'connected' && (
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleShowQrCode(connection)}
-                                className="border-whatsapp text-whatsapp hover:bg-whatsapp hover:text-primary-foreground"
-                              >
-                                <QrCode className="w-4 h-4 mr-2" />
-                                Conectar
-                              </Button>
-                            </motion.div>
-                          )}
-
-                          {connection.status === 'connected' && (
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDisconnect(connection)}
-                              >
-                                <WifiOff className="w-4 h-4 mr-2" />
-                                Desconectar
-                              </Button>
-                            </motion.div>
-                          )}
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </motion.div>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleSetDefault(connection.id)}>
-                                <Star className="w-4 h-4 mr-2" />
-                                Definir como padrão
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleShowQrCode(connection)}>
-                                <QrCode className="w-4 h-4 mr-2" />
-                                Gerar QR Code
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setBusinessHoursDialog({
-                                open: true,
-                                connectionId: connection.id,
-                                connectionName: connection.name,
-                              })}>
-                                <Clock className="w-4 h-4 mr-2" />
-                                Horário de Atendimento
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setQueuesDialog({
-                                open: true,
-                                connectionId: connection.id,
-                                connectionName: connection.name,
-                              })}>
-                                <Link2 className="w-4 h-4 mr-2" />
-                                Vincular Filas
-                              </DropdownMenuItem>
-                              {connection.instance_id && (
-                                <>
-                                  <DropdownMenuItem onClick={() => setSettingsDialog({
-                                    open: true,
-                                    instanceName: connection.instance_id!,
-                                    connectionName: connection.name,
-                                  })}>
-                                    <Settings className="w-4 h-4 mr-2" />
-                                    Configurações & Perfil
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setIntegrationsDialog({
-                                    open: true,
-                                    instanceName: connection.instance_id!,
-                                    connectionName: connection.name,
-                                  })}>
-                                    <Boxes className="w-4 h-4 mr-2" />
-                                    Integrações (IA/Bots)
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    disabled={syncingHistory === connection.id}
-                                    onClick={async () => {
-                                      if (!connection.instance_id) return;
-                                      setSyncingHistory(connection.id);
-                                      toast({ title: 'Sincronizando histórico...', description: 'Isso pode levar alguns minutos.' });
-                                      try {
-                                        const { data, error } = await supabase.functions.invoke('evolution-sync', {
-                                          body: { action: 'sync-all-messages', instanceName: connection.instance_id },
-                                        });
-                                        if (error) throw error;
-                                        toast({
-                                          title: 'Sincronização concluída!',
-                                          description: `${data?.totalSynced || 0} mensagens sincronizadas de ${data?.totalContacts || 0} contatos.`,
-                                        });
-                                      } catch (e: unknown) {
-                                        toast({ title: 'Erro na sincronização', description: e instanceof Error ? e.message : 'Erro desconhecido', variant: 'destructive' });
-                                      } finally {
-                                        setSyncingHistory(null);
-                                      }
-                                    }}
-                                  >
-                                    {syncingHistory === connection.id ? (
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                      <History className="w-4 h-4 mr-2" />
-                                    )}
-                                    Sincronizar Histórico
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDelete(connection)}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </StaggeredItem>
-            );
-          })}
+          {connections.map((connection) => (
+            <StaggeredItem key={connection.id}>
+              <ConnectionCard
+                connection={connection} syncingHistory={syncingHistory}
+                onShowQrCode={handleShowQrCode} onCopyId={handleCopyId} onDisconnect={handleDisconnect}
+                onSetDefault={handleSetDefault} onDelete={handleDelete}
+                onBusinessHours={(id, name) => setBusinessHoursDialog({ open: true, connectionId: id, connectionName: name })}
+                onQueues={(id, name) => setQueuesDialog({ open: true, connectionId: id, connectionName: name })}
+                onSettings={(inst, name) => setSettingsDialog({ open: true, instanceName: inst, connectionName: name })}
+                onIntegrations={(inst, name) => setIntegrationsDialog({ open: true, instanceName: inst, connectionName: name })}
+                onSyncHistory={handleSyncHistory}
+              />
+            </StaggeredItem>
+          ))}
         </StaggeredList>
       )}
 
-      {/* Business Hours Dialog */}
-      <BusinessHoursDialog
-        open={businessHoursDialog.open}
-        onOpenChange={(open) => setBusinessHoursDialog((prev) => ({ ...prev, open }))}
-        connectionId={businessHoursDialog.connectionId}
-        connectionName={businessHoursDialog.connectionName}
-      />
-
-      {/* Connection Queues Dialog */}
-      <ConnectionQueuesDialog
-        open={queuesDialog.open}
-        onOpenChange={(open) => setQueuesDialog((prev) => ({ ...prev, open }))}
-        connectionId={queuesDialog.connectionId}
-        connectionName={queuesDialog.connectionName}
-      />
-
-      {/* Instance Settings Dialog */}
-      <InstanceSettingsDialog
-        open={settingsDialog.open}
-        onOpenChange={(open) => setSettingsDialog((prev) => ({ ...prev, open }))}
-        instanceName={settingsDialog.instanceName}
-        connectionName={settingsDialog.connectionName}
-      />
-
-      {/* Integrations Panel */}
-      <IntegrationsPanel
-        open={integrationsDialog.open}
-        onOpenChange={(open) => setIntegrationsDialog((prev) => ({ ...prev, open }))}
-        instanceName={integrationsDialog.instanceName}
-        connectionName={integrationsDialog.connectionName}
-      />
-
-      {/* Number Reputation Monitor */}
+      <BusinessHoursDialog open={businessHoursDialog.open} onOpenChange={(open) => setBusinessHoursDialog(prev => ({ ...prev, open }))} connectionId={businessHoursDialog.connectionId} connectionName={businessHoursDialog.connectionName} />
+      <ConnectionQueuesDialog open={queuesDialog.open} onOpenChange={(open) => setQueuesDialog(prev => ({ ...prev, open }))} connectionId={queuesDialog.connectionId} connectionName={queuesDialog.connectionName} />
+      <InstanceSettingsDialog open={settingsDialog.open} onOpenChange={(open) => setSettingsDialog(prev => ({ ...prev, open }))} instanceName={settingsDialog.instanceName} connectionName={settingsDialog.connectionName} />
+      <IntegrationsPanel open={integrationsDialog.open} onOpenChange={(open) => setIntegrationsDialog(prev => ({ ...prev, open }))} instanceName={integrationsDialog.instanceName} connectionName={integrationsDialog.connectionName} />
       <NumberReputationMonitor />
     </div>
   );
