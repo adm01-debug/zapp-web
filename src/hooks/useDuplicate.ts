@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { fromTable } from '@/lib/supabaseHelpers';
 import { toast } from 'sonner';
 
 interface UseDuplicateOptions { 
@@ -25,9 +25,7 @@ export function useDuplicate<T extends { id: string }>({
       if (duplicateData.titulo) duplicateData.titulo = `${duplicateData.titulo} (Cópia)`;
       const finalData = transformData ? transformData(duplicateData) : duplicateData;
       
-      // Use any to work around Supabase's dynamic table typing
-      const { data, error } = await (supabase as any)
-        .from(tableName)
+      const { data, error } = await fromTable(tableName)
         .insert(finalData)
         .select()
         .single();
