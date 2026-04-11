@@ -55,8 +55,8 @@ export function useThemePreset() {
     if (saved) {
       try {
         const parsed: ThemeConfig = JSON.parse(saved);
-        // Migrate old 'default' preset to 'purpure'
-        const presetId = parsed.preset === 'default' ? 'purpure' : parsed.preset;
+        // Migrate old preset IDs to corporate
+        const presetId = (parsed.preset === 'default' || parsed.preset === 'purpure') ? 'corporate' : (parsed.preset || 'corporate');
         if (presetId) {
           setActivePreset(presetId);
           const preset = PRESETS.find(p => p.id === presetId);
