@@ -26,6 +26,9 @@
     "skipLibCheck": true,
     "strict": false,
     "strictFunctionTypes": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "strictBindCallApply": true,
     "target": "ES2020",
     "useDefineForClassFields": true
   },
