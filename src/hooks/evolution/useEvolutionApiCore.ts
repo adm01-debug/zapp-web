@@ -15,7 +15,8 @@ export function useEvolutionApiCore() {
     return () => { mountedRef.current = false; };
   }, []);
 
-  const callApi = useCallback(async (action: string, body?: object, method: HttpMethod = 'POST') => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const callApi = useCallback(async (action: string, body?: object, method: HttpMethod = 'POST'): Promise<any> => {
     const dedupeKey = method === 'GET' ? `${action}:${JSON.stringify(body || {})}` : '';
     if (dedupeKey && inflightRef.current.has(dedupeKey)) {
       return inflightRef.current.get(dedupeKey);
