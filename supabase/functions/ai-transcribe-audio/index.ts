@@ -1,7 +1,64 @@
 import { handleCors, errorResponse, jsonResponse, checkRateLimit, getClientIP, requireEnv, Logger } from "../_shared/validation.ts";
 import { TranscribeAudioSchema, parseBody } from "../_shared/schemas.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const MAX_AUDIO_SIZE = 25 * 1024 * 1024; // 25MB
+
+/**
+ * If the URL points to our own Supabase storage, download via the
+ * service-role client so we never hit expired-token issues.
+ */
+async function downloadAudio(
+  audioUrl: string,
+  log: Logger,
+): Promise<{ buffer: ArrayBuffer; contentType: string } | { error: string }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const isOwnStorage = audioUrl.includes(supabaseUrl) && audioUrl.includes("/storage/v1/");
+
+  if (isOwnStorage) {
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!serviceKey) {
+      log.warn("No service role key – falling back to direct fetch");
+    } else {
+      const buckets = ["whatsapp-media", "audio-messages"];
+      for (const bucket of buckets) {
+        const marker = `/${bucket}/`;
+        const idx = audioUrl.indexOf(marker);
+        if (idx !== -1) {
+          const pathWithQuery = audioUrl.substring(idx + marker.length);
+          const path = pathWithQuery.split("?")[0];
+          log.info("Downloading from storage", { bucket, path });
+
+          const sb = createClient(supabaseUrl, serviceKey);
+          const { data, error } = await sb.storage.from(bucket).download(path);
+          if (error || !data) {
+            log.error("Storage download failed", { error: error?.message });
+            return { error: `Storage download failed: ${error?.message ?? "unknown"}` };
+          }
+          const buffer = await data.arrayBuffer();
+          return { buffer, contentType: data.type || "audio/ogg" };
+        }
+      }
+    }
+  }
+
+  // Fallback: direct HTTP fetch (external URLs or non-storage URLs)
+  const response = await fetch(audioUrl);
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "");
+    log.error("HTTP download failed", { status: response.status, detail: errText.substring(0, 200) });
+    return { error: `Failed to download audio file (HTTP ${response.status})` };
+  }
+
+  const contentLength = response.headers.get("content-length");
+  if (contentLength && parseInt(contentLength) > MAX_AUDIO_SIZE) {
+    await response.body?.cancel();
+    return { error: "Audio file too large (max 25MB)" };
+  }
+
+  const buffer = await response.arrayBuffer();
+  return { buffer, contentType: response.headers.get("content-type") || "audio/mpeg" };
+}
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
@@ -22,22 +79,19 @@ Deno.serve(async (req) => {
     log.info("Starting transcription", { messageId, languageCode });
     const ELEVENLABS_API_KEY = requireEnv('ELEVENLABS_API_KEY');
 
-    // Download audio with size check
-    const audioResponse = await fetch(audioUrl);
-    if (!audioResponse.ok) return errorResponse("Failed to download audio file", 400, req);
-
-    const contentLength = audioResponse.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > MAX_AUDIO_SIZE) {
-      return errorResponse("Audio file too large (max 25MB)", 400, req);
+    // Download audio (prefers service-role storage download for own URLs)
+    const downloadResult = await downloadAudio(audioUrl, log);
+    if ("error" in downloadResult) {
+      return errorResponse(downloadResult.error, 400, req);
     }
 
-    const audioBuffer = await audioResponse.arrayBuffer();
+    const { buffer: audioBuffer, contentType } = downloadResult;
+
     if (audioBuffer.byteLength > MAX_AUDIO_SIZE) {
       return errorResponse("Audio file too large (max 25MB)", 400, req);
     }
 
     // Determine correct MIME type and file extension
-    const contentType = audioResponse.headers.get('content-type') || '';
     let mimeType = 'audio/mpeg';
     let fileName = 'audio.mp3';
 
@@ -58,9 +112,7 @@ Deno.serve(async (req) => {
       fileName = 'audio.mp3';
     }
 
-    // Create blob with explicit MIME type
     const audioBlob = new Blob([audioBuffer], { type: mimeType });
-
     log.info("Audio downloaded", { size: audioBlob.size, type: mimeType, originalType: contentType });
 
     const formData = new FormData();
@@ -81,8 +133,7 @@ Deno.serve(async (req) => {
       log.error("ElevenLabs STT error", { status: response.status, detail: errorText.substring(0, 300) });
       if (response.status === 429) return errorResponse("Rate limit exceeded.", 429, req);
       if (response.status === 401) return errorResponse("Invalid ElevenLabs API key.", 401, req);
-      
-      // Return graceful fallback for corrupted/invalid audio instead of 500
+
       if (response.status === 400) {
         return jsonResponse({
           transcription: '',
