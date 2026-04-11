@@ -39,7 +39,7 @@ export function useExternalEmpresas() {
           break;
         }
 
-        const response = data as any;
+        const response = data as { results?: Array<{ company_name?: string }> } | null;
         const results = response?.results || [];
 
         if (results.length === 0) break;
