@@ -3155,6 +3155,7 @@ export type Database = {
       gmail_accounts: {
         Row: {
           access_token: string | null
+          access_token_encrypted: string | null
           created_at: string
           email_address: string
           id: string
@@ -3162,6 +3163,7 @@ export type Database = {
           last_error: string | null
           last_sync_at: string | null
           refresh_token: string | null
+          refresh_token_encrypted: string | null
           sync_status: string
           token_expires_at: string | null
           updated_at: string
@@ -3169,6 +3171,7 @@ export type Database = {
         }
         Insert: {
           access_token?: string | null
+          access_token_encrypted?: string | null
           created_at?: string
           email_address: string
           id?: string
@@ -3176,6 +3179,7 @@ export type Database = {
           last_error?: string | null
           last_sync_at?: string | null
           refresh_token?: string | null
+          refresh_token_encrypted?: string | null
           sync_status?: string
           token_expires_at?: string | null
           updated_at?: string
@@ -3183,6 +3187,7 @@ export type Database = {
         }
         Update: {
           access_token?: string | null
+          access_token_encrypted?: string | null
           created_at?: string
           email_address?: string
           id?: string
@@ -3190,6 +3195,7 @@ export type Database = {
           last_error?: string | null
           last_sync_at?: string | null
           refresh_token?: string | null
+          refresh_token_encrypted?: string | null
           sync_status?: string
           token_expires_at?: string | null
           updated_at?: string
@@ -7083,6 +7089,8 @@ export type Database = {
           count: number
         }[]
       }
+      decrypt_gmail_token: { Args: { p_encrypted: string }; Returns: string }
+      encrypt_gmail_token: { Args: { p_token: string }; Returns: string }
       get_channel_credentials: {
         Args: { _connection_id: string }
         Returns: Json
