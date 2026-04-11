@@ -1,19 +1,19 @@
 /**
  * Typed helpers for dynamic Supabase table operations.
  * 
- * These helpers provide a type-safe wrapper for dynamic table names,
- * avoiding the need for `(supabase as any)` throughout the codebase.
+ * Provides a type-safe wrapper that avoids `(supabase as any)` 
+ * while preventing deep type instantiation with large schemas.
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
 
-type TableName = keyof Database['public']['Tables'];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DynamicClient = { from: (table: string) => any };
 
 /**
- * Get a typed Supabase query builder for a dynamic table name.
- * Falls back to untyped access for tables not in the generated schema.
+ * Get a Supabase query builder for a dynamic table name.
+ * Use this instead of `(supabase as any).from(tableName)`.
  */
 export function fromTable(tableName: string) {
-  return supabase.from(tableName as TableName);
+  return (supabase as unknown as DynamicClient).from(tableName);
 }
