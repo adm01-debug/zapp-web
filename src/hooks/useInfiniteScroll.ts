@@ -23,9 +23,7 @@ export function useInfiniteScroll<T extends { id: string }>({
   const query = useInfiniteQuery({
     queryKey: ['infinite', tableName, filters, orderBy],
     queryFn: async ({ pageParam = 0 }) => {
-      // Use any to work around Supabase's dynamic table typing
-      let q = (supabase as any)
-        .from(tableName)
+      let q = fromTable(tableName)
         .select(select)
         .range(pageParam, pageParam + pageSize - 1)
         .order(orderBy.column, { ascending: orderBy.ascending });
