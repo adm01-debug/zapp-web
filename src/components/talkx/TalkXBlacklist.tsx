@@ -105,10 +105,8 @@ export function TalkXBlacklist() {
     mutationFn: async () => {
       const { data: profile } = await supabase.from('profiles').select('id').single();
       const finalReason = reason === 'Outro' ? customReason || 'Outro' : reason;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await supabase
-        .from('talkx_blacklist')
-        .insert({ contact_id: selectedContactId, reason: finalReason, blocked_by: profile?.id } as any);
+      const { error } = await fromTable('talkx_blacklist')
+        .insert({ contact_id: selectedContactId, reason: finalReason, blocked_by: profile?.id });
       if (error) throw error;
     },
     onSuccess: () => {
