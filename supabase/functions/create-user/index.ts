@@ -1,12 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, sanitizeString } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, sanitizeString, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   const log = new Logger("create-user");
+
+  const ip = getClientIP(req);
+  const rl = checkRateLimit(`create-user:${ip}`, 5, 60_000);
+  if (!rl.allowed) return errorResponse('Rate limit exceeded', 429, req);
 
   try {
     const supabaseUrl = requireEnv("SUPABASE_URL");
