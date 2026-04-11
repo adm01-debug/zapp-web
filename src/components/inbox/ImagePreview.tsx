@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { forwardRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,10 @@ interface ImagePreviewProps {
   onClose?: () => void;
 }
 
-export function ImagePreview({ src, alt = 'Image', onClose }: ImagePreviewProps) {
+export const ImagePreview = forwardRef<HTMLDivElement, ImagePreviewProps>(function ImagePreview(
+  { src, alt = 'Image', onClose }: ImagePreviewProps,
+  ref,
+) {
   const [isZoomed, setIsZoomed] = useState(false);
   const { canDownload } = useDownloadPermission();
 
@@ -39,6 +42,7 @@ export function ImagePreview({ src, alt = 'Image', onClose }: ImagePreviewProps)
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -91,7 +95,7 @@ export function ImagePreview({ src, alt = 'Image', onClose }: ImagePreviewProps)
       />
     </motion.div>
   );
-}
+});
 
 interface MessageImageProps {
   src: string;
