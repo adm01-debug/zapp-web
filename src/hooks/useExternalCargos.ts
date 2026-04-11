@@ -16,7 +16,7 @@ export function useExternalCargos() {
       const allCargos: string[] = [];
 
       // 1. Fetch from salespeople.role (accessible - no RLS blocking)
-      const { data: salesRoles, error: e1 } = await externalSupabase
+      const { data: salesRoles, error: e1 } = await getExternalSupabase()
         .from('salespeople')
         .select('role')
         .not('role', 'is', null)

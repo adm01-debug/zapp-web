@@ -24,7 +24,7 @@ async function queryExternal<T = unknown>(params: {
 }): Promise<ExternalDBQueryResult<T>> {
   const start = performance.now();
 
-  let query = externalSupabase
+  let query = getExternalSupabase()
     .from(params.table)
     .select(params.select || '*', { count: params.countMode || undefined });
 
