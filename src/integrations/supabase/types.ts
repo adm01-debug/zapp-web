@@ -6852,6 +6852,7 @@ export type Database = {
           last_error: string | null
           last_sync_at: string | null
           sync_status: string | null
+          token_expires_at: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -6863,6 +6864,7 @@ export type Database = {
           last_error?: string | null
           last_sync_at?: string | null
           sync_status?: string | null
+          token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -6874,6 +6876,7 @@ export type Database = {
           last_error?: string | null
           last_sync_at?: string | null
           sync_status?: string | null
+          token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
