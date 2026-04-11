@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { fromTable } from '@/lib/supabaseHelpers';
 import { toast } from 'sonner';
 import { ShieldBan, Trash2, Plus, Search, UserX, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -105,10 +106,8 @@ export function TalkXBlacklist() {
     mutationFn: async () => {
       const { data: profile } = await supabase.from('profiles').select('id').single();
       const finalReason = reason === 'Outro' ? customReason || 'Outro' : reason;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await supabase
-        .from('talkx_blacklist')
-        .insert({ contact_id: selectedContactId, reason: finalReason, blocked_by: profile?.id } as any);
+      const { error } = await fromTable('talkx_blacklist')
+        .insert({ contact_id: selectedContactId, reason: finalReason, blocked_by: profile?.id });
       if (error) throw error;
     },
     onSuccess: () => {
