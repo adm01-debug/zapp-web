@@ -1,24 +1,123 @@
-# Logs
-logs
+# ============================================
+# ZAPP-WEB .gitignore - Segurança Primeiro!
+# ============================================
+
+# ====================
+# SECRETS E AMBIENTE (CRÍTICO!)
+# ====================
+.env
+.env.*
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+.secrets
+credentials.json
+service-account.json
+firebase-adminsdk*.json
+
+# ====================
+# LOGS
+# ====================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
-node_modules
-dist
-dist-ssr
+# ====================
+# DEPENDÊNCIAS
+# ====================
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ====================
+# BUILD E PRODUÇÃO
+# ====================
+dist/
+dist-ssr/
+build/
+.next/
+out/
 *.local
 
-# Editor directories and files
+# ====================
+# CACHE
+# ====================
+.cache/
+.parcel-cache/
+.turbo/
+.vercel/
+.netlify/
+.vite/
+*.tsbuildinfo
+
+# ====================
+# TESTES
+# ====================
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# ====================
+# EDITOR E IDE
+# ====================
 .vscode/*
 !.vscode/extensions.json
-.idea
+!.vscode/settings.json.example
+.idea/
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
+
+# ====================
+# SISTEMA OPERACIONAL
+# ====================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ====================
+# SUPABASE LOCAL
+# ====================
+supabase/.branches/
+supabase/.temp/
+.supabase/
+
+# ====================
+# OUTROS
+# ====================
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+.eslintcache
+.stylelintcache
+*.tgz
+.yarn-integrity
