@@ -6841,42 +6841,33 @@ export type Database = {
         Row: {
           created_at: string | null
           email_address: string | null
-          has_access_token: boolean | null
-          has_refresh_token: boolean | null
           id: string | null
           is_active: boolean | null
           last_error: string | null
           last_sync_at: string | null
           sync_status: string | null
-          token_expires_at: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           email_address?: string | null
-          has_access_token?: never
-          has_refresh_token?: never
           id?: string | null
           is_active?: boolean | null
           last_error?: string | null
           last_sync_at?: string | null
           sync_status?: string | null
-          token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           email_address?: string | null
-          has_access_token?: never
-          has_refresh_token?: never
           id?: string | null
           is_active?: boolean | null
           last_error?: string | null
           last_sync_at?: string | null
           sync_status?: string | null
-          token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
