@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getLogger } from '@/lib/logger';
-import type { RealtimeMessage } from './useRealtimeMessages';
+// Uses RealtimeMessage type from parent hook
 
 const log = getLogger('MessageSender');
 
