@@ -36,7 +36,7 @@ export function MFABackupCodes({ codes: initialCodes, onRegenerate, onClose }: M
 
   const handleDownload = () => {
     const content = [
-      '=== CÓDIGOS DE BACKUP - WhatsApp CRM ===',
+      '=== CÓDIGOS DE BACKUP - ZAPP Web ===',
       `Gerados em: ${new Date().toLocaleString('pt-BR')}`,
       '',
       'ATENÇÃO: Guarde estes códigos em um local seguro.',

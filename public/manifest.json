@@ -1,6 +1,6 @@
 {
-  "name": "WhatsApp CRM - Plataforma de Atendimento",
-  "short_name": "WA CRM",
+  "name": "ZAPP Web - Plataforma de Atendimento",
+  "short_name": "ZAPP Web",
   "description": "Plataforma completa de atendimento via WhatsApp com IA, gamificação e analytics",
   "start_url": "/",
   "display": "standalone",

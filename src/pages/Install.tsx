@@ -62,7 +62,7 @@ const Install = () => {
           </div>
           <h1 className="text-2xl font-bold text-foreground">Instalar App</h1>
           <p className="text-muted-foreground text-sm">
-            Instale o WhatsApp CRM no seu dispositivo para uma experiência completa
+            Instale o ZAPP Web no seu dispositivo para uma experiência completa
           </p>
         </div>
 

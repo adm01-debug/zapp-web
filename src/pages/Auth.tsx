@@ -298,7 +298,7 @@ export default function Auth() {
               transition={{ delay: 0.2 }}
               className="text-3xl font-bold bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent"
             >
-              WhatsApp Platform
+              ZAPP Web
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 10 }}

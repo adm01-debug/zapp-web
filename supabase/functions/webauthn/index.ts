@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     const { action, userId, userEmail, userName, credential, friendlyName } = parsed.data;
     const origin = req.headers.get('origin') || 'https://localhost';
     const rpId = getRpId(origin);
-    const rpName = 'WhatsApp Platform';
+    const rpName = 'ZAPP Web';
 
     // Verify caller identity for actions that require authentication
     const authHeader = req.headers.get('Authorization');
