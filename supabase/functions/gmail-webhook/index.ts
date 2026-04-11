@@ -15,15 +15,33 @@ const PubSubSchema = z.object({
 });
 
 // deno-lint-ignore no-explicit-any
+async function getTokens(supabase: any, accountId: string): Promise<{ access_token: string; refresh_token: string }> {
+  const { data, error } = await supabase.rpc("get_gmail_tokens", { p_account_id: accountId });
+  if (error || !data?.length) throw new Error("Failed to retrieve tokens");
+  return data[0];
+}
+
+// deno-lint-ignore no-explicit-any
+async function storeTokens(supabase: any, accountId: string, accessToken: string, refreshToken?: string | null) {
+  await supabase.rpc("store_gmail_tokens", {
+    p_account_id: accountId,
+    p_access_token: accessToken,
+    p_refresh_token: refreshToken ?? null,
+  });
+}
+
+// deno-lint-ignore no-explicit-any
 async function refreshToken(supabase: any, account: any, log: Logger): Promise<string> {
   const GOOGLE_CLIENT_ID = requireEnv("GOOGLE_CLIENT_ID");
   const GOOGLE_CLIENT_SECRET = requireEnv("GOOGLE_CLIENT_SECRET");
+
+  const storedTokens = await getTokens(supabase, account.id);
 
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      refresh_token: account.refresh_token,
+      refresh_token: storedTokens.refresh_token,
       client_id: GOOGLE_CLIENT_ID,
       client_secret: GOOGLE_CLIENT_SECRET,
       grant_type: "refresh_token",
@@ -33,8 +51,8 @@ async function refreshToken(supabase: any, account: any, log: Logger): Promise<s
   if (!response.ok) throw new Error("Failed to refresh token");
   const tokens = await response.json();
 
+  await storeTokens(supabase, account.id, tokens.access_token, tokens.refresh_token || null);
   await supabase.from("gmail_accounts").update({
-    access_token: tokens.access_token,
     token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
   }).eq("id", account.id);
 
@@ -100,7 +118,6 @@ serve(async (req) => {
     const parsed = PubSubSchema.safeParse(rawBody);
     if (!parsed.success) {
       log.warn("Invalid PubSub payload", { errors: parsed.error.message });
-      // Return 200 to acknowledge (prevent retries)
       return jsonResponse({ acknowledged: true, error: "Invalid payload" }, 200, req);
     }
 
@@ -109,10 +126,10 @@ serve(async (req) => {
 
     log.info("Notification received", { email: emailAddress, historyId: newHistoryId });
 
-    // Find the gmail account
+    // Find the gmail account (without token columns)
     const { data: account, error: accountError } = await supabase
       .from("gmail_accounts")
-      .select("*")
+      .select("id, email_address, is_active, token_expires_at, history_id, profile_id")
       .eq("email_address", emailAddress)
       .eq("is_active", true)
       .single();
@@ -128,10 +145,13 @@ serve(async (req) => {
     }
 
     // Ensure valid access token
-    let accessToken = account.access_token;
+    let accessToken: string;
     const now = new Date();
     if (now >= new Date(account.token_expires_at)) {
       accessToken = await refreshToken(supabase, account, log);
+    } else {
+      const storedTokens = await getTokens(supabase, account.id);
+      accessToken = storedTokens.access_token;
     }
 
     // Fetch history changes
@@ -272,7 +292,6 @@ serve(async (req) => {
     return jsonResponse({ acknowledged: true, processed: newMessageIds.size }, 200, req);
   } catch (error) {
     log.error("Gmail Webhook error", { error: error instanceof Error ? error.message : String(error) });
-    // Return 200 to prevent Pub/Sub retries on application errors
     log.done(200);
     return jsonResponse({ acknowledged: true, error: error instanceof Error ? error.message : "Unknown error" }, 200, req);
   }

@@ -107,12 +107,30 @@ function extractAttachments(payload: GmailMessage["payload"]): Array<{
 }
 
 // deno-lint-ignore no-explicit-any
+async function getTokens(supabase: any, accountId: string): Promise<{ access_token: string; refresh_token: string }> {
+  const { data, error } = await supabase.rpc("get_gmail_tokens", { p_account_id: accountId });
+  if (error || !data?.length) throw new Error("Failed to retrieve tokens");
+  return data[0];
+}
+
+// deno-lint-ignore no-explicit-any
+async function storeTokens(supabase: any, accountId: string, accessToken: string, refreshToken?: string | null) {
+  await supabase.rpc("store_gmail_tokens", {
+    p_account_id: accountId,
+    p_access_token: accessToken,
+    p_refresh_token: refreshToken ?? null,
+  });
+}
+
+// deno-lint-ignore no-explicit-any
 async function ensureValidToken(supabase: any, account: any, log: Logger): Promise<string> {
   const now = new Date();
   const expiresAt = new Date(account.token_expires_at);
 
+  const storedTokens = await getTokens(supabase, account.id);
+
   if (now < new Date(expiresAt.getTime() - 5 * 60 * 1000)) {
-    return account.access_token;
+    return storedTokens.access_token;
   }
 
   log.info("Refreshing Gmail token");
@@ -123,7 +141,7 @@ async function ensureValidToken(supabase: any, account: any, log: Logger): Promi
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      refresh_token: account.refresh_token,
+      refresh_token: storedTokens.refresh_token,
       client_id: GOOGLE_CLIENT_ID,
       client_secret: GOOGLE_CLIENT_SECRET,
       grant_type: "refresh_token",
@@ -134,11 +152,8 @@ async function ensureValidToken(supabase: any, account: any, log: Logger): Promi
   const tokens = await response.json();
 
   const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
-  await supabase.from("gmail_accounts").update({
-    access_token: tokens.access_token,
-    token_expires_at: newExpiresAt,
-    ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
-  }).eq("id", account.id);
+  await storeTokens(supabase, account.id, tokens.access_token, tokens.refresh_token || null);
+  await supabase.from("gmail_accounts").update({ token_expires_at: newExpiresAt }).eq("id", account.id);
 
   return tokens.access_token;
 }
@@ -345,10 +360,10 @@ serve(async (req) => {
     const body = parsed.data;
     log.info("Processing action", { action: body.action, accountId: body.account_id });
 
-    // Get gmail account
+    // Get gmail account (without token columns - they no longer exist)
     const { data: account } = await supabase
       .from("gmail_accounts")
-      .select("*")
+      .select("id, email_address, is_active, sync_status, token_expires_at, history_id, profile_id")
       .eq("id", body.account_id)
       .eq("profile_id", profile.id)
       .eq("is_active", true)
