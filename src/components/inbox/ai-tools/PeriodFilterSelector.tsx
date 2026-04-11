@@ -217,7 +217,7 @@ export function PeriodFilterSelector({
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start" side="bottom" sideOffset={8}>
+      <PopoverContent className="w-auto p-0 pointer-events-auto scale-[0.7] origin-top-left" align="start" side="bottom" sideOffset={4}>
         <div className="flex min-h-[340px]">
           {/* Presets column */}
           <div className="w-[160px] border-r border-border bg-muted/30 p-2 flex flex-col gap-0.5">
