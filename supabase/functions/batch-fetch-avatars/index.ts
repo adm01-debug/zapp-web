@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { handleCors, errorResponse, jsonResponse, requireEnv, Logger } from "../_shared/validation.ts";
+import { handleCors, errorResponse, jsonResponse, requireEnv, Logger, checkRateLimit, getClientIP } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
@@ -8,6 +8,9 @@ Deno.serve(async (req) => {
   const log = new Logger("batch-fetch-avatars");
 
   try {
+    const ip = getClientIP(req);
+    const rl = checkRateLimit(`batch-avatars:${ip}`, 5, 60_000);
+    if (!rl.allowed) return errorResponse("Rate limit exceeded", 429, req);
     const supabase = createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_SERVICE_ROLE_KEY'));
 
     const { data: contacts, error: contactsError } = await supabase
