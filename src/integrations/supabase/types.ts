@@ -6886,7 +6886,9 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string | null
+          has_token: boolean | null
           id: string | null
+          ip_address: string | null
           reason: string | null
           rejection_reason: string | null
           reviewed_at: string | null
@@ -6894,12 +6896,15 @@ export type Database = {
           status: string | null
           token_expires_at: string | null
           updated_at: string | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
+          has_token?: never
           id?: string | null
+          ip_address?: string | null
           reason?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -6907,12 +6912,15 @@ export type Database = {
           status?: string | null
           token_expires_at?: string | null
           updated_at?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
+          has_token?: never
           id?: string | null
+          ip_address?: string | null
           reason?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -6920,6 +6928,7 @@ export type Database = {
           status?: string | null
           token_expires_at?: string | null
           updated_at?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []
