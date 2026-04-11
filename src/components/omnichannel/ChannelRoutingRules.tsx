@@ -35,7 +35,7 @@ export function ChannelRoutingRules() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('channel_routing_rules')
-        .select('*, queue:queues(name), channel_connection:channel_connections(name)')
+        .select('*, queue:queues(name), channel_connection:channel_connections_safe(name)')
         .order('priority', { ascending: true });
       if (error) throw error;
       return (data || []) as RoutingRule[];
