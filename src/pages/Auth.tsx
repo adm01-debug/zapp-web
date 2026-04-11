@@ -243,7 +243,7 @@ export default function Auth() {
       </div>
 
       {/* Auth Form - Right Side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-4 lg:p-8">
         {/* Mobile Hero Benefits */}
         <div className="lg:hidden w-full max-w-md relative z-10 mb-4">
           <HeroBenefits />
