@@ -49,6 +49,15 @@ const RealtimeTranscription = lazy(() => import('./RealtimeTranscription').then(
 const CloseConversationDialog = lazy(() => import('./CloseConversationDialog').then(m => ({ default: m.CloseConversationDialog })));
 const NextBestActionEngine = lazy(() => import('./NextBestActionEngine').then(m => ({ default: m.NextBestActionEngine })));
 
+// Preload most-used dialogs after idle to reduce perceived latency
+if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+  (window as Window).requestIdleCallback(() => {
+    import('./TransferDialog');
+    import('./AIConversationAssistant');
+    import('./CloseConversationDialog');
+  });
+}
+
 interface ChatPanelProps {
   conversation: Conversation;
   messages: Message[];
