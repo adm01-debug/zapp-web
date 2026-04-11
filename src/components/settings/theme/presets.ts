@@ -367,3 +367,14 @@ export const PRESETS: ThemePreset[] = [
 ];
 
 export const STORAGE_KEY = 'theme-custom-colors';
+export const DEFAULT_PRESET_ID = 'corporate';
+
+const DEPRECATED_PRESET_IDS = new Set(['default', 'purpure']);
+
+export function normalizeStoredPresetId(presetId?: string | null): string {
+  if (!presetId || DEPRECATED_PRESET_IDS.has(presetId)) {
+    return DEFAULT_PRESET_ID;
+  }
+
+  return PRESETS.some((preset) => preset.id === presetId) ? presetId : DEFAULT_PRESET_ID;
+}

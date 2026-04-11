@@ -78,7 +78,8 @@
       (function(){
         try {
           var t = localStorage.getItem('theme');
-          if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          var isDark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');
@@ -87,12 +88,19 @@
           var skin = localStorage.getItem('theme-custom-colors');
           if (skin) {
             var c = JSON.parse(skin);
-            // Migrate legacy purple/default presets — clear cached vars to force corporate blue
-            if (c.preset === 'purpure' || c.preset === 'default') {
-              c.preset = 'corporate';
+            var normalizedPreset = (!c.preset || c.preset === 'purpure' || c.preset === 'default') ? 'corporate' : c.preset;
+            var expectedMode = isDark ? 'dark' : 'light';
+            var canReuseCachedVars = c.cssVarsCache && c.cachePreset === normalizedPreset && c.cacheMode === expectedMode;
+
+            c.preset = normalizedPreset;
+
+            if (!canReuseCachedVars) {
               delete c.cssVarsCache;
+              delete c.cachePreset;
+              delete c.cacheMode;
               localStorage.setItem('theme-custom-colors', JSON.stringify(c));
             }
+
             if (c.cssVarsCache) {
               var root = document.documentElement;
               var vars = c.cssVarsCache;

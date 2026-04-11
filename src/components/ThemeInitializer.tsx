@@ -1,7 +1,21 @@
 import { useEffect } from 'react';
-import { PRESETS, CSS_VARS_TO_APPLY, STORAGE_KEY } from '@/components/settings/theme/presets';
+import {
+  PRESETS,
+  CSS_VARS_TO_APPLY,
+  STORAGE_KEY,
+  DEFAULT_PRESET_ID,
+  normalizeStoredPresetId,
+} from '@/components/settings/theme/presets';
 import type { ThemeModeColors } from '@/components/settings/theme/presets';
 import { useTheme } from '@/hooks/useTheme';
+
+type StoredThemeConfig = {
+  borderRadius?: number;
+  cacheMode?: 'light' | 'dark';
+  cachePreset?: string;
+  cssVarsCache?: Record<string, string>;
+  preset?: string;
+};
 
 /**
  * Global theme initializer — must be mounted at the app root.
@@ -15,25 +29,22 @@ export function ThemeInitializer() {
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    let presetId = 'corporate';
+    let presetId = DEFAULT_PRESET_ID;
     let radius = 8;
+    let storedConfig: StoredThemeConfig = {};
 
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        // Migrate legacy preset IDs to corporate
-        const rawPreset = parsed.preset || 'corporate';
-        presetId = (rawPreset === 'default' || rawPreset === 'purpure') ? 'corporate' : rawPreset;
+        const parsed = JSON.parse(saved) as StoredThemeConfig;
+        storedConfig = parsed;
+        presetId = normalizeStoredPresetId(parsed.preset);
         if (parsed.borderRadius != null) radius = parsed.borderRadius;
-        // Persist migration
-        if (rawPreset !== presetId) {
-          parsed.preset = presetId;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        }
-      } catch { /* corrupted */ }
+      } catch {
+        storedConfig = {};
+      }
     }
 
-    const preset = PRESETS.find(p => p.id === presetId) || PRESETS.find(p => p.id === 'corporate');
+    const preset = PRESETS.find((p) => p.id === presetId) || PRESETS.find((p) => p.id === DEFAULT_PRESET_ID);
     if (preset) {
       const colors: ThemeModeColors = resolvedTheme === 'dark' ? preset.dark : preset.light;
       const root = document.documentElement;
@@ -45,12 +56,18 @@ export function ThemeInitializer() {
         cssVarsCache[key] = value;
       }
 
-      // Cache for the inline flash-prevention script
       try {
-        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        stored.cssVarsCache = cssVarsCache;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-      } catch { /* ignore */ }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          ...storedConfig,
+          borderRadius: radius,
+          cacheMode: resolvedTheme,
+          cachePreset: presetId,
+          cssVarsCache,
+          preset: presetId,
+        }));
+      } catch {
+        /* ignore */
+      }
     }
 
     document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);
