@@ -13,4 +13,5 @@ export interface UseMessageReactionsOptions {
   contactJid?: string;
   externalId?: string;
   senderType?: 'contact' | 'agent';
+  refreshKey?: string;
 }
