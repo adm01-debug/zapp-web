@@ -188,10 +188,15 @@ interface QuickReactionBarProps {
 
 export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, externalId, senderType }: QuickReactionBarProps) {
   const [showPicker, setShowPicker] = useState(false);
-  const { addReaction, hasReacted } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType });
+  const { addReaction, removeReaction, hasReacted } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType });
 
   const handleReact = async (emoji: string) => {
-    await addReaction(emoji);
+    // Toggle: remove if already reacted, add otherwise
+    if (hasReacted(emoji)) {
+      await removeReaction(emoji);
+    } else {
+      await addReaction(emoji);
+    }
     setShowPicker(false);
   };
 
