@@ -1,8 +1,10 @@
-export { AnimatedMetricCard } from './AnimatedMetricCard';
-export { TrendIndicator } from './TrendIndicator';
-export { MiniSparkline } from './MiniSparkline';
-export { MetricComparison } from './MetricComparison';
-export { GoalProgressRing } from './GoalProgressRing';
+import { AnimatedMetricCard } from './AnimatedMetricCard';
+import { TrendIndicator } from './TrendIndicator';
+import { MiniSparkline } from './MiniSparkline';
+import { MetricComparison } from './MetricComparison';
+import { GoalProgressRing } from './GoalProgressRing';
+
+export { AnimatedMetricCard, TrendIndicator, MiniSparkline, MetricComparison, GoalProgressRing };
 export type { TrendDirection, MetricSize, MetricVariant } from './types';
 
 export const DashboardMetrics = {
