@@ -1,8 +1,15 @@
-# 🚀 Pronto Talk Suite
+# 🚀 ZAPP-WEB (Pronto Talk Suite)
+
+![CI](https://github.com/adm01-debug/zapp-web/actions/workflows/ci.yml/badge.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)
+![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwindcss)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 > Plataforma omnichannel de atendimento ao cliente com WhatsApp, IA integrada, CRM e automações.
 
-**URL**: https://lovable.dev/projects/1d419c34-35ac-4a71-96a5-146ca1b3ebf2
+**Deploy**: [pronto-talk-suite.lovable.app](https://pronto-talk-suite.lovable.app)
 
 ---
 
@@ -20,12 +27,13 @@
 - [Testes](#testes)
 - [Deploy](#deploy)
 - [Documentação Adicional](#documentação-adicional)
+- [Contribuição](#contribuição)
 
 ---
 
 ## Visão Geral
 
-Pronto Talk Suite é uma plataforma completa de atendimento ao cliente que centraliza comunicações via WhatsApp, oferece sugestões de IA, CRM integrado, gamificação de agentes, dashboards analíticos e automações de fluxo.
+ZAPP-WEB (Pronto Talk Suite) é uma plataforma completa de atendimento ao cliente que centraliza comunicações via WhatsApp, oferece sugestões de IA, CRM integrado, gamificação de agentes, dashboards analíticos e automações de fluxo.
 
 ### Público-alvo
 - Equipes de atendimento ao cliente
@@ -41,8 +49,8 @@ Pronto Talk Suite é uma plataforma completa de atendimento ao cliente que centr
 | **Frontend** | React 18, TypeScript 5, Vite 5 |
 | **Estilização** | TailwindCSS 3, shadcn/ui, Framer Motion |
 | **Estado** | TanStack React Query, Context API |
-| **Backend** | Lovable Cloud (Auth, Database, Storage, Edge Functions, Realtime) |
-| **IA** | Lovable AI (Gemini, GPT) via Edge Functions |
+| **Backend** | Supabase (Auth, Database, Storage, Edge Functions, Realtime) |
+| **IA** | Gemini, GPT via Edge Functions |
 | **WhatsApp** | Evolution API v2.3.7+ |
 | **CRM** | Bitrix24 API |
 | **Áudio** | ElevenLabs (TTS, STT, SFX) |
@@ -56,17 +64,25 @@ Pronto Talk Suite é uma plataforma completa de atendimento ao cliente que centr
 
 ```bash
 # 1. Clone o repositório
-git clone <repo-url>
-cd pronto-talk-suite
+git clone git@github.com:adm01-debug/zapp-web.git
+cd zapp-web
 
-# 2. Instale dependências
-npm install  # ou bun install
+# 2. Use a versão correta do Node.js
+nvm use
 
-# 3. Inicie o servidor de desenvolvimento
-npm run dev
+# 3. Instale dependências
+bun install  # ou npm install
+
+# 4. Configure variáveis de ambiente
+cp .env.example .env.local
+
+# 5. Inicie o servidor de desenvolvimento
+bun run dev
 ```
 
-As variáveis de ambiente (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`) são configuradas automaticamente pelo Lovable Cloud.
+### Variáveis de ambiente obrigatórias:
+- `VITE_SUPABASE_URL` - URL do projeto Supabase
+- `VITE_SUPABASE_ANON_KEY` - Chave pública do Supabase
 
 ---
 
@@ -85,12 +101,12 @@ As variáveis de ambiente (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`)
 └────────────────┼────────────────────────┘
                  │ HTTPS
 ┌────────────────┼────────────────────────┐
-│           Lovable Cloud                 │
+│              Supabase                   │
 │  ┌──────┐ ┌────┐ ┌─────────┐ ┌──────┐  │
 │  │ Auth │ │ DB │ │ Storage │ │ Real │  │
 │  └──────┘ └────┘ └─────────┘ │ time │  │
 │  ┌────────────────────────┐  └──────┘  │
-│  │    Edge Functions (42) │            │
+│  │   Edge Functions (20)  │            │
 │  └───────────┬────────────┘            │
 └──────────────┼─────────────────────────┘
                │
@@ -127,7 +143,7 @@ src/
 │   ├── security/       # Audit logs, rate limiting
 │   ├── gamification/   # Gamificação de agentes
 │   └── ui/             # shadcn/ui + componentes base
-├── hooks/              # 110+ hooks customizados
+├── hooks/              # 80+ hooks customizados
 ├── pages/              # Páginas/rotas da aplicação
 ├── lib/                # Utilitários (logger, helpers)
 ├── integrations/       # Cliente Supabase (auto-gerado)
@@ -135,20 +151,22 @@ src/
 └── i18n/               # Internacionalização
 
 supabase/
-├── functions/          # 42 Edge Functions
+├── functions/          # 20 Edge Functions
 │   ├── _shared/        # Utilitários compartilhados (validação, CORS, logger)
 │   ├── ai-*/           # Funções de IA (suggest-reply, summary, analysis, etc.)
 │   ├── evolution-*/    # Integração WhatsApp
 │   ├── elevenlabs-*/   # Integração de áudio
 │   └── ...
-├── migrations/         # Migrations SQL versionadas
+├── migrations/         # 55 Migrations SQL versionadas
 └── config.toml         # Configuração do projeto
 
 docs/
 ├── decisions/          # ADRs (Architecture Decision Records)
-├── FUNCTIONALITIES_INVENTORY.md  # 350+ funções inventariadas
-├── EVOLUTION_API_REFERENCE.md    # 60+ endpoints documentados
-└── TECHNICAL_DOCUMENTATION.md    # Documentação técnica
+├── architecture/       # Documentação de arquitetura
+├── runbooks/           # Guias operacionais
+├── TECHNICAL_DOCUMENTATION.md
+├── EVOLUTION_API_REFERENCE.md
+└── ...
 ```
 
 ---
@@ -200,7 +218,7 @@ docs/
 - Rate limiting com backoff exponencial
 - Geo-blocking (whitelist/blacklist)
 - Audit logs completos
-- 194+ políticas RLS
+- 181+ políticas RLS
 
 ---
 
@@ -220,7 +238,6 @@ docs/
 | `elevenlabs-tts` | Text-to-speech |
 | `send-email` | Envio de emails via Resend |
 | `webauthn` | Autenticação FIDO2/WebAuthn |
-| `whatsapp-webhook` | Webhook do WhatsApp |
 
 ---
 
@@ -256,9 +273,9 @@ docs/
 - Detecção de novos dispositivos
 
 ### Autorização (RBAC)
-- Roles: `admin`, `supervisor`, `agent`, `special_agent`
+- Roles: `admin`, `supervisor`, `agent`
 - Tabela separada `user_roles` com função `has_role()` SECURITY DEFINER
-- 194+ políticas RLS no banco de dados
+- 181+ políticas RLS no banco de dados
 - Trigger anti-escalação de privilégios
 - Permissões granulares (role_permissions)
 
@@ -276,17 +293,20 @@ docs/
 
 ```bash
 # Executar testes
-npm test
+bun test
 
 # Com cobertura
-npx vitest --coverage
+bun test --coverage
+
+# Em watch mode
+bun test --watch
 
 # Testes específicos
-npx vitest src/components/security/
+bun test src/hooks/
 ```
 
 **Framework**: Vitest + Testing Library  
-**Arquivos**: ~164 arquivos de teste  
+**Arquivos**: ~72 arquivos de teste  
 **Mock**: Mock centralizado do Supabase em `src/test/mocks/supabase.ts`
 
 ---
@@ -307,23 +327,27 @@ O deploy é gerenciado automaticamente pelo **Lovable**:
 
 | Documento | Descrição |
 |-----------|-----------|
-| [`docs/FUNCTIONALITIES_INVENTORY.md`](docs/FUNCTIONALITIES_INVENTORY.md) | Inventário de 350+ funções |
+| [`docs/TECHNICAL_DOCUMENTATION.md`](docs/TECHNICAL_DOCUMENTATION.md) | Documentação técnica (90KB) |
+| [`docs/COMPLETE_SYSTEM_FEATURES.md`](docs/COMPLETE_SYSTEM_FEATURES.md) | Funcionalidades do sistema (45KB) |
 | [`docs/EVOLUTION_API_REFERENCE.md`](docs/EVOLUTION_API_REFERENCE.md) | Referência de 60+ endpoints |
-| [`docs/TECHNICAL_DOCUMENTATION.md`](docs/TECHNICAL_DOCUMENTATION.md) | Documentação técnica |
-| [`docs/AUDIT_REPORT.md`](docs/AUDIT_REPORT.md) | Relatório de auditoria |
-| [`docs/IMPROVEMENT_PLAN.md`](docs/IMPROVEMENT_PLAN.md) | Plano de melhorias |
+| [`docs/BACKUP-RECOVERY-STRATEGY.md`](docs/BACKUP-RECOVERY-STRATEGY.md) | Estratégia de backup |
+| [`docs/INCIDENT-RUNBOOK.md`](docs/INCIDENT-RUNBOOK.md) | Runbook de incidentes |
 | [`docs/decisions/`](docs/decisions/) | Decisões arquiteturais (ADRs) |
 
 ---
 
-## Como Editar
+## Contribuição
 
-Existem várias formas de editar esta aplicação:
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para guia de contribuição.
 
-1. **Lovable** (recomendado): Edite diretamente em [lovable.dev](https://lovable.dev/projects/1d419c34-35ac-4a71-96a5-146ca1b3ebf2)
-2. **IDE local**: Clone o repositório e use seu editor preferido
-3. **GitHub**: Faça edições diretamente no GitHub
+Para reportar vulnerabilidades, consulte [SECURITY.md](SECURITY.md).
 
 ---
 
-*Construído com ❤️ usando [Lovable](https://lovable.dev)*
+## Licença
+
+Este projeto está licenciado sob a [MIT License](LICENSE).
+
+---
+
+*Construído com ❤️ pela equipe Promo Brindes*
