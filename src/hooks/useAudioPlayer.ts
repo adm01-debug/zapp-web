@@ -126,24 +126,26 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
     try {
       await audio.play(); setIsPlaying(true); setIsLoading(false); setHasError(false);
     } catch {
-      setIsPlaying(false); setIsLoading(false);
+      setIsPlaying(false);
       try {
         const freshUrl = await resolveAudioUrl(audioUrl);
         if (freshUrl !== resolvedUrl) {
           setResolvedUrl(freshUrl); audio.src = freshUrl; audio.load();
           await new Promise<void>((resolve, reject) => {
-            const onCanPlay = () => { audio.removeEventListener('canplay', onCanPlay); audio.removeEventListener('error', onErr); resolve(); };
-            const onErr = () => { audio.removeEventListener('canplay', onCanPlay); audio.removeEventListener('error', onErr); reject(); };
+            const timeout = setTimeout(() => { cleanup(); reject(); }, 15000);
+            const cleanup = () => { audio.removeEventListener('canplay', onCanPlay); audio.removeEventListener('error', onErr); clearTimeout(timeout); };
+            const onCanPlay = () => { cleanup(); resolve(); };
+            const onErr = () => { cleanup(); reject(); };
             audio.addEventListener('canplay', onCanPlay); audio.addEventListener('error', onErr);
           });
-          await audio.play(); setIsPlaying(true); setHasError(false);
+          await audio.play(); setIsPlaying(true); setIsLoading(false); setHasError(false);
         } else {
-          setHasError(true);
-          toast({ title: 'Erro ao reproduzir', description: 'Arquivo indisponível.', variant: 'destructive' });
+          setIsLoading(false); setHasError(true);
+          toast({ title: 'Erro ao reproduzir', description: 'O arquivo de áudio expirou ou foi removido. Tente recarregar a conversa.', variant: 'destructive' });
         }
       } catch {
-        setHasError(true);
-        toast({ title: 'Erro ao reproduzir', variant: 'destructive' });
+        setIsLoading(false); setHasError(true);
+        toast({ title: 'Erro ao reproduzir', description: 'Não foi possível carregar o áudio. Verifique sua conexão.', variant: 'destructive' });
       }
     }
   }, [isPlaying, hasError, audioUrl, resolvedUrl, resolveAudioUrl]);
