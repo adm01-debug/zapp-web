@@ -37,7 +37,7 @@ export function ContactCRMDialog({ open, onOpenChange, onContactSelected }: Cont
                   .from('contacts')
                   .insert({
                     name: crmContact.full_name || crmContact.nome_tratamento || 'Contato CRM',
-                    phone: crmContact.phone_primary,
+                    phone: crmContact.phone_primary.replace(/\D/g, ''),
                     email: crmContact.email_primary || undefined,
                     company: crmContact.company_name || undefined,
                     job_title: crmContact.cargo || undefined,

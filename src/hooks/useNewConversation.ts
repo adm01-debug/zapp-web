@@ -63,10 +63,11 @@ export function useNewConversation(
       let contactId = selectedContact?.id;
       if (mode === 'new' && !contactId) {
         if (!newPhone.trim()) { toast.error('Informe o número do telefone'); setIsSending(false); return; }
-        const { data: existing } = await supabase.from('contacts').select('id, name').eq('phone', newPhone.trim()).maybeSingle();
+        const cleanedNewPhone = newPhone.trim().replace(/\D/g, '');
+        const { data: existing } = await supabase.from('contacts').select('id, name').eq('phone', cleanedNewPhone).maybeSingle();
         if (existing) { toast.error(`Já existe um contato com este número: ${existing.name}`); setIsSending(false); return; }
         const { data: newContact, error } = await supabase.from('contacts').insert({
-          name: newName.trim() || newPhone.trim(), phone: newPhone.trim(),
+          name: newName.trim() || cleanedNewPhone, phone: cleanedNewPhone,
           whatsapp_connection_id: selectedConnection || null,
         }).select('id').single();
         if (error) {

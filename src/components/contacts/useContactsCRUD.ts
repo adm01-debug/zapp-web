@@ -86,7 +86,7 @@ export function useContactsCRUD() {
           surname: newContact.surname || null,
           job_title: newContact.job_title || null,
           company: newContact.company || null,
-          phone: newContact.phone,
+          phone: newContact.phone.replace(/\D/g, ''),
           email: newContact.email || null,
           contact_type: newContact.contact_type,
           assigned_to: profile?.id || null,
