@@ -1,0 +1,45 @@
+# ==========================================
+# ZAPP-WEB EditorConfig
+# ==========================================
+# https://editorconfig.org
+# Garante consistência entre diferentes editores
+# ==========================================
+
+root = true
+
+# Configurações para todos os arquivos
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# TypeScript, JavaScript, React
+[*.{ts,tsx,js,jsx}]
+indent_size = 2
+
+# JSON, YAML
+[*.{json,yml,yaml}]
+indent_size = 2
+
+# Markdown (trailing whitespace pode ser significativo)
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefiles requerem tabs
+[Makefile]
+indent_style = tab
+
+# Shell scripts
+[*.sh]
+indent_size = 2
+
+# SQL
+[*.sql]
+indent_size = 2
+
+# Python (caso exista scripts auxiliares)
+[*.py]
+indent_size = 4
