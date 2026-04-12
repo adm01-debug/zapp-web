@@ -19,14 +19,32 @@ export function useReactionMutations(
   const queryClient = useQueryClient();
   const { sendReaction } = useEvolutionApi();
 
+  const resolveMessageContactId = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('contact_id')
+      .eq('id', messageId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data?.contact_id) {
+      throw new Error('Contato da mensagem não encontrado');
+    }
+
+    return data.contact_id;
+  };
+
   const addMutation = useMutation({
     mutationFn: async (emoji: string) => {
       if (!profileId) throw new Error('Perfil não encontrado');
 
+      const contactId = await resolveMessageContactId();
+
       const { data, error } = await supabase
         .from('message_reactions')
         .upsert(
-          { message_id: messageId, user_id: profileId, emoji },
+          { message_id: messageId, user_id: profileId, contact_id: contactId, emoji },
           { onConflict: 'message_id,user_id,emoji' }
         )
         .select()
@@ -56,7 +74,8 @@ export function useReactionMutations(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['message-reactions', messageId] });
     },
-    onError: () => {
+    onError: (error) => {
+      log.error('Failed to add reaction', error);
       toast({ title: 'Erro ao adicionar reação', variant: 'destructive' });
     },
   });
