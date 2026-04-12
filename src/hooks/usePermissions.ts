@@ -161,6 +161,7 @@ export function usePermissions() {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    checkPermissionServer,
     addPermissionToRole,
     removePermissionFromRole,
     refetch: () => Promise.all([fetchPermissions(), fetchRolePermissions(), fetchUserPermissions()])
