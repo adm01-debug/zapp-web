@@ -354,7 +354,7 @@ function AdvancedCRMSearchInner({ onSelectContact, className }: AdvancedCRMSearc
           ) : (
             <AnimatePresence mode="popLayout">
               {results.map((contact) => (
-                <ContactResultCard
+                <CRMContactCard
                   key={contact.contact_id}
                   contact={contact}
                   onSelect={onSelectContact}

@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
 import { useWarRoomAlerts } from '@/hooks/useWarRoomAlerts';
+import { useWarRoomData, useWarRoomMetrics } from '@/hooks/useWarRoomData';
+import type { WarRoomAgent, WarRoomQueue, WarRoomAlert } from '@/hooks/useWarRoomData';
 import { 
   AlertTriangle, Clock, Users, MessageSquare, TrendingUp, TrendingDown,
   Phone, CheckCircle, XCircle, Timer, Zap, Activity, Bell, Volume2,
@@ -16,140 +16,17 @@ import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface Agent {
-  id: string;
-  name: string;
-  avatar?: string;
-  status: 'online' | 'busy' | 'away' | 'offline';
-  activeChats: number;
-  maxChats: number;
-  avgResponseTime: number;
-  resolvedToday: number;
-  satisfaction: number;
-}
-
-interface QueueMetric {
-  id: string;
-  name: string;
-  color: string;
-  waiting: number;
-  avgWaitTime: number;
-  slaBreaches: number;
-  slaWarnings: number;
-  inProgress: number;
-}
-
-interface Alert {
-  id: string;
-  type: 'critical' | 'warning' | 'info';
-  title: string;
-  message: string;
-  timestamp: Date;
-  isNew?: boolean;
-}
-
 interface WarRoomDashboardProps {
-  agents?: Agent[];
-  queues?: QueueMetric[];
-  alerts?: Alert[];
+  agents?: WarRoomAgent[];
+  queues?: WarRoomQueue[];
+  alerts?: WarRoomAlert[];
   onAgentClick?: (agentId: string) => void;
   onQueueClick?: (queueId: string) => void;
   onAlertDismiss?: (alertId: string) => void;
   className?: string;
 }
 
-// Hook to fetch real War Room data
-function useWarRoomData() {
-  const { data: agents = [] } = useQuery({
-    queryKey: ['warroom-agents'],
-    queryFn: async () => {
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url, is_active, max_chats')
-        .eq('is_active', true);
-      if (error) throw error;
-
-      // Get agent stats
-      const { data: stats } = await supabase
-        .from('agent_stats')
-        .select('profile_id, messages_sent, conversations_resolved, avg_response_time_seconds, customer_satisfaction_score');
-
-      // Get active chat counts from contacts table
-      const { data: contacts } = await supabase
-        .from('contacts')
-        .select('assigned_to');
-
-      const contactCounts = (contacts || []).reduce((acc, c) => {
-        if (c.assigned_to) acc[c.assigned_to] = (acc[c.assigned_to] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const statsMap = new Map((stats || []).map(s => [s.profile_id, s]));
-
-      return (profiles || []).map((p): Agent => {
-        const agentStats = statsMap.get(p.id);
-        const activeChats = contactCounts[p.id] || 0;
-        return {
-          id: p.id,
-          name: p.name,
-          avatar: p.avatar_url || undefined,
-          status: activeChats >= (p.max_chats || 5) ? 'busy' : 'online',
-          activeChats,
-          maxChats: p.max_chats || 5,
-          avgResponseTime: agentStats?.avg_response_time_seconds || 0,
-          resolvedToday: agentStats?.conversations_resolved || 0,
-          satisfaction: Number(agentStats?.customer_satisfaction_score) || 0,
-        };
-      });
-    },
-    refetchInterval: 30000,
-  });
-
-  const { data: queues = [] } = useQuery({
-    queryKey: ['warroom-queues'],
-    queryFn: async () => {
-      const { data: dbQueues, error } = await supabase
-        .from('queues')
-        .select('id, name, color, is_active')
-        .eq('is_active', true);
-      if (error) throw error;
-
-      // Get contacts per queue
-      const { data: contacts } = await supabase
-        .from('contacts')
-        .select('queue_id, assigned_to');
-
-      const { data: slaData } = await supabase
-        .from('conversation_sla')
-        .select('contact_id, first_response_breached, resolution_breached');
-
-      const breachedContacts = new Set(
-        (slaData || []).filter(s => s.first_response_breached || s.resolution_breached).map(s => s.contact_id)
-      );
-
-      return (dbQueues || []).map((q): QueueMetric => {
-        const queueContacts = (contacts || []).filter(c => c.queue_id === q.id);
-        const waiting = queueContacts.filter(c => !c.assigned_to).length;
-        const inProgress = queueContacts.filter(c => c.assigned_to).length;
-        const slaBreaches = queueContacts.filter(c => breachedContacts.has(c.queue_id)).length;
-
-        return {
-          id: q.id,
-          name: q.name,
-          color: q.color,
-          waiting,
-          avgWaitTime: 0,
-          slaBreaches,
-          slaWarnings: 0,
-          inProgress,
-        };
-      });
-    },
-    refetchInterval: 30000,
-  });
-
-  return { agents, queues, alerts: [] as Alert[] };
-}
+// useWarRoomData hook extracted to src/hooks/useWarRoomData.ts
 
 export function WarRoomDashboard({
   agents: propsAgents,
