@@ -541,8 +541,8 @@ serve(async (req) => {
                 else if (msgPayload.stickerMessage) webhookMsgType = 'sticker';
               }
 
-              // Only match pending messages created in the last 60 seconds AND same type
-              const recentCutoff = new Date(Date.now() - 60_000).toISOString();
+              // Only match pending messages created in the last 5 minutes AND same type
+              const recentCutoff = new Date(Date.now() - 300_000).toISOString();
               const { data: pendingMessage } = await supabase
                 .from('messages')
                 .select('id')
