@@ -176,6 +176,8 @@ export function useRealtimeInbox() {
     mediaUrl: m.media_url || undefined,
     transcription: m.transcription || null,
     transcriptionStatus: m.transcription_status as Message['transcriptionStatus'] || null,
+    is_deleted: m.is_deleted ?? false,
+    external_id: m.external_id || undefined,
   }));
 
   return {
