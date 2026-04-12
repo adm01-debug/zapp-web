@@ -55,8 +55,10 @@ export function MessageBubble({
   onEditStart, onMessageDeleted, registerRef,
 }: MessageBubbleProps) {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const isSent = message.sender === 'agent';
   const senderName = isSent ? 'Você' : message.senderName || 'Contato';
+  const agentInitials = profile?.name ? profile.name.slice(0, 2).toUpperCase() : 'EU';
 
   return (
     <MessageContextMenu
