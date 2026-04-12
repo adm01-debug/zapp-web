@@ -20,8 +20,9 @@ import {
   ChevronsDownUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
+import { ImagePreview } from '../ImagePreview';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { CRMSyncButton } from '../CRMAutoSync';
