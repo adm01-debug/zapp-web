@@ -3525,6 +3525,7 @@ export type Database = {
           external_id: string | null
           id: string
           is_deleted: boolean | null
+          is_edited: boolean
           is_read: boolean | null
           media_url: string | null
           message_type: string
@@ -3546,6 +3547,7 @@ export type Database = {
           external_id?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_edited?: boolean
           is_read?: boolean | null
           media_url?: string | null
           message_type?: string
@@ -3567,6 +3569,7 @@ export type Database = {
           external_id?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_edited?: boolean
           is_read?: boolean | null
           media_url?: string | null
           message_type?: string
