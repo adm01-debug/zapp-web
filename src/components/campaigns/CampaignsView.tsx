@@ -1,23 +1,22 @@
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useCampaigns, Campaign } from '@/hooks/useCampaigns';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
   Megaphone, Plus, Play, Pause, Trash2, Edit2, Send, Clock, CheckCircle2,
-  XCircle, AlertCircle, Users, BarChart3, Loader2, Eye, FlaskConical,
+  XCircle, AlertCircle, Users, Loader2, Eye,
 } from 'lucide-react';
+import { CampaignCreateDialog } from './CampaignCreateDialog';
 
 const CampaignABTesting = lazy(() => import('./CampaignABTesting').then(m => ({ default: m.CampaignABTesting })));
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,16 +40,6 @@ export function CampaignsView() {
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
-  type TargetType = 'all' | 'tag' | 'queue' | 'groups' | 'custom';
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    message_content: '',
-    message_type: 'text',
-    target_type: 'all' as TargetType,
-    send_interval_seconds: 5,
-  });
-
   const filtered = campaigns.filter(c => {
     if (filter !== 'all' && c.status !== filter) return false;
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -63,15 +52,6 @@ export function CampaignsView() {
     completed: campaigns.filter(c => c.status === 'completed').length,
     totalSent: campaigns.reduce((sum, c) => sum + c.sent_count, 0),
   };
-
-  const handleCreate = useCallback(() => {
-    createCampaign.mutate({ ...form, target_type: form.target_type as 'all' | 'custom' | 'queue' | 'tag' }, {
-      onSuccess: () => {
-        setShowCreate(false);
-        setForm({ name: '', description: '', message_content: '', message_type: 'text', target_type: 'all', send_interval_seconds: 5 });
-      },
-    });
-  }, [form, createCampaign]);
 
   const getProgress = (campaign: Campaign) => {
     if (campaign.total_contacts === 0) return 0;
@@ -118,16 +98,9 @@ export function CampaignsView() {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <Input
-          placeholder="Buscar campanha..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="max-w-xs"
-        />
+        <Input placeholder="Buscar campanha..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
         <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="draft">Rascunho</SelectItem>
@@ -142,9 +115,7 @@ export function CampaignsView() {
       {/* Campaign List */}
       <ScrollArea className="flex-1">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
+          <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <Megaphone className="w-12 h-12 mb-4 opacity-30" />
@@ -160,13 +131,7 @@ export function CampaignsView() {
                 const progress = getProgress(campaign);
 
                 return (
-                  <motion.div
-                    key={campaign.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                  >
+                  <motion.div key={campaign.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                     <Card className="border-secondary/30 hover:border-primary/30 transition-colors cursor-pointer"
                       onClick={() => setSelectedCampaign(campaign)}>
                       <CardContent className="p-4">
@@ -175,28 +140,17 @@ export function CampaignsView() {
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-foreground truncate">{campaign.name}</h3>
                               <Badge variant="outline" className={cn('text-xs', status.color)}>
-                                <StatusIcon className="w-3 h-3 mr-1" />
-                                {status.label}
+                                <StatusIcon className="w-3 h-3 mr-1" />{status.label}
                               </Badge>
                             </div>
-                            {campaign.description && (
-                              <p className="text-sm text-muted-foreground truncate">{campaign.description}</p>
-                            )}
+                            {campaign.description && <p className="text-sm text-muted-foreground truncate">{campaign.description}</p>}
                             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Users className="w-3 h-3" /> {campaign.total_contacts} contatos
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Send className="w-3 h-3" /> {campaign.sent_count} enviados
-                              </span>
+                              <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {campaign.total_contacts} contatos</span>
+                              <span className="flex items-center gap-1"><Send className="w-3 h-3" /> {campaign.sent_count} enviados</span>
                               {campaign.failed_count > 0 && (
-                                <span className="flex items-center gap-1 text-destructive">
-                                  <AlertCircle className="w-3 h-3" /> {campaign.failed_count} erros
-                                </span>
+                                <span className="flex items-center gap-1 text-destructive"><AlertCircle className="w-3 h-3" /> {campaign.failed_count} erros</span>
                               )}
-                              <span>
-                                {format(new Date(campaign.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                              </span>
+                              <span>{format(new Date(campaign.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                             </div>
                             {(campaign.status === 'sending' || campaign.status === 'completed') && (
                               <div className="mt-2 flex items-center gap-2">
@@ -205,7 +159,6 @@ export function CampaignsView() {
                               </div>
                             )}
                           </div>
-
                           <div className="flex items-center gap-1 ml-4" onClick={e => e.stopPropagation()}>
                             {campaign.status === 'draft' && (
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-success"
@@ -235,77 +188,7 @@ export function CampaignsView() {
         )}
       </ScrollArea>
 
-      {/* Create Dialog */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Megaphone className="w-5 h-5 text-primary" />
-              Nova Campanha
-            </DialogTitle>
-            <DialogDescription>Configure sua campanha de broadcast</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label>Nome da campanha</Label>
-              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="Ex: Black Friday 2024" />
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                placeholder="Breve descrição..." />
-            </div>
-            <div>
-              <Label>Mensagem</Label>
-              <Textarea value={form.message_content} onChange={e => setForm(f => ({ ...f, message_content: e.target.value }))}
-                placeholder="Conteúdo da mensagem..." rows={4} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Tipo de mensagem</Label>
-                <Select value={form.message_type} onValueChange={v => setForm(f => ({ ...f, message_type: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text">Texto</SelectItem>
-                    <SelectItem value="image">Imagem</SelectItem>
-                    <SelectItem value="document">Documento</SelectItem>
-                    <SelectItem value="video">Vídeo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Público-alvo</Label>
-                <Select value={form.target_type} onValueChange={(v: string) => setForm(f => ({ ...f, target_type: v as TargetType }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os contatos</SelectItem>
-                    <SelectItem value="tag">Por etiqueta</SelectItem>
-                    <SelectItem value="queue">Por fila</SelectItem>
-                    <SelectItem value="groups">Grupos WhatsApp</SelectItem>
-                    <SelectItem value="custom">Seleção manual</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <Label>Intervalo entre envios (segundos)</Label>
-              <Input type="number" value={form.send_interval_seconds}
-                onChange={e => setForm(f => ({ ...f, send_interval_seconds: Number(e.target.value) }))}
-                min={1} max={60} />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancelar</Button>
-            <Button onClick={handleCreate} disabled={!form.name || !form.message_content || createCampaign.isPending}>
-              {createCampaign.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Criar Campanha
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CampaignCreateDialog open={showCreate} onOpenChange={setShowCreate} createCampaign={createCampaign} />
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedCampaign} onOpenChange={() => setSelectedCampaign(null)}>
@@ -314,8 +197,7 @@ export function CampaignsView() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <Eye className="w-5 h-5 text-primary" />
-                  {selectedCampaign.name}
+                  <Eye className="w-5 h-5 text-primary" />{selectedCampaign.name}
                 </DialogTitle>
                 <DialogDescription>{selectedCampaign.description || 'Sem descrição'}</DialogDescription>
               </DialogHeader>
@@ -339,8 +221,6 @@ export function CampaignsView() {
                   <p className="text-xs text-muted-foreground mb-1">Mensagem</p>
                   <p className="text-sm text-foreground whitespace-pre-wrap">{selectedCampaign.message_content}</p>
                 </div>
-
-                {/* A/B Testing */}
                 <Suspense fallback={<div className="h-20 bg-muted/20 rounded-xl animate-pulse" />}>
                   <CampaignABTesting campaignId={selectedCampaign.id} />
                 </Suspense>
