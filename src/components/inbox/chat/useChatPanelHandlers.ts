@@ -37,6 +37,19 @@ export function useChatPanelHandlers(opts: UseChatPanelHandlersOptions) {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // ── Refs for stable callbacks (avoid re-renders on every keystroke) ──
+  const inputValueRef = useRef(inputValue);
+  inputValueRef.current = inputValue;
+
+  const isSendingRef = useRef(isSending);
+  isSendingRef.current = isSending;
+
+  const editingMessageRef = useRef(editingMessage);
+  editingMessageRef.current = editingMessage;
+
+  const replyToMessageRef = useRef(replyToMessage);
+  replyToMessageRef.current = replyToMessage;
+
   const EDIT_WINDOW_MINUTES = 15;
 
   const handleEditStart = useCallback((message: Message) => {
@@ -52,18 +65,21 @@ export function useChatPanelHandlers(opts: UseChatPanelHandlersOptions) {
 
   const handleCancelEdit = useCallback(() => { setEditingMessage(null); setInputValue(''); }, []);
 
+  // handleSend now reads from refs → deps are stable → no re-render cascade
   const handleSend = useCallback(async () => {
-    if (!inputValue.trim() || isSending) return;
+    const currentInput = inputValueRef.current;
+    if (!currentInput.trim() || isSendingRef.current) return;
 
-    if (editingMessage) {
-      const externalId = editingMessage.external_id;
+    const currentEditing = editingMessageRef.current;
+    if (currentEditing) {
+      const externalId = currentEditing.external_id;
       const contactJid = contactPhone ? `${contactPhone}@s.whatsapp.net` : '';
       setIsSending(true);
       try {
         if (instanceName && externalId && contactJid) {
-          await editMessageApi(instanceName, { number: contactJid, messageId: externalId, text: inputValue.trim() });
+          await editMessageApi(instanceName, { number: contactJid, messageId: externalId, text: currentInput.trim() });
         }
-        await supabase.from('messages').update({ content: inputValue.trim(), updated_at: new Date().toISOString() }).eq('id', editingMessage.id);
+        await supabase.from('messages').update({ content: currentInput.trim(), updated_at: new Date().toISOString() }).eq('id', currentEditing.id);
         toast({ title: '✏️ Mensagem editada', description: 'A mensagem foi atualizada com sucesso.' });
       } catch (err) {
         log.error('Failed to edit message:', err);
@@ -73,8 +89,8 @@ export function useChatPanelHandlers(opts: UseChatPanelHandlersOptions) {
       return;
     }
 
-    const messageContent = applySignature(inputValue.trim());
-    const wasReply = replyToMessage;
+    const messageContent = applySignature(currentInput.trim());
+    const wasReply = replyToMessageRef.current;
     setIsSending(true); setInputValue(''); setReplyToMessage(null); handleTypingStop();
     if (wasReply) log.debug('Sending reply to:', wasReply.id);
 
@@ -93,7 +109,7 @@ export function useChatPanelHandlers(opts: UseChatPanelHandlersOptions) {
       setInputValue(messageContent);
       toast({ title: 'Erro ao enviar', description: 'Tente novamente.', variant: 'destructive' });
     } finally { setIsSending(false); }
-  }, [inputValue, isSending, editingMessage, replyToMessage, contactPhone, instanceName, editMessageApi, applySignature, onSendMessage, handleTypingStop]);
+  }, [contactPhone, instanceName, editMessageApi, applySignature, onSendMessage, handleTypingStop]);
 
   const handleReplyToMessage = useCallback((message: Message) => { setReplyToMessage(message); inputRef.current?.focus(); }, []);
   const handleCopyMessage = useCallback((content: string) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!', description: 'Mensagem copiada para a área de transferência.' }); }, []);
