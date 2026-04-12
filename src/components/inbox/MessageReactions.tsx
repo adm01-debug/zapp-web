@@ -115,11 +115,9 @@ export function MessageReactions({
       {/* Add reaction button */}
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+          <button
             className={cn(
-              'p-1 rounded-full transition-all',
+              'p-1 rounded-full transition-all hover:scale-110 active:scale-90',
               'hover:bg-muted/80 text-muted-foreground hover:text-foreground',
               reactionsList.length === 0 
                 ? 'opacity-0 group-hover:opacity-100' 
@@ -127,7 +125,7 @@ export function MessageReactions({
             )}
           >
             <SmilePlus className="w-3.5 h-3.5" />
-          </motion.button>
+          </button>
         </PopoverTrigger>
         <PopoverContent 
           className="w-auto p-2 bg-popover" 
