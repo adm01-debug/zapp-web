@@ -422,6 +422,16 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
         />
       </Suspense>
     )}
+
+    <AnimatePresence>
+      {showAvatarPreview && contact.avatar && (
+        <ImagePreview
+          src={contact.avatar}
+          alt={contact.name}
+          onClose={() => setShowAvatarPreview(false)}
+        />
+      )}
+    </AnimatePresence>
     </>
   );
 }
