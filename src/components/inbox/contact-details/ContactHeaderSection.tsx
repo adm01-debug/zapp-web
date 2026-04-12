@@ -20,8 +20,9 @@ import {
   ChevronsDownUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
+import { ImagePreview } from '../ImagePreview';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { CRMSyncButton } from '../CRMAutoSync';
@@ -82,6 +83,7 @@ const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => 
 export function ContactHeaderSection({ contact, enrichedData, conversation, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [callType, setCallType] = useState<'whatsapp' | 'voip'>('whatsapp');
+  const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -197,7 +199,10 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
               transition={{ duration: 1, ease: 'easeOut' }}
             />
           </svg>
-          <Avatar className="w-24 h-24 ring-2 ring-background">
+          <Avatar
+            className="w-24 h-24 ring-2 ring-background cursor-pointer hover:ring-primary/50 transition-all"
+            onClick={() => contact.avatar && setShowAvatarPreview(true)}
+          >
             <AvatarImage src={contact.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
               {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
@@ -417,6 +422,16 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
         />
       </Suspense>
     )}
+
+    <AnimatePresence>
+      {showAvatarPreview && contact.avatar && (
+        <ImagePreview
+          src={contact.avatar}
+          alt={contact.name}
+          onClose={() => setShowAvatarPreview(false)}
+        />
+      )}
+    </AnimatePresence>
     </>
   );
 }
