@@ -16,12 +16,20 @@ interface MessageReactionsProps {
   messageId: string;
   isSent?: boolean;
   showExtended?: boolean;
+  instanceName?: string;
+  contactJid?: string;
+  externalId?: string;
+  senderType?: 'contact' | 'agent';
 }
 
 export function MessageReactions({ 
   messageId, 
   isSent,
-  showExtended = false
+  showExtended = false,
+  instanceName,
+  contactJid,
+  externalId,
+  senderType,
 }: MessageReactionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { 
@@ -30,7 +38,7 @@ export function MessageReactions({
     removeReaction, 
     hasReacted,
     currentProfileId 
-  } = useMessageReactions(messageId);
+  } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType });
 
   // Group reactions by emoji
   const groupedReactions = reactions.reduce((acc, reaction) => {
