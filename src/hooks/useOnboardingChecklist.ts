@@ -91,7 +91,7 @@ export function useOnboardingChecklist({ enabled = true }: { enabled?: boolean }
     }
 
     let dismissed = false;
-    try { dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true'; } catch { /* ignore */ }
+    try { dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true'; } catch { /* storage unavailable */ }
     setIsDismissed(dismissed);
 
     // Don't run queries if already dismissed
@@ -105,14 +105,14 @@ export function useOnboardingChecklist({ enabled = true }: { enabled?: boolean }
 
   const dismiss = useCallback(() => {
     if (user) {
-      try { localStorage.setItem(`checklist_dismissed_${user.id}`, 'true'); } catch { /* ignore */ }
+      try { localStorage.setItem(`checklist_dismissed_${user.id}`, 'true'); } catch { /* storage unavailable */ }
       setIsDismissed(true);
     }
   }, [user]);
 
   const reset = useCallback(() => {
     if (user) {
-      try { localStorage.removeItem(`checklist_dismissed_${user.id}`); } catch { /* ignore */ }
+      try { localStorage.removeItem(`checklist_dismissed_${user.id}`); } catch { /* storage unavailable */ }
       setIsDismissed(false);
     }
   }, [user]);

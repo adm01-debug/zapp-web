@@ -11,6 +11,9 @@ vi.mock('sonner', () => ({
 
 import { useUndoableAction } from '@/hooks/useUndoableAction';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('useUndoableAction.test');
+
 describe('useUndoableAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -63,9 +66,7 @@ describe('useUndoableAction', () => {
           undoAction: mockUndo,
           successMessage: 'Done!',
         });
-      } catch {
-        // Expected
-      }
+      } catch (err) { log.error('Unexpected error in useUndoableAction.test:', err); }
     });
 
     expect(mockAction).toHaveBeenCalled();

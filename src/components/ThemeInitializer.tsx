@@ -9,6 +9,9 @@ import {
 import type { ThemeModeColors } from '@/components/settings/theme/presets';
 import { useTheme } from '@/hooks/useTheme';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('ThemeInitializer');
+
 type StoredThemeConfig = {
   borderRadius?: number;
   cacheMode?: 'light' | 'dark';
@@ -65,9 +68,7 @@ export function ThemeInitializer() {
           cssVarsCache,
           preset: presetId,
         }));
-      } catch {
-        /* ignore */
-      }
+      } catch (err) { log.error('Unexpected error in ThemeInitializer:', err); }
     }
 
     document.documentElement.style.setProperty('--radius', `${radius / 16}rem`);

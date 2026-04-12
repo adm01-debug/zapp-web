@@ -47,7 +47,7 @@ export function useChatInputLogic({
         } else {
           localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`);
         }
-      } catch { /* quota exceeded */ }
+      } catch { /* storage unavailable */ }
     }, 500);
     return () => clearTimeout(timer);
   }, [inputValue, contactId, editingMessage]);
@@ -56,7 +56,7 @@ export function useChatInputLogic({
   useEffect(() => {
     if (!contactId || editingMessage) return;
     let draft: string | null = null;
-    try { draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* private mode */ }
+    try { draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* storage unavailable */ }
     if (draft && !inputValue) {
       setNativeValue(inputRef, draft);
     }
@@ -93,7 +93,7 @@ export function useChatInputLogic({
   const handleSendWithAnimation = useCallback(() => {
     if (!hasText || isOverLimit) return;
     setSendAnimation(true);
-    try { localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* ignore */ }
+    try { localStorage.removeItem(`${DRAFT_KEY_PREFIX}${contactId}`); } catch { /* storage unavailable */ }
     if (isMobile && navigator.vibrate) navigator.vibrate(50);
     onSend();
     setTimeout(() => setSendAnimation(false), 400);

@@ -58,7 +58,7 @@ export function useStickerPicker(onSendSticker: (url: string) => void) {
         toast.info('🔍 Classificando figurinha com IA...');
         const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-sticker', { body: { image_url: urlData.publicUrl } });
         if (!classifyErr && classifyData?.category) aiCategory = classifyData.category;
-      } catch { /* fallback */ }
+      } catch (err) { log.error('Unexpected error in useStickerPicker:', err); }
       setPendingUpload({ file, imageUrl: urlData.publicUrl, storagePath, aiCategory, selectedCategory: aiCategory, name: file.name.replace(/\.[^.]+$/, '') });
     } catch { toast.error('Erro ao processar figurinha'); } finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
   };

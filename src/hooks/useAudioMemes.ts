@@ -109,7 +109,7 @@ export function useAudioMemes(open: boolean) {
           tempAudio.onerror = () => resolve();
           setTimeout(resolve, 3000);
         });
-      } catch { /* ignore */ }
+      } catch (err) { log.error('Unexpected error in useAudioMemes:', err); }
 
       let aiCategory = 'outros';
       try {
@@ -118,7 +118,7 @@ export function useAudioMemes(open: boolean) {
           body: { audio_url: urlData.publicUrl, file_name: file.name },
         });
         if (!classifyErr && classifyData?.category) aiCategory = classifyData.category;
-      } catch { /* fallback */ }
+      } catch (err) { log.error('Unexpected error in useAudioMemes:', err); }
 
       setPendingUpload({
         file, audioUrl: urlData.publicUrl, storagePath, duration,

@@ -53,7 +53,7 @@ export function useCustomShortcuts() {
         customBindings[shortcut.id] = { key: shortcut.customKey, modifiers: shortcut.customModifiers || {} };
       }
     });
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(customBindings)); } catch { /* quota exceeded */ }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(customBindings)); } catch { /* storage unavailable */ }
   }, []);
 
   const updateShortcut = useCallback((id: string, key: string, modifiers: { ctrlKey?: boolean; shiftKey?: boolean; altKey?: boolean }) => {

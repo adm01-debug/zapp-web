@@ -13,6 +13,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCreateTeamConversation } from '@/hooks/useTeamChat';
 import { cn } from '@/lib/utils';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('NewConversationDialog');
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -75,9 +78,7 @@ export function NewConversationDialog({ open, onOpenChange, onCreated }: Props) 
       setGroupName('');
       setSearch('');
       onCreated(result.id);
-    } catch {
-      // Error handled by mutation's onError
-    }
+    } catch (err) { log.error('Unexpected error in NewConversationDialog:', err); }
   };
 
   return (

@@ -18,7 +18,7 @@ export function useOnboarding() {
 
     // Check localStorage first for quick response
     let localCompleted: string | null = null;
-    try { localCompleted = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* private mode */ }
+    try { localCompleted = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* storage unavailable */ }
     if (localCompleted === 'true') {
       setHasCompletedOnboarding(true);
       setLoading(false);
@@ -37,7 +37,7 @@ export function useOnboarding() {
         // If user has settings, they've been here before
         if (data) {
           setHasCompletedOnboarding(true);
-          try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* ignore */ }
+          try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* storage unavailable */ }
         } else {
           setHasCompletedOnboarding(false);
         }
@@ -54,14 +54,14 @@ export function useOnboarding() {
 
   const completeOnboarding = () => {
     if (user) {
-      try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* ignore */ }
+      try { localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, 'true'); } catch { /* storage unavailable */ }
       setHasCompletedOnboarding(true);
     }
   };
 
   const resetOnboarding = () => {
     if (user) {
-      try { localStorage.removeItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* ignore */ }
+      try { localStorage.removeItem(`${ONBOARDING_KEY}_${user.id}`); } catch { /* storage unavailable */ }
       setHasCompletedOnboarding(false);
     }
   };

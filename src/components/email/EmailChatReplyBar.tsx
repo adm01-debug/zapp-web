@@ -15,6 +15,9 @@ import {
 import { useGmail, type EmailMessage } from '@/hooks/useGmail';
 import { toast } from 'sonner';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('EmailChatReplyBar');
+
 interface EmailChatReplyBarProps {
   threadId: string;
   lastMessage: EmailMessage | null;
@@ -142,9 +145,7 @@ export function EmailChatReplyBar({
       setTo('');
       setAttachments([]);
       onSent?.();
-    } catch {
-      // Error toast already handled by useGmail mutations
-    }
+    } catch (err) { log.error('Unexpected error in EmailChatReplyBar:', err); }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

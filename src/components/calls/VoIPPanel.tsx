@@ -44,7 +44,7 @@ function loadSipSettings(): SipSettings {
   try {
     const stored = localStorage.getItem(SIP_SETTINGS_KEY);
     if (stored) return JSON.parse(stored);
-  } catch {}
+  } catch { /* storage unavailable */ }
   return {
     server: 'ip.b24-9441-1552764901.bitrixphone.com',
     user: 'phone1',

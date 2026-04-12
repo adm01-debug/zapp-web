@@ -1,5 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('usePerformanceOptimizations');
+
 // Performance monitoring hook
 interface PerformanceMetrics {
   lcp: number | null;
@@ -63,9 +66,7 @@ export function usePerformanceMetrics() {
       fidObserver.observe({ type: 'first-input', buffered: true });
       clsObserver.observe({ type: 'layout-shift', buffered: true });
       fcpObserver.observe({ type: 'paint', buffered: true });
-    } catch {
-      // Some browsers don't support these observers
-    }
+    } catch (err) { log.error('Unexpected error in usePerformanceOptimizations:', err); }
 
     // Time to First Byte
     const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;

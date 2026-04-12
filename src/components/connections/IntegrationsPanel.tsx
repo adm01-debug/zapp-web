@@ -15,6 +15,9 @@ import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { toast } from 'sonner';
 import { Loader2, Bot, Brain, Workflow, MessageSquare, Zap, Boxes } from 'lucide-react';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('IntegrationsPanel');
+
 interface IntegrationsPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -118,7 +121,7 @@ export function IntegrationsPanel({
       try {
         const data = await getter(instanceName);
         if (data && typeof data === 'object') setter({ enabled: true, ...(data as Record<string, unknown>) });
-      } catch { /* not configured */ }
+      } catch (err) { log.error('Unexpected error in IntegrationsPanel:', err); }
     };
     await Promise.allSettled([
       load(api.getTypebot, setTypebot),

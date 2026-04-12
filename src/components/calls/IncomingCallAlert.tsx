@@ -8,6 +8,9 @@ import { useIncomingCallListener, type IncomingCall } from '@/hooks/useIncomingC
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { cn } from '@/lib/utils';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('IncomingCallAlert');
+
 export const IncomingCallAlert = forwardRef<HTMLDivElement>(
   function IncomingCallAlert(_props, ref) {
   const { incomingCall, dismissCall } = useIncomingCallListener();
@@ -40,9 +43,7 @@ export const IncomingCallAlert = forwardRef<HTMLDivElement>(
           osc.stop();
           ctx.close();
         };
-      } catch {
-        // Audio context not available
-      }
+      } catch (err) { log.error('Unexpected error in IncomingCallAlert:', err); }
     }
   }, [incomingCall, showDialog, notifSettings.soundEnabled, notifSettings.soundVolume, isQuietHours]);
 

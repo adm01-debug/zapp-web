@@ -16,7 +16,7 @@ export function useSidebarFavorites() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
-    } catch {}
+    } catch { /* storage unavailable */ }
   }, [favorites]);
 
   const toggleFavorite = useCallback((id: string) => {

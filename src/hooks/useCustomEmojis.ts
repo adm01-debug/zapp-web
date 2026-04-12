@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CATEGORY_LABELS } from '@/components/inbox/emojiConstants';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('useCustomEmojis');
+
 export interface CustomEmoji {
   id: string;
   name: string;
@@ -78,7 +81,7 @@ export function useCustomEmojis(open: boolean) {
           body: { image_url: urlData.publicUrl, file_name: file.name },
         });
         if (!classifyErr && classifyData?.category) aiCategory = classifyData.category;
-      } catch { /* fallback */ }
+      } catch (err) { log.error('Unexpected error in useCustomEmojis:', err); }
 
       setPendingUpload({
         file, imageUrl: urlData.publicUrl, storagePath,
