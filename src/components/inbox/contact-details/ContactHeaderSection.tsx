@@ -83,6 +83,7 @@ const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => 
 export function ContactHeaderSection({ contact, enrichedData, conversation, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [callType, setCallType] = useState<'whatsapp' | 'voip'>('whatsapp');
+  const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
