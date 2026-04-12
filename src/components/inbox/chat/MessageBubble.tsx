@@ -1,16 +1,16 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { motion } from '@/components/ui/motion';
+import { motion, AnimatePresence } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { Reply, Forward, Copy, Download } from 'lucide-react';
 import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
 import { MessageContextMenu } from '../MessageContextMenu';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
-import { MessageContextActions } from '../MessageContextActions';
 import { HighlightedText } from './HighlightedText';
 import { Message, InteractiveButton } from '@/types/chat';
 import { TypingIndicator } from '../TypingIndicator';
-import { MessageReactions } from '../MessageReactions';
+import { MessageReactions, QuickReactionBar } from '../MessageReactions';
+import { MessageHoverToolbar } from './MessageHoverToolbar';
 import { MessageImage } from '../ImagePreview';
 import { DocumentPreview, VideoPreview } from '../MediaPreview';
 import { AudioMessagePlayer } from '../AudioMessagePlayer';
@@ -105,27 +105,28 @@ export function MessageBubble({
               <span className="text-[11px] font-semibold text-primary/80 ml-1 block">{senderName}</span>
             )}
 
-            {/* Hover actions */}
-            <div className={cn(
-              "absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10",
-              isSent ? "right-full mr-1.5" : "left-full ml-1.5"
-            )}>
-              <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} onClick={() => onReply(message)} className="p-1.5 rounded-lg bg-card/90 backdrop-blur-sm border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/30 shadow-md transition-colors" title="Responder">
-                <Reply className="w-3 h-3" />
-              </motion.button>
-              <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} onClick={() => onForward(message)} className="p-1.5 rounded-lg bg-card/90 backdrop-blur-sm border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/30 shadow-md transition-colors" title="Encaminhar">
-                <Forward className="w-3 h-3" />
-              </motion.button>
-              <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} onClick={() => onCopy(message.content)} className="p-1.5 rounded-lg bg-card/90 backdrop-blur-sm border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/30 shadow-md transition-colors" title="Copiar">
-                <Copy className="w-3 h-3" />
-              </motion.button>
-              {message.type === 'text' && (
-                <TextToSpeechButton messageId={message.id} text={message.content} isLoading={ttsLoading} isPlaying={ttsPlaying} currentMessageId={ttsMessageId} onSpeak={onSpeak} onStop={onStop} className="p-1.5 rounded-lg bg-card/90 backdrop-blur-sm border border-border/40 shadow-md" />
-              )}
-              {instanceName && contactJid && (
-                <MessageContextActions message={message} instanceName={instanceName} contactJid={contactJid} onEditStart={onEditStart} onMessageDeleted={onMessageDeleted} />
-              )}
-            </div>
+            {/* Floating emoji reactions on hover — WhatsApp Web style */}
+            <AnimatePresence>
+              <QuickReactionBar messageId={message.id} isSent={isSent} />
+            </AnimatePresence>
+
+            {/* Pill toolbar — WhatsApp Web style */}
+            <MessageHoverToolbar
+              message={message}
+              isSent={isSent}
+              instanceName={instanceName}
+              contactJid={contactJid}
+              ttsLoading={ttsLoading}
+              ttsPlaying={ttsPlaying}
+              ttsMessageId={ttsMessageId}
+              onReply={onReply}
+              onForward={onForward}
+              onCopy={onCopy}
+              onSpeak={onSpeak}
+              onStop={onStop}
+              onEditStart={onEditStart}
+              onMessageDeleted={onMessageDeleted}
+            />
 
             {/* Message bubble */}
             {message.is_deleted ? (
