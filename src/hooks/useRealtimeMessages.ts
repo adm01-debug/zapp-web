@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { playNotificationSound, showBrowserNotification, requestNotificationPermission } from '@/utils/notificationSound';
 import { getLogger } from '@/lib/logger';
-import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { sendMessageToContact } from './realtime/messageSender';
 import {
   normalizeMessage, buildConversation, dedupeContacts, buildConversations,
   getUniqueMessageContactIds, chunkArray,
 } from './realtime/realtimeUtils';
+import { useRealtimeNotifications } from './realtime/useRealtimeNotifications';
+import { useMessageUpdateBatcher } from './realtime/useMessageUpdateBatcher';
 
 const log = getLogger('RealtimeMessages');
 const SEEDED_CONTACT_LIMIT = 500;
@@ -71,30 +71,23 @@ export interface ConversationWithMessages {
   lastMessage: RealtimeMessage | null;
 }
 
-// Utility functions extracted to ./realtime/realtimeUtils.ts
-
 export function useRealtimeMessages() {
   const [conversations, setConversations] = useState<ConversationWithMessages[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newMessageNotification, setNewMessageNotification] = useState<NewMessageNotification | null>(null);
-  const selectedContactIdRef = useRef<string | null>(null);
   const conversationsRef = useRef<ConversationWithMessages[]>([]);
-  const { settings: notifSettings, isQuietHours } = useNotificationSettings();
-  const soundEnabledRef = useRef(true);
+
+  const {
+    newMessageNotification, notifyAboutIncomingMessage,
+    dismissNotification, setSelectedContact, setSoundEnabled,
+  } = useRealtimeNotifications();
 
   const commitConversations = useCallback(
-    (
-      updater:
-        | ConversationWithMessages[]
-        | ((prev: ConversationWithMessages[]) => ConversationWithMessages[])
-    ) => {
+    (updater: ConversationWithMessages[] | ((prev: ConversationWithMessages[]) => ConversationWithMessages[])) => {
       setConversations((prev) => {
-        const next =
-          typeof updater === 'function'
-            ? (updater as (prev: ConversationWithMessages[]) => ConversationWithMessages[])(prev)
-            : updater;
-
+        const next = typeof updater === 'function'
+          ? (updater as (prev: ConversationWithMessages[]) => ConversationWithMessages[])(prev)
+          : updater;
         conversationsRef.current = next;
         return next;
       });
@@ -104,188 +97,58 @@ export function useRealtimeMessages() {
 
   const fetchContactsByIds = useCallback(async (contactIds: string[]) => {
     const uniqueIds = Array.from(new Set(contactIds.filter(Boolean)));
-
-    if (uniqueIds.length === 0) {
-      return [] as ConversationContact[];
-    }
-
+    if (uniqueIds.length === 0) return [] as ConversationContact[];
     const fetchedContacts: ConversationContact[] = [];
-
     for (const idsChunk of chunkArray(uniqueIds, CONTACT_FETCH_CHUNK_SIZE)) {
-      const { data, error: contactsError } = await supabase
-        .from('contacts')
-        .select('*')
-        .in('id', idsChunk);
-
+      const { data, error: contactsError } = await supabase.from('contacts').select('*').in('id', idsChunk);
       if (contactsError) throw contactsError;
       fetchedContacts.push(...((data ?? []) as ConversationContact[]));
     }
-
     return dedupeContacts(fetchedContacts);
   }, []);
-
-  const notifyAboutIncomingMessage = useCallback(
-    (contact: ConversationContact, message: RealtimeMessage) => {
-      if (message.sender !== 'contact' || message.is_read || selectedContactIdRef.current === message.contact_id) {
-        return;
-      }
-
-      // Respect global notification toggle — skip everything if disabled
-      const notificationsActive = notifSettings.soundEnabled || notifSettings.browserNotifications;
-      if (!notificationsActive && isQuietHours()) {
-        return;
-      }
-
-      if (soundEnabledRef.current) {
-        playNotificationSound('message');
-      }
-
-      if (notifSettings.browserNotifications && !isQuietHours()) {
-        showBrowserNotification(
-          `Nova mensagem de ${contact.name}`,
-          message.content,
-          contact.avatar_url || undefined
-        );
-      }
-
-      // Only show in-app notification toast if notifications are enabled
-      if (notificationsActive && !isQuietHours()) {
-        setNewMessageNotification({
-          id: message.id,
-          contactId: contact.id,
-          contactName: contact.name,
-          contactAvatar: contact.avatar_url,
-          message: message.content,
-          timestamp: new Date(),
-        });
-      }
-    },
-    [notifSettings.soundEnabled, notifSettings.browserNotifications, isQuietHours]
-  );
 
   const hydrateConversationForMessage = useCallback(
     async (message: RealtimeMessage) => {
       if (!message.contact_id) return;
-
       try {
         const [contact] = await fetchContactsByIds([message.contact_id]);
-
-        if (!contact) {
-          log.warn('Incoming message received for unknown contact', { contactId: message.contact_id });
-          return;
-        }
-
+        if (!contact) { log.warn('Incoming message received for unknown contact', { contactId: message.contact_id }); return; }
         commitConversations((prev) => {
-          const conversationIndex = prev.findIndex((conversation) => conversation.contact.id === contact.id);
-
-          if (conversationIndex >= 0) {
-            const existingConversation = prev[conversationIndex];
-
-            if (existingConversation.messages.some((existingMessage) => existingMessage.id === message.id)) {
-              return prev;
-            }
-
-            const updatedConversation = buildConversation(contact, [
-              ...existingConversation.messages,
-              message,
-            ]);
+          const idx = prev.findIndex((c) => c.contact.id === contact.id);
+          if (idx >= 0) {
+            const existing = prev[idx];
+            if (existing.messages.some((m) => m.id === message.id)) return prev;
             const updated = [...prev];
-            updated.splice(conversationIndex, 1);
-            updated.unshift(updatedConversation);
+            updated.splice(idx, 1);
+            updated.unshift(buildConversation(contact, [...existing.messages, message]));
             return updated;
           }
-
           return [buildConversation(contact, [message]), ...prev];
         });
-
         notifyAboutIncomingMessage(contact, message);
-      } catch (hydrateError) {
-        log.error('Error hydrating conversation for incoming message:', hydrateError);
-      }
+      } catch (err) { log.error('Error hydrating conversation for incoming message:', err); }
     },
     [commitConversations, fetchContactsByIds, notifyAboutIncomingMessage]
   );
 
-  // Sync soundEnabledRef with global notification settings
-  useEffect(() => {
-    soundEnabledRef.current = notifSettings.soundEnabled && !isQuietHours();
-  }, [notifSettings.soundEnabled, isQuietHours]);
+  const { handleMessageUpdate } = useMessageUpdateBatcher(conversationsRef, commitConversations, hydrateConversationForMessage);
 
-  // Fetch initial data
-  const fetchConversations = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data: seededContacts, error: contactsError } = await supabase
-        .from('contacts')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(SEEDED_CONTACT_LIMIT);
-
-      if (contactsError) throw contactsError;
-
-      const { data: recentMessages, error: messagesError } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(RECENT_MESSAGES_LIMIT);
-
-      if (messagesError) throw messagesError;
-
-      const normalizedMessages = ((recentMessages ?? []) as RealtimeMessage[]).map(normalizeMessage);
-      const seededContactRows = (seededContacts ?? []) as ConversationContact[];
-      const seededContactIds = new Set(seededContactRows.map((contact) => contact.id));
-      const missingContactIds = getUniqueMessageContactIds(normalizedMessages).filter(
-        (contactId) => !seededContactIds.has(contactId)
-      );
-      const messageContacts = await fetchContactsByIds(missingContactIds);
-
-      commitConversations(buildConversations([...seededContactRows, ...messageContacts], normalizedMessages));
-    } catch (err) {
-      log.error('Error fetching conversations:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch conversations');
-    } finally {
-      setLoading(false);
-    }
-  }, [commitConversations, fetchContactsByIds]);
-
-  // Handle new message
   const handleNewMessage = useCallback(
     (payload: RealtimePostgresChangesPayload<RealtimeMessage>) => {
       const newMessage = normalizeMessage(payload.new as RealtimeMessage);
-
       if (!newMessage.contact_id) return;
 
-      const existingConversation = conversationsRef.current.find(
-        (conversation) => conversation.contact.id === newMessage.contact_id
-      );
-
-      if (!existingConversation) {
-        void hydrateConversationForMessage(newMessage);
-        return;
-      }
+      const existingConversation = conversationsRef.current.find((c) => c.contact.id === newMessage.contact_id);
+      if (!existingConversation) { void hydrateConversationForMessage(newMessage); return; }
 
       commitConversations((prev) => {
-        const conversationIndex = prev.findIndex(
-          (conversation) => conversation.contact.id === newMessage.contact_id
-        );
-
-        if (conversationIndex < 0) return prev;
-
-        const conversation = prev[conversationIndex];
-
-        if (conversation.messages.some((message) => message.id === newMessage.id)) {
-          return prev;
-        }
-
-        const updatedConversation = buildConversation(conversation.contact, [
-          ...conversation.messages,
-          newMessage,
-        ]);
+        const idx = prev.findIndex((c) => c.contact.id === newMessage.contact_id);
+        if (idx < 0) return prev;
+        const conv = prev[idx];
+        if (conv.messages.some((m) => m.id === newMessage.id)) return prev;
         const updated = [...prev];
-        updated.splice(conversationIndex, 1);
-        updated.unshift(updatedConversation);
+        updated.splice(idx, 1);
+        updated.unshift(buildConversation(conv.contact, [...conv.messages, newMessage]));
         return updated;
       });
 
@@ -294,163 +157,54 @@ export function useRealtimeMessages() {
     [commitConversations, hydrateConversationForMessage, notifyAboutIncomingMessage]
   );
 
-  // Handle message update with batching for rapid status changes
-  const pendingUpdatesRef = useRef<Map<string, RealtimeMessage>>(new Map());
-  const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchConversations = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data: seededContacts, error: contactsError } = await supabase.from('contacts').select('*').order('updated_at', { ascending: false }).limit(SEEDED_CONTACT_LIMIT);
+      if (contactsError) throw contactsError;
+      const { data: recentMessages, error: messagesError } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(RECENT_MESSAGES_LIMIT);
+      if (messagesError) throw messagesError;
 
-  const flushPendingUpdates = useCallback(() => {
-    const pending = pendingUpdatesRef.current;
-    if (pending.size === 0) return;
+      const normalizedMessages = ((recentMessages ?? []) as RealtimeMessage[]).map(normalizeMessage);
+      const seededContactRows = (seededContacts ?? []) as ConversationContact[];
+      const seededContactIds = new Set(seededContactRows.map((c) => c.id));
+      const missingContactIds = getUniqueMessageContactIds(normalizedMessages).filter((id) => !seededContactIds.has(id));
+      const messageContacts = await fetchContactsByIds(missingContactIds);
+      commitConversations(buildConversations([...seededContactRows, ...messageContacts], normalizedMessages));
+    } catch (err) {
+      log.error('Error fetching conversations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch conversations');
+    } finally { setLoading(false); }
+  }, [commitConversations, fetchContactsByIds]);
 
-    const updates = Array.from(pending.values());
-    pendingUpdatesRef.current = new Map();
-
-    commitConversations((prev) => {
-      let next = prev;
-      let changed = false;
-
-      for (const updatedMessage of updates) {
-        if (!updatedMessage.contact_id) continue;
-
-        const convIdx = next.findIndex(c => c.contact.id === updatedMessage.contact_id);
-        if (convIdx < 0) continue;
-
-        const conv = next[convIdx];
-        const msgIdx = conv.messages.findIndex(m => m.id === updatedMessage.id);
-        if (msgIdx < 0) continue;
-
-        if (!changed) { next = [...next]; changed = true; }
-
-        const updatedMessages = [...conv.messages];
-        updatedMessages[msgIdx] = updatedMessage;
-        next[convIdx] = buildConversation(conv.contact, updatedMessages);
-      }
-
-      return changed ? next : prev;
-    });
-  }, [commitConversations]);
-
-  const handleMessageUpdate = useCallback(
-    (payload: RealtimePostgresChangesPayload<RealtimeMessage>) => {
-      const updatedMessage = normalizeMessage(payload.new as RealtimeMessage);
-      if (!updatedMessage.contact_id) return;
-
-      const existingConversation = conversationsRef.current.find(
-        (conversation) => conversation.contact.id === updatedMessage.contact_id
-      );
-
-      if (!existingConversation) {
-        void hydrateConversationForMessage(updatedMessage);
-        return;
-      }
-
-      // Batch rapid updates (e.g., multiple status changes within 100ms)
-      pendingUpdatesRef.current.set(updatedMessage.id, updatedMessage);
-      if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
-      updateTimerRef.current = setTimeout(flushPendingUpdates, 100);
-    },
-    [flushPendingUpdates, hydrateConversationForMessage]
-  );
-
-  // Subscribe to realtime updates
   useEffect(() => {
     fetchConversations();
-
-    const channel = supabase
-      .channel('messages-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-        },
-        handleNewMessage
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-        },
-        handleMessageUpdate
-      )
-      .subscribe((status) => {
-        log.debug('Subscription status', { status });
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const channel = supabase.channel('messages-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, handleNewMessage)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, handleMessageUpdate)
+      .subscribe((status) => { log.debug('Subscription status', { status }); });
+    return () => { supabase.removeChannel(channel); };
   }, [fetchConversations, handleNewMessage, handleMessageUpdate]);
 
-  // Send a message (delegates to extracted sender module)
-  const sendMessage = async (
-    contactId: string,
-    content: string,
-    messageType: string = 'text',
-    mediaUrl?: string,
-    mediaPayload?: string
-  ) => {
+  const sendMessage = async (contactId: string, content: string, messageType: string = 'text', mediaUrl?: string, mediaPayload?: string) => {
     return sendMessageToContact(contactId, content, messageType, mediaUrl, mediaPayload);
   };
 
-  // Mark messages as read
   const markAsRead = async (contactId: string) => {
-    const { error } = await supabase
-      .from('messages')
-      .update({ is_read: true })
-      .eq('contact_id', contactId)
-      .eq('sender', 'contact')
-      .eq('is_read', false);
-
-    if (error) {
-      log.error('Error marking messages as read:', error);
-    }
-
+    const { error } = await supabase.from('messages').update({ is_read: true }).eq('contact_id', contactId).eq('sender', 'contact').eq('is_read', false);
+    if (error) log.error('Error marking messages as read:', error);
     commitConversations((prev) =>
-      prev.map((conversation) =>
-        conversation.contact.id === contactId
-          ? buildConversation(
-              conversation.contact,
-              conversation.messages.map((message) => ({ ...message, is_read: true }))
-            )
-          : conversation
+      prev.map((c) => c.contact.id === contactId
+        ? buildConversation(c.contact, c.messages.map((m) => ({ ...m, is_read: true })))
+        : c
       )
     );
   };
 
-  // Dismiss notification
-  const dismissNotification = useCallback(() => {
-    setNewMessageNotification(null);
-  }, []);
-
-  // Set selected contact (to prevent notifications for viewed conversation)
-  const setSelectedContact = useCallback((contactId: string | null) => {
-    selectedContactIdRef.current = contactId;
-  }, []);
-
-  // Toggle sound
-  const setSoundEnabled = useCallback((enabled: boolean) => {
-    soundEnabledRef.current = enabled;
-  }, []);
-
-  // Request notification permission on mount
-  useEffect(() => {
-    requestNotificationPermission();
-  }, []);
-
   return {
-    conversations,
-    loading,
-    error,
-    sendMessage,
-    markAsRead,
-    refetch: fetchConversations,
-    newMessageNotification,
-    dismissNotification,
-    setSelectedContact,
-    setSoundEnabled,
+    conversations, loading, error, sendMessage, markAsRead,
+    refetch: fetchConversations, newMessageNotification,
+    dismissNotification, setSelectedContact, setSoundEnabled,
   };
 }
