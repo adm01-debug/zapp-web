@@ -32,6 +32,8 @@ export function useTypingPresence({
   const [isContactTyping, setIsContactTyping] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const contactTypingRef = useRef(false);
+  const contactTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Track current user typing
   const setTyping = useCallback(async (isTyping: boolean) => {
