@@ -10,6 +10,8 @@ import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { useConversationActions } from '@/hooks/useConversationActions';
 import { Accordion } from '@/components/ui/accordion';
 import { toast } from 'sonner';
+import { KnowledgeBaseSearchPanel } from './KnowledgeBaseSearchPanel';
+import { AnalysisBadges } from './AnalysisBadges';
 
 const ACCORDION_STORAGE_KEY = 'contact-details-accordion-state';
 
