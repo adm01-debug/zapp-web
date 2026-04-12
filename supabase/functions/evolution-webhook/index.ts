@@ -384,7 +384,59 @@ setInterval(() => {
   }
 }, 120_000);
 
-serve(async (req) => {
+// ─── Handle reaction events (add/remove) ───
+// deno-lint-ignore no-explicit-any
+async function handleReactionEvent(supabase: any, reactionMessage: Record<string, unknown>) {
+  const emoji = (reactionMessage.text as string) || '';
+  const reactKey = reactionMessage.key as Record<string, unknown> | undefined;
+  if (!reactKey?.id) return;
+
+  const targetExternalId = reactKey.id as string;
+  const reactedByMe = reactKey.fromMe as boolean;
+
+  // Find the target message in our DB
+  const { data: targetMessage } = await supabase
+    .from('messages')
+    .select('id, contact_id')
+    .eq('external_id', targetExternalId)
+    .maybeSingle();
+
+  if (!targetMessage) {
+    console.log(`Reaction target not found: ${targetExternalId}`);
+    return;
+  }
+
+  if (emoji === '') {
+    // Empty emoji = reaction removed — remove all reactions from this contact on this message
+    if (!reactedByMe) {
+      await supabase
+        .from('message_reactions')
+        .delete()
+        .eq('message_id', targetMessage.id)
+        .eq('contact_id', targetMessage.contact_id);
+      console.log(`Reaction removed on message ${targetExternalId}`);
+    }
+  } else if (!reactedByMe) {
+    // Incoming reaction from contact — upsert
+    const { error: upsertErr } = await supabase
+      .from('message_reactions')
+      .upsert(
+        {
+          message_id: targetMessage.id,
+          contact_id: targetMessage.contact_id,
+          emoji,
+        },
+        { onConflict: 'message_id,contact_id,emoji' }
+      );
+    if (upsertErr) {
+      console.error('Error upserting reaction:', upsertErr);
+    } else {
+      console.log(`Reaction synced: ${emoji} on message ${targetExternalId}`);
+    }
+  }
+}
+
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
