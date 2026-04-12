@@ -166,7 +166,7 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
         </Suspense>
       )}
       {showAvatarPreview && contact.avatar && (
-        <ImagePreview src={contact.avatar} alt={contact.name} isOpen={showAvatarPreview} onClose={() => setShowAvatarPreview(false)} />
+        <ImagePreview src={contact.avatar} alt={contact.name} onClose={() => setShowAvatarPreview(false)} />
       )}
     </>
   );
