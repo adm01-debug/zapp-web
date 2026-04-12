@@ -17,21 +17,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  Legend,
-} from 'recharts';
-import {
   ArrowLeft,
   Users,
   MessageSquare,
@@ -40,6 +25,7 @@ import {
   BarChart3,
   Eye,
 } from 'lucide-react';
+import { QueuesComparisonCharts } from './QueuesComparisonCharts';
 import { useQueuesComparison } from '@/hooks/useQueuesComparison';
 import { PeriodSelector, PeriodOption } from './PeriodSelector';
 
@@ -216,100 +202,7 @@ export function QueuesComparisonDashboard() {
           </div>
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Bar Chart - Contacts & Messages */}
-            <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Contatos e Mensagens por Fila
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                      <XAxis
-                        dataKey="name"
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          color: 'hsl(var(--foreground))',
-                        }}
-                        labelFormatter={(value, payload) => payload?.[0]?.payload?.fullName || value}
-                      />
-                      <Legend />
-                      <Bar dataKey="contatos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Contatos" />
-                      <Bar dataKey="mensagens" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Mensagens" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Radar Chart - Performance Comparison */}
-            <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  Comparação de Performance (%)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={radarData}>
-                      <PolarGrid stroke="hsl(var(--border))" />
-                      <PolarAngleAxis
-                        dataKey="metric"
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                      />
-                      <PolarRadiusAxis
-                        angle={30}
-                        domain={[0, 100]}
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={10}
-                      />
-                      {queuesPerformance.slice(0, 4).map((queue) => (
-                        <Radar
-                          key={queue.id}
-                          name={queue.name}
-                          dataKey={queue.name}
-                          stroke={queue.color}
-                          fill={queue.color}
-                          fillOpacity={0.2}
-                        />
-                      ))}
-                      <Legend />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          color: 'hsl(var(--foreground))',
-                        }}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <QueuesComparisonCharts queuesPerformance={queuesPerformance} />
 
           {/* Detailed Table */}
           <Card className="border border-secondary/20 bg-card/50 backdrop-blur">
