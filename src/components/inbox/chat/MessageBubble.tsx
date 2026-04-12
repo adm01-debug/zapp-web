@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { motion } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { Reply, Forward, Copy, Download } from 'lucide-react';
@@ -54,8 +55,10 @@ export function MessageBubble({
   onEditStart, onMessageDeleted, registerRef,
 }: MessageBubbleProps) {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const isSent = message.sender === 'agent';
   const senderName = isSent ? 'Você' : message.senderName || 'Contato';
+  const agentInitials = profile?.name ? profile.name.slice(0, 2).toUpperCase() : 'EU';
 
   return (
     <MessageContextMenu
@@ -235,7 +238,10 @@ export function MessageBubble({
             <div className="w-8 shrink-0">
               {isLastInGroup && (
                 <Avatar className="w-8 h-8 ring-2 ring-background shadow-sm">
-                  <AvatarFallback className="bg-gradient-to-br from-primary/30 to-primary/10 text-primary text-[10px] font-bold">Eu</AvatarFallback>
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/30 to-primary/10 text-primary text-[10px] font-bold">
+                    {agentInitials}
+                  </AvatarFallback>
                 </Avatar>
               )}
             </div>
