@@ -427,103 +427,21 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           onOpenCatalog={() => openDialog('catalogDirect')} onSelectSuggestion={(text) => setInputValue(text)} onSelectTemplate={(text) => setInputValue(text)}
           fileUploaderRef={fileUploaderRef} inputRef={inputRef} />
 
-        <Suspense fallback={null}>
-          {dialogs.transferDialog && <TransferDialog open={dialogs.transferDialog} onOpenChange={(v) => v ? openDialog('transferDialog') : closeDialog('transferDialog')} onTransfer={handleTransfer as (type: "agent" | "connection" | "queue", targetId: string, message?: string) => void} />}
-          {dialogs.scheduleDialog && <ScheduleMessageDialog open={dialogs.scheduleDialog} onOpenChange={(v) => v ? openDialog('scheduleDialog') : closeDialog('scheduleDialog')} onSchedule={handleScheduleMessage} />}
-          {dialogs.callDialog && <CallDialog open={dialogs.callDialog} onOpenChange={(v) => v ? openDialog('callDialog') : closeDialog('callDialog')} contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }} direction={callDirection} onEnd={() => closeDialog('callDialog')} />}
-          {dialogs.globalSearch && <GlobalSearch open={dialogs.globalSearch} onOpenChange={(v) => v ? openDialog('globalSearch') : closeDialog('globalSearch')} onSelectResult={(result) => { log.debug('Selected:', result); toast({ title: 'Resultado selecionado', description: result.title }); }} />}
-          {dialogs.interactiveBuilder && <InteractiveMessageBuilder open={dialogs.interactiveBuilder} onOpenChange={(v) => v ? openDialog('interactiveBuilder') : closeDialog('interactiveBuilder')} onSend={handleSendInteractiveMessage} />}
-          {dialogs.forwardDialog && <ForwardMessageDialog open={dialogs.forwardDialog} onOpenChange={(v) => v ? openDialog('forwardDialog') : closeDialog('forwardDialog')} message={forwardMessage} onForward={handleForwardToTargets} />}
-          {dialogs.locationPicker && <LocationPicker open={dialogs.locationPicker} onOpenChange={(v) => v ? openDialog('locationPicker') : closeDialog('locationPicker')} onSend={handleSendLocation} />}
-          {dialogs.closeDialog && <CloseConversationDialog open={dialogs.closeDialog} onOpenChange={(v) => v ? openDialog('closeDialog') : closeDialog('closeDialog')} contactId={conversation.contact.id} />}
-        </Suspense>
-
-        {dialogs.catalogDirect && <ExternalProductCatalog onSendProduct={handleSendProduct} open={dialogs.catalogDirect} onOpenChange={(v) => v ? openDialog('catalogDirect') : closeDialog('catalogDirect')} />}
-
-        {dialogs.realtimeTranscription && (
-          <Suspense fallback={null}>
-            <div className="px-3 mb-2">
-              <RealtimeTranscription
-                onTranscript={(text, isFinal) => { if (isFinal) setInputValue(prev => prev + ' ' + text); }}
-                onStatusChange={() => {}}
-                className="w-full"
-              />
-            </div>
-          </Suspense>
-        )}
+        <ChatDialogs
+          dialogs={dialogs} openDialog={openDialog} closeDialog={closeDialog}
+          conversation={conversation} forwardMessage={forwardMessage} callDirection={callDirection}
+          contactId={conversation.contact.id} onTransfer={handleTransfer}
+          onScheduleMessage={handleScheduleMessage} onSendInteractiveMessage={handleSendInteractiveMessage}
+          onForwardToTargets={handleForwardToTargets} onSendLocation={handleSendLocation}
+          onSendProduct={handleSendProduct} onSetInputValue={setInputValue}
+        />
       </div>
 
-      {activeTool === 'aiAssistant' && (
-        <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('aiAssistant')}
-            icon={<VisionIcon className="w-4 h-4 text-primary" />}
-            title="Visão"
-            subtitle="Análise Profunda"
-          >
-            <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
-              contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
-          </ToolPanel>
-        </Suspense>
-      )}
-
-      {activeTool === 'objections' && (
-        <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('objections')}
-            icon={<Radar className="w-4 h-4 text-warning" />}
-            title="Monitoramento de Objeções"
-            subtitle="Detecta resistências e sugere contra-argumentos"
-          >
-            <ObjectionDetector
-              contactId={conversation.contact.id}
-              contactName={conversation.contact.name}
-              lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
-              allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
-              onSelectSuggestion={(text) => setInputValue(text)}
-            />
-          </ToolPanel>
-        </Suspense>
-      )}
-
-      {activeTool === 'university' && (
-        <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('university')}
-            icon={<GraduationCap className="w-4 h-4 text-primary" />}
-            title="Ajuda dos Universitários"
-            subtitle="Gera respostas inteligentes a partir de mensagens"
-          >
-            <UniversityHelp
-              contactId={conversation.contact.id}
-              contactName={conversation.contact.name}
-              messages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
-              onSelectSuggestion={(text) => setInputValue(text)}
-            />
-          </ToolPanel>
-        </Suspense>
-      )}
-
-      {activeTool === 'summary' && (
-        <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('summary')}
-            icon={<FileText className="w-4 h-4 text-primary" />}
-            title="Resumo da Conversa"
-            subtitle="Análise e pontos-chave da conversa"
-          >
-            <ConversationSummary
-              messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
-              contactName={conversation.contact.name}
-              contactId={conversation.contact.id}
-            />
-          </ToolPanel>
-        </Suspense>
-      )}
+      <ChatToolPanels
+        activeTool={activeTool} onSetActiveTool={handleSetActiveTool}
+        messages={messages} contactId={conversation.contact.id}
+        contactName={conversation.contact.name} onSelectSuggestion={(text) => setInputValue(text)}
+      />
     </div>
   );
 }
