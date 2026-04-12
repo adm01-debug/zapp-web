@@ -525,14 +525,14 @@ serve(async (req) => {
 
     // POST /message/markMessageAsRead/{instance}
     if (action === 'mark-read') {
-      return await proxy(`/message/markMessageAsRead/${instance}`, 'POST', {
+      return await proxy(`/chat/markMessageAsRead/${instance}`, 'POST', {
         readMessages: body.readMessages || [body.key],
       });
     }
 
     // POST /message/markMessageAsUnread/{instance}
     if (action === 'mark-unread') {
-      return await proxy(`/message/markMessageAsUnread/${instance}`, 'POST', {
+      return await proxy(`/chat/markMessageAsUnread/${instance}`, 'POST', {
         readMessages: body.readMessages || [body.key],
       });
     }
