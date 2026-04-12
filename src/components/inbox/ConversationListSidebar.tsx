@@ -15,11 +15,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { MessageSquare, RefreshCw, Search as SearchIcon, MessageSquarePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface ConversationListSidebarProps {
-  inbox: ReturnType<typeof import('@/hooks/useRealtimeInbox').useRealtimeInbox>;
-  inboxFilters: ReturnType<typeof import('@/hooks/useInboxFilters').useInboxFilters>;
-  bulkActions: ReturnType<typeof import('@/hooks/useBulkActions').useBulkActions>;
-  pullToRefresh: ReturnType<typeof import('@/hooks/usePullToRefresh').usePullToRefresh>;
+  inbox: any;
+  inboxFilters: any;
+  bulkActions: any;
+  pullToRefresh: any;
 }
 
 export function ConversationListSidebar({ inbox, inboxFilters, bulkActions, pullToRefresh }: ConversationListSidebarProps) {

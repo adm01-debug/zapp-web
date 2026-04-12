@@ -18,7 +18,8 @@ const GRID_COLUMNS_CLASS: Record<number, string> = {
   6: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
 };
 
-import type { Contact } from './useContactsCRUD';
+import type { Contact } from './types';
+import type { CRMBatchResult } from '@/hooks/useExternalContact360Batch';
 
 interface ContactContentAreaProps {
   loading: boolean;
@@ -38,7 +39,7 @@ interface ContactContentAreaProps {
   onClearSearch?: () => void;
   onClearFilters?: () => void;
   onImport: () => void;
-  getCRMData: (phone: string) => Record<string, unknown> | null;
+  getCRMData: (phone: string) => CRMBatchResult | null;
 }
 
 export function ContactContentArea({

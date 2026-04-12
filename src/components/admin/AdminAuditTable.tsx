@@ -8,7 +8,7 @@ interface AuditLog {
   id: string;
   action: string;
   entity_type: string | null;
-  details: Record<string, unknown> | null;
+  details: unknown;
   created_at: string;
   user?: { name: string } | null;
 }

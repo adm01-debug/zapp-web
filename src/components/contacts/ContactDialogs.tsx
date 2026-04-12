@@ -12,11 +12,22 @@ import { CheckCircle2, Copy, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Contact } from './useContactsCRUD';
 
+interface ContactFormValues {
+  name: string;
+  nickname?: string | null;
+  surname?: string | null;
+  job_title?: string | null;
+  company?: string | null;
+  phone: string;
+  email?: string | null;
+  contact_type?: string | null;
+}
+
 interface ContactDialogsProps {
   // Add dialog
   isAddDialogOpen: boolean;
   setIsAddDialogOpen: (open: boolean) => void;
-  newContact: Record<string, string>;
+  newContact: ContactFormValues;
   handleNewContactChange: (field: string, value: string) => void;
   handleAddContact: () => void;
   handleCancelForm: () => void;
