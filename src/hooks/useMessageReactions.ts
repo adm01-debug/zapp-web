@@ -78,6 +78,7 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
     mutationFn: async (emoji: string) => {
       if (!profile?.id) throw new Error('Perfil não encontrado');
 
+      // 1. Save to local DB
       const { data, error } = await supabase
         .from('message_reactions')
         .insert({
@@ -89,6 +90,26 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
         .single();
 
       if (error) throw error;
+
+      // 2. Send reaction via Evolution API to WhatsApp
+      if (options?.instanceName && options?.contactJid && options?.externalId) {
+        try {
+          await sendReaction(
+            options.instanceName,
+            {
+              remoteJid: options.contactJid,
+              fromMe: options.senderType === 'agent',
+              id: options.externalId,
+            },
+            emoji
+          );
+          log.info('Reaction sent via Evolution API', { emoji, messageId });
+        } catch (err) {
+          log.error('Failed to send reaction via Evolution API', err);
+          // Don't throw — local reaction was saved successfully
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
