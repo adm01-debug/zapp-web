@@ -1,62 +1,45 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useExternalContact360Batch } from '@/hooks/useExternalContact360Batch';
-import { ContactEmptyState } from './ContactEmptyState';
 import { ScrollToTopButton } from '@/components/ui/scroll-to-top';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardContent } from '@/components/ui/card';
 import { FloatingParticles } from '@/components/dashboard/FloatingParticles';
 import { AuroraBorealis } from '@/components/effects/AuroraBorealis';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
-  Search, Plus, Upload, Phone, Filter, RefreshCw, Users,
-  Sparkles, FileSpreadsheet,
+  Upload, Users, Sparkles, FileSpreadsheet, RefreshCw,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { CONTACT_TYPES } from '@/utils/whatsappFileTypes';
-import { cn } from '@/lib/utils';
-import { AdvancedCRMSearch } from '@/components/contacts/AdvancedCRMSearch';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { BulkActionsBar } from '@/components/contacts/BulkActionsBar';
-import { supabase } from '@/integrations/supabase/client';
-import { useContactsCRUD } from './useContactsCRUD';
-import { ContactsTable, CONTACT_TYPE_ICONS } from './ContactsTable';
-import { ContactCard } from './ContactCard';
-import { ContactListItem } from './ContactListItem';
+import { CONTACT_TYPE_ICONS } from './ContactsTable';
 import { ContactStatsCards } from './ContactStatsCards';
-import type { ContactViewMode } from './ContactViewSwitcher';
 import { ContactImportDialog } from './ContactImportDialog';
 import { ContactMergeDialog } from './ContactMergeDialog';
-import { ContactMergePanel } from './ContactMergePanel';
-import { ContactGroupedList } from './ContactGroupedList';
 import { ContactCompareDialog } from './ContactCompareDialog';
-import type { FilterPreset } from './FilterPresets';
 import { ContactBulkTagDialog } from './ContactBulkTagDialog';
-import { ContactMapView } from './ContactMapView';
 import { ContactBirthdayPanel } from './ContactBirthdayPanel';
 import { ContactDialogs } from './ContactDialogs';
 import { ContactToolbar } from './ContactToolbar';
 import { ContactPagination } from './ContactPagination';
 import { ContactDetailPanel } from './ContactDetailPanel';
-import { ContactKanbanView } from './ContactKanbanView';
-import { ContactAnalyticsDashboard } from './ContactAnalyticsDashboard';
-import { ContactsSkeleton } from './ContactsSkeleton';
-
-const GRID_COLUMNS_CLASS: Record<number, string> = {
-  3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-  4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-  5: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
-  6: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
-};
+import { ContactContentArea } from './ContactContentArea';
+import { ContactResultsSummary } from './ContactResultsSummary';
+import { ContactCRMDialog } from './ContactCRMDialog';
+import { useContactsViewState } from './useContactsViewState';
 
 export function ContactsView() {
-  const crud = useContactsCRUD();
+  const {
+    crud, viewMode, setViewMode, gridColumns, setGridColumns,
+    isImportOpen, setIsImportOpen, isMergeOpen, setIsMergeOpen,
+    isCompareOpen, setIsCompareOpen, groupByCompany, setGroupByCompany,
+    isBulkTagOpen, setIsBulkTagOpen, detailContact, setDetailContact,
+    handleApplyPreset, handleToggleSelect, handleSelectAll,
+    handleContactClick, handleExportCSV,
+  } = useContactsViewState();
+
   const {
     contacts: filteredContacts, totalCount, loading, hasMore,
     contactCountByType, uniqueCompanies, uniqueJobTitles, uniqueTags,
@@ -66,7 +49,7 @@ export function ContactsView() {
     filterDateRange, setFilterDateRange, sortBy, setSortBy,
     activeFiltersCount, clearFilters, page, setPage, pageSize,
     loadMore, loadPrevious, refetch,
-    profile, feedback, scrollContainerRef,
+    profile, scrollContainerRef,
     isSubmitting, deleteTarget, setDeleteTarget,
     showSuccess, setShowSuccess,
     isAddDialogOpen, setIsAddDialogOpen,
@@ -80,77 +63,8 @@ export function ContactsView() {
     handleNewContactChange, handleEditContactChange,
   } = crud;
 
-  const [viewMode, setViewMode] = useState<ContactViewMode>('grid');
-  const [gridColumns, setGridColumns] = useState(4);
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [isMergeOpen, setIsMergeOpen] = useState(false);
-  const [isCompareOpen, setIsCompareOpen] = useState(false);
-  const [groupByCompany, setGroupByCompany] = useState(false);
-  const [isBulkTagOpen, setIsBulkTagOpen] = useState(false);
-  const [detailContact, setDetailContact] = useState<typeof filteredContacts[0] | null>(null);
-
-  const handleApplyPreset = useCallback((preset: FilterPreset) => {
-    if (preset.filters.type) setActiveTab(preset.filters.type);
-    if (preset.filters.company) setFilterCompany(preset.filters.company);
-    if (preset.filters.jobTitle) setFilterJobTitle(preset.filters.jobTitle);
-    if (preset.filters.tag) setFilterTag(preset.filters.tag);
-    if (preset.filters.dateRange) setFilterDateRange(preset.filters.dateRange);
-    toast.success(`Filtro "${preset.name}" aplicado`);
-  }, [setActiveTab, setFilterCompany, setFilterJobTitle, setFilterTag, setFilterDateRange]);
-
   const contactPhones = useMemo(() => filteredContacts.map(c => c.phone), [filteredContacts]);
   const { lookup: getCRMData } = useExternalContact360Batch(contactPhones);
-
-  const handleToggleSelect = useCallback((id: string, selected: boolean) => {
-    setSelectedIds(prev => selected ? [...prev, id] : prev.filter(i => i !== id));
-  }, [setSelectedIds]);
-
-  const handleSelectAll = useCallback(() => {
-    setSelectedIds(prev =>
-      prev.length === filteredContacts.length ? [] : filteredContacts.map(c => c.id)
-    );
-  }, [filteredContacts, setSelectedIds]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); setIsAddDialogOpen(true); }
-      if (e.key === 'Escape') {
-        if (detailContact) { setDetailContact(null); return; }
-        if (selectedIds.length > 0) { setSelectedIds([]); }
-        else if (searchInput) { clearSearch(); }
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
-        e.preventDefault(); handleSelectAll();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [selectedIds.length, searchInput, clearSearch, setIsAddDialogOpen, setSelectedIds, handleSelectAll, detailContact]);
-
-  // CSV Export
-  const handleExportCSV = useCallback(() => {
-    const esc = (v: string) => (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : v;
-    const headers = ['Nome','Sobrenome','Apelido','Telefone','Email','Empresa','Cargo','Tipo','Tags','Criado em'];
-    const csvRows = filteredContacts.map(c => [
-      esc(c.name), esc(c.surname||''), esc(c.nickname||''), esc(c.phone),
-      esc(c.email||''), esc(c.company||''), esc(c.job_title||''),
-      esc(c.contact_type||'cliente'), esc((c.tags||[]).join('; ')),
-      esc(format(new Date(c.created_at), 'dd/MM/yyyy', { locale: ptBR })),
-    ].join(','));
-    const csv = '\uFEFF' + [headers.join(','), ...csvRows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url;
-    a.download = `contatos_${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    toast.success(`${filteredContacts.length} contatos exportados!`);
-  }, [filteredContacts]);
-
-  const handleContactClick = useCallback((id: string) => {
-    const contact = filteredContacts.find(c => c.id === id);
-    if (contact) setDetailContact(contact);
-  }, [filteredContacts]);
 
   return (
     <div ref={scrollContainerRef} className="p-6 space-y-5 overflow-y-auto h-full relative bg-background">
@@ -158,7 +72,6 @@ export function ContactsView() {
       <AuroraBorealis />
       <FloatingParticles />
 
-      {/* Header */}
       <PageHeader
         title="Contatos"
         subtitle={`Base de clientes e leads (${totalCount} contatos)`}
@@ -195,7 +108,6 @@ export function ContactsView() {
         }
       />
 
-      {/* Import / Merge / Compare / BulkTag Dialogs */}
       <ContactImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} onImportComplete={refetch} />
       <ContactMergeDialog
         open={isMergeOpen} onOpenChange={setIsMergeOpen}
@@ -212,7 +124,6 @@ export function ContactsView() {
         onComplete={() => { setSelectedIds([]); refetch(); }}
       />
 
-      {/* Stats + Birthday */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className="lg:col-span-3">
           <ContactStatsCards totalCount={totalCount} contactCountByType={contactCountByType} uniqueCompanies={uniqueCompanies} contacts={filteredContacts} />
@@ -225,7 +136,6 @@ export function ContactsView() {
         </div>
       </div>
 
-      {/* Type Tabs */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
@@ -246,7 +156,6 @@ export function ContactsView() {
         </Tabs>
       </motion.div>
 
-      {/* Toolbar */}
       <ContactToolbar
         searchInput={searchInput} onSearchChange={handleSearchChange}
         sortBy={sortBy} setSortBy={setSortBy}
@@ -269,118 +178,45 @@ export function ContactsView() {
         totalCount={totalCount}
       />
 
-      {/* Results Summary */}
-      {!loading && filteredContacts.length > 0 && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5" onClick={handleSelectAll}>
-              <Checkbox
-                checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
-                onCheckedChange={() => handleSelectAll()}
-                className="w-3.5 h-3.5"
-              />
-              {selectedIds.length > 0 ? `${selectedIds.length} selecionado${selectedIds.length !== 1 ? 's' : ''}` : 'Selecionar todos'}
-            </Button>
-            <span className="text-muted-foreground/60">|</span>
-            <span>
-              Exibindo <span className="font-semibold text-foreground">{filteredContacts.length}</span>
-              {filteredContacts.length < totalCount && <> de <span className="font-semibold text-foreground">{totalCount}</span></>}
-              {' '}contato{totalCount !== 1 ? 's' : ''}
-            </span>
-            {activeFiltersCount > 0 && (
-              <Badge variant="outline" className="text-xs gap-1"><Filter className="w-3 h-3" />{activeFiltersCount} filtro{activeFiltersCount !== 1 ? 's' : ''}</Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            {search && <span className="text-xs italic">Buscando por "{search}"</span>}
-            <div className="hidden lg:flex items-center gap-2 text-[10px] text-muted-foreground/50">
-              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Ctrl+N</kbd><span>Novo</span>
-              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Ctrl+A</kbd><span>Selecionar</span>
-              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40 font-mono">Esc</kbd><span>Limpar</span>
-            </div>
-          </div>
-        </div>
+      {!loading && (
+        <ContactResultsSummary
+          totalCount={totalCount}
+          filteredCount={filteredContacts.length}
+          selectedCount={selectedIds.length}
+          activeFiltersCount={activeFiltersCount}
+          search={search}
+          onSelectAll={handleSelectAll}
+          allSelected={selectedIds.length === filteredContacts.length}
+        />
       )}
 
-      {/* Contact Content */}
-      {loading ? (
-        <ContactsSkeleton viewMode={viewMode} gridColumns={gridColumns} />
-      ) : filteredContacts.length === 0 ? (
-        <Card><CardContent className="p-0">
-          <ContactEmptyState
-            type={search ? 'no-results' : activeFiltersCount > 0 ? 'filtered-empty' : 'no-contacts'}
-            searchQuery={search}
-            activeFilters={activeFiltersCount}
-            onAddContact={() => setIsAddDialogOpen(true)}
-            onClearSearch={search ? clearSearch : undefined}
-            onClearFilters={activeFiltersCount > 0 ? clearFilters : undefined}
-            onImport={() => setIsImportOpen(true)}
-          />
-        </CardContent></Card>
-      ) : viewMode === 'grid' ? (
-        <div className={cn("grid gap-4", GRID_COLUMNS_CLASS[gridColumns] || GRID_COLUMNS_CLASS[4])}>
-          {filteredContacts.map((contact, index) => (
-            <ContactCard
-              key={contact.id} contact={contact}
-              isSelected={selectedIds.includes(contact.id)}
-              onToggleSelect={handleToggleSelect}
-              onOpenChat={handleContactClick}
-              onEdit={openEditDialog} onDelete={setDeleteTarget} index={index}
-              companyLogo={getCRMData(contact.phone)?.logo_url}
-              companyName={getCRMData(contact.phone)?.company_name}
-              searchQuery={search}
-            />
-          ))}
-        </div>
-      ) : viewMode === 'list' ? (
-        groupByCompany ? (
-          <ContactGroupedList
-            contacts={filteredContacts} selectedIds={selectedIds}
-            onToggleSelect={handleToggleSelect} onOpenChat={handleContactClick}
-            onEdit={openEditDialog} onDelete={setDeleteTarget}
-            getCRMData={getCRMData} searchQuery={search}
-          />
-        ) : (
-          <div className="space-y-2">
-            {filteredContacts.map((contact, index) => (
-              <ContactListItem
-                key={contact.id} contact={contact}
-                isSelected={selectedIds.includes(contact.id)}
-                onToggleSelect={handleToggleSelect}
-                onOpenChat={handleContactClick}
-                onEdit={openEditDialog} onDelete={setDeleteTarget} index={index}
-                companyLogo={getCRMData(contact.phone)?.logo_url}
-                companyName={getCRMData(contact.phone)?.company_name}
-                searchQuery={search}
-              />
-            ))}
-          </div>
-        )
-      ) : viewMode === 'kanban' ? (
-        <ContactKanbanView contacts={filteredContacts} onContactClick={handleContactClick} />
-      ) : viewMode === 'map' ? (
-        <ContactMapView contacts={filteredContacts} onContactClick={handleContactClick} />
-      ) : viewMode === 'analytics' ? (
-        <ContactAnalyticsDashboard contacts={filteredContacts} />
-      ) : (
-        <Card><CardContent className="p-0">
-          <ContactsTable
-            contacts={filteredContacts} selectedIds={selectedIds}
-            onSelectIds={setSelectedIds} onOpenChat={handleContactClick}
-            onEdit={openEditDialog} onDelete={setDeleteTarget}
-            getCRMData={getCRMData} searchQuery={search}
-          />
-        </CardContent></Card>
-      )}
+      <ContactContentArea
+        loading={loading}
+        contacts={filteredContacts}
+        viewMode={viewMode}
+        gridColumns={gridColumns}
+        groupByCompany={groupByCompany}
+        selectedIds={selectedIds}
+        search={search}
+        activeFiltersCount={activeFiltersCount}
+        onToggleSelect={handleToggleSelect}
+        onContactClick={handleContactClick}
+        onEdit={openEditDialog}
+        onDelete={setDeleteTarget}
+        onSelectIds={setSelectedIds}
+        onAddContact={() => setIsAddDialogOpen(true)}
+        onClearSearch={search ? clearSearch : undefined}
+        onClearFilters={activeFiltersCount > 0 ? clearFilters : undefined}
+        onImport={() => setIsImportOpen(true)}
+        getCRMData={getCRMData}
+      />
 
-      {/* Pagination */}
       <ContactPagination
         totalCount={totalCount} pageSize={pageSize} page={page}
         setPage={setPage} loadMore={loadMore} loadPrevious={loadPrevious}
         hasMore={hasMore} loading={loading}
       />
 
-      {/* Detail Panel */}
       {detailContact && (
         <ContactDetailPanel
           contact={detailContact}
@@ -390,53 +226,14 @@ export function ContactsView() {
         />
       )}
 
-      {/* CRM 360° Dialog */}
       {isExternalConfigured && (
-        <Dialog open={isCRMSearchOpen} onOpenChange={setIsCRMSearchOpen}>
-          <DialogContent className="max-w-2xl h-[80vh] p-0 flex flex-col">
-            <DialogHeader className="px-4 pt-4 pb-0 shrink-0">
-              <DialogTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />Busca avançada — CRM 360°
-              </DialogTitle>
-              <DialogDescription>Pesquise contatos no CRM com filtros por vendedor, empresa, ramo, estado e segmento</DialogDescription>
-            </DialogHeader>
-            <div className="flex-1 min-h-0">
-              <AdvancedCRMSearch
-                onSelectContact={async (crmContact) => {
-                  if (!crmContact.phone_primary) return;
-                  const cleanPhone = crmContact.phone_primary.replace(/\D/g, '');
-                  const { data: existing } = await supabase
-                    .from('contacts').select('id')
-                    .or(`phone.eq.${crmContact.phone_primary},phone.eq.${cleanPhone}`)
-                    .limit(1);
-                  if (existing && existing.length > 0) {
-                    setIsCRMSearchOpen(false);
-                    openContactChat(existing[0].id);
-                  } else {
-                    const { data: newC, error } = await supabase
-                      .from('contacts')
-                      .insert({
-                        name: crmContact.full_name || crmContact.nome_tratamento || 'Contato CRM',
-                        phone: crmContact.phone_primary,
-                        email: crmContact.email_primary || undefined,
-                        company: crmContact.company_name || undefined,
-                        job_title: crmContact.cargo || undefined,
-                        contact_type: 'cliente',
-                      })
-                      .select('id').single();
-                    if (error) { toast.error('Erro ao importar contato'); return; }
-                    toast.success('Contato importado do CRM!');
-                    setIsCRMSearchOpen(false);
-                    if (newC) openContactChat(newC.id);
-                  }
-                }}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ContactCRMDialog
+          open={isCRMSearchOpen}
+          onOpenChange={setIsCRMSearchOpen}
+          onContactSelected={openContactChat}
+        />
       )}
 
-      {/* Bulk Actions */}
       <BulkActionsBar
         selectedIds={selectedIds}
         onClearSelection={() => setSelectedIds([])}
@@ -446,5 +243,3 @@ export function ContactsView() {
     </div>
   );
 }
-
-// ContactsSkeleton extracted to ./ContactsSkeleton.tsx
