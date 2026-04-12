@@ -1,38 +1,15 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { EditContactDialog } from './contact-details/EditContactDialog';
-import { log } from '@/lib/logger';
 import { Conversation } from '@/types/chat';
-import { CustomFieldsSection } from '@/components/contacts/CustomFieldsSection';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { X, Plus, Tag, Sparkles, User, FileText, Clock, BarChart3, Settings2, Brain, Info, TagsIcon, Smartphone, Image, ListTodo, Bell, BookOpen, TrendingUp, ShoppingBag, GitBranch } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PrivateNotes } from './PrivateNotes';
-import { ConversationHistory } from './ConversationHistory';
 import { ContactHeaderSection } from './contact-details/ContactHeaderSection';
-import { ContactInfoSection } from './contact-details/ContactInfoSection';
-import { AssignmentSection } from './contact-details/AssignmentSection';
-import { ContactStatsSection } from './contact-details/ContactStatsSection';
-import { MediaGallery } from './MediaGallery';
-import { SLAAndAITagsSection } from './contact-details/SLAAndAITagsSection';
+import { ContactAccordionSections } from './contact-details/ContactAccordionSections';
 import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
-import { ExternalContact360Panel } from './contact-details/ExternalContact360Panel';
-import { ContactIntelligencePanel } from './contact-details/ContactIntelligencePanel';
-import { WhatsAppStatusSection } from './contact-details/WhatsAppStatusSection';
-import { ConversationTasksPanel } from './ConversationTasksPanel';
-import { RemindersPanel } from './RemindersPanel';
-import { ConversationMemoryPanel } from './ConversationMemoryPanel';
-import { LeadRiskScorePanel } from './LeadRiskScorePanel';
-import { ContactPurchasesPanel } from './ContactPurchasesPanel';
-import { ConversationTimeline } from './ConversationTimeline';
 import { useConversationActions } from '@/hooks/useConversationActions';
-
-import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import {
   Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
 } from '@/components/ui/accordion';
 import { toast } from 'sonner';
 
