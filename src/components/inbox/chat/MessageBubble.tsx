@@ -1,10 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { motion, AnimatePresence } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { Reply, Forward, Copy, Download } from 'lucide-react';
 import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
-import { MessageContextMenu } from '../MessageContextMenu';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
 import { HighlightedText } from './HighlightedText';
 import { Message, InteractiveButton } from '@/types/chat';
@@ -64,15 +63,6 @@ export function MessageBubble({
   const agentInitials = profile?.name ? profile.name.slice(0, 2).toUpperCase() : 'EU';
 
   return (
-    <MessageContextMenu
-      message={message}
-      onReply={onReply}
-      onForward={onForward}
-      onCopy={(content) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!' }); }}
-      onDelete={(messageId) => { toast({ title: 'Mensagem deletada', description: messageId.slice(0, 8) }); }}
-      onSpeak={onSpeak ? (content, msgId) => onSpeak(msgId, content) : undefined}
-      onDownload={message.mediaUrl ? (url) => window.open(url, '_blank') : undefined}
-    >
       <SwipeableMessage onSwipeRight={() => onReply(message)} onSwipeLeft={() => onForward(message)}>
         <div
           ref={registerRef}
@@ -266,6 +256,5 @@ export function MessageBubble({
           )}
         </div>
       </SwipeableMessage>
-    </MessageContextMenu>
   );
 }
