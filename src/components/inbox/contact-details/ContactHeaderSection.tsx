@@ -1,38 +1,17 @@
 import { useState, lazy, Suspense } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  Phone,
-  PhoneCall,
-  Headphones,
-  Mail,
-  Building,
-  Briefcase,
-  Ban,
-  Star,
-  Archive,
-  Video,
-  Crown,
-  User,
-  MoreHorizontal,
-  ChevronsDownUp,
-} from 'lucide-react';
+import { Building, Briefcase, Crown } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { EnrichedContactData } from '@/hooks/useContactEnrichedData';
 import { ImagePreview } from '../ImagePreview';
 import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
-import { CRMSyncButton } from '../CRMAutoSync';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import type { Conversation } from '@/types/chat';
+import { CompactContactHeader } from './CompactContactHeader';
+import { ContactActionButtons } from './ContactActionButtons';
 
 const channelIcons: Record<string, string> = {
   whatsapp: '💬', instagram: '📸', facebook: '📘', telegram: '✈️',
@@ -63,13 +42,7 @@ const contactTypeConfig: Record<string, { label: string; color: string }> = {
 };
 
 interface ContactHeaderSectionProps {
-  contact: {
-    id: string;
-    name: string;
-    phone: string;
-    avatar?: string;
-    email?: string;
-  };
+  contact: { id: string; name: string; phone: string; avatar?: string; email?: string };
   enrichedData: EnrichedContactData | null | undefined;
   conversation?: Conversation;
   onQuickAction?: (action: string) => void;
@@ -82,356 +55,119 @@ const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => 
 
 export function ContactHeaderSection({ contact, enrichedData, conversation, onQuickAction, isCompact = false, hasExpandedSections = false, onCollapseAll }: ContactHeaderSectionProps) {
   const [showCallDialog, setShowCallDialog] = useState(false);
-  const [callType, setCallType] = useState<'whatsapp' | 'voip'>('whatsapp');
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} copiado!`);
-  };
 
   const { data: crmData } = useExternalContact360(isExternalConfigured ? contact.phone : undefined);
   const crmContact = crmData?.found ? crmData.contact : null;
   const crmCompany = crmData?.found ? crmData.company : null;
-  const crmCustomer = crmData?.found ? crmData.customer : null;
-  const isVip = crmContact && crmContact.relationship_score >= 70;
+  const isVip = crmContact ? crmContact.relationship_score >= 70 : false;
   const nomeTratamento = crmContact?.nome_tratamento || crmContact?.apelido;
+  const firstName = contact.name.split(' ')[0];
+  const companyName = crmCompany?.nome_fantasia || enrichedData?.company;
 
-  const channelType = enrichedData?.channel_type;
-  const channelEmoji = channelType ? channelIcons[channelType] || '💬' : null;
+  const channelEmoji = enrichedData?.channel_type ? channelIcons[enrichedData.channel_type] || '💬' : null;
   const sentiment = enrichedData?.ai_sentiment;
   const priority = enrichedData?.ai_priority;
   const contactType = enrichedData?.contact_type;
 
-  // Engagement score
   const engagementScore = (() => {
     let s = 50;
-    if (enrichedData?.ai_sentiment === 'positive') s += 25;
-    if (enrichedData?.ai_priority === 'high') s += 15;
+    if (sentiment === 'positive') s += 25;
+    if (priority === 'high') s += 15;
     if (enrichedData?.company) s += 5;
-    if (enrichedData?.contact_type === 'customer') s += 5;
+    if (contactType === 'customer') s += 5;
     return Math.min(s, 100);
   })();
 
-  const getScoreColor = (s: number) => {
-    if (s >= 80) return 'hsl(var(--success))';
-    if (s >= 50) return 'hsl(var(--warning))';
-    return 'hsl(var(--destructive))';
-  };
+  const getScoreColor = (s: number) => s >= 80 ? 'hsl(var(--success))' : s >= 50 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
 
-  // First name for display
-  const firstName = contact.name.split(' ')[0];
-  const companyName = crmCompany?.nome_fantasia || enrichedData?.company;
-
-  // =============================================
-  // COMPACT HEADER (shown when scrolled)
-  // =============================================
   if (isCompact) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card"
-      >
-        <div className="relative">
-          <Avatar className="w-9 h-9 ring-1 ring-border/20">
-            <AvatarImage src={contact.avatar} />
-            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-              {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-          {isVip && (
-            <Crown className="w-3 h-3 text-warning absolute -top-0.5 -right-0.5" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold text-foreground truncate">{firstName}</span>
-            {companyName && (
-              <>
-                <span className="text-muted-foreground text-xs">•</span>
-                <span className="text-xs text-muted-foreground truncate">{companyName}</span>
-              </>
+    return <CompactContactHeader contact={contact} isVip={isVip} companyName={companyName} firstName={firstName} />;
+  }
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        className="p-4 flex flex-col items-center text-center border-b border-border">
+        {/* Avatar with engagement ring */}
+        <div className="relative mb-3">
+          <div className="relative inline-block">
+            <svg className="absolute -inset-1.5 w-[calc(100%+12px)] h-[calc(100%+12px)] -rotate-90" viewBox="0 0 108 108">
+              <circle cx="54" cy="54" r="50" fill="none" stroke="hsl(var(--muted))" strokeWidth="2.5" opacity="0.3" />
+              <motion.circle cx="54" cy="54" r="50" fill="none" stroke={getScoreColor(engagementScore)} strokeWidth="2.5" strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 50} initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
+                animate={{ strokeDashoffset: ((100 - engagementScore) / 100) * 2 * Math.PI * 50 }} transition={{ duration: 1, ease: 'easeOut' }} />
+            </svg>
+            <Avatar className="w-24 h-24 ring-2 ring-background cursor-pointer hover:ring-primary/50 transition-all"
+              onClick={() => contact.avatar && setShowAvatarPreview(true)}>
+              <AvatarImage src={contact.avatar} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
+                {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="absolute -bottom-1 -left-1 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ring-2 ring-background"
+                    style={{ backgroundColor: getScoreColor(engagementScore), color: 'white' }}>
+                    {engagementScore}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Engajamento: {engagementScore >= 80 ? 'Alto' : engagementScore >= 50 ? 'Médio' : 'Baixo'} ({engagementScore}/100)</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {channelEmoji && <span className="absolute -bottom-1 -right-1 text-lg bg-card rounded-full p-0.5 ring-2 ring-background">{channelEmoji}</span>}
+            {crmCompany?.logo_url && (
+              <img src={crmCompany.logo_url} alt={crmCompany.nome_fantasia || ''}
+                className="absolute -top-1 -left-1 w-8 h-8 rounded-md object-contain bg-background border border-border/30 ring-2 ring-background" />
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-primary/10" onClick={() => copyToClipboard(contact.phone, 'Telefone')}>
-                  <Phone className="w-3.5 h-3.5 text-primary" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Copiar telefone</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+
+        <h4 className="font-semibold text-lg text-foreground leading-tight">{firstName}</h4>
+        {companyName && <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><Building className="w-3 h-3" />{companyName}</p>}
+        {nomeTratamento && <p className="text-[10px] text-primary/70 italic mt-0.5">"{nomeTratamento}"</p>}
+        {enrichedData?.job_title && <p className={`text-${companyName ? '[10px]' : 'xs'} text-muted-foreground ${!companyName ? 'flex items-center gap-1' : ''} mt-0.5`}>
+          {!companyName && <Briefcase className="w-3 h-3" />}{enrichedData.job_title}
+        </p>}
+        <p className="text-xs text-muted-foreground mt-0.5 font-mono tracking-tight">{contact.phone}</p>
+
+        {/* Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
+          {contactType && contactTypeConfig[contactType] && (
+            <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${contactTypeConfig[contactType].color}`}>{contactTypeConfig[contactType].label}</Badge>
+          )}
+          {isVip && (
+            <Badge variant="outline" className="text-[10px] font-medium h-5 px-2 bg-warning/15 text-warning border-warning/30"><Crown className="w-3 h-3 mr-0.5" />VIP</Badge>
+          )}
+          {sentiment && sentimentConfig[sentiment] && (
+            <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${sentimentConfig[sentiment].color}`}>
+              <span className="mr-0.5">{sentimentConfig[sentiment].emoji}</span>{sentimentConfig[sentiment].label}
+            </Badge>
+          )}
+          {priority && priorityConfig[priority] && (
+            <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${priorityConfig[priority].color}`}>{priorityConfig[priority].label}</Badge>
+          )}
         </div>
+
+        <ContactActionButtons
+          contact={contact} conversation={conversation}
+          hasExpandedSections={hasExpandedSections} onCollapseAll={onCollapseAll}
+          onQuickAction={onQuickAction}
+          onStartCall={(type) => setShowCallDialog(true)}
+        />
       </motion.div>
-    );
-  }
 
-  // =============================================
-  // FULL HEADER
-  // =============================================
-  return (
-    <>
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="p-4 flex flex-col items-center text-center border-b border-border"
-    >
-      {/* Avatar with channel badge, company logo, and engagement ring */}
-      <div className="relative mb-3">
-        <div className="relative inline-block">
-          {/* Engagement ring SVG behind avatar */}
-          <svg className="absolute -inset-1.5 w-[calc(100%+12px)] h-[calc(100%+12px)] -rotate-90" viewBox="0 0 108 108">
-            <circle cx="54" cy="54" r="50" fill="none" stroke="hsl(var(--muted))" strokeWidth="2.5" opacity="0.3" />
-            <motion.circle
-              cx="54" cy="54" r="50"
-              fill="none"
-              stroke={getScoreColor(engagementScore)}
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeDasharray={2 * Math.PI * 50}
-              initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
-              animate={{ strokeDashoffset: ((100 - engagementScore) / 100) * 2 * Math.PI * 50 }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-            />
-          </svg>
-          <Avatar
-            className="w-24 h-24 ring-2 ring-background cursor-pointer hover:ring-primary/50 transition-all"
-            onClick={() => contact.avatar && setShowAvatarPreview(true)}
-          >
-            <AvatarImage src={contact.avatar} />
-            <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
-              {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-          {/* Engagement score badge */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className="absolute -bottom-1 -left-1 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ring-2 ring-background"
-                  style={{ backgroundColor: getScoreColor(engagementScore), color: 'white' }}
-                >
-                  {engagementScore}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                Engajamento: {engagementScore >= 80 ? 'Alto' : engagementScore >= 50 ? 'Médio' : 'Baixo'} ({engagementScore}/100)
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          {channelEmoji && (
-            <span className="absolute -bottom-1 -right-1 text-lg bg-card rounded-full p-0.5 ring-2 ring-background">
-              {channelEmoji}
-            </span>
-          )}
-          {crmCompany?.logo_url && (
-            <img
-              src={crmCompany.logo_url}
-              alt={crmCompany.nome_fantasia || ''}
-              className="absolute -top-1 -left-1 w-8 h-8 rounded-md object-contain bg-background border border-border/30 ring-2 ring-background"
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Name + Company in a single line hierarchy */}
-      <h4 className="font-semibold text-lg text-foreground leading-tight">{firstName}</h4>
-      {companyName && (
-        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-          <Building className="w-3 h-3" />
-          {companyName}
-        </p>
+      {showCallDialog && (
+        <Suspense fallback={null}>
+          <CallDialog open={showCallDialog} onOpenChange={setShowCallDialog}
+            contact={{ id: contact.id, name: contact.name, phone: contact.phone, avatar: contact.avatar }}
+            direction="outbound" onEnd={() => setShowCallDialog(false)} />
+        </Suspense>
       )}
-      {nomeTratamento && (
-        <p className="text-[10px] text-primary/70 italic mt-0.5">"{nomeTratamento}"</p>
-      )}
-      {(enrichedData?.job_title && !companyName) && (
-        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-          <Briefcase className="w-3 h-3" />
-          {enrichedData.job_title}
-        </p>
-      )}
-      {enrichedData?.job_title && companyName && (
-        <p className="text-[10px] text-muted-foreground mt-0.5">{enrichedData.job_title}</p>
-      )}
-      <p className="text-xs text-muted-foreground mt-0.5 font-mono tracking-tight">{contact.phone}</p>
-
-      {/* Badges row - contact type first, then sentiment */}
-      <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
-        {contactType && contactTypeConfig[contactType] && (
-          <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${contactTypeConfig[contactType].color}`}>
-            {contactTypeConfig[contactType].label}
-          </Badge>
-        )}
-        {isVip && (
-          <Badge variant="outline" className="text-[10px] font-medium h-5 px-2 bg-warning/15 text-warning border-warning/30">
-            <Crown className="w-3 h-3 mr-0.5" />
-            VIP
-          </Badge>
-        )}
-        {sentiment && sentimentConfig[sentiment] && (
-          <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${sentimentConfig[sentiment].color}`}>
-            <span className="mr-0.5">{sentimentConfig[sentiment].emoji}</span>
-            {sentimentConfig[sentiment].label}
-          </Badge>
-        )}
-        {priority && priorityConfig[priority] && (
-          <Badge variant="outline" className={`text-[10px] font-medium h-5 px-2 ${priorityConfig[priority].color}`}>
-            {priorityConfig[priority].label}
-          </Badge>
-        )}
-      </div>
-      <div className="flex items-center gap-1 mt-2">
-        <TooltipProvider>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                title="Opções de chamada"
-              >
-                <Phone className="w-4 h-4 text-primary" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="min-w-[160px]">
-              <DropdownMenuItem
-                onClick={() => {
-                  setCallType('whatsapp');
-                  setShowCallDialog(true);
-                }}
-                className="gap-2 text-xs"
-              >
-                <PhoneCall className="w-3.5 h-3.5 text-success" />
-                Ligar via WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setCallType('voip');
-                  setShowCallDialog(true);
-                  window.dispatchEvent(new CustomEvent('start-voip-call', { detail: { phone: contact.phone, name: contact.name } }));
-                }}
-                className="gap-2 text-xs"
-              >
-                <Headphones className="w-3.5 h-3.5 text-info" />
-                Ligar via Telefone
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                onClick={() => {
-                  toast.info('Chamada de vídeo em breve');
-                }}
-              >
-                <Video className="w-4 h-4 text-primary" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Chamada de vídeo</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9 border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                onClick={() => {
-                  if (contact.email) {
-                    window.location.hash = '#email-chat';
-                  }
-                }}
-                disabled={!contact.email}
-              >
-                <Mail className="w-4 h-4 text-primary" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">{contact.email ? 'Abrir email' : 'Sem email'}</TooltipContent>
-          </Tooltip>
-
-          {/* Sync CRM */}
-          {isExternalConfigured && conversation && (
-            <CRMSyncButton conversation={conversation} />
-          )}
-
-          {/* Collapse all sections */}
-          {hasExpandedSections && onCollapseAll && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-9 h-9 border-border/30 hover:border-muted-foreground/50 hover:bg-muted/20"
-                  onClick={onCollapseAll}
-                >
-                  <ChevronsDownUp className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Recolher todas as seções</TooltipContent>
-            </Tooltip>
-          )}
-
-          {/* More actions dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="w-9 h-9 border-border/30 hover:bg-muted/30" title="Mais ações">
-                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="min-w-[140px]">
-              <DropdownMenuItem onClick={() => onQuickAction?.('edit')} className="gap-2 text-xs">
-                <Briefcase className="w-3.5 h-3.5 text-primary" />
-                Editar Contato
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction?.('vip')} className="gap-2 text-xs">
-                <Star className="w-3.5 h-3.5 text-warning" />
-                Marcar VIP
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction?.('archive')} className="gap-2 text-xs">
-                <Archive className="w-3.5 h-3.5 text-muted-foreground" />
-                Arquivar
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction?.('block')} className="gap-2 text-xs text-destructive">
-                <Ban className="w-3.5 h-3.5" />
-                Bloquear
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipProvider>
-      </div>
-    </motion.div>
-
-    {showCallDialog && (
-      <Suspense fallback={null}>
-        <CallDialog
-          open={showCallDialog}
-          onOpenChange={setShowCallDialog}
-          contact={{ id: contact.id, name: contact.name, phone: contact.phone, avatar: contact.avatar }}
-          direction="outbound"
-          onEnd={() => setShowCallDialog(false)}
-        />
-      </Suspense>
-    )}
-
-    <AnimatePresence>
       {showAvatarPreview && contact.avatar && (
-        <ImagePreview
-          src={contact.avatar}
-          alt={contact.name}
-          onClose={() => setShowAvatarPreview(false)}
-        />
+        <ImagePreview src={contact.avatar} alt={contact.name} onClose={() => setShowAvatarPreview(false)} />
       )}
-    </AnimatePresence>
     </>
   );
 }

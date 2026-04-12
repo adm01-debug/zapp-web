@@ -1,14 +1,8 @@
 import { useState, useRef, useEffect, lazy, Suspense, useReducer, useCallback } from 'react';
 import { log } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
-import { toast as sonnerToast } from 'sonner';
-import { undoToast } from '@/lib/undoToast';
-import { withRetry } from '@/lib/retry';
-import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
+import { Conversation, Message } from '@/types/chat';
 import { FileUploaderRef } from './FileUploader';
-import { SlashCommand } from './SlashCommands';
-import { ExternalProduct } from '@/hooks/useExternalCatalog';
-import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
 import { useTypingPresence } from '@/hooks/useTypingPresence';
 import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
@@ -22,7 +16,6 @@ import { CRMAutoSync } from './CRMAutoSync';
 import { useAmbientColor } from '@/hooks/useAmbientColor';
 import { ChatToolPanels } from './chat/ChatToolPanels';
 import { ChatDialogs } from './chat/ChatDialogs';
-
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
 import { ChatMessagesArea, ChatMessagesAreaRef } from './chat/ChatMessagesArea';
@@ -30,11 +23,11 @@ import { ChatInputArea } from './chat/ChatInputArea';
 import { ChatDragOverlay } from './chat/ChatDragOverlay';
 import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
 import { ChatSearchBar } from './chat/ChatSearchBar';
+import { useChatPanelHandlers } from './chat/useChatPanelHandlers';
 
 const WhisperMode = lazy(() => import('./WhisperMode').then(m => ({ default: m.WhisperMode })));
 const NextBestActionEngine = lazy(() => import('./NextBestActionEngine').then(m => ({ default: m.NextBestActionEngine })));
 
-// Preload most-used dialogs after idle to reduce perceived latency
 if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
   (window as Window).requestIdleCallback(() => {
     import('./TransferDialog');
@@ -54,14 +47,12 @@ interface ChatPanelProps {
   hideHeader?: boolean;
 }
 
-// Dialog state reducer to minimize re-renders from many boolean flags
 type DialogKey = 'quickReplies' | 'slashCommands' | 'transferDialog' | 'scheduleDialog' | 
   'callDialog' | 'globalSearch' | 'chatSearch' | 'interactiveBuilder' | 'forwardDialog' | 
   'locationPicker' | 'aiAssistant' | 'catalogDirect' | 'whisper' | 'templatesWithVars' | 
   'realtimeTranscription' | 'closeDialog';
 
 type DialogState = Record<DialogKey, boolean>;
-
 type DialogAction = 
   | { type: 'TOGGLE'; key: DialogKey }
   | { type: 'OPEN'; key: DialogKey }
@@ -90,57 +81,33 @@ function dialogReducer(state: DialogState, action: DialogAction): DialogState {
   }
 }
 
-// ── Active Tool (mutual exclusivity) ──
 type ActiveTool = 'chatSearch' | 'objections' | 'university' | 'aiAssistant' | 'summary' | null;
 
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack, hideHeader = false }: ChatPanelProps) {
-  // ── Dialog State (consolidated) ──
   const [dialogs, dispatch] = useReducer(dialogReducer, initialDialogState);
   const openDialog = useCallback((key: DialogKey) => dispatch({ type: 'OPEN', key }), []);
   const closeDialog = useCallback((key: DialogKey) => dispatch({ type: 'CLOSE', key }), []);
-  const toggleDialog = useCallback((key: DialogKey) => dispatch({ type: 'TOGGLE', key }), []);
 
-  // ── Active Tool State (ensures only one tool is open at a time) ──
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
-
   const handleSetActiveTool = useCallback((tool: ActiveTool) => {
     setActiveTool(prev => prev === tool ? null : tool);
   }, []);
 
-  // Sync activeTool with dialog reducer for tools that use it
   useEffect(() => {
-    if (activeTool === 'chatSearch') {
-      dispatch({ type: 'OPEN', key: 'chatSearch' });
-    } else {
-      dispatch({ type: 'CLOSE', key: 'chatSearch' });
-    }
-    if (activeTool === 'aiAssistant') {
-      dispatch({ type: 'OPEN', key: 'aiAssistant' });
-    } else {
-      dispatch({ type: 'CLOSE', key: 'aiAssistant' });
-    }
+    dispatch({ type: activeTool === 'chatSearch' ? 'OPEN' : 'CLOSE', key: 'chatSearch' });
+    dispatch({ type: activeTool === 'aiAssistant' ? 'OPEN' : 'CLOSE', key: 'aiAssistant' });
   }, [activeTool]);
 
-  // ── Core State ──
-  const [inputValue, setInputValue] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
   const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
   const [highlightedMessageIds, setHighlightedMessageIds] = useState<Set<string>>(new Set());
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
-  const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
-  // ── Refs ──
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileUploaderRef = useRef<FileUploaderRef>(null);
   const messagesAreaRef = useRef<ChatMessagesAreaRef>(null);
   const dragCounterRef = useRef(0);
 
-  // ── Hooks ──
   const { isContactTyping, typingUsers, handleTypingStart, handleTypingStop } = useTypingPresence({
     conversationId: conversation.id, currentUserId: 'agent', currentUserName: conversation.assignedTo?.name || 'Agente',
   });
@@ -153,139 +120,34 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   const handleVoiceChange = (v: string) => { updateSettings({ tts_voice_id: v }); setTimeout(() => saveSettings(), 100); };
   const handleSpeedChange = (s: number) => { updateSettings({ tts_speed: s }); setTimeout(() => saveSettings(), 100); };
-
   const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId, speed, setSpeed } = useTextToSpeech({
     initialVoiceId: settings.tts_voice_id, initialSpeed: settings.tts_speed, onVoiceChange: handleVoiceChange, onSpeedChange: handleSpeedChange,
   });
 
+  const handlers = useChatPanelHandlers({
+    conversationId: conversation.id, contactId: conversation.contact.id, contactPhone: conversation.contact.phone,
+    instanceName, onSendMessage, editMessageApi: editMessage, applySignature,
+    handleTypingStart, handleTypingStop, openDialog: openDialog as any, closeDialog: closeDialog as any, handleSetActiveTool,
+  });
+
   useEffect(() => { initResolve(); }, [conversation.contact.id]);
   useEffect(() => { messagesAreaRef.current?.scrollToBottom(); }, [messages, isContactTyping]);
-
-  // Reset chat search when switching conversations
   useEffect(() => {
-    setActiveTool(null);
-    setHighlightedMessageIds(new Set());
-    setActiveHighlightId(null);
-    setSearchQuery('');
+    setActiveTool(null); setHighlightedMessageIds(new Set()); setActiveHighlightId(null); setSearchQuery('');
   }, [conversation.id]);
 
   const canGenerateSummary = messages.length >= 10;
 
-  // Global Ctrl+F handler for chat search (toggle)
   useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault();
-        handleSetActiveTool('chatSearch');
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    const h = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); handleSetActiveTool('chatSearch'); } };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
   }, []);
 
-  // ── Handlers ──
-  const EDIT_WINDOW_MINUTES = 15;
-
-  const handleEditStart = (message: Message) => {
-    const minutesAgo = (Date.now() - message.timestamp.getTime()) / 60000;
-    if (minutesAgo > EDIT_WINDOW_MINUTES) {
-      toast({ title: 'Tempo expirado', description: `Você só pode editar mensagens nos primeiros ${EDIT_WINDOW_MINUTES} minutos.`, variant: 'destructive' });
-      return;
-    }
-    setEditingMessage(message);
-    setInputValue(message.content);
-    inputRef.current?.focus();
-  };
-
-  const handleCancelEdit = () => { setEditingMessage(null); setInputValue(''); };
-
-  const handleSend = async () => {
-    if (!inputValue.trim() || isSending) return;
-
-    if (editingMessage) {
-      const externalId = editingMessage.external_id;
-      const contactJid = conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : '';
-      setIsSending(true);
-      try {
-        if (instanceName && externalId && contactJid) {
-          await editMessage(instanceName, { number: contactJid, messageId: externalId, text: inputValue.trim() });
-        }
-        await supabase.from('messages').update({ content: inputValue.trim(), updated_at: new Date().toISOString() }).eq('id', editingMessage.id);
-        toast({ title: '✏️ Mensagem editada', description: 'A mensagem foi atualizada com sucesso.' });
-      } catch (err) {
-        log.error('Failed to edit message:', err);
-        toast({ title: 'Erro ao editar', description: 'Não foi possível editar a mensagem.', variant: 'destructive' });
-      } finally { setIsSending(false); }
-      setEditingMessage(null); setInputValue('');
-      return;
-    }
-
-    const messageContent = applySignature(inputValue.trim());
-    const wasReply = replyToMessage;
-    setIsSending(true); setInputValue(''); setReplyToMessage(null); handleTypingStop();
-
-    if (wasReply) log.debug('Sending reply to:', wasReply.id);
-
-    try {
-      onSendMessage(messageContent);
-      undoToast({
-        message: 'Mensagem enviada', icon: '📨', delay: 3000,
-        onUndo: () => {
-          setInputValue(messageContent);
-          if (wasReply) setReplyToMessage(wasReply);
-          toast({ title: '↩️ Mensagem restaurada', description: 'O texto foi restaurado no campo de entrada.' });
-        },
-      });
-    } catch (err) {
-      log.error('Failed to send message:', err);
-      setInputValue(messageContent);
-      toast({ title: 'Erro ao enviar', description: 'Tente novamente.', variant: 'destructive' });
-    } finally { setIsSending(false); }
-  };
-
-  const handleReplyToMessage = (message: Message) => { setReplyToMessage(message); inputRef.current?.focus(); };
-  const handleCopyMessage = (content: string) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!', description: 'Mensagem copiada para a área de transferência.' }); };
-  const handleForwardMessage = (message: Message) => { setForwardMessage(message); openDialog('forwardDialog'); };
-  const handleForwardToTargets = (targetIds: string[], targetType: 'contact' | 'group') => { log.debug('Forwarding to:', { targetIds, targetType, message: forwardMessage }); };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    if (value.startsWith('/')) { openDialog('slashCommands'); closeDialog('quickReplies'); } else { closeDialog('slashCommands'); }
-    if (value.length > 0) handleTypingStart(); else handleTypingStop();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (dialogs.slashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-    if (e.key === 'k' && e.ctrlKey) { e.preventDefault(); openDialog('globalSearch'); }
-    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSetActiveTool('chatSearch'); }
-    if (e.key === 'Escape' && dialogs.slashCommands) closeDialog('slashCommands');
-  };
-
-  const handleSlashCommand = (command: SlashCommand, subCommand?: string) => {
-    closeDialog('slashCommands'); setInputValue('');
-    switch (command.id) {
-      case 'transfer': openDialog('transferDialog'); break;
-      case 'resolve': toast({ title: '✅ Conversa Resolvida', description: 'A conversa foi marcada como resolvida.' }); break;
-      case 'template': toast({ title: '📝 Templates', description: 'Use o botão de templates no input para selecionar.' }); break;
-      case 'note': toast({ title: '📝 Nota Privada', description: 'Funcionalidade de notas será aberta.' }); break;
-      case 'tag': toast({ title: subCommand === 'add' ? '🏷️ Adicionar Tag' : '🏷️ Remover Tag', description: subCommand === 'add' ? 'Selecione uma tag para adicionar.' : 'Selecione uma tag para remover.' }); break;
-      case 'priority': { const labels: Record<string, string> = { high: 'Alta', medium: 'Média', low: 'Baixa' }; toast({ title: '⚡ Prioridade Definida', description: `Prioridade definida como ${labels[subCommand || ''] || subCommand}.` }); break; }
-      case 'assign': toast({ title: '👤 Atribuir Conversa', description: 'Selecione um agente para atribuir.' }); break;
-      case 'snooze': { const labels: Record<string, string> = { '1h': '1 hora', '3h': '3 horas', tomorrow: 'amanhã', nextweek: 'próxima semana' }; toast({ title: '⏰ Conversa Adiada', description: `Conversa adiada para ${labels[subCommand || ''] || subCommand}.` }); break; }
-      case 'star': toast({ title: '⭐ Conversa Favoritada', description: 'A conversa foi marcada como favorita.' }); break;
-      case 'archive': toast({ title: '📦 Conversa Arquivada', description: 'A conversa foi arquivada.' }); break;
-      case 'remind': toast({ title: '🔔 Lembrete Criado', description: 'Um lembrete foi criado para esta conversa.' }); break;
-      case 'quick': toast({ title: '⚡ Resposta Rápida', description: 'Use / seguido do atalho para respostas rápidas.' }); break;
-      case 'summary': handleSetActiveTool('aiAssistant'); break;
-      case 'produto': openDialog('catalogDirect'); break;
-      default: toast({ title: `Comando: ${command.label}`, description: command.description }); break;
-    }
-  };
+  const filteredQuickReplies = dbQuickReplies.filter(r => handlers.inputValue.startsWith('/') && r.shortcut.toLowerCase().includes(handlers.inputValue.toLowerCase()));
 
   const handleQuickReply = (reply: { id: string; title: string; shortcut: string; content: string; category: string }) => {
-    setInputValue(reply.content); closeDialog('quickReplies'); incrementUseCount(reply.id);
+    handlers.setInputValue(reply.content); closeDialog('quickReplies'); incrementUseCount(reply.id);
   };
 
   const handleTransfer = (type: 'agent' | 'queue', targetId: string, message?: string) => {
@@ -310,41 +172,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     } catch (err) { log.error('Failed to schedule message:', err); }
   };
 
-  const handleAudioSend = async (audioBlob: Blob) => {
-    if (onSendAudio) {
-      try { await onSendAudio(audioBlob); } catch (err) { log.error('Error sending audio:', err); toast({ title: 'Erro ao enviar áudio', description: 'Tente novamente.', variant: 'destructive' }); }
-    } else { toast({ title: 'Erro', description: 'Envio de áudio não configurado.', variant: 'destructive' }); }
-    setIsRecordingAudio(false);
-  };
-
-  const handleSendProduct = (product: ExternalProduct) => {
-    const price = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sale_price);
-    const lines = [
-      `📦 *${product.name}*`, product.brand ? `🏷️ Marca: ${product.brand}` : '', `💰 Preço: ${price}`,
-      product.min_quantity ? `📋 Qtd. mínima: ${product.min_quantity} un.` : '',
-      product.colors?.length ? `🎨 Cores: ${product.colors.join(', ')}` : '',
-      product.dimensions_display ? `📏 Dimensões: ${product.dimensions_display}` : '',
-      product.allows_personalization ? '✅ Permite personalização' : '',
-      product.lead_time_days ? `⏱️ Prazo: ${product.lead_time_days} dias úteis` : '',
-      product.is_stockout ? '⚠️ *Sem estoque no momento*' : `✅ Em estoque: ${product.stock_quantity} un.`,
-      (product.short_description || product.description) ? `\n${(product.short_description || product.description || '').slice(0, 300)}` : '',
-      product.primary_image_url ? `\n🔗 ${product.primary_image_url}` : '',
-    ].filter(Boolean).join('\n');
-    onSendMessage(lines);
-    toast({ title: 'Produto enviado!', description: `${product.name} - ${price}` });
-  };
-
-  const handleSendInteractiveMessage = (interactive: InteractiveMessage) => {
-    toast({ title: 'Mensagem interativa enviada!', description: `Mensagem com ${interactive.buttons?.length || 0} botões enviada.` });
-  };
-  const handleInteractiveButtonClick = (button: InteractiveButton) => { toast({ title: 'Botão clicado', description: `Resposta: ${button.title}` }); };
-  const handleSendLocation = (location: LocationMessage) => {
-    toast({ title: 'Localização enviada!', description: location.isLive ? `Localização em tempo real por ${location.liveUntil ? Math.round((location.liveUntil.getTime() - Date.now()) / 60000) : 15} minutos` : location.name || 'Localização compartilhada' });
-  };
-
-  const filteredQuickReplies = dbQuickReplies.filter(r => inputValue.startsWith('/') && r.shortcut.toLowerCase().includes(inputValue.toLowerCase()));
-
-  // ── Drag & Drop ──
   const handleDragEnter = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); dragCounterRef.current++; if (e.dataTransfer.types.includes('Files')) setIsDraggingOver(true); };
   const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); dragCounterRef.current--; if (dragCounterRef.current === 0) setIsDraggingOver(false); };
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
@@ -356,7 +183,6 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   const ambient = useAmbientColor(conversation.sentiment);
 
-  // ── Render ──
   return (
     <div className={`flex h-full min-h-0 min-w-0 overflow-hidden relative ${ambient.className}`} style={{ backgroundColor: ambient.bgTint }} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
       <ChatDragOverlay isDraggingOver={isDraggingOver} />
@@ -365,8 +191,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         {!hideHeader && (
           <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={activeTool === 'aiAssistant'} showDetails={showDetails}
-            showSummaryPanel={activeTool === 'summary'}
-            activeTool={activeTool} onSetActiveTool={handleSetActiveTool}
+            showSummaryPanel={activeTool === 'summary'} activeTool={activeTool} onSetActiveTool={handleSetActiveTool}
             voiceId={voiceId} speed={speed} onToggleAIAssistant={() => handleSetActiveTool('aiAssistant')} onToggleDetails={onToggleDetails}
             onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => handleSetActiveTool('chatSearch')}
             onOpenTransfer={() => openDialog('transferDialog')} onOpenSchedule={() => openDialog('scheduleDialog')}
@@ -375,17 +200,14 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onCloseConversation={() => openDialog('closeDialog')}
             lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
             allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
-            onSelectSuggestion={(text) => setInputValue(text)} />
+            onSelectSuggestion={(text) => handlers.setInputValue(text)} />
         )}
 
-        <ChatSearchBar
-          messages={messages}
-          isOpen={activeTool === 'chatSearch'}
-          onClose={() => { handleSetActiveTool('chatSearch'); setTimeout(() => inputRef.current?.focus(), 150); }}
+        <ChatSearchBar messages={messages} isOpen={activeTool === 'chatSearch'}
+          onClose={() => { handleSetActiveTool('chatSearch'); setTimeout(() => handlers.inputRef.current?.focus(), 150); }}
           onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
           onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
-          onSearchQueryChange={setSearchQuery}
-        />
+          onSearchQueryChange={setSearchQuery} />
 
         <ChatAssignedBar conversation={conversation} onOpenTransfer={() => openDialog('transferDialog')} />
 
@@ -393,14 +215,11 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           <NextBestActionEngine contactId={conversation.contact.id} contactName={conversation.contact.name} />
         </Suspense>
 
-
-
-
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
           ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}
           contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''} contactAvatar={conversation.contact.avatar || undefined}
-          onSpeak={speak} onStop={stop} onReply={handleReplyToMessage} onForward={handleForwardMessage} onCopy={handleCopyMessage}
-          onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart}
+          onSpeak={speak} onStop={stop} onReply={handlers.handleReplyToMessage} onForward={handlers.handleForwardMessage} onCopy={handlers.handleCopyMessage}
+          onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handlers.handleInteractiveButtonClick} onEditStart={handlers.handleEditStart}
           highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} searchQuery={searchQuery} />
 
         <ChatQuickRepliesPopover show={dialogs.quickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => closeDialog('quickReplies')} />
@@ -411,36 +230,36 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
           </Suspense>
         )}
 
-        <ChatInputArea inputValue={inputValue} replyToMessage={replyToMessage} editingMessage={editingMessage} isRecordingAudio={isRecordingAudio}
+        <ChatInputArea inputValue={handlers.inputValue} replyToMessage={handlers.replyToMessage} editingMessage={handlers.editingMessage} isRecordingAudio={handlers.isRecordingAudio}
           showSlashCommands={dialogs.slashCommands} contactId={conversation.contact.id} contactPhone={conversation.contact.phone}
-          contactName={conversation.contact.name} instanceName={instanceName} messages={messages} quickReplies={dbQuickReplies} isSending={isSending}
-          onInputChange={handleInputChange} onKeyDown={handleKeyDown} onBlur={handleTypingStop} onSend={handleSend}
-          onCancelReply={() => setReplyToMessage(null)} onCancelEdit={handleCancelEdit} onSlashCommand={handleSlashCommand}
+          contactName={conversation.contact.name} instanceName={instanceName} messages={messages} quickReplies={dbQuickReplies} isSending={handlers.isSending}
+          onInputChange={handlers.handleInputChange} onKeyDown={(e) => handlers.handleKeyDown(e, dialogs.slashCommands)} onBlur={handleTypingStop} onSend={handlers.handleSend}
+          onCancelReply={() => handlers.setReplyToMessage(null)} onCancelEdit={handlers.handleCancelEdit} onSlashCommand={handlers.handleSlashCommand}
           onCloseSlashCommands={() => closeDialog('slashCommands')} onQuickReply={handleQuickReply}
-          onRecordToggle={() => setIsRecordingAudio(!isRecordingAudio)} onAudioSend={handleAudioSend} onAudioCancel={() => setIsRecordingAudio(false)}
+          onRecordToggle={() => handlers.setIsRecordingAudio(!handlers.isRecordingAudio)} onAudioSend={(blob) => handlers.handleAudioSend(blob, onSendAudio)} onAudioCancel={() => handlers.setIsRecordingAudio(false)}
           onOpenInteractiveBuilder={() => openDialog('interactiveBuilder')} onOpenSchedule={() => openDialog('scheduleDialog')}
-          onOpenLocationPicker={() => openDialog('locationPicker')} onSendProduct={handleSendProduct} onSendSticker={handleSendSticker}
+          onOpenLocationPicker={() => openDialog('locationPicker')} onSendProduct={handlers.handleSendProduct} onSendSticker={handleSendSticker}
           onSendAudioMeme={handleSendAudioMeme} onSendCustomEmoji={handleSendCustomEmoji}
           signatureEnabled={signatureEnabled} signatureName={agentName} onToggleSignature={toggleSignature}
           onPollSent={async (poll) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: whatsappConnectionId, content: `📊 *Enquete:* ${poll.name}\n${poll.options.map((o, i) => `${i + 1}. ${o}`).join('\n')}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
           onContactSent={async (contactName) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: whatsappConnectionId, content: `📇 Cartão de contato: ${contactName}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
-          onOpenCatalog={() => openDialog('catalogDirect')} onSelectSuggestion={(text) => setInputValue(text)} onSelectTemplate={(text) => setInputValue(text)}
-          fileUploaderRef={fileUploaderRef} inputRef={inputRef} />
+          onOpenCatalog={() => openDialog('catalogDirect')} onSelectSuggestion={(text) => handlers.setInputValue(text)} onSelectTemplate={(text) => handlers.setInputValue(text)}
+          fileUploaderRef={fileUploaderRef} inputRef={handlers.inputRef} />
 
         <ChatDialogs
           dialogs={dialogs} openDialog={openDialog} closeDialog={closeDialog}
-          conversation={conversation} forwardMessage={forwardMessage} callDirection={callDirection}
+          conversation={conversation} forwardMessage={handlers.forwardMessage} callDirection={callDirection}
           contactId={conversation.contact.id} onTransfer={handleTransfer}
-          onScheduleMessage={handleScheduleMessage} onSendInteractiveMessage={handleSendInteractiveMessage}
-          onForwardToTargets={handleForwardToTargets} onSendLocation={handleSendLocation}
-          onSendProduct={handleSendProduct} onSetInputValue={setInputValue}
+          onScheduleMessage={handleScheduleMessage} onSendInteractiveMessage={handlers.handleSendInteractiveMessage}
+          onForwardToTargets={handlers.handleForwardToTargets} onSendLocation={handlers.handleSendLocation}
+          onSendProduct={handlers.handleSendProduct} onSetInputValue={handlers.setInputValue}
         />
       </div>
 
       <ChatToolPanels
         activeTool={activeTool} onSetActiveTool={handleSetActiveTool}
         messages={messages} contactId={conversation.contact.id}
-        contactName={conversation.contact.name} onSelectSuggestion={(text) => setInputValue(text)}
+        contactName={conversation.contact.name} onSelectSuggestion={(text) => handlers.setInputValue(text)}
       />
     </div>
   );
