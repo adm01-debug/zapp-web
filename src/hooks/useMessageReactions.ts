@@ -25,6 +25,8 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
       return data;
     },
     enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   const { data: reactions = [], isLoading, refetch } = useQuery({
@@ -37,12 +39,14 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
       if (error) throw error;
 
       const userIds = data?.filter(r => r.user_id).map(r => r.user_id) || [];
-      const { data: users } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', userIds);
-
-      const usersMap = new Map(users?.map(u => [u.id, u.name]) || []);
+      let usersMap = new Map<string, string>();
+      if (userIds.length > 0) {
+        const { data: users } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds);
+        usersMap = new Map(users?.map(u => [u.id, u.name]) || []);
+      }
 
       return (data || []).map(r => ({
         ...r,
@@ -50,6 +54,8 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
       })) as MessageReaction[];
     },
     enabled: !!messageId,
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
   });
 
   const { addMutation, removeMutation } = useReactionMutations(messageId, profile?.id, options);
