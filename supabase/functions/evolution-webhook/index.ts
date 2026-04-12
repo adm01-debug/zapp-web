@@ -1395,7 +1395,7 @@ async function handleOutgoingWhatsAppMessage(
     messageType = 'sticker';
     content = '[Sticker]';
   } else if (message?.reactionMessage) {
-    // Skip reactions for outgoing — not critical
+    // Reactions are handled separately in the messages.upsert reaction handler
     return;
   } else if (message?.contactMessage || message?.contactsArrayMessage) {
     messageType = 'contact';
