@@ -354,35 +354,60 @@ async function getContactByPhone(
   return data;
 }
 
-// ─── In-Memory Rate Limiter ───
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute window
-const RATE_LIMIT_MAX_EVENTS = 300;   // max events per instance per window
-const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
+// Note: Rate limiting for webhooks is handled at the Evolution API configuration level.
+// In-memory rate limiters are ineffective in stateless edge functions.
 
-function isRateLimited(instance: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(instance);
+// ─── Handle reaction events (add/remove) ───
+// deno-lint-ignore no-explicit-any
+async function handleReactionEvent(supabase: any, reactionMessage: Record<string, unknown>) {
+  const emoji = (reactionMessage.text as string) || '';
+  const reactKey = reactionMessage.key as Record<string, unknown> | undefined;
+  if (!reactKey?.id) return;
 
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(instance, { count: 1, windowStart: now });
-    return false;
+  const targetExternalId = reactKey.id as string;
+  const reactedByMe = reactKey.fromMe as boolean;
+
+  // Find the target message in our DB
+  const { data: targetMessage } = await supabase
+    .from('messages')
+    .select('id, contact_id')
+    .eq('external_id', targetExternalId)
+    .maybeSingle();
+
+  if (!targetMessage) {
+    console.log(`Reaction target not found: ${targetExternalId}`);
+    return;
   }
 
-  entry.count++;
-  if (entry.count > RATE_LIMIT_MAX_EVENTS) {
-    console.warn(`[RATE_LIMIT] Instance ${instance} exceeded ${RATE_LIMIT_MAX_EVENTS} events/min (${entry.count})`);
-    return true;
+  if (emoji === '') {
+    // Empty emoji = reaction removed — remove all reactions from this contact on this message
+    if (!reactedByMe) {
+      await supabase
+        .from('message_reactions')
+        .delete()
+        .eq('message_id', targetMessage.id)
+        .eq('contact_id', targetMessage.contact_id);
+      console.log(`Reaction removed on message ${targetExternalId}`);
+    }
+  } else if (!reactedByMe) {
+    // Incoming reaction from contact — upsert
+    const { error: upsertErr } = await supabase
+      .from('message_reactions')
+      .upsert(
+        {
+          message_id: targetMessage.id,
+          contact_id: targetMessage.contact_id,
+          emoji,
+        },
+        { onConflict: 'message_id,contact_id,emoji' }
+      );
+    if (upsertErr) {
+      console.error('Error upserting reaction:', upsertErr);
+    } else {
+      console.log(`Reaction synced: ${emoji} on message ${targetExternalId}`);
+    }
   }
-  return false;
 }
-
-// Cleanup stale entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of rateLimitMap) {
-    if (now - val.windowStart > RATE_LIMIT_WINDOW_MS * 2) rateLimitMap.delete(key);
-  }
-}, 120_000);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -404,12 +429,7 @@ serve(async (req) => {
     const data = payload.data ?? {};
     const baseData = isRecord(data) ? data : {};
 
-    // Rate limit check per instance
-    if (isRateLimited(instance)) {
-      return new Response(JSON.stringify({ error: 'Rate limited', instance }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+
 
     console.log('Evolution webhook received:', payload.event, '->', event, instance);
 
@@ -473,6 +493,13 @@ serve(async (req) => {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
         const key = keySource as { remoteJid: string; fromMe: boolean; id: string } | null;
         if (!key) continue;
+
+        // ── Check if this is a reaction event ──
+        const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
+        if (msg?.reactionMessage) {
+          await handleReactionEvent(supabase, msg.reactionMessage as Record<string, unknown>);
+          continue;
+        }
 
         if (!key.fromMe) {
           await handleIncomingMessage(
@@ -1188,76 +1215,7 @@ serve(async (req) => {
       }
     }
 
-    // ─── MESSAGES.REACTION: Sync inbound reactions to message_reactions table ───
-    if (event === 'messages.upsert') {
-      // Check if any entry has a reactionMessage — handle separately
-      for (const entry of toEventRecords(data, ['messages'])) {
-        const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
-        if (!msg?.reactionMessage) continue;
-
-        const reaction = msg.reactionMessage as Record<string, unknown>;
-        const emoji = (reaction.text as string) || '';
-        const reactKey = reaction.key as Record<string, unknown> | undefined;
-        if (!reactKey?.id) continue;
-
-        const targetExternalId = reactKey.id as string;
-        const reactedByMe = reactKey.fromMe as boolean;
-
-        // Find the target message in our DB
-        const { data: targetMessage } = await supabase
-          .from('messages')
-          .select('id, contact_id')
-          .eq('external_id', targetExternalId)
-          .maybeSingle();
-
-        if (!targetMessage) {
-          console.log(`Reaction target not found: ${targetExternalId}`);
-          continue;
-        }
-
-        if (emoji === '') {
-          // Empty emoji = reaction removed
-          if (reactedByMe) {
-            // Agent removed reaction — handled locally, skip
-          } else {
-            // Contact removed reaction
-            await supabase
-              .from('message_reactions')
-              .delete()
-              .eq('message_id', targetMessage.id)
-              .eq('contact_id', targetMessage.contact_id)
-              .eq('emoji', emoji);
-            // Since emoji is empty, we don't know which to remove — remove all from contact
-            await supabase
-              .from('message_reactions')
-              .delete()
-              .eq('message_id', targetMessage.id)
-              .eq('contact_id', targetMessage.contact_id);
-          }
-          console.log(`Reaction removed on message ${targetExternalId}`);
-        } else {
-          // Add reaction
-          if (!reactedByMe) {
-            // Incoming reaction from contact
-            const { error: upsertErr } = await supabase
-              .from('message_reactions')
-              .upsert(
-                {
-                  message_id: targetMessage.id,
-                  contact_id: targetMessage.contact_id,
-                  emoji,
-                },
-                { onConflict: 'message_id,contact_id,emoji' }
-              );
-            if (upsertErr) {
-              console.error('Error upserting reaction:', upsertErr);
-            } else {
-              console.log(`Reaction synced: ${emoji} on message ${targetExternalId}`);
-            }
-          }
-        }
-      }
-    }
+    // (Reactions are now handled inline in the messages.upsert block above)
 
     // ─── MESSAGES.EDITED: Sync message edits from WhatsApp ───
     if (event === 'messages.edited' || event === 'messages.edit') {
@@ -1270,7 +1228,7 @@ serve(async (req) => {
         const editedContent =
           (msg?.conversation as string) ||
           ((msg?.extendedTextMessage as Record<string, unknown>)?.text as string) ||
-          (entry.editedMessage as Record<string, unknown>)?.conversation as string ||
+          ((entry.editedMessage as Record<string, unknown>)?.conversation as string) ||
           null;
 
         if (!editedContent) {

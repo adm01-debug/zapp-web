@@ -81,7 +81,7 @@ export function useMessages({ contactId, enabled = true }: UseMessagesOptions) {
 
       const mappedMessages: Message[] = allData.map((m) => ({
         ...m,
-        isEdited: !!(m.updated_at && m.created_at && new Date(m.updated_at).getTime() - new Date(m.created_at).getTime() > 1000),
+        isEdited: !!(m as any).is_edited,
       }));
       if (mountedRef.current) setMessages(mappedMessages);
     } catch (err) {
