@@ -4,48 +4,24 @@ import { SLARulesManager } from '@/components/settings/SLARulesManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle,
-  Timer,
-  Target,
-  TrendingUp,
-  Users,
-  History,
-  Settings2
-} from 'lucide-react';
+import { Clock, AlertTriangle, Target, History, Settings2 } from 'lucide-react';
 import { useSLAMetrics, PeriodFilter } from '@/hooks/useSLAMetrics';
 import { useSLAHistory } from '@/hooks/useSLAHistory';
 import { ExportButton } from '@/components/reports/ExportButton';
-import { Sparkline } from '@/components/ui/sparkline';
 import { ReportData } from '@/utils/exportReport';
 import { cn } from '@/lib/utils';
+import { SLAMetricCards } from './SLAMetricCards';
+import { SLAAgentTable } from './SLAAgentTable';
 
 const getRateColor = (rate: number) => {
   if (rate >= 90) return 'text-success';
   if (rate >= 70) return 'text-warning';
   return 'text-destructive';
-};
-
-const getRateBg = (rate: number) => {
-  if (rate >= 90) return 'bg-success/10';
-  if (rate >= 70) return 'bg-warning/10';
-  return 'bg-destructive/10';
-};
-
-const getRateBadge = (rate: number) => {
-  if (rate >= 90) return 'bg-success/20 text-success dark:text-success';
-  if (rate >= 70) return 'bg-warning/20 text-warning dark:text-warning';
-  return 'bg-destructive/20 text-destructive dark:text-destructive';
 };
 
 export const SLADashboard = () => {
