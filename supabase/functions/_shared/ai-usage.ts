@@ -48,8 +48,9 @@ export function extractUserIdFromRequest(req: Request): string | null {
 }
 
 /** Resolve profile_id from user_id via profiles table */
+// deno-lint-ignore no-explicit-any
 async function resolveProfileId(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   userId: string | null | undefined
 ): Promise<string | null> {
   if (!userId) return null;
@@ -60,7 +61,7 @@ async function resolveProfileId(
       .eq('user_id', userId)
       .limit(1)
       .maybeSingle();
-    return data?.id || null;
+    return (data as Record<string, unknown>)?.id as string || null;
   } catch {
     return null;
   }

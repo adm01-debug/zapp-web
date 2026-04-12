@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
     const { message, tone, contactName } = parsed.data;
     const LOVABLE_API_KEY = requireEnv("LOVABLE_API_KEY");
-    const systemPrompt = tonePrompts[tone];
+    const systemPrompt = tonePrompts[tone as string];
 
     const firstName = contactName ? contactName.split(' ')[0] : null;
     const humanizationRule = firstName && firstName !== 'Cliente'

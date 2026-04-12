@@ -1115,7 +1115,7 @@ serve(async (req) => {
             let content = '';
             let messageType = 'text';
             if (msg?.conversation) content = msg.conversation as string;
-            else if ((msg?.extendedTextMessage as Record<string, unknown>)?.text) content = (msg.extendedTextMessage as Record<string, unknown>).text as string;
+            else if ((msg?.extendedTextMessage as Record<string, unknown>)?.text) content = (msg!.extendedTextMessage as Record<string, unknown>).text as string;
             else if (msg?.imageMessage) { messageType = 'image'; content = ((msg.imageMessage as Record<string, unknown>).caption as string) || '[Imagem]'; }
             else if (msg?.videoMessage) { messageType = 'video'; content = ((msg.videoMessage as Record<string, unknown>).caption as string) || '[Vídeo]'; }
             else if (msg?.audioMessage) { messageType = 'audio'; content = '[Áudio]'; }
@@ -1319,7 +1319,7 @@ async function handleOutgoingWhatsAppMessage(
   if (message?.conversation) {
     content = message.conversation as string;
   } else if ((message?.extendedTextMessage as Record<string, unknown>)?.text) {
-    content = (message.extendedTextMessage as Record<string, unknown>).text as string;
+    content = (message!.extendedTextMessage as Record<string, unknown>).text as string;
   } else if (message?.imageMessage) {
     messageType = 'image';
     const img = message.imageMessage as Record<string, unknown>;

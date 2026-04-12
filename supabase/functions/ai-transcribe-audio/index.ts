@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     const formData = new FormData();
     formData.append('file', audioBlob, fileName);
     formData.append('model_id', 'scribe_v2');
-    formData.append('language_code', languageCode);
+    formData.append('language_code', languageCode ?? 'pt');
     formData.append('tag_audio_events', String(tagAudioEvents));
     formData.append('diarize', String(enableDiarization));
 

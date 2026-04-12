@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
       .from("ai_conversation_tags")
       .select("id, contact_id, tag_name, confidence, source")
       .order("created_at", { ascending: false })
-      .limit(limit);
+      .limit(limit ?? 50);
 
     if (!tags || tags.length === 0) {
       return jsonResponse({ classified: 0, results: [], message: "Nenhuma tag para classificar" }, 200, req);
