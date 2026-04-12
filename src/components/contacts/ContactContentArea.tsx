@@ -18,9 +18,12 @@ const GRID_COLUMNS_CLASS: Record<number, string> = {
   6: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
 };
 
+import type { Contact } from './types';
+import type { CRMBatchResult } from '@/hooks/useExternalContact360Batch';
+
 interface ContactContentAreaProps {
   loading: boolean;
-  contacts: any[];
+  contacts: Contact[];
   viewMode: ContactViewMode;
   gridColumns: number;
   groupByCompany: boolean;
@@ -29,14 +32,14 @@ interface ContactContentAreaProps {
   activeFiltersCount: number;
   onToggleSelect: (id: string, selected: boolean) => void;
   onContactClick: (id: string) => void;
-  onEdit: (contact: any) => void;
-  onDelete: (contact: any) => void;
+  onEdit: (contact: Contact) => void;
+  onDelete: (contact: Contact) => void;
   onSelectIds: (ids: string[]) => void;
   onAddContact: () => void;
   onClearSearch?: () => void;
   onClearFilters?: () => void;
   onImport: () => void;
-  getCRMData: (phone: string) => any;
+  getCRMData: (phone: string) => CRMBatchResult | null;
 }
 
 export function ContactContentArea({

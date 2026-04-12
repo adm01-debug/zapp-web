@@ -9,6 +9,15 @@ import { initWebVitals } from "./lib/web-vitals";
 const log = getLogger('App');
 log.info('Initialized at', new Date().toISOString());
 
+// Global unhandled error handlers for resilience
+window.addEventListener('unhandledrejection', (event) => {
+  log.error('Unhandled promise rejection:', event.reason);
+});
+
+window.addEventListener('error', (event) => {
+  log.error('Unhandled error:', event.error || event.message);
+});
+
 // Initialize Web Vitals monitoring
 initWebVitals();
 
