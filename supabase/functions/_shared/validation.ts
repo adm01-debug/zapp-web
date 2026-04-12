@@ -3,6 +3,14 @@
  * Provides input sanitization, rate limiting, structured logging, and standard error responses.
  */
 
+// Re-export HMAC validation utilities
+export { 
+  verifyHmacSignature, 
+  extractSignatureFromHeaders, 
+  WebhookSecurityService, 
+  createWebhookValidator 
+} from './hmac-validation.ts';
+
 // ─── Structured Logger ───────────────────────────────────────────────────────
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -90,7 +98,7 @@ export function getCorsHeaders(req?: Request): Record<string, string> {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers':
-      'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+      'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-hub-signature-256, x-signature, x-webhook-signature, x-evolution-signature',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   };
@@ -100,7 +108,7 @@ export function getCorsHeaders(req?: Request): Record<string, string> {
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-hub-signature-256, x-signature, x-webhook-signature, x-evolution-signature',
 };
 
 /** Standard JSON error response (with origin-validated CORS) */
