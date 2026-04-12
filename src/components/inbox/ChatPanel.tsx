@@ -1,36 +1,22 @@
-import { useState, useRef, useEffect, lazy, Suspense, useReducer, useCallback } from 'react';
-import { log } from '@/lib/logger';
-import { supabase } from '@/integrations/supabase/client';
-import { toast as sonnerToast } from 'sonner';
-import { undoToast } from '@/lib/undoToast';
-import { withRetry } from '@/lib/retry';
-import { Conversation, Message, InteractiveMessage, InteractiveButton, LocationMessage } from '@/types/chat';
-import { FileUploaderRef } from './FileUploader';
-import { SlashCommand } from './SlashCommands';
-import { ExternalProduct } from '@/hooks/useExternalCatalog';
+import { lazy, Suspense } from 'react';
+import { Conversation, Message } from '@/types/chat';
 import { ExternalProductCatalog } from '@/components/catalog/ExternalProductCatalog';
-import { useTypingPresence } from '@/hooks/useTypingPresence';
-import { useEvolutionApi } from '@/hooks/useEvolutionApi';
-import { useQuickReplies } from '@/hooks/useQuickReplies';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
-import { useUserSettings } from '@/hooks/useUserSettings';
-import { toast } from '@/hooks/use-toast';
-import { useScheduledMessages } from '@/hooks/useScheduledMessages';
-import { useMessageSignature } from '@/hooks/useMessageSignature';
-import { useChatMediaSending } from './useChatMediaSending';
 import { CRMAutoSync } from './CRMAutoSync';
-import { useAmbientColor } from '@/hooks/useAmbientColor';
 import { Radar, GraduationCap, FileText } from 'lucide-react';
 import { ToolPanel } from './ai-tools/ToolPanel';
 import { VisionIcon } from './ai-tools/VisionIcon';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
-import { ChatMessagesArea, ChatMessagesAreaRef } from './chat/ChatMessagesArea';
+import { ChatMessagesArea } from './chat/ChatMessagesArea';
 import { ChatInputArea } from './chat/ChatInputArea';
 import { ChatDragOverlay } from './chat/ChatDragOverlay';
 import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
 import { ChatSearchBar } from './chat/ChatSearchBar';
+import { useChatPanelHandlers } from './useChatPanelHandlers';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { log } from '@/lib/logger';
 
 const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
 const ObjectionDetector = lazy(() => import('./ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
@@ -44,18 +30,12 @@ const InteractiveMessageBuilder = lazy(() => import('./InteractiveMessageBuilder
 const ForwardMessageDialog = lazy(() => import('./ForwardMessageDialog').then(m => ({ default: m.ForwardMessageDialog })));
 const LocationPicker = lazy(() => import('./LocationPicker').then(m => ({ default: m.LocationPicker })));
 const AIConversationAssistant = lazy(() => import('./AIConversationAssistant').then(m => ({ default: m.AIConversationAssistant })));
-const TemplatesWithVariables = lazy(() => import('./TemplatesWithVariables').then(m => ({ default: m.TemplatesWithVariables })));
 const RealtimeTranscription = lazy(() => import('./RealtimeTranscription').then(m => ({ default: m.RealtimeTranscription })));
 const CloseConversationDialog = lazy(() => import('./CloseConversationDialog').then(m => ({ default: m.CloseConversationDialog })));
 const NextBestActionEngine = lazy(() => import('./NextBestActionEngine').then(m => ({ default: m.NextBestActionEngine })));
 
-// Preload most-used dialogs after idle to reduce perceived latency
 if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-  (window as Window).requestIdleCallback(() => {
-    import('./TransferDialog');
-    import('./AIConversationAssistant');
-    import('./CloseConversationDialog');
-  });
+  (window as Window).requestIdleCallback(() => { import('./TransferDialog'); import('./AIConversationAssistant'); import('./CloseConversationDialog'); });
 }
 
 interface ChatPanelProps {
@@ -69,473 +49,122 @@ interface ChatPanelProps {
   hideHeader?: boolean;
 }
 
-// Dialog state reducer to minimize re-renders from many boolean flags
-type DialogKey = 'quickReplies' | 'slashCommands' | 'transferDialog' | 'scheduleDialog' | 
-  'callDialog' | 'globalSearch' | 'chatSearch' | 'interactiveBuilder' | 'forwardDialog' | 
-  'locationPicker' | 'aiAssistant' | 'catalogDirect' | 'whisper' | 'templatesWithVars' | 
-  'realtimeTranscription' | 'closeDialog';
-
-type DialogState = Record<DialogKey, boolean>;
-
-type DialogAction = 
-  | { type: 'TOGGLE'; key: DialogKey }
-  | { type: 'OPEN'; key: DialogKey }
-  | { type: 'CLOSE'; key: DialogKey }
-  | { type: 'RESET'; keys: DialogKey[] };
-
-const initialDialogState: DialogState = {
-  quickReplies: false, slashCommands: false, transferDialog: false, scheduleDialog: false,
-  callDialog: false, globalSearch: false, chatSearch: false, interactiveBuilder: false,
-  forwardDialog: false, locationPicker: false, aiAssistant: false, catalogDirect: false,
-  whisper: false, templatesWithVars: false, realtimeTranscription: false, closeDialog: false,
-};
-
-function dialogReducer(state: DialogState, action: DialogAction): DialogState {
-  switch (action.type) {
-    case 'TOGGLE': return { ...state, [action.key]: !state[action.key] };
-    case 'OPEN': return state[action.key] ? state : { ...state, [action.key]: true };
-    case 'CLOSE': return state[action.key] ? { ...state, [action.key]: false } : state;
-    case 'RESET': {
-      const next = { ...state };
-      let changed = false;
-      for (const k of action.keys) { if (next[k]) { next[k] = false; changed = true; } }
-      return changed ? next : state;
-    }
-    default: return state;
-  }
-}
-
-// ── Active Tool (mutual exclusivity) ──
-type ActiveTool = 'chatSearch' | 'objections' | 'university' | 'aiAssistant' | 'summary' | null;
-
 export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, showDetails = false, onToggleDetails, onBack, hideHeader = false }: ChatPanelProps) {
-  // ── Dialog State (consolidated) ──
-  const [dialogs, dispatch] = useReducer(dialogReducer, initialDialogState);
-  const openDialog = useCallback((key: DialogKey) => dispatch({ type: 'OPEN', key }), []);
-  const closeDialog = useCallback((key: DialogKey) => dispatch({ type: 'CLOSE', key }), []);
-  const toggleDialog = useCallback((key: DialogKey) => dispatch({ type: 'TOGGLE', key }), []);
+  const s = useChatPanelHandlers(conversation, messages, onSendMessage, onSendAudio);
 
-  // ── Active Tool State (ensures only one tool is open at a time) ──
-  const [activeTool, setActiveTool] = useState<ActiveTool>(null);
-
-  const handleSetActiveTool = useCallback((tool: ActiveTool) => {
-    setActiveTool(prev => prev === tool ? null : tool);
-  }, []);
-
-  // Sync activeTool with dialog reducer for tools that use it
-  useEffect(() => {
-    if (activeTool === 'chatSearch') {
-      dispatch({ type: 'OPEN', key: 'chatSearch' });
-    } else {
-      dispatch({ type: 'CLOSE', key: 'chatSearch' });
-    }
-    if (activeTool === 'aiAssistant') {
-      dispatch({ type: 'OPEN', key: 'aiAssistant' });
-    } else {
-      dispatch({ type: 'CLOSE', key: 'aiAssistant' });
-    }
-  }, [activeTool]);
-
-  // ── Core State ──
-  const [inputValue, setInputValue] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
-  const [callDirection, setCallDirection] = useState<'inbound' | 'outbound'>('outbound');
-  const [highlightedMessageIds, setHighlightedMessageIds] = useState<Set<string>>(new Set());
-  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
-  const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-
-  // ── Refs ──
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const fileUploaderRef = useRef<FileUploaderRef>(null);
-  const messagesAreaRef = useRef<ChatMessagesAreaRef>(null);
-  const dragCounterRef = useRef(0);
-
-  // ── Hooks ──
-  const { isContactTyping, typingUsers, handleTypingStart, handleTypingStop } = useTypingPresence({
-    conversationId: conversation.id, currentUserId: 'agent', currentUserName: conversation.assignedTo?.name || 'Agente',
-  });
-  const { quickReplies: dbQuickReplies, incrementUseCount } = useQuickReplies();
-  const { settings, updateSettings, saveSettings } = useUserSettings();
-  const { editMessage } = useEvolutionApi();
-  const { scheduleMessage } = useScheduledMessages(conversation.contact.id);
-  const { signatureEnabled, agentName, toggleSignature, applySignature } = useMessageSignature();
-  const { instanceName, whatsappConnectionId, initResolve, handleSendSticker, handleSendCustomEmoji, handleSendAudioMeme } = useChatMediaSending(conversation.contact.id, conversation.contact.phone);
-
-  const handleVoiceChange = (v: string) => { updateSettings({ tts_voice_id: v }); setTimeout(() => saveSettings(), 100); };
-  const handleSpeedChange = (s: number) => { updateSettings({ tts_speed: s }); setTimeout(() => saveSettings(), 100); };
-
-  const { speak, stop, isLoading: ttsLoading, isPlaying: ttsPlaying, currentMessageId: ttsMessageId, voiceId, setVoiceId, speed, setSpeed } = useTextToSpeech({
-    initialVoiceId: settings.tts_voice_id, initialSpeed: settings.tts_speed, onVoiceChange: handleVoiceChange, onSpeedChange: handleSpeedChange,
-  });
-
-  useEffect(() => { initResolve(); }, [conversation.contact.id]);
-  useEffect(() => { messagesAreaRef.current?.scrollToBottom(); }, [messages, isContactTyping]);
-
-  // Reset chat search when switching conversations
-  useEffect(() => {
-    setActiveTool(null);
-    setHighlightedMessageIds(new Set());
-    setActiveHighlightId(null);
-    setSearchQuery('');
-  }, [conversation.id]);
-
-  const canGenerateSummary = messages.length >= 10;
-
-  // Global Ctrl+F handler for chat search (toggle)
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault();
-        handleSetActiveTool('chatSearch');
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
-
-  // ── Handlers ──
-  const EDIT_WINDOW_MINUTES = 15;
-
-  const handleEditStart = (message: Message) => {
-    const minutesAgo = (Date.now() - message.timestamp.getTime()) / 60000;
-    if (minutesAgo > EDIT_WINDOW_MINUTES) {
-      toast({ title: 'Tempo expirado', description: `Você só pode editar mensagens nos primeiros ${EDIT_WINDOW_MINUTES} minutos.`, variant: 'destructive' });
-      return;
-    }
-    setEditingMessage(message);
-    setInputValue(message.content);
-    inputRef.current?.focus();
-  };
-
-  const handleCancelEdit = () => { setEditingMessage(null); setInputValue(''); };
-
-  const handleSend = async () => {
-    if (!inputValue.trim() || isSending) return;
-
-    if (editingMessage) {
-      const externalId = editingMessage.external_id;
-      const contactJid = conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : '';
-      setIsSending(true);
-      try {
-        if (instanceName && externalId && contactJid) {
-          await editMessage(instanceName, { number: contactJid, messageId: externalId, text: inputValue.trim() });
-        }
-        await supabase.from('messages').update({ content: inputValue.trim(), updated_at: new Date().toISOString() }).eq('id', editingMessage.id);
-        toast({ title: '✏️ Mensagem editada', description: 'A mensagem foi atualizada com sucesso.' });
-      } catch (err) {
-        log.error('Failed to edit message:', err);
-        toast({ title: 'Erro ao editar', description: 'Não foi possível editar a mensagem.', variant: 'destructive' });
-      } finally { setIsSending(false); }
-      setEditingMessage(null); setInputValue('');
-      return;
-    }
-
-    const messageContent = applySignature(inputValue.trim());
-    const wasReply = replyToMessage;
-    setIsSending(true); setInputValue(''); setReplyToMessage(null); handleTypingStop();
-
-    if (wasReply) log.debug('Sending reply to:', wasReply.id);
-
-    try {
-      onSendMessage(messageContent);
-      undoToast({
-        message: 'Mensagem enviada', icon: '📨', delay: 3000,
-        onUndo: () => {
-          setInputValue(messageContent);
-          if (wasReply) setReplyToMessage(wasReply);
-          toast({ title: '↩️ Mensagem restaurada', description: 'O texto foi restaurado no campo de entrada.' });
-        },
-      });
-    } catch (err) {
-      log.error('Failed to send message:', err);
-      setInputValue(messageContent);
-      toast({ title: 'Erro ao enviar', description: 'Tente novamente.', variant: 'destructive' });
-    } finally { setIsSending(false); }
-  };
-
-  const handleReplyToMessage = (message: Message) => { setReplyToMessage(message); inputRef.current?.focus(); };
-  const handleCopyMessage = (content: string) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!', description: 'Mensagem copiada para a área de transferência.' }); };
-  const handleForwardMessage = (message: Message) => { setForwardMessage(message); openDialog('forwardDialog'); };
-  const handleForwardToTargets = (targetIds: string[], targetType: 'contact' | 'group') => { log.debug('Forwarding to:', { targetIds, targetType, message: forwardMessage }); };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    if (value.startsWith('/')) { openDialog('slashCommands'); closeDialog('quickReplies'); } else { closeDialog('slashCommands'); }
-    if (value.length > 0) handleTypingStart(); else handleTypingStop();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (dialogs.slashCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-    if (e.key === 'k' && e.ctrlKey) { e.preventDefault(); openDialog('globalSearch'); }
-    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSetActiveTool('chatSearch'); }
-    if (e.key === 'Escape' && dialogs.slashCommands) closeDialog('slashCommands');
-  };
-
-  const handleSlashCommand = (command: SlashCommand, subCommand?: string) => {
-    closeDialog('slashCommands'); setInputValue('');
-    switch (command.id) {
-      case 'transfer': openDialog('transferDialog'); break;
-      case 'resolve': toast({ title: '✅ Conversa Resolvida', description: 'A conversa foi marcada como resolvida.' }); break;
-      case 'template': toast({ title: '📝 Templates', description: 'Use o botão de templates no input para selecionar.' }); break;
-      case 'note': toast({ title: '📝 Nota Privada', description: 'Funcionalidade de notas será aberta.' }); break;
-      case 'tag': toast({ title: subCommand === 'add' ? '🏷️ Adicionar Tag' : '🏷️ Remover Tag', description: subCommand === 'add' ? 'Selecione uma tag para adicionar.' : 'Selecione uma tag para remover.' }); break;
-      case 'priority': { const labels: Record<string, string> = { high: 'Alta', medium: 'Média', low: 'Baixa' }; toast({ title: '⚡ Prioridade Definida', description: `Prioridade definida como ${labels[subCommand || ''] || subCommand}.` }); break; }
-      case 'assign': toast({ title: '👤 Atribuir Conversa', description: 'Selecione um agente para atribuir.' }); break;
-      case 'snooze': { const labels: Record<string, string> = { '1h': '1 hora', '3h': '3 horas', tomorrow: 'amanhã', nextweek: 'próxima semana' }; toast({ title: '⏰ Conversa Adiada', description: `Conversa adiada para ${labels[subCommand || ''] || subCommand}.` }); break; }
-      case 'star': toast({ title: '⭐ Conversa Favoritada', description: 'A conversa foi marcada como favorita.' }); break;
-      case 'archive': toast({ title: '📦 Conversa Arquivada', description: 'A conversa foi arquivada.' }); break;
-      case 'remind': toast({ title: '🔔 Lembrete Criado', description: 'Um lembrete foi criado para esta conversa.' }); break;
-      case 'quick': toast({ title: '⚡ Resposta Rápida', description: 'Use / seguido do atalho para respostas rápidas.' }); break;
-      case 'summary': handleSetActiveTool('aiAssistant'); break;
-      case 'produto': openDialog('catalogDirect'); break;
-      default: toast({ title: `Comando: ${command.label}`, description: command.description }); break;
-    }
-  };
-
-  const handleQuickReply = (reply: { id: string; title: string; shortcut: string; content: string; category: string }) => {
-    setInputValue(reply.content); closeDialog('quickReplies'); incrementUseCount(reply.id);
-  };
-
-  const handleTransfer = (type: 'agent' | 'queue', targetId: string, message?: string) => {
-    toast({ title: 'Chat transferido!', description: type === 'agent' ? 'O chat foi transferido para outro atendente.' : 'O chat foi transferido para outra fila.' });
-  };
-
-  const handleScheduleMessage = async (message: string, scheduledAt: Date, attachment?: File) => {
-    try {
-      let mediaUrl: string | undefined;
-      let messageType = 'text';
-      if (attachment) {
-        const fileName = `scheduled_${Date.now()}_${attachment.name}`;
-        const { error: uploadError } = await supabase.storage.from('whatsapp-media').upload(fileName, attachment);
-        if (!uploadError) {
-          const { data: signedData } = await supabase.storage.from('whatsapp-media').createSignedUrl(fileName, 3600);
-          mediaUrl = signedData?.signedUrl;
-          messageType = attachment.type.startsWith('audio') ? 'audio' : attachment.type.startsWith('image') ? 'image' : attachment.type.startsWith('video') ? 'video' : 'document';
-        }
-      }
-      await scheduleMessage({ contactId: conversation.contact.id, content: message, scheduledAt, messageType, mediaUrl });
-      closeDialog('scheduleDialog');
-    } catch (err) { log.error('Failed to schedule message:', err); }
-  };
-
-  const handleAudioSend = async (audioBlob: Blob) => {
-    if (onSendAudio) {
-      try { await onSendAudio(audioBlob); } catch (err) { log.error('Error sending audio:', err); toast({ title: 'Erro ao enviar áudio', description: 'Tente novamente.', variant: 'destructive' }); }
-    } else { toast({ title: 'Erro', description: 'Envio de áudio não configurado.', variant: 'destructive' }); }
-    setIsRecordingAudio(false);
-  };
-
-  const handleSendProduct = (product: ExternalProduct) => {
-    const price = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sale_price);
-    const lines = [
-      `📦 *${product.name}*`, product.brand ? `🏷️ Marca: ${product.brand}` : '', `💰 Preço: ${price}`,
-      product.min_quantity ? `📋 Qtd. mínima: ${product.min_quantity} un.` : '',
-      product.colors?.length ? `🎨 Cores: ${product.colors.join(', ')}` : '',
-      product.dimensions_display ? `📏 Dimensões: ${product.dimensions_display}` : '',
-      product.allows_personalization ? '✅ Permite personalização' : '',
-      product.lead_time_days ? `⏱️ Prazo: ${product.lead_time_days} dias úteis` : '',
-      product.is_stockout ? '⚠️ *Sem estoque no momento*' : `✅ Em estoque: ${product.stock_quantity} un.`,
-      (product.short_description || product.description) ? `\n${(product.short_description || product.description || '').slice(0, 300)}` : '',
-      product.primary_image_url ? `\n🔗 ${product.primary_image_url}` : '',
-    ].filter(Boolean).join('\n');
-    onSendMessage(lines);
-    toast({ title: 'Produto enviado!', description: `${product.name} - ${price}` });
-  };
-
-  const handleSendInteractiveMessage = (interactive: InteractiveMessage) => {
-    toast({ title: 'Mensagem interativa enviada!', description: `Mensagem com ${interactive.buttons?.length || 0} botões enviada.` });
-  };
-  const handleInteractiveButtonClick = (button: InteractiveButton) => { toast({ title: 'Botão clicado', description: `Resposta: ${button.title}` }); };
-  const handleSendLocation = (location: LocationMessage) => {
-    toast({ title: 'Localização enviada!', description: location.isLive ? `Localização em tempo real por ${location.liveUntil ? Math.round((location.liveUntil.getTime() - Date.now()) / 60000) : 15} minutos` : location.name || 'Localização compartilhada' });
-  };
-
-  const filteredQuickReplies = dbQuickReplies.filter(r => inputValue.startsWith('/') && r.shortcut.toLowerCase().includes(inputValue.toLowerCase()));
-
-  // ── Drag & Drop ──
-  const handleDragEnter = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); dragCounterRef.current++; if (e.dataTransfer.types.includes('Files')) setIsDraggingOver(true); };
-  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); dragCounterRef.current--; if (dragCounterRef.current === 0) setIsDraggingOver(false); };
-  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation(); dragCounterRef.current = 0; setIsDraggingOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0 && fileUploaderRef.current) fileUploaderRef.current.handleExternalFiles(files);
-  };
-
-  const ambient = useAmbientColor(conversation.sentiment);
-
-  // ── Render ──
   return (
-    <div className={`flex h-full min-h-0 min-w-0 overflow-hidden relative ${ambient.className}`} style={{ backgroundColor: ambient.bgTint }} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
-      <ChatDragOverlay isDraggingOver={isDraggingOver} />
+    <div className={`flex h-full min-h-0 min-w-0 overflow-hidden relative ${s.ambient.className}`} style={{ backgroundColor: s.ambient.bgTint }} onDragEnter={s.handleDragEnter} onDragLeave={s.handleDragLeave} onDragOver={s.handleDragOver} onDrop={s.handleDrop}>
+      <ChatDragOverlay isDraggingOver={s.isDraggingOver} />
       <CRMAutoSync conversation={conversation} messageCount={messages.length} messages={messages} />
 
       <div className="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
         {!hideHeader && (
-          <ChatPanelHeader conversation={conversation} isContactTyping={isContactTyping} showAIAssistant={activeTool === 'aiAssistant'} showDetails={showDetails}
-            showSummaryPanel={activeTool === 'summary'}
-            activeTool={activeTool} onSetActiveTool={handleSetActiveTool}
-            voiceId={voiceId} speed={speed} onToggleAIAssistant={() => handleSetActiveTool('aiAssistant')} onToggleDetails={onToggleDetails}
-            onStartCall={() => { setCallDirection('outbound'); openDialog('callDialog'); }} onOpenSearch={() => handleSetActiveTool('chatSearch')}
-            onOpenTransfer={() => openDialog('transferDialog')} onOpenSchedule={() => openDialog('scheduleDialog')}
-            onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
-            onGenerateSummary={() => handleSetActiveTool('summary')} isSummaryLoading={false} canGenerateSummary={canGenerateSummary}
-            onCloseConversation={() => openDialog('closeDialog')}
+          <ChatPanelHeader conversation={conversation} isContactTyping={s.isContactTyping} showAIAssistant={s.activeTool === 'aiAssistant'} showDetails={showDetails}
+            showSummaryPanel={s.activeTool === 'summary'} activeTool={s.activeTool} onSetActiveTool={s.handleSetActiveTool}
+            voiceId={s.tts.voiceId} speed={s.tts.speed} onToggleAIAssistant={() => s.handleSetActiveTool('aiAssistant')} onToggleDetails={onToggleDetails}
+            onStartCall={() => { s.setCallDirection('outbound'); s.openDialog('callDialog'); }} onOpenSearch={() => s.handleSetActiveTool('chatSearch')}
+            onOpenTransfer={() => s.openDialog('transferDialog')} onOpenSchedule={() => s.openDialog('scheduleDialog')}
+            onVoiceChange={s.tts.setVoiceId} onSpeedChange={s.tts.setSpeed} onBack={onBack}
+            onGenerateSummary={() => s.handleSetActiveTool('summary')} isSummaryLoading={false} canGenerateSummary={s.canGenerateSummary}
+            onCloseConversation={() => s.openDialog('closeDialog')}
             lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
             allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
-            onSelectSuggestion={(text) => setInputValue(text)} />
+            onSelectSuggestion={(text) => s.setInputValue(text)} />
         )}
 
-        <ChatSearchBar
-          messages={messages}
-          isOpen={activeTool === 'chatSearch'}
-          onClose={() => { handleSetActiveTool('chatSearch'); setTimeout(() => inputRef.current?.focus(), 150); }}
-          onNavigateToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)}
-          onHighlightChange={(ids, activeId) => { setHighlightedMessageIds(ids); setActiveHighlightId(activeId); }}
-          onSearchQueryChange={setSearchQuery}
-        />
+        <ChatSearchBar messages={messages} isOpen={s.activeTool === 'chatSearch'}
+          onClose={() => { s.handleSetActiveTool('chatSearch'); setTimeout(() => s.inputRef.current?.focus(), 150); }}
+          onNavigateToMessage={(id) => s.messagesAreaRef.current?.scrollToMessage(id)}
+          onHighlightChange={(ids, activeId) => { s.setHighlightedMessageIds(ids); s.setActiveHighlightId(activeId); }}
+          onSearchQueryChange={s.setSearchQuery} />
 
-        <ChatAssignedBar conversation={conversation} onOpenTransfer={() => openDialog('transferDialog')} />
+        <ChatAssignedBar conversation={conversation} onOpenTransfer={() => s.openDialog('transferDialog')} />
+        <Suspense fallback={null}><NextBestActionEngine contactId={conversation.contact.id} contactName={conversation.contact.name} /></Suspense>
 
-        <Suspense fallback={null}>
-          <NextBestActionEngine contactId={conversation.contact.id} contactName={conversation.contact.name} />
-        </Suspense>
-
-
-
-
-        <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
-          ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}
+        <ChatMessagesArea ref={s.messagesAreaRef} messages={messages} isContactTyping={s.isContactTyping} typingUserName={s.typingUsers[0]?.name || conversation.contact.name}
+          ttsLoading={s.tts.isLoading} ttsPlaying={s.tts.isPlaying} ttsMessageId={s.tts.currentMessageId} instanceName={s.instanceName}
           contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''} contactAvatar={conversation.contact.avatar || undefined}
-          onSpeak={speak} onStop={stop} onReply={handleReplyToMessage} onForward={handleForwardMessage} onCopy={handleCopyMessage}
-          onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handleInteractiveButtonClick} onEditStart={handleEditStart}
-          highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} searchQuery={searchQuery} />
+          onSpeak={s.tts.speak} onStop={s.tts.stop} onReply={s.handleReplyToMessage} onForward={s.handleForwardMessage} onCopy={s.handleCopyMessage}
+          onScrollToMessage={(id) => s.messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={s.handleInteractiveButtonClick} onEditStart={s.handleEditStart}
+          highlightedMessageIds={s.highlightedMessageIds} activeHighlightId={s.activeHighlightId} searchQuery={s.searchQuery} />
 
-        <ChatQuickRepliesPopover show={dialogs.quickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => closeDialog('quickReplies')} />
+        <ChatQuickRepliesPopover show={s.dialogs.quickReplies} replies={s.filteredQuickReplies} onSelect={s.handleQuickReply} onClose={() => s.closeDialog('quickReplies')} />
 
-        {dialogs.whisper && (
-          <Suspense fallback={null}>
-            <WhisperMode contactId={conversation.contact.id} className="mx-3 mb-2" />
-          </Suspense>
-        )}
+        {s.dialogs.whisper && <Suspense fallback={null}><WhisperMode contactId={conversation.contact.id} className="mx-3 mb-2" /></Suspense>}
 
-        <ChatInputArea inputValue={inputValue} replyToMessage={replyToMessage} editingMessage={editingMessage} isRecordingAudio={isRecordingAudio}
-          showSlashCommands={dialogs.slashCommands} contactId={conversation.contact.id} contactPhone={conversation.contact.phone}
-          contactName={conversation.contact.name} instanceName={instanceName} messages={messages} quickReplies={dbQuickReplies} isSending={isSending}
-          onInputChange={handleInputChange} onKeyDown={handleKeyDown} onBlur={handleTypingStop} onSend={handleSend}
-          onCancelReply={() => setReplyToMessage(null)} onCancelEdit={handleCancelEdit} onSlashCommand={handleSlashCommand}
-          onCloseSlashCommands={() => closeDialog('slashCommands')} onQuickReply={handleQuickReply}
-          onRecordToggle={() => setIsRecordingAudio(!isRecordingAudio)} onAudioSend={handleAudioSend} onAudioCancel={() => setIsRecordingAudio(false)}
-          onOpenInteractiveBuilder={() => openDialog('interactiveBuilder')} onOpenSchedule={() => openDialog('scheduleDialog')}
-          onOpenLocationPicker={() => openDialog('locationPicker')} onSendProduct={handleSendProduct} onSendSticker={handleSendSticker}
-          onSendAudioMeme={handleSendAudioMeme} onSendCustomEmoji={handleSendCustomEmoji}
-          signatureEnabled={signatureEnabled} signatureName={agentName} onToggleSignature={toggleSignature}
-          onPollSent={async (poll) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: whatsappConnectionId, content: `📊 *Enquete:* ${poll.name}\n${poll.options.map((o, i) => `${i + 1}. ${o}`).join('\n')}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
-          onContactSent={async (contactName) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: whatsappConnectionId, content: `📇 Cartão de contato: ${contactName}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
-          onOpenCatalog={() => openDialog('catalogDirect')} onSelectSuggestion={(text) => setInputValue(text)} onSelectTemplate={(text) => setInputValue(text)}
-          fileUploaderRef={fileUploaderRef} inputRef={inputRef} />
+        <ChatInputArea inputValue={s.inputValue} replyToMessage={s.replyToMessage} editingMessage={s.editingMessage} isRecordingAudio={s.isRecordingAudio}
+          showSlashCommands={s.dialogs.slashCommands} contactId={conversation.contact.id} contactPhone={conversation.contact.phone}
+          contactName={conversation.contact.name} instanceName={s.instanceName} messages={messages} quickReplies={s.dbQuickReplies} isSending={s.isSending}
+          onInputChange={s.handleInputChange} onKeyDown={s.handleKeyDown} onBlur={s.handleTypingStop} onSend={s.handleSend}
+          onCancelReply={() => s.setReplyToMessage(null)} onCancelEdit={s.handleCancelEdit} onSlashCommand={s.handleSlashCommand}
+          onCloseSlashCommands={() => s.closeDialog('slashCommands')} onQuickReply={s.handleQuickReply}
+          onRecordToggle={() => s.setIsRecordingAudio(!s.isRecordingAudio)} onAudioSend={s.handleAudioSend} onAudioCancel={() => s.setIsRecordingAudio(false)}
+          onOpenInteractiveBuilder={() => s.openDialog('interactiveBuilder')} onOpenSchedule={() => s.openDialog('scheduleDialog')}
+          onOpenLocationPicker={() => s.openDialog('locationPicker')} onSendProduct={s.handleSendProduct} onSendSticker={s.handleSendSticker}
+          onSendAudioMeme={s.handleSendAudioMeme} onSendCustomEmoji={s.handleSendCustomEmoji}
+          signatureEnabled={s.signatureEnabled} signatureName={s.agentName} onToggleSignature={s.toggleSignature}
+          onPollSent={async (poll) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: s.whatsappConnectionId, content: `📊 *Enquete:* ${poll.name}\n${poll.options.map((o, i) => `${i + 1}. ${o}`).join('\n')}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
+          onContactSent={async (contactName) => { await supabase.from('messages').insert({ contact_id: conversation.contact.id, whatsapp_connection_id: s.whatsappConnectionId, content: `📇 Cartão de contato: ${contactName}`, message_type: 'text', sender: 'agent', status: 'sent' }); }}
+          onOpenCatalog={() => s.openDialog('catalogDirect')} onSelectSuggestion={(text) => s.setInputValue(text)} onSelectTemplate={(text) => s.setInputValue(text)}
+          fileUploaderRef={s.fileUploaderRef} inputRef={s.inputRef} />
 
         <Suspense fallback={null}>
-          {dialogs.transferDialog && <TransferDialog open={dialogs.transferDialog} onOpenChange={(v) => v ? openDialog('transferDialog') : closeDialog('transferDialog')} onTransfer={handleTransfer as (type: "agent" | "connection" | "queue", targetId: string, message?: string) => void} />}
-          {dialogs.scheduleDialog && <ScheduleMessageDialog open={dialogs.scheduleDialog} onOpenChange={(v) => v ? openDialog('scheduleDialog') : closeDialog('scheduleDialog')} onSchedule={handleScheduleMessage} />}
-          {dialogs.callDialog && <CallDialog open={dialogs.callDialog} onOpenChange={(v) => v ? openDialog('callDialog') : closeDialog('callDialog')} contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }} direction={callDirection} onEnd={() => closeDialog('callDialog')} />}
-          {dialogs.globalSearch && <GlobalSearch open={dialogs.globalSearch} onOpenChange={(v) => v ? openDialog('globalSearch') : closeDialog('globalSearch')} onSelectResult={(result) => { log.debug('Selected:', result); toast({ title: 'Resultado selecionado', description: result.title }); }} />}
-          {dialogs.interactiveBuilder && <InteractiveMessageBuilder open={dialogs.interactiveBuilder} onOpenChange={(v) => v ? openDialog('interactiveBuilder') : closeDialog('interactiveBuilder')} onSend={handleSendInteractiveMessage} />}
-          {dialogs.forwardDialog && <ForwardMessageDialog open={dialogs.forwardDialog} onOpenChange={(v) => v ? openDialog('forwardDialog') : closeDialog('forwardDialog')} message={forwardMessage} onForward={handleForwardToTargets} />}
-          {dialogs.locationPicker && <LocationPicker open={dialogs.locationPicker} onOpenChange={(v) => v ? openDialog('locationPicker') : closeDialog('locationPicker')} onSend={handleSendLocation} />}
-          {dialogs.closeDialog && <CloseConversationDialog open={dialogs.closeDialog} onOpenChange={(v) => v ? openDialog('closeDialog') : closeDialog('closeDialog')} contactId={conversation.contact.id} />}
+          {s.dialogs.transferDialog && <TransferDialog open={s.dialogs.transferDialog} onOpenChange={(v) => v ? s.openDialog('transferDialog') : s.closeDialog('transferDialog')} onTransfer={(() => { toast({ title: 'Chat transferido!' }); }) as any} />}
+          {s.dialogs.scheduleDialog && <ScheduleMessageDialog open={s.dialogs.scheduleDialog} onOpenChange={(v) => v ? s.openDialog('scheduleDialog') : s.closeDialog('scheduleDialog')} onSchedule={s.handleScheduleMessage} />}
+          {s.dialogs.callDialog && <CallDialog open={s.dialogs.callDialog} onOpenChange={(v) => v ? s.openDialog('callDialog') : s.closeDialog('callDialog')} contact={{ name: conversation.contact.name, phone: conversation.contact.phone, avatar: conversation.contact.avatar }} direction={s.callDirection} onEnd={() => s.closeDialog('callDialog')} />}
+          {s.dialogs.globalSearch && <GlobalSearch open={s.dialogs.globalSearch} onOpenChange={(v) => v ? s.openDialog('globalSearch') : s.closeDialog('globalSearch')} onSelectResult={(result) => { log.debug('Selected:', result); }} />}
+          {s.dialogs.interactiveBuilder && <InteractiveMessageBuilder open={s.dialogs.interactiveBuilder} onOpenChange={(v) => v ? s.openDialog('interactiveBuilder') : s.closeDialog('interactiveBuilder')} onSend={s.handleSendInteractiveMessage} />}
+          {s.dialogs.forwardDialog && <ForwardMessageDialog open={s.dialogs.forwardDialog} onOpenChange={(v) => v ? s.openDialog('forwardDialog') : s.closeDialog('forwardDialog')} message={s.forwardMessage} onForward={s.handleForwardToTargets} />}
+          {s.dialogs.locationPicker && <LocationPicker open={s.dialogs.locationPicker} onOpenChange={(v) => v ? s.openDialog('locationPicker') : s.closeDialog('locationPicker')} onSend={s.handleSendLocation} />}
+          {s.dialogs.closeDialog && <CloseConversationDialog open={s.dialogs.closeDialog} onOpenChange={(v) => v ? s.openDialog('closeDialog') : s.closeDialog('closeDialog')} contactId={conversation.contact.id} />}
         </Suspense>
 
-        {dialogs.catalogDirect && <ExternalProductCatalog onSendProduct={handleSendProduct} open={dialogs.catalogDirect} onOpenChange={(v) => v ? openDialog('catalogDirect') : closeDialog('catalogDirect')} />}
+        {s.dialogs.catalogDirect && <ExternalProductCatalog onSendProduct={s.handleSendProduct} open={s.dialogs.catalogDirect} onOpenChange={(v) => v ? s.openDialog('catalogDirect') : s.closeDialog('catalogDirect')} />}
 
-        {dialogs.realtimeTranscription && (
+        {s.dialogs.realtimeTranscription && (
           <Suspense fallback={null}>
             <div className="px-3 mb-2">
-              <RealtimeTranscription
-                onTranscript={(text, isFinal) => { if (isFinal) setInputValue(prev => prev + ' ' + text); }}
-                onStatusChange={() => {}}
-                className="w-full"
-              />
+              <RealtimeTranscription onTranscript={(text, isFinal) => { if (isFinal) s.setInputValue(prev => prev + ' ' + text); }} onStatusChange={() => {}} className="w-full" />
             </div>
           </Suspense>
         )}
       </div>
 
-      {activeTool === 'aiAssistant' && (
+      {s.activeTool === 'aiAssistant' && (
         <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('aiAssistant')}
-            icon={<VisionIcon className="w-4 h-4 text-primary" />}
-            title="Visão"
-            subtitle="Análise Profunda"
-          >
+          <ToolPanel isOpen={true} onClose={() => s.handleSetActiveTool('aiAssistant')} icon={<VisionIcon className="w-4 h-4 text-primary" />} title="Visão" subtitle="Análise Profunda">
             <AIConversationAssistant messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, type: m.type, mediaUrl: m.mediaUrl, created_at: m.timestamp.toISOString() }))}
-              contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={activeTool === 'aiAssistant'} onClose={() => handleSetActiveTool('aiAssistant')} />
+              contactId={conversation.contact.id} contactName={conversation.contact.name} isOpen={s.activeTool === 'aiAssistant'} onClose={() => s.handleSetActiveTool('aiAssistant')} />
           </ToolPanel>
         </Suspense>
       )}
 
-      {activeTool === 'objections' && (
+      {s.activeTool === 'objections' && (
         <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('objections')}
-            icon={<Radar className="w-4 h-4 text-warning" />}
-            title="Monitoramento de Objeções"
-            subtitle="Detecta resistências e sugere contra-argumentos"
-          >
-            <ObjectionDetector
-              contactId={conversation.contact.id}
-              contactName={conversation.contact.name}
+          <ToolPanel isOpen={true} onClose={() => s.handleSetActiveTool('objections')} icon={<Radar className="w-4 h-4 text-warning" />} title="Monitoramento de Objeções" subtitle="Detecta resistências e sugere contra-argumentos">
+            <ObjectionDetector contactId={conversation.contact.id} contactName={conversation.contact.name}
               lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
               allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
-              onSelectSuggestion={(text) => setInputValue(text)}
-            />
+              onSelectSuggestion={(text) => s.setInputValue(text)} />
           </ToolPanel>
         </Suspense>
       )}
 
-      {activeTool === 'university' && (
+      {s.activeTool === 'university' && (
         <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('university')}
-            icon={<GraduationCap className="w-4 h-4 text-primary" />}
-            title="Ajuda dos Universitários"
-            subtitle="Gera respostas inteligentes a partir de mensagens"
-          >
-            <UniversityHelp
-              contactId={conversation.contact.id}
-              contactName={conversation.contact.name}
+          <ToolPanel isOpen={true} onClose={() => s.handleSetActiveTool('university')} icon={<GraduationCap className="w-4 h-4 text-primary" />} title="Ajuda dos Universitários" subtitle="Gera respostas inteligentes a partir de mensagens">
+            <UniversityHelp contactId={conversation.contact.id} contactName={conversation.contact.name}
               messages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
-              onSelectSuggestion={(text) => setInputValue(text)}
-            />
+              onSelectSuggestion={(text) => s.setInputValue(text)} />
           </ToolPanel>
         </Suspense>
       )}
 
-      {activeTool === 'summary' && (
+      {s.activeTool === 'summary' && (
         <Suspense fallback={null}>
-          <ToolPanel
-            isOpen={true}
-            onClose={() => handleSetActiveTool('summary')}
-            icon={<FileText className="w-4 h-4 text-primary" />}
-            title="Resumo da Conversa"
-            subtitle="Análise e pontos-chave da conversa"
-          >
-            <ConversationSummary
-              messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
-              contactName={conversation.contact.name}
-              contactId={conversation.contact.id}
-            />
+          <ToolPanel isOpen={true} onClose={() => s.handleSetActiveTool('summary')} icon={<FileText className="w-4 h-4 text-primary" />} title="Resumo da Conversa" subtitle="Análise e pontos-chave da conversa">
+            <ConversationSummary messages={messages.map(m => ({ id: m.id, sender: m.sender, content: m.content, created_at: m.timestamp.toISOString() }))}
+              contactName={conversation.contact.name} contactId={conversation.contact.id} />
           </ToolPanel>
         </Suspense>
       )}
