@@ -234,7 +234,6 @@ export function QuickRepliesManager({ onSelect, compact = false }: QuickRepliesM
             onDelete={handleDelete}
             onShowCreate={() => setShowCreateDialog(true)}
           />
-          </ScrollArea>
         </TabsContent>
       </Tabs>
 
