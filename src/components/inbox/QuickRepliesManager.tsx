@@ -14,30 +14,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { QuickReplyCardList } from './quick-replies/QuickReplyCardList';
 import { Folder, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useQuickReplies, QuickReplyTemplate, CreateTemplateInput } from '@/hooks/useQuickReplies';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+
+
 
 interface QuickRepliesManagerProps {
   onSelect?: (content: string) => void;
