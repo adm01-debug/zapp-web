@@ -1,10 +1,7 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { TeamMessage } from '@/hooks/useTeamChat';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { getLogger } from '@/lib/logger';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { useTeamChatDraft, useTeamPasteUpload, CHAR_LIMIT } from '@/hooks/useTeamChatDraft';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
