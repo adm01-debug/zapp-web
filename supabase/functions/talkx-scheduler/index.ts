@@ -3,24 +3,20 @@
  * Called by pg_cron every minute
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, handleCors, Logger } from "../_shared/validation.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const headers = { ...getCorsHeaders(req), "Content-Type": "application/json" };
+  const log = new Logger("talkx-scheduler");
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Find campaigns that are scheduled and due
     const now = new Date().toISOString();
     const { data: dueCampaigns, error } = await supabase
       .from("talkx_campaigns")
@@ -29,17 +25,14 @@ Deno.serve(async (req) => {
       .lte("scheduled_at", now);
 
     if (error) {
-      console.error("Error fetching scheduled campaigns:", error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      log.error("Error fetching scheduled campaigns", { error: error.message });
+      return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
     }
 
     if (!dueCampaigns || dueCampaigns.length === 0) {
       return new Response(
         JSON.stringify({ success: true, message: "No campaigns due", checked_at: now }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers }
       );
     }
 
@@ -47,41 +40,24 @@ Deno.serve(async (req) => {
 
     for (const campaign of dueCampaigns) {
       try {
-        // Call talkx-send to start the campaign
         const response = await fetch(
           `${supabaseUrl}/functions/v1/talkx-send`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${serviceKey}`,
-            },
-            body: JSON.stringify({
-              campaignId: campaign.id,
-              action: "start",
-            }),
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceKey}` },
+            body: JSON.stringify({ campaignId: campaign.id, action: "start" }),
           }
         );
-
         const result = await response.json();
-        results.push({
-          campaignId: campaign.id,
-          name: campaign.name,
-          success: response.ok,
-          result,
-        });
-
-        console.log(`Scheduled campaign started: ${campaign.name} (${campaign.id})`);
+        results.push({ campaignId: campaign.id, name: campaign.name, success: response.ok, result });
+        log.info(`Scheduled campaign started: ${campaign.name} (${campaign.id})`);
       } catch (err) {
-        console.error(`Failed to start campaign ${campaign.id}:`, err);
-        results.push({
-          campaignId: campaign.id,
-          name: campaign.name,
-          success: false,
-          error: err instanceof Error ? err.message : "Unknown error",
-        });
+        log.error(`Failed to start campaign ${campaign.id}`, { error: err instanceof Error ? err.message : String(err) });
+        results.push({ campaignId: campaign.id, name: campaign.name, success: false, error: err instanceof Error ? err.message : "Unknown error" });
       }
     }
+
+    log.done(200, { started: results.filter((r) => r.success).length });
 
     return new Response(
       JSON.stringify({
@@ -90,18 +66,13 @@ Deno.serve(async (req) => {
         failed: results.filter((r) => !r.success).length,
         details: results,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers }
     );
   } catch (err) {
-    console.error("Scheduler error:", err);
+    log.error("Scheduler error", { error: err instanceof Error ? err.message : String(err) });
     return new Response(
-      JSON.stringify({
-        error: err instanceof Error ? err.message : "Internal error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: err instanceof Error ? err.message : "Internal error" }),
+      { status: 500, headers }
     );
   }
 });

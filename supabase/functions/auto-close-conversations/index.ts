@@ -1,14 +1,11 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCors, jsonResponse, errorResponse, Logger } from '../_shared/validation.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const log = new Logger('auto-close-conversations');
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -23,25 +20,17 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (configError) {
-      console.error('Error fetching config:', configError);
-      return new Response(JSON.stringify({ error: 'Failed to fetch config' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      log.error('Error fetching config', { error: configError.message });
+      return errorResponse('Failed to fetch config', 500, req);
     }
 
     if (!config) {
-      return new Response(JSON.stringify({ message: 'Auto-close is disabled', closed: 0 }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ message: 'Auto-close is disabled', closed: 0 }, 200, req);
     }
 
     const cutoffDate = new Date();
     cutoffDate.setHours(cutoffDate.getHours() - config.inactivity_hours);
 
-    // Find contacts with no recent messages that are still "open"
-    // A contact is considered to have an open conversation if they have
-    // messages and their last message is older than the inactivity threshold
     const { data: staleContacts, error: staleError } = await supabase
       .from('contacts')
       .select('id, name, phone, assigned_to')
@@ -49,23 +38,17 @@ Deno.serve(async (req) => {
       .not('assigned_to', 'is', null);
 
     if (staleError) {
-      console.error('Error finding stale contacts:', staleError);
-      return new Response(JSON.stringify({ error: 'Failed to query stale contacts' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      log.error('Error finding stale contacts', { error: staleError.message });
+      return errorResponse('Failed to query stale contacts', 500, req);
     }
 
     if (!staleContacts || staleContacts.length === 0) {
-      return new Response(JSON.stringify({ message: 'No stale conversations found', closed: 0 }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ message: 'No stale conversations found', closed: 0 }, 200, req);
     }
 
     let closedCount = 0;
 
     for (const contact of staleContacts) {
-      // Send close message if configured
       if (config.close_message) {
         await supabase.from('messages').insert({
           contact_id: contact.id,
@@ -75,7 +58,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Log the closure
       await supabase.from('conversation_closures').insert({
         contact_id: contact.id,
         close_reason: 'inactivity',
@@ -83,7 +65,6 @@ Deno.serve(async (req) => {
         notes: `Auto-closed after ${config.inactivity_hours}h of inactivity`,
       });
 
-      // Unassign the contact
       await supabase
         .from('contacts')
         .update({ assigned_to: null })
@@ -92,19 +73,15 @@ Deno.serve(async (req) => {
       closedCount++;
     }
 
-    console.log(`Auto-closed ${closedCount} conversations`);
+    log.info(`Auto-closed ${closedCount} conversations`);
+    log.done(200, { closed: closedCount });
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       message: `Auto-closed ${closedCount} conversations`,
       closed: closedCount,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    }, 200, req);
   } catch (error) {
-    console.error('Unexpected error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log.error('Unexpected error', { error: error instanceof Error ? error.message : String(error) });
+    return errorResponse('Internal server error', 500, req);
   }
 });

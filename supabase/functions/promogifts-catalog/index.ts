@@ -1,16 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { getCorsHeaders, handleCors, Logger } from "../_shared/validation.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const jsonRes = (body: unknown, status = 200) =>
+const jsonRes = (body: unknown, status = 200, req?: Request) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...(req ? getCorsHeaders(req) : getCorsHeaders()), "Content-Type": "application/json" },
   });
 
 // ─── Input Schemas ────────────────────────────────────────────
@@ -37,13 +32,10 @@ const ActionSchema = z.object({
   params: z.record(z.unknown()).optional().default({}),
 });
 
-// ─── Sanitize search ─────────────────────────────────────────
 function sanitizeSearch(input: string): string {
-  // Remove PostgREST special chars to prevent filter injection
   return input.replace(/[%_.\\()]/g, "").trim().slice(0, 100);
 }
 
-// ─── Product select fields (no cost_price) ───────────────────
 const PRODUCT_FIELDS = `id, name, description, short_description, sku, sale_price, suggested_price,
   stock_quantity, primary_image_url, colors, brand, origin_country, min_quantity,
   dimensions_display, weight_g, combined_sizes, product_type, is_kit, is_active,
@@ -52,10 +44,9 @@ const PRODUCT_FIELDS = `id, name, description, short_description, sku, sale_pric
   categories:category_id(id, name, slug, parent_id),
   suppliers:supplier_id(id, name)`;
 
-// ─── Rate limiter (per-user, in-memory) ──────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 60; // requests per window
-const RATE_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60_000;
 
 function checkRateLimit(userId: string): boolean {
   const now = Date.now();
@@ -69,15 +60,15 @@ function checkRateLimit(userId: string): boolean {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const log = new Logger("promogifts-catalog");
 
   try {
-    // Auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return jsonRes({ error: "Unauthorized" }, 401);
+      return jsonRes({ error: "Unauthorized" }, 401, req);
     }
 
     const localClient = createClient(
@@ -88,119 +79,87 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userErr } = await localClient.auth.getUser();
     if (userErr || !userData?.user) {
-      return jsonRes({ error: "Unauthorized" }, 401);
+      return jsonRes({ error: "Unauthorized" }, 401, req);
     }
 
-    // Rate limit
     if (!checkRateLimit(userData.user.id)) {
-      return jsonRes({ error: "Too many requests. Try again in 1 minute." }, 429);
+      return jsonRes({ error: "Too many requests. Try again in 1 minute." }, 429, req);
     }
 
-    // External DB
     const extUrl = Deno.env.get("PROMOGIFTS_SUPABASE_URL");
     const extKey = Deno.env.get("PROMOGIFTS_SUPABASE_ANON_KEY");
     if (!extUrl || !extKey) {
-      return jsonRes({ error: "External DB not configured" }, 500);
+      return jsonRes({ error: "External DB not configured" }, 500, req);
     }
     const extClient = createClient(extUrl, extKey);
 
-    // Parse & validate body
     const rawBody = await req.json();
     const bodyParse = ActionSchema.safeParse(rawBody);
     if (!bodyParse.success) {
-      return jsonRes({ error: "Invalid request", details: bodyParse.error.flatten().fieldErrors }, 400);
+      return jsonRes({ error: "Invalid request", details: bodyParse.error.flatten().fieldErrors }, 400, req);
     }
     const { action, params } = bodyParse.data;
-
     const startTime = performance.now();
 
-    // ── list_products ──
     if (action === "list_products") {
       const paramsParse = ListProductsSchema.safeParse(params);
       if (!paramsParse.success) {
-        return jsonRes({ error: "Invalid parameters", details: paramsParse.error.flatten().fieldErrors }, 400);
+        return jsonRes({ error: "Invalid parameters", details: paramsParse.error.flatten().fieldErrors }, 400, req);
       }
       const { search, category_id, supplier_id, limit, offset, order_by, ascending, only_active, only_in_stock } = paramsParse.data;
 
-      let query = extClient
-        .from("products")
-        .select(PRODUCT_FIELDS, { count: "exact" });
-
+      let query = extClient.from("products").select(PRODUCT_FIELDS, { count: "exact" });
       if (only_active) query = query.eq("is_active", true);
       if (only_in_stock) query = query.eq("is_stockout", false);
       if (category_id) query = query.eq("category_id", category_id);
       if (supplier_id) query = query.eq("supplier_id", supplier_id);
       if (search) {
         const safe = sanitizeSearch(search);
-        if (safe.length > 0) {
-          query = query.or(
-            `name.ilike.%${safe}%,sku.ilike.%${safe}%,brand.ilike.%${safe}%`
-          );
-        }
+        if (safe.length > 0) query = query.or(`name.ilike.%${safe}%,sku.ilike.%${safe}%,brand.ilike.%${safe}%`);
       }
       query = query.order(order_by, { ascending }).range(offset, offset + limit - 1);
 
       const { data, error, count } = await query;
       if (error) throw error;
-
       const duration = Math.round(performance.now() - startTime);
-      return jsonRes({ data, meta: { total: count, duration_ms: duration } });
+      return jsonRes({ data, meta: { total: count, duration_ms: duration } }, 200, req);
     }
 
-    // ── get_product ──
     if (action === "get_product") {
       const paramsParse = GetProductSchema.safeParse(params);
       if (!paramsParse.success) {
-        return jsonRes({ error: "Invalid parameters", details: paramsParse.error.flatten().fieldErrors }, 400);
+        return jsonRes({ error: "Invalid parameters", details: paramsParse.error.flatten().fieldErrors }, 400, req);
       }
       const { product_id } = paramsParse.data;
-
       const { data: product, error: productErr } = await extClient
-        .from("products")
-        .select(PRODUCT_FIELDS)
-        .eq("id", product_id)
-        .maybeSingle();
+        .from("products").select(PRODUCT_FIELDS).eq("id", product_id).maybeSingle();
       if (productErr) throw productErr;
-      if (!product) {
-        return jsonRes({ error: "Product not found" }, 404);
-      }
+      if (!product) return jsonRes({ error: "Product not found" }, 404, req);
 
       const { data: variants, error: varErr } = await extClient
-        .from("product_variants")
-        .select("*")
-        .eq("product_id", product_id)
-        .eq("is_active", true)
-        .order("color_name");
+        .from("product_variants").select("*").eq("product_id", product_id).eq("is_active", true).order("color_name");
       if (varErr) throw varErr;
 
       const duration = Math.round(performance.now() - startTime);
-      return jsonRes({ data: { ...product, variants: variants || [] }, meta: { duration_ms: duration } });
+      return jsonRes({ data: { ...product, variants: variants || [] }, meta: { duration_ms: duration } }, 200, req);
     }
 
-    // ── list_categories ──
     if (action === "list_categories") {
-      const { data, error } = await extClient
-        .from("categories")
-        .select("id, name, slug, parent_id")
-        .order("name");
+      const { data, error } = await extClient.from("categories").select("id, name, slug, parent_id").order("name");
       if (error) throw error;
-      return jsonRes({ data });
+      return jsonRes({ data }, 200, req);
     }
 
-    // ── list_suppliers ──
     if (action === "list_suppliers") {
-      const { data, error } = await extClient
-        .from("suppliers")
-        .select("id, name")
-        .order("name");
+      const { data, error } = await extClient.from("suppliers").select("id, name").order("name");
       if (error) throw error;
-      return jsonRes({ data });
+      return jsonRes({ data }, 200, req);
     }
 
-    return jsonRes({ error: "Invalid action" }, 400);
+    return jsonRes({ error: "Invalid action" }, 400, req);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[promogifts-catalog] error:", msg);
-    return jsonRes({ error: msg }, 500);
+    log.error("Error", { error: msg });
+    return jsonRes({ error: msg }, 500, req);
   }
 });

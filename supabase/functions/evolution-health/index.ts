@@ -1,13 +1,8 @@
 // Evolution API Health Check Edge Function
 // Monitors WhatsApp connection status, webhook configuration, and API health
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { getCorsHeaders, handleCors, Logger } from '../_shared/validation.ts';
 
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy'
@@ -37,11 +32,12 @@ interface HealthCheckResult {
   alerts: string[]
 }
 
-serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+Deno.serve(async (req) => {
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const headers = { ...getCorsHeaders(req), 'Content-Type': 'application/json' };
+  const log = new Logger('evolution-health');
 
   try {
     const EVOLUTION_API_URL = Deno.env.get('EVOLUTION_API_URL')!
@@ -52,7 +48,6 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
     const alerts: string[] = []
-    const startTime = Date.now()
 
     // 1. Check Evolution API reachability
     let apiReachable = false
@@ -69,7 +64,7 @@ serve(async (req) => {
         const data = await apiResponse.json()
         apiVersion = data.version || 'unknown'
       }
-    } catch (e) {
+    } catch {
       alerts.push('Evolution API is unreachable')
     }
 
@@ -92,7 +87,7 @@ serve(async (req) => {
           alerts.push(`WhatsApp disconnected: state=${instanceState}`)
         }
       }
-    } catch (e) {
+    } catch {
       alerts.push('Failed to check instance status')
     }
 
@@ -115,14 +110,13 @@ serve(async (req) => {
           alerts.push('Webhook not configured')
         }
         
-        // Check for missing critical events
         const criticalEvents = ['MESSAGES_UPSERT', 'CONNECTION_UPDATE', 'QRCODE_UPDATED']
         const missingEvents = criticalEvents.filter(e => !webhookEvents.includes(e))
         if (missingEvents.length > 0) {
           alerts.push(`Missing webhook events: ${missingEvents.join(', ')}`)
         }
       }
-    } catch (e) {
+    } catch {
       alerts.push('Failed to check webhook configuration')
     }
 
@@ -131,7 +125,6 @@ serve(async (req) => {
     let lastMessageAt = ''
     let pendingMessages = 0
     try {
-      // Check last message received
       const { data: lastMsg, error: lastMsgError } = await supabase
         .from('messages_whatsapp')
         .select('created_at')
@@ -143,7 +136,6 @@ serve(async (req) => {
         dbConnected = true
         lastMessageAt = lastMsg.created_at
         
-        // Alert if no messages in last 30 minutes (when connected)
         const lastMsgTime = new Date(lastMsg.created_at).getTime()
         const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000
         if (instanceConnected && lastMsgTime < thirtyMinutesAgo) {
@@ -151,7 +143,6 @@ serve(async (req) => {
         }
       }
 
-      // Check pending messages in queue (if table exists)
       const { data: pending, error: pendingError } = await supabase
         .from('message_queue')
         .select('id', { count: 'exact' })
@@ -163,8 +154,7 @@ serve(async (req) => {
           alerts.push(`High message queue: ${pendingMessages} pending`)
         }
       }
-    } catch (e) {
-      // message_queue table might not exist, that's OK
+    } catch {
       dbConnected = true
     }
 
@@ -203,7 +193,6 @@ serve(async (req) => {
       alerts,
     }
 
-    // Log health check to system_logs (if table exists)
     try {
       await supabase.from('system_logs').insert({
         level: overallStatus === 'unhealthy' ? 'error' : overallStatus === 'degraded' ? 'warn' : 'info',
@@ -211,17 +200,19 @@ serve(async (req) => {
         message: `Evolution API health: ${overallStatus}`,
         metadata: result,
       })
-    } catch (e) {
-      // system_logs table might not exist, that's OK
+    } catch {
+      // system_logs table might not exist
     }
 
+    log.done(overallStatus === 'unhealthy' ? 503 : 200);
+
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers,
       status: overallStatus === 'unhealthy' ? 503 : 200,
     })
 
   } catch (error) {
-    console.error('Health check error:', error)
+    log.error('Health check error', { error: error instanceof Error ? error.message : String(error) });
     return new Response(
       JSON.stringify({
         status: 'unhealthy',
@@ -229,10 +220,7 @@ serve(async (req) => {
         error: error instanceof Error ? error.message : String(error),
         alerts: ['Health check failed unexpectedly'],
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 503,
-      }
+      { headers, status: 503 }
     )
   }
 })

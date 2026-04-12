@@ -1,9 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, handleCors, Logger } from "../_shared/validation.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -27,21 +23,10 @@ async function getMediaBase64(instanceName: string, messageId: string): Promise<
     const url = `${EVOLUTION_API_URL}/chat/getBase64FromMediaMessage/${instanceName}`;
     const resp = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: EVOLUTION_API_KEY,
-      },
-      body: JSON.stringify({
-        message: { key: { id: messageId } },
-        convertToMp4: false,
-      }),
+      headers: { "Content-Type": "application/json", apikey: EVOLUTION_API_KEY },
+      body: JSON.stringify({ message: { key: { id: messageId } }, convertToMp4: false }),
     });
-
-    if (!resp.ok) {
-      console.error(`Evolution API error ${resp.status} for ${messageId}`);
-      return null;
-    }
-
+    if (!resp.ok) return null;
     const data = await resp.json();
     return data?.base64 || null;
   } catch (err) {
@@ -51,14 +36,15 @@ async function getMediaBase64(instanceName: string, messageId: string): Promise<
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const headers = { ...getCorsHeaders(req), "Content-Type": "application/json" };
+  const log = new Logger("recover-corrupted-audios");
 
   try {
     const { batch_size = 20, offset = 0, dry_run = false } = await req.json().catch(() => ({}));
 
-    // Fetch corrupted audio messages
     const { data: messages, error: fetchErr } = await supabase
       .from("messages")
       .select("id, external_id, media_url, whatsapp_connection_id")
@@ -73,12 +59,9 @@ Deno.serve(async (req) => {
     if (fetchErr) throw fetchErr;
 
     if (!messages || messages.length === 0) {
-      return new Response(JSON.stringify({ done: true, message: "No more audios to process", offset }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ done: true, message: "No more audios to process", offset }), { headers });
     }
 
-    // Get instance name
     const connId = messages[0].whatsapp_connection_id;
     const { data: conn } = await supabase
       .from("whatsapp_connections")
@@ -89,112 +72,63 @@ Deno.serve(async (req) => {
 
     if (dry_run) {
       return new Response(JSON.stringify({
-        dry_run: true,
-        batch_size: messages.length,
-        offset,
-        instance: instanceName,
+        dry_run: true, batch_size: messages.length, offset, instance: instanceName,
         sample_ids: messages.slice(0, 3).map((m) => m.external_id),
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }), { headers });
     }
 
     const results = { recovered: 0, failed: 0, skipped: 0, errors: [] as string[] };
 
     for (const msg of messages) {
       try {
-        // First check if the existing file is already valid
         const existingUrl = msg.media_url;
         if (existingUrl) {
           try {
             const checkResp = await fetch(existingUrl);
             if (checkResp.ok) {
               const existingBytes = new Uint8Array(await checkResp.arrayBuffer());
-              if (isValidAudioBytes(existingBytes)) {
-                results.skipped++;
-                continue;
-              }
+              if (isValidAudioBytes(existingBytes)) { results.skipped++; continue; }
             }
           } catch { /* proceed to re-download */ }
         }
 
-        // Get decrypted media from Evolution API
         const base64 = await getMediaBase64(instanceName, msg.external_id!);
-        if (!base64) {
-          results.failed++;
-          results.errors.push(`${msg.external_id}: no base64 from API`);
-          continue;
-        }
+        if (!base64) { results.failed++; results.errors.push(`${msg.external_id}: no base64 from API`); continue; }
 
-        // Decode and validate
         const binaryStr = atob(base64);
         const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) {
-          bytes[i] = binaryStr.charCodeAt(i);
-        }
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
 
-        if (!isValidAudioBytes(bytes)) {
-          results.failed++;
-          results.errors.push(`${msg.external_id}: invalid audio bytes after decode`);
-          continue;
-        }
+        if (!isValidAudioBytes(bytes)) { results.failed++; results.errors.push(`${msg.external_id}: invalid audio bytes`); continue; }
 
-        // Determine content type
         let contentType = "audio/ogg";
         let ext = "ogg";
-        if (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) {
-          contentType = "audio/mpeg";
-          ext = "mp3";
-        } else if (bytes[0] === 0x1a && bytes[1] === 0x45) {
-          contentType = "audio/webm";
-          ext = "webm";
-        }
+        if (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) { contentType = "audio/mpeg"; ext = "mp3"; }
+        else if (bytes[0] === 0x1a && bytes[1] === 0x45) { contentType = "audio/webm"; ext = "webm"; }
 
-        // Upload to storage (overwrite)
         const storagePath = `audio/${msg.external_id}.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from("audio-messages")
-          .upload(storagePath, bytes, {
-            contentType,
-            upsert: true,
-          });
+        const { error: uploadErr } = await supabase.storage.from("audio-messages").upload(storagePath, bytes, { contentType, upsert: true });
 
-        if (uploadErr) {
-          results.failed++;
-          results.errors.push(`${msg.external_id}: upload failed - ${uploadErr.message}`);
-          continue;
-        }
+        if (uploadErr) { results.failed++; results.errors.push(`${msg.external_id}: upload failed - ${uploadErr.message}`); continue; }
 
-        // Update message URL
         const newUrl = `${SUPABASE_URL}/storage/v1/object/public/audio-messages/${storagePath}`;
-        await supabase
-          .from("messages")
-          .update({ media_url: newUrl })
-          .eq("id", msg.id);
-
+        await supabase.from("messages").update({ media_url: newUrl }).eq("id", msg.id);
         results.recovered++;
       } catch (err) {
         results.failed++;
         results.errors.push(`${msg.external_id}: ${err instanceof Error ? err.message : "unknown error"}`);
       }
-
-      // Small delay to not overwhelm the API
       await new Promise((r) => setTimeout(r, 500));
     }
 
+    log.done(200, { recovered: results.recovered, failed: results.failed });
+
     return new Response(JSON.stringify({
-      ...results,
-      batch_size: messages.length,
-      offset,
-      next_offset: offset + batch_size,
+      ...results, batch_size: messages.length, offset, next_offset: offset + batch_size,
       errors: results.errors.slice(0, 10),
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    }), { headers });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    log.error("Error", { error: err instanceof Error ? err.message : String(err) });
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }), { status: 500, headers });
   }
 });
