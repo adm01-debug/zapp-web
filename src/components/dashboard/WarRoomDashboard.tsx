@@ -291,7 +291,7 @@ function MetricCard({ icon: Icon, label, value, suffix, trend, alert, critical, 
   );
 }
 
-function QueueRow({ queue, onClick }: { queue: QueueMetric; onClick: () => void }) {
+function QueueRow({ queue, onClick }: { queue: WarRoomQueue; onClick: () => void }) {
   const utilizationPercent = (queue.inProgress / (queue.waiting + queue.inProgress)) * 100 || 0;
   const hasCritical = queue.slaBreaches > 0;
 
@@ -345,7 +345,7 @@ function QueueRow({ queue, onClick }: { queue: QueueMetric; onClick: () => void 
   );
 }
 
-function AlertRow({ alert, onDismiss }: { alert: Alert; onDismiss: () => void }) {
+function AlertRow({ alert, onDismiss }: { alert: WarRoomAlert; onDismiss: () => void }) {
   const alertStyles = {
     critical: 'bg-destructive/10 border-destructive text-destructive',
     warning: 'bg-warning/10 border-warning text-warning',
@@ -378,7 +378,7 @@ function AlertRow({ alert, onDismiss }: { alert: Alert; onDismiss: () => void })
   );
 }
 
-function AgentCard({ agent, onClick }: { agent: Agent; onClick: () => void }) {
+function AgentCard({ agent, onClick }: { agent: WarRoomAgent; onClick: () => void }) {
   const statusColors = {
     online: 'bg-success',
     busy: 'bg-warning',
