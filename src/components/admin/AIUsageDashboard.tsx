@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain, TrendingUp, Users, Zap, Clock, Download, RefreshCw } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useAIUsageDashboard, FUNCTION_COLORS, FUNCTION_LABELS } from '@/hooks/useAIUsageDashboard';
 import type { TimeFilter } from '@/hooks/useAIUsageDashboard';
 
