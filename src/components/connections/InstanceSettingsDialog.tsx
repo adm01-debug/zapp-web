@@ -87,7 +87,8 @@ export function InstanceSettingsDialog({
   const loadSettings = async () => {
     setLoadingTab('settings');
     try {
-      const data = await getSettings(instanceName);
+      const raw = await getSettings(instanceName);
+      const data = raw as Record<string, unknown> | null;
       if (data) {
         setSettingsData({
           rejectCall: data.rejectCall ?? false,
@@ -105,7 +106,8 @@ export function InstanceSettingsDialog({
 
   const loadProfile = async () => {
     try {
-      const data = await fetchProfile(instanceName);
+      const raw = await fetchProfile(instanceName);
+      const data = raw as Record<string, unknown> | null;
       if (data) {
         setProfile({
           name: data.name ?? '',
