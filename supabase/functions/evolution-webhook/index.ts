@@ -354,35 +354,8 @@ async function getContactByPhone(
   return data;
 }
 
-// ─── In-Memory Rate Limiter ───
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute window
-const RATE_LIMIT_MAX_EVENTS = 300;   // max events per instance per window
-const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
-
-function isRateLimited(instance: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(instance);
-
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(instance, { count: 1, windowStart: now });
-    return false;
-  }
-
-  entry.count++;
-  if (entry.count > RATE_LIMIT_MAX_EVENTS) {
-    console.warn(`[RATE_LIMIT] Instance ${instance} exceeded ${RATE_LIMIT_MAX_EVENTS} events/min (${entry.count})`);
-    return true;
-  }
-  return false;
-}
-
-// Cleanup stale entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of rateLimitMap) {
-    if (now - val.windowStart > RATE_LIMIT_WINDOW_MS * 2) rateLimitMap.delete(key);
-  }
-}, 120_000);
+// Note: Rate limiting for webhooks is handled at the Evolution API configuration level.
+// In-memory rate limiters are ineffective in stateless edge functions.
 
 // ─── Handle reaction events (add/remove) ───
 // deno-lint-ignore no-explicit-any
