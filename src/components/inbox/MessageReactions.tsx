@@ -81,16 +81,11 @@ export function MessageReactions({
         {reactionsList.map((reaction, index) => (
           <Tooltip key={reaction.emoji}>
             <TooltipTrigger asChild>
-              <motion.button
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 25, delay: index * 0.03 }}
-                whileHover={{ scale: 1.15 }}
-                whileTap={{ scale: 0.9 }}
+              <button
                 onClick={() => handleReact(reaction.emoji)}
                 className={cn(
                   'flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs',
-                  'border transition-all cursor-pointer',
+                  'border transition-all cursor-pointer hover:scale-110 active:scale-90',
                   reaction.hasCurrentUser
                     ? 'bg-primary/10 border-primary/30 ring-1 ring-primary/20'
                     : 'bg-muted/80 hover:bg-muted border-border/50'
@@ -105,7 +100,7 @@ export function MessageReactions({
                     {reaction.count}
                   </span>
                 )}
-              </motion.button>
+              </button>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
               <div className="max-w-[150px]">
