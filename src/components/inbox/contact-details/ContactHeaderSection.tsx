@@ -199,7 +199,10 @@ export function ContactHeaderSection({ contact, enrichedData, conversation, onQu
               transition={{ duration: 1, ease: 'easeOut' }}
             />
           </svg>
-          <Avatar className="w-24 h-24 ring-2 ring-background">
+          <Avatar
+            className="w-24 h-24 ring-2 ring-background cursor-pointer hover:ring-primary/50 transition-all"
+            onClick={() => contact.avatar && setShowAvatarPreview(true)}
+          >
             <AvatarImage src={contact.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
               {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
