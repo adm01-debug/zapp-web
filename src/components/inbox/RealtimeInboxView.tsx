@@ -5,6 +5,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
 import { MiniChatPiP } from '@/components/mobile/MiniChatPiP';
 import { NewMessageIndicator } from './NewMessageIndicator';
+import { InboxEmptyChat } from './InboxEmptyChat';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary';
