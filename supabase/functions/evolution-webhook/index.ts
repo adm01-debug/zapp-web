@@ -756,10 +756,43 @@ serve(async (req) => {
 
     if (event === 'presence.update') {
       const presenceData = isRecord(data) ? data : {};
-      const jid = presenceData.id as string;
-      const presences = presenceData.presences as Record<string, unknown>;
-      if (jid && presences) {
-        console.log(`Presence update: ${jid}`, JSON.stringify(presences));
+      const jid = (presenceData.id as string) || (presenceData.remoteJid as string);
+      const presences = presenceData.presences as Record<string, Record<string, unknown>> | undefined;
+
+      if (jid && !jid.endsWith('@g.us')) {
+        // Determine if contact is composing
+        let isComposing = false;
+        if (presences) {
+          for (const [, pState] of Object.entries(presences)) {
+            if (pState?.lastKnownPresence === 'composing' || pState?.status === 'composing') {
+              isComposing = true;
+              break;
+            }
+          }
+        } else {
+          // Some Evolution versions send status directly
+          const directStatus = presenceData.status as string || presenceData.lastKnownPresence as string;
+          isComposing = directStatus === 'composing';
+        }
+
+        const phone = normalizePhone(jid);
+        if (phone) {
+          const connection = await getConnectionByInstance(supabase, instance);
+          if (connection) {
+            const contact = await getContactByPhone(supabase, phone, connection.id);
+            if (contact) {
+              // Broadcast typing status to the frontend via Supabase Realtime
+              const channel = supabase.channel(`typing:${contact.id}`);
+              await channel.send({
+                type: 'broadcast',
+                event: 'contact_typing',
+                payload: { isTyping: isComposing, contactId: contact.id, timestamp: new Date().toISOString() },
+              });
+              supabase.removeChannel(channel);
+              console.log(`Presence ${phone}: ${isComposing ? 'composing' : 'paused'} → broadcast to typing:${contact.id}`);
+            }
+          }
+        }
       }
     }
 
