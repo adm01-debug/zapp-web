@@ -1,6 +1,3 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -8,63 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain, TrendingUp, Users, Zap, Clock, Download, RefreshCw } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { format, subHours, subDays, startOfDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { useAIUsageDashboard, FUNCTION_COLORS, FUNCTION_LABELS } from '@/hooks/useAIUsageDashboard';
+import type { TimeFilter } from '@/hooks/useAIUsageDashboard';
 
-type TimeFilter = '1h' | '6h' | '24h' | '7d' | '30d';
 const LOGS_PER_PAGE = 50;
-
-interface UsageLog {
-  id: string;
-  user_id: string | null;
-  profile_id: string | null;
-  function_name: string;
-  model: string | null;
-  input_tokens: number;
-  output_tokens: number;
-  total_tokens: number;
-  duration_ms: number | null;
-  status: string;
-  created_at: string;
-}
-
-interface ProfileInfo {
-  id: string;
-  user_id: string | null;
-  name: string | null;
-  email: string | null;
-  avatar_url: string | null;
-}
-
-const FUNCTION_COLORS: Record<string, string> = {
-  'ai-suggest-reply': '#3b82f6',
-  'ai-enhance-message': '#8b5cf6',
-  'ai-conversation-analysis': '#f59e0b',
-  'ai-conversation-summary': '#10b981',
-  'ai-auto-tag': '#ef4444',
-  'chatbot-l1': '#06b6d4',
-};
-
-const FUNCTION_LABELS: Record<string, string> = {
-  'ai-suggest-reply': 'Sugestão de Resposta',
-  'ai-enhance-message': 'Reescrita de Mensagem',
-  'ai-conversation-analysis': 'Análise de Conversa',
-  'ai-conversation-summary': 'Resumo de Conversa',
-  'ai-auto-tag': 'Auto-Tag',
-  'chatbot-l1': 'Chatbot L1',
-};
-
-function getTimeRange(filter: TimeFilter): Date {
-  switch (filter) {
-    case '1h': return subHours(new Date(), 1);
-    case '6h': return subHours(new Date(), 6);
-    case '24h': return subDays(new Date(), 1);
-    case '7d': return subDays(new Date(), 7);
-    case '30d': return subDays(new Date(), 30);
-  }
-}
-
 export function AIUsageDashboard() {
   const [logsPage, setLogsPage] = useState(0);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
