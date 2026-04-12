@@ -110,6 +110,7 @@ export interface Message {
   created_at?: string;
 }
 
+
 export interface Conversation {
   id: string;
   contact: Contact;
