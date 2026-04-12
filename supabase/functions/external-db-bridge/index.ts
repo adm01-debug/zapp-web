@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       if (action === "select" && table) {
         // deno-lint-ignore no-explicit-any
         let query: any = supabaseAdmin.from(table).select(params?.select as string || "*", {
-          count: countMode || undefined,
+          count: (countMode as "exact" | "planned" | "estimated") || undefined,
         });
         if (params?.filters) {
           for (const f of params.filters as Array<{ column: string; operator: string; value: unknown }>) {
