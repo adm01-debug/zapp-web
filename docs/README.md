@@ -6,18 +6,24 @@
 
 ## 🗺️ Índice da Documentação
 
+### 🚀 Quick Start
+| Documento | Descrição |
+|-----------|-----------|
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | **Guia completo de deploy** ✨ |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | **Solução de problemas** ✨ |
+
 ### 📐 Arquitetura e Design
 | Documento | Descrição |
 |-----------|-----------|
 | [TECHNICAL_DOCUMENTATION.md](./TECHNICAL_DOCUMENTATION.md) | Documentação técnica completa (90KB) |
-| [COMPLETE_SYSTEM_FEATURES.md](./COMPLETE_SYSTEM_FEATURES.md) | Funcionalidades do sistema |
+| [COMPLETE_SYSTEM_FEATURES.md](./COMPLETE_SYSTEM_FEATURES.md) | Funcionalidades do sistema (45KB) |
 | [FUNCTIONALITIES_INVENTORY.md](./FUNCTIONALITIES_INVENTORY.md) | Inventário de funcionalidades |
 | [architecture/](./architecture/) | Diagramas de arquitetura |
 
 ### 🔌 Integrações
 | Documento | Descrição |
 |-----------|-----------|
-| [EVOLUTION_API_REFERENCE.md](./EVOLUTION_API_REFERENCE.md) | Referência da API Evolution (WhatsApp) |
+| [EVOLUTION_API_REFERENCE.md](./EVOLUTION_API_REFERENCE.md) | Referência da API Evolution (WhatsApp) (38KB) |
 | [CRM360_TECHNICAL_DOCS.md](./CRM360_TECHNICAL_DOCS.md) | Documentação CRM 360 |
 | [PROMPT_LOVABLE_CRM360_INTEGRATION.md](./PROMPT_LOVABLE_CRM360_INTEGRATION.md) | Integração Lovable + CRM360 |
 | [PROMPT_LOVABLE_INTELLIGENCE_PANEL.md](./PROMPT_LOVABLE_INTELLIGENCE_PANEL.md) | Painel de Inteligência |
@@ -67,6 +73,20 @@
 2. Use o padrão de nomenclatura: `NOME-EM-MAIUSCULAS.md`
 3. Atualize este índice ao criar novos documentos
 4. Inclua data de última atualização nos documentos
+
+---
+
+## 📊 Métricas do Repositório
+
+| Métrica | Valor |
+|---------|-------|
+| Arquivos de código | 608 |
+| Componentes React | 297 |
+| Custom Hooks | 80 |
+| Edge Functions | 20 |
+| Migrations SQL | 55 |
+| Tabelas PostgreSQL | 56 |
+| RLS Policies | 181 |
 
 ---
 
