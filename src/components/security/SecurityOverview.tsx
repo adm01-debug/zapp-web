@@ -1,32 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { log } from '@/lib/logger';
-import { 
-  Shield, 
-  Smartphone, 
-  Key, 
-  AlertTriangle, 
-  CheckCircle2, 
-  XCircle,
-  Monitor,
-  Globe,
-  Clock,
-  Lock,
-  Users,
-  Activity,
-  Zap,
-  TrendingUp
-} from 'lucide-react';
+import { Shield, Smartphone, Key, AlertTriangle, CheckCircle2, XCircle, Monitor, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import { useMFA } from '@/hooks/useMFA';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { SecurityAlertsPanel, SecurityDevicesPanel } from './SecurityPanels';
 
 interface SecurityScore {
   total: number;
