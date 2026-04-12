@@ -92,7 +92,7 @@ export function useContactsCRUD() {
           assigned_to: profile?.id || null,
         });
         if (error) {
-          if (error.code === '23505' && error.message?.includes('contacts_phone_unique')) {
+          if (error.code === '23505') {
             throw new Error('Já existe um contato cadastrado com este número de telefone.');
           }
           throw error;
