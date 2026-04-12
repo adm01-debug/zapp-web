@@ -16,20 +16,20 @@ interface ContactDialogsProps {
   // Add dialog
   isAddDialogOpen: boolean;
   setIsAddDialogOpen: (open: boolean) => void;
-  newContact: any;
-  handleNewContactChange: (field: string, value: any) => void;
+  newContact: Record<string, string>;
+  handleNewContactChange: (field: string, value: string) => void;
   handleAddContact: () => void;
   handleCancelForm: () => void;
   isSubmitting: boolean;
   // Edit dialog
   isEditDialogOpen: boolean;
   setIsEditDialogOpen: (open: boolean) => void;
-  editingContact: any;
-  handleEditContactChange: (field: string, value: any) => void;
+  editingContact: Contact | null;
+  handleEditContactChange: (field: string, value: string) => void;
   handleEditContact: () => void;
   // Success dialog
   showSuccess: { name: string; protocol: string } | null;
-  setShowSuccess: (val: any) => void;
+  setShowSuccess: (val: { name: string; protocol: string } | null) => void;
   // Delete dialog
   deleteTarget: Contact | null;
   setDeleteTarget: (val: Contact | null) => void;
