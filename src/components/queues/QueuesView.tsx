@@ -97,7 +97,7 @@ export function QueuesView() {
       </div>
 
       <CreateQueueDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} onSubmit={createQueue} />
-      {selectedQueue && <AddMemberDialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen} queueId={selectedQueue.id} existingMemberIds={selectedQueue.members.map(m => m.profile_id)} onAddMember={addMember} />}
+      {selectedQueue && <AddMemberDialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen} queueId={selectedQueue.id} existingMemberIds={selectedQueue.members.map(m => m.profile_id)} onAddMember={(profileId) => addMember(selectedQueue.id, profileId)} />}
       {selectedQueue && <QueueGoalsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} queueId={selectedQueue.id} queueName={selectedQueue.name} queueColor={selectedQueue.color} />}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-card border-border/30">
