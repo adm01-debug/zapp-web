@@ -1006,6 +1006,188 @@ serve(async (req) => {
       }
     }
 
+    // ─── CHATS_DELETE: Mark all messages of a deleted chat as deleted ───
+    if (event === 'chats.delete') {
+      const chats = Array.isArray(data) ? data : [data];
+      for (const chat of chats) {
+        const chatData = isRecord(chat) ? chat : {};
+        const jid = (chatData.id as string) || (chatData.remoteJid as string);
+        if (!jid || jid.endsWith('@g.us')) continue;
+
+        const phone = normalizePhone(jid);
+        if (!phone) continue;
+
+        const connection = await getConnectionByInstance(supabase, instance);
+        if (!connection) continue;
+
+        const contact = await getContactByPhone(supabase, phone, connection.id);
+        if (contact) {
+          const now = new Date().toISOString();
+          const { count } = await supabase
+            .from('messages')
+            .update({ is_deleted: true, status: 'deleted', status_updated_at: now })
+            .eq('contact_id', contact.id)
+            .select('id', { count: 'exact', head: true });
+          console.log(`Chat deleted: ${jid} — ${count ?? 0} messages marked as deleted`);
+        }
+      }
+    }
+
+    // ─── APPLICATION_STARTUP: Log startup and refresh connection status ───
+    if (event === 'application.startup') {
+      console.log(`Application startup event from instance: ${instance}`);
+      const { data: conn } = await supabase
+        .from('whatsapp_connections')
+        .select('id, status')
+        .eq('instance_id', instance)
+        .maybeSingle();
+
+      if (conn) {
+        // Mark as pending until we get a connection.update with actual status
+        if (conn.status === 'disconnected') {
+          await supabase
+            .from('whatsapp_connections')
+            .update({ status: 'pending', updated_at: new Date().toISOString() })
+            .eq('id', conn.id);
+          console.log(`Instance ${instance} startup: status set to pending`);
+        }
+      }
+    }
+
+    // ─── MESSAGES_SET: Bulk history sync (initial load) ───
+    if (event === 'messages.set') {
+      const messages = toEventRecords(data, ['messages']);
+      if (messages.length === 0) {
+        console.log(`messages.set: no messages in payload for ${instance}`);
+      } else {
+        const connection = await getConnectionByInstance(supabase, instance);
+        if (connection) {
+          let synced = 0;
+          let skipped = 0;
+          for (const entry of messages) {
+            const keySource = isRecord(entry.key) ? entry.key : null;
+            const key = keySource as { remoteJid?: string; fromMe?: boolean; id?: string } | null;
+            if (!key?.id || !key.remoteJid || key.remoteJid.endsWith('@g.us')) { skipped++; continue; }
+
+            // Check if already exists
+            const { data: existing } = await supabase
+              .from('messages')
+              .select('id')
+              .eq('external_id', key.id)
+              .maybeSingle();
+            if (existing) { skipped++; continue; }
+
+            const phone = normalizePhone(key.remoteJid);
+            if (!phone) { skipped++; continue; }
+
+            const contact = await getContactByPhone(supabase, phone, connection.id);
+            if (!contact) { skipped++; continue; }
+
+            // Parse message content
+            const msg = entry.message as Record<string, unknown> | undefined;
+            let content = '';
+            let messageType = 'text';
+            if (msg?.conversation) content = msg.conversation as string;
+            else if ((msg?.extendedTextMessage as Record<string, unknown>)?.text) content = (msg.extendedTextMessage as Record<string, unknown>).text as string;
+            else if (msg?.imageMessage) { messageType = 'image'; content = ((msg.imageMessage as Record<string, unknown>).caption as string) || '[Imagem]'; }
+            else if (msg?.videoMessage) { messageType = 'video'; content = ((msg.videoMessage as Record<string, unknown>).caption as string) || '[Vídeo]'; }
+            else if (msg?.audioMessage) { messageType = 'audio'; content = '[Áudio]'; }
+            else if (msg?.documentMessage) { messageType = 'document'; content = ((msg.documentMessage as Record<string, unknown>).fileName as string) || '[Documento]'; }
+            else if (msg?.stickerMessage) { messageType = 'sticker'; content = '[Sticker]'; }
+            else { skipped++; continue; }
+
+            if (!content && messageType === 'text') { skipped++; continue; }
+
+            const ts = (entry.messageTimestamp as number)
+              ? new Date((entry.messageTimestamp as number) * 1000).toISOString()
+              : new Date().toISOString();
+
+            await supabase.from('messages').insert({
+              content,
+              message_type: messageType,
+              sender: key.fromMe ? 'agent' : 'contact',
+              external_id: key.id,
+              contact_id: contact.id,
+              whatsapp_connection_id: connection.id,
+              status: key.fromMe ? 'sent' : null,
+              is_read: key.fromMe ? true : false,
+              created_at: ts,
+            });
+            synced++;
+          }
+          console.log(`messages.set: synced ${synced}, skipped ${skipped} for ${instance}`);
+        }
+      }
+    }
+
+    // ─── CONTACTS_SET: Bulk contacts sync (initial load) ───
+    if (event === 'contacts.set') {
+      const contacts = toEventRecords(data, ['contacts']);
+      if (contacts.length === 0) {
+        console.log(`contacts.set: no contacts in payload for ${instance}`);
+      } else {
+        const connection = await getConnectionByInstance(supabase, instance);
+        if (connection) {
+          let synced = 0;
+          let skipped = 0;
+          for (const contactData of contacts) {
+            const jid = (contactData.id as string) || (contactData.remoteJid as string);
+            if (!jid || jid.endsWith('@g.us') || jid.endsWith('@broadcast')) { skipped++; continue; }
+
+            const phone = normalizePhone(jid);
+            if (!phone) { skipped++; continue; }
+
+            const pushName = (contactData.pushName as string) || (contactData.name as string) || (contactData.notify as string);
+            if (!pushName) { skipped++; continue; }
+
+            const existing = await getContactByPhone(supabase, phone, connection.id);
+            if (existing) { skipped++; continue; }
+
+            const { error: insertErr } = await supabase.from('contacts').insert({
+              phone,
+              name: pushName,
+              whatsapp_connection_id: connection.id,
+            });
+            if (insertErr && insertErr.code === '23505') { skipped++; continue; }
+            if (insertErr) { console.error(`contacts.set insert error for ${phone}:`, insertErr); skipped++; continue; }
+            synced++;
+          }
+          console.log(`contacts.set: synced ${synced}, skipped ${skipped} for ${instance}`);
+        }
+      }
+    }
+
+    // ─── CHATS_SET: Bulk chats sync (initial load) — mark read status ───
+    if (event === 'chats.set') {
+      const chats = toEventRecords(data, ['chats']);
+      const connection = await getConnectionByInstance(supabase, instance);
+      if (connection && chats.length > 0) {
+        let processed = 0;
+        for (const chat of chats) {
+          const jid = chat.id as string;
+          if (!jid || jid.endsWith('@g.us')) continue;
+
+          const phone = normalizePhone(jid);
+          if (!phone) continue;
+
+          const unreadCount = chat.unreadCount as number;
+          if (unreadCount === 0) {
+            const contact = await getContactByPhone(supabase, phone, connection.id);
+            if (contact) {
+              await supabase
+                .from('messages')
+                .update({ is_read: true })
+                .eq('contact_id', contact.id)
+                .eq('sender', 'contact')
+                .eq('is_read', false);
+              processed++;
+            }
+          }
+        }
+        console.log(`chats.set: processed ${processed} of ${chats.length} for ${instance}`);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
