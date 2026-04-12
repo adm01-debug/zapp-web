@@ -409,7 +409,7 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
   }
 }
 
-
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
