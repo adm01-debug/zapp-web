@@ -429,12 +429,7 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
     const data = payload.data ?? {};
     const baseData = isRecord(data) ? data : {};
 
-    // Rate limit check per instance
-    if (isRateLimited(instance)) {
-      return new Response(JSON.stringify({ error: 'Rate limited', instance }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+
 
     console.log('Evolution webhook received:', payload.event, '->', event, instance);
 
