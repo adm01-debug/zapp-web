@@ -5,6 +5,10 @@ import { playNotificationSound, showBrowserNotification, requestNotificationPerm
 import { getLogger } from '@/lib/logger';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { sendMessageToContact } from './realtime/messageSender';
+import {
+  normalizeMessage, buildConversation, dedupeContacts, buildConversations,
+  getUniqueMessageContactIds, chunkArray,
+} from './realtime/realtimeUtils';
 
 const log = getLogger('RealtimeMessages');
 const SEEDED_CONTACT_LIMIT = 500;
@@ -67,86 +71,7 @@ export interface ConversationWithMessages {
   lastMessage: RealtimeMessage | null;
 }
 
-function normalizeMessage(message: RealtimeMessage): RealtimeMessage {
-  return {
-    ...message,
-    status: message.status ?? 'sent',
-    status_updated_at: message.status_updated_at ?? null,
-  };
-}
-
-function sortMessagesByCreatedAt(messages: RealtimeMessage[]): RealtimeMessage[] {
-  return [...messages].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
-}
-
-function buildConversation(
-  contact: ConversationContact,
-  messages: RealtimeMessage[]
-): ConversationWithMessages {
-  const sortedMessages = sortMessagesByCreatedAt(messages);
-  const unreadCount = sortedMessages.filter(
-    (message) => !message.is_read && message.sender === 'contact'
-  ).length;
-  const lastMessage = sortedMessages.length > 0 ? sortedMessages[sortedMessages.length - 1] : null;
-
-  return {
-    contact,
-    messages: sortedMessages,
-    unreadCount,
-    lastMessage,
-  };
-}
-
-function dedupeContacts(contacts: ConversationContact[]): ConversationContact[] {
-  const contactsMap = new Map<string, ConversationContact>();
-
-  contacts.forEach((contact) => {
-    contactsMap.set(contact.id, contact);
-  });
-
-  return Array.from(contactsMap.values());
-}
-
-function getUniqueMessageContactIds(messages: RealtimeMessage[]): string[] {
-  return Array.from(
-    new Set(messages.map((message) => message.contact_id).filter((contactId): contactId is string => Boolean(contactId)))
-  );
-}
-
-function chunkArray<T>(items: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
-  }
-
-  return chunks;
-}
-
-function buildConversations(
-  contacts: ConversationContact[],
-  messages: RealtimeMessage[]
-): ConversationWithMessages[] {
-  const messagesByContact = new Map<string, RealtimeMessage[]>();
-
-  messages.forEach((message) => {
-    if (!message.contact_id) return;
-
-    const existing = messagesByContact.get(message.contact_id) ?? [];
-    existing.push(message);
-    messagesByContact.set(message.contact_id, existing);
-  });
-
-  return dedupeContacts(contacts)
-    .map((contact) => buildConversation(contact, messagesByContact.get(contact.id) ?? []))
-    .sort((a, b) => {
-      const aTime = a.lastMessage?.created_at || a.contact.created_at;
-      const bTime = b.lastMessage?.created_at || b.contact.created_at;
-      return new Date(bTime).getTime() - new Date(aTime).getTime();
-    });
-}
+// Utility functions extracted to ./realtime/realtimeUtils.ts
 
 export function useRealtimeMessages() {
   const [conversations, setConversations] = useState<ConversationWithMessages[]>([]);
