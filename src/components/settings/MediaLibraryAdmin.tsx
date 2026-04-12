@@ -52,9 +52,9 @@ function MediaAdminPanel({ type }: { type: MediaType }) {
           <SelectTrigger className="w-[160px] h-9 text-sm"><Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" /><SelectValue placeholder="Categoria" /></SelectTrigger>
           <SelectContent><SelectItem value="all">Todas ({lib.items.length})</SelectItem>{lib.existingCategories.map(cat => <SelectItem key={cat} value={cat}>{lib.categories[cat] || '📦'} {cat} ({lib.items.filter(i => i.category === cat).length})</SelectItem>)}</SelectContent>
         </Select>
-        <input ref={lib.fileInputRef} type="file" accept={lib.acceptTypes} className="hidden" multiple onChange={lib.handleBulkUpload} />
-        <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => lib.fileInputRef.current?.click()} disabled={lib.bulkUploading}>
-          {lib.bulkUploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />{lib.uploadProgress}%</> : <><Upload className="w-3.5 h-3.5" />Upload em massa</>}
+        <input ref={upload.fileInputRef} type="file" accept={upload.acceptTypes} className="hidden" multiple onChange={upload.handleBulkUpload} />
+        <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => upload.fileInputRef.current?.click()} disabled={upload.bulkUploading}>
+          {upload.bulkUploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />{upload.uploadProgress}%</> : <><Upload className="w-3.5 h-3.5" />Upload em massa</>}
         </Button>
         {type === 'audio_memes' && <Button variant="default" size="sm" className="h-9 gap-1.5" onClick={() => setShowGenDialog(true)}><Sparkles className="w-3.5 h-3.5" /> Gerar com IA</Button>}
         <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={lib.fetchItems}><RefreshCw className="w-3.5 h-3.5" /> Atualizar</Button>
