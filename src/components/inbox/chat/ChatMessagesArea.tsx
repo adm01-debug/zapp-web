@@ -142,7 +142,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
       ))}
 
       <div className="flex justify-start pl-10">
-        <TypingIndicator isTyping={isContactTyping} userName={typingUserName} />
+        <TypingIndicator isVisible={isContactTyping} userName={typingUserName} />
       </div>
       <div ref={messagesEndRef} />
     </div>
