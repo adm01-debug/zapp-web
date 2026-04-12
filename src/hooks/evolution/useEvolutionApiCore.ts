@@ -8,14 +8,15 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export function useEvolutionApiCore() {
   const [isLoading, setIsLoading] = useState(false);
   const mountedRef = useRef(true);
-  const inflightRef = useRef<Map<string, Promise<unknown>>>(new Map());
+  const inflightRef = useRef<Map<string, Promise<any>>>(new Map());
 
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
 
-  const callApi = useCallback(async (action: string, body?: object, method: HttpMethod = 'POST'): Promise<unknown> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const callApi = useCallback(async (action: string, body?: object, method: HttpMethod = 'POST'): Promise<any> => {
     const dedupeKey = method === 'GET' ? `${action}:${JSON.stringify(body || {})}` : '';
     if (dedupeKey && inflightRef.current.has(dedupeKey)) {
       return inflightRef.current.get(dedupeKey);

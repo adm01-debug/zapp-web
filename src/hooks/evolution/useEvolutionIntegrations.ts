@@ -6,8 +6,8 @@ import type {
 } from '../evolutionApi.types';
 
 export function useEvolutionIntegrations(
-  callApi: (action: string, body?: object, method?: HttpMethod) => Promise<unknown>,
-  withToast: (action: string, body: object | undefined, successMsg: string, errorMsg: string, method?: HttpMethod) => Promise<unknown>
+  callApi: (action: string, body?: object, method?: HttpMethod) => Promise<any>,
+  withToast: (action: string, body: object | undefined, successMsg: string, errorMsg: string, method?: HttpMethod) => Promise<any>
 ) {
   // Profile
   const fetchProfile = useCallback((instanceName: string) => callApi('fetch-profile', { instanceName }, 'GET'), [callApi]);

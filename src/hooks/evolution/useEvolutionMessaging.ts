@@ -3,8 +3,8 @@ import type { HttpMethod } from './useEvolutionApiCore';
 import type { SendMessageParams, ContactCard, PollParams, ListSection, ButtonItem } from '../evolutionApi.types';
 
 export function useEvolutionMessaging(
-  callApi: (action: string, body?: object, method?: HttpMethod) => Promise<unknown>,
-  withToast: (action: string, body: object | undefined, successMsg: string, errorMsg: string, method?: HttpMethod) => Promise<unknown>
+  callApi: (action: string, body?: object, method?: HttpMethod) => Promise<any>,
+  withToast: (action: string, body: object | undefined, successMsg: string, errorMsg: string, method?: HttpMethod) => Promise<any>
 ) {
   const sendTextMessage = useCallback((instanceName: string, number: string, text: string, options?: { delay?: number; quoted?: SendMessageParams['quoted']; mentioned?: string[] }) =>
     callApi('send-text', { instanceName, number, text, ...options }), [callApi]);
