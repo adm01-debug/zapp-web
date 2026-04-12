@@ -25,7 +25,7 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
   );
 
   const resolveAudioUrl = useCallback(async (url: string): Promise<string> => {
-    if (url.includes('/storage/v1/') && url.includes('token=')) {
+    if (url.includes('/storage/v1/')) {
       try {
         const buckets = ['whatsapp-media', 'audio-messages'];
         for (const bucket of buckets) {
@@ -33,7 +33,7 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
           const idx = url.indexOf(marker);
           if (idx !== -1) {
             const pathWithQuery = url.substring(idx + marker.length);
-            const path = pathWithQuery.split('?')[0];
+            const path = decodeURIComponent(pathWithQuery.split('?')[0]);
             const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
             if (data?.signedUrl) return data.signedUrl;
           }
@@ -42,8 +42,31 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
         log.error('Failed to refresh signed URL:', e);
       }
     }
+
+    // Try a HEAD check to see if the URL is reachable
+    try {
+      const resp = await fetch(url, { method: 'HEAD', mode: 'cors' });
+      if (resp.ok) return url;
+    } catch {
+      // URL not reachable, will fall through
+    }
+
+    // Last resort: try to find the file in known buckets by messageId
+    try {
+      const buckets = ['whatsapp-media', 'audio-messages'];
+      for (const bucket of buckets) {
+        const { data: files } = await supabase.storage.from(bucket).list('', { search: messageId, limit: 5 });
+        if (files && files.length > 0) {
+          const { data } = await supabase.storage.from(bucket).createSignedUrl(files[0].name, 3600);
+          if (data?.signedUrl) return data.signedUrl;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     return url;
-  }, []);
+  }, [messageId]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -103,24 +126,26 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
     try {
       await audio.play(); setIsPlaying(true); setIsLoading(false); setHasError(false);
     } catch {
-      setIsPlaying(false); setIsLoading(false);
+      setIsPlaying(false);
       try {
         const freshUrl = await resolveAudioUrl(audioUrl);
         if (freshUrl !== resolvedUrl) {
           setResolvedUrl(freshUrl); audio.src = freshUrl; audio.load();
           await new Promise<void>((resolve, reject) => {
-            const onCanPlay = () => { audio.removeEventListener('canplay', onCanPlay); audio.removeEventListener('error', onErr); resolve(); };
-            const onErr = () => { audio.removeEventListener('canplay', onCanPlay); audio.removeEventListener('error', onErr); reject(); };
+            const timeout = setTimeout(() => { cleanup(); reject(); }, 15000);
+            const cleanup = () => { audio.removeEventListener('canplay', onCanPlay); audio.removeEventListener('error', onErr); clearTimeout(timeout); };
+            const onCanPlay = () => { cleanup(); resolve(); };
+            const onErr = () => { cleanup(); reject(); };
             audio.addEventListener('canplay', onCanPlay); audio.addEventListener('error', onErr);
           });
-          await audio.play(); setIsPlaying(true); setHasError(false);
+          await audio.play(); setIsPlaying(true); setIsLoading(false); setHasError(false);
         } else {
-          setHasError(true);
-          toast({ title: 'Erro ao reproduzir', description: 'Arquivo indisponível.', variant: 'destructive' });
+          setIsLoading(false); setHasError(true);
+          toast({ title: 'Erro ao reproduzir', description: 'O arquivo de áudio expirou ou foi removido. Tente recarregar a conversa.', variant: 'destructive' });
         }
       } catch {
-        setHasError(true);
-        toast({ title: 'Erro ao reproduzir', variant: 'destructive' });
+        setIsLoading(false); setHasError(true);
+        toast({ title: 'Erro ao reproduzir', description: 'Não foi possível carregar o áudio. Verifique sua conexão.', variant: 'destructive' });
       }
     }
   }, [isPlaying, hasError, audioUrl, resolvedUrl, resolveAudioUrl]);
