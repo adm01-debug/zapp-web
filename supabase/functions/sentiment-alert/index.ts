@@ -23,20 +23,20 @@ Deno.serve(async (req) => {
       .select('id, sentiment_score, created_at')
       .eq('contact_id', contactId)
       .order('created_at', { ascending: false })
-      .limit(consecutiveRequired + 1);
+      .limit((consecutiveRequired ?? 3) + 1);
 
     if (fetchError) throw fetchError;
 
     let consecutiveLow = 0;
     for (const analysis of recentAnalyses || []) {
-      if ((analysis.sentiment_score ?? 50) < threshold) {
+      if ((analysis.sentiment_score ?? 50) < (threshold ?? 30)) {
         consecutiveLow++;
       } else {
         break;
       }
     }
 
-    if (consecutiveLow < consecutiveRequired) {
+    if (consecutiveLow < (consecutiveRequired ?? 3)) {
       return jsonResponse({
         alerted: false,
         reason: `Not enough consecutive low sentiment analyses (${consecutiveLow}/${consecutiveRequired})`,

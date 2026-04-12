@@ -1,11 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { Logger } from "../_shared/validation.ts";
-import { validateWebhookRequest, logSecurityEvent } from "../_shared/webhook-security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-hub-signature, x-hub-signature-256',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface WebhookPayload {
@@ -48,9 +47,11 @@ function toEventRecords(data: unknown, collectionKeys: string[] = []): Record<st
 
 function normalizePhone(rawJid?: string): string | null {
   if (!rawJid) return null;
+  // Remove JID suffix and any leading '+' for consistent storage
   return rawJid.replace('@s.whatsapp.net', '').replace('@g.us', '').replace(/^\+/, '');
 }
 
+// Status hierarchy: higher number = more advanced status
 const STATUS_PRIORITY: Record<string, number> = {
   'sending': 0,
   'sent': 1,
@@ -64,6 +65,7 @@ const STATUS_PRIORITY: Record<string, number> = {
 
 function shouldUpdateStatus(currentStatus: string | null, newStatus: string): boolean {
   if (!currentStatus) return true;
+  // Always allow 'deleted' and 'failed'
   if (newStatus === 'deleted' || newStatus === 'failed') return true;
   const currentPriority = STATUS_PRIORITY[currentStatus] ?? 0;
   const newPriority = STATUS_PRIORITY[newStatus] ?? 0;
@@ -91,7 +93,7 @@ async function persistProfilePicture(
       .from('avatars')
       .list('avatars', { search: phone });
     if (oldFiles?.length) {
-      await supabase.storage.from('avatars').remove(oldFiles.map((f: any) => `avatars/${f.name}`));
+      await supabase.storage.from('avatars').remove(oldFiles.map(f => `avatars/${f.name}`));
     }
 
     const { error } = await supabase.storage
@@ -139,18 +141,26 @@ async function fetchProfilePicFromApi(instance: string, phone: string): Promise<
   }
 }
 
+// Persist media (image/video/audio/document) to Supabase Storage
+// deno-lint-ignore no-explicit-any
+// Validate that downloaded bytes match expected media format (not encrypted/corrupted)
 function isValidMediaBytes(bytes: Uint8Array, messageType: string): boolean {
   if (bytes.length < 4) return false;
 
+  // OGG container (audio): starts with "OggS" (0x4F676753)
   if (messageType === 'audio') {
     const isOgg = bytes[0] === 0x4F && bytes[1] === 0x67 && bytes[2] === 0x67 && bytes[3] === 0x53;
+    // MP3: starts with 0xFFFA, 0xFFFB, 0xFFF3, 0xFFF2 or ID3 tag
     const isMp3 = (bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0) ||
-                  (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33);
+                  (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33); // ID3
+    // WebM/Matroska (Opus audio): starts with 0x1A45DFA3
     const isWebm = bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3;
+    // RIFF/WAV: starts with "RIFF"
     const isWav = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46;
     return isOgg || isMp3 || isWebm || isWav;
   }
 
+  // Image: JPEG (0xFFD8FF), PNG (0x89504E47), WebP (RIFF...WEBP)
   if (messageType === 'image') {
     const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
     const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
@@ -158,16 +168,17 @@ function isValidMediaBytes(bytes: Uint8Array, messageType: string): boolean {
     return isJpeg || isPng || isWebp;
   }
 
+  // Video: MP4 (ftyp at offset 4), WebM (0x1A45DFA3)
   if (messageType === 'video') {
     const isMp4 = bytes.length >= 8 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70;
     const isWebm = bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3;
     return isMp4 || isWebm;
   }
 
+  // Documents: accept anything (PDFs, etc.) - too many formats to validate
   return true;
 }
 
-// deno-lint-ignore no-explicit-any
 async function persistMediaToStorage(
   supabase: any,
   cdnUrl: string,
@@ -188,8 +199,9 @@ async function persistMediaToStorage(
       return null;
     }
 
+    // Validate the downloaded bytes are actual media, not encrypted WhatsApp data
     if (!isValidMediaBytes(bytes, messageType)) {
-      console.warn(`[MEDIA] Downloaded ${messageType} file (${bytes.length} bytes) appears encrypted or corrupted`);
+      console.warn(`[MEDIA] Downloaded ${messageType} file (${bytes.length} bytes) appears encrypted or corrupted — magic bytes: ${Array.from(bytes.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join(' ')}. Falling back to API.`);
       return null;
     }
 
@@ -200,6 +212,7 @@ async function persistMediaToStorage(
       image: 'image/jpeg', video: 'video/mp4', audio: 'audio/ogg', document: 'application/octet-stream',
     };
 
+    // Try to detect content type from response
     const respContentType = resp.headers.get('content-type') || contentTypeMap[messageType] || 'application/octet-stream';
     let ext = extMap[messageType] || 'bin';
     if (respContentType.includes('png')) ext = 'png';
@@ -236,9 +249,9 @@ async function persistMediaToStorage(
   }
 }
 
-// deno-lint-ignore no-explicit-any
+// Persist media via Evolution API getBase64 fallback
 async function persistMediaViaApi(
-  supabase: any,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   messageType: string,
@@ -266,6 +279,7 @@ async function persistMediaViaApi(
     const b64 = (result.base64 as string) || (result.data as string) || (result.media as string);
     if (!b64) return null;
 
+    // Remove data:... prefix if present
     const raw = b64.includes(',') ? b64.split(',')[1] : b64;
     const binaryStr = atob(raw);
     const bytes = new Uint8Array(binaryStr.length);
@@ -305,6 +319,7 @@ async function persistMediaViaApi(
   }
 }
 
+// Helper to safely get connection by instance_id
 // deno-lint-ignore no-explicit-any
 async function getConnectionByInstance(
   supabase: any,
@@ -318,12 +333,14 @@ async function getConnectionByInstance(
   return data;
 }
 
+// Helper to safely get contact by phone + connection
 // deno-lint-ignore no-explicit-any
 async function getContactByPhone(
   supabase: any,
   phone: string,
   connectionId: string
 ): Promise<{ id: string; avatar_url: string | null; assigned_to: string | null; name: string | null } | null> {
+  // Try exact match first, then with/without '+' prefix
   const phonesVariants = [phone, `+${phone}`, phone.replace(/^\+/, '')];
   const uniquePhones = [...new Set(phonesVariants)];
   
@@ -337,6 +354,10 @@ async function getContactByPhone(
   return data;
 }
 
+// Note: Rate limiting for webhooks is handled at the Evolution API configuration level.
+// In-memory rate limiters are ineffective in stateless edge functions.
+
+// ─── Handle reaction events (add/remove) ───
 // deno-lint-ignore no-explicit-any
 async function handleReactionEvent(supabase: any, reactionMessage: Record<string, unknown>) {
   const emoji = (reactionMessage.text as string) || '';
@@ -346,6 +367,7 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
   const targetExternalId = reactKey.id as string;
   const reactedByMe = reactKey.fromMe as boolean;
 
+  // Find the target message in our DB
   const { data: targetMessage } = await supabase
     .from('messages')
     .select('id, contact_id')
@@ -358,6 +380,7 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
   }
 
   if (emoji === '') {
+    // Empty emoji = reaction removed — remove all reactions from this contact on this message
     if (!reactedByMe) {
       await supabase
         .from('message_reactions')
@@ -367,6 +390,7 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
       console.log(`Reaction removed on message ${targetExternalId}`);
     }
   } else if (!reactedByMe) {
+    // Incoming reaction from contact — upsert
     const { error: upsertErr } = await supabase
       .from('message_reactions')
       .upsert(
@@ -385,7 +409,6 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
   }
 }
 
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -395,51 +418,18 @@ serve(async (req) => {
     return new Response('Method not allowed', { status: 405, headers: corsHeaders });
   }
 
-  // =============================================
-  // SECURITY: HMAC Signature & Rate Limit Check
-  // =============================================
-  let rawBody: string;
-  try {
-    rawBody = await req.text();
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid request body' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Validate webhook signature and rate limit
-  const securityResult = await validateWebhookRequest(req, rawBody, {
-    corsHeaders,
-    enableHmac: true,
-    enableRateLimit: true,
-    rateLimitIdentifier: req.headers.get('x-forwarded-for')?.split(',')[0] || 'evolution-api',
-    maxRequestsPerMinute: 300,
-  });
-
-  if (securityResult) {
-    return securityResult;
-  }
-
-  logSecurityEvent({
-    event: 'hmac_validation',
-    success: true,
-    details: {
-      hasSignature: !!(req.headers.get('x-hub-signature-256') || req.headers.get('x-hub-signature')),
-      payloadSize: rawBody.length,
-    },
-  });
-
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const payload: WebhookPayload = JSON.parse(rawBody);
+    const payload: WebhookPayload = await req.json();
     const event = normalizeEventName(payload.event);
     const instance = payload.instance;
     const data = payload.data ?? {};
     const baseData = isRecord(data) ? data : {};
+
+
 
     console.log('Evolution webhook received:', payload.event, '->', event, instance);
 
@@ -447,6 +437,7 @@ serve(async (req) => {
       const status = (baseData.status as string) === 'open' ? 'connected' :
         (baseData.status as string) === 'close' ? 'disconnected' : 'pending';
 
+      // Get previous status before updating
       const { data: prevConn } = await supabase
         .from('whatsapp_connections')
         .select('status, phone_number')
@@ -460,6 +451,7 @@ serve(async (req) => {
 
       console.log(`Connection ${instance} status: ${status}`);
 
+      // Create critical alert when a connection disconnects
       if (status === 'disconnected' && prevConn?.status === 'connected') {
         const phone = prevConn.phone_number ? ` (${prevConn.phone_number})` : '';
         await supabase.from('warroom_alerts').insert({
@@ -467,10 +459,13 @@ serve(async (req) => {
           title: `🔴 Conexão ${instance} desconectou`,
           message: `A instância ${instance}${phone} perdeu conexão com o WhatsApp. Reconecte imediatamente para evitar perda de mensagens.`,
           source: 'evolution-webhook',
+        }).then(({ error: alertErr }) => {
+          if (alertErr) console.error('Failed to create disconnect alert:', alertErr);
         });
         console.warn(`ALERT: Connection ${instance} DISCONNECTED - warroom alert created`);
       }
 
+      // Alert when connection is restored
       if (status === 'connected' && prevConn?.status !== 'connected') {
         await supabase.from('warroom_alerts').insert({
           alert_type: 'info',
@@ -499,6 +494,7 @@ serve(async (req) => {
         const key = keySource as { remoteJid: string; fromMe: boolean; id: string } | null;
         if (!key) continue;
 
+        // ── Check if this is a reaction event ──
         const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
         if (msg?.reactionMessage) {
           await handleReactionEvent(supabase, msg.reactionMessage as Record<string, unknown>);
@@ -515,6 +511,7 @@ serve(async (req) => {
             supabaseServiceKey,
           );
         } else {
+          // Messages sent directly from WhatsApp phone (not from our system)
           await handleOutgoingWhatsAppMessage(
             supabase,
             instance,
@@ -560,6 +557,7 @@ serve(async (req) => {
             const contact = await getContactByPhone(supabase, phone, connection.id);
 
             if (contact?.id) {
+              // Determine message type from the webhook payload to match accurately
               const msgPayload = entry.message || baseData.message;
               let webhookMsgType = 'text';
               if (isRecord(msgPayload)) {
@@ -570,6 +568,7 @@ serve(async (req) => {
                 else if (msgPayload.stickerMessage) webhookMsgType = 'sticker';
               }
 
+              // Only match pending messages created in the last 5 minutes AND same type
               const recentCutoff = new Date(Date.now() - 300_000).toISOString();
               const { data: pendingMessage } = await supabase
                 .from('messages')
@@ -618,6 +617,7 @@ serve(async (req) => {
         if (newStatus && key?.id) {
           const now = new Date().toISOString();
 
+          // First check current status to prevent downgrade
           const { data: currentMessage } = await supabase
             .from('messages')
             .select('id, status')
@@ -631,8 +631,11 @@ serve(async (req) => {
                 .update({ status: newStatus, status_updated_at: now })
                 .eq('id', currentMessage.id);
               console.log(`Message ${key.id} status: ${currentMessage.status} → ${newStatus}`);
+            } else {
+              console.log(`Message ${key.id} status skip: ${currentMessage.status} → ${newStatus} (would downgrade)`);
             }
           } else {
+            // Create placeholder with contact_id if possible
             let contactId: string | null = null;
             if (connection?.id) {
               const remoteJid = (entry.remoteJid as string) || ((isRecord(entry.key) ? entry.key.remoteJid : null) as string);
@@ -645,7 +648,7 @@ serve(async (req) => {
               }
             }
 
-            await supabase
+            const { error: insertError } = await supabase
               .from('messages')
               .insert({
                 content: '[Mensagem recebida]',
@@ -658,7 +661,12 @@ serve(async (req) => {
                 contact_id: contactId,
                 whatsapp_connection_id: connection?.id ?? null,
               });
-            console.log(`Message ${key.id} placeholder created with status: ${newStatus}`);
+
+            if (insertError) {
+              console.error(`Error creating placeholder for message status ${key.id}:`, insertError);
+              continue;
+            }
+            console.log(`Message ${key.id} placeholder created with status: ${newStatus}${contactId ? ` (contact: ${contactId})` : ' (orphan)'}`);
           }
         }
       }
@@ -675,13 +683,19 @@ serve(async (req) => {
 
         if (key?.id) {
           const now = new Date().toISOString();
-          const { data: updatedMessages } = await supabase
+          const { data: updatedMessages, error: updateError } = await supabase
             .from('messages')
             .update({ is_deleted: true, status: 'deleted', status_updated_at: now })
             .eq('external_id', key.id)
             .select('id');
 
+          if (updateError) {
+            console.error(`Error deleting message ${key.id}:`, updateError);
+            continue;
+          }
+
           if (!updatedMessages?.length) {
+            // Try to resolve contact_id for placeholder
             let contactId: string | null = null;
             if (connection?.id && key.remoteJid) {
               const phone = normalizePhone(key.remoteJid);
@@ -691,7 +705,7 @@ serve(async (req) => {
               }
             }
 
-            await supabase
+            const { error: insertError } = await supabase
               .from('messages')
               .insert({
                 content: '[Mensagem apagada]',
@@ -705,6 +719,11 @@ serve(async (req) => {
                 contact_id: contactId,
                 whatsapp_connection_id: connection?.id ?? null,
               });
+
+            if (insertError) {
+              console.error(`Error creating placeholder for deleted message ${key.id}:`, insertError);
+              continue;
+            }
           }
 
           console.log(`Message deleted: ${key.id}`);
@@ -746,7 +765,9 @@ serve(async (req) => {
               avatar_url: permanentAvatarUrl || null,
               whatsapp_connection_id: connection.id,
             });
+            // Handle race condition: another request may have inserted the same phone
             if (insertErr && insertErr.code === '23505') {
+              console.log(`Duplicate phone detected via webhook, updating instead: ${phone}`);
               await supabase.from('contacts').update({
                 name: pushName,
                 avatar_url: permanentAvatarUrl || null,
@@ -755,7 +776,7 @@ serve(async (req) => {
               }).eq('phone', phone);
             }
           }
-          console.log(`Contact synced: ${phone} (${pushName})`);
+          console.log(`Contact synced: ${phone} (${pushName}) avatar: ${permanentAvatarUrl ? 'saved' : 'none'}`);
         }
       }
     }
@@ -766,6 +787,7 @@ serve(async (req) => {
       const presences = presenceData.presences as Record<string, Record<string, unknown>> | undefined;
 
       if (jid && !jid.endsWith('@g.us')) {
+        // Determine if contact is composing
         let isComposing = false;
         if (presences) {
           for (const [, pState] of Object.entries(presences)) {
@@ -775,6 +797,7 @@ serve(async (req) => {
             }
           }
         } else {
+          // Some Evolution versions send status directly
           const directStatus = presenceData.status as string || presenceData.lastKnownPresence as string;
           isComposing = directStatus === 'composing';
         }
@@ -785,6 +808,7 @@ serve(async (req) => {
           if (connection) {
             const contact = await getContactByPhone(supabase, phone, connection.id);
             if (contact) {
+              // Broadcast typing status to the frontend via Supabase Realtime
               const channel = supabase.channel(`typing:${contact.id}`);
               await channel.send({
                 type: 'broadcast',
@@ -792,6 +816,7 @@ serve(async (req) => {
                 payload: { isTyping: isComposing, contactId: contact.id, timestamp: new Date().toISOString() },
               });
               supabase.removeChannel(channel);
+              console.log(`Presence ${phone}: ${isComposing ? 'composing' : 'paused'} → broadcast to typing:${contact.id}`);
             }
           }
         }
@@ -824,6 +849,26 @@ serve(async (req) => {
             }
           }
         }
+        console.log(`Chat updated: ${jid}`);
+      }
+    }
+
+    if (event === 'groups.upsert' || event === 'group.update') {
+      const groupData = isRecord(data) ? data : {};
+      const groupJid = groupData.id as string;
+      const subject = groupData.subject as string;
+      if (groupJid && subject) {
+        console.log(`Group update: ${groupJid} — ${subject}`);
+      }
+    }
+
+    if (event === 'group.participants.update' || event === 'group-participants.update') {
+      const participantData = isRecord(data) ? data : {};
+      const groupJid = participantData.id as string;
+      const participants = participantData.participants as string[];
+      const action = participantData.action as string;
+      if (groupJid) {
+        console.log(`Group ${groupJid} participants ${action}: ${participants?.join(', ')}`);
       }
     }
 
@@ -835,28 +880,34 @@ serve(async (req) => {
       const deleted = labelData.deleted as boolean;
 
       if (labelId) {
-        if (deleted) {
-          await supabase
-            .from('tags')
-            .delete()
-            .eq('name', `wa:${labelId}:${labelName}`);
-        } else {
-          const tagName = labelName || `Label ${labelId}`;
-          const { data: existingTag } = await supabase
-            .from('tags')
-            .select('id')
-            .ilike('name', `wa:${labelId}:%`)
-            .maybeSingle();
+        const connection = await getConnectionByInstance(supabase, instance);
 
-          if (existingTag) {
+        if (connection) {
+          if (deleted) {
             await supabase
               .from('tags')
-              .update({ name: `wa:${labelId}:${tagName}`, color: labelColor || '#3B82F6' })
-              .eq('id', existingTag.id);
+              .delete()
+              .eq('name', `wa:${labelId}:${labelName}`);
+            console.log(`Label deleted: ${labelName}`);
           } else {
-            await supabase
+            const tagName = labelName || `Label ${labelId}`;
+            const { data: existingTag } = await supabase
               .from('tags')
-              .insert({ name: `wa:${labelId}:${tagName}`, color: labelColor || '#3B82F6' });
+              .select('id')
+              .ilike('name', `wa:${labelId}:%`)
+              .maybeSingle();
+
+            if (existingTag) {
+              await supabase
+                .from('tags')
+                .update({ name: `wa:${labelId}:${tagName}`, color: labelColor || '#3B82F6' })
+                .eq('id', existingTag.id);
+            } else {
+              await supabase
+                .from('tags')
+                .insert({ name: `wa:${labelId}:${tagName}`, color: labelColor || '#3B82F6' });
+            }
+            console.log(`Label synced: ${tagName} (${labelColor})`);
           }
         }
       }
@@ -870,10 +921,12 @@ serve(async (req) => {
 
       if (labelId && chatId) {
         const phone = chatId.replace('@s.whatsapp.net', '').replace('@g.us', '');
+
         const connection = await getConnectionByInstance(supabase, instance);
 
         if (connection) {
           const contact = await getContactByPhone(supabase, phone, connection.id);
+
           const { data: tag } = await supabase
             .from('tags')
             .select('id')
@@ -887,6 +940,7 @@ serve(async (req) => {
                 .delete()
                 .eq('contact_id', contact.id)
                 .eq('tag_id', tag.id);
+              console.log(`Label removed from ${phone}`);
             } else {
               const { data: existing } = await supabase
                 .from('contact_tags')
@@ -899,6 +953,7 @@ serve(async (req) => {
                 await supabase
                   .from('contact_tags')
                   .insert({ contact_id: contact.id, tag_id: tag.id });
+                console.log(`Label applied to ${phone}`);
               }
             }
           }
@@ -914,6 +969,7 @@ serve(async (req) => {
 
       if (from) {
         const phone = from.replace('@s.whatsapp.net', '');
+
         const connection = await getConnectionByInstance(supabase, instance);
 
         if (connection) {
@@ -923,7 +979,7 @@ serve(async (req) => {
             const { data: newContact } = await supabase
               .from('contacts')
               .insert({ phone, name: phone, whatsapp_connection_id: connection.id })
-              .select('id, avatar_url, assigned_to, name')
+              .select('id, avatar_url')
               .single();
             contact = newContact;
           }
@@ -941,7 +997,9 @@ serve(async (req) => {
               notes: isVideo ? 'Chamada de vídeo' : 'Chamada de voz',
             });
 
+            // Notify assigned agent about incoming call
             if (agentId) {
+              // Look up the auth user_id from profile for notifications
               const { data: agentProfile } = await supabase
                 .from('profiles')
                 .select('user_id, name')
@@ -965,13 +1023,17 @@ serve(async (req) => {
                     agent_profile_id: agentId,
                   },
                 });
+                console.log(`Call routed to agent ${agentProfile.name || agentId} from ${contactName}`);
               }
+            } else {
+              console.log(`Call registered from ${phone} (no assigned agent)`);
             }
           }
         }
       }
     }
 
+    // ─── CHATS_DELETE: Mark all messages of a deleted chat as deleted ───
     if (event === 'chats.delete') {
       const chats = Array.isArray(data) ? data : [data];
       for (const chat of chats) {
@@ -988,14 +1050,17 @@ serve(async (req) => {
         const contact = await getContactByPhone(supabase, phone, connection.id);
         if (contact) {
           const now = new Date().toISOString();
-          await supabase
+          const { count } = await supabase
             .from('messages')
             .update({ is_deleted: true, status: 'deleted', status_updated_at: now })
-            .eq('contact_id', contact.id);
+            .eq('contact_id', contact.id)
+            .select('id', { count: 'exact', head: true });
+          console.log(`Chat deleted: ${jid} — ${count ?? 0} messages marked as deleted`);
         }
       }
     }
 
+    // ─── APPLICATION_STARTUP: Log startup and refresh connection status ───
     if (event === 'application.startup') {
       console.log(`Application startup event from instance: ${instance}`);
       const { data: conn } = await supabase
@@ -1004,105 +1069,127 @@ serve(async (req) => {
         .eq('instance_id', instance)
         .maybeSingle();
 
-      if (conn && conn.status === 'disconnected') {
-        await supabase
-          .from('whatsapp_connections')
-          .update({ status: 'pending', updated_at: new Date().toISOString() })
-          .eq('id', conn.id);
+      if (conn) {
+        // Mark as pending until we get a connection.update with actual status
+        if (conn.status === 'disconnected') {
+          await supabase
+            .from('whatsapp_connections')
+            .update({ status: 'pending', updated_at: new Date().toISOString() })
+            .eq('id', conn.id);
+          console.log(`Instance ${instance} startup: status set to pending`);
+        }
       }
     }
 
+    // ─── MESSAGES_SET: Bulk history sync (initial load) ───
     if (event === 'messages.set') {
       const messages = toEventRecords(data, ['messages']);
-      const connection = await getConnectionByInstance(supabase, instance);
-      if (connection && messages.length > 0) {
-        let synced = 0;
-        for (const entry of messages) {
-          const keySource = isRecord(entry.key) ? entry.key : null;
-          const key = keySource as { remoteJid?: string; fromMe?: boolean; id?: string } | null;
-          if (!key?.id || !key.remoteJid || key.remoteJid.endsWith('@g.us')) continue;
+      if (messages.length === 0) {
+        console.log(`messages.set: no messages in payload for ${instance}`);
+      } else {
+        const connection = await getConnectionByInstance(supabase, instance);
+        if (connection) {
+          let synced = 0;
+          let skipped = 0;
+          for (const entry of messages) {
+            const keySource = isRecord(entry.key) ? entry.key : null;
+            const key = keySource as { remoteJid?: string; fromMe?: boolean; id?: string } | null;
+            if (!key?.id || !key.remoteJid || key.remoteJid.endsWith('@g.us')) { skipped++; continue; }
 
-          const { data: existing } = await supabase
-            .from('messages')
-            .select('id')
-            .eq('external_id', key.id)
-            .maybeSingle();
-          if (existing) continue;
+            // Check if already exists
+            const { data: existing } = await supabase
+              .from('messages')
+              .select('id')
+              .eq('external_id', key.id)
+              .maybeSingle();
+            if (existing) { skipped++; continue; }
 
-          const phone = normalizePhone(key.remoteJid);
-          if (!phone) continue;
+            const phone = normalizePhone(key.remoteJid);
+            if (!phone) { skipped++; continue; }
 
-          const contact = await getContactByPhone(supabase, phone, connection.id);
-          if (!contact) continue;
+            const contact = await getContactByPhone(supabase, phone, connection.id);
+            if (!contact) { skipped++; continue; }
 
-          const msg = entry.message as Record<string, unknown> | undefined;
-          let content = '';
-          let messageType = 'text';
-          if (msg?.conversation) content = msg.conversation as string;
-          else if ((msg?.extendedTextMessage as Record<string, unknown>)?.text) content = (msg.extendedTextMessage as Record<string, unknown>).text as string;
-          else if (msg?.imageMessage) { messageType = 'image'; content = ((msg.imageMessage as Record<string, unknown>).caption as string) || '[Imagem]'; }
-          else if (msg?.videoMessage) { messageType = 'video'; content = ((msg.videoMessage as Record<string, unknown>).caption as string) || '[Vídeo]'; }
-          else if (msg?.audioMessage) { messageType = 'audio'; content = '[Áudio]'; }
-          else if (msg?.documentMessage) { messageType = 'document'; content = ((msg.documentMessage as Record<string, unknown>).fileName as string) || '[Documento]'; }
-          else if (msg?.stickerMessage) { messageType = 'sticker'; content = '[Sticker]'; }
-          else continue;
+            // Parse message content
+            const msg = entry.message as Record<string, unknown> | undefined;
+            let content = '';
+            let messageType = 'text';
+            if (msg?.conversation) content = msg.conversation as string;
+            else if ((msg?.extendedTextMessage as Record<string, unknown>)?.text) content = (msg!.extendedTextMessage as Record<string, unknown>).text as string;
+            else if (msg?.imageMessage) { messageType = 'image'; content = ((msg.imageMessage as Record<string, unknown>).caption as string) || '[Imagem]'; }
+            else if (msg?.videoMessage) { messageType = 'video'; content = ((msg.videoMessage as Record<string, unknown>).caption as string) || '[Vídeo]'; }
+            else if (msg?.audioMessage) { messageType = 'audio'; content = '[Áudio]'; }
+            else if (msg?.documentMessage) { messageType = 'document'; content = ((msg.documentMessage as Record<string, unknown>).fileName as string) || '[Documento]'; }
+            else if (msg?.stickerMessage) { messageType = 'sticker'; content = '[Sticker]'; }
+            else { skipped++; continue; }
 
-          if (!content && messageType === 'text') continue;
+            if (!content && messageType === 'text') { skipped++; continue; }
 
-          const ts = (entry.messageTimestamp as number)
-            ? new Date((entry.messageTimestamp as number) * 1000).toISOString()
-            : new Date().toISOString();
+            const ts = (entry.messageTimestamp as number)
+              ? new Date((entry.messageTimestamp as number) * 1000).toISOString()
+              : new Date().toISOString();
 
-          await supabase.from('messages').insert({
-            content,
-            message_type: messageType,
-            sender: key.fromMe ? 'agent' : 'contact',
-            external_id: key.id,
-            contact_id: contact.id,
-            whatsapp_connection_id: connection.id,
-            status: key.fromMe ? 'sent' : null,
-            is_read: key.fromMe ? true : false,
-            created_at: ts,
-          });
-          synced++;
+            await supabase.from('messages').insert({
+              content,
+              message_type: messageType,
+              sender: key.fromMe ? 'agent' : 'contact',
+              external_id: key.id,
+              contact_id: contact.id,
+              whatsapp_connection_id: connection.id,
+              status: key.fromMe ? 'sent' : null,
+              is_read: key.fromMe ? true : false,
+              created_at: ts,
+            });
+            synced++;
+          }
+          console.log(`messages.set: synced ${synced}, skipped ${skipped} for ${instance}`);
         }
-        console.log(`messages.set: synced ${synced} for ${instance}`);
       }
     }
 
+    // ─── CONTACTS_SET: Bulk contacts sync (initial load) ───
     if (event === 'contacts.set') {
       const contacts = toEventRecords(data, ['contacts']);
-      const connection = await getConnectionByInstance(supabase, instance);
-      if (connection && contacts.length > 0) {
-        let synced = 0;
-        for (const contactData of contacts) {
-          const jid = (contactData.id as string) || (contactData.remoteJid as string);
-          if (!jid || jid.endsWith('@g.us') || jid.endsWith('@broadcast')) continue;
+      if (contacts.length === 0) {
+        console.log(`contacts.set: no contacts in payload for ${instance}`);
+      } else {
+        const connection = await getConnectionByInstance(supabase, instance);
+        if (connection) {
+          let synced = 0;
+          let skipped = 0;
+          for (const contactData of contacts) {
+            const jid = (contactData.id as string) || (contactData.remoteJid as string);
+            if (!jid || jid.endsWith('@g.us') || jid.endsWith('@broadcast')) { skipped++; continue; }
 
-          const phone = normalizePhone(jid);
-          if (!phone) continue;
+            const phone = normalizePhone(jid);
+            if (!phone) { skipped++; continue; }
 
-          const pushName = (contactData.pushName as string) || (contactData.name as string) || (contactData.notify as string);
-          if (!pushName) continue;
+            const pushName = (contactData.pushName as string) || (contactData.name as string) || (contactData.notify as string);
+            if (!pushName) { skipped++; continue; }
 
-          const existing = await getContactByPhone(supabase, phone, connection.id);
-          if (existing) continue;
+            const existing = await getContactByPhone(supabase, phone, connection.id);
+            if (existing) { skipped++; continue; }
 
-          const { error: insertErr } = await supabase.from('contacts').insert({
-            phone,
-            name: pushName,
-            whatsapp_connection_id: connection.id,
-          });
-          if (!insertErr) synced++;
+            const { error: insertErr } = await supabase.from('contacts').insert({
+              phone,
+              name: pushName,
+              whatsapp_connection_id: connection.id,
+            });
+            if (insertErr && insertErr.code === '23505') { skipped++; continue; }
+            if (insertErr) { console.error(`contacts.set insert error for ${phone}:`, insertErr); skipped++; continue; }
+            synced++;
+          }
+          console.log(`contacts.set: synced ${synced}, skipped ${skipped} for ${instance}`);
         }
-        console.log(`contacts.set: synced ${synced} for ${instance}`);
       }
     }
 
+    // ─── CHATS_SET: Bulk chats sync (initial load) — mark read status ───
     if (event === 'chats.set') {
       const chats = toEventRecords(data, ['chats']);
       const connection = await getConnectionByInstance(supabase, instance);
       if (connection && chats.length > 0) {
+        let processed = 0;
         for (const chat of chats) {
           const jid = chat.id as string;
           if (!jid || jid.endsWith('@g.us')) continue;
@@ -1120,12 +1207,17 @@ serve(async (req) => {
                 .eq('contact_id', contact.id)
                 .eq('sender', 'contact')
                 .eq('is_read', false);
+              processed++;
             }
           }
         }
+        console.log(`chats.set: processed ${processed} of ${chats.length} for ${instance}`);
       }
     }
 
+    // (Reactions are now handled inline in the messages.upsert block above)
+
+    // ─── MESSAGES.EDITED: Sync message edits from WhatsApp ───
     if (event === 'messages.edited' || event === 'messages.edit') {
       for (const entry of toEventRecords(data, ['messages'])) {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
@@ -1139,7 +1231,10 @@ serve(async (req) => {
           ((entry.editedMessage as Record<string, unknown>)?.conversation as string) ||
           null;
 
-        if (!editedContent) continue;
+        if (!editedContent) {
+          console.log(`messages.edited: no content found for ${key.id}`);
+          continue;
+        }
 
         const { data: existing } = await supabase
           .from('messages')
@@ -1157,6 +1252,8 @@ serve(async (req) => {
             })
             .eq('id', existing.id);
           console.log(`Message edited: ${key.id}`);
+        } else {
+          console.log(`messages.edited: message ${key.id} not found in DB`);
         }
       }
     }
@@ -1175,32 +1272,45 @@ serve(async (req) => {
   }
 });
 
-// deno-lint-ignore no-explicit-any
+// Handle messages sent directly from WhatsApp phone (fromMe=true in messages.upsert)
+// These are messages the agent sent via the WhatsApp app, not through our system
 async function handleOutgoingWhatsAppMessage(
-  supabase: any,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   key: { remoteJid: string; fromMe: boolean; id: string },
 ) {
   const externalId = key.id;
 
+  // Check if we already have this message (sent from our system or already synced)
   const { data: existingMessage } = await supabase
     .from('messages')
     .select('id')
     .eq('external_id', externalId)
     .maybeSingle();
 
-  if (existingMessage) return;
+  if (existingMessage) {
+    // Already tracked — skip
+    return;
+  }
 
   const phone = normalizePhone(key.remoteJid);
-  if (!phone || key.remoteJid.includes('@g.us')) return;
+  if (!phone) return;
+
+  // Skip group messages
+  if (key.remoteJid.includes('@g.us')) return;
 
   const connection = await getConnectionByInstance(supabase, instance);
   if (!connection) return;
 
   const contact = await getContactByPhone(supabase, phone, connection.id);
-  if (!contact) return;
+  if (!contact) {
+    // If no contact exists, we can't associate the message — skip for now
+    console.log(`[FROM_ME] No contact found for ${phone} on connection ${connection.id}, skipping outgoing message`);
+    return;
+  }
 
+  // Parse message content (same logic as incoming)
   const message = data.message as Record<string, unknown> | undefined;
   let content = '';
   let messageType = 'text';
@@ -1209,7 +1319,7 @@ async function handleOutgoingWhatsAppMessage(
   if (message?.conversation) {
     content = message.conversation as string;
   } else if ((message?.extendedTextMessage as Record<string, unknown>)?.text) {
-    content = (message.extendedTextMessage as Record<string, unknown>).text as string;
+    content = (message!.extendedTextMessage as Record<string, unknown>).text as string;
   } else if (message?.imageMessage) {
     messageType = 'image';
     const img = message.imageMessage as Record<string, unknown>;
@@ -1229,15 +1339,36 @@ async function handleOutgoingWhatsAppMessage(
     const doc = message.documentMessage as Record<string, unknown>;
     content = (doc.fileName as string) || '[Documento]';
     mediaUrl = (doc.url as string) || null;
+  } else if (message?.documentWithCaptionMessage) {
+    messageType = 'document';
+    const dwc = message.documentWithCaptionMessage as Record<string, unknown>;
+    const innerDoc = (dwc.message as Record<string, unknown>)?.documentMessage as Record<string, unknown>;
+    content = (innerDoc?.fileName as string) || (innerDoc?.caption as string) || '[Documento]';
+    mediaUrl = (innerDoc?.url as string) || null;
+  } else if (message?.locationMessage) {
+    messageType = 'location';
+    const loc = message.locationMessage as Record<string, unknown>;
+    content = JSON.stringify({ latitude: loc.degreesLatitude, longitude: loc.degreesLongitude });
   } else if (message?.stickerMessage) {
     messageType = 'sticker';
     content = '[Sticker]';
   } else if (message?.reactionMessage) {
+    // Reactions are handled separately in the messages.upsert reaction handler
+    return;
+  } else if (message?.contactMessage || message?.contactsArrayMessage) {
+    messageType = 'contact';
+    content = '[Contato]';
+  } else if (message?.pollCreationMessage) {
+    messageType = 'poll';
+    content = (message.pollCreationMessage as Record<string, unknown>).name as string || '[Enquete]';
+  }
+
+  if (!content && messageType === 'text') {
+    // No meaningful content to store
     return;
   }
 
-  if (!content && messageType === 'text') return;
-
+  // Persist media if applicable
   if (mediaUrl && ['image', 'video', 'audio', 'document'].includes(messageType)) {
     const msgId = key.id.replace(/[^a-zA-Z0-9]/g, '');
     const permanentUrl = await persistMediaToStorage(supabase, mediaUrl, messageType, msgId);
@@ -1253,6 +1384,7 @@ async function handleOutgoingWhatsAppMessage(
     ? new Date((data.messageTimestamp as number) * 1000).toISOString()
     : new Date().toISOString();
 
+  // Also check if there's a pending message (sent from our system) waiting for confirmation
   const recentCutoff = new Date(Date.now() - 60_000).toISOString();
   const { data: pendingMessage } = await supabase
     .from('messages')
@@ -1267,14 +1399,17 @@ async function handleOutgoingWhatsAppMessage(
     .maybeSingle();
 
   if (pendingMessage?.id) {
+    // Link existing pending message to this external_id
     await supabase
       .from('messages')
       .update({ status: 'sent', external_id: externalId, status_updated_at: new Date().toISOString() })
       .eq('id', pendingMessage.id);
+    console.log(`[FROM_ME] Linked pending message ${pendingMessage.id} to external ${externalId}`);
     return;
   }
 
-  await supabase
+  // Insert as a new agent message (sent from WhatsApp directly)
+  const { error: msgError } = await supabase
     .from('messages')
     .insert({
       contact_id: contact.id,
@@ -1287,17 +1422,27 @@ async function handleOutgoingWhatsAppMessage(
       status: 'sent',
       created_at: messageCreatedAt,
       agent_id: contact.assigned_to || null,
-    });
+    })
+    .select('id')
+    .single();
 
+  if (msgError) {
+    console.error('[FROM_ME] Error inserting outgoing message:', msgError);
+    return;
+  }
+
+  // Update contact's updated_at to reorder inbox
   await supabase
     .from('contacts')
     .update({ updated_at: new Date().toISOString() })
     .eq('id', contact.id);
+
+  console.log(`[FROM_ME] Synced outgoing message from WhatsApp phone to ${phone} (${messageType})`);
 }
 
-// deno-lint-ignore no-explicit-any
+
 async function handleIncomingMessage(
-  supabase: any,
+  supabase: any, // deno-lint-ignore no-explicit-any
   instance: string,
   data: Record<string, unknown>,
   key: { remoteJid: string; fromMe: boolean; id: string },
@@ -1342,10 +1487,157 @@ async function handleIncomingMessage(
       latitude: loc.degreesLatitude,
       longitude: loc.degreesLongitude,
     });
-  } else if (message?.stickerMessage) {
+  } else if (message?.stickerMessage || (data.messageType as string) === 'stickerMessage') {
     messageType = 'sticker';
     content = '[Sticker]';
+
+    const uploadBase64Sticker = async (base64Data: string): Promise<string | null> => {
+      try {
+        const cleanB64 = base64Data.replace(/^data:[^;]+;base64,/, '');
+        const binaryStr = atob(cleanB64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        if (bytes.length < 50) return null;
+        const fileName = `sticker_${Date.now()}_${key.id.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
+        const { error: uploadErr } = await supabase.storage
+          .from('whatsapp-media')
+          .upload(`stickers/${fileName}`, bytes, {
+            contentType: 'image/webp',
+            cacheControl: '31536000',
+          });
+        if (!uploadErr) {
+          const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
+          return urlData.publicUrl;
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    };
+
+    const b64Direct = (data.base64 as string)
+      || ((message?.stickerMessage as Record<string, unknown>)?.base64 as string);
+    if (b64Direct) {
+      mediaUrl = await uploadBase64Sticker(b64Direct);
+    }
+
+    if (!mediaUrl) {
+      const directMediaUrl = (data.mediaUrl as string)
+        || ((message?.stickerMessage as Record<string, unknown>)?.mediaUrl as string);
+      if (directMediaUrl && directMediaUrl.startsWith('http')) {
+        try {
+          const resp = await fetch(directMediaUrl, { signal: AbortSignal.timeout(10000) });
+          if (resp.ok) {
+            const arrayBuf = await resp.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuf);
+            if (bytes.length > 100) {
+              const fileName = `sticker_${Date.now()}_${key.id.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
+              const { error: uploadErr } = await supabase.storage
+                .from('whatsapp-media')
+                .upload(`stickers/${fileName}`, bytes, {
+                  contentType: 'image/webp',
+                  cacheControl: '31536000',
+                });
+              if (!uploadErr) {
+                const { data: urlData } = supabase.storage.from('whatsapp-media').getPublicUrl(`stickers/${fileName}`);
+                mediaUrl = urlData.publicUrl;
+              }
+            }
+          }
+        } catch (dlErr) {
+          console.error('[STICKER] mediaUrl download error:', dlErr);
+        }
+      }
+    }
+
+    if (!mediaUrl) {
+      try {
+        const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
+        const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
+        if (evolutionUrl && evolutionKey) {
+          const apiBody = {
+            message: {
+              key: data.key,
+              message: data.message,
+            },
+            convertToMp4: false,
+          };
+
+          const apiUrl = `${evolutionUrl.replace(/\/+$/, '')}/chat/getBase64FromMediaMessage/${instance}`;
+          const resp = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionKey,
+            },
+            body: JSON.stringify(apiBody),
+            signal: AbortSignal.timeout(15000),
+          });
+
+          if (resp.ok) {
+            const result = await resp.json();
+            const b64 = (result.base64 as string) || (result.data as string) || (result.media as string);
+            if (b64) {
+              mediaUrl = await uploadBase64Sticker(b64);
+            }
+          } else {
+            console.error(`[STICKER] API error (${resp.status}):`, (await resp.text()).substring(0, 300));
+          }
+        }
+      } catch (apiErr) {
+        console.error('[STICKER] API fetch error:', apiErr);
+      }
+    }
+
+    if (mediaUrl) {
+      try {
+        const { data: existing } = await supabase
+          .from('stickers')
+          .select('id')
+          .eq('image_url', mediaUrl)
+          .maybeSingle();
+
+        if (!existing) {
+          // Classify sticker using AI
+          let category = 'recebidas';
+          try {
+            const classifyResp = await fetch(
+              `${Deno.env.get('SUPABASE_URL')}/functions/v1/classify-sticker`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                },
+                body: JSON.stringify({ image_url: mediaUrl }),
+                signal: AbortSignal.timeout(20000),
+              }
+            );
+            if (classifyResp.ok) {
+              const classifyResult = await classifyResp.json();
+              category = classifyResult.category || 'recebidas';
+              console.log(`[STICKER] AI classified as: ${category}`);
+            }
+          } catch (classifyErr) {
+            console.error('[STICKER] Classification failed, using default:', classifyErr);
+          }
+
+          await supabase.from('stickers').insert({
+            name: `Recebida ${new Date().toLocaleDateString('pt-BR')}`,
+            image_url: mediaUrl,
+            category,
+            is_favorite: false,
+            use_count: 0,
+          });
+        }
+      } catch (saveErr) {
+        console.error('[STICKER] Failed to auto-save to library:', saveErr);
+      }
+    }
   } else if (message?.reactionMessage) {
+    // Reactions are handled in the main event loop's reaction handler
     return;
   } else if (message?.contactMessage || message?.contactsArrayMessage) {
     messageType = 'contact';
@@ -1355,14 +1647,23 @@ async function handleIncomingMessage(
     content = (message.pollCreationMessage as Record<string, unknown>).name as string || '[Enquete]';
   }
 
+  // Persist media files (image, video, audio, document) to permanent Storage
   if (mediaUrl && ['image', 'video', 'audio', 'document'].includes(messageType)) {
     const msgId = (key.id as string) || `${Date.now()}`;
+    
+    // Try direct download from CDN URL first
     const permanentUrl = await persistMediaToStorage(supabase, mediaUrl, messageType, msgId);
     if (permanentUrl) {
       mediaUrl = permanentUrl;
     } else {
+      // Fallback: use Evolution API getBase64FromMediaMessage
+      console.log(`[MEDIA] CDN download failed for ${messageType}, trying getBase64 API...`);
       const apiUrl = await persistMediaViaApi(supabase, instance, data, messageType, msgId);
-      if (apiUrl) mediaUrl = apiUrl;
+      if (apiUrl) {
+        mediaUrl = apiUrl;
+      } else {
+        console.error(`[MEDIA] Both persistence methods failed for ${messageType} ${msgId} — keeping CDN URL as fallback`);
+      }
     }
   }
 
@@ -1386,7 +1687,7 @@ async function handleIncomingMessage(
         avatar_url: avatarUrl,
         whatsapp_connection_id: connection.id,
       })
-      .select('id, avatar_url, assigned_to, name')
+      .select('id, avatar_url')
       .single();
     contact = newContact;
   } else if (!contact.avatar_url || contact.avatar_url.includes('pps.whatsapp.net')) {
@@ -1415,13 +1716,16 @@ async function handleIncomingMessage(
     const preservedStatus = existingMessage.status && existingMessage.status !== 'received'
       ? existingMessage.status
       : 'received';
+    const preservedContent = existingMessage.status === 'deleted'
+      ? (existingMessage.content || '[Mensagem apagada]')
+      : content;
 
-    await supabase
+    const { error: updateExistingError } = await supabase
       .from('messages')
       .update({
         contact_id: contact.id,
         whatsapp_connection_id: connection.id,
-        content: existingMessage.status === 'deleted' ? existingMessage.content : content,
+        content: preservedContent,
         message_type: messageType,
         media_url: mediaUrl,
         sender: 'contact',
@@ -1430,13 +1734,20 @@ async function handleIncomingMessage(
       })
       .eq('id', existingMessage.id);
 
+    if (updateExistingError) {
+      console.error('Error reconciling existing message:', updateExistingError);
+      return;
+    }
+
+    console.log(`Message reconciled from ${phone} (${messageType})`);
+
     if (messageType === 'audio' && mediaUrl) {
       await handleAudioTranscription(supabase, contact.id, existingMessage.id, mediaUrl, supabaseUrl, supabaseServiceKey);
     }
     return;
   }
 
-  const { data: insertedMessage } = await supabase
+  const { data: insertedMessage, error: msgError } = await supabase
     .from('messages')
     .insert({
       contact_id: contact.id,
@@ -1452,20 +1763,27 @@ async function handleIncomingMessage(
     .select('id')
     .single();
 
+  if (msgError) {
+    console.error('Error inserting message:', msgError);
+    return;
+  }
+
+  console.log(`Message saved from ${phone} (${messageType})`);
+
   if (messageType === 'audio' && mediaUrl && insertedMessage) {
     await handleAudioTranscription(supabase, contact.id, insertedMessage.id, mediaUrl, supabaseUrl, supabaseServiceKey);
   }
 }
 
-// deno-lint-ignore no-explicit-any
 async function handleAudioTranscription(
-  supabase: any,
+  supabase: any, // deno-lint-ignore no-explicit-any
   contactId: string,
   messageId: string,
   mediaUrl: string,
   supabaseUrl: string,
   supabaseServiceKey: string
 ) {
+  // Check global setting for auto-transcription
   const { data: globalSetting } = await supabase
     .from('global_settings')
     .select('value')
@@ -1492,10 +1810,14 @@ async function handleAudioTranscription(
         transcription: result.text,
         transcription_status: 'completed',
       }).eq('id', messageId);
+      console.log(`Audio transcribed: ${messageId}`);
     } else {
+      const errText = await response.text();
+      console.error('Transcription failed:', errText);
       await supabase.from('messages').update({ transcription_status: 'failed' }).eq('id', messageId);
     }
-  } catch {
+  } catch (err) {
+    console.error('Transcription error:', err);
     await supabase.from('messages').update({ transcription_status: 'failed' }).eq('id', messageId);
   }
 }
