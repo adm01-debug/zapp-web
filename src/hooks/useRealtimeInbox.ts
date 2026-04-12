@@ -142,6 +142,8 @@ export function useRealtimeInbox() {
           avatar: resolvedSelectedConversation.contact.avatar_url || undefined,
           tags: resolvedSelectedConversation.contact.tags || [],
           createdAt: new Date(resolvedSelectedConversation.contact.created_at),
+          contact_type: resolvedSelectedConversation.contact.contact_type || undefined,
+          whatsapp_connection_id: resolvedSelectedConversation.contact.whatsapp_connection_id || undefined,
         },
         lastMessage: resolvedSelectedConversation.lastMessage
           ? {
