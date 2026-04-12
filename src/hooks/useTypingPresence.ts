@@ -86,7 +86,7 @@ export function useTypingPresence({
 
     channelRef.current = channel;
 
-    // Handle presence sync
+    // Handle presence sync (agent-to-agent typing)
     channel.on('presence', { event: 'sync' }, () => {
       const state = channel.presenceState();
       const users: TypingUser[] = [];
@@ -108,7 +108,10 @@ export function useTypingPresence({
       });
 
       setTypingUsers(users);
-      setIsContactTyping(users.length > 0);
+      // Only update from presence if no contact typing is active
+      if (!contactTypingRef.current) {
+        setIsContactTyping(users.length > 0);
+      }
     });
 
     // Handle join event
@@ -121,6 +124,24 @@ export function useTypingPresence({
       log.debug('User left typing channel:', key, leftPresences);
     });
 
+    // Listen for contact typing broadcast from Evolution API webhook
+    channel.on('broadcast', { event: 'contact_typing' }, ({ payload }) => {
+      const isTyping = payload?.isTyping === true;
+      contactTypingRef.current = isTyping;
+      setIsContactTyping(isTyping);
+
+      // Auto-clear after 5 seconds if no new event
+      if (contactTypingTimeoutRef.current) {
+        clearTimeout(contactTypingTimeoutRef.current);
+      }
+      if (isTyping) {
+        contactTypingTimeoutRef.current = setTimeout(() => {
+          contactTypingRef.current = false;
+          setIsContactTyping(false);
+        }, 5000);
+      }
+    });
+
     // Subscribe to channel
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
@@ -131,6 +152,9 @@ export function useTypingPresence({
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
+      }
+      if (contactTypingTimeoutRef.current) {
+        clearTimeout(contactTypingTimeoutRef.current);
       }
       channel.unsubscribe();
       supabase.removeChannel(channel);
