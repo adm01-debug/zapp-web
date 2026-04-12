@@ -19,7 +19,7 @@ import { useScheduledMessages } from '@/hooks/useScheduledMessages';
 import { useMessageSignature } from '@/hooks/useMessageSignature';
 import { useChatMediaSending } from './useChatMediaSending';
 import { CRMAutoSync } from './CRMAutoSync';
-import { Radar, GraduationCap, FileText } from 'lucide-react';
+import { useAmbientColor } from '@/hooks/useAmbientColor';
 import { ChatToolPanels } from './chat/ChatToolPanels';
 import { ChatDialogs } from './chat/ChatDialogs';
 
