@@ -9,61 +9,22 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Plus,
-  Edit2,
-  Trash2,
-  Copy,
-  Search,
-  Tag,
-  Folder,
-  MoreVertical,
-  Sparkles,
-  Eye,
-  FileText,
-  User,
-  Building2,
-  Calendar,
-  Hash,
-  Check,
-  X,
-  Loader2,
+  Plus, Edit2, Trash2, Copy, Search, Tag, Folder, MoreVertical,
+  Sparkles, Eye, FileText, User, Building2, Calendar, Hash, Check, X, Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-
-// Variable definitions
-const AVAILABLE_VARIABLES = [
-  { key: 'nome', label: 'Nome do contato', icon: User, example: 'João Silva' },
-  { key: 'primeiro_nome', label: 'Primeiro nome', icon: User, example: 'João' },
-  { key: 'empresa', label: 'Empresa', icon: Building2, example: 'Tech Corp' },
-  { key: 'cargo', label: 'Cargo', icon: Tag, example: 'Gerente Comercial' },
-  { key: 'saudacao', label: 'Saudação', icon: Sparkles, example: 'Bom dia' },
-  { key: 'data_atual', label: 'Data atual', icon: Calendar, example: '06/01/2026' },
-  { key: 'protocolo', label: 'Protocolo', icon: Hash, example: '#2026010600123' },
-  { key: 'atendente', label: 'Nome do atendente', icon: User, example: 'Maria Santos' },
-];
+import { AVAILABLE_VARIABLES, replaceVariables, extractVariables } from './template-utils';
 
 interface Template {
   id: string;
