@@ -1228,7 +1228,7 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
         const editedContent =
           (msg?.conversation as string) ||
           ((msg?.extendedTextMessage as Record<string, unknown>)?.text as string) ||
-          (entry.editedMessage as Record<string, unknown>)?.conversation as string ||
+          ((entry.editedMessage as Record<string, unknown>)?.conversation as string) ||
           null;
 
         if (!editedContent) {
