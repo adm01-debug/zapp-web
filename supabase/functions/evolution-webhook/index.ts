@@ -474,6 +474,13 @@ serve(async (req) => {
         const key = keySource as { remoteJid: string; fromMe: boolean; id: string } | null;
         if (!key) continue;
 
+        // ── Check if this is a reaction event ──
+        const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
+        if (msg?.reactionMessage) {
+          await handleReactionEvent(supabase, msg.reactionMessage as Record<string, unknown>);
+          continue;
+        }
+
         if (!key.fromMe) {
           await handleIncomingMessage(
             supabase,
