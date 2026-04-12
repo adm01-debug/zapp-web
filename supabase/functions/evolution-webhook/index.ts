@@ -93,7 +93,7 @@ async function persistProfilePicture(
       .from('avatars')
       .list('avatars', { search: phone });
     if (oldFiles?.length) {
-      await supabase.storage.from('avatars').remove(oldFiles.map(f => `avatars/${f.name}`));
+      await supabase.storage.from('avatars').remove(oldFiles.map((f: { name: string }) => `avatars/${f.name}`));
     }
 
     const { error } = await supabase.storage
@@ -979,7 +979,7 @@ serve(async (req) => {
             const { data: newContact } = await supabase
               .from('contacts')
               .insert({ phone, name: phone, whatsapp_connection_id: connection.id })
-              .select('id, avatar_url')
+              .select('id, avatar_url, assigned_to, name')
               .single();
             contact = newContact;
           }
@@ -1054,7 +1054,7 @@ serve(async (req) => {
             .from('messages')
             .update({ is_deleted: true, status: 'deleted', status_updated_at: now })
             .eq('contact_id', contact.id)
-            .select('id', { count: 'exact', head: true });
+            .select('id');
           console.log(`Chat deleted: ${jid} — ${count ?? 0} messages marked as deleted`);
         }
       }
@@ -1459,8 +1459,8 @@ async function handleIncomingMessage(
 
   if (message?.conversation) {
     content = message.conversation as string;
-  } else if ((message?.extendedTextMessage as Record<string, unknown>)?.text) {
-    content = (message.extendedTextMessage as Record<string, unknown>).text as string;
+  } else if (message && (message.extendedTextMessage as Record<string, unknown>)?.text) {
+    content = (message!.extendedTextMessage as Record<string, unknown>).text as string;
   } else if (message?.imageMessage) {
     messageType = 'image';
     const img = message.imageMessage as Record<string, unknown>;

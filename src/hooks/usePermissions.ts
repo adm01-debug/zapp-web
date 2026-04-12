@@ -93,6 +93,17 @@ export function usePermissions() {
     return [];
   }, [user]);
 
+  /** Server-side permission check via SECURITY DEFINER RPC */
+  const checkPermissionServer = useCallback(async (permissionName: string): Promise<boolean> => {
+    if (!user) return false;
+    const { data, error } = await supabase.rpc('user_has_permission', {
+      _user_id: user.id,
+      _permission_name: permissionName,
+    });
+    if (error) return false;
+    return !!data;
+  }, [user]);
+
   const hasPermission = useCallback((permissionName: string): boolean => {
     return userPermissions.includes(permissionName);
   }, [userPermissions]);
@@ -150,6 +161,7 @@ export function usePermissions() {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    checkPermissionServer,
     addPermissionToRole,
     removePermissionFromRole,
     refetch: () => Promise.all([fetchPermissions(), fetchRolePermissions(), fetchUserPermissions()])
