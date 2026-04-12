@@ -1,12 +1,9 @@
-import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { useOfflineCache } from '@/hooks/useOfflineCache';
-import { useMessages } from '@/hooks/useMessages';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
 import { MiniChatPiP } from '@/components/mobile/MiniChatPiP';
-import { useRealtimeMessages, ConversationWithMessages, ConversationContact } from '@/hooks/useRealtimeMessages';
 import { NewMessageIndicator } from './NewMessageIndicator';
 import { VirtualizedRealtimeList } from './VirtualizedRealtimeList';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
@@ -16,6 +13,7 @@ import { InboxFilters } from './InboxFilters';
 import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
 import { useInboxBulkActions } from '@/hooks/useInboxBulkActions';
 import { useInboxFilters } from '@/hooks/useInboxFilters';
+import { useRealtimeInbox } from '@/hooks/useRealtimeInbox';
 import { MessageSquare, RefreshCw, WifiOff, Search as SearchIcon, MessageSquarePlus, Loader2 } from 'lucide-react';
 import { ContactTypeFilter, FILTER_OPTIONS } from './ContactTypeFilter';
 import { TicketTabs } from './TicketTabs';
@@ -24,11 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Conversation, Message } from '@/types/chat';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { getLogger } from '@/lib/logger';
-import { useAuth } from '@/hooks/useAuth';
 
 const ChatPanel = lazy(() => import('./ChatPanel').then(m => ({ default: m.ChatPanel })));
 const ContactDetails = lazy(() => import('./ContactDetails').then(m => ({ default: m.ContactDetails })));
@@ -59,140 +53,28 @@ interface SearchResult {
 
 export function RealtimeInboxView() {
   const isMobile = useIsMobile();
-  const { 
-    conversations, loading, error, sendMessage, markAsRead, refetch,
-    newMessageNotification, dismissNotification, setSelectedContact, setSoundEnabled,
-  } = useRealtimeMessages();
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
-  const [selectedContactFallback, setSelectedContactFallback] = useState<ConversationContact | null>(null);
-  const [showDetails, setShowDetails] = useState(true);
-  const [isOnline, setIsOnline] = useState(true);
-  const [pipContact, setPipContact] = useState<{ name: string; avatar?: string; lastMessage?: string; contactId: string } | null>(null);
-  const [pendingContactId, setPendingContactId] = useState<string | null>(null);
-  const [soundOn, setSoundOn] = useState(true);
-  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
-  const [showNewConversation, setShowNewConversation] = useState(false);
-  const { profile } = useAuth();
+  const inbox = useRealtimeInbox();
 
-  const { conversations: cachedConversations, usingCache } = useOfflineCache(conversations, loading);
+  const inboxFilters = useInboxFilters({ conversations: inbox.cachedConversations, profileId: inbox.profile?.id });
+  const bulkActions = useInboxBulkActions({ refetch: inbox.refetch, filteredConversations: inboxFilters.filteredConversations });
 
-  // ─── Extracted hooks ───
-  const inboxFilters = useInboxFilters({ conversations: cachedConversations, profileId: profile?.id });
-  const bulkActions = useInboxBulkActions({ refetch, filteredConversations: inboxFilters.filteredConversations });
-
-  const {
-    messages: selectedMessages,
-    loading: selectedMessagesLoading,
-  } = useMessages({
-    contactId: selectedContactId,
-    enabled: Boolean(selectedContactId),
-  });
-
-  // Pull-to-refresh for mobile
   const pullToRefresh = usePullToRefresh({
-    onRefresh: async () => { await refetch(); },
-    disabled: !isMobile || !!selectedContactId,
+    onRefresh: async () => { await inbox.refetch(); },
+    disabled: !isMobile || !!inbox.selectedContactId,
   });
 
-  // Global search shortcut Ctrl+K
-  useGlobalSearchShortcut({ onOpen: () => setGlobalSearchOpen(true) });
-
-  // Listen for open-contact-chat events
-  useEffect(() => {
-    const appWindow = window as Window & { __pendingOpenContactId?: string };
-    if (appWindow.__pendingOpenContactId) {
-      setPendingContactId(appWindow.__pendingOpenContactId);
-      appWindow.__pendingOpenContactId = undefined;
-    }
-    const handler = (e: Event) => {
-      const contactId = (e as CustomEvent).detail?.contactId;
-      if (contactId) {
-        appWindow.__pendingOpenContactId = undefined;
-        setPendingContactId(contactId);
-      }
-    };
-    window.addEventListener('open-contact-chat', handler);
-    return () => window.removeEventListener('open-contact-chat', handler);
-  }, []);
+  useGlobalSearchShortcut({ onOpen: () => inbox.setGlobalSearchOpen(true) });
 
   // Process pending contact selection
   useEffect(() => {
-    if (!pendingContactId || loading) return;
+    if (!inbox.pendingContactId || inbox.loading) return;
     inboxFilters.setMainTab('search');
     inboxFilters.setSubTab('attending');
-    setSelectedContactId(pendingContactId);
-    setSelectedContact(pendingContactId);
-    markAsRead(pendingContactId);
-    setPendingContactId(null);
-  }, [pendingContactId, loading, conversations, setSelectedContact, markAsRead, inboxFilters]);
-
-  // Load fallback contact when selectedConversation is null
-  const selectedConversation = useMemo(
-    () => cachedConversations.find((c) => c.contact.id === selectedContactId) || null,
-    [cachedConversations, selectedContactId]
-  );
-
-  useEffect(() => {
-    if (!selectedContactId) { setSelectedContactFallback(null); return; }
-    if (selectedConversation) { setSelectedContactFallback(null); return; }
-
-    let cancelled = false;
-    const loadSelectedContact = async () => {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('id', selectedContactId)
-        .maybeSingle();
-      if (cancelled) return;
-      if (error) { log.error('Error loading selected fallback contact:', error); setSelectedContactFallback(null); return; }
-      setSelectedContactFallback(data || null);
-    };
-    loadSelectedContact();
-    return () => { cancelled = true; };
-  }, [selectedContactId, selectedConversation]);
-
-  const resolvedSelectedConversation = useMemo<ConversationWithMessages | null>(() => {
-    if (selectedConversation) return selectedConversation;
-    if (!selectedContactFallback) return null;
-    return { contact: selectedContactFallback, messages: [], unreadCount: 0, lastMessage: null };
-  }, [selectedConversation, selectedContactFallback]);
-
-  // ─── Handlers ───
-  const handleSelectConversation = (contactId: string) => {
-    setSelectedContactId(contactId);
-    setSelectedContact(contactId);
-    markAsRead(contactId);
-  };
-
-  const handleGlobalSearchResult = (result: SearchResult) => {
-    if (result.contactId) handleSelectConversation(result.contactId);
-  };
-
-  const handleNotificationView = () => {
-    if (newMessageNotification) {
-      handleSelectConversation(newMessageNotification.contactId);
-      dismissNotification();
-    }
-  };
-
-  const toggleSound = () => { const v = !soundOn; setSoundOn(v); setSoundEnabled(v); };
-
-  const handleSendMessage = async (content: string) => {
-    if (!selectedContactId) return;
-    try { await sendMessage(selectedContactId, content); } catch { toast.error('Erro ao enviar mensagem'); }
-  };
-
-  const handleSendAudio = async (blob: Blob) => {
-    if (!selectedContactId) { toast.error('Selecione uma conversa primeiro'); return; }
-    try {
-      const fileName = `${selectedContactId}/${Date.now()}.webm`;
-      const { error: uploadError } = await supabase.storage.from('audio-messages').upload(fileName, blob, { contentType: 'audio/webm' });
-      if (uploadError) { log.error('Error uploading audio:', uploadError); toast.error('Erro ao fazer upload do áudio'); return; }
-      const { data: signedData, error: signError } = await supabase.storage.from('audio-messages').createSignedUrl(fileName, 3600);
-      if (signError || !signedData?.signedUrl) { log.error('Error creating signed URL:', signError); toast.error('Erro ao gerar URL do áudio'); return; }
-      await sendMessage(selectedContactId, '[Áudio]', 'audio', signedData.signedUrl);
-    } catch (err) { log.error('Error in handleSendAudio:', err); toast.error('Erro ao enviar áudio. Tente novamente.'); }
-  };
+    inbox.setSelectedContactId(inbox.pendingContactId);
+    inbox.setSelectedContact(inbox.pendingContactId);
+    inbox.markAsRead(inbox.pendingContactId);
+    inbox.setPendingContactId(null);
+  }, [inbox.pendingContactId, inbox.loading, inbox.conversations]);
 
   // Keyboard shortcuts for bulk actions
   useEffect(() => {
@@ -209,64 +91,11 @@ export function RealtimeInboxView() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [bulkActions]);
 
-  // Convert to legacy format for ChatPanel compatibility
-  const legacyConversation: Conversation | null = resolvedSelectedConversation
-    ? {
-        id: resolvedSelectedConversation.contact.id,
-        contact: {
-          id: resolvedSelectedConversation.contact.id,
-          name: resolvedSelectedConversation.contact.name,
-          phone: resolvedSelectedConversation.contact.phone,
-          email: resolvedSelectedConversation.contact.email || undefined,
-          avatar: resolvedSelectedConversation.contact.avatar_url || undefined,
-          tags: resolvedSelectedConversation.contact.tags || [],
-          createdAt: new Date(resolvedSelectedConversation.contact.created_at),
-        },
-        lastMessage: resolvedSelectedConversation.lastMessage
-          ? {
-              id: resolvedSelectedConversation.lastMessage.id,
-              conversationId: resolvedSelectedConversation.contact.id,
-              content: resolvedSelectedConversation.lastMessage.content,
-              type: resolvedSelectedConversation.lastMessage.message_type as Message['type'],
-              sender: resolvedSelectedConversation.lastMessage.sender as Message['sender'],
-              timestamp: new Date(resolvedSelectedConversation.lastMessage.created_at),
-              status: 'read' as const,
-            }
-          : undefined,
-        unreadCount: resolvedSelectedConversation.unreadCount,
-        status: 'open',
-        priority: 'medium',
-        tags: resolvedSelectedConversation.contact.tags || [],
-        createdAt: new Date(resolvedSelectedConversation.contact.created_at),
-        updatedAt: new Date(resolvedSelectedConversation.contact.updated_at),
-      }
-    : null;
+  const handleGlobalSearchResult = (result: SearchResult) => {
+    if (result.contactId) inbox.handleSelectConversation(result.contactId);
+  };
 
-  const messageSource = selectedContactId ? selectedMessages : resolvedSelectedConversation?.messages || [];
-  const legacyMessages: Message[] = messageSource.map((m) => ({
-    id: m.id,
-    conversationId: resolvedSelectedConversation?.contact.id || selectedContactId || '',
-    content: m.content,
-    type: m.message_type as Message['type'],
-    sender: m.sender as Message['sender'],
-    agentId: m.agent_id || undefined,
-    timestamp: new Date(m.created_at),
-    status: (m.status as Message['status'] | null) || (m.is_read ? 'read' : 'delivered'),
-    mediaUrl: m.media_url || undefined,
-    transcription: m.transcription || null,
-    transcriptionStatus: m.transcription_status as Message['transcriptionStatus'] || null,
-  }));
-
-  // Online status
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
-  }, []);
-
-  if (error) {
+  if (inbox.error) {
     return (
       <div className="flex items-center justify-center h-full bg-background">
         <div className="text-center p-8">
@@ -274,8 +103,8 @@ export function RealtimeInboxView() {
             <WifiOff className="w-8 h-8 text-destructive" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Erro de conexão</h3>
-          <p className="text-muted-foreground text-sm mb-4">{error}</p>
-          <Button onClick={refetch} variant="outline">
+          <p className="text-muted-foreground text-sm mb-4">{inbox.error}</p>
+          <Button onClick={inbox.refetch} variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
             Tentar novamente
           </Button>
@@ -286,34 +115,27 @@ export function RealtimeInboxView() {
 
   return (
     <div className="flex h-full min-h-0 w-full relative bg-background overflow-hidden">
-      {globalSearchOpen && (
+      {inbox.globalSearchOpen && (
         <Suspense fallback={null}>
-          <GlobalSearch 
-            open={globalSearchOpen} 
-            onOpenChange={setGlobalSearchOpen} 
-            onSelectResult={handleGlobalSearchResult}
-          />
+          <GlobalSearch open={inbox.globalSearchOpen} onOpenChange={inbox.setGlobalSearchOpen} onSelectResult={handleGlobalSearchResult} />
         </Suspense>
       )}
 
       <NewMessageIndicator
-        show={!!newMessageNotification}
-        contactName={newMessageNotification?.contactName || ''}
-        contactAvatar={newMessageNotification?.contactAvatar}
-        message={newMessageNotification?.message || ''}
-        onView={handleNotificationView}
-        onDismiss={dismissNotification}
+        show={!!inbox.newMessageNotification}
+        contactName={inbox.newMessageNotification?.contactName || ''}
+        contactAvatar={inbox.newMessageNotification?.contactAvatar}
+        message={inbox.newMessageNotification?.message || ''}
+        onView={inbox.handleNotificationView}
+        onDismiss={inbox.dismissNotification}
       />
 
-      {showNewConversation && (
+      {inbox.showNewConversation && (
         <Suspense fallback={null}>
           <NewConversationModal
-            open={showNewConversation}
-            onOpenChange={setShowNewConversation}
-            onConversationStarted={(contactId) => {
-              setSelectedContactId(contactId);
-              refetch();
-            }}
+            open={inbox.showNewConversation}
+            onOpenChange={inbox.setShowNewConversation}
+            onConversationStarted={(contactId) => { inbox.setSelectedContactId(contactId); inbox.refetch(); }}
           />
         </Suspense>
       )}
@@ -321,9 +143,7 @@ export function RealtimeInboxView() {
       {/* Conversation List */}
       <div className={cn(
         'h-full min-h-0 flex-shrink-0 relative z-10 border-r border-border bg-card flex flex-col overflow-hidden',
-        isMobile
-          ? selectedContactId ? 'hidden' : 'w-full'
-          : 'w-[320px] min-w-[320px] max-w-[320px]'
+        isMobile ? (inbox.selectedContactId ? 'hidden' : 'w-full') : 'w-[320px] min-w-[320px] max-w-[320px]'
       )}>
         <BulkActionsToolbar
           selectedCount={bulkActions.selectedIds.size}
@@ -339,20 +159,20 @@ export function RealtimeInboxView() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <h2 className="text-xs font-semibold text-foreground tracking-tight">Conversas</h2>
-                <span className={cn('w-1.5 h-1.5 rounded-full', isOnline ? 'bg-success' : 'bg-destructive')} />
+                <span className={cn('w-1.5 h-1.5 rounded-full', inbox.isOnline ? 'bg-success' : 'bg-destructive')} />
               </div>
               <div className="flex items-center gap-0.5">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={refetch} disabled={loading} className="w-6 h-6" aria-label="Atualizar">
-                      <RefreshCw className={cn('w-3 h-3', loading && 'animate-spin')} />
+                    <Button variant="ghost" size="icon" onClick={inbox.refetch} disabled={inbox.loading} className="w-6 h-6" aria-label="Atualizar">
+                      <RefreshCw className={cn('w-3 h-3', inbox.loading && 'animate-spin')} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="text-[10px]">Atualizar</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => setShowNewConversation(true)} className="w-6 h-6 text-primary hover:bg-primary/10" aria-label="Nova conversa">
+                    <Button variant="ghost" size="icon" onClick={() => inbox.setShowNewConversation(true)} className="w-6 h-6 text-primary hover:bg-primary/10" aria-label="Nova conversa">
                       <MessageSquarePlus className="w-3 h-3" />
                     </Button>
                   </TooltipTrigger>
@@ -364,7 +184,7 @@ export function RealtimeInboxView() {
 
           <div className="flex items-center gap-1.5">
             {isMobile ? (
-              <Button variant="ghost" size="icon" onClick={() => setGlobalSearchOpen(true)} className="w-7 h-7 shrink-0" aria-label="Buscar">
+              <Button variant="ghost" size="icon" onClick={() => inbox.setGlobalSearchOpen(true)} className="w-7 h-7 shrink-0" aria-label="Buscar">
                 <SearchIcon className="w-3.5 h-3.5 text-muted-foreground" />
               </Button>
             ) : (
@@ -374,23 +194,19 @@ export function RealtimeInboxView() {
                   placeholder="Buscar... ⌘K"
                   value={inboxFilters.search}
                   onChange={(e) => inboxFilters.setSearch(e.target.value)}
-                  onClick={() => setGlobalSearchOpen(true)}
+                  onClick={() => inbox.setGlobalSearchOpen(true)}
                   className="pl-7 bg-muted/40 border-0 rounded-md h-7 text-[11px] cursor-pointer placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30"
                   readOnly
                 />
               </div>
             )}
             <div className={cn("shrink-0", isMobile ? "flex-1" : "w-[130px]")}>
-              <ContactTypeFilter
-                value={inboxFilters.selectedContactType}
-                onChange={inboxFilters.handleContactTypeChange}
-                conversations={cachedConversations}
-              />
+              <ContactTypeFilter value={inboxFilters.selectedContactType} onChange={inboxFilters.handleContactTypeChange} conversations={inbox.cachedConversations} />
             </div>
           </div>
 
           <TicketTabs
-            conversations={conversations}
+            conversations={inbox.conversations}
             mainTab={inboxFilters.mainTab}
             subTab={inboxFilters.subTab}
             onMainTabChange={inboxFilters.setMainTab}
@@ -417,7 +233,7 @@ export function RealtimeInboxView() {
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
           {...(isMobile ? pullToRefresh.handlers : {})}
         >
-          {loading ? (
+          {inbox.loading ? (
             <div className="p-3 space-y-1">
               {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                 <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }} className="flex items-center gap-3 p-2.5 rounded-lg">
@@ -460,18 +276,13 @@ export function RealtimeInboxView() {
             })()
           ) : (
             <ErrorBoundary
-              fallback={
-                <div className="p-8 text-center">
-                  <MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">Erro ao carregar. Recarregue.</p>
-                </div>
-              }
+              fallback={<div className="p-8 text-center"><MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" /><p className="text-sm text-muted-foreground">Erro ao carregar. Recarregue.</p></div>}
               onError={(error, info) => { log.error('VirtualizedRealtimeList crashed:', error.message, error.stack, info); }}
             >
-              <VirtualizedRealtimeList 
+              <VirtualizedRealtimeList
                 conversations={inboxFilters.filteredConversations}
-                selectedContactId={selectedContactId}
-                onSelectConversation={handleSelectConversation}
+                selectedContactId={inbox.selectedContactId}
+                onSelectConversation={inbox.handleSelectConversation}
                 selectionMode={bulkActions.selectionMode}
                 selectedIds={bulkActions.selectedIds}
                 onToggleSelection={bulkActions.toggleSelection}
@@ -484,46 +295,46 @@ export function RealtimeInboxView() {
       {/* Chat Panel */}
       <div className={cn(
         'flex-1 flex min-w-0 min-h-0 relative z-10 bg-background h-full overflow-hidden',
-        isMobile && !selectedContactId && 'hidden'
+        isMobile && !inbox.selectedContactId && 'hidden'
       )}>
-        {legacyConversation ? (
+        {inbox.legacyConversation ? (
           <Suspense fallback={<ChatFallback />}>
             <>
               <div className="flex-1 min-w-0 min-h-0 relative h-full overflow-hidden">
-                {selectedContactId && selectedMessagesLoading ? (
+                {inbox.selectedContactId && inbox.selectedMessagesLoading ? (
                   <ChatFallback />
                 ) : (
                   <SectionErrorBoundary sectionName="Chat" className="h-full">
                     <ChatPanel
-                      key={legacyConversation.id}
-                      conversation={legacyConversation}
-                      messages={legacyMessages}
-                      onSendMessage={handleSendMessage}
-                      onSendAudio={handleSendAudio}
-                      showDetails={isMobile ? false : showDetails}
-                      onToggleDetails={() => setShowDetails(!showDetails)}
+                      key={inbox.legacyConversation.id}
+                      conversation={inbox.legacyConversation}
+                      messages={inbox.legacyMessages}
+                      onSendMessage={inbox.handleSendMessage}
+                      onSendAudio={inbox.handleSendAudio}
+                      showDetails={isMobile ? false : inbox.showDetails}
+                      onToggleDetails={() => inbox.setShowDetails(!inbox.showDetails)}
                       onBack={isMobile ? () => {
-                        if (legacyConversation) {
-                          setPipContact({
-                            name: legacyConversation.contact.name,
-                            avatar: legacyConversation.contact.avatar,
-                            lastMessage: legacyConversation.lastMessage?.content,
-                            contactId: legacyConversation.id,
+                        if (inbox.legacyConversation) {
+                          inbox.setPipContact({
+                            name: inbox.legacyConversation.contact.name,
+                            avatar: inbox.legacyConversation.contact.avatar,
+                            lastMessage: inbox.legacyConversation.lastMessage?.content,
+                            contactId: inbox.legacyConversation.id,
                           });
                         }
-                        setSelectedContactId(null);
+                        inbox.setSelectedContactId(null);
                       } : undefined}
                     />
                   </SectionErrorBoundary>
                 )}
               </div>
-              {showDetails && !isMobile && (
+              {inbox.showDetails && !isMobile && (
                 <div className="h-full shrink-0 overflow-hidden">
                   <SectionErrorBoundary sectionName="Detalhes do Contato">
                     <ContactDetails
-                      key={`details-${legacyConversation.id}`}
-                      conversation={legacyConversation}
-                      onClose={() => setShowDetails(false)}
+                      key={`details-${inbox.legacyConversation.id}`}
+                      conversation={inbox.legacyConversation}
+                      onClose={() => inbox.setShowDetails(false)}
                     />
                   </SectionErrorBoundary>
                 </div>
@@ -543,31 +354,29 @@ export function RealtimeInboxView() {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-2">Selecione uma conversa</h3>
               <p className="text-muted-foreground text-sm leading-relaxed mb-5">Escolha uma conversa na lista ao lado para visualizar e responder mensagens</p>
-              <div className="flex flex-col items-center gap-2">
-                <p className="text-xs text-muted-foreground/60">
-                  Dica: Use <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">↑</kbd> <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">↓</kbd> para navegar e <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">Enter</kbd> para abrir
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground/60">
+                Dica: Use <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">↑</kbd> <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">↓</kbd> para navegar e <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground">Enter</kbd> para abrir
+              </p>
             </motion.div>
           </div>
         )}
       </div>
 
-      {usingCache && (
+      {inbox.usingCache && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-warning/90 text-warning-foreground text-xs text-center py-1.5 font-medium">
           📡 Modo offline — exibindo dados em cache
         </div>
       )}
 
-      {isMobile && pipContact && !selectedContactId && (
+      {isMobile && inbox.pipContact && !inbox.selectedContactId && (
         <MiniChatPiP
-          contactName={pipContact.name}
-          contactAvatar={pipContact.avatar}
-          lastMessage={pipContact.lastMessage}
+          contactName={inbox.pipContact.name}
+          contactAvatar={inbox.pipContact.avatar}
+          lastMessage={inbox.pipContact.lastMessage}
           isVisible={true}
-          onExpand={() => { setSelectedContactId(pipContact.contactId); setPipContact(null); }}
-          onDismiss={() => setPipContact(null)}
-          onQuickReply={(text) => { sendMessage(pipContact.contactId, text); setPipContact(null); }}
+          onExpand={() => { inbox.setSelectedContactId(inbox.pipContact!.contactId); inbox.setPipContact(null); }}
+          onDismiss={() => inbox.setPipContact(null)}
+          onQuickReply={(text) => { inbox.handleSendMessage(text); inbox.setPipContact(null); }}
         />
       )}
     </div>
