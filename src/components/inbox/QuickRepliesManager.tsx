@@ -1,34 +1,21 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { 
-  Search, Star, StarOff, Plus, Trash2, Edit2, Copy, 
-  Clock, TrendingUp, Folder, GripVertical, X, Check,
-  MessageSquare, Sparkles
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Star, Plus, X, Check, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuickReplies, QuickReplyTemplate, CreateTemplateInput } from '@/hooks/useQuickReplies';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { QuickReplyCardList } from './quick-replies/QuickReplyCardList';
+import { Folder, TrendingUp } from 'lucide-react';
+
+
 
 interface QuickRepliesManagerProps {
   onSelect?: (content: string) => void;
@@ -233,145 +220,20 @@ export function QuickRepliesManager({ onSelect, compact = false }: QuickRepliesM
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-4">
-          <ScrollArea className="h-[400px] pr-4">
-            {isLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-muted/50 rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : displayedTemplates.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Sparkles className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground">
-                  {activeTab === 'favorites' 
-                    ? 'Nenhuma resposta favorita ainda' 
-                    : searchQuery 
-                      ? 'Nenhum resultado encontrado' 
-                      : 'Nenhuma resposta criada'}
-                </p>
-                {activeTab !== 'favorites' && !searchQuery && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-4"
-                    onClick={() => setShowCreateDialog(true)}
-                  >
-                    Criar primeira resposta
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {Object.entries(groupedByCategory).map(([category, items]) => (
-                  <div key={category}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="text-xs">
-                        {category}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {items.length} {items.length === 1 ? 'item' : 'itens'}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <AnimatePresence mode="popLayout">
-                        {items.map((template) => (
-                          <motion.div
-                            key={template.id}
-                            layout
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className={cn(
-                              "p-3 rounded-xl border border-border/50 bg-card hover:border-primary/30 transition-all group cursor-pointer",
-                              isFavorite(template.id) && "border-yellow-400/30 bg-warning/5"
-                            )}
-                            onClick={() => handleSelect(template)}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-medium truncate">{template.title}</span>
-                                  {template.shortcut && (
-                                    <kbd className="px-1.5 py-0.5 text-[10px] bg-muted rounded">
-                                      {template.shortcut}
-                                    </kbd>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                  {template.content}
-                                </p>
-                                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <TrendingUp className="w-3 h-3" />
-                                    {template.use_count || 0} usos
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    {new Date(template.updated_at).toLocaleDateString('pt-BR')}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleFavorite(template.id);
-                                  }}
-                                >
-                                  <Star className={cn(
-                                    "w-4 h-4",
-                                    isFavorite(template.id) && "fill-yellow-400 text-warning"
-                                  )} />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCopy(template.content);
-                                  }}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEdit(template);
-                                  }}
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(template.id);
-                                  }}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
+          <QuickReplyCardList
+            templates={displayedTemplates}
+            groupedByCategory={groupedByCategory}
+            isLoading={isLoading}
+            activeTab={activeTab}
+            searchQuery={searchQuery}
+            isFavorite={isFavorite}
+            onSelect={handleSelect}
+            onToggleFavorite={toggleFavorite}
+            onCopy={handleCopy}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onShowCreate={() => setShowCreateDialog(true)}
+          />
         </TabsContent>
       </Tabs>
 

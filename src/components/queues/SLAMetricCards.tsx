@@ -1,30 +1,39 @@
+import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { motion } from 'framer-motion';
 import { Target, Timer, CheckCircle2, XCircle, Users } from 'lucide-react';
 import { Sparkline } from '@/components/ui/sparkline';
 import { cn } from '@/lib/utils';
 
-const getRateColor = (rate: number) => rate >= 90 ? 'text-success' : rate >= 70 ? 'text-warning' : 'text-destructive';
-const getRateBg = (rate: number) => rate >= 90 ? 'bg-success/10' : rate >= 70 ? 'bg-warning/10' : 'bg-destructive/10';
+const getRateColor = (rate: number) => {
+  if (rate >= 90) return 'text-success';
+  if (rate >= 70) return 'text-warning';
+  return 'text-destructive';
+};
 
-interface SLAOverallData {
+const getRateBg = (rate: number) => {
+  if (rate >= 90) return 'bg-success/10';
+  if (rate >= 70) return 'bg-warning/10';
+  return 'bg-destructive/10';
+};
+
+interface OverallData {
   overallRate: number;
   totalConversations: number;
   firstResponse: { rate: number; onTime: number; breached: number };
   resolution: { rate: number; onTime: number; breached: number };
 }
 
-interface SLASummaryCardsProps {
-  data: SLAOverallData;
+interface SLAMetricCardsProps {
+  data: OverallData;
+  periodLabel: string;
   sparkOverall: number[];
   sparkFR: number[];
   sparkRes: number[];
   sparkConversations: number[];
-  periodLabel: string;
 }
 
-export function SLASummaryCards({ data, sparkOverall, sparkFR, sparkRes, sparkConversations, periodLabel }: SLASummaryCardsProps) {
+export function SLAMetricCards({ data, periodLabel, sparkOverall, sparkFR, sparkRes, sparkConversations }: SLAMetricCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -35,7 +44,9 @@ export function SLASummaryCards({ data, sparkOverall, sparkFR, sparkRes, sparkCo
                 <p className="text-sm font-medium text-muted-foreground">Taxa de SLA Geral</p>
                 <p className={cn("text-3xl font-bold", getRateColor(data.overallRate))}>{data.overallRate.toFixed(1)}%</p>
               </div>
-              <div className={cn("p-3 rounded-full", getRateBg(data.overallRate))}><Target className={cn("h-6 w-6", getRateColor(data.overallRate))} /></div>
+              <div className={cn("p-3 rounded-full", getRateBg(data.overallRate))}>
+                <Target className={cn("h-6 w-6", getRateColor(data.overallRate))} />
+              </div>
             </div>
             <div className="flex items-center gap-3 mt-3">
               <Progress value={data.overallRate} className="h-2 flex-1" />
