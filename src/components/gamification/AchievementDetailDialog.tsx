@@ -9,11 +9,13 @@ interface Achievement {
   name: string;
   description: string;
   icon: 'trophy' | 'star' | 'medal' | 'target' | 'zap' | 'crown' | 'flame' | 'award';
+  category: 'messages' | 'speed' | 'satisfaction' | 'streak' | 'special';
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   progress: number;
   target: number;
   xpReward: number;
   isUnlocked: boolean;
+  unlockedAt?: Date;
   isNew?: boolean;
 }
 
