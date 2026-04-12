@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { motion } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { Reply, Forward, Copy, Download } from 'lucide-react';
