@@ -20,6 +20,7 @@ export interface Message {
   whatsapp_connection_id: string | null;
   transcription: string | null;
   transcription_status: string | null;
+  is_deleted: boolean | null;
 }
 
 interface UseMessagesOptions {
