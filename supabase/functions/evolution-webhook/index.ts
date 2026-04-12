@@ -1679,8 +1679,8 @@ async function handleIncomingMessage(
       }
     }
   } else if (message?.reactionMessage) {
-    messageType = 'reaction';
-    content = (message.reactionMessage as Record<string, unknown>).text as string || '';
+    // Reactions are handled in the main event loop's reaction handler
+    return;
   } else if (message?.contactMessage || message?.contactsArrayMessage) {
     messageType = 'contact';
     content = '[Contato]';
