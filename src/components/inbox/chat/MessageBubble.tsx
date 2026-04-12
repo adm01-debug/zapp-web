@@ -104,6 +104,7 @@ export function MessageBubble({
                 contactJid={contactJid}
                 externalId={message.external_id}
                 senderType={message.sender}
+                refreshKey={message.updated_at}
               />
             </AnimatePresence>
 
@@ -238,6 +239,7 @@ export function MessageBubble({
               contactJid={contactJid}
               externalId={message.external_id}
               senderType={message.sender}
+              refreshKey={message.updated_at}
             />
           </div>
 

@@ -109,6 +109,7 @@ export interface Message {
   message_type?: string;
   senderName?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 

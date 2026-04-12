@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ export { useMessagesReactions } from './reactions/useBatchReactions';
 
 export function useMessageReactions(messageId: string, options?: UseMessageReactionsOptions) {
   const { user } = useAuth();
+  const lastRefreshKeyRef = useRef(options?.refreshKey);
 
   const { data: profile } = useQuery({
     queryKey: ['my-profile-reactions', user?.id],
@@ -57,6 +58,14 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
     staleTime: 30_000,
     gcTime: 5 * 60 * 1000,
   });
+
+  useEffect(() => {
+    if (!messageId) return;
+    if (lastRefreshKeyRef.current === options?.refreshKey) return;
+
+    lastRefreshKeyRef.current = options?.refreshKey;
+    void refetch();
+  }, [messageId, options?.refreshKey, refetch]);
 
   const { addMutation, removeMutation } = useReactionMutations(messageId, profile?.id, options);
 

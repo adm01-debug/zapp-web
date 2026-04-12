@@ -20,6 +20,7 @@ interface MessageReactionsProps {
   contactJid?: string;
   externalId?: string;
   senderType?: 'contact' | 'agent';
+  refreshKey?: string;
 }
 
 export function MessageReactions({ 
@@ -30,6 +31,7 @@ export function MessageReactions({
   contactJid,
   externalId,
   senderType,
+  refreshKey,
 }: MessageReactionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { 
@@ -38,7 +40,7 @@ export function MessageReactions({
     removeReaction, 
     hasReacted,
     currentProfileId 
-  } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType });
+  } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType, refreshKey });
 
   // Group reactions by emoji
   const groupedReactions = reactions.reduce((acc, reaction) => {
@@ -177,11 +179,12 @@ interface QuickReactionBarProps {
   contactJid?: string;
   externalId?: string;
   senderType?: 'contact' | 'agent';
+  refreshKey?: string;
 }
 
-export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, externalId, senderType }: QuickReactionBarProps) {
+export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, externalId, senderType, refreshKey }: QuickReactionBarProps) {
   const [showPicker, setShowPicker] = useState(false);
-  const { addReaction, removeReaction, hasReacted } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType });
+  const { addReaction, removeReaction, hasReacted } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType, refreshKey });
 
   const handleReact = async (emoji: string) => {
     // Toggle: remove if already reacted, add otherwise
