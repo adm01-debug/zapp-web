@@ -73,47 +73,7 @@ function VariableHighlighter({ text, className }: { text: string; className?: st
   );
 }
 
-// Replace variables with actual values
-function replaceVariables(
-  content: string, 
-  contactData?: { name?: string; company?: string; job_title?: string },
-  customValues?: Record<string, string>
-): string {
-  const now = new Date();
-  const hour = now.getHours();
-  let saudacao = 'Bom dia';
-  if (hour >= 12 && hour < 18) saudacao = 'Boa tarde';
-  if (hour >= 18 || hour < 6) saudacao = 'Boa noite';
-  
-  const firstName = contactData?.name?.split(' ')[0] || '';
-  const protocol = `#${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
-  
-  const defaultValues: Record<string, string> = {
-    nome: contactData?.name || '',
-    primeiro_nome: firstName,
-    empresa: contactData?.company || '',
-    cargo: contactData?.job_title || '',
-    saudacao,
-    data_atual: now.toLocaleDateString('pt-BR'),
-    protocolo: protocol,
-    atendente: 'Atendente', // Would come from current user
-  };
-  
-  const values = { ...defaultValues, ...customValues };
-  
-  let result = content;
-  Object.entries(values).forEach(([key, value]) => {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'gi'), value);
-  });
-  
-  return result;
-}
-
-// Get variables used in a template
-function extractVariables(content: string): string[] {
-  const matches = content.match(/\{\{([^}]+)\}\}/g) || [];
-  return [...new Set(matches.map(m => m.slice(2, -2).toLowerCase()))];
-}
+// replaceVariables and extractVariables imported from ./template-utils
 
 // Live preview component
 function TemplatePreview({ 
