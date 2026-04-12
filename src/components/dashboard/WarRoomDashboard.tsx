@@ -54,17 +54,7 @@ export function WarRoomDashboard({
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  // Calculate global metrics
-  const globalMetrics = useMemo(() => {
-    const totalWaiting = queues.reduce((acc, q) => acc + q.waiting, 0);
-    const totalBreaches = queues.reduce((acc, q) => acc + q.slaBreaches, 0);
-    const totalWarnings = queues.reduce((acc, q) => acc + q.slaWarnings, 0);
-    const onlineAgents = agents.filter(a => a.status === 'online' || a.status === 'busy').length;
-    const avgSatisfaction = agents.reduce((acc, a) => acc + a.satisfaction, 0) / agents.length;
-    const totalResolved = agents.reduce((acc, a) => acc + a.resolvedToday, 0);
-    
-    return { totalWaiting, totalBreaches, totalWarnings, onlineAgents, avgSatisfaction, totalResolved };
-  }, [agents, queues]);
+  const globalMetrics = useWarRoomMetrics(agents, queues);
 
   // Auto-refresh simulation
   useEffect(() => {
