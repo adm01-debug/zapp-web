@@ -16,7 +16,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": false,
     "paths": {
       "@/*": [

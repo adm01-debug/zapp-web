@@ -4,7 +4,7 @@
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "strictFunctionTypes": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": false,
     "paths": {
       "@/*": [
