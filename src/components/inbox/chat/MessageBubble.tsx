@@ -63,15 +63,6 @@ export function MessageBubble({
   const agentInitials = profile?.name ? profile.name.slice(0, 2).toUpperCase() : 'EU';
 
   return (
-    <MessageContextMenu
-      message={message}
-      onReply={onReply}
-      onForward={onForward}
-      onCopy={(content) => { navigator.clipboard.writeText(content); toast({ title: 'Copiado!' }); }}
-      onDelete={(messageId) => { toast({ title: 'Mensagem deletada', description: messageId.slice(0, 8) }); }}
-      onSpeak={onSpeak ? (content, msgId) => onSpeak(msgId, content) : undefined}
-      onDownload={message.mediaUrl ? (url) => window.open(url, '_blank') : undefined}
-    >
       <SwipeableMessage onSwipeRight={() => onReply(message)} onSwipeLeft={() => onForward(message)}>
         <div
           ref={registerRef}
@@ -265,6 +256,5 @@ export function MessageBubble({
           )}
         </div>
       </SwipeableMessage>
-    </MessageContextMenu>
   );
 }
