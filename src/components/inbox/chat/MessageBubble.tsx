@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { Reply, Forward, Copy, Download } from 'lucide-react';
 import { SwipeableMessage } from '@/components/mobile/SwipeableMessage';
-import { MessageContextMenu } from '../MessageContextMenu';
 import { DeletedMessagePlaceholder } from '../DeletedMessagePlaceholder';
 import { HighlightedText } from './HighlightedText';
 import { Message, InteractiveButton } from '@/types/chat';
