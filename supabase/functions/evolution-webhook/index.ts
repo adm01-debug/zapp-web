@@ -359,13 +359,16 @@ async function getContactByPhone(
 
 // ─── Handle reaction events (add/remove) ───
 // deno-lint-ignore no-explicit-any
-async function handleReactionEvent(supabase: any, reactionMessage: Record<string, unknown>) {
+async function handleReactionEvent(
+  supabase: any,
+  reactionMessage: Record<string, unknown>,
+  actorFromMe: boolean,
+) {
   const emoji = (reactionMessage.text as string) || '';
   const reactKey = reactionMessage.key as Record<string, unknown> | undefined;
   if (!reactKey?.id) return;
 
   const targetExternalId = reactKey.id as string;
-  const reactedByMe = reactKey.fromMe as boolean;
 
   // Find the target message in our DB
   const { data: targetMessage } = await supabase
@@ -380,16 +383,22 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
   }
 
   if (emoji === '') {
-    // Empty emoji = reaction removed — remove all reactions from this contact on this message
-    if (!reactedByMe) {
+    // Empty emoji = reaction removed
+    if (!actorFromMe) {
       await supabase
         .from('message_reactions')
         .delete()
         .eq('message_id', targetMessage.id)
         .eq('contact_id', targetMessage.contact_id);
+
+      await supabase
+        .from('messages')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', targetMessage.id);
+
       console.log(`Reaction removed on message ${targetExternalId}`);
     }
-  } else if (!reactedByMe) {
+  } else if (!actorFromMe) {
     // Incoming reaction from contact — upsert
     const { error: upsertErr } = await supabase
       .from('message_reactions')
@@ -401,9 +410,15 @@ async function handleReactionEvent(supabase: any, reactionMessage: Record<string
         },
         { onConflict: 'message_id,contact_id,emoji' }
       );
+
     if (upsertErr) {
       console.error('Error upserting reaction:', upsertErr);
     } else {
+      await supabase
+        .from('messages')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', targetMessage.id);
+
       console.log(`Reaction synced: ${emoji} on message ${targetExternalId}`);
     }
   }
@@ -497,7 +512,7 @@ serve(async (req) => {
         // ── Check if this is a reaction event ──
         const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
         if (msg?.reactionMessage) {
-          await handleReactionEvent(supabase, msg.reactionMessage as Record<string, unknown>);
+          await handleReactionEvent(supabase, msg.reactionMessage as Record<string, unknown>, !!key.fromMe);
           continue;
         }
 
