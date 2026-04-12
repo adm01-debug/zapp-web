@@ -11,8 +11,6 @@ import { Message, InteractiveButton } from '@/types/chat';
 import { TypingIndicator } from '../TypingIndicator';
 import { MessageReactions, QuickReactionBar } from '../MessageReactions';
 import { MessageHoverToolbar } from './MessageHoverToolbar';
-import { TypingIndicator } from '../TypingIndicator';
-import { MessageReactions } from '../MessageReactions';
 import { MessageImage } from '../ImagePreview';
 import { DocumentPreview, VideoPreview } from '../MediaPreview';
 import { AudioMessagePlayer } from '../AudioMessagePlayer';
