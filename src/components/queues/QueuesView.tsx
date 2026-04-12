@@ -83,7 +83,7 @@ export function QueuesView() {
         {queues.map((queue) => (
           <QueueCard key={queue.id} queue={queue} alertCount={getQueueAlertCount(queue.id)}
             onAddMember={(q) => { setSelectedQueue(q); setAddMemberDialogOpen(true); }}
-            onRemoveMember={removeMember}
+            onRemoveMember={(queueId, profileId) => removeMember(queueId, profileId)}
             onSetGoals={(q) => { setSelectedQueue(q); setGoalsDialogOpen(true); }}
             onDelete={(q) => { setQueueToDelete(q); setDeleteDialogOpen(true); }}
           />
