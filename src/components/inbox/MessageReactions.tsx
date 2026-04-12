@@ -180,11 +180,15 @@ export function MessageReactions({
 interface QuickReactionBarProps {
   messageId: string;
   isSent?: boolean;
+  instanceName?: string;
+  contactJid?: string;
+  externalId?: string;
+  senderType?: 'contact' | 'agent';
 }
 
-export function QuickReactionBar({ messageId, isSent }: QuickReactionBarProps) {
+export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, externalId, senderType }: QuickReactionBarProps) {
   const [showPicker, setShowPicker] = useState(false);
-  const { addReaction, hasReacted } = useMessageReactions(messageId);
+  const { addReaction, hasReacted } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType });
 
   const handleReact = async (emoji: string) => {
     await addReaction(emoji);
