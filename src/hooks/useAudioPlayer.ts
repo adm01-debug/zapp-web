@@ -25,7 +25,7 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
   );
 
   const resolveAudioUrl = useCallback(async (url: string): Promise<string> => {
-    if (url.includes('/storage/v1/') && url.includes('token=')) {
+    if (url.includes('/storage/v1/')) {
       try {
         const buckets = ['whatsapp-media', 'audio-messages'];
         for (const bucket of buckets) {
@@ -33,7 +33,7 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
           const idx = url.indexOf(marker);
           if (idx !== -1) {
             const pathWithQuery = url.substring(idx + marker.length);
-            const path = pathWithQuery.split('?')[0];
+            const path = decodeURIComponent(pathWithQuery.split('?')[0]);
             const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
             if (data?.signedUrl) return data.signedUrl;
           }
@@ -42,8 +42,31 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
         log.error('Failed to refresh signed URL:', e);
       }
     }
+
+    // Try a HEAD check to see if the URL is reachable
+    try {
+      const resp = await fetch(url, { method: 'HEAD', mode: 'cors' });
+      if (resp.ok) return url;
+    } catch {
+      // URL not reachable, will fall through
+    }
+
+    // Last resort: try to find the file in known buckets by messageId
+    try {
+      const buckets = ['whatsapp-media', 'audio-messages'];
+      for (const bucket of buckets) {
+        const { data: files } = await supabase.storage.from(bucket).list('', { search: messageId, limit: 5 });
+        if (files && files.length > 0) {
+          const { data } = await supabase.storage.from(bucket).createSignedUrl(files[0].name, 3600);
+          if (data?.signedUrl) return data.signedUrl;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     return url;
-  }, []);
+  }, [messageId]);
 
   useEffect(() => {
     const audio = audioRef.current;
