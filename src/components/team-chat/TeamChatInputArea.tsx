@@ -1,7 +1,10 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { TeamMessage } from '@/hooks/useTeamChat';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { getLogger } from '@/lib/logger';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { useTeamChatDraft, useTeamPasteUpload, CHAR_LIMIT } from '@/hooks/useTeamChatDraft';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -32,6 +35,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
+const DRAFT_KEY_PREFIX = 'team_draft_';
+const CHAR_LIMIT = 10000;
 
 interface TeamChatInputAreaProps {
   conversationId: string;
@@ -66,11 +71,12 @@ export function TeamChatInputArea({
   onSendCustomEmoji,
   onFileSent,
 }: TeamChatInputAreaProps) {
-  const { clearDraft } = useTeamChatDraft(conversationId, text, setText);
-  const { handlePaste, pasteUploading } = useTeamPasteUpload(conversationId, onFileSent);
+  const { profile } = useAuth();
+  const log = useMemo(() => getLogger('TeamChatInputArea'), []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showRichToolbar, setShowRichToolbar] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const [pasteUploading, setPasteUploading] = useState(false);
   const [sendAnimation, setSendAnimation] = useState(false);
   const isMobile = useIsMobile();
 
@@ -96,6 +102,63 @@ export function TeamChatInputArea({
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
   }, [text]);
 
+  // Auto-save drafts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        if (text.trim()) {
+          localStorage.setItem(`${DRAFT_KEY_PREFIX}${conversationId}`, text);
+        } else {
+          localStorage.removeItem(`${DRAFT_KEY_PREFIX}${conversationId}`);
+        }
+      } catch { /* quota exceeded */ }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [text, conversationId]);
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${conversationId}`);
+      if (draft && !text) setText(draft);
+    } catch { /* private mode */ }
+  }, [conversationId]);
+
+  // Paste images from clipboard
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items || !profile || pasteUploading) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+        if (!file) return;
+
+        setPasteUploading(true);
+        try {
+          const ext = file.type.split('/')[1] || 'png';
+          const path = `${profile.id}/${conversationId}/${Date.now()}_paste.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from('team-chat-files')
+            .upload(path, file, { contentType: file.type });
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from('team-chat-files')
+            .getPublicUrl(path);
+
+          onFileSent(urlData.publicUrl, 'image', `📋 Imagem colada`);
+        } catch (err) {
+          log.error('Paste image upload error:', err);
+          toast.error('Erro ao enviar imagem colada');
+        } finally {
+          setPasteUploading(false);
+        }
+        return;
+      }
+    }
+  }, [profile, conversationId, pasteUploading, onFileSent, log]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -106,7 +169,7 @@ export function TeamChatInputArea({
   const handleSendWithAnimation = useCallback(() => {
     if (!hasText || isOverLimit || isPending) return;
     setSendAnimation(true);
-    clearDraft();
+    try { localStorage.removeItem(`${DRAFT_KEY_PREFIX}${conversationId}`); } catch { /* ignore */ }
     if (isMobile && navigator.vibrate) navigator.vibrate(50);
     onSend();
     setTimeout(() => setSendAnimation(false), 400);

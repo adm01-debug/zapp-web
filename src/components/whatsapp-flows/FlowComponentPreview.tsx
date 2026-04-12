@@ -1,7 +1,36 @@
-import { CalendarDays, ChevronDown } from 'lucide-react';
-import type { FlowComponent } from '@/hooks/useWhatsAppFlows';
+import { CalendarDays, ChevronDown, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export function renderComponent(comp: FlowComponent, preview: boolean) {
+interface FlowComponent {
+  id: string;
+  type: 'TextHeading' | 'TextSubheading' | 'TextBody' | 'TextInput' | 'TextArea' | 'DatePicker' | 'RadioButtonsGroup' | 'CheckboxGroup' | 'Dropdown' | 'Image' | 'OptIn' | 'Footer';
+  label?: string;
+  name?: string;
+  required?: boolean;
+  options?: { id: string; title: string }[];
+  text?: string;
+  src?: string;
+}
+
+export type { FlowComponent };
+
+export function FlowComponentPreview({ comp, preview, onRemove }: { comp: FlowComponent; preview: boolean; onRemove?: () => void }) {
+  return (
+    <div className="group relative">
+      {!preview && onRemove && (
+        <button
+          onClick={onRemove}
+          className="absolute -right-1 -top-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      )}
+      {renderComponent(comp)}
+    </div>
+  );
+}
+
+function renderComponent(comp: FlowComponent) {
   switch (comp.type) {
     case 'TextHeading':
       return <h2 className="text-lg font-bold text-foreground">{comp.text || 'Título'}</h2>;
@@ -28,7 +57,8 @@ export function renderComponent(comp: FlowComponent, preview: boolean) {
         <div>
           <label className="text-xs font-medium text-foreground mb-1 block">{comp.label || 'Data'}</label>
           <div className="h-9 rounded-lg border border-border bg-muted/20 px-3 flex items-center justify-between text-sm text-muted-foreground">
-            <span>dd/mm/aaaa</span><CalendarDays className="w-4 h-4" />
+            <span>dd/mm/aaaa</span>
+            <CalendarDays className="w-4 h-4" />
           </div>
         </div>
       );
@@ -61,7 +91,8 @@ export function renderComponent(comp: FlowComponent, preview: boolean) {
         <div>
           <label className="text-xs font-medium text-foreground mb-1 block">{comp.label || 'Selecione'}</label>
           <div className="h-9 rounded-lg border border-border bg-muted/20 px-3 flex items-center justify-between text-sm text-muted-foreground">
-            <span>Selecione...</span><ChevronDown className="w-4 h-4" />
+            <span>Selecione...</span>
+            <ChevronDown className="w-4 h-4" />
           </div>
         </div>
       );
