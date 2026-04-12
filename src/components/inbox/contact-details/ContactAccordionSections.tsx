@@ -25,6 +25,7 @@ import { ConversationTimeline } from '../ConversationTimeline';
 
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { log } from '@/lib/logger';
+import type { EnrichedContactData, AIConversationTag, SLAInfo } from '@/hooks/useContactEnrichedData';
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -37,9 +38,9 @@ const sectionVariants = {
 interface ContactAccordionSectionsProps {
   contact: Contact;
   conversation: Conversation;
-  enrichedData: Record<string, unknown> | null;
-  aiTags: Array<{ tag_name: string; confidence: number | null; source: string | null }>;
-  slaInfo: Record<string, unknown> | null;
+  enrichedData: EnrichedContactData | null;
+  aiTags: AIConversationTag[];
+  slaInfo: SLAInfo | null;
   profileId: string | null;
 }
 
