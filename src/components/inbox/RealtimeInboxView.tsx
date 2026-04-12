@@ -164,19 +164,19 @@ export function RealtimeInboxView() {
               <div className="flex items-center gap-0.5">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={inbox.refetch} disabled={inbox.loading} className="w-6 h-6" aria-label="Atualizar">
-                      <RefreshCw className={cn('w-3 h-3', inbox.loading && 'animate-spin')} />
+                    <Button variant="ghost" size="icon" onClick={inbox.refetch} disabled={inbox.loading} className="w-7 h-7 rounded-lg hover:bg-muted/60 active:scale-90 transition-all duration-150" aria-label="Atualizar">
+                      <RefreshCw className={cn('w-3.5 h-3.5', inbox.loading && 'animate-spin')} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="text-[10px]">Atualizar</TooltipContent>
+                  <TooltipContent className="text-[10px] font-medium">Atualizar</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => inbox.setShowNewConversation(true)} className="w-6 h-6 text-primary hover:bg-primary/10" aria-label="Nova conversa">
-                      <MessageSquarePlus className="w-3 h-3" />
+                    <Button variant="ghost" size="icon" onClick={() => inbox.setShowNewConversation(true)} className="w-7 h-7 rounded-lg text-primary hover:bg-primary/10 active:scale-90 transition-all duration-150" aria-label="Nova conversa">
+                      <MessageSquarePlus className="w-3.5 h-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="text-[10px]">Nova Conversa</TooltipContent>
+                  <TooltipContent className="text-[10px] font-medium">Nova Conversa</TooltipContent>
                 </Tooltip>
               </div>
             </div>
