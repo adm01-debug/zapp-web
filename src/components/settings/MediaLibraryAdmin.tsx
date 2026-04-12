@@ -36,6 +36,7 @@ function InlineCategorySelect({ value, categories, onChange }: { value: string; 
 
 function MediaAdminPanel({ type }: { type: MediaType }) {
   const lib = useMediaLibrary(type);
+  const upload = useMediaUpload(type, lib.fetchItems);
   const [showGenDialog, setShowGenDialog] = useState(false);
 
   return (
