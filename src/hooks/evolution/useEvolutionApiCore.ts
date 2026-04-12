@@ -15,7 +15,7 @@ export function useEvolutionApiCore() {
     return () => { mountedRef.current = false; };
   }, []);
 
-  const callApi = useCallback(async <T = unknown>(action: string, body?: object, method: HttpMethod = 'POST'): Promise<T> => {
+  const callApi = useCallback(async (action: string, body?: object, method: HttpMethod = 'POST'): Promise<unknown> => {
     const dedupeKey = method === 'GET' ? `${action}:${JSON.stringify(body || {})}` : '';
     if (dedupeKey && inflightRef.current.has(dedupeKey)) {
       return inflightRef.current.get(dedupeKey);

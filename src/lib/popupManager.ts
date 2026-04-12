@@ -41,7 +41,7 @@ export function openChatPopup(contactId: string, contactName: string): Window | 
     popup.addEventListener('load', () => {
       try {
         popup.document.title = `Chat — ${contactName}`;
-      } catch (err) { log.error('Unexpected error in popupManager:', err); }
+      } catch { /* cross-origin */ }
     });
   }
 
