@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { log } from '@/lib/logger';
+import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 
 export interface MessageReaction {
   id: string;
