@@ -43,12 +43,15 @@ vi.mock('@/components/layout/PageHeader', () => ({
 vi.mock('@/hooks/useActionFeedback', () => ({
   useActionFeedback: () => ({
     warning: vi.fn(),
-    withFeedback: vi.fn(async (fn: any, opts: any) => { try { await fn(); opts?.onSuccess?.(); } catch {} }),
+    withFeedback: vi.fn(async (fn: any, opts: any) => { try { await fn(); opts?.onSuccess?.(); } catch (err) { log.error('Unexpected error in GroupsView.test:', err); } }),
   }),
 }));
 
 import { GroupsView } from '@/components/groups/GroupsView';
 import { toast } from 'sonner';
+
+import { getLogger } from '@/lib/logger';
+const log = getLogger('GroupsView.test');
 
 describe('GroupsView', () => {
   beforeEach(() => { vi.clearAllMocks(); mockOrder.mockResolvedValue({ data: [], error: null }); });

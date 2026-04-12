@@ -21,6 +21,9 @@ import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('useEvolutionApi.test');
+
 const mockInvoke = supabase.functions.invoke as ReturnType<typeof vi.fn>;
 const mockToast = toast as unknown as { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
@@ -93,9 +96,7 @@ describe('useEvolutionApi - Exhaustive Test Suite', () => {
         await act(async () => {
           await result.current.createInstance({ instanceName: 'test' });
         });
-      } catch {
-        // expected
-      }
+      } catch (err) { log.error('Unexpected error in useEvolutionApi.test:', err); }
       expect(mockToast.error).toHaveBeenCalled();
     });
 
@@ -114,9 +115,7 @@ describe('useEvolutionApi - Exhaustive Test Suite', () => {
         await act(async () => {
           await result.current.sendTextMessage('wpp2', '5511999', 'hi');
         });
-      } catch {
-        // expected
-      }
+      } catch (err) { log.error('Unexpected error in useEvolutionApi.test:', err); }
       expect(result.current.isLoading).toBe(false);
     });
   });

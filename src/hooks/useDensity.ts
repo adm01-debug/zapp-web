@@ -17,9 +17,7 @@ export function useDensity() {
     document.documentElement.setAttribute('data-density', density);
     try {
       localStorage.setItem(STORAGE_KEY, density);
-    } catch {
-      // storage unavailable
-    }
+    } catch { /* storage unavailable */ }
   }, [density]);
 
   const setDensity = useCallback((mode: DensityMode) => {

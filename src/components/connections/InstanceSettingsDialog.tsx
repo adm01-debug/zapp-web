@@ -15,6 +15,9 @@ import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 import { toast } from 'sonner';
 import { Loader2, Settings, Shield, User, Tag } from 'lucide-react';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('InstanceSettingsDialog');
+
 interface InstanceSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -96,7 +99,7 @@ export function InstanceSettingsDialog({
           syncFullHistory: data.syncFullHistory ?? false,
         });
       }
-    } catch { /* ignore */ }
+    } catch (err) { log.error('Unexpected error in InstanceSettingsDialog:', err); }
     setLoadingTab('');
   };
 
@@ -110,7 +113,7 @@ export function InstanceSettingsDialog({
           pictureUrl: data.profilePictureUrl ?? '',
         });
       }
-    } catch { /* ignore */ }
+    } catch (err) { log.error('Unexpected error in InstanceSettingsDialog:', err); }
   };
 
   const loadLabels = async () => {
@@ -120,7 +123,7 @@ export function InstanceSettingsDialog({
       if (Array.isArray(data)) {
         setLabels(data);
       }
-    } catch { /* ignore */ }
+    } catch (err) { log.error('Unexpected error in InstanceSettingsDialog:', err); }
     setLoadingTab('');
   };
 

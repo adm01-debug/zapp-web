@@ -23,8 +23,8 @@ export const useBitrixApi = () => {
     action: string,
     entityType?: EntityType,
     entityId?: string,
-    data?: Record<string, any>,
-    filters?: Record<string, any>
+    data?: Record<string, unknown>,
+    filters?: Record<string, unknown>
   ) => {
     setLoading(true);
     setError(null);
@@ -54,7 +54,7 @@ export const useBitrixApi = () => {
   };
 
   // === LEADS ===
-  const listLeads = async (filters?: Record<string, any>) => {
+  const listLeads = async (filters?: Record<string, unknown>) => {
     return callBitrixApi('list', 'lead', undefined, undefined, filters);
   };
 
@@ -62,7 +62,7 @@ export const useBitrixApi = () => {
     return callBitrixApi('get', 'lead', id);
   };
 
-  const createLead = async (data: Record<string, any>) => {
+  const createLead = async (data: Record<string, unknown>) => {
     const result = await callBitrixApi('create', 'lead', undefined, data);
     if (result?.success) {
       toast.success('Lead criado no Bitrix');
@@ -70,7 +70,7 @@ export const useBitrixApi = () => {
     return result;
   };
 
-  const updateLead = async (id: string, data: Record<string, any>) => {
+  const updateLead = async (id: string, data: Record<string, unknown>) => {
     const result = await callBitrixApi('update', 'lead', id, data);
     if (result?.success) {
       toast.success('Lead atualizado no Bitrix');
@@ -87,7 +87,7 @@ export const useBitrixApi = () => {
   };
 
   // === CONTACTS ===
-  const listContacts = async (filters?: Record<string, any>) => {
+  const listContacts = async (filters?: Record<string, unknown>) => {
     return callBitrixApi('list', 'contact', undefined, undefined, filters);
   };
 
@@ -95,7 +95,7 @@ export const useBitrixApi = () => {
     return callBitrixApi('get', 'contact', id);
   };
 
-  const createContact = async (data: Record<string, any>) => {
+  const createContact = async (data: Record<string, unknown>) => {
     const result = await callBitrixApi('create', 'contact', undefined, data);
     if (result?.success) {
       toast.success('Contato criado no Bitrix');
@@ -103,7 +103,7 @@ export const useBitrixApi = () => {
     return result;
   };
 
-  const updateContact = async (id: string, data: Record<string, any>) => {
+  const updateContact = async (id: string, data: Record<string, unknown>) => {
     const result = await callBitrixApi('update', 'contact', id, data);
     if (result?.success) {
       toast.success('Contato atualizado no Bitrix');
@@ -112,7 +112,7 @@ export const useBitrixApi = () => {
   };
 
   // === DEALS ===
-  const listDeals = async (filters?: Record<string, any>) => {
+  const listDeals = async (filters?: Record<string, unknown>) => {
     return callBitrixApi('list', 'deal', undefined, undefined, filters);
   };
 
@@ -120,7 +120,7 @@ export const useBitrixApi = () => {
     return callBitrixApi('get', 'deal', id);
   };
 
-  const createDeal = async (data: Record<string, any>) => {
+  const createDeal = async (data: Record<string, unknown>) => {
     const result = await callBitrixApi('create', 'deal', undefined, data);
     if (result?.success) {
       toast.success('Negócio criado no Bitrix');
@@ -128,7 +128,7 @@ export const useBitrixApi = () => {
     return result;
   };
 
-  const updateDeal = async (id: string, data: Record<string, any>) => {
+  const updateDeal = async (id: string, data: Record<string, unknown>) => {
     const result = await callBitrixApi('update', 'deal', id, data);
     if (result?.success) {
       toast.success('Negócio atualizado no Bitrix');
@@ -137,11 +137,11 @@ export const useBitrixApi = () => {
   };
 
   // === ACTIVITIES ===
-  const listActivities = async (filters?: Record<string, any>) => {
+  const listActivities = async (filters?: Record<string, unknown>) => {
     return callBitrixApi('list', 'activity', undefined, undefined, filters);
   };
 
-  const createActivity = async (data: Record<string, any>) => {
+  const createActivity = async (data: Record<string, unknown>) => {
     const result = await callBitrixApi('create', 'activity', undefined, data);
     if (result?.success) {
       toast.success('Atividade criada no Bitrix');
@@ -180,7 +180,7 @@ export const useBitrixApi = () => {
   };
 
   // === SYNC ===
-  const syncContactsFromBitrix = async (filters?: Record<string, any>) => {
+  const syncContactsFromBitrix = async (filters?: Record<string, unknown>) => {
     const result = await callBitrixApi('sync_contacts', undefined, undefined, undefined, filters);
     if (result?.success) {
       toast.success(`${result.synced} contatos sincronizados do Bitrix`);

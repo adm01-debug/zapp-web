@@ -23,6 +23,9 @@ import { formatMessageTime, MessageStatusIcon } from './messageUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('MessageBubble');
+
 interface MessageBubbleProps {
   message: Message;
   isFirstInGroup: boolean;
@@ -196,7 +199,7 @@ export function MessageBubble({
                             try {
                               const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-sticker', { body: { image_url: message.mediaUrl } });
                               if (!classifyErr && classifyData?.category) category = classifyData.category;
-                            } catch { /* fallback */ }
+                            } catch (err) { log.error('Unexpected error in MessageBubble:', err); }
                             await supabase.from('stickers').insert({ name: `Recebida ${new Date().toLocaleDateString('pt-BR')}`, image_url: message.mediaUrl!, category, is_favorite: false, use_count: 0 });
                             toast({ title: `✅ Figurinha salva como "${category}"!` });
                           } catch { toast({ title: 'Erro ao salvar figurinha', variant: 'destructive' }); }

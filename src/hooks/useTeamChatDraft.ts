@@ -34,7 +34,7 @@ export function useTeamChatDraft({ conversationId, text, setText, onFileSent }: 
         } else {
           localStorage.removeItem(`${DRAFT_KEY_PREFIX}${conversationId}`);
         }
-      } catch { /* quota exceeded */ }
+      } catch { /* storage unavailable */ }
     }, 500);
     return () => clearTimeout(timer);
   }, [text, conversationId]);
@@ -44,12 +44,12 @@ export function useTeamChatDraft({ conversationId, text, setText, onFileSent }: 
     try {
       const draft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${conversationId}`);
       if (draft && !text) setText(draft);
-    } catch { /* private mode */ }
+    } catch (err) { log.error('Unexpected error in useTeamChatDraft:', err); }
   }, [conversationId]);
 
   // Clear draft on send
   const clearDraft = useCallback(() => {
-    try { localStorage.removeItem(`${DRAFT_KEY_PREFIX}${conversationId}`); } catch { /* ignore */ }
+    try { localStorage.removeItem(`${DRAFT_KEY_PREFIX}${conversationId}`); } catch { /* storage unavailable */ }
   }, [conversationId]);
 
   // Paste images from clipboard

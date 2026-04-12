@@ -1,5 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('logVoiceCommand');
+
 interface VoiceCommandLogParams {
   transcript: string;
   action: string;
@@ -40,8 +43,6 @@ export function logVoiceCommand(params: VoiceCommandLogParams) {
           success: params.success ?? true,
         }),
       });
-    } catch {
-      // Silently fail — analytics should never break UX
-    }
+    } catch (err) { log.error('Unexpected error in logVoiceCommand:', err); }
   })();
 }

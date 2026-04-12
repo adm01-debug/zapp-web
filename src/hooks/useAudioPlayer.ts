@@ -47,9 +47,7 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
     try {
       const resp = await fetch(url, { method: 'HEAD', mode: 'cors' });
       if (resp.ok) return url;
-    } catch {
-      // URL not reachable, will fall through
-    }
+    } catch (err) { log.error('Unexpected error in useAudioPlayer:', err); }
 
     // Last resort: try to find the file in known buckets by messageId
     try {
@@ -61,9 +59,7 @@ export function useAudioPlayer({ audioUrl, messageId }: UseAudioPlayerOptions) {
           if (data?.signedUrl) return data.signedUrl;
         }
       }
-    } catch {
-      // ignore
-    }
+    } catch (err) { log.error('Unexpected error in useAudioPlayer:', err); }
 
     return url;
   }, [messageId]);

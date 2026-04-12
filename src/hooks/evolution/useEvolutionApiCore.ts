@@ -8,7 +8,7 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export function useEvolutionApiCore() {
   const [isLoading, setIsLoading] = useState(false);
   const mountedRef = useRef(true);
-  const inflightRef = useRef<Map<string, Promise<unknown>>>(new Map());
+  const inflightRef = useRef<Map<string, Promise<any>>>(new Map());
 
   useEffect(() => {
     mountedRef.current = true;

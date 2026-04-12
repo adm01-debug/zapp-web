@@ -42,12 +42,12 @@ export function OnboardingChecklist({ onNavigate, onDismiss, compact = false }: 
       setCompletedSteps(completed);
       setIsLoading(false);
     };
-    try { if (localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true') setIsDismissed(true); } catch {}
+    try { if (localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true') setIsDismissed(true); } catch { /* storage unavailable */ }
     checkAllSteps();
   }, [user]);
 
   const handleDismiss = () => {
-    if (user) { try { localStorage.setItem(`checklist_dismissed_${user.id}`, 'true'); } catch {} }
+    if (user) { try { localStorage.setItem(`checklist_dismissed_${user.id}`, 'true'); } catch { /* storage unavailable */ } }
     setIsDismissed(true);
     onDismiss?.();
   };

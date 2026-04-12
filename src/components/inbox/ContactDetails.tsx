@@ -17,14 +17,14 @@ function getStoredAccordionState(): string[] {
   try {
     const stored = localStorage.getItem(ACCORDION_STORAGE_KEY);
     if (stored) return JSON.parse(stored);
-  } catch {}
+  } catch { /* storage unavailable */ }
   return ['info', 'crm-360', 'intelligence', 'tags', 'assignment', 'custom-fields', 'notes', 'history', 'stats'];
 }
 
 function saveAccordionState(value: string[]) {
   try {
     localStorage.setItem(ACCORDION_STORAGE_KEY, JSON.stringify(value));
-  } catch {}
+  } catch { /* storage unavailable */ }
 }
 
 interface ContactDetailsProps {

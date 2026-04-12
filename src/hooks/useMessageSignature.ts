@@ -43,7 +43,7 @@ export function useMessageSignature() {
   const toggleSignature = useCallback(() => {
     setSignatureEnabled(prev => {
       const next = !prev;
-      try { localStorage.setItem(SIGNATURE_ENABLED_KEY, String(next)); } catch {}
+      try { localStorage.setItem(SIGNATURE_ENABLED_KEY, String(next)); } catch { /* storage unavailable */ }
       return next;
     });
   }, []);

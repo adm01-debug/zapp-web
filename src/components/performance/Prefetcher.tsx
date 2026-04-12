@@ -1,6 +1,9 @@
 import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('Prefetcher');
+
 // Route prefetch configuration
 const routePrefetchConfig: Record<string, () => Promise<unknown>> = {
   dashboard: () => import('@/components/dashboard/DashboardView'),
@@ -126,9 +129,7 @@ export function CriticalRoutePrefetcher() {
             await prefetchFn();
             // Small delay between prefetches to not block main thread
             await new Promise((resolve) => setTimeout(resolve, 100));
-          } catch {
-            // Silently fail
-          }
+          } catch (err) { log.error('Unexpected error in Prefetcher:', err); }
         }
       }
     };

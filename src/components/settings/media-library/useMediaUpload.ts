@@ -60,7 +60,7 @@ export function useMediaUpload(type: MediaType, onComplete: () => void) {
             : { image_url: urlData.publicUrl };
           const { data: classifyData } = await supabase.functions.invoke(fnName, { body });
           if (classifyData?.category) aiCategory = classifyData.category;
-        } catch { /* fallback */ }
+        } catch (err) { log.error('Unexpected error in useMediaUpload:', err); }
         const insertData: Record<string, unknown> = {
           name, category: aiCategory, is_favorite: false, use_count: 0, uploaded_by: user?.id || null,
         };

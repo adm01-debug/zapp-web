@@ -57,7 +57,7 @@ export function playTeamChatSound() {
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.35);
-      } catch { /* ignore */ }
+      } catch (err) { log.error('Unexpected error in useTeamChatNotifications:', err); }
     }, 150);
   } catch (err) {
     log.warn('Failed to play team chat sound:', err);
@@ -133,7 +133,7 @@ export function useTeamChatNotifications(activeConversationId: string | null) {
               .eq('id', msg.sender_id)
               .single();
             if (data) senderName = data.name;
-          } catch { /* ignore */ }
+          } catch (err) { log.error('Unexpected error in useTeamChatNotifications:', err); }
 
           const body = msg.media_type
             ? msg.media_type === 'image' ? '📷 Imagem'

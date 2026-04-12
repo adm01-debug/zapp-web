@@ -70,7 +70,7 @@ export function useQuickReplies() {
   // Save favorites to localStorage
   const saveFavorites = useCallback((newFavorites: QuickReplyFavorite[]) => {
     setFavorites(newFavorites);
-    try { localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(newFavorites)); } catch { /* quota exceeded */ }
+    try { localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(newFavorites)); } catch { /* storage unavailable */ }
   }, []);
 
   // Toggle favorite

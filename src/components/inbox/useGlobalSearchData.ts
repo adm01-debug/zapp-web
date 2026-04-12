@@ -190,7 +190,7 @@ export function useGlobalSearchData(open: boolean) {
               });
             });
           }
-        } catch { /* silently fail CRM */ }
+        } catch (err) { log.error('Unexpected error in useGlobalSearchData:', err); }
       }
 
       searchResults.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());

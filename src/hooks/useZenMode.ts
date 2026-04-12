@@ -14,14 +14,14 @@ export function useZenMode() {
   const toggleZen = useCallback(() => {
     setIsZen((prev) => {
       const next = !prev;
-      try { localStorage.setItem(STORAGE_KEY, String(next)); } catch {}
+      try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* storage unavailable */ }
       return next;
     });
   }, []);
 
   const exitZen = useCallback(() => {
     setIsZen(false);
-    try { localStorage.setItem(STORAGE_KEY, 'false'); } catch {}
+    try { localStorage.setItem(STORAGE_KEY, 'false'); } catch { /* storage unavailable */ }
   }, []);
 
   // Escape key exits zen mode

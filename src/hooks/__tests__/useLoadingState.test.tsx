@@ -3,6 +3,9 @@ import { renderHook, act } from '@testing-library/react';
 
 import { useLoadingState } from '@/hooks/useLoadingState';
 
+import { getLogger } from '@/lib/logger';
+const log = getLogger('useLoadingState.test');
+
 describe('useLoadingState', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -82,9 +85,7 @@ describe('useLoadingState', () => {
     await act(async () => {
       try {
         await result.current.withLoading(fn, { errorMessage: 'Error!' });
-      } catch {
-        // Expected
-      }
+      } catch (err) { log.error('Unexpected error in useLoadingState.test:', err); }
     });
   });
 });
