@@ -130,7 +130,7 @@ export function ChatHeader({
             })()}
             <SLAIndicator firstMessageAt={conversation.createdAt} firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null} resolvedAt={conversation.status === 'resolved' ? conversation.updatedAt : null} firstResponseMinutes={conversation.priority === 'high' ? 2 : 5} resolutionMinutes={conversation.priority === 'high' ? 30 : 60} />
             <CrmBadges crmCompany={crmCompany} crmCustomer={crmCustomer} crmRfm={crmRfm} />
-            <BusinessHoursBadge connectionId={conversation.contact.whatsapp_connection_id} />
+            <BusinessHoursBadge connectionId={null} />
             <AnalysisBadges contactId={conversation.contact.id} compact />
           </div>
           <p className="text-xs text-muted-foreground">
