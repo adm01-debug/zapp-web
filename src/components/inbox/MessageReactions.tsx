@@ -171,42 +171,77 @@ export function MessageReactions({
   );
 }
 
-// Quick reaction bar that appears on hover
+// Quick reaction bar that appears on hover — WhatsApp Web style
 interface QuickReactionBarProps {
   messageId: string;
   isSent?: boolean;
 }
 
 export function QuickReactionBar({ messageId, isSent }: QuickReactionBarProps) {
-  const { addReaction } = useMessageReactions(messageId);
+  const [showPicker, setShowPicker] = useState(false);
+  const { addReaction, hasReacted } = useMessageReactions(messageId);
 
   const handleReact = async (emoji: string) => {
     await addReaction(emoji);
+    setShowPicker(false);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 5, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 5, scale: 0.95 }}
-      transition={{ duration: 0.15 }}
-      className={cn(
-        "absolute -top-8 flex items-center gap-0.5 p-1 rounded-full",
-        "bg-popover border border-border/50 shadow-lg",
-        isSent ? "right-0" : "left-0"
-      )}
-    >
-      {WHATSAPP_REACTIONS.map((emoji) => (
-        <motion.button
-          key={emoji}
-          whileHover={{ scale: 1.3 }}
-          whileTap={{ scale: 0.85 }}
-          onClick={() => handleReact(emoji)}
-          className="p-1 hover:bg-muted rounded transition-colors"
-        >
-          <span className="text-sm">{emoji}</span>
-        </motion.button>
-      ))}
-    </motion.div>
+    <div className={cn(
+      "absolute -top-9 flex items-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-20",
+      showPicker && "opacity-100",
+      isSent ? "right-0" : "left-0"
+    )}>
+      <motion.div
+        initial={{ opacity: 0, y: 4, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.12 }}
+        className="flex items-center gap-0.5 px-1.5 py-1 rounded-full bg-card/95 dark:bg-[hsl(var(--card)/0.95)] border border-border/40 shadow-lg backdrop-blur-sm"
+      >
+        {WHATSAPP_REACTIONS.map((emoji) => (
+          <button
+            key={emoji}
+            onClick={() => handleReact(emoji)}
+            className={cn(
+              "w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted/80 hover:scale-125 transition-all text-base",
+              hasReacted(emoji) && "bg-primary/10 ring-1 ring-primary/30"
+            )}
+          >
+            {emoji}
+          </button>
+        ))}
+        
+        {/* "+" button for extended reactions */}
+        <Popover open={showPicker} onOpenChange={setShowPicker}>
+          <PopoverTrigger asChild>
+            <button
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted/80 transition-all text-muted-foreground hover:text-foreground"
+            >
+              <SmilePlus className="w-4 h-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-auto p-2 bg-popover"
+            align={isSent ? 'end' : 'start'}
+            sideOffset={4}
+          >
+            <div className="flex flex-wrap items-center gap-1 max-w-[220px]">
+              {EXTENDED_REACTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleReact(emoji)}
+                  className={cn(
+                    "w-8 h-8 flex items-center justify-center rounded-md text-lg hover:bg-muted transition-all hover:scale-110",
+                    hasReacted(emoji) && "bg-primary/10 ring-1 ring-primary/30"
+                  )}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </motion.div>
+    </div>
   );
 }
