@@ -11,6 +11,7 @@ export interface Contact {
   tags: string[];
   createdAt: Date;
   contact_type?: string | null;
+  whatsapp_connection_id?: string | null;
 }
 
 // WhatsApp Interactive Message Types

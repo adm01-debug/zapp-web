@@ -16,6 +16,8 @@ import { useExternalContact360 } from '@/hooks/useExternalContact360';
 import { useContactIntelligence } from '@/hooks/useContactIntelligence';
 import { isExternalConfigured } from '@/integrations/supabase/externalClient';
 import { CrmBadges } from './CrmBadges';
+import { BusinessHoursBadge } from '../BusinessHoursBadge';
+import { AnalysisBadges } from '../AnalysisBadges';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical, Video, Tag, Archive, CheckCircle, Clock, ArrowRight, PhoneCall, Search, Brain, Info, Users, UserCheck, Truck, Wrench } from 'lucide-react';
 
@@ -128,6 +130,8 @@ export function ChatHeader({
             })()}
             <SLAIndicator firstMessageAt={conversation.createdAt} firstResponseAt={conversation.status === 'resolved' ? conversation.updatedAt : null} resolvedAt={conversation.status === 'resolved' ? conversation.updatedAt : null} firstResponseMinutes={conversation.priority === 'high' ? 2 : 5} resolutionMinutes={conversation.priority === 'high' ? 30 : 60} />
             <CrmBadges crmCompany={crmCompany} crmCustomer={crmCustomer} crmRfm={crmRfm} />
+            <BusinessHoursBadge connectionId={conversation.contact.whatsapp_connection_id} />
+            <AnalysisBadges contactId={conversation.contact.id} compact />
           </div>
           <p className="text-xs text-muted-foreground">
             {isContactTyping ? <TypingIndicatorCompact isVisible={true} /> : conversation.contact.phone}

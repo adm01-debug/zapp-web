@@ -10,6 +10,8 @@ import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { useConversationActions } from '@/hooks/useConversationActions';
 import { Accordion } from '@/components/ui/accordion';
 import { toast } from 'sonner';
+import { KnowledgeBaseSearchPanel } from './KnowledgeBaseSearchPanel';
+import { AnalysisBadges } from './AnalysisBadges';
 
 const ACCORDION_STORAGE_KEY = 'contact-details-accordion-state';
 
@@ -107,12 +109,18 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
           onCollapseAll={() => { setAccordionValue([]); saveAccordionState([]); }}
         />
 
+        <AnalysisBadges contactId={contact.id} className="px-4 pb-2" />
+
         <Accordion type="multiple" value={accordionValue} onValueChange={handleAccordionChange} className="w-full">
           <ContactAccordionSections
             contact={contact} conversation={conversation} enrichedData={enrichedData}
             aiTags={aiTags} slaInfo={slaInfo} profileId={profileId}
           />
         </Accordion>
+
+        <div className="px-3 pb-3">
+          <KnowledgeBaseSearchPanel />
+        </div>
       </div>
 
       <EditContactDialog
