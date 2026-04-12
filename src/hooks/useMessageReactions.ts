@@ -139,6 +139,23 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
         .eq('emoji', emoji);
 
       if (error) throw error;
+
+      // Send empty reaction to remove on WhatsApp
+      if (options?.instanceName && options?.contactJid && options?.externalId) {
+        try {
+          await sendReaction(
+            options.instanceName,
+            {
+              remoteJid: options.contactJid,
+              fromMe: options.senderType === 'agent',
+              id: options.externalId,
+            },
+            '' // empty string removes the reaction
+          );
+        } catch (err) {
+          log.error('Failed to remove reaction via Evolution API', err);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['message-reactions', messageId] });
