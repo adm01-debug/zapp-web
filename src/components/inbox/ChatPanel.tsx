@@ -19,10 +19,9 @@ import { useScheduledMessages } from '@/hooks/useScheduledMessages';
 import { useMessageSignature } from '@/hooks/useMessageSignature';
 import { useChatMediaSending } from './useChatMediaSending';
 import { CRMAutoSync } from './CRMAutoSync';
-import { useAmbientColor } from '@/hooks/useAmbientColor';
 import { Radar, GraduationCap, FileText } from 'lucide-react';
-import { ToolPanel } from './ai-tools/ToolPanel';
-import { VisionIcon } from './ai-tools/VisionIcon';
+import { ChatToolPanels } from './chat/ChatToolPanels';
+import { ChatDialogs } from './chat/ChatDialogs';
 
 import { ChatPanelHeader } from './chat/ChatPanelHeader';
 import { ChatAssignedBar } from './chat/ChatAssignedBar';
@@ -32,21 +31,7 @@ import { ChatDragOverlay } from './chat/ChatDragOverlay';
 import { ChatQuickRepliesPopover } from './chat/ChatQuickRepliesPopover';
 import { ChatSearchBar } from './chat/ChatSearchBar';
 
-const ConversationSummary = lazy(() => import('./ConversationSummary').then(m => ({ default: m.ConversationSummary })));
-const ObjectionDetector = lazy(() => import('./ObjectionDetector').then(m => ({ default: m.ObjectionDetector })));
-const UniversityHelp = lazy(() => import('./UniversityHelp').then(m => ({ default: m.UniversityHelp })));
-const TransferDialog = lazy(() => import('./TransferDialog').then(m => ({ default: m.TransferDialog })));
 const WhisperMode = lazy(() => import('./WhisperMode').then(m => ({ default: m.WhisperMode })));
-const ScheduleMessageDialog = lazy(() => import('./ScheduleMessageDialog').then(m => ({ default: m.ScheduleMessageDialog })));
-const CallDialog = lazy(() => import('@/components/calls/CallDialog').then(m => ({ default: m.CallDialog })));
-const GlobalSearch = lazy(() => import('./GlobalSearch').then(m => ({ default: m.GlobalSearch })));
-const InteractiveMessageBuilder = lazy(() => import('./InteractiveMessageBuilder').then(m => ({ default: m.InteractiveMessageBuilder })));
-const ForwardMessageDialog = lazy(() => import('./ForwardMessageDialog').then(m => ({ default: m.ForwardMessageDialog })));
-const LocationPicker = lazy(() => import('./LocationPicker').then(m => ({ default: m.LocationPicker })));
-const AIConversationAssistant = lazy(() => import('./AIConversationAssistant').then(m => ({ default: m.AIConversationAssistant })));
-const TemplatesWithVariables = lazy(() => import('./TemplatesWithVariables').then(m => ({ default: m.TemplatesWithVariables })));
-const RealtimeTranscription = lazy(() => import('./RealtimeTranscription').then(m => ({ default: m.RealtimeTranscription })));
-const CloseConversationDialog = lazy(() => import('./CloseConversationDialog').then(m => ({ default: m.CloseConversationDialog })));
 const NextBestActionEngine = lazy(() => import('./NextBestActionEngine').then(m => ({ default: m.NextBestActionEngine })));
 
 // Preload most-used dialogs after idle to reduce perceived latency
