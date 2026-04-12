@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { useMediaLibrary } from './media-library/useMediaLibrary';
+import { useMediaUpload } from './media-library/useMediaUpload';
 import type { MediaItem, MediaType } from './media-library/useMediaLibrary';
 import { StatsCards } from './media-library/StatsCards';
 import { AIGenerateDialog } from './media-library/AIGenerateDialog';
