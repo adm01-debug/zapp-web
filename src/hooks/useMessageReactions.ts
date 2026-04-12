@@ -73,19 +73,22 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
     enabled: !!messageId,
   });
 
-  // Add reaction mutation
+  // Add reaction mutation — uses upsert to prevent duplicate key errors
   const addMutation = useMutation({
     mutationFn: async (emoji: string) => {
       if (!profile?.id) throw new Error('Perfil não encontrado');
 
-      // 1. Save to local DB
+      // 1. Save to local DB with upsert (conflict on message_id + user_id + emoji)
       const { data, error } = await supabase
         .from('message_reactions')
-        .insert({
-          message_id: messageId,
-          user_id: profile.id,
-          emoji,
-        })
+        .upsert(
+          {
+            message_id: messageId,
+            user_id: profile.id,
+            emoji,
+          },
+          { onConflict: 'message_id,user_id,emoji' }
+        )
         .select()
         .single();
 
@@ -116,13 +119,10 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
       queryClient.invalidateQueries({ queryKey: ['message-reactions', messageId] });
     },
     onError: (error: Error) => {
-      // Ignore duplicate errors
-      if (!error.message.includes('duplicate')) {
-        toast({
-          title: 'Erro ao adicionar reação',
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Erro ao adicionar reação',
+        variant: 'destructive',
+      });
     },
   });
 

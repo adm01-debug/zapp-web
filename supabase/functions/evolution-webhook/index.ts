@@ -541,8 +541,8 @@ serve(async (req) => {
                 else if (msgPayload.stickerMessage) webhookMsgType = 'sticker';
               }
 
-              // Only match pending messages created in the last 60 seconds AND same type
-              const recentCutoff = new Date(Date.now() - 60_000).toISOString();
+              // Only match pending messages created in the last 5 minutes AND same type
+              const recentCutoff = new Date(Date.now() - 300_000).toISOString();
               const { data: pendingMessage } = await supabase
                 .from('messages')
                 .select('id')
@@ -1188,6 +1188,118 @@ serve(async (req) => {
       }
     }
 
+    // ─── MESSAGES.REACTION: Sync inbound reactions to message_reactions table ───
+    if (event === 'messages.upsert') {
+      // Check if any entry has a reactionMessage — handle separately
+      for (const entry of toEventRecords(data, ['messages'])) {
+        const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
+        if (!msg?.reactionMessage) continue;
+
+        const reaction = msg.reactionMessage as Record<string, unknown>;
+        const emoji = (reaction.text as string) || '';
+        const reactKey = reaction.key as Record<string, unknown> | undefined;
+        if (!reactKey?.id) continue;
+
+        const targetExternalId = reactKey.id as string;
+        const reactedByMe = reactKey.fromMe as boolean;
+
+        // Find the target message in our DB
+        const { data: targetMessage } = await supabase
+          .from('messages')
+          .select('id, contact_id')
+          .eq('external_id', targetExternalId)
+          .maybeSingle();
+
+        if (!targetMessage) {
+          console.log(`Reaction target not found: ${targetExternalId}`);
+          continue;
+        }
+
+        if (emoji === '') {
+          // Empty emoji = reaction removed
+          if (reactedByMe) {
+            // Agent removed reaction — handled locally, skip
+          } else {
+            // Contact removed reaction
+            await supabase
+              .from('message_reactions')
+              .delete()
+              .eq('message_id', targetMessage.id)
+              .eq('contact_id', targetMessage.contact_id)
+              .eq('emoji', emoji);
+            // Since emoji is empty, we don't know which to remove — remove all from contact
+            await supabase
+              .from('message_reactions')
+              .delete()
+              .eq('message_id', targetMessage.id)
+              .eq('contact_id', targetMessage.contact_id);
+          }
+          console.log(`Reaction removed on message ${targetExternalId}`);
+        } else {
+          // Add reaction
+          if (!reactedByMe) {
+            // Incoming reaction from contact
+            const { error: upsertErr } = await supabase
+              .from('message_reactions')
+              .upsert(
+                {
+                  message_id: targetMessage.id,
+                  contact_id: targetMessage.contact_id,
+                  emoji,
+                },
+                { onConflict: 'message_id,contact_id,emoji' }
+              );
+            if (upsertErr) {
+              console.error('Error upserting reaction:', upsertErr);
+            } else {
+              console.log(`Reaction synced: ${emoji} on message ${targetExternalId}`);
+            }
+          }
+        }
+      }
+    }
+
+    // ─── MESSAGES.EDITED: Sync message edits from WhatsApp ───
+    if (event === 'messages.edited' || event === 'messages.edit') {
+      for (const entry of toEventRecords(data, ['messages'])) {
+        const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
+        const key = keySource as { id?: string } | null;
+        if (!key?.id) continue;
+
+        const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
+        const editedContent =
+          (msg?.conversation as string) ||
+          ((msg?.extendedTextMessage as Record<string, unknown>)?.text as string) ||
+          (entry.editedMessage as Record<string, unknown>)?.conversation as string ||
+          null;
+
+        if (!editedContent) {
+          console.log(`messages.edited: no content found for ${key.id}`);
+          continue;
+        }
+
+        const { data: existing } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('external_id', key.id)
+          .maybeSingle();
+
+        if (existing) {
+          await supabase
+            .from('messages')
+            .update({
+              content: editedContent,
+              is_edited: true,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+          console.log(`Message edited: ${key.id}`);
+        } else {
+          console.log(`messages.edited: message ${key.id} not found in DB`);
+        }
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -1283,7 +1395,7 @@ async function handleOutgoingWhatsAppMessage(
     messageType = 'sticker';
     content = '[Sticker]';
   } else if (message?.reactionMessage) {
-    // Skip reactions for outgoing — not critical
+    // Reactions are handled separately in the messages.upsert reaction handler
     return;
   } else if (message?.contactMessage || message?.contactsArrayMessage) {
     messageType = 'contact';
@@ -1567,8 +1679,8 @@ async function handleIncomingMessage(
       }
     }
   } else if (message?.reactionMessage) {
-    messageType = 'reaction';
-    content = (message.reactionMessage as Record<string, unknown>).text as string || '';
+    // Reactions are handled in the main event loop's reaction handler
+    return;
   } else if (message?.contactMessage || message?.contactsArrayMessage) {
     messageType = 'contact';
     content = '[Contato]';
