@@ -21,7 +21,7 @@ const getRateBadge = (rate: number) => {
 interface AgentData {
   agentId: string;
   agentName: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   overallRate: number;
   firstResponse: { rate: number; onTime: number; total: number };
   resolution: { rate: number; onTime: number; total: number };
