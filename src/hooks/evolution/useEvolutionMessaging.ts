@@ -6,6 +6,10 @@ export function useEvolutionMessaging(
   callApi: (action: string, body?: object, method?: HttpMethod) => Promise<any>,
   withToast: (action: string, body: object | undefined, successMsg: string, errorMsg: string, method?: HttpMethod) => Promise<any>
 ) {
+  // ============================================================
+  // SEND MESSAGES
+  // ============================================================
+  
   const sendTextMessage = useCallback((instanceName: string, number: string, text: string, options?: { delay?: number; quoted?: SendMessageParams['quoted']; mentioned?: string[] }) =>
     callApi('send-text', { instanceName, number, text, ...options }), [callApi]);
 
@@ -48,7 +52,10 @@ export function useEvolutionMessaging(
   const sendChatPresence = useCallback((instanceName: string, number: string, presence: 'composing' | 'recording' | 'paused', delay?: number) =>
     callApi('send-chat-presence', { instanceName, number, presence, delay }), [callApi]);
 
-  // Message management
+  // ============================================================
+  // MESSAGE MANAGEMENT (existing)
+  // ============================================================
+  
   const markMessageAsRead = useCallback((instanceName: string, key: object) =>
     callApi('mark-read', { instanceName, key }), [callApi]);
 
@@ -70,12 +77,84 @@ export function useEvolutionMessaging(
   const editMessage = useCallback((instanceName: string, body: object) =>
     callApi('edit-message', { instanceName, ...body }), [callApi]);
 
+  // ============================================================
+  // CHAT CONTROLLER — NEW ENDPOINTS (Sprint 2)
+  // ============================================================
+  
+  /**
+   * Pin a chat to the top of the chat list
+   * @param instanceName - Evolution API instance name
+   * @param remoteJid - Chat JID to pin (e.g., "5511999999999@s.whatsapp.net")
+   */
+  const pinChat = useCallback((instanceName: string, remoteJid: string) =>
+    withToast('pin-chat', { instanceName, remoteJid }, 'Chat fixado', 'Erro ao fixar chat'), [withToast]);
+
+  /**
+   * Unpin a chat from the top of the chat list
+   * @param instanceName - Evolution API instance name
+   * @param remoteJid - Chat JID to unpin
+   */
+  const unpinChat = useCallback((instanceName: string, remoteJid: string) =>
+    withToast('unpin-chat', { instanceName, remoteJid }, 'Chat desfixado', 'Erro ao desfixar chat'), [withToast]);
+
+  /**
+   * Star/favorite a specific message
+   * @param instanceName - Evolution API instance name
+   * @param key - Message key object with { remoteJid, fromMe, id }
+   * @param star - true to star, false to unstar
+   */
+  const starMessage = useCallback((instanceName: string, key: { remoteJid: string; fromMe: boolean; id: string }, star: boolean = true) =>
+    withToast('star-message', { instanceName, key, star }, star ? 'Mensagem marcada' : 'Marcação removida', 'Erro ao marcar mensagem'), [withToast]);
+
+  /**
+   * Clear all messages from a chat
+   * @param instanceName - Evolution API instance name
+   * @param remoteJid - Chat JID to clear
+   */
+  const clearChat = useCallback((instanceName: string, remoteJid: string) =>
+    withToast('clear-chat', { instanceName, remoteJid }, 'Chat limpo', 'Erro ao limpar chat', 'DELETE'), [withToast]);
+
+  /**
+   * Set disappearing messages for a chat
+   * @param instanceName - Evolution API instance name
+   * @param remoteJid - Chat JID
+   * @param expiration - Expiration time in seconds (0 = disabled, 86400 = 24h, 604800 = 7d, 7776000 = 90d)
+   */
+  const setDisappearingMessages = useCallback((instanceName: string, remoteJid: string, expiration: 0 | 86400 | 604800 | 7776000) =>
+    withToast('set-disappearing', { instanceName, remoteJid, expiration }, 
+      expiration === 0 ? 'Mensagens temporárias desativadas' : 'Mensagens temporárias ativadas', 
+      'Erro ao configurar mensagens temporárias'), [withToast]);
+
+  /**
+   * Fetch full profile of a contact (not just picture)
+   * @param instanceName - Evolution API instance name
+   * @param number - Phone number to fetch profile
+   */
+  const fetchContactProfile = useCallback((instanceName: string, number: string) =>
+    callApi('fetch-profile', { instanceName, number }, 'GET'), [callApi]);
+
+  /**
+   * Mute a chat for a specific duration
+   * @param instanceName - Evolution API instance name
+   * @param remoteJid - Chat JID to mute
+   * @param duration - Mute duration in seconds (0 = unmute)
+   */
+  const muteChat = useCallback((instanceName: string, remoteJid: string, duration: number) =>
+    withToast('mute-chat', { instanceName, remoteJid, duration }, 
+      duration === 0 ? 'Notificações ativadas' : 'Chat silenciado', 
+      'Erro ao silenciar chat'), [withToast]);
+
   return {
+    // Send messages
     sendTextMessage, sendMediaMessage, sendAudioMessage, sendStickerMessage,
     sendLocationMessage, sendContactMessage, sendReaction, sendPollMessage,
     sendListMessage, sendButtonsMessage, sendStatusMessage, sendTemplateMessage,
     sendPtvMessage, sendChatPresence,
+    // Message management (existing)
     markMessageAsRead, markMessageAsUnread, archiveChat, deleteMessage,
     updateMessage, deleteMessageForEveryone, editMessage,
+    // Chat controller (new)
+    pinChat, unpinChat, starMessage, clearChat, setDisappearingMessages,
+    fetchContactProfile, muteChat,
   };
 }
