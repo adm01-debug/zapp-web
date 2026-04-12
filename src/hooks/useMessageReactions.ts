@@ -16,9 +16,17 @@ export interface MessageReaction {
   user_name?: string;
 }
 
-export function useMessageReactions(messageId: string) {
+export interface UseMessageReactionsOptions {
+  instanceName?: string;
+  contactJid?: string;
+  externalId?: string;
+  senderType?: 'contact' | 'agent';
+}
+
+export function useMessageReactions(messageId: string, options?: UseMessageReactionsOptions) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { sendReaction } = useEvolutionApi();
 
   // Get current user's profile
   const { data: profile } = useQuery({
