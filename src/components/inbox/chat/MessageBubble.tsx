@@ -107,7 +107,14 @@ export function MessageBubble({
 
             {/* Floating emoji reactions on hover — WhatsApp Web style */}
             <AnimatePresence>
-              <QuickReactionBar messageId={message.id} isSent={isSent} />
+              <QuickReactionBar
+                messageId={message.id}
+                isSent={isSent}
+                instanceName={instanceName}
+                contactJid={contactJid}
+                externalId={message.external_id}
+                senderType={message.sender}
+              />
             </AnimatePresence>
 
             {/* Pill toolbar — WhatsApp Web style */}
@@ -234,7 +241,14 @@ export function MessageBubble({
               </motion.div>
             )}
 
-            <MessageReactions messageId={message.id} isSent={isSent} />
+            <MessageReactions
+              messageId={message.id}
+              isSent={isSent}
+              instanceName={instanceName}
+              contactJid={contactJid}
+              externalId={message.external_id}
+              senderType={message.sender}
+            />
           </div>
 
           {/* Avatar — sent */}

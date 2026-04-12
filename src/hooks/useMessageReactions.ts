@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { log } from '@/lib/logger';
+import { useEvolutionApi } from '@/hooks/useEvolutionApi';
 
 export interface MessageReaction {
   id: string;
@@ -15,9 +16,17 @@ export interface MessageReaction {
   user_name?: string;
 }
 
-export function useMessageReactions(messageId: string) {
+export interface UseMessageReactionsOptions {
+  instanceName?: string;
+  contactJid?: string;
+  externalId?: string;
+  senderType?: 'contact' | 'agent';
+}
+
+export function useMessageReactions(messageId: string, options?: UseMessageReactionsOptions) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { sendReaction } = useEvolutionApi();
 
   // Get current user's profile
   const { data: profile } = useQuery({
@@ -69,6 +78,7 @@ export function useMessageReactions(messageId: string) {
     mutationFn: async (emoji: string) => {
       if (!profile?.id) throw new Error('Perfil não encontrado');
 
+      // 1. Save to local DB
       const { data, error } = await supabase
         .from('message_reactions')
         .insert({
@@ -80,6 +90,26 @@ export function useMessageReactions(messageId: string) {
         .single();
 
       if (error) throw error;
+
+      // 2. Send reaction via Evolution API to WhatsApp
+      if (options?.instanceName && options?.contactJid && options?.externalId) {
+        try {
+          await sendReaction(
+            options.instanceName,
+            {
+              remoteJid: options.contactJid,
+              fromMe: options.senderType === 'agent',
+              id: options.externalId,
+            },
+            emoji
+          );
+          log.info('Reaction sent via Evolution API', { emoji, messageId });
+        } catch (err) {
+          log.error('Failed to send reaction via Evolution API', err);
+          // Don't throw — local reaction was saved successfully
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -109,6 +139,23 @@ export function useMessageReactions(messageId: string) {
         .eq('emoji', emoji);
 
       if (error) throw error;
+
+      // Send empty reaction to remove on WhatsApp
+      if (options?.instanceName && options?.contactJid && options?.externalId) {
+        try {
+          await sendReaction(
+            options.instanceName,
+            {
+              remoteJid: options.contactJid,
+              fromMe: options.senderType === 'agent',
+              id: options.externalId,
+            },
+            '' // empty string removes the reaction
+          );
+        } catch (err) {
+          log.error('Failed to remove reaction via Evolution API', err);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['message-reactions', messageId] });
