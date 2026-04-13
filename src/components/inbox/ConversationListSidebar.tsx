@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { MessageSquare, RefreshCw, Search as SearchIcon, MessageSquarePlus } from 'lucide-react';
+import { MessageSquare, RefreshCw, Search as SearchIcon, MessageSquarePlus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,6 +25,20 @@ interface ConversationListSidebarProps {
 
 export function ConversationListSidebar({ inbox, inboxFilters, bulkActions, pullToRefresh }: ConversationListSidebarProps) {
   const isMobile = useIsMobile();
+  const contactSearchRef = useRef<HTMLInputElement>(null);
+  const [contactSearch, setContactSearch] = useState('');
+
+  // Sync local search to inboxFilters
+  const handleContactSearch = useCallback((value: string) => {
+    setContactSearch(value);
+    inboxFilters.setSearch(value);
+  }, [inboxFilters]);
+
+  const clearContactSearch = useCallback(() => {
+    setContactSearch('');
+    inboxFilters.setSearch('');
+    contactSearchRef.current?.focus();
+  }, [inboxFilters]);
 
   return (
     <div className={cn(
@@ -70,23 +84,43 @@ export function ConversationListSidebar({ inbox, inboxFilters, bulkActions, pull
 
         <div className="flex items-center gap-1.5">
           {isMobile ? (
-            <Button variant="ghost" size="icon" onClick={() => inbox.setGlobalSearchOpen(true)} className="w-7 h-7 shrink-0" aria-label="Buscar">
-              <SearchIcon className="w-3.5 h-3.5 text-muted-foreground" />
-            </Button>
+            <div className="relative flex-1">
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60" />
+              <Input
+                ref={contactSearchRef}
+                placeholder="Buscar contato..."
+                value={contactSearch}
+                onChange={(e) => handleContactSearch(e.target.value)}
+                className="pl-8 pr-7 bg-muted/40 border-0 rounded-lg h-8 text-xs placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30"
+                aria-label="Buscar contato pelo nome"
+              />
+              {contactSearch && (
+                <Button variant="ghost" size="icon" onClick={clearContactSearch}
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2 w-6 h-6 hover:bg-transparent" aria-label="Limpar busca">
+                  <X className="w-3 h-3 text-muted-foreground" />
+                </Button>
+              )}
+            </div>
           ) : (
             <div className="relative flex-1">
               <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/60" />
               <Input
-                placeholder="Buscar... ⌘K"
-                value={inboxFilters.search}
-                onChange={(e) => inboxFilters.setSearch(e.target.value)}
-                onClick={() => inbox.setGlobalSearchOpen(true)}
-                className="pl-7 bg-muted/40 border-0 rounded-md h-7 text-[11px] cursor-pointer placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30"
-                readOnly
+                ref={contactSearchRef}
+                placeholder="Buscar contato..."
+                value={contactSearch}
+                onChange={(e) => handleContactSearch(e.target.value)}
+                className="pl-7 pr-7 bg-muted/40 border-0 rounded-md h-7 text-[11px] placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30"
+                aria-label="Buscar contato pelo nome"
               />
+              {contactSearch && (
+                <Button variant="ghost" size="icon" onClick={clearContactSearch}
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-5 hover:bg-transparent" aria-label="Limpar busca">
+                  <X className="w-3 h-3 text-muted-foreground" />
+                </Button>
+              )}
             </div>
           )}
-          <div className={cn("shrink-0", isMobile ? "flex-1" : "w-[130px]")}>
+          <div className={cn("shrink-0", isMobile ? "w-[130px]" : "w-[130px]")}>
             <ContactTypeFilter value={inboxFilters.selectedContactType} onChange={inboxFilters.handleContactTypeChange} conversations={inbox.cachedConversations} />
           </div>
         </div>
