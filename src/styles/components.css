@@ -1,0 +1,115 @@
+/* ===== COMPONENT STYLES — Cards, hover effects, chat, gamification ===== */
+
+@layer components {
+  /* ===== CARD STYLES ===== */
+  .card-base { @apply bg-card rounded-xl border border-border p-6 transition-all duration-200; }
+  .card-elevated { @apply bg-card-elevated rounded-xl border border-border p-6 transition-all duration-200; box-shadow: var(--shadow-sm); }
+  .card-elevated:hover { box-shadow: var(--shadow-md); @apply border-primary/20; transform: translateY(-1px); }
+
+  .card-interactive {
+    @apply relative bg-card rounded-xl border border-border p-6 cursor-pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-interactive:hover { @apply border-primary/30 bg-accent/30; box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .card-interactive:active { transform: translateY(0) scale(0.995); transition-duration: 0.1s; }
+
+  .card-glow-purple { @apply relative bg-card rounded-xl border border-primary/20 p-6 transition-all duration-200; box-shadow: var(--shadow-sm); }
+  .card-glow-purple:hover { box-shadow: var(--shadow-glow-primary); @apply border-primary/40; transform: translateY(-2px); }
+
+  .card-glow-gradient { @apply relative bg-card rounded-xl border border-primary/15 p-6 transition-all duration-200; box-shadow: var(--shadow-sm); }
+  .card-glow-gradient:hover { box-shadow: var(--shadow-glow-primary); transform: translateY(-1px); }
+
+  .glass-card { @apply rounded-xl p-6 border transition-all duration-200; background: hsl(var(--glass-bg)); border-color: hsl(var(--glass-border)); }
+  .glass-card:hover { border-color: hsl(var(--primary) / 0.3); box-shadow: 0 8px 32px hsl(var(--primary) / 0.1); }
+
+  .glass-panel { @apply border transition-all duration-200; background: hsl(var(--glass-bg)); border-color: hsl(var(--glass-border)); box-shadow: var(--shadow-lg); }
+
+  .stat-card { @apply bg-card rounded-xl border border-border p-4; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  .stat-card:hover { @apply border-primary/25; box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+
+  .card-subtle { @apply bg-muted/30 border-transparent; }
+  .card-prominent { @apply bg-card-elevated border-primary/10; box-shadow: var(--shadow-md); }
+  .card-featured { @apply bg-card-elevated border-primary/20 ring-1 ring-primary/10; box-shadow: var(--shadow-lg); }
+
+  /* Shimmer highlight */
+  .card-shimmer { @apply relative overflow-hidden; }
+  .card-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, hsl(var(--primary) / 0.04) 45%, hsl(var(--primary) / 0.08) 50%, hsl(var(--primary) / 0.04) 55%, transparent 60%);
+    background-size: 200% 100%;
+    animation: shimmer 2.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* ===== HOVER EFFECTS ===== */
+  .hover-lift { @apply transition-all duration-200; }
+  .hover-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .hover-lift-sm { @apply transition-all duration-200; }
+  .hover-lift-sm:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .hover-lift-lg { @apply transition-all duration-200; }
+  .hover-lift-lg:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+  .hover-scale { @apply transition-transform duration-200; }
+  .hover-scale:hover { transform: scale(1.03); }
+  .hover-scale-sm { @apply transition-transform duration-200; }
+  .hover-scale-sm:hover { transform: scale(1.01); }
+
+  .hover-glow { @apply transition-shadow duration-200; }
+  .hover-glow:hover { box-shadow: var(--shadow-glow-primary); }
+  .hover-glow-primary { @apply transition-shadow duration-200; }
+  .hover-glow-primary:hover { box-shadow: var(--shadow-glow-primary); }
+  .hover-glow-success { @apply transition-shadow duration-200; }
+  .hover-glow-success:hover { box-shadow: var(--shadow-glow-success); }
+
+  .press-scale { @apply transition-transform duration-100; }
+  .press-scale:active { transform: scale(0.97); }
+  .press-scale-sm { @apply transition-transform duration-100; }
+  .press-scale-sm:active { transform: scale(0.98); }
+
+  /* ===== RANK BADGES ===== */
+  .rank-gold { @apply relative; background: linear-gradient(135deg, hsl(45 93% 47%), hsl(38 92% 50%)); color: hsl(var(--rank-gold-foreground)); }
+  .rank-silver { @apply relative; background: linear-gradient(135deg, hsl(220 15% 75%), hsl(220 13% 65%)); color: hsl(var(--rank-silver-foreground)); }
+  .rank-bronze { @apply relative; background: linear-gradient(135deg, hsl(30 55% 55%), hsl(25 50% 45%)); color: hsl(var(--rank-bronze-foreground)); }
+
+  /* ===== CONVERSATION ITEM ===== */
+  .conversation-item {
+    @apply flex items-center gap-3 p-3 rounded-xl cursor-pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply hover:bg-accent/60;
+  }
+  .conversation-item.active {
+    @apply bg-primary/10 border-l-[3px] border-primary;
+    box-shadow: inset 4px 0 8px -4px hsl(var(--primary) / 0.15);
+  }
+
+  /* ===== MESSAGE BUBBLES ===== */
+  .message-bubble { @apply max-w-[70%] px-4 py-2 rounded-2xl; }
+  .message-bubble.sent { @apply bg-[hsl(var(--chat-bubble-sent))] text-[hsl(var(--chat-bubble-sent-foreground))] rounded-br-md; }
+  .message-bubble.received { @apply bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))] rounded-bl-md; }
+
+  /* ===== STATUS DOT ===== */
+  .status-dot { @apply w-2.5 h-2.5 rounded-full; }
+  .status-dot.online { @apply bg-[hsl(var(--online))]; }
+  .status-dot.away { @apply bg-[hsl(var(--away))]; }
+  .status-dot.offline { @apply bg-[hsl(var(--offline))]; }
+
+  /* ===== UNREAD BADGE ===== */
+  .unread-badge { @apply min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold bg-destructive text-destructive-foreground; }
+
+  /* ===== GLASS MORPHISM ===== */
+  .glass { @apply border transition-all duration-200; background: hsl(var(--glass-bg)); border-color: hsl(var(--glass-border)); }
+  .glass-strong { @apply border transition-all duration-200; background: hsl(var(--glass-bg)); border-color: hsl(var(--glass-border)); }
+
+  /* ===== GAMIFICATION ANIMATIONS ===== */
+  .animate-xp-shimmer {
+    background: linear-gradient(90deg, hsl(var(--xp)) 0%, hsl(var(--xp) / 0.7) 50%, hsl(var(--xp)) 100%);
+    background-size: 200% 100%;
+    animation: xp-shimmer 2s ease-in-out infinite;
+  }
+  .animate-streak-fire { animation: streak-fire 0.8s ease-in-out infinite; }
+  .animate-coin-shine { animation: coin-shine 2s ease-in-out infinite; }
+  .animate-level-up { animation: level-up 0.6s ease-out; }
+  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+}
