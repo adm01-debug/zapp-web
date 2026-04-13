@@ -99,7 +99,7 @@ export function ContactCard({
               "absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-background flex items-center justify-center",
               typeConfig.dotBg
             )}>
-              <span className="text-[8px] text-white">{typeConfig.icon}</span>
+              <span className="text-[8px] text-primary-foreground">{typeConfig.icon}</span>
             </div>
             {/* Company logo overlay */}
             {(companyLogo || contact.company) && (
