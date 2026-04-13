@@ -94,7 +94,7 @@ describe('useEvolutionApi - Exhaustive Test Suite', () => {
         await act(async () => {
           await result.current.createInstance({ instanceName: 'test' });
         });
-      } catch (err) { log.error('Unexpected error in useEvolutionApi.test:', err); }
+      } catch { /* expected */ }
       expect(mockToast.error).toHaveBeenCalled();
     });
 
@@ -113,7 +113,7 @@ describe('useEvolutionApi - Exhaustive Test Suite', () => {
         await act(async () => {
           await result.current.sendTextMessage('wpp2', '5511999', 'hi');
         });
-      } catch (err) { log.error('Unexpected error in useEvolutionApi.test:', err); }
+      } catch { /* expected */ }
       expect(result.current.isLoading).toBe(false);
     });
   });
