@@ -210,10 +210,20 @@ export async function handleCallEvent(supabase: any, instance: string, data: unk
 
   let contact = await getContactByPhone(supabase, phone, connection.id);
   if (!contact) {
-    const { data: newContact } = await supabase.from('contacts')
+    const { data: newContact, error: insertErr } = await supabase.from('contacts')
       .insert({ phone, name: phone, whatsapp_connection_id: connection.id })
       .select('id, avatar_url, assigned_to, name').single();
-    contact = newContact;
+    if (insertErr && insertErr.code === '23505') {
+      const phonesVariants = [phone, `+${phone}`, phone.replace(/^\+/, '')];
+      const { data: existing } = await supabase.from('contacts').select('id, avatar_url, assigned_to, name')
+        .in('phone', [...new Set(phonesVariants)]).limit(1).maybeSingle();
+      if (existing) {
+        contact = existing;
+        await supabase.from('contacts').update({ whatsapp_connection_id: connection.id, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      }
+    } else {
+      contact = newContact;
+    }
   }
   if (!contact) return;
 
