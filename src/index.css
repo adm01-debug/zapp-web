@@ -1,3 +1,9 @@
+/* ===== FONT VARIABLES ===== */
+:root {
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-sans: 'Outfit', system-ui, sans-serif;
+}
+
 /* ===== VIEWPORT LOCK — Must be outside @layer to win specificity ===== */
 html, body, #root {
   height: 100vh !important;
@@ -5,6 +11,7 @@ html, body, #root {
   overflow: hidden !important;
   margin: 0;
   padding: 0;
+  font-family: var(--font-sans);
 }
 
 /* ===== VIEW TRANSITIONS API ===== */
