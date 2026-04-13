@@ -7,10 +7,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const mockRpc = vi.fn();
 const mockFrom = vi.fn();
 
-const mockExternalClient = {
-  rpc: (...args: any[]) => mockRpc(...args),
-  from: (table: string) => {
-    mockFrom(table);
+vi.mock('@/integrations/supabase/externalClient', () => {
+  const _mockRpc = (...args: any[]) => (globalThis as any).__extMockRpc(...args);
+  const _mockFrom = (table: string) => {
+    (globalThis as any).__extMockFrom(table);
     return {
       select: vi.fn(() => ({
         not: vi.fn(() => ({
@@ -33,14 +33,18 @@ const mockExternalClient = {
         })),
       })),
     };
-  },
-};
+  };
+  const client = { rpc: _mockRpc, from: _mockFrom };
+  return {
+    externalSupabase: client,
+    getExternalSupabase: () => client,
+    isExternalConfigured: true,
+  };
+});
 
-vi.mock('@/integrations/supabase/externalClient', () => ({
-  externalSupabase: mockExternalClient,
-  getExternalSupabase: () => mockExternalClient,
-  isExternalConfigured: true,
-}));
+// Bridge mock fns to globalThis so the hoisted factory can access them
+(globalThis as any).__extMockRpc = mockRpc;
+(globalThis as any).__extMockFrom = mockFrom;
 
 vi.mock('@/lib/logger', () => ({
   log: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
