@@ -105,33 +105,33 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('renders speed button with default 1x', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const speedBtn = screen.getByTitle('Velocidade de reprodução');
+    const speedBtn = screen.getByTitle('Velocidade');
     expect(speedBtn).toBeInTheDocument();
     expect(speedBtn.textContent).toBe('1x');
   });
 
   it('speed button is visible for sent messages', () => {
     render(<AudioMessagePlayer {...defaultProps} isSent={true} />);
-    expect(screen.getByTitle('Velocidade de reprodução')).toBeInTheDocument();
+    expect(screen.getByTitle('Velocidade')).toBeInTheDocument();
   });
 
   it('speed button is visible for received messages', () => {
     render(<AudioMessagePlayer {...defaultProps} isSent={false} />);
-    expect(screen.getByTitle('Velocidade de reprodução')).toBeInTheDocument();
+    expect(screen.getByTitle('Velocidade')).toBeInTheDocument();
   });
 
   // --- SPEED CYCLING ---
 
   it('cycles from 1x to 1.25x on first click', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     fireEvent.click(btn);
     expect(btn.textContent).toBe('1.25x');
   });
 
   it('cycles through all speeds in correct order', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     const expectedOrder = ['1.25x', '1.5x', '1.75x', '2x', '0.5x', '0.75x', '1x'];
     
     for (const expected of expectedOrder) {
@@ -142,7 +142,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('wraps around after full cycle (returns to 1x)', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     // Click 7 times to complete full cycle
     for (let i = 0; i < 7; i++) fireEvent.click(btn);
     expect(btn.textContent).toBe('1x');
@@ -150,7 +150,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('continues cycling after multiple full loops', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     // 14 clicks = 2 full cycles, should be back to 1x
     for (let i = 0; i < 14; i++) fireEvent.click(btn);
     expect(btn.textContent).toBe('1x');
@@ -163,7 +163,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('sets playbackRate on audio element when speed changes', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     
     fireEvent.click(btn); // → 1.25
     expect(mockAudioPlaybackRate).toBe(1.25);
@@ -191,7 +191,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('shows integer speeds without extra decimals (1x not 1.00x)', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     expect(btn.textContent).toBe('1x');
     // Cycle to 2x
     for (let i = 0; i < 4; i++) fireEvent.click(btn);
@@ -201,7 +201,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('shows decimal speeds correctly (1.25x, 1.5x, etc)', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     fireEvent.click(btn);
     expect(btn.textContent).toBe('1.25x');
     fireEvent.click(btn);
@@ -214,7 +214,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('speed button works independently of play state', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     // Change speed without playing
     fireEvent.click(btn);
     expect(btn.textContent).toBe('1.25x');
@@ -223,7 +223,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('speed state persists across play/pause cycles', async () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const speedBtn = screen.getByTitle('Velocidade de reprodução');
+    const speedBtn = screen.getByTitle('Velocidade');
     
     // Set speed to 1.5x
     fireEvent.click(speedBtn); // 1.25
@@ -242,7 +242,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
       </>
     );
     
-    const buttons = screen.getAllByTitle('Velocidade de reprodução');
+    const buttons = screen.getAllByTitle('Velocidade');
     expect(buttons).toHaveLength(2);
     
     // Change speed on first player only
@@ -255,12 +255,12 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
 
   it('speed button has accessible title', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    expect(screen.getByTitle('Velocidade de reprodução')).toBeInTheDocument();
+    expect(screen.getByTitle('Velocidade')).toBeInTheDocument();
   });
 
   it('speed button is a <button> element', () => {
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     expect(btn.tagName).toBe('BUTTON');
   });
 
@@ -297,7 +297,7 @@ describe('AudioMessagePlayer - Playback Speed Controls', () => {
     // This tests the edge case where playbackRate somehow gets set to a value
     // not in the speeds array. indexOf returns -1, (-1+1) % 7 = 0, so it resets to speeds[0] = 1
     render(<AudioMessagePlayer {...defaultProps} />);
-    const btn = screen.getByTitle('Velocidade de reprodução');
+    const btn = screen.getByTitle('Velocidade');
     
     // Normal operation should work even after rapid clicks
     for (let i = 0; i < 20; i++) {
