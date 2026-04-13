@@ -52,10 +52,70 @@ export function resolveBestJid(...candidates: Array<string | null | undefined>):
   if (valid.length === 0) return null;
 
   return valid.find((jid) => jid.includes('@s.whatsapp.net'))
+    ?? valid.find((jid) => /^\+?\d{10,15}$/.test(jid))
     ?? valid.find((jid) => jid.includes('@g.us'))
     ?? valid.find((jid) => !jid.includes('@lid'))
     ?? valid[0]
     ?? null;
+}
+
+export function resolveEventJid(...sources: unknown[]): string | null {
+  const candidates: string[] = [];
+  const seen = new Set<string>();
+  const directFields = [
+    'remoteJid', 'remoteJidAlt', 'participant', 'participantAlt',
+    'sender', 'senderAlt', 'senderJid', 'senderLid',
+    'from', 'fromAlt', 'fromJid',
+    'chatId', 'chatJid', 'jid', 'jidAlt',
+    'author', 'authorAlt', 'user', 'userJid', 'owner', 'recipient',
+  ];
+
+  const pushCandidate = (value: unknown) => {
+    if (typeof value !== 'string') return;
+    const normalized = value.trim();
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    candidates.push(normalized);
+  };
+
+  const collectFields = (record: Record<string, unknown>) => {
+    for (const field of directFields) pushCandidate(record[field]);
+  };
+
+  const collectSource = (source: unknown) => {
+    if (typeof source === 'string') {
+      pushCandidate(source);
+      return;
+    }
+
+    if (!isRecord(source)) return;
+
+    collectFields(source);
+
+    const nestedRecords = [
+      source.key,
+      source.contextInfo,
+      source.messageContextInfo,
+      source.message,
+    ];
+
+    for (const nested of nestedRecords) {
+      if (!isRecord(nested)) continue;
+      collectFields(nested);
+
+      for (const value of Object.values(nested)) {
+        if (!isRecord(value)) continue;
+        collectFields(value);
+        if (isRecord(value.contextInfo)) collectFields(value.contextInfo);
+        if (isRecord(value.messageContextInfo)) collectFields(value.messageContextInfo);
+        if (isRecord(value.message)) collectFields(value.message);
+      }
+    }
+  };
+
+  for (const source of sources) collectSource(source);
+
+  return resolveBestJid(...candidates);
 }
 
 export const STATUS_PRIORITY: Record<string, number> = {
