@@ -130,12 +130,10 @@ export function RealtimeInboxView() {
                   </SectionErrorBoundary>
                 )}
               </div>
-              {inbox.showDetails && !isMobile && (
-                <div className="h-full shrink-0 overflow-hidden">
-                  <SectionErrorBoundary sectionName="Detalhes do Contato">
-                    <ContactDetails key={`details-${inbox.legacyConversation.id}`} conversation={inbox.legacyConversation} onClose={() => inbox.setShowDetails(false)} />
-                  </SectionErrorBoundary>
-                </div>
+              {inbox.showDetails && (
+                <SectionErrorBoundary sectionName="Detalhes do Contato">
+                  <ContactDetailsResponsive key={`details-${inbox.legacyConversation.id}`} conversation={inbox.legacyConversation} onClose={() => inbox.setShowDetails(false)} />
+                </SectionErrorBoundary>
               )}
             </>
           </Suspense>
