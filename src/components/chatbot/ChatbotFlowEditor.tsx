@@ -92,8 +92,8 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
                             <NodeIcon className="w-4 h-4" /><span className="font-medium text-sm text-foreground">{node.data.label}</span><Badge variant="outline" className="text-xs">{config.label}</Badge>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setEditingNode(node); }}><MessageSquare className="w-3 h-3" /></Button>
-                            {node.type !== 'start' && <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={e => { e.stopPropagation(); removeNode(node.id); }}><Trash2 className="w-3 h-3" /></Button>}
+                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setEditingNode(node); }} aria-label="Editar nó"><MessageSquare className="w-3 h-3" /></Button>
+                            {node.type !== 'start' && <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={e => { e.stopPropagation(); removeNode(node.id); }} aria-label="Remover nó"><Trash2 className="w-3 h-3" /></Button>}
                           </div>
                         </div>
                         {node.data.content && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{node.data.content}</p>}
