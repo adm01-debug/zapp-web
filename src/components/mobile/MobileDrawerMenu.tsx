@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { X, Search, Moon, Sun, LogOut, ChevronRight } from 'lucide-react';
+import { X, Search, Moon, Sun, LogOut, ChevronRight, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import {
   connectionsNav,
   analyticsNav,
   systemNav,
+  advancedNav,
 } from '@/components/layout/sidebarNavConfig';
 
 interface MobileDrawerMenuProps {
@@ -28,7 +29,8 @@ interface MobileDrawerMenuProps {
   onLogout?: () => void;
 }
 
-// Build sections from the same source as the desktop sidebar
+const allItems = [...primaryNav, ...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav, ...advancedNav];
+
 const sections = [
   { title: 'Principal', items: primaryNav },
   { title: 'Comunicação', items: communicationNav },
@@ -37,7 +39,20 @@ const sections = [
   { title: 'Conexões', items: connectionsNav },
   { title: 'Analytics', items: analyticsNav },
   { title: 'Sistema', items: systemNav },
+  { title: 'Avançado', items: advancedNav },
 ];
+
+const RECENTS_KEY = 'mobile-drawer-recents';
+const MAX_RECENTS = 5;
+
+function getRecents(): string[] {
+  try { return JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]'); } catch { return []; }
+}
+function saveRecent(id: string) {
+  const recents = getRecents().filter(r => r !== id);
+  recents.unshift(id);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents.slice(0, MAX_RECENTS)));
+}
 
 const listItemVariants = {
   hidden: { opacity: 0, x: -8 },
@@ -80,8 +95,12 @@ export function MobileDrawerMenu({
       .filter((s) => s.items.length > 0);
   }, [search]);
 
+  const recentIds = useMemo(getRecents, [isOpen]);
+  const recentItems = useMemo(() => recentIds.map(id => allItems.find(i => i.id === id)).filter(Boolean) as typeof allItems, [recentIds]);
+
   const handleNav = (id: string) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(5);
+    saveRecent(id);
     onViewChange(id);
     onClose();
     setSearch('');
@@ -171,7 +190,33 @@ export function MobileDrawerMenu({
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 overflow-y-auto px-2 pb-4 overscroll-contain">
+            <div className="flex-1 overflow-y-auto px-2 pb-4 overscroll-contain scroll-fade-y">
+              {/* Recentes */}
+              {!search.trim() && recentItems.length > 0 && (
+                <div className="mb-2">
+                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Recentes
+                  </p>
+                  {recentItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = currentView === item.id;
+                    return (
+                      <button
+                        key={`recent-${item.id}`}
+                        onClick={() => handleNav(item.id)}
+                        className={cn(
+                          'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm transition-colors touch-manipulation',
+                          'active:scale-[0.98]',
+                          isActive ? 'bg-primary/10 text-primary font-medium' : 'text-foreground/80 active:bg-muted/80'
+                        )}
+                      >
+                        <Icon className={cn('w-[18px] h-[18px] shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                        <span className="flex-1 text-left truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {filteredSections.map((section, sectionIdx) => (
                 <div key={section.title} className="mb-2">
                   <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">

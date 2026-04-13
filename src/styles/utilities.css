@@ -106,7 +106,16 @@
   .glow-gradient-pulse { box-shadow: var(--shadow-glow-primary); }
   .border-glow-purple { border-color: hsl(var(--primary) / 0.3); }
 
-  /* Scroll shadow */
+  /* Scroll fade indicators — apply to scrollable containers */
+  .scroll-fade-y {
+    mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+  }
+  .scroll-fade-top {
+    mask-image: linear-gradient(to bottom, transparent 0, black 24px, black 100%);
+  }
+  .scroll-fade-bottom {
+    mask-image: linear-gradient(to bottom, black 0, black calc(100% - 24px), transparent 100%);
+  }
   .scroll-shadow-y {
     mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
   }

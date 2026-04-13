@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 const ChatPanel = lazy(() => import('./ChatPanel').then(m => ({ default: m.ChatPanel })));
 const ContactDetails = lazy(() => import('./ContactDetails').then(m => ({ default: m.ContactDetails })));
+const ContactDetailsResponsive = lazy(() => import('./ContactDetailsResponsive').then(m => ({ default: m.ContactDetailsResponsive })));
 const GlobalSearch = lazy(() => import('./GlobalSearch').then(m => ({ default: m.GlobalSearch })));
 const NewConversationModal = lazy(() => import('./NewConversationModal').then(m => ({ default: m.NewConversationModal })));
 
@@ -130,12 +131,10 @@ export function RealtimeInboxView() {
                   </SectionErrorBoundary>
                 )}
               </div>
-              {inbox.showDetails && !isMobile && (
-                <div className="h-full shrink-0 overflow-hidden">
-                  <SectionErrorBoundary sectionName="Detalhes do Contato">
-                    <ContactDetails key={`details-${inbox.legacyConversation.id}`} conversation={inbox.legacyConversation} onClose={() => inbox.setShowDetails(false)} />
-                  </SectionErrorBoundary>
-                </div>
+              {inbox.showDetails && (
+                <SectionErrorBoundary sectionName="Detalhes do Contato">
+                  <ContactDetailsResponsive key={`details-${inbox.legacyConversation.id}`} conversation={inbox.legacyConversation} onClose={() => inbox.setShowDetails(false)} />
+                </SectionErrorBoundary>
               )}
             </>
           </Suspense>
