@@ -42,7 +42,7 @@ export function OnboardingChecklist({ onNavigate, onDismiss, compact = false }: 
       setCompletedSteps(completed);
       setIsLoading(false);
     };
-    try { if (localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true') setIsDismissed(true); } catch { /* storage unavailable */ }
+    try { if (localStorage.getItem(`checklist_dismissed_${user.id}`) === 'true') setIsDismissed(true); } catch (e) { log.warn('localStorage unavailable for checklist:', e); }
     checkAllSteps();
   }, [user]);
 
