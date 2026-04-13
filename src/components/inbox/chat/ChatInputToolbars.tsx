@@ -6,6 +6,7 @@ import { AIRewriteButton } from './AIRewriteButton';
 import { RichTextToggle } from './RichTextToolbar';
 import { StickerPicker } from '../StickerPicker';
 import { AudioMemePicker } from '../AudioMemePicker';
+import { VoiceChangerPicker } from '../VoiceChangerPicker';
 import { CustomEmojiPicker } from '../CustomEmojiPicker';
 import { FileUploader, FileUploaderRef } from '../FileUploader';
 import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
