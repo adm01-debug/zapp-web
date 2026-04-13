@@ -12,7 +12,7 @@ function getCompanyColor(name: string): { bg: string; text: string } {
     { bg: 'bg-destructive/15', text: 'text-destructive' },
     { bg: 'bg-info/15', text: 'text-info' },
     { bg: 'bg-accent/30', text: 'text-accent-foreground' },
-    { bg: 'bg-chart-9/15', text: 'text-chart-9' },
+    { bg: 'bg-muted', text: 'text-muted-foreground' },
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
