@@ -47,7 +47,7 @@ html, body, #root {
   input, textarea, select { font-size: 16px !important; }
   * { -webkit-overflow-scrolling: touch; }
   body { overscroll-behavior-y: contain; }
-  button, a, [role="button"] { min-height: 36px; min-width: 36px; }
+  button, a, [role="button"] { min-height: 44px; min-width: 44px; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
   .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
   .overscroll-contain { overscroll-behavior: contain; }
