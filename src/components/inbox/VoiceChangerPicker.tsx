@@ -262,7 +262,7 @@ export function VoiceChangerPicker({ onSendAudio, disabled }: VoiceChangerPicker
                           {isPlaying ? <Pause className="w-3.5 h-3.5 mr-1" /> : <Play className="w-3.5 h-3.5 mr-1" />}
                           {isPlaying ? 'Pausar' : 'Ouvir'}
                         </Button>
-                        <Button size="sm" onClick={handleSend} disabled={isSending} className="bg-green-600 hover:bg-green-700">
+                        <Button size="sm" onClick={handleSend} disabled={isSending} className="bg-primary hover:bg-primary/90">
                           {isSending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                           Enviar
                         </Button>
