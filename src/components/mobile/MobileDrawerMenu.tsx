@@ -9,7 +9,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { IconButton } from '@/components/ui/icon-button';
 import {
   primaryNav,
-  communicationNav,
   automationNav,
   salesNav,
   connectionsNav,
@@ -29,15 +28,19 @@ interface MobileDrawerMenuProps {
   onLogout?: () => void;
 }
 
-const allItems = [...primaryNav, ...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav, ...advancedNav];
+// Deduplicated list for search and recents
+const allItems = (() => {
+  const seen = new Set<string>();
+  return [...primaryNav, ...salesNav, ...automationNav, ...analyticsNav, ...connectionsNav, ...systemNav, ...advancedNav]
+    .filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; });
+})();
 
 const sections = [
   { title: 'Principal', items: primaryNav },
-  { title: 'Comunicação', items: communicationNav },
-  { title: 'Automação & IA', items: automationNav },
   { title: 'Vendas & CRM', items: salesNav },
-  { title: 'Conexões', items: connectionsNav },
+  { title: 'Automação & IA', items: automationNav },
   { title: 'Analytics', items: analyticsNav },
+  { title: 'Conexões', items: connectionsNav },
   { title: 'Sistema', items: systemNav },
   { title: 'Avançado', items: advancedNav },
 ];
