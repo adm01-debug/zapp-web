@@ -56,7 +56,7 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
       <div className="flex flex-col gap-2 p-4 border-b border-secondary/30 bg-background">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onClose}><ArrowLeft className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Voltar"><ArrowLeft className="w-5 h-5" /></Button>
             <div>
               <h2 className="font-display font-bold text-foreground flex items-center gap-2"><Bot className="w-5 h-5 text-primary" />{flow.name}</h2>
               <p className="text-xs text-muted-foreground">{nodes.length} nós · {edges.length} conexões</p>

@@ -126,7 +126,7 @@ export function ConversationTasksPanel({ contactId, profileId }: ConversationTas
             <SelectItem value="low">Baixa</SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" className="h-8 px-2" onClick={addTask} disabled={adding || !newTitle.trim()}>
+        <Button size="sm" className="h-8 px-2" onClick={addTask} disabled={adding || !newTitle.trim()} aria-label="Adicionar tarefa">
           <Plus className="w-4 h-4" />
         </Button>
       </div>

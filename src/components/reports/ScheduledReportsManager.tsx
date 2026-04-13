@@ -67,9 +67,9 @@ export function ScheduledReportsManager() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <Switch checked={report.is_active} onCheckedChange={(checked) => mgr.toggleActive(report.id, checked)} />
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => mgr.handleSendNow(report)}><Send className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => mgr.openEditDialog(report)}><Edit2 className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => mgr.handleDelete(report.id)}><Trash2 className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => mgr.handleSendNow(report)} aria-label="Enviar agora"><Send className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => mgr.openEditDialog(report)} aria-label="Editar relatório"><Edit2 className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => mgr.handleDelete(report.id)} aria-label="Excluir relatório"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </div>
                     </CardContent>
