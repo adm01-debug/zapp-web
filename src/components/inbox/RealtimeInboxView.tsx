@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 const ChatPanel = lazy(() => import('./ChatPanel').then(m => ({ default: m.ChatPanel })));
 const ContactDetails = lazy(() => import('./ContactDetails').then(m => ({ default: m.ContactDetails })));
+const ContactDetailsResponsive = lazy(() => import('./ContactDetailsResponsive').then(m => ({ default: m.ContactDetailsResponsive })));
 const GlobalSearch = lazy(() => import('./GlobalSearch').then(m => ({ default: m.GlobalSearch })));
 const NewConversationModal = lazy(() => import('./NewConversationModal').then(m => ({ default: m.NewConversationModal })));
 
