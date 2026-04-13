@@ -74,7 +74,7 @@ export function SummaryTab({ analysis, ttsButtonClass, isTtsLoading, isTtsPlayin
           <span className="text-xs font-medium text-muted-foreground">Satisfação</span>
           <div className="flex items-center gap-0.5">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Star key={star} className={`h-4 w-4 ${star <= (analysis.customerSatisfaction || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-muted'}`} />
+              <Star key={star} className={`h-4 w-4 ${star <= (analysis.customerSatisfaction || 0) ? 'fill-warning text-warning' : 'text-muted'}`} />
             ))}
             <span className="ml-1.5 text-xs font-bold text-foreground">{analysis.customerSatisfaction}/5</span>
           </div>
