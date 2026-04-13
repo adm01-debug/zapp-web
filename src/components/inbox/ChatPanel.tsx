@@ -131,7 +131,7 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
   });
 
   useEffect(() => { initResolve(); }, [conversation.contact.id]);
-  useEffect(() => { messagesAreaRef.current?.scrollToBottom(); }, [messages, isContactTyping]);
+  useEffect(() => { messagesAreaRef.current?.scrollToBottom(); }, [messages.length, isContactTyping]);
   useEffect(() => {
     setActiveTool(null); setHighlightedMessageIds(new Set()); setActiveHighlightId(null); setSearchQuery('');
   }, [conversation.id]);
