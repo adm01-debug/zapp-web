@@ -47,7 +47,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
   const { favorites, toggleFavorite, isFavorite } = useSidebarFavorites();
 
   // Build favorite items from all nav configs
-  const allNavItems = [...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav];
+  const allNavItems = [...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav, ...advancedNav];
   const favoriteItems = favorites.map(id => allNavItems.find(item => item.id === id)).filter(Boolean) as typeof allNavItems;
 
   return (
