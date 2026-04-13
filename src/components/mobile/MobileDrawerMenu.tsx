@@ -15,6 +15,7 @@ import {
   connectionsNav,
   analyticsNav,
   systemNav,
+  advancedNav,
 } from '@/components/layout/sidebarNavConfig';
 
 interface MobileDrawerMenuProps {
