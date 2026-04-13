@@ -1,0 +1,85 @@
+import { handleCors, errorResponse, getCorsHeaders, Logger, requireEnv } from "../_shared/validation.ts";
+
+const VOICE_PRESETS: Record<string, { voiceId: string; label: string }> = {
+  'grave': { voiceId: 'JBFqnCBsd6RMkjVDRZzb', label: 'George (Grave)' },
+  'feminina': { voiceId: 'EXAVITQu4vr4xnSDxMaL', label: 'Sarah (Feminina)' },
+  'robo': { voiceId: 'iP95p4xoKVk53GoZ742B', label: 'Chris (Robô)' },
+  'animado': { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', label: 'Liam (Animado)' },
+  'misterioso': { voiceId: 'onwK4e9ZLuTAKqWW03F9', label: 'Daniel (Misterioso)' },
+  'santa': { voiceId: 'MDLAMJ0jxkpYkjXbmG4t', label: 'Papai Noel' },
+  'elf': { voiceId: 'e79twtVS2278lVZZQiAD', label: 'Elfo' },
+  'roger': { voiceId: 'CwhRBWXzGAHq8TQ4Fs17', label: 'Roger (Narrador)' },
+};
+
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
+
+  const log = new Logger("voice-changer");
+
+  try {
+    const elevenlabsKey = requireEnv('ELEVENLABS_API_KEY');
+    
+    const formData = await req.formData();
+    const audioFile = formData.get('audio') as File | null;
+    const voicePreset = formData.get('voice_preset') as string || 'grave';
+
+    if (!audioFile) {
+      return errorResponse('Audio file is required', 400, req);
+    }
+
+    if (audioFile.size > 10 * 1024 * 1024) {
+      return errorResponse('Audio file exceeds 10MB limit', 400, req);
+    }
+
+    const preset = VOICE_PRESETS[voicePreset];
+    if (!preset) {
+      return errorResponse(`Invalid voice preset: ${voicePreset}`, 400, req);
+    }
+
+    log.info('Processing voice change', { preset: voicePreset, size: audioFile.size });
+
+    const apiFormData = new FormData();
+    apiFormData.append('audio', audioFile);
+    apiFormData.append('model_id', 'eleven_multilingual_sts_v2');
+    apiFormData.append('voice_settings', JSON.stringify({
+      stability: 0.5,
+      similarity_boost: 0.75,
+      style: 0.0,
+      use_speaker_boost: true,
+    }));
+
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/speech-to-speech/${preset.voiceId}?output_format=mp3_44100_128`,
+      {
+        method: 'POST',
+        headers: {
+          'xi-api-key': elevenlabsKey,
+        },
+        body: apiFormData,
+        signal: AbortSignal.timeout(30000),
+      }
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      log.error(`ElevenLabs STS error ${response.status}`, { detail: errText.substring(0, 300) });
+      return errorResponse(`Voice transformation failed: ${response.status}`, 502, req);
+    }
+
+    const audioBuffer = await response.arrayBuffer();
+    log.done(200, { outputSize: audioBuffer.byteLength });
+
+    return new Response(audioBuffer, {
+      status: 200,
+      headers: {
+        ...getCorsHeaders(req),
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioBuffer.byteLength.toString(),
+      },
+    });
+  } catch (err: unknown) {
+    log.error("Voice changer error", { error: err instanceof Error ? err.message : String(err) });
+    return errorResponse('Internal error processing voice change', 500, req);
+  }
+});

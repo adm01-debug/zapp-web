@@ -6,6 +6,7 @@ import { AIRewriteButton } from './AIRewriteButton';
 import { RichTextToggle } from './RichTextToolbar';
 import { StickerPicker } from '../StickerPicker';
 import { AudioMemePicker } from '../AudioMemePicker';
+import { VoiceChangerPicker } from '../VoiceChangerPicker';
 import { CustomEmojiPicker } from '../CustomEmojiPicker';
 import { FileUploader, FileUploaderRef } from '../FileUploader';
 import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
@@ -61,6 +62,7 @@ export function SecondaryToolbar({
       <AIRewriteButton inputValue={inputValue} onRewrite={handleRewrite} contactName={contactName} />
       <StickerPicker onSendSticker={onSendSticker} />
       <AudioMemePicker onSendAudio={onSendAudioMeme} />
+      <VoiceChangerPicker onSendAudio={onSendAudioMeme} />
       <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
       {onOpenCatalog && (
         <Tooltip>
