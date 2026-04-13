@@ -46,6 +46,16 @@ import {
   Mail,
   HardDrive,
   Building2,
+  Sparkles,
+  RefreshCw,
+  Landmark,
+  HeartPulse,
+  BarChartHorizontal,
+  ScrollText,
+  Globe2,
+  Code2,
+  Webhook,
+  BrainCircuit,
 } from 'lucide-react';
 import type { NavItemConfig } from './SidebarNavItem';
 
