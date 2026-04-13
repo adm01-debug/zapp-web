@@ -210,8 +210,8 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
             onVoiceChange={setVoiceId} onSpeedChange={setSpeed} onBack={onBack}
             onGenerateSummary={() => handleSetActiveTool('summary')} isSummaryLoading={false} canGenerateSummary={canGenerateSummary}
             onCloseConversation={() => openDialog('closeDialog')}
-            lastMessages={messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content)}
-            allMessages={messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() }))}
+            lastMessages={lastContactMessages}
+            allMessages={allMessagesForHeader}
             onSelectSuggestion={(text) => handlers.setInputValue(text)} />
         )}
 
