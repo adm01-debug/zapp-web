@@ -79,21 +79,21 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
         undoToast({
           message: `${contact.name} marcado como VIP`,
           icon: '⭐',
-          onUndo: () => toast.info('VIP removido'),
+          onUndo: () => { toast.info('VIP removido'); },
         });
         break;
       case 'archive':
         undoToast({
           message: `${contact.name} arquivado`,
           icon: '📦',
-          onUndo: () => toast.info('Contato restaurado'),
+          onUndo: () => { toast.info('Contato restaurado'); },
         });
         break;
       case 'block':
         undoToast({
           message: `${contact.name} bloqueado`,
           icon: '🚫',
-          onUndo: () => toast.info('Contato desbloqueado'),
+          onUndo: () => { toast.info('Contato desbloqueado'); },
         });
         break;
     }
