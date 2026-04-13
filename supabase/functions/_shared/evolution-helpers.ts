@@ -31,7 +31,31 @@ export function toEventRecords(data: unknown, collectionKeys: string[] = []): Re
 
 export function normalizePhone(rawJid?: string): string | null {
   if (!rawJid) return null;
-  return rawJid.replace('@s.whatsapp.net', '').replace('@g.us', '').replace(/^\+/, '');
+  const sanitized = rawJid
+    .trim()
+    .replace(/:\d+(?=@)/, '')
+    .replace('@s.whatsapp.net', '')
+    .replace('@g.us', '')
+    .replace('@broadcast', '')
+    .replace('@lid', '')
+    .replace(/^\+/, '');
+
+  const digitsOnly = sanitized.replace(/\D/g, '');
+  return digitsOnly || sanitized || null;
+}
+
+export function resolveBestJid(...candidates: Array<string | null | undefined>): string | null {
+  const valid = candidates
+    .map((candidate) => candidate?.trim())
+    .filter((candidate): candidate is string => Boolean(candidate));
+
+  if (valid.length === 0) return null;
+
+  return valid.find((jid) => jid.includes('@s.whatsapp.net'))
+    ?? valid.find((jid) => jid.includes('@g.us'))
+    ?? valid.find((jid) => !jid.includes('@lid'))
+    ?? valid[0]
+    ?? null;
 }
 
 export const STATUS_PRIORITY: Record<string, number> = {
