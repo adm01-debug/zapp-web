@@ -202,24 +202,26 @@ export function VoiceChangerPicker({ onSendAudio, disabled }: VoiceChangerPicker
 
           <div className="p-3 space-y-3">
             {/* Voice Selection */}
-            <div>
+             <div>
               <p className="text-xs text-muted-foreground mb-2">Escolha a voz:</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {VOICE_PRESETS.map(v => (
-                  <button
-                    key={v.id}
-                    onClick={() => setSelectedVoice(v.id)}
-                    className={cn(
-                      'flex flex-col items-center gap-0.5 p-2 rounded-lg text-center transition-colors border',
-                      selectedVoice === v.id
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-transparent hover:bg-muted text-muted-foreground'
-                    )}
-                  >
-                    <span className="text-lg">{v.emoji}</span>
-                    <span className="text-[10px] font-medium leading-tight">{v.label}</span>
-                  </button>
-                ))}
+              <div className="max-h-[180px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-5 gap-1">
+                  {VOICE_PRESETS.map(v => (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVoice(v.id)}
+                      className={cn(
+                        'flex flex-col items-center gap-0.5 p-1.5 rounded-lg text-center transition-colors border',
+                        selectedVoice === v.id
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-transparent hover:bg-muted text-muted-foreground'
+                      )}
+                    >
+                      <span className="text-base">{v.emoji}</span>
+                      <span className="text-[9px] font-medium leading-tight truncate w-full">{v.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
