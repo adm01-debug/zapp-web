@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { X, Search, Moon, Sun, LogOut, ChevronRight } from 'lucide-react';
+import { X, Search, Moon, Sun, LogOut, ChevronRight, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,8 @@ interface MobileDrawerMenuProps {
   onLogout?: () => void;
 }
 
-// Build sections from the same source as the desktop sidebar
+const allItems = [...primaryNav, ...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav, ...advancedNav];
+
 const sections = [
   { title: 'Principal', items: primaryNav },
   { title: 'Comunicação', items: communicationNav },
@@ -38,7 +39,20 @@ const sections = [
   { title: 'Conexões', items: connectionsNav },
   { title: 'Analytics', items: analyticsNav },
   { title: 'Sistema', items: systemNav },
+  { title: 'Avançado', items: advancedNav },
 ];
+
+const RECENTS_KEY = 'mobile-drawer-recents';
+const MAX_RECENTS = 5;
+
+function getRecents(): string[] {
+  try { return JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]'); } catch { return []; }
+}
+function saveRecent(id: string) {
+  const recents = getRecents().filter(r => r !== id);
+  recents.unshift(id);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents.slice(0, MAX_RECENTS)));
+}
 
 const listItemVariants = {
   hidden: { opacity: 0, x: -8 },
