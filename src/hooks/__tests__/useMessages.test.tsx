@@ -27,7 +27,9 @@ function makeQueryChain(data: any[] = [], error: any = null) {
   return {
     select: vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({ data, error }),
+        order: vi.fn().mockReturnValue({
+          range: vi.fn().mockResolvedValue({ data, error }),
+        }),
       }),
     }),
   };
