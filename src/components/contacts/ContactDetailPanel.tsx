@@ -37,7 +37,8 @@ interface ContactDetailPanelProps {
   contact: ContactDetail | null;
   onClose: () => void;
   onOpenChat: (id: string) => void;
-  onEdit: (contact: Partial<ContactDetail> & { id: string; name: string; phone: string }) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onEdit: (contact: any) => void;
   messageCount?: number;
   lastMessageAt?: string | null;
 }
