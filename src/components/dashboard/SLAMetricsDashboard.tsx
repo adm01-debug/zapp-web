@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Clock, CheckCircle2, AlertTriangle, XCircle, Users, TrendingUp, Target, RefreshCw, Calendar } from 'lucide-react';
+import { GenericEmptyState } from '@/components/ui/GenericEmptyState';
 import { cn } from '@/lib/utils';
 import { useSLAMetrics, type PeriodFilter } from '@/hooks/useSLAMetrics';
 
@@ -90,7 +91,7 @@ export function SLAMetricsDashboard() {
             </CardHeader>
             <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
               {agentSLAData.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground"><Users className="w-12 h-12 mx-auto mb-3 opacity-50" /><p>Nenhum agente encontrado</p></div>
+                <GenericEmptyState icon={Users} title="Sem agentes" description="Nenhum agente encontrado no período selecionado" className="py-6" />
               ) : agentSLAData.map((agent, index) => (
                 <motion.div key={agent.agentId} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + index * 0.05 }} className="p-3 rounded-xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all">
                   <div className="flex items-center justify-between mb-3">
