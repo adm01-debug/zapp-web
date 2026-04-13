@@ -54,8 +54,42 @@ serve(async (req) => {
     if (event === 'messages.upsert') {
       for (const entry of toEventRecords(data, ['messages'])) {
         const keySource = isRecord(entry.key) ? entry.key : isRecord(baseData.key) ? baseData.key : null;
-        const key = keySource as { remoteJid: string; fromMe: boolean; id: string } | null;
-        if (!key) continue;
+        const externalId =
+          (typeof entry.id === 'string' && entry.id) ||
+          (typeof baseData.id === 'string' && baseData.id) ||
+          (typeof keySource?.id === 'string' && keySource.id) ||
+          null;
+
+        if (!externalId) {
+          console.log('messages.upsert ignored: missing message id', { instance, entry });
+          continue;
+        }
+
+        const key = {
+          id: externalId,
+          fromMe: Boolean(
+            (typeof entry.fromMe === 'boolean' ? entry.fromMe : undefined) ??
+            (typeof baseData.fromMe === 'boolean' ? baseData.fromMe : undefined) ??
+            (typeof keySource?.fromMe === 'boolean' ? keySource.fromMe : undefined) ??
+            false
+          ),
+          remoteJid:
+            (typeof entry.remoteJid === 'string' ? entry.remoteJid : undefined) ??
+            (typeof baseData.remoteJid === 'string' ? baseData.remoteJid : undefined) ??
+            (typeof keySource?.remoteJid === 'string' ? keySource.remoteJid : undefined),
+          remoteJidAlt:
+            (typeof entry.remoteJidAlt === 'string' ? entry.remoteJidAlt : undefined) ??
+            (typeof baseData.remoteJidAlt === 'string' ? baseData.remoteJidAlt : undefined) ??
+            (typeof keySource?.remoteJidAlt === 'string' ? keySource.remoteJidAlt : undefined),
+          participant:
+            (typeof entry.participant === 'string' ? entry.participant : undefined) ??
+            (typeof baseData.participant === 'string' ? baseData.participant : undefined) ??
+            (typeof keySource?.participant === 'string' ? keySource.participant : undefined),
+          participantAlt:
+            (typeof entry.participantAlt === 'string' ? entry.participantAlt : undefined) ??
+            (typeof baseData.participantAlt === 'string' ? baseData.participantAlt : undefined) ??
+            (typeof keySource?.participantAlt === 'string' ? keySource.participantAlt : undefined),
+        };
 
         const msg = (entry.message || baseData.message) as Record<string, unknown> | undefined;
         if (msg?.reactionMessage) {
