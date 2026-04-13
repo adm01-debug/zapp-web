@@ -104,12 +104,8 @@ export function getCorsHeaders(req?: Request): Record<string, string> {
   };
 }
 
-/** @deprecated Use getCorsHeaders(req) for origin-validated CORS */
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-hub-signature-256, x-signature, x-webhook-signature, x-evolution-signature',
-};
+/** @deprecated Use getCorsHeaders(req) for origin-validated CORS. Kept for backward compat — do NOT use in new code. */
+export const corsHeaders = getCorsHeaders();
 
 /** Standard JSON error response (with origin-validated CORS) */
 export function errorResponse(message: string, status = 400, req?: Request) {
