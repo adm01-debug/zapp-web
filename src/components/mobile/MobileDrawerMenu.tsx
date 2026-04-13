@@ -95,8 +95,12 @@ export function MobileDrawerMenu({
       .filter((s) => s.items.length > 0);
   }, [search]);
 
+  const recentIds = useMemo(getRecents, [isOpen]);
+  const recentItems = useMemo(() => recentIds.map(id => allItems.find(i => i.id === id)).filter(Boolean) as typeof allItems, [recentIds]);
+
   const handleNav = (id: string) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(5);
+    saveRecent(id);
     onViewChange(id);
     onClose();
     setSearch('');
