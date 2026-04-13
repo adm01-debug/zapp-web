@@ -122,7 +122,7 @@ export function AudioMessagePlayer({ audioUrl, messageId, isSent, existingTransc
           </div>
         </div>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <button onClick={cycleSpeed} className={cn('h-6 px-1.5 rounded-full text-[10px] font-semibold transition-colors', playbackRate < 1 ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400' : isSent ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground' : 'bg-primary/10 hover:bg-primary/20 text-primary')} title="Velocidade">{playbackRate}x</button>
+          <button onClick={cycleSpeed} className={cn('h-6 px-1.5 rounded-full text-[10px] font-semibold transition-colors', playbackRate < 1 ? 'bg-destructive/20 hover:bg-destructive/30 text-destructive' : isSent ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground' : 'bg-primary/10 hover:bg-primary/20 text-primary')} title="Velocidade">{playbackRate}x</button>
         </motion.div>
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Button variant="ghost" size="icon" className={cn('w-8 h-8 relative', showTranscription && transcription ? (isSent ? 'text-primary-foreground' : 'text-primary') : (isSent ? 'text-primary-foreground/50' : 'text-muted-foreground'))}

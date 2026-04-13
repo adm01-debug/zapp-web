@@ -98,10 +98,10 @@ export function VoiceTranscriptArea({
             key="error"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col gap-1.5 items-center text-center px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20"
+            className="flex flex-col gap-1.5 items-center text-center px-3 py-2.5 rounded-xl bg-destructive/10 border border-destructive/20"
             role="alert"
           >
-            <div className="flex items-center gap-2 text-red-400/90 text-xs font-medium">
+            <div className="flex items-center gap-2 text-destructive text-xs font-medium">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
               {error}
             </div>

@@ -30,10 +30,10 @@ interface ContactActivityTimelineProps {
 const EVENT_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   message_sent: { icon: MessageSquare, color: 'text-primary', bg: 'bg-primary/10' },
   message_received: { icon: MessageSquare, color: 'text-accent-foreground', bg: 'bg-accent/10' },
-  created: { icon: UserPlus, color: 'text-green-500', bg: 'bg-green-500/10' },
-  updated: { icon: Edit, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-  tag_added: { icon: Tag, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-  assigned: { icon: ArrowRight, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  created: { icon: UserPlus, color: 'text-success', bg: 'bg-success/10' },
+  updated: { icon: Edit, color: 'text-warning', bg: 'bg-warning/10' },
+  tag_added: { icon: Tag, color: 'text-secondary', bg: 'bg-secondary/10' },
+  assigned: { icon: ArrowRight, color: 'text-info', bg: 'bg-info/10' },
   note: { icon: Edit, color: 'text-muted-foreground', bg: 'bg-muted/30' },
 };
 
