@@ -158,6 +158,11 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
     return () => window.removeEventListener('keydown', h);
   }, []);
 
+  // Stable refs for ChatMessagesArea to prevent re-renders on input change
+  const contactJid = useMemo(() => conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : '', [conversation.contact.phone]);
+  const contactAvatar = conversation.contact.avatar || undefined;
+  const handleScrollToMessage = useCallback((id: string) => messagesAreaRef.current?.scrollToMessage(id), []);
+
   const handleQuickReply = (reply: { id: string; title: string; shortcut: string; content: string; category: string }) => {
     handlers.setInputValue(reply.content); closeDialog('quickReplies'); incrementUseCount(reply.id);
   };
