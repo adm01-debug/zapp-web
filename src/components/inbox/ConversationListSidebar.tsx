@@ -25,6 +25,20 @@ interface ConversationListSidebarProps {
 
 export function ConversationListSidebar({ inbox, inboxFilters, bulkActions, pullToRefresh }: ConversationListSidebarProps) {
   const isMobile = useIsMobile();
+  const contactSearchRef = useRef<HTMLInputElement>(null);
+  const [contactSearch, setContactSearch] = useState('');
+
+  // Sync local search to inboxFilters
+  const handleContactSearch = useCallback((value: string) => {
+    setContactSearch(value);
+    inboxFilters.setSearch(value);
+  }, [inboxFilters]);
+
+  const clearContactSearch = useCallback(() => {
+    setContactSearch('');
+    inboxFilters.setSearch('');
+    contactSearchRef.current?.focus();
+  }, [inboxFilters]);
 
   return (
     <div className={cn(
