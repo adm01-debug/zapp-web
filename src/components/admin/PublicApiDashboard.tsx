@@ -118,10 +118,10 @@ export function PublicApiDashboard() {
               <Label className="text-xs text-muted-foreground">Token Atual</Label>
               <div className="flex items-center gap-2">
                 <Input readOnly value={showToken ? apiToken : '•'.repeat(30)} className="font-mono text-xs" />
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowToken(!showToken)}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowToken(!showToken)} aria-label={showToken ? 'Ocultar token' : 'Mostrar token'}>
                   {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={copyToken}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={copyToken} aria-label="Copiar token">
                   <Copy className="w-4 h-4" />
                 </Button>
               </div>
