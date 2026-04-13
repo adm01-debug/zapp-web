@@ -28,6 +28,13 @@ vi.mock('@/lib/logger', () => ({
 
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 
+const createWrapper = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+  );
+};
+
 describe('useNotificationSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
