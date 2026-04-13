@@ -69,7 +69,7 @@ describe('useMessages', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.messages).toEqual(mockMessages);
+    expect(result.current.messages).toEqual(mockMessages.map(m => ({ ...m, isEdited: false })));
   });
 
   it('sets error when fetch fails', async () => {
