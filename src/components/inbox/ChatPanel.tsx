@@ -138,13 +138,25 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
   const canGenerateSummary = messages.length >= 10;
 
+  // Memoize expensive derived arrays to avoid re-creation on every keystroke
+  const lastContactMessages = useMemo(
+    () => messages.filter(m => m.sender === 'contact').slice(-5).map(m => m.content),
+    [messages]
+  );
+  const allMessagesForHeader = useMemo(
+    () => messages.map(m => ({ id: m.id, content: m.content, sender: m.sender, timestamp: m.timestamp.toISOString() })),
+    [messages]
+  );
+  const filteredQuickReplies = useMemo(
+    () => dbQuickReplies.filter(r => handlers.inputValue.startsWith('/') && r.shortcut.toLowerCase().includes(handlers.inputValue.toLowerCase())),
+    [dbQuickReplies, handlers.inputValue]
+  );
+
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); handleSetActiveTool('chatSearch'); } };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, []);
-
-  const filteredQuickReplies = dbQuickReplies.filter(r => handlers.inputValue.startsWith('/') && r.shortcut.toLowerCase().includes(handlers.inputValue.toLowerCase()));
 
   const handleQuickReply = (reply: { id: string; title: string; shortcut: string; content: string; category: string }) => {
     handlers.setInputValue(reply.content); closeDialog('quickReplies'); incrementUseCount(reply.id);
