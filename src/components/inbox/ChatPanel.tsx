@@ -229,9 +229,9 @@ export function ChatPanel({ conversation, messages, onSendMessage, onSendAudio, 
 
         <ChatMessagesArea ref={messagesAreaRef} messages={messages} isContactTyping={isContactTyping} typingUserName={typingUsers[0]?.name || conversation.contact.name}
           ttsLoading={ttsLoading} ttsPlaying={ttsPlaying} ttsMessageId={ttsMessageId} instanceName={instanceName}
-          contactJid={conversation.contact.phone ? `${conversation.contact.phone}@s.whatsapp.net` : ''} contactAvatar={conversation.contact.avatar || undefined}
+          contactJid={contactJid} contactAvatar={contactAvatar}
           onSpeak={speak} onStop={stop} onReply={handlers.handleReplyToMessage} onForward={handlers.handleForwardMessage} onCopy={handlers.handleCopyMessage}
-          onScrollToMessage={(id) => messagesAreaRef.current?.scrollToMessage(id)} onInteractiveButtonClick={handlers.handleInteractiveButtonClick} onEditStart={handlers.handleEditStart}
+          onScrollToMessage={handleScrollToMessage} onInteractiveButtonClick={handlers.handleInteractiveButtonClick} onEditStart={handlers.handleEditStart}
           highlightedMessageIds={highlightedMessageIds} activeHighlightId={activeHighlightId} searchQuery={searchQuery} />
 
         <ChatQuickRepliesPopover show={dialogs.quickReplies} replies={filteredQuickReplies} onSelect={handleQuickReply} onClose={() => closeDialog('quickReplies')} />
