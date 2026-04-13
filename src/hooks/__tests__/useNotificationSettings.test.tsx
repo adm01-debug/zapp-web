@@ -69,7 +69,7 @@ describe('useNotificationSettings', () => {
   });
 
   it('loads settings on mount', async () => {
-    const { result } = renderHook(() => useNotificationSettings());
+    const { result } = renderHook(() => useNotificationSettings(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings).toBeDefined();
     expect(result.current.settings.soundEnabled).toBe(true);
@@ -77,19 +77,19 @@ describe('useNotificationSettings', () => {
 
   it('has default settings when no user', async () => {
     mockUseAuth.mockReturnValue({ user: null });
-    const { result } = renderHook(() => useNotificationSettings());
+    const { result } = renderHook(() => useNotificationSettings(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.soundEnabled).toBe(true);
   });
 
   it('exposes updateSettings function', async () => {
-    const { result } = renderHook(() => useNotificationSettings());
+    const { result } = renderHook(() => useNotificationSettings(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(typeof result.current.updateSettings).toBe('function');
   });
 
   it('settings include all notification types', async () => {
-    const { result } = renderHook(() => useNotificationSettings());
+    const { result } = renderHook(() => useNotificationSettings(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     const s = result.current.settings;
     expect(s).toHaveProperty('soundEnabled');
@@ -100,7 +100,7 @@ describe('useNotificationSettings', () => {
   });
 
   it('default quiet hours are reasonable', async () => {
-    const { result } = renderHook(() => useNotificationSettings());
+    const { result } = renderHook(() => useNotificationSettings(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.settings.quietHoursStart).toMatch(/^\d{2}:\d{2}$/);
     expect(result.current.settings.quietHoursEnd).toMatch(/^\d{2}:\d{2}$/);
@@ -108,7 +108,7 @@ describe('useNotificationSettings', () => {
 
   it('sound types are valid options', async () => {
     const validTypes = ['beep', 'chime', 'bell', 'alert', 'soft'];
-    const { result } = renderHook(() => useNotificationSettings());
+    const { result } = renderHook(() => useNotificationSettings(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(validTypes).toContain(result.current.settings.messageSoundType);
     expect(validTypes).toContain(result.current.settings.mentionSoundType);
@@ -124,7 +124,7 @@ describe('useNotificationSettings', () => {
       }),
     });
 
-    const { result } = renderHook(() => useNotificationSettings());
+    const { result } = renderHook(() => useNotificationSettings(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
   });
 });
