@@ -24,11 +24,14 @@ vi.mock('@/lib/logger', () => ({
 import { useMessages } from '@/hooks/useMessages';
 
 function makeQueryChain(data: any[] = [], error: any = null) {
+  const rangeMock = vi.fn()
+    .mockResolvedValueOnce({ data, error })
+    .mockResolvedValue({ data: [], error: null });
   return {
     select: vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
         order: vi.fn().mockReturnValue({
-          range: vi.fn().mockResolvedValue({ data, error }),
+          range: rangeMock,
         }),
       }),
     }),
@@ -66,7 +69,7 @@ describe('useMessages', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.messages).toEqual(mockMessages);
+    expect(result.current.messages).toEqual(mockMessages.map(m => ({ ...m, isEdited: false })));
   });
 
   it('sets error when fetch fails', async () => {
