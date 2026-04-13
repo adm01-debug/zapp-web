@@ -9,14 +9,33 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const VOICE_PRESETS = [
-  { id: 'grave', emoji: '🎤', label: 'Grave' },
-  { id: 'feminina', emoji: '👩', label: 'Feminina' },
-  { id: 'roger', emoji: '🎙️', label: 'Narrador' },
-  { id: 'animado', emoji: '🤩', label: 'Animado' },
-  { id: 'misterioso', emoji: '🕵️', label: 'Misterioso' },
-  { id: 'robo', emoji: '🤖', label: 'Robô' },
-  { id: 'santa', emoji: '🎅', label: 'Papai Noel' },
-  { id: 'elf', emoji: '🧝', label: 'Elfo' },
+  // Masculinas
+  { id: 'grave', emoji: '🎤', label: 'Grave', cat: 'masc' },
+  { id: 'roger', emoji: '🎙️', label: 'Narrador', cat: 'masc' },
+  { id: 'animado', emoji: '🤩', label: 'Animado', cat: 'masc' },
+  { id: 'misterioso', emoji: '🕵️', label: 'Misterioso', cat: 'masc' },
+  { id: 'brian', emoji: '🧔', label: 'Brian', cat: 'masc' },
+  { id: 'bill', emoji: '👴', label: 'Bill', cat: 'masc' },
+  { id: 'eric', emoji: '😎', label: 'Eric', cat: 'masc' },
+  { id: 'will', emoji: '🤠', label: 'Will', cat: 'masc' },
+  { id: 'callum', emoji: '🎩', label: 'Callum', cat: 'masc' },
+  { id: 'charlie', emoji: '🧑', label: 'Charlie', cat: 'masc' },
+  // Femininas
+  { id: 'feminina', emoji: '👩', label: 'Sarah', cat: 'fem' },
+  { id: 'laura', emoji: '💃', label: 'Laura', cat: 'fem' },
+  { id: 'alice', emoji: '👱‍♀️', label: 'Alice', cat: 'fem' },
+  { id: 'matilda', emoji: '👩‍🦰', label: 'Matilda', cat: 'fem' },
+  { id: 'jessica', emoji: '💁‍♀️', label: 'Jessica', cat: 'fem' },
+  { id: 'lily', emoji: '🌸', label: 'Lily', cat: 'fem' },
+  // Neutras/Especiais
+  { id: 'river', emoji: '🌊', label: 'River', cat: 'special' },
+  { id: 'robo', emoji: '🤖', label: 'Robô', cat: 'special' },
+  { id: 'glitch', emoji: '👾', label: 'Glitch', cat: 'special' },
+  // Temáticas
+  { id: 'santa', emoji: '🎅', label: 'Papai Noel', cat: 'theme' },
+  { id: 'mrs_claus', emoji: '🤶', label: 'Mamãe Noel', cat: 'theme' },
+  { id: 'elf', emoji: '🧝', label: 'Elfo', cat: 'theme' },
+  { id: 'reindeer', emoji: '🦌', label: 'Rena', cat: 'theme' },
 ] as const;
 
 interface VoiceChangerPickerProps {

@@ -1,14 +1,33 @@
 import { handleCors, errorResponse, getCorsHeaders, Logger, requireEnv } from "../_shared/validation.ts";
 
 const VOICE_PRESETS: Record<string, { voiceId: string; label: string }> = {
-  'grave': { voiceId: 'JBFqnCBsd6RMkjVDRZzb', label: 'George (Grave)' },
-  'feminina': { voiceId: 'EXAVITQu4vr4xnSDxMaL', label: 'Sarah (Feminina)' },
-  'robo': { voiceId: 'iP95p4xoKVk53GoZ742B', label: 'Chris (Robô)' },
-  'animado': { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', label: 'Liam (Animado)' },
+  // Masculinas
+  'grave':      { voiceId: 'JBFqnCBsd6RMkjVDRZzb', label: 'George (Grave)' },
+  'roger':      { voiceId: 'CwhRBWXzGAHq8TQ4Fs17', label: 'Roger (Narrador)' },
+  'animado':    { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', label: 'Liam (Animado)' },
   'misterioso': { voiceId: 'onwK4e9ZLuTAKqWW03F9', label: 'Daniel (Misterioso)' },
-  'santa': { voiceId: 'MDLAMJ0jxkpYkjXbmG4t', label: 'Papai Noel' },
-  'elf': { voiceId: 'e79twtVS2278lVZZQiAD', label: 'Elfo' },
-  'roger': { voiceId: 'CwhRBWXzGAHq8TQ4Fs17', label: 'Roger (Narrador)' },
+  'brian':      { voiceId: 'nPczCjzI2devNBz1zQrb', label: 'Brian' },
+  'bill':       { voiceId: 'pqHfZKP75CvOlQylNhV4', label: 'Bill' },
+  'eric':       { voiceId: 'cjVigY5qzO86Huf0OWal', label: 'Eric' },
+  'will':       { voiceId: 'bIHbv24MWmeRgasZH58o', label: 'Will' },
+  'callum':     { voiceId: 'N2lVS1w4EtoT3dr4eOWO', label: 'Callum' },
+  'charlie':    { voiceId: 'IKne3meq5aSn9XLyUdCD', label: 'Charlie' },
+  // Femininas
+  'feminina':   { voiceId: 'EXAVITQu4vr4xnSDxMaL', label: 'Sarah' },
+  'laura':      { voiceId: 'FGY2WhTYpPnrIDTdsKH5', label: 'Laura' },
+  'alice':      { voiceId: 'Xb7hH8MSUJpSbSDYk0k2', label: 'Alice' },
+  'matilda':    { voiceId: 'XrExE9yKIg1WjnnlVkGX', label: 'Matilda' },
+  'jessica':    { voiceId: 'cgSgspJ2msm6clMCkdW9', label: 'Jessica' },
+  'lily':       { voiceId: 'pFZP5JQG7iQjIQuC4Bku', label: 'Lily' },
+  // Neutras/Especiais
+  'river':      { voiceId: 'SAz9YHcvj6GT2YYXdXww', label: 'River' },
+  'robo':       { voiceId: 'iP95p4xoKVk53GoZ742B', label: 'Chris (Robô)' },
+  'glitch':     { voiceId: 'kPtEHAvRnjUJFv7SK9WI', label: 'Glitch' },
+  // Temáticas
+  'santa':      { voiceId: 'MDLAMJ0jxkpYkjXbmG4t', label: 'Papai Noel' },
+  'mrs_claus':  { voiceId: 'SAhdygBsjizE9aIj39dz', label: 'Mamãe Noel' },
+  'elf':        { voiceId: 'e79twtVS2278lVZZQiAD', label: 'Elfo' },
+  'reindeer':   { voiceId: 'h6u4tPKmcPlxUdZOaVpH', label: 'Rena' },
 };
 
 Deno.serve(async (req) => {
