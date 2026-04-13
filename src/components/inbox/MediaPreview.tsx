@@ -114,7 +114,7 @@ export const VideoPreview = forwardRef<HTMLDivElement, VideoPreviewProps>(
                 </motion.div>
               )}
             </AnimatePresence>
-            <button onClick={(e) => { e.stopPropagation(); setShowFullscreen(true); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/50 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/70">
+            <button onClick={(e) => { e.stopPropagation(); setShowFullscreen(true); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/50 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/70" aria-label="Tela cheia">
               <Maximize className="w-3.5 h-3.5" />
             </button>
           </motion.div>

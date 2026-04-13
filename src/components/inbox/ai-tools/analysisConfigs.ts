@@ -71,12 +71,12 @@ export const urgencyConfig: Record<string, { label: string; className: string }>
 };
 
 export const departmentConfig: Record<string, { label: string; emoji: string; color: string }> = {
-  vendas: { label: 'Vendas', emoji: '🛒', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  compras: { label: 'Compras', emoji: '📦', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  logistica: { label: 'Logística', emoji: '🚛', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-  rh: { label: 'RH', emoji: '👥', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  financeiro: { label: 'Financeiro', emoji: '💰', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  sac: { label: 'SAC', emoji: '🎧', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30' },
+  vendas: { label: 'Vendas', emoji: '🛒', color: 'bg-primary/20 text-primary border-primary/30' },
+  compras: { label: 'Compras', emoji: '📦', color: 'bg-warning/20 text-warning border-warning/30' },
+  logistica: { label: 'Logística', emoji: '🚛', color: 'bg-success/20 text-success border-success/30' },
+  rh: { label: 'RH', emoji: '👥', color: 'bg-accent/40 text-accent-foreground border-accent/30' },
+  financeiro: { label: 'Financeiro', emoji: '💰', color: 'bg-warning/20 text-warning border-warning/30' },
+  sac: { label: 'SAC', emoji: '🎧', color: 'bg-destructive/20 text-destructive border-destructive/30' },
   outros: { label: 'Outros', emoji: '📋', color: 'bg-muted/40 text-muted-foreground border-border' },
 };
 

@@ -98,6 +98,7 @@ export function MobileShell({
           items={navItemsWithBadge}
           activeId={currentView}
           onChange={(id) => {
+            if (navigator.vibrate) navigator.vibrate(10);
             if (id === 'more') setMobileMenuOpen(true);
             else setCurrentView(id);
           }}

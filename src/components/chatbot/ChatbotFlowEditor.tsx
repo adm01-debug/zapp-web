@@ -56,7 +56,7 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
       <div className="flex flex-col gap-2 p-4 border-b border-secondary/30 bg-background">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onClose}><ArrowLeft className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Voltar"><ArrowLeft className="w-5 h-5" /></Button>
             <div>
               <h2 className="font-display font-bold text-foreground flex items-center gap-2"><Bot className="w-5 h-5 text-primary" />{flow.name}</h2>
               <p className="text-xs text-muted-foreground">{nodes.length} nós · {edges.length} conexões</p>
@@ -92,8 +92,8 @@ export function ChatbotFlowEditor({ flow, onSave, onClose }: Props) {
                             <NodeIcon className="w-4 h-4" /><span className="font-medium text-sm text-foreground">{node.data.label}</span><Badge variant="outline" className="text-xs">{config.label}</Badge>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setEditingNode(node); }}><MessageSquare className="w-3 h-3" /></Button>
-                            {node.type !== 'start' && <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={e => { e.stopPropagation(); removeNode(node.id); }}><Trash2 className="w-3 h-3" /></Button>}
+                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setEditingNode(node); }} aria-label="Editar nó"><MessageSquare className="w-3 h-3" /></Button>
+                            {node.type !== 'start' && <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={e => { e.stopPropagation(); removeNode(node.id); }} aria-label="Remover nó"><Trash2 className="w-3 h-3" /></Button>}
                           </div>
                         </div>
                         {node.data.content && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{node.data.content}</p>}

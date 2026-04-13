@@ -26,14 +26,14 @@ interface TimelineEvent {
 }
 
 const EVENT_CONFIG: Record<string, { icon: typeof ArrowRight; label: string; color: string }> = {
-  assign: { icon: UserPlus, label: 'Atribuído', color: 'text-green-500' },
-  unassign: { icon: UserMinus, label: 'Desatribuído', color: 'text-amber-500' },
-  transfer: { icon: ArrowRight, label: 'Transferido', color: 'text-blue-500' },
-  queue_transfer: { icon: GitBranch, label: 'Transferido de fila', color: 'text-purple-500' },
-  overload_reassign: { icon: AlertTriangle, label: 'Reatribuição por sobrecarga', color: 'text-orange-500' },
-  absence_reassign: { icon: Clock, label: 'Reatribuição por ausência', color: 'text-red-500' },
+  assign: { icon: UserPlus, label: 'Atribuído', color: 'text-success' },
+  unassign: { icon: UserMinus, label: 'Desatribuído', color: 'text-warning' },
+  transfer: { icon: ArrowRight, label: 'Transferido', color: 'text-primary' },
+  queue_transfer: { icon: GitBranch, label: 'Transferido de fila', color: 'text-accent-foreground' },
+  overload_reassign: { icon: AlertTriangle, label: 'Reatribuição por sobrecarga', color: 'text-warning' },
+  absence_reassign: { icon: Clock, label: 'Reatribuição por ausência', color: 'text-destructive' },
   close: { icon: XCircle, label: 'Encerrado', color: 'text-muted-foreground' },
-  reopen: { icon: RotateCcw, label: 'Reaberto', color: 'text-emerald-500' },
+  reopen: { icon: RotateCcw, label: 'Reaberto', color: 'text-success' },
 };
 
 export function ConversationTimeline({ contactId }: { contactId: string }) {
