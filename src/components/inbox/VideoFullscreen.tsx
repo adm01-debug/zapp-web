@@ -39,7 +39,7 @@ export function VideoFullscreen({ url, onClose }: VideoFullscreenProps) {
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Button
             variant="secondary" size="sm"
-            className={cn("h-9 px-3 font-semibold text-xs", playbackRate < 1 && "bg-red-500/20 hover:bg-red-500/30 text-red-400")}
+            className={cn("h-9 px-3 font-semibold text-xs", playbackRate < 1 && "bg-destructive/20 hover:bg-destructive/30 text-destructive")}
             onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
           >
             {playbackRate}x

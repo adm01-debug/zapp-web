@@ -27,8 +27,8 @@ interface ContactPurchaseHistoryProps {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  completed: 'bg-green-500/10 text-green-700 dark:text-green-400',
-  pending: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  completed: 'bg-success/10 text-success',
+  pending: 'bg-warning/10 text-warning',
   cancelled: 'bg-destructive/10 text-destructive',
 };
 

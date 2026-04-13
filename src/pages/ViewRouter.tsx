@@ -1,6 +1,6 @@
 import { Construction } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useCurrentModule } from '@/hooks/useCurrentModule';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAriaAnnouncer } from '@/hooks/useAriaAnnouncer';
@@ -107,6 +107,7 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
   const mod = useCurrentModule(currentView);
   useDocumentTitle(mod.label);
   const { announce } = useAriaAnnouncer();
+  const prefersReduced = useReducedMotion();
 
   // Announce view changes for screen readers
   useEffect(() => {
@@ -132,18 +133,22 @@ export function ViewRouter({ currentView, userId, canGoBack, canGoForward, onGoB
 
   return (
     <WithHeader viewId={currentView}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentView}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-          className="h-full w-full"
-        >
-          {content}
-        </motion.div>
-      </AnimatePresence>
+      {prefersReduced ? (
+        <div key={currentView} className="h-full w-full">{content}</div>
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentView}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+            className="h-full w-full"
+          >
+            {content}
+          </motion.div>
+        </AnimatePresence>
+      )}
     </WithHeader>
   );
 }

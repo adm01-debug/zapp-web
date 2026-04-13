@@ -5,14 +5,14 @@ import { cn } from '@/lib/utils';
 // Generate a deterministic color from company name
 function getCompanyColor(name: string): { bg: string; text: string } {
   const colors = [
-    { bg: 'bg-blue-500/15', text: 'text-blue-600' },
-    { bg: 'bg-emerald-500/15', text: 'text-emerald-600' },
-    { bg: 'bg-violet-500/15', text: 'text-violet-600' },
-    { bg: 'bg-amber-500/15', text: 'text-amber-600' },
-    { bg: 'bg-rose-500/15', text: 'text-rose-600' },
-    { bg: 'bg-cyan-500/15', text: 'text-cyan-600' },
-    { bg: 'bg-orange-500/15', text: 'text-orange-600' },
-    { bg: 'bg-indigo-500/15', text: 'text-indigo-600' },
+    { bg: 'bg-primary/15', text: 'text-primary' },
+    { bg: 'bg-success/15', text: 'text-success' },
+    { bg: 'bg-secondary/15', text: 'text-secondary' },
+    { bg: 'bg-warning/15', text: 'text-warning' },
+    { bg: 'bg-destructive/15', text: 'text-destructive' },
+    { bg: 'bg-info/15', text: 'text-info' },
+    { bg: 'bg-accent/30', text: 'text-accent-foreground' },
+    { bg: 'bg-muted', text: 'text-muted-foreground' },
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {

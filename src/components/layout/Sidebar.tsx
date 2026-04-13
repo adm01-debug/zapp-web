@@ -24,7 +24,7 @@ import { ScreenProtectionToggle } from '@/components/notifications/ScreenProtect
 import { SoundMuteToggle } from '@/components/notifications/SoundMuteToggle';
 import { SidebarNavItem } from './SidebarNavItem';
 import { SidebarNavGroup } from './SidebarNavGroup';
-import { primaryNav, sidebarGroups, communicationNav, automationNav, salesNav, connectionsNav, analyticsNav, systemNav } from './sidebarNavConfig';
+import { primaryNav, sidebarGroups, communicationNav, automationNav, salesNav, connectionsNav, analyticsNav, systemNav, advancedNav } from './sidebarNavConfig';
 
 interface SidebarProps {
   currentView: string;
@@ -47,7 +47,7 @@ export const Sidebar = React.memo(function Sidebar({ currentView, onViewChange, 
   const { favorites, toggleFavorite, isFavorite } = useSidebarFavorites();
 
   // Build favorite items from all nav configs
-  const allNavItems = [...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav];
+  const allNavItems = [...communicationNav, ...automationNav, ...salesNav, ...connectionsNav, ...analyticsNav, ...systemNav, ...advancedNav];
   const favoriteItems = favorites.map(id => allNavItems.find(item => item.id === id)).filter(Boolean) as typeof allNavItems;
 
   return (

@@ -46,6 +46,16 @@ import {
   Mail,
   HardDrive,
   Building2,
+  Sparkles,
+  RefreshCw,
+  Landmark,
+  HeartPulse,
+  BarChartHorizontal,
+  ScrollText,
+  Globe2,
+  Code2,
+  Webhook,
+  BrainCircuit,
 } from 'lucide-react';
 import type { NavItemConfig } from './SidebarNavItem';
 
@@ -62,7 +72,7 @@ export const primaryNav: readonly NavItemConfig[] = [
 
 // ── Communication & Engagement ────────────────────────────
 export const communicationNav: readonly NavItemConfig[] = [
-  { id: 'talkx', icon: Zap, label: 'Talk X' },
+  { id: 'talkx', icon: Sparkles, label: 'Talk X' },
   { id: 'campaigns', icon: Megaphone, label: 'Campanhas' },
   { id: 'wa-templates', icon: FileText, label: 'Templates WA' },
   { id: 'gmail', icon: Mail, label: 'Gmail' },
@@ -74,7 +84,7 @@ export const communicationNav: readonly NavItemConfig[] = [
 // ── Automation & AI ───────────────────────────────────────
 export const automationNav: readonly NavItemConfig[] = [
   { id: 'chatbot', icon: Bot, label: 'Chatbot' },
-  { id: 'automations', icon: Zap, label: 'Automações' },
+  { id: 'automations', icon: RefreshCw, label: 'Automações' },
   { id: 'wa-flows', icon: Workflow, label: 'WhatsApp Flows' },
   { id: 'knowledge', icon: Brain, label: 'Base de Conhecimento' },
   { id: 'churn', icon: TrendingDown, label: 'Previsão Churn' },
@@ -99,37 +109,41 @@ export const connectionsNav: readonly NavItemConfig[] = [
   { id: 'integrations', icon: Plug, label: 'Integrações' },
   { id: 'meta-capi', icon: Activity, label: 'Meta CAPI' },
   { id: 'google-calendar', icon: Calendar, label: 'Calendário' },
-  { id: 'sicoob-bridge', icon: Building2, label: 'Sicoob Bridge' },
+  { id: 'sicoob-bridge', icon: Landmark, label: 'Sicoob Bridge' },
 ] as const;
 
 // ── Analytics & Reports ───────────────────────────────────
 export const analyticsNav: readonly NavItemConfig[] = [
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-  { id: 'auto-export', icon: ClipboardList, label: 'Export Auto' },
   { id: 'warroom', icon: AlertTriangle, label: 'War Room' },
-  { id: 'sentiment', icon: Gauge, label: 'Sentimento' },
-  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
-  { id: 'achievements', icon: Trophy, label: 'Conquistas' },
-  { id: 'diagnostics', icon: Compass, label: 'Diagnóstico' },
-  { id: 'performance', icon: Cpu, label: 'Performance' },
-  { id: 'telemetry', icon: Activity, label: 'Telemetria BD' },
-  { id: 'ai-usage', icon: Brain, label: 'Consumo IA' },
+  { id: 'sentiment', icon: HeartPulse, label: 'Sentimento' },
   { id: 'nps', icon: Gauge, label: 'NPS' },
   { id: 'sla', icon: Target, label: 'SLA' },
+  { id: 'achievements', icon: Trophy, label: 'Conquistas' },
 ] as const;
 
 // ── System & Admin ────────────────────────────────────────
 export const systemNav: readonly NavItemConfig[] = [
-  { id: 'audit-logs', icon: FileBarChart, label: 'Auditoria' },
-  { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
+  { id: 'settings', icon: Settings, label: 'Configurações' },
   { id: 'security', icon: Shield, label: 'Segurança' },
+  { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
   { id: 'admin', icon: UserCog, label: 'Admin' },
-  { id: 'public-api', icon: Globe, label: 'API Pública' },
-  { id: 'gmail-webhook', icon: Mail, label: 'Gmail Webhook' },
-  { id: 'media-migration', icon: HardDrive, label: 'Migração Mídia' },
   { id: 'themes', icon: Palette, label: 'Skins' },
   { id: 'docs', icon: BookOpen, label: 'Documentação' },
-  { id: 'settings', icon: Settings, label: 'Configurações' },
+] as const;
+
+// ── Advanced / Admin-only (accessible via Admin view or search) ──
+export const advancedNav: readonly NavItemConfig[] = [
+  { id: 'audit-logs', icon: ScrollText, label: 'Auditoria' },
+  { id: 'auto-export', icon: ClipboardList, label: 'Export Auto' },
+  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
+  { id: 'diagnostics', icon: Compass, label: 'Diagnóstico' },
+  { id: 'performance', icon: Cpu, label: 'Performance' },
+  { id: 'telemetry', icon: BarChartHorizontal, label: 'Telemetria BD' },
+  { id: 'ai-usage', icon: BrainCircuit, label: 'Consumo IA' },
+  { id: 'public-api', icon: Code2, label: 'API Pública' },
+  { id: 'gmail-webhook', icon: Webhook, label: 'Gmail Webhook' },
+  { id: 'media-migration', icon: HardDrive, label: 'Migração Mídia' },
 ] as const;
 
 // ── Group definitions for collapsible sidebar ─────────────

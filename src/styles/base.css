@@ -28,6 +28,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+
   /* ===== TEXT SELECTION — branded ===== */
   ::selection {
     background: hsl(var(--primary) / 0.2);
