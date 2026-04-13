@@ -36,7 +36,84 @@ export function useRealtimeInbox() {
     contactId: selectedContactId,
     enabled: Boolean(selectedContactId),
   });
-...
+
+  // Listen for open-contact-chat events
+  useEffect(() => {
+    const appWindow = window as Window & { __pendingOpenContactId?: string };
+    if (appWindow.__pendingOpenContactId) {
+      setPendingContactId(appWindow.__pendingOpenContactId);
+      appWindow.__pendingOpenContactId = undefined;
+    }
+    const handler = (e: Event) => {
+      const contactId = (e as CustomEvent).detail?.contactId;
+      if (contactId) {
+        appWindow.__pendingOpenContactId = undefined;
+        setPendingContactId(contactId);
+      }
+    };
+    window.addEventListener('open-contact-chat', handler);
+    return () => window.removeEventListener('open-contact-chat', handler);
+  }, []);
+
+  // Load fallback contact
+  const selectedConversation = useMemo(
+    () => cachedConversations.find((c) => c.contact.id === selectedContactId) || null,
+    [cachedConversations, selectedContactId]
+  );
+
+  useEffect(() => {
+    if (!selectedContactId) { setSelectedContactFallback(null); return; }
+    if (selectedConversation) { setSelectedContactFallback(null); return; }
+    let cancelled = false;
+    const loadSelectedContact = async () => {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', selectedContactId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) { log.error('Error loading selected fallback contact:', error); setSelectedContactFallback(null); return; }
+      setSelectedContactFallback(data || null);
+    };
+    loadSelectedContact();
+    return () => { cancelled = true; };
+  }, [selectedContactId, selectedConversation]);
+
+  const resolvedSelectedConversation = useMemo<ConversationWithMessages | null>(() => {
+    if (selectedConversation) return selectedConversation;
+    if (!selectedContactFallback) return null;
+    return { contact: selectedContactFallback, messages: [], unreadCount: 0, lastMessage: null };
+  }, [selectedConversation, selectedContactFallback]);
+
+  // Online status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
+  }, []);
+
+  // Handlers
+  const handleSelectConversation = useCallback((contactId: string) => {
+    setSelectedContactId(contactId);
+    setSelectedContact(contactId);
+    markAsRead(contactId);
+  }, [setSelectedContact, markAsRead]);
+
+  const handleNotificationView = useCallback(() => {
+    if (newMessageNotification) {
+      handleSelectConversation(newMessageNotification.contactId);
+      dismissNotification();
+    }
+  }, [newMessageNotification, handleSelectConversation, dismissNotification]);
+
+  const toggleSound = useCallback(() => {
+    const v = !soundOn;
+    setSoundOn(v);
+    setSoundEnabled(v);
+  }, [soundOn, setSoundEnabled]);
+
   const refreshActiveConversation = useCallback(async () => {
     await Promise.all([refetch(), refetchSelectedMessages()]);
   }, [refetch, refetchSelectedMessages]);
