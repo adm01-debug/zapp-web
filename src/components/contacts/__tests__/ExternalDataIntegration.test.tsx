@@ -7,35 +7,38 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const mockRpc = vi.fn();
 const mockFrom = vi.fn();
 
-vi.mock('@/integrations/supabase/externalClient', () => ({
-  externalSupabase: {
-    rpc: (...args: any[]) => mockRpc(...args),
-    from: (table: string) => {
-      mockFrom(table);
-      return {
-        select: vi.fn(() => ({
-          not: vi.fn(() => ({
-            limit: vi.fn(() => {
-              if (table === 'salespeople') {
-                return Promise.resolve({
-                  data: [
-                    { role: 'Closer' },
-                    { role: 'SDR' },
-                    { role: 'Gerente' },
-                    { role: '  Hybrid  ' },
-                    { role: '' },
-                    { role: null },
-                  ],
-                  error: null,
-                });
-              }
-              return Promise.resolve({ data: [], error: null });
-            }),
-          })),
+const mockExternalClient = {
+  rpc: (...args: any[]) => mockRpc(...args),
+  from: (table: string) => {
+    mockFrom(table);
+    return {
+      select: vi.fn(() => ({
+        not: vi.fn(() => ({
+          limit: vi.fn(() => {
+            if (table === 'salespeople') {
+              return Promise.resolve({
+                data: [
+                  { role: 'Closer' },
+                  { role: 'SDR' },
+                  { role: 'Gerente' },
+                  { role: '  Hybrid  ' },
+                  { role: '' },
+                  { role: null },
+                ],
+                error: null,
+              });
+            }
+            return Promise.resolve({ data: [], error: null });
+          }),
         })),
-      };
-    },
+      })),
+    };
   },
+};
+
+vi.mock('@/integrations/supabase/externalClient', () => ({
+  externalSupabase: mockExternalClient,
+  getExternalSupabase: () => mockExternalClient,
   isExternalConfigured: true,
 }));
 
