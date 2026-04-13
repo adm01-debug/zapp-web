@@ -190,7 +190,33 @@ export function MobileDrawerMenu({
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 overflow-y-auto px-2 pb-4 overscroll-contain">
+            <div className="flex-1 overflow-y-auto px-2 pb-4 overscroll-contain scroll-fade-y">
+              {/* Recentes */}
+              {!search.trim() && recentItems.length > 0 && (
+                <div className="mb-2">
+                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Recentes
+                  </p>
+                  {recentItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = currentView === item.id;
+                    return (
+                      <button
+                        key={`recent-${item.id}`}
+                        onClick={() => handleNav(item.id)}
+                        className={cn(
+                          'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm transition-colors touch-manipulation',
+                          'active:scale-[0.98]',
+                          isActive ? 'bg-primary/10 text-primary font-medium' : 'text-foreground/80 active:bg-muted/80'
+                        )}
+                      >
+                        <Icon className={cn('w-[18px] h-[18px] shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                        <span className="flex-1 text-left truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {filteredSections.map((section, sectionIdx) => (
                 <div key={section.title} className="mb-2">
                   <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
