@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { GenericEmptyState } from '@/components/ui/GenericEmptyState';
 import { ConnectionHealthPanel } from '@/components/diagnostics/ConnectionHealthPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

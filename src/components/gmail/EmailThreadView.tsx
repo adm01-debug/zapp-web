@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { GenericEmptyState } from '@/components/ui/GenericEmptyState';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
