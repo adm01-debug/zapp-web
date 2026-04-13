@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, CheckCircle2, XCircle, Loader2, History } from 'lucide-react';
+import { GenericEmptyState } from '@/components/ui/GenericEmptyState';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
