@@ -10,6 +10,7 @@ import { useContactEnrichedData } from '@/hooks/useContactEnrichedData';
 import { useConversationActions } from '@/hooks/useConversationActions';
 import { Accordion } from '@/components/ui/accordion';
 import { toast } from 'sonner';
+import { undoToast } from '@/lib/undoToast';
 import { KnowledgeBaseSearchPanel } from './KnowledgeBaseSearchPanel';
 import { AnalysisBadges } from './AnalysisBadges';
 
@@ -74,9 +75,27 @@ export function ContactDetails({ conversation, onClose }: ContactDetailsProps) {
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'edit': setEditDialogOpen(true); break;
-      case 'vip': toast.success('Contato marcado como VIP'); break;
-      case 'archive': toast.success('Contato arquivado'); break;
-      case 'block': toast.error('Contato bloqueado'); break;
+      case 'vip':
+        undoToast({
+          message: `${contact.name} marcado como VIP`,
+          icon: '⭐',
+          onUndo: () => toast.info('VIP removido'),
+        });
+        break;
+      case 'archive':
+        undoToast({
+          message: `${contact.name} arquivado`,
+          icon: '📦',
+          onUndo: () => toast.info('Contato restaurado'),
+        });
+        break;
+      case 'block':
+        undoToast({
+          message: `${contact.name} bloqueado`,
+          icon: '🚫',
+          onUndo: () => toast.info('Contato desbloqueado'),
+        });
+        break;
     }
   };
 
