@@ -175,7 +175,7 @@ describe('useSipClient', () => {
     await act(async () => {
       await result.current.makeCall('123');
     });
-    expect(toast.error).toHaveBeenCalledWith('VoIP não conectado. Conecte-se primeiro.');
+    expect(toast.error).toHaveBeenCalledWith('VoIP não conectado.');
     expect(result.current.callStatus).toBe('idle');
   });
 

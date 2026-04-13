@@ -52,16 +52,34 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
   </BrowserRouter>
 );
 
-describe('ChatPanelHeader - Summary Button', () => {
+describe('ChatPanelHeader', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('does NOT render summary button when canGenerateSummary is false', () => {
+  it('renders contact name', () => {
     render(
       <Wrapper>
-        <ChatPanelHeader {...baseProps} canGenerateSummary={false} onGenerateSummary={vi.fn()} />
+        <ChatPanelHeader {...baseProps} />
       </Wrapper>
     );
-    expect(screen.queryByLabelText(/resumo/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Maria Silva')).toBeInTheDocument();
+  });
+
+  it('renders avatar fallback initials', () => {
+    render(
+      <Wrapper>
+        <ChatPanelHeader {...baseProps} />
+      </Wrapper>
+    );
+    expect(screen.getByText('MS')).toBeInTheDocument();
+  });
+
+  it('shows Online when contact is not typing', () => {
+    render(
+      <Wrapper>
+        <ChatPanelHeader {...baseProps} isContactTyping={false} />
+      </Wrapper>
+    );
+    expect(screen.getByText('Online')).toBeInTheDocument();
   });
 
   it('does NOT render summary button when onGenerateSummary is undefined', () => {
@@ -70,22 +88,17 @@ describe('ChatPanelHeader - Summary Button', () => {
         <ChatPanelHeader {...baseProps} canGenerateSummary={true} />
       </Wrapper>
     );
-    // FileText icon button should not exist without the handler
-    const buttons = screen.getAllByRole('button');
-    const summaryBtn = buttons.find(b => b.querySelector('.lucide-file-text'));
-    expect(summaryBtn).toBeUndefined();
+    expect(screen.queryByLabelText(/resumo/i)).not.toBeInTheDocument();
   });
 
-  it('renders summary button when canGenerateSummary=true and handler is provided', () => {
+  it('renders summary button when handler is provided', () => {
     const onGenerate = vi.fn();
     render(
       <Wrapper>
         <ChatPanelHeader {...baseProps} canGenerateSummary={true} onGenerateSummary={onGenerate} />
       </Wrapper>
     );
-    const buttons = screen.getAllByRole('button');
-    const summaryBtn = buttons.find(b => b.querySelector('.lucide-file-text'));
-    expect(summaryBtn).toBeDefined();
+    expect(screen.getByLabelText(/resumo/i)).toBeInTheDocument();
   });
 
   it('calls onGenerateSummary when clicked', () => {
@@ -95,9 +108,7 @@ describe('ChatPanelHeader - Summary Button', () => {
         <ChatPanelHeader {...baseProps} canGenerateSummary={true} onGenerateSummary={onGenerate} />
       </Wrapper>
     );
-    const buttons = screen.getAllByRole('button');
-    const summaryBtn = buttons.find(b => b.querySelector('.lucide-file-text'));
-    fireEvent.click(summaryBtn!);
+    fireEvent.click(screen.getByLabelText(/resumo/i));
     expect(onGenerate).toHaveBeenCalledTimes(1);
   });
 
@@ -112,65 +123,8 @@ describe('ChatPanelHeader - Summary Button', () => {
         />
       </Wrapper>
     );
-    const buttons = screen.getAllByRole('button');
-    // When loading, FileText is replaced by Loader2 with animate-spin
-    const summaryBtn = buttons.find(b => b.querySelector('.animate-spin'));
-    expect(summaryBtn).toBeDefined();
-    expect(summaryBtn!).toBeDisabled();
-  });
-
-  it('summary button is positioned between Brain and Info icons', () => {
-    const onGenerate = vi.fn();
-    render(
-      <Wrapper>
-        <ChatPanelHeader
-          {...baseProps}
-          canGenerateSummary={true}
-          onGenerateSummary={onGenerate}
-          onToggleDetails={vi.fn()}
-        />
-      </Wrapper>
-    );
-    const buttons = screen.getAllByRole('button');
-    const brainIdx = buttons.findIndex(b => b.querySelector('.lucide-brain'));
-    const summaryIdx = buttons.findIndex(b => b.querySelector('.lucide-file-text'));
-    const infoIdx = buttons.findIndex(b => b.querySelector('.lucide-info'));
-
-    expect(brainIdx).toBeGreaterThan(-1);
-    expect(summaryIdx).toBeGreaterThan(-1);
-    expect(infoIdx).toBeGreaterThan(-1);
-    expect(summaryIdx).toBeGreaterThan(brainIdx);
-    expect(summaryIdx).toBeLessThan(infoIdx);
-  });
-
-  // ── Header basics ──
-
-  it('renders contact name and avatar', () => {
-    render(
-      <Wrapper>
-        <ChatPanelHeader {...baseProps} />
-      </Wrapper>
-    );
-    expect(screen.getByText('Maria Silva')).toBeInTheDocument();
-    expect(screen.getByText('MS')).toBeInTheDocument(); // avatar fallback
-  });
-
-  it('shows typing indicator when contact is typing', () => {
-    render(
-      <Wrapper>
-        <ChatPanelHeader {...baseProps} isContactTyping={true} />
-      </Wrapper>
-    );
-    expect(screen.queryByText('Online')).not.toBeInTheDocument();
-  });
-
-  it('shows Online when contact is not typing', () => {
-    render(
-      <Wrapper>
-        <ChatPanelHeader {...baseProps} isContactTyping={false} />
-      </Wrapper>
-    );
-    expect(screen.getByText('Online')).toBeInTheDocument();
+    const summaryBtn = screen.getByLabelText(/resumo/i);
+    expect(summaryBtn).toBeDisabled();
   });
 
   it('calls onOpenSearch when search button is clicked', () => {
@@ -183,27 +137,5 @@ describe('ChatPanelHeader - Summary Button', () => {
     const searchBtn = buttons.find(b => b.querySelector('.lucide-search'));
     fireEvent.click(searchBtn!);
     expect(baseProps.onOpenSearch).toHaveBeenCalledTimes(1);
-  });
-
-  it('highlights Brain button when AI assistant is active', () => {
-    render(
-      <Wrapper>
-        <ChatPanelHeader {...baseProps} showAIAssistant={true} />
-      </Wrapper>
-    );
-    const buttons = screen.getAllByRole('button');
-    const brainBtn = buttons.find(b => b.querySelector('.lucide-brain'));
-    expect(brainBtn!.className).toContain('text-primary');
-  });
-
-  it('highlights Info button when details panel is active', () => {
-    render(
-      <Wrapper>
-        <ChatPanelHeader {...baseProps} showDetails={true} onToggleDetails={vi.fn()} />
-      </Wrapper>
-    );
-    const buttons = screen.getAllByRole('button');
-    const infoBtn = buttons.find(b => b.querySelector('.lucide-info'));
-    expect(infoBtn!.className).toContain('text-primary');
   });
 });

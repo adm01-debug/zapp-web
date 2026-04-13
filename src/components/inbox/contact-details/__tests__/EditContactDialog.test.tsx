@@ -95,7 +95,8 @@ describe('EditContactDialog', () => {
 
   it('pre-fills job_title', () => {
     renderDialog();
-    expect(screen.getByDisplayValue('Dev')).toBeInTheDocument();
+    // job_title is a Select component, check the trigger text
+    expect(screen.getByText('Dev')).toBeInTheDocument();
   });
 
   it('pre-fills company', () => {

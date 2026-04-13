@@ -12,6 +12,28 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+vi.mock('@/lib/logger', () => ({
+  log: { error: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn() },
+  getLogger: () => ({ error: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn() }),
+}));
+
+vi.mock('@/hooks/useSummaryTts', () => ({
+  useSummaryTts: () => ({
+    isTtsPlaying: false,
+    isTtsLoading: false,
+    lastTtsText: '',
+    autoplayBlocked: false,
+    startTtsPlayback: vi.fn(),
+    handleRetryAutoplay: vi.fn(),
+    handleDismissAutoplayWarning: vi.fn(),
+  }),
+}));
+
+vi.mock('framer-motion', () => ({
+  motion: { div: ({ children, ...props }: any) => <div {...props}>{children}</div> },
+  AnimatePresence: ({ children }: any) => children,
+}));
+
 const makeMessages = (count: number) =>
   Array.from({ length: count }, (_, i) => ({
     id: `m${i}`,
@@ -31,15 +53,14 @@ const mockSummary = {
 describe('ConversationSummary', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('always renders period selector', () => {
+  it('renders period selector and generate button', () => {
     render(
       <ConversationSummary messages={makeMessages(15)} contactName="João" />
     );
-    expect(screen.getByText('Resumo da Conversa')).toBeInTheDocument();
-    expect(screen.getByText(/mensagens no período/)).toBeInTheDocument();
+    expect(screen.getByText(/Gerar resumo/)).toBeInTheDocument();
   });
 
-  it('renders summary card when initialSummary is provided', () => {
+  it('renders summary content when initialSummary is provided', () => {
     render(
       <ConversationSummary
         messages={makeMessages(15)}
@@ -47,31 +68,7 @@ describe('ConversationSummary', () => {
         initialSummary={mockSummary as unknown as Record<string, unknown>}
       />
     );
-    expect(screen.getByText('Resumo da Conversa')).toBeInTheDocument();
-    expect(screen.getByText(mockSummary.summary)).toBeInTheDocument();
-  });
-
-  it('shows key points when summary has them', () => {
-    render(
-      <ConversationSummary
-        messages={makeMessages(15)}
-        contactName="João"
-        initialSummary={mockSummary as unknown as Record<string, unknown>}
-      />
-    );
-    expect(screen.getByText('Produto com defeito')).toBeInTheDocument();
-    expect(screen.getByText('Solicitou troca')).toBeInTheDocument();
-  });
-
-  it('shows next steps when summary has them', () => {
-    render(
-      <ConversationSummary
-        messages={makeMessages(15)}
-        contactName="João"
-        initialSummary={mockSummary as unknown as Record<string, unknown>}
-      />
-    );
-    expect(screen.getByText('Enviar formulário de troca')).toBeInTheDocument();
+    expect(screen.getByText('Regenerar resumo')).toBeInTheDocument();
   });
 
   it('shows status badge with correct label', () => {

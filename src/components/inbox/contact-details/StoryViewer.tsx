@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2, Image as ImageIcon, Video, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatRelativeTime } from '@/lib/formatters';
 
 const DEFAULT_INSTANCE_NAME = 'wpp2';
 
@@ -41,7 +42,6 @@ const getStatusTime = (msg: WhatsAppStatusMessage) => {
   const ts = msg.messageTimestamp;
   if (!ts) return null;
   const date = new Date(typeof ts === 'string' ? parseInt(ts, 10) * 1000 : ts * 1000);
-  const { formatRelativeTime } = require('@/lib/formatters');
   return formatRelativeTime(date);
 };
 
