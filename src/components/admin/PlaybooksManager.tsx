@@ -182,10 +182,10 @@ export function PlaybooksManager() {
                         </div>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => openEdit(pb)}>
+                        <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => openEdit(pb)} aria-label="Editar playbook">
                           <Edit className="w-3 h-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => deletePlaybook(pb.id)}>
+                        <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => deletePlaybook(pb.id)} aria-label="Excluir playbook">
                           <Trash2 className="w-3 h-3 text-destructive" />
                         </Button>
                       </div>

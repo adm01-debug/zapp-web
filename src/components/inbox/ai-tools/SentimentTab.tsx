@@ -45,7 +45,7 @@ export function SentimentTab({ analysis, sentimentScore, currentSentiment, analy
                 <span className="text-xs text-muted-foreground">CSAT Estimado</span>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className={`h-3.5 w-3.5 ${star <= (analysis.customerSatisfaction || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-muted'}`} />
+                    <Star key={star} className={`h-3.5 w-3.5 ${star <= (analysis.customerSatisfaction || 0) ? 'fill-warning text-warning' : 'text-muted'}`} />
                   ))}
                 </div>
               </div>

@@ -20,10 +20,10 @@ export interface AIProvider {
 
 export const PROVIDER_LABELS: Record<ProviderType, { label: string; icon: typeof Brain; color: string }> = {
   lovable_ai: { label: 'Lovable AI', icon: Cloud, color: 'bg-primary/15 text-primary' },
-  openai_compatible: { label: 'OpenAI Compatível', icon: Brain, color: 'bg-emerald-500/15 text-emerald-600' },
-  google_gemini: { label: 'Google Gemini', icon: Zap, color: 'bg-blue-500/15 text-blue-600' },
-  custom_webhook: { label: 'Webhook Customizado', icon: Webhook, color: 'bg-orange-500/15 text-orange-600' },
-  custom_agent: { label: 'Agente IA Externo', icon: Bot, color: 'bg-purple-500/15 text-purple-600' },
+  openai_compatible: { label: 'OpenAI Compatível', icon: Brain, color: 'bg-success/15 text-success' },
+  google_gemini: { label: 'Google Gemini', icon: Zap, color: 'bg-primary/15 text-primary' },
+  custom_webhook: { label: 'Webhook Customizado', icon: Webhook, color: 'bg-warning/15 text-warning' },
+  custom_agent: { label: 'Agente IA Externo', icon: Bot, color: 'bg-accent/30 text-accent-foreground' },
 };
 
 export const USE_FOR_OPTIONS = [

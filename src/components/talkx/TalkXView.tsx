@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { GenericEmptyState } from '@/components/ui/GenericEmptyState';
 import { AnimatePresence } from 'framer-motion';
 import {
   Zap, Plus, Play, Eye, Loader2, MessageSquare,
@@ -246,13 +247,8 @@ export default function TalkXView() {
               </CardContent>
             </Card>
           ) : filteredCampaigns.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
-              <Search className="w-8 h-8 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">Nenhuma campanha encontrada</p>
-              <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}>
-                Limpar filtros
-              </Button>
-            </div>
+            <GenericEmptyState icon={Search} title="Sem campanhas" description="Nenhuma campanha encontrada com os filtros atuais"
+              actionLabel="Limpar filtros" onAction={() => { setSearchQuery(''); setStatusFilter('all'); }} className="py-8" />
           ) : (
             <div className="grid gap-3">
               <AnimatePresence mode="popLayout">
