@@ -144,6 +144,28 @@ export interface ParsedMessage {
 }
 
 export function parseMessageContent(message: Record<string, unknown> | undefined, data: Record<string, unknown>): ParsedMessage {
+  const unwrapMessage = (value: Record<string, unknown> | undefined): Record<string, unknown> | undefined => {
+    if (!value) return undefined;
+
+    const ephemeral = (value.ephemeralMessage as Record<string, unknown> | undefined)?.message;
+    if (isRecord(ephemeral)) return unwrapMessage(ephemeral);
+
+    const viewOnce = (value.viewOnceMessage as Record<string, unknown> | undefined)?.message;
+    if (isRecord(viewOnce)) return unwrapMessage(viewOnce);
+
+    const viewOnceV2 = (value.viewOnceMessageV2 as Record<string, unknown> | undefined)?.message;
+    if (isRecord(viewOnceV2)) return unwrapMessage(viewOnceV2);
+
+    const viewOnceV2Ext = (value.viewOnceMessageV2Extension as Record<string, unknown> | undefined)?.message;
+    if (isRecord(viewOnceV2Ext)) return unwrapMessage(viewOnceV2Ext);
+
+    const edited = (value.editedMessage as Record<string, unknown> | undefined)?.message;
+    if (isRecord(edited)) return unwrapMessage(edited);
+
+    return value;
+  };
+
+  message = unwrapMessage(message);
   let content = '';
   let messageType = 'text';
   let mediaUrl: string | null = null;

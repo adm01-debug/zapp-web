@@ -1,7 +1,7 @@
 // Message-specific handlers for evolution-webhook: incoming, outgoing, sticker, transcription
 
 import {
-  isRecord, normalizePhone,
+  isRecord, normalizePhone, resolveBestJid,
   getConnectionByInstance, getContactByPhone, fetchProfilePicFromApi, persistProfilePicture,
 } from "./evolution-helpers.ts";
 import { persistMediaToStorage, persistMediaViaApi, parseMessageContent } from "./evolution-media.ts";
@@ -15,8 +15,16 @@ export async function handleOutgoingWhatsAppMessage(
   const { data: existingMessage } = await supabase.from('messages').select('id').eq('external_id', externalId).maybeSingle();
   if (existingMessage) return;
 
-  const phone = normalizePhone(key.remoteJid);
-  if (!phone || key.remoteJid.includes('@g.us')) return;
+  const payloadKey = isRecord(data.key) ? data.key : null;
+  const bestJid = resolveBestJid(
+    key.remoteJid,
+    payloadKey?.remoteJid as string | undefined,
+    payloadKey?.remoteJidAlt as string | undefined,
+    data.remoteJid as string | undefined,
+    data.remoteJidAlt as string | undefined,
+  );
+  const phone = normalizePhone(bestJid ?? undefined);
+  if (!phone || bestJid?.includes('@g.us')) return;
 
   const connection = await getConnectionByInstance(supabase, instance);
   if (!connection) return;
@@ -67,7 +75,16 @@ export async function handleIncomingMessage(
   key: { remoteJid: string; fromMe: boolean; id: string },
   supabaseUrl: string, supabaseServiceKey: string
 ) {
-  const phone = key.remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '');
+  const payloadKey = isRecord(data.key) ? data.key : null;
+  const bestJid = resolveBestJid(
+    key.remoteJid,
+    payloadKey?.remoteJid as string | undefined,
+    payloadKey?.remoteJidAlt as string | undefined,
+    data.remoteJid as string | undefined,
+    data.remoteJidAlt as string | undefined,
+  );
+  const phone = normalizePhone(bestJid ?? undefined);
+  if (!phone || bestJid?.includes('@g.us')) return;
   const message = data.message as Record<string, unknown> | undefined;
   const parsed = parseMessageContent(message, data);
   if (parsed.messageType === 'reaction') return;
