@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useReactionMutations } from './reactions/useReactionMutations';
@@ -10,8 +11,26 @@ export type { MessageReaction, UseMessageReactionsOptions };
 export { useMessagesReactions } from './reactions/useBatchReactions';
 
 export function useMessageReactions(messageId: string, options?: UseMessageReactionsOptions) {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const lastRefreshKeyRef = useRef(options?.refreshKey);
+
+  // Realtime subscription for this message's reactions
+  useEffect(() => {
+    if (!messageId) return;
+    const channel = supabase
+      .channel(`reactions:${messageId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'message_reactions',
+        filter: `message_id=eq.${messageId}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['message-reactions', messageId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [messageId, queryClient]);
 
   const { data: profile } = useQuery({
     queryKey: ['my-profile-reactions', user?.id],
