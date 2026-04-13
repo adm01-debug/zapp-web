@@ -21,7 +21,7 @@ const mockConnections = [
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn((table: string) => {
-      if (table === 'channel_connections') {
+      if (table === 'channel_connections_safe') {
         return {
           select: vi.fn(() => ({
             eq: vi.fn().mockResolvedValue({ data: mockConnections, error: null }),
