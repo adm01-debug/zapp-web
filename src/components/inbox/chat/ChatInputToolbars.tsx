@@ -62,6 +62,7 @@ export function SecondaryToolbar({
       <AIRewriteButton inputValue={inputValue} onRewrite={handleRewrite} contactName={contactName} />
       <StickerPicker onSendSticker={onSendSticker} />
       <AudioMemePicker onSendAudio={onSendAudioMeme} />
+      <VoiceChangerPicker onSendAudio={onSendAudioMeme} />
       <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
       {onOpenCatalog && (
         <Tooltip>
