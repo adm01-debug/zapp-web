@@ -115,31 +115,35 @@ export const connectionsNav: readonly NavItemConfig[] = [
 // ── Analytics & Reports ───────────────────────────────────
 export const analyticsNav: readonly NavItemConfig[] = [
   { id: 'reports', icon: FileBarChart, label: 'Relatórios' },
-  { id: 'auto-export', icon: ClipboardList, label: 'Export Auto' },
   { id: 'warroom', icon: AlertTriangle, label: 'War Room' },
   { id: 'sentiment', icon: HeartPulse, label: 'Sentimento' },
-  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
-  { id: 'achievements', icon: Trophy, label: 'Conquistas' },
-  { id: 'diagnostics', icon: Compass, label: 'Diagnóstico' },
-  { id: 'performance', icon: Cpu, label: 'Performance' },
-  { id: 'telemetry', icon: BarChartHorizontal, label: 'Telemetria BD' },
-  { id: 'ai-usage', icon: BrainCircuit, label: 'Consumo IA' },
   { id: 'nps', icon: Gauge, label: 'NPS' },
   { id: 'sla', icon: Target, label: 'SLA' },
+  { id: 'achievements', icon: Trophy, label: 'Conquistas' },
 ] as const;
 
 // ── System & Admin ────────────────────────────────────────
 export const systemNav: readonly NavItemConfig[] = [
-  { id: 'audit-logs', icon: ScrollText, label: 'Auditoria' },
-  { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
+  { id: 'settings', icon: Settings, label: 'Configurações' },
   { id: 'security', icon: Shield, label: 'Segurança' },
+  { id: 'privacy', icon: ShieldCheck, label: 'LGPD' },
   { id: 'admin', icon: UserCog, label: 'Admin' },
+  { id: 'themes', icon: Palette, label: 'Skins' },
+  { id: 'docs', icon: BookOpen, label: 'Documentação' },
+] as const;
+
+// ── Advanced / Admin-only (accessible via Admin view or search) ──
+export const advancedNav: readonly NavItemConfig[] = [
+  { id: 'audit-logs', icon: ScrollText, label: 'Auditoria' },
+  { id: 'auto-export', icon: ClipboardList, label: 'Export Auto' },
+  { id: 'transcriptions', icon: Mic, label: 'Transcrições' },
+  { id: 'diagnostics', icon: Compass, label: 'Diagnóstico' },
+  { id: 'performance', icon: Cpu, label: 'Performance' },
+  { id: 'telemetry', icon: BarChartHorizontal, label: 'Telemetria BD' },
+  { id: 'ai-usage', icon: BrainCircuit, label: 'Consumo IA' },
   { id: 'public-api', icon: Code2, label: 'API Pública' },
   { id: 'gmail-webhook', icon: Webhook, label: 'Gmail Webhook' },
   { id: 'media-migration', icon: HardDrive, label: 'Migração Mídia' },
-  { id: 'themes', icon: Palette, label: 'Skins' },
-  { id: 'docs', icon: BookOpen, label: 'Documentação' },
-  { id: 'settings', icon: Settings, label: 'Configurações' },
 ] as const;
 
 // ── Group definitions for collapsible sidebar ─────────────
