@@ -1,4 +1,5 @@
-import { useRef, forwardRef, useImperativeHandle, useCallback, useMemo, memo } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useCallback, useMemo, memo, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { getLogger } from '@/lib/logger';
 
 const log = getLogger('ChatMessagesArea');
@@ -41,11 +42,12 @@ export interface ChatMessagesAreaRef {
   scrollToMessage: (messageId: string) => void;
 }
 
-export const ChatMessagesArea = memo(forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(({
+export const ChatMessagesArea = memo(forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>>(({
   messages, isContactTyping, typingUserName, ttsLoading, ttsPlaying, ttsMessageId,
   instanceName, contactJid, contactAvatar, onSpeak, onStop, onReply, onForward, onCopy,
   onScrollToMessage, onInteractiveButtonClick, onEditStart, highlightedMessageIds, activeHighlightId, searchQuery,
 }, ref) => {
+  const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -79,6 +81,33 @@ export const ChatMessagesArea = memo(forwardRef<ChatMessagesAreaRef, ChatMessage
       }
     },
   }));
+
+  const messageIds = useMemo(() => messages.map((message) => message.id).filter(Boolean), [messages]);
+  const messageIdsSet = useMemo(() => new Set(messageIds), [messageIds]);
+  const messageIdsKey = useMemo(() => messageIds.join(','), [messageIds]);
+
+  useEffect(() => {
+    if (messageIds.length === 0) return;
+
+    const channel = supabase
+      .channel(`chat-reactions:${messageIds[0] ?? 'empty'}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'message_reactions',
+      }, (payload) => {
+        const nextMessageId = (payload.new as { message_id?: string } | null)?.message_id;
+        const prevMessageId = (payload.old as { message_id?: string } | null)?.message_id;
+        const reactionMessageId = nextMessageId ?? prevMessageId;
+
+        if (!reactionMessageId || !messageIdsSet.has(reactionMessageId)) return;
+
+        queryClient.invalidateQueries({ queryKey: ['message-reactions', reactionMessageId] });
+      })
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [messageIds.length, messageIdsKey, messageIdsSet, queryClient]);
 
   const groupedMessages = useMemo(() => {
     return messages.reduce((groups, message) => {

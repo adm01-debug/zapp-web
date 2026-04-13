@@ -15,9 +15,10 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
   const { user } = useAuth();
   const lastRefreshKeyRef = useRef(options?.refreshKey);
 
-  // Realtime subscription for this message's reactions
+  // Optional per-message realtime subscription (disabled in chat view to avoid one channel per bubble)
   useEffect(() => {
-    if (!messageId) return;
+    if (!messageId || options?.disableRealtime) return;
+
     const channel = supabase
       .channel(`reactions:${messageId}`)
       .on('postgres_changes', {
@@ -29,8 +30,9 @@ export function useMessageReactions(messageId: string, options?: UseMessageReact
         queryClient.invalidateQueries({ queryKey: ['message-reactions', messageId] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [messageId, queryClient]);
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [messageId, options?.disableRealtime, queryClient]);
 
   const { data: profile } = useQuery({
     queryKey: ['my-profile-reactions', user?.id],

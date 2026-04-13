@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -6,10 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { SmilePlus, X } from 'lucide-react';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 
-// WhatsApp supported reactions
 const WHATSAPP_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
-
-// Extended reactions for more options
 const EXTENDED_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '🎉', '👏', '💯', '✅', '❌'];
 
 interface MessageReactionsProps {
@@ -21,10 +18,11 @@ interface MessageReactionsProps {
   externalId?: string;
   senderType?: 'contact' | 'agent';
   refreshKey?: string;
+  disableRealtime?: boolean;
 }
 
-export function MessageReactions({ 
-  messageId, 
+export function MessageReactions({
+  messageId,
   isSent,
   showExtended = false,
   instanceName,
@@ -32,17 +30,24 @@ export function MessageReactions({
   externalId,
   senderType,
   refreshKey,
+  disableRealtime,
 }: MessageReactionsProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { 
-    reactions, 
-    addReaction, 
-    removeReaction, 
+  const {
+    reactions,
+    addReaction,
+    removeReaction,
     hasReacted,
-    currentProfileId 
-  } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType, refreshKey });
+    currentProfileId,
+  } = useMessageReactions(messageId, {
+    instanceName,
+    contactJid,
+    externalId,
+    senderType,
+    refreshKey,
+    disableRealtime,
+  });
 
-  // Group reactions by emoji
   const groupedReactions = reactions.reduce((acc, reaction) => {
     if (!acc[reaction.emoji]) {
       acc[reaction.emoji] = {
@@ -52,35 +57,36 @@ export function MessageReactions({
         hasCurrentUser: false,
       };
     }
+
     acc[reaction.emoji].count++;
     acc[reaction.emoji].users.push(reaction.user_name || 'Usuário');
+
     if (reaction.user_id === currentProfileId) {
       acc[reaction.emoji].hasCurrentUser = true;
     }
+
     return acc;
   }, {} as Record<string, { emoji: string; count: number; users: string[]; hasCurrentUser: boolean }>);
 
   const reactionsList = Object.values(groupedReactions);
+  const availableReactions = showExtended ? EXTENDED_REACTIONS : WHATSAPP_REACTIONS;
 
   const handleReact = async (emoji: string) => {
     const existingReaction = groupedReactions[emoji];
-    
-    // If user already reacted with this emoji, remove it
+
     if (existingReaction?.hasCurrentUser) {
       await removeReaction(emoji);
     } else {
       await addReaction(emoji);
     }
+
     setIsOpen(false);
   };
 
-  const availableReactions = showExtended ? EXTENDED_REACTIONS : WHATSAPP_REACTIONS;
-
   return (
     <div className={cn('flex items-center gap-1 flex-wrap', isSent ? 'justify-end' : 'justify-start')}>
-      {/* Existing reactions */}
       <TooltipProvider>
-        {reactionsList.map((reaction, index) => (
+        {reactionsList.map((reaction) => (
           <Tooltip key={reaction.emoji}>
             <TooltipTrigger asChild>
               <button
@@ -96,8 +102,8 @@ export function MessageReactions({
                 <span className="text-sm">{reaction.emoji}</span>
                 {reaction.count > 1 && (
                   <span className={cn(
-                    "text-[10px] font-medium",
-                    reaction.hasCurrentUser ? "text-primary" : "text-muted-foreground"
+                    'text-[10px] font-medium',
+                    reaction.hasCurrentUser ? 'text-primary' : 'text-muted-foreground'
                   )}>
                     {reaction.count}
                   </span>
@@ -114,30 +120,29 @@ export function MessageReactions({
         ))}
       </TooltipProvider>
 
-      {/* Add reaction button */}
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
             className={cn(
               'p-1 rounded-full transition-all hover:scale-110 active:scale-90',
               'hover:bg-muted/80 text-muted-foreground hover:text-foreground',
-              reactionsList.length === 0 
-                ? 'opacity-0 group-hover:opacity-100' 
+              reactionsList.length === 0
+                ? 'opacity-0 group-hover:opacity-100'
                 : 'opacity-60 hover:opacity-100'
             )}
           >
             <SmilePlus className="w-3.5 h-3.5" />
           </button>
         </PopoverTrigger>
-        <PopoverContent 
-          className="w-auto p-2 bg-popover" 
+        <PopoverContent
+          className="w-auto p-2 bg-popover"
           align={isSent ? 'end' : 'start'}
           sideOffset={4}
         >
           <div className="flex flex-wrap items-center gap-1 max-w-[200px]">
             {availableReactions.map((emoji) => {
               const userHasReacted = hasReacted(emoji);
-              
+
               return (
                 <motion.button
                   key={emoji}
@@ -145,10 +150,10 @@ export function MessageReactions({
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleReact(emoji)}
                   className={cn(
-                    "p-1.5 rounded-md transition-all text-lg relative",
-                    userHasReacted 
-                      ? "bg-primary/10 ring-1 ring-primary/30" 
-                      : "hover:bg-muted"
+                    'p-1.5 rounded-md transition-all text-lg relative',
+                    userHasReacted
+                      ? 'bg-primary/10 ring-1 ring-primary/30'
+                      : 'hover:bg-muted'
                   )}
                 >
                   {emoji}
@@ -171,7 +176,6 @@ export function MessageReactions({
   );
 }
 
-// Quick reaction bar that appears on hover — WhatsApp Web style
 interface QuickReactionBarProps {
   messageId: string;
   isSent?: boolean;
@@ -180,14 +184,30 @@ interface QuickReactionBarProps {
   externalId?: string;
   senderType?: 'contact' | 'agent';
   refreshKey?: string;
+  disableRealtime?: boolean;
 }
 
-export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, externalId, senderType, refreshKey }: QuickReactionBarProps) {
+export function QuickReactionBar({
+  messageId,
+  isSent,
+  instanceName,
+  contactJid,
+  externalId,
+  senderType,
+  refreshKey,
+  disableRealtime,
+}: QuickReactionBarProps) {
   const [showPicker, setShowPicker] = useState(false);
-  const { addReaction, removeReaction, hasReacted } = useMessageReactions(messageId, { instanceName, contactJid, externalId, senderType, refreshKey });
+  const { addReaction, removeReaction, hasReacted } = useMessageReactions(messageId, {
+    instanceName,
+    contactJid,
+    externalId,
+    senderType,
+    refreshKey,
+    disableRealtime,
+  });
 
   const handleReact = async (emoji: string) => {
-    // Toggle: remove if already reacted, add otherwise
     if (hasReacted(emoji)) {
       await removeReaction(emoji);
     } else {
@@ -198,9 +218,9 @@ export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, 
 
   return (
     <div className={cn(
-      "absolute -top-9 flex items-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-20",
-      showPicker && "opacity-100",
-      isSent ? "right-0" : "left-0"
+      'absolute -top-9 flex items-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-20',
+      showPicker && 'opacity-100',
+      isSent ? 'right-0' : 'left-0'
     )}>
       <motion.div
         initial={{ opacity: 0, y: 4, scale: 0.95 }}
@@ -213,20 +233,17 @@ export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, 
             key={emoji}
             onClick={() => handleReact(emoji)}
             className={cn(
-              "w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted/80 hover:scale-125 transition-all text-base",
-              hasReacted(emoji) && "bg-primary/10 ring-1 ring-primary/30"
+              'w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted/80 hover:scale-125 transition-all text-base',
+              hasReacted(emoji) && 'bg-primary/10 ring-1 ring-primary/30'
             )}
           >
             {emoji}
           </button>
         ))}
-        
-        {/* "+" button for extended reactions */}
+
         <Popover open={showPicker} onOpenChange={setShowPicker}>
           <PopoverTrigger asChild>
-            <button
-              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted/80 transition-all text-muted-foreground hover:text-foreground"
-            >
+            <button className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted/80 transition-all text-muted-foreground hover:text-foreground">
               <SmilePlus className="w-4 h-4" />
             </button>
           </PopoverTrigger>
@@ -241,8 +258,8 @@ export function QuickReactionBar({ messageId, isSent, instanceName, contactJid, 
                   key={emoji}
                   onClick={() => handleReact(emoji)}
                   className={cn(
-                    "w-8 h-8 flex items-center justify-center rounded-md text-lg hover:bg-muted transition-all hover:scale-110",
-                    hasReacted(emoji) && "bg-primary/10 ring-1 ring-primary/30"
+                    'w-8 h-8 flex items-center justify-center rounded-md text-lg hover:bg-muted transition-all hover:scale-110',
+                    hasReacted(emoji) && 'bg-primary/10 ring-1 ring-primary/30'
                   )}
                 >
                   {emoji}
