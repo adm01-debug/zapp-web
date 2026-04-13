@@ -14,4 +14,5 @@ export interface UseMessageReactionsOptions {
   externalId?: string;
   senderType?: 'contact' | 'agent';
   refreshKey?: string;
+  disableRealtime?: boolean;
 }

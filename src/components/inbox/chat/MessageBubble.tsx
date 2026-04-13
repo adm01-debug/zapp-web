@@ -105,133 +105,10 @@ export function MessageBubble({
                 externalId={message.external_id}
                 senderType={message.sender}
                 refreshKey={message.updated_at}
+                disableRealtime
               />
             </AnimatePresence>
-
-            {/* Pill toolbar — WhatsApp Web style */}
-            <MessageHoverToolbar
-              message={message}
-              isSent={isSent}
-              instanceName={instanceName}
-              contactJid={contactJid}
-              ttsLoading={ttsLoading}
-              ttsPlaying={ttsPlaying}
-              ttsMessageId={ttsMessageId}
-              onReply={onReply}
-              onForward={onForward}
-              onCopy={onCopy}
-              onSpeak={onSpeak}
-              onStop={onStop}
-              onEditStart={onEditStart}
-              onMessageDeleted={onMessageDeleted}
-            />
-
-            {/* Message bubble */}
-            {message.is_deleted ? (
-              <DeletedMessagePlaceholder isSent={isSent} content={message.content} />
-            ) : (
-              <motion.div
-                whileHover={{ scale: 1.005 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className={cn(
-                  'relative transition-all overflow-hidden',
-                  (message.type === 'image' || message.type === 'video') && !message.content ? 'p-0' : 'px-3.5 py-2',
-                  isSent
-                    ? cn('bg-primary text-primary-foreground shadow-sm',
-                        isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-br-md',
-                        isFirstInGroup && !isLastInGroup && 'rounded-2xl rounded-br-sm',
-                        !isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-tr-sm rounded-br-md',
-                        !isFirstInGroup && !isLastInGroup && 'rounded-xl rounded-tr-sm rounded-br-sm')
-                    : cn('bg-card border border-border/30 text-foreground shadow-[var(--shadow-sm)]',
-                        isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-bl-md',
-                        isFirstInGroup && !isLastInGroup && 'rounded-2xl rounded-bl-sm',
-                        !isFirstInGroup && isLastInGroup && 'rounded-2xl rounded-tl-sm rounded-bl-md',
-                        !isFirstInGroup && !isLastInGroup && 'rounded-xl rounded-tl-sm rounded-bl-sm')
-                )}
-              >
-                {message.replyTo && <QuotedMessage replyTo={message.replyTo} isSent={isSent} onClick={() => onScrollToMessage(message.replyTo!.messageId)} />}
-                {message.buttonResponse && <ButtonResponseBadge buttonTitle={message.buttonResponse.buttonTitle} isSent={isSent} />}
-                {message.type === 'interactive' && message.interactive && <InteractiveMessageDisplay interactive={message.interactive} isSent={isSent} onButtonClick={onInteractiveButtonClick} />}
-
-                {message.type === 'image' && message.mediaUrl && (
-                  <div className={cn("overflow-hidden", message.content ? "mb-1.5 -mx-1 -mt-0.5 rounded-xl" : "w-full")}>
-                    <MessageImage src={message.mediaUrl} />
-                  </div>
-                )}
-
-                {message.type === 'video' && message.mediaUrl && (
-                  <div className="mb-1.5"><VideoPreview url={message.mediaUrl} caption={message.content} isSent={isSent} /></div>
-                )}
-
-                {message.type === 'audio' && message.mediaUrl && (
-                  <div className="mb-1">
-                    <AudioMessagePlayer audioUrl={message.mediaUrl} messageId={message.id} isSent={isSent} existingTranscription={message.transcription} transcriptionStatus={message.transcriptionStatus} />
-                    {searchQuery && highlightedMessageIds?.has(message.id) && message.transcription && (
-                      <p className="text-[11px] mt-1 px-1 italic text-muted-foreground"><HighlightedText text={message.transcription} query={searchQuery} /></p>
-                    )}
-                  </div>
-                )}
-
-                {message.type === 'document' && message.mediaUrl && (
-                  <div className="mb-1.5">
-                    <DocumentPreview url={message.mediaUrl} fileName={searchQuery && highlightedMessageIds?.has(message.id) && message.content ? undefined : (message.content || 'documento')} isSent={isSent} />
-                    {searchQuery && highlightedMessageIds?.has(message.id) && message.content && (
-                      <p className="text-[12px] mt-1 px-1"><HighlightedText text={message.content} query={searchQuery} /></p>
-                    )}
-                  </div>
-                )}
-
-                {message.type === 'location' && message.location && <LocationMessageDisplay location={message.location} isSent={isSent} />}
-
-                {message.type === 'sticker' && message.mediaUrl && (
-                  <div className="mb-1 group/sticker relative">
-                    <img src={message.mediaUrl} alt="Sticker" className="max-w-[160px] max-h-[160px] object-contain drop-shadow-lg" loading="lazy" />
-                    {!isSent && (
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            const { data: existing } = await supabase.from('stickers').select('id').eq('image_url', message.mediaUrl!).maybeSingle();
-                            if (existing) { toast({ title: 'Figurinha já está na biblioteca!' }); return; }
-                            toast({ title: '🔍 Classificando figurinha com IA...' });
-                            let category = 'recebidas';
-                            try {
-                              const { data: classifyData, error: classifyErr } = await supabase.functions.invoke('classify-sticker', { body: { image_url: message.mediaUrl } });
-                              if (!classifyErr && classifyData?.category) category = classifyData.category;
-                            } catch (err) { log.error('Unexpected error in MessageBubble:', err); }
-                            await supabase.from('stickers').insert({ name: `Recebida ${new Date().toLocaleDateString('pt-BR')}`, image_url: message.mediaUrl!, category, is_favorite: false, use_count: 0 });
-                            toast({ title: `✅ Figurinha salva como "${category}"!` });
-                          } catch { toast({ title: 'Erro ao salvar figurinha', variant: 'destructive' }); }
-                        }}
-                        className="absolute bottom-1 right-1 opacity-0 group-hover/sticker:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-md hover:bg-background border border-border/50"
-                        title="Salvar na biblioteca"
-                      >
-                        <Download className="w-3.5 h-3.5 text-foreground" />
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {message.content && message.type !== 'audio' && message.type !== 'location' && message.type !== 'video' && message.type !== 'document' && message.type !== 'sticker' && (
-                  <p className="text-[13.5px] whitespace-pre-wrap leading-[1.45]">
-                    {searchQuery && highlightedMessageIds?.has(message.id) ? <HighlightedText text={message.content} query={searchQuery} /> : message.content}
-                  </p>
-                )}
-
-                <div className={cn(
-                  'flex items-center justify-end gap-1 mt-0.5 -mb-0.5',
-                  (message.type === 'image' || message.type === 'video') && !message.content
-                    ? 'absolute bottom-2 right-3 text-white drop-shadow-md'
-                    : isSent ? 'text-primary-foreground/60' : 'text-muted-foreground/70',
-                  (message.type === 'image' || message.type === 'video') && !message.content && 'px-3.5 pb-1'
-                )}>
-                  {message.isEdited && <span className="text-[9px] italic mr-0.5">editada</span>}
-                  <span className="text-[10px] font-medium">{formatMessageTime(message.timestamp)}</span>
-                  {isSent && <MessageStatusIcon status={message.status} />}
-                </div>
-              </motion.div>
-            )}
-
+...
             <MessageReactions
               messageId={message.id}
               isSent={isSent}
@@ -240,6 +117,7 @@ export function MessageBubble({
               externalId={message.external_id}
               senderType={message.sender}
               refreshKey={message.updated_at}
+              disableRealtime
             />
           </div>
 
