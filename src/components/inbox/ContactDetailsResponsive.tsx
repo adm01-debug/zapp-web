@@ -1,5 +1,5 @@
-import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { ContactDetails } from './ContactDetails';
 import type { Conversation } from '@/types/chat';
 
@@ -9,19 +9,19 @@ interface Props {
 }
 
 /**
- * Renders ContactDetails as a side panel on desktop (≥768px)
- * and as a bottom Drawer (Vaul) on mobile (<768px).
+ * Renders ContactDetails as a side panel on desktop
+ * and as a bottom Sheet on mobile.
  */
 export function ContactDetailsResponsive({ conversation, onClose }: Props) {
-  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isMobile = useIsMobile();
 
   if (isMobile) {
     return (
-      <Drawer open onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DrawerContent className="max-h-[85vh]">
+      <Sheet open onOpenChange={(open) => { if (!open) onClose(); }}>
+        <SheetContent side="bottom" className="max-h-[85vh] p-0 rounded-t-2xl">
           <ContactDetails conversation={conversation} onClose={onClose} />
-        </DrawerContent>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
     );
   }
 
