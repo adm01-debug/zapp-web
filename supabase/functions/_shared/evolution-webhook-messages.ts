@@ -98,10 +98,22 @@ export async function handleIncomingMessage(
     let avatarUrl: string | null = null;
     const picUrl = await fetchProfilePicFromApi(instance, phone);
     if (picUrl) avatarUrl = await persistProfilePicture(supabase, phone, picUrl);
-    const { data: newContact } = await supabase.from('contacts').insert({
+    const { data: newContact, error: insertErr } = await supabase.from('contacts').insert({
       phone, name: (data.pushName as string) || phone, avatar_url: avatarUrl, whatsapp_connection_id: connection.id,
-    }).select('id, avatar_url').single();
-    contact = newContact;
+    }).select('id, avatar_url, assigned_to, name').single();
+    if (insertErr && insertErr.code === '23505') {
+      // Duplicate phone — contact exists with another connection; fetch it and update connection
+      const phonesVariants = [phone, `+${phone}`, phone.replace(/^\+/, '')];
+      const { data: existing } = await supabase.from('contacts').select('id, avatar_url, assigned_to, name')
+        .in('phone', [...new Set(phonesVariants)]).limit(1).maybeSingle();
+      if (existing) {
+        contact = existing;
+        await supabase.from('contacts').update({ whatsapp_connection_id: connection.id, updated_at: new Date().toISOString() }).eq('id', existing.id);
+        console.log(`[CONTACT] Relinked existing contact ${existing.id} to connection ${connection.id}`);
+      }
+    } else {
+      contact = newContact;
+    }
   } else if (!contact.avatar_url || contact.avatar_url.includes('pps.whatsapp.net')) {
     const picUrl = await fetchProfilePicFromApi(instance, phone);
     if (picUrl) {
