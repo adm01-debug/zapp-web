@@ -232,10 +232,7 @@ export function EmailThreadView({ thread, onBack }: EmailThreadViewProps) {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : threadMessages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Mail className="w-12 h-12 mb-3 opacity-30" />
-              <p className="text-sm">Nenhuma mensagem encontrada</p>
-            </div>
+            <GenericEmptyState icon={Mail} title="Sem mensagens" description="Nenhuma mensagem encontrada nesta thread" className="py-8" />
           ) : (
             threadMessages.map((msg, i) => (
               <EmailMessageCard

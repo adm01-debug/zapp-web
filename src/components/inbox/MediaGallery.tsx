@@ -126,7 +126,7 @@ export function MediaGallery({ contactId, open, onOpenChange }: MediaGalleryProp
             {isLoading ? (
               <div className="grid grid-cols-4 gap-2 p-2">{[...Array(8)].map((_, i) => <Skeleton key={i} className="aspect-square rounded-lg" />)}</div>
             ) : filteredItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground"><Image className="w-12 h-12 mb-4 opacity-50" /><p>Nenhuma mídia encontrada</p></div>
+              <GenericEmptyState icon={Image} title="Sem mídias" description="Nenhuma mídia encontrada nesta conversa" className="py-8" />
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-4 gap-2 p-2">
                 {filteredItems.map((item) => (

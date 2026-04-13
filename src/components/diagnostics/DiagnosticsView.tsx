@@ -147,10 +147,8 @@ export function DiagnosticsView() {
           <TabsContent value="connections" className="px-6 py-4 space-y-4">
             {connections.length === 0 ? (
               <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <WifiOff className="w-12 h-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium text-foreground">Nenhuma conexão encontrada</p>
-                  <p className="text-sm text-muted-foreground">Configure uma conexão WhatsApp para começar.</p>
+                <CardContent className="py-0">
+                  <GenericEmptyState icon={WifiOff} title="Nenhuma conexão encontrada" description="Configure uma conexão WhatsApp para começar." className="py-8" />
                 </CardContent>
               </Card>
             ) : connections.map((conn, i) => (
