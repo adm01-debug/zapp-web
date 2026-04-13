@@ -11,6 +11,7 @@ import { MentionAutocomplete, useMentions } from '@/components/inbox/chat/Mentio
 import { MarkdownPreview } from '@/components/inbox/chat/MarkdownPreview';
 import { StickerPicker } from '@/components/inbox/StickerPicker';
 import { AudioMemePicker } from '@/components/inbox/AudioMemePicker';
+import { VoiceChangerPicker } from '@/components/inbox/VoiceChangerPicker';
 import { CustomEmojiPicker } from '@/components/inbox/CustomEmojiPicker';
 import { AudioRecorder } from '@/components/inbox/AudioRecorder';
 import { VoiceDictationButton } from '@/components/mobile/VoiceDictationButton';
@@ -82,6 +83,7 @@ export function TeamChatInputArea({
       <AIRewriteButton inputValue={text} onRewrite={(newText) => setText(newText)} />
       <StickerPicker onSendSticker={onSendSticker} />
       <AudioMemePicker onSendAudio={onSendAudioMeme} />
+      <VoiceChangerPicker onSendAudio={onSendAudioMeme} />
       <CustomEmojiPicker onSendEmoji={onSendCustomEmoji} />
       <RichTextToggle active={showRichToolbar} onToggle={() => setShowRichToolbar(!showRichToolbar)} />
       <VoiceDictationButton onTranscript={handleVoiceDictation} disabled={isRecordingAudio} />
