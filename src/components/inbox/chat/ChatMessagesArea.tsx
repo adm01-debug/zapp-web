@@ -41,7 +41,7 @@ export interface ChatMessagesAreaRef {
   scrollToMessage: (messageId: string) => void;
 }
 
-export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(({
+export const ChatMessagesArea = memo(forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(({
   messages, isContactTyping, typingUserName, ttsLoading, ttsPlaying, ttsMessageId,
   instanceName, contactJid, contactAvatar, onSpeak, onStop, onReply, onForward, onCopy,
   onScrollToMessage, onInteractiveButtonClick, onEditStart, highlightedMessageIds, activeHighlightId, searchQuery,
@@ -147,6 +147,6 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
       <div ref={messagesEndRef} />
     </div>
   );
-});
+}));
 
 ChatMessagesArea.displayName = 'ChatMessagesArea';
