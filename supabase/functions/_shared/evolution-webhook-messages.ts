@@ -1,7 +1,7 @@
 // Message-specific handlers for evolution-webhook: incoming, outgoing, sticker, transcription
 
 import {
-  isRecord, normalizePhone, resolveBestJid,
+  isRecord, normalizePhone, resolveEventJid,
   getConnectionByInstance, getContactByPhone, fetchProfilePicFromApi, persistProfilePicture,
 } from "./evolution-helpers.ts";
 import { persistMediaToStorage, persistMediaViaApi, parseMessageContent } from "./evolution-media.ts";
@@ -9,22 +9,19 @@ import { persistMediaToStorage, persistMediaViaApi, parseMessageContent } from "
 // deno-lint-ignore no-explicit-any
 export async function handleOutgoingWhatsAppMessage(
   supabase: any, instance: string, data: Record<string, unknown>,
-  key: { remoteJid: string; fromMe: boolean; id: string },
+  key: { remoteJid?: string; remoteJidAlt?: string; participant?: string; participantAlt?: string; fromMe: boolean; id: string },
 ) {
   const externalId = key.id;
   const { data: existingMessage } = await supabase.from('messages').select('id').eq('external_id', externalId).maybeSingle();
   if (existingMessage) return;
 
   const payloadKey = isRecord(data.key) ? data.key : null;
-  const bestJid = resolveBestJid(
-    key.remoteJid,
-    payloadKey?.remoteJid as string | undefined,
-    payloadKey?.remoteJidAlt as string | undefined,
-    data.remoteJid as string | undefined,
-    data.remoteJidAlt as string | undefined,
-  );
+  const bestJid = resolveEventJid(key, payloadKey, data);
   const phone = normalizePhone(bestJid ?? undefined);
-  if (!phone || bestJid?.includes('@g.us')) return;
+  if (!phone || bestJid?.includes('@g.us')) {
+    console.log(`[FROM_ME] Ignored message ${externalId}: unresolved recipient`, { bestJid });
+    return;
+  }
 
   const connection = await getConnectionByInstance(supabase, instance);
   if (!connection) return;
@@ -72,19 +69,16 @@ export async function handleOutgoingWhatsAppMessage(
 // deno-lint-ignore no-explicit-any
 export async function handleIncomingMessage(
   supabase: any, instance: string, data: Record<string, unknown>,
-  key: { remoteJid: string; fromMe: boolean; id: string },
+  key: { remoteJid?: string; remoteJidAlt?: string; participant?: string; participantAlt?: string; fromMe: boolean; id: string },
   supabaseUrl: string, supabaseServiceKey: string
 ) {
   const payloadKey = isRecord(data.key) ? data.key : null;
-  const bestJid = resolveBestJid(
-    key.remoteJid,
-    payloadKey?.remoteJid as string | undefined,
-    payloadKey?.remoteJidAlt as string | undefined,
-    data.remoteJid as string | undefined,
-    data.remoteJidAlt as string | undefined,
-  );
+  const bestJid = resolveEventJid(key, payloadKey, data);
   const phone = normalizePhone(bestJid ?? undefined);
-  if (!phone || bestJid?.includes('@g.us')) return;
+  if (!phone || bestJid?.includes('@g.us')) {
+    console.log(`[INCOMING] Ignored message ${key.id}: unresolved sender`, { bestJid });
+    return;
+  }
   const message = data.message as Record<string, unknown> | undefined;
   const parsed = parseMessageContent(message, data);
   if (parsed.messageType === 'reaction') return;
@@ -164,7 +158,10 @@ export async function handleIncomingMessage(
     status: 'received', created_at: messageCreatedAt,
   }).select('id').single();
 
-  if (msgError) { console.error('Error inserting message:', msgError); return; }
+  if (msgError) {
+    console.error('Error inserting message:', { msgError, externalId: key.id, bestJid, phone, messageType, content });
+    return;
+  }
   if (messageType === 'audio' && mediaUrl && insertedMessage) await handleAudioTranscription(supabase, contact.id, insertedMessage.id, mediaUrl, supabaseUrl, supabaseServiceKey);
 }
 

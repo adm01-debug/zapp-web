@@ -1,7 +1,7 @@
 // Message-related webhook handlers: send, update, delete, set, edited
 
 import {
-  isRecord, normalizePhone, toEventRecords, shouldUpdateStatus,
+  isRecord, normalizePhone, resolveEventJid, toEventRecords, shouldUpdateStatus,
   getConnectionByInstance, getContactByPhone,
 } from "./evolution-helpers.ts";
 
@@ -29,7 +29,7 @@ export async function handleSendMessage(supabase: any, instance: string, data: u
     }
 
     if (!updatedMessageId) {
-      const phone = normalizePhone(key.remoteJid);
+      const phone = normalizePhone(resolveEventJid(key, entry, baseData) ?? undefined);
       const connection = await getConnectionByInstance(supabase, instance);
 
       if (connection?.id && phone) {
@@ -92,7 +92,7 @@ export async function handleMessagesUpdate(supabase: any, instance: string, data
       } else {
         let contactId: string | null = null;
         if (connection?.id) {
-          const remoteJid = (entry.remoteJid as string) || ((isRecord(entry.key) ? entry.key.remoteJid : null) as string);
+          const remoteJid = resolveEventJid(entry, baseData);
           if (remoteJid) {
             const phone = normalizePhone(remoteJid);
             if (phone) {
@@ -128,8 +128,9 @@ export async function handleMessagesDelete(supabase: any, instance: string, data
 
     if (!updatedMessages?.length) {
       let contactId: string | null = null;
-      if (connection?.id && key.remoteJid) {
-        const phone = normalizePhone(key.remoteJid);
+      const bestJid = resolveEventJid(key, entry, baseData);
+      if (connection?.id && bestJid) {
+        const phone = normalizePhone(bestJid);
         if (phone) { const contact = await getContactByPhone(supabase, phone, connection.id); contactId = contact?.id ?? null; }
       }
 
@@ -155,12 +156,13 @@ export async function handleMessagesSet(supabase: any, instance: string, data: u
   for (const entry of messages) {
     const keySource = isRecord(entry.key) ? entry.key : null;
     const key = keySource as { remoteJid?: string; fromMe?: boolean; id?: string } | null;
-    if (!key?.id || !key.remoteJid || key.remoteJid.endsWith('@g.us')) { skipped++; continue; }
+    const bestJid = resolveEventJid(key, entry);
+    if (!key?.id || !bestJid || bestJid.endsWith('@g.us')) { skipped++; continue; }
 
     const { data: existing } = await supabase.from('messages').select('id').eq('external_id', key.id).maybeSingle();
     if (existing) { skipped++; continue; }
 
-    const phone = normalizePhone(key.remoteJid);
+    const phone = normalizePhone(bestJid);
     if (!phone) { skipped++; continue; }
     const contact = await getContactByPhone(supabase, phone, connection.id);
     if (!contact) { skipped++; continue; }
