@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobilePullToRefreshIndicator } from '@/components/mobile/MobilePullToRefresh';
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { MessageSquare, RefreshCw, Search as SearchIcon, MessageSquarePlus } from 'lucide-react';
+import { MessageSquare, RefreshCw, Search as SearchIcon, MessageSquarePlus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
